@@ -472,23 +472,28 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     func setupSermonsInSeries(sermon:Sermon?)
     {
-        if let sermons = Globals.sermons {
-            var seriesSermons = [Sermon]()
-            
-            if ((sermon != nil) && sermon!.hasSeries()) {
-                for index in 0..<sermons.count {
-                    if (sermons[index].series == sermon?.series) {
-                        seriesSermons.append(sermons[index])
-                    }
-                }
-            } else {
-                if (sermon != nil) {
-                    seriesSermons.append(sermon!)
-                }
-            }
-            
-            sermonsInSeries = sortSermonsByYear(seriesSermons, sorting: Globals.sorting)
-        }
+        let seriesSermons = Globals.sermons?.filter({ (testSermon:Sermon) -> Bool in
+            return testSermon.hasSeries() && (testSermon.series == sermon?.series)
+        })
+        sermonsInSeries = sortSermonsByYear(seriesSermons, sorting: Globals.sorting)
+
+//        if let sermons = Globals.sermons {
+//            var seriesSermons = [Sermon]()
+//            
+//            if ((sermon != nil) && sermon!.hasSeries()) {
+//                for index in 0..<sermons.count {
+//                    if (sermons[index].series == sermon?.series) {
+//                        seriesSermons.append(sermons[index])
+//                    }
+//                }
+//            } else {
+//                if (sermon != nil) {
+//                    seriesSermons.append(sermon!)
+//                }
+//            }
+//            
+//            sermonsInSeries = sortSermonsByYear(seriesSermons, sorting: Globals.sorting)
+//        }
     }
     
     private func sermonNotesAndSlidesConstraintMinMax(height:CGFloat) -> (min:CGFloat,max:CGFloat)
@@ -1344,10 +1349,12 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             let defaults = NSUserDefaults.standardUserDefaults()
             let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_DETAIL_KEY)
             if (selectedSermonKey != nil) {
-                for sermon in Globals.sermons! {
-                    if (sermon.keyBase == selectedSermonKey!) {
-                        selectedSermon = sermon
-                        break
+                if let sermons = Globals.sermons {
+                    for sermon in sermons {
+                        if (sermon.keyBase == selectedSermonKey!) {
+                            selectedSermon = sermon
+                            break
+                        }
                     }
                 }
             }
@@ -1967,10 +1974,11 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         let (minConstraintConstant,maxConstraintConstant) = sermonNotesAndSlidesConstraintMinMax(self.view.bounds.height)
         
         if let ratio = ratioForSplitView(splitView) {
-            print("\(self.view.bounds.height)")
+//            print("\(self.view.bounds.height)")
             newConstraintConstant = self.view.bounds.height * ratio
         } else {
-            newConstraintConstant = minConstraintConstant + tableView.rowHeight * CGFloat(sermonsInSeries!.count - 1)
+            let numberOfAdditionalRows = CGFloat(sermonsInSeries != nil ? sermonsInSeries!.count - 1 : 0)
+            newConstraintConstant = minConstraintConstant + tableView.rowHeight * numberOfAdditionalRows
             
             if newConstraintConstant > ((maxConstraintConstant+minConstraintConstant)/2) {
                 newConstraintConstant = (maxConstraintConstant+minConstraintConstant)/2
@@ -2105,15 +2113,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        print("viewDidAppear sermonNotesAndSlides.bounds: \(sermonNotesAndSlides.bounds)")
 //        print("viewDidAppear tableView.bounds: \(tableView.bounds)")
 
-//        setupViewSplit()
-
-        //The next two statements are to setup the normal display after going full screen.
-        //They must appear in viewDidAppear after geometries are setup.
-//        if (splitViewController != nil) {
-            splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic
-        
-//            updateUI() // This will crash the player!  It MUST be in viewWillAppear
-//        }
+        if (splitViewController != nil) && (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
+            if (Globals.sermons == nil) {
+                splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
+            } else {
+                splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+            }
+        } else {
+            splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+        }
         
         scrollToSermon(selectedSermon,select:true,position:UITableViewScrollPosition.Top)
     }

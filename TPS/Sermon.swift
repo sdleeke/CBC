@@ -632,7 +632,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     
     func checkNotes() -> Bool
     {
-        if !hasNotes() {
+        if !hasNotes() && Reachability.isConnectedToNetwork() {
             let testString = "tp150705a"
             let testNotes = Constants.TRANSCRIPT_PREFIX + audio!.substringToIndex(testString.endIndex) + Constants.PDF_FILE_EXTENSION
             //                print("Notes file s/b: \(testNotes)")
@@ -652,12 +652,12 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     
     func hasNotes(check:Bool) -> Bool
     {
-        return Reachability.isConnectedToNetwork() ? checkNotes() : hasNotes()
+        return check ? checkNotes() : hasNotes()
     }
     
     func checkSlides() -> Bool
     {
-        if hasSlides() {
+        if !hasSlides() && Reachability.isConnectedToNetwork() {
             let testString = "tp150705a"
             let testSlides = audio!.substringToIndex(testString.endIndex) + Constants.PDF_FILE_EXTENSION
             //                print("Slides file s/b: \(testSlides)")
@@ -679,7 +679,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     
     func hasSlides(check:Bool) -> Bool
     {
-        return Reachability.isConnectedToNetwork() ? checkSlides() : hasSlides()
+        return check ? checkSlides() : hasSlides()
     }
     
     func tagsArray() -> [String]

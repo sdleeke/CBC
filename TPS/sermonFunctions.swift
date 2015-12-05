@@ -210,6 +210,21 @@ func loadSermonDicts() -> [[String:String]]?
     return nil
 }
 
+func cancelAllDownloads()
+{
+    for sermon in Globals.sermons! {
+        if sermon.download.active {
+            sermon.download.task?.cancel()
+            sermon.download.task = nil
+            
+            sermon.download.totalBytesWritten = 0
+            sermon.download.totalBytesExpectedToWrite = 0
+            
+            sermon.download.state = .none
+        }
+    }
+}
+
 func loadDefaults()
 {
     loadSermonSettings()

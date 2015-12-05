@@ -8,6 +8,7 @@
 
 import UIKit
 import AVFoundation
+import MediaPlayer
 
 //extension UINavigationBar {
 //    public override func sizeThatFits(size: CGSize) -> CGSize {
@@ -983,6 +984,136 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
     }
     
+    func mpPlayerLoadStateDidChange(notification:NSNotification)
+    {
+        let player = notification.object as! MPMoviePlayerController
+        
+        /* Enough data has been buffered for playback to continue uninterrupted. */
+        
+        let loadstate:UInt8 = UInt8(player.loadState.rawValue)
+        let loadvalue:UInt8 = UInt8(MPMovieLoadState.PlaythroughOK.rawValue)
+        
+        // If there is a sermon that was playing before and we want to start back at the same place,
+        // the PlayPause button must NOT be active until loadState & PlaythroughOK == 1.
+        
+        //        println("\(loadstate)")
+        //        println("\(loadvalue)")
+        
+        if ((loadstate & loadvalue) == (1<<1)) {
+            print("AppDelegate mpPlayerLoadStateDidChange.MPMovieLoadState.PlaythroughOK")
+            //should be called only once, only for  first time audio load.
+            if(!Globals.sermonLoaded) {
+                print("\(Globals.sermonPlaying!.currentTime!)")
+                print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
+                
+                let defaults = NSUserDefaults.standardUserDefaults()
+                if let currentTime = defaults.stringForKey(Constants.CURRENT_TIME) {
+                    Globals.sermonPlaying!.currentTime = currentTime
+                }
+                
+                print("\(Globals.sermonPlaying!.currentTime!)")
+                print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
+                
+                Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!)
+                
+                Globals.sermonLoaded = true
+            }
+            
+            var myvc:MyViewController?
+            
+            if let svc = splitViewController {
+                //iPad
+                if let nvc = svc.viewControllers[1] as? UINavigationController {
+                    myvc = nvc.topViewController as? MyViewController
+                }
+            } else {
+                myvc = self.navigationController?.topViewController as? MyViewController
+            }
+            myvc?.spinner.stopAnimating()
+            
+            NSNotificationCenter.defaultCenter().removeObserver(self)
+        }
+    }
+    
+    func setupSermonPlaying()
+    {
+        setupPlayer(Globals.sermonPlaying)
+        
+        if (!Globals.sermonLoaded) {
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: "mpPlayerLoadStateDidChange:", name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
+        }
+    }
+    
+    func loadSermons()
+    {
+        let sermonDicts = loadSermonDicts()
+        
+        Globals.sermons = sermonsFromSermonDicts(sermonDicts)
+        
+        Globals.sermonTags = tagsFromSermons(Globals.sermons)
+        
+        loadDefaults()
+        
+        Globals.sermonsNeedGroupsSetup = true
+        sortAndGroupSermons()
+        
+        tableView.reloadData()
+        
+        setupSermonPlaying()
+        
+        let defaults = NSUserDefaults.standardUserDefaults()
+        
+        if let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_KEY) {
+            if let sermons = Globals.activeSermons {
+                for sermon in sermons {
+                    if (sermon.keyBase == selectedSermonKey) {
+                        selectedSermon = sermon
+                        selectOrScrollToSermon(self.selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.Middle)
+                        break
+                    }
+                }
+            }
+        }
+        
+        //iPad Only
+        if let navCon = self.splitViewController?.viewControllers[1] as? UINavigationController {
+            navCon.popToRootViewControllerAnimated(true)
+            if let mvc = navCon.viewControllers[0] as? MyViewController {
+                if let selectedSermonDetailKey = defaults.stringForKey(Constants.SELECTED_SERMON_DETAIL_KEY) {
+                    if let sermons = Globals.activeSermons {
+                        for sermon in sermons {
+                            if (sermon.keyBase == selectedSermonDetailKey) {
+                                mvc.selectedSermon = sermon
+                                mvc.updateUI()
+                                mvc.scrollToSermon(mvc.selectedSermon,select:true,position:UITableViewScrollPosition.Top)
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        self.refreshControl!.endRefreshing()
+        
+        UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+        
+//        if Globals.testing {
+//            testSermonsTagsAndSeries()
+//            
+//            testSermonsBooksAndSeries()
+//            
+//            testSermonsForSeries()
+//            
+//            //We can test whether the PDF's we have, and the ones we don't have, can be downloaded (since we can programmatically create the missing PDF filenames).
+//            testSermonsPDFs(testExisting: false, testMissing: true, showTesting: false)
+//            
+//            //Test whether the audio starts to download
+//            //If we can download at all, we assume we can download it all, which allows us to test all sermons to see if they can be downloaded/played.
+//            testSermonsAudioFiles()
+//        }
+    }
+    
     func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didFinishDownloadingToURL location: NSURL)
     {
         var success = true
@@ -998,7 +1129,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         //Get documents directory URL
         let destinationURL = documentsURL()?.URLByAppendingPathComponent(filename)
         // Check if file exist
-        if (!NSFileManager.defaultManager().fileExistsAtPath(destinationURL!.path!)){
+        if (fileManager.fileExistsAtPath(destinationURL!.path!)){
             do {
                 try NSFileManager.defaultManager().removeItemAtURL(destinationURL!)
             } catch _ {
@@ -1024,61 +1155,13 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 
                 Globals.mpPlayer?.pause()
                 
-                Globals.mpPlayer?.view.hidden = true
-                Globals.mpPlayer?.view.removeFromSuperview()
-                
-                let sermonDicts = loadSermonDicts()
-                Globals.sermons = sermonsFromSermonDicts(sermonDicts)
-                Globals.sermonTags = tagsFromSermons(Globals.sermons)
-                
                 updateUserDefaultsCurrentTimeExact()
                 saveSermonSettings()
                 
-                loadDefaults()
+                Globals.mpPlayer?.view.hidden = true
+                Globals.mpPlayer?.view.removeFromSuperview()
                 
-                Globals.sermonsNeedGroupsSetup = true
-                sortAndGroupSermons()
-                
-                self.tableView.reloadData()
-                
-                UIApplication.sharedApplication().delegate?.performSelector("setupSermonPlaying")
-                
-                let defaults = NSUserDefaults.standardUserDefaults()
-                
-                if let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_KEY) {
-                    if let sermons = Globals.activeSermons {
-                        for sermon in sermons {
-                            if (sermon.keyBase == selectedSermonKey) {
-                                self.selectedSermon = sermon
-                                self.selectOrScrollToSermon(self.selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.Middle)
-                                break
-                            }
-                        }
-                    }
-                }
-                
-                //iPad Only
-                if let navCon = self.splitViewController?.viewControllers[1] as? UINavigationController {
-                    navCon.popToRootViewControllerAnimated(true)
-                    if let mvc = navCon.viewControllers[0] as? MyViewController {
-                        if let selectedSermonDetailKey = defaults.stringForKey(Constants.SELECTED_SERMON_DETAIL_KEY) {
-                            if let sermons = Globals.activeSermons {
-                                for sermon in sermons {
-                                    if (sermon.keyBase == selectedSermonDetailKey) {
-                                        mvc.selectedSermon = sermon
-                                        mvc.updateUI()
-                                        mvc.scrollToSermon(mvc.selectedSermon,select:true,position:UITableViewScrollPosition.Top)
-                                        break
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                self.refreshControl!.endRefreshing()
-                
-                UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+                self.loadSermons()
             })
         } else {
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
@@ -1136,26 +1219,18 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     }
     
     func handleRefresh(refreshControl: UIRefreshControl) {
-        // Do some reloading of data and update the table view's data source
-        // Fetch more objects from a web service, for example...
+        cancelAllDownloads()
         
-        //        println("handleRefresh")
-        
-        for sermon in Globals.sermons! {
-            if sermon.download.active {
-                //            download.task?.cancelByProducingResumeData({ (data: NSData?) -> Void in
-                //            })
-                sermon.download.task?.cancel()
-                sermon.download.task = nil
-                
-                sermon.download.totalBytesWritten = 0
-                sermon.download.totalBytesExpectedToWrite = 0
-                
-                sermon.download.state = .none
+        if let svc = self.splitViewController {
+            //iPad
+            if let nvc = svc.viewControllers[1] as? UINavigationController {
+                if let myvc = nvc.topViewController as? MyViewController {
+                    myvc.selectedSermon = nil
+                    myvc.updateUI()
+                }
             }
         }
         
-        //Download new JSON
         downloadJSON()
     }
 
@@ -1392,11 +1467,11 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     {
         switch Globals.showing! {
         case Constants.ALL:
-            searchBar.placeholder = Globals.sermonTags![Globals.sermonTags!.count - 1]
+            searchBar.placeholder = Globals.sermonTags?[Globals.sermonTags!.count - 1]
             break
             
         case Constants.TAGGED:
-            searchBar.placeholder = Globals.sermonTagsSelected!
+            searchBar.placeholder = Globals.sermonTagsSelected
             break
             
         default:
@@ -1421,6 +1496,16 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         
         setupSearchBar()
         
+        if (splitViewController != nil) && (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
+            if (Globals.sermons == nil) {
+                splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
+            } else {
+                splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+            }
+        } else {
+            splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+        }
+
         setupTitle()
         
         navigationController?.toolbarHidden = false
@@ -1446,6 +1531,10 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
         
+        if Globals.sermons == nil {
+            loadSermons()
+        }
+
         Globals.loadedEnoughToDeepLink = true
         
         if (Globals.deepLinkWaiting) {

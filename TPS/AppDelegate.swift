@@ -13,148 +13,10 @@ import MediaPlayer
 
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, NSURLSessionDownloadDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { //, NSURLSessionDownloadDelegate {
 
     var window: UIWindow?
     
-    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
-    {
-    }
-    
-    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didFinishDownloadingToURL location: NSURL)
-    {
-    }
-    
-    func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?)
-    {
-    }
-    
-    func testSermonsAudioFiles()
-    {
-        print("Testing the availability of sermon audio that we DO have in the sermonDicts - start")
-        
-        //This function doesn't work when the session and downloadTasks array aren't in Globals.  Not sure why.
-        //Also tried to put the downloadTask partial downloading in the first loop where the download task is created
-        //and couldn't get it to work.  That failure may have been related to not using Globals for session and downloadTasks.  I don't know.
-        
-        let session = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration(), delegate: self, delegateQueue: nil)
-        
-        var counter = 1
-        var downloadTasks = [NSURLSessionDownloadTask]()
-        
-        for sermon in Globals.sermons! {
-            print("Testing \(counter) \(sermon.title!)")
-            
-            if (sermon.hasAudio()) {
-                print("No Audio file for: \(sermon.title)")
-            } else {
-                let audioURL = Constants.BASE_AUDIO_URL + sermon.audio!
-                let downloadRequest = NSMutableURLRequest(URL: NSURL(string: audioURL)!)
-
-                var downloadTask : NSURLSessionDownloadTask
-                downloadTask = session.downloadTaskWithRequest(downloadRequest)
-                downloadTask.taskDescription = sermon.date! + Constants.SINGLE_SPACE_STRING + sermon.service! + Constants.SINGLE_SPACE_STRING + sermon.title!
-
-                //Don't do this here as we need the complete list of sermons tasks for downloading so we can find the one that fails to download
-                //                downloadTask.resume()
-                downloadTasks.append(downloadTask)
-            }
-            
-            counter++
-        }
-
-        counter = 1
-        for downloadTask in downloadTasks {
-            downloadTask.resume()
-            
-            var whileCount = 1
-            repeat {
-                //Stop as soon as we konw we can download from the file.
-                //Which means that if we can't download we'll be stuck in this loop and we'll know which one
-                //didn't download by finding the last println before the hang and finding that in the
-                //list of downloadTasks being created and it will be the next one that failed.
-                
-                //If the download stops, sleep more.
-                NSThread.sleepForTimeInterval(0.5 * Double(whileCount))
-                
-                whileCount++
-            } while (downloadTask.countOfBytesReceived == 0) || (downloadTask.countOfBytesExpectedToReceive == 0)
-            
-            //Let the user know
-            print("Downloaded \(counter) \(downloadTask.countOfBytesReceived) of \(downloadTask.countOfBytesExpectedToReceive) for \(downloadTask.taskDescription)")
-            
-            //Then cancel the task and go on to the next
-            downloadTask.cancel()
-            
-            counter++
-        }
-        
-        session.invalidateAndCancel()
-        
-        print("Testing the availability of sermon audio that we DO have in the sermonDicts - end")
-    }
-    
-    func mpPlayerLoadStateDidChange(notification:NSNotification)
-    {
-        let player = notification.object as! MPMoviePlayerController
-        
-        /* Enough data has been buffered for playback to continue uninterrupted. */
-        
-        let loadstate:UInt8 = UInt8(player.loadState.rawValue)
-        let loadvalue:UInt8 = UInt8(MPMovieLoadState.PlaythroughOK.rawValue)
-        
-        // If there is a sermon that was playing before and we want to start back at the same place,
-        // the PlayPause button must NOT be active until loadState & PlaythroughOK == 1.
-        
-        //        println("\(loadstate)")
-        //        println("\(loadvalue)")
-        
-        if ((loadstate & loadvalue) == (1<<1)) {
-            print("AppDelegate mpPlayerLoadStateDidChange.MPMovieLoadState.PlaythroughOK")
-            //should be called only once, only for  first time audio load.
-            if(!Globals.sermonLoaded) {
-                print("\(Globals.sermonPlaying!.currentTime!)")
-                print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
-                
-                let defaults = NSUserDefaults.standardUserDefaults()
-                if let currentTime = defaults.stringForKey(Constants.CURRENT_TIME) {
-                    Globals.sermonPlaying!.currentTime = currentTime
-                }
-
-                print("\(Globals.sermonPlaying!.currentTime!)")
-                print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
-
-                Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!)
-                
-                var myvc:MyViewController?
-                
-                //iPad
-                if let rvc = self.window?.rootViewController as? UISplitViewController {
-                    //            println("rvc = UISplitViewController")
-                    if let nvc = rvc.viewControllers[1] as? UINavigationController {
-                        myvc = nvc.topViewController as? MyViewController
-                    }
-                }
-                
-                //iPhone
-                if let rvc = self.window?.rootViewController as? UINavigationController {
-                    //            println("rvc = UINavigationController")
-                    myvc = rvc.topViewController as? MyViewController
-                }
-                
-                if (myvc != nil) {
-                    //                    println("myvc = MyViewController")
-                    myvc!.spinner.stopAnimating()
-                }
-                
-                Globals.sermonLoaded = true
-            }
-            
-            NSNotificationCenter.defaultCenter().removeObserver(self)
-        }
-    }
-
-
     func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool
     {
         // This should be rationalized with the code in MyTableViewController to have one function (somewhere) so we aren't duplicating it.
@@ -529,44 +391,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, N
 
         UIApplication.sharedApplication().beginReceivingRemoteControlEvents()
         
-        let sermonDicts = loadSermonDicts()
-        Globals.sermons = sermonsFromSermonDicts(sermonDicts)
-        Globals.sermonTags = tagsFromSermons(Globals.sermons)
-        
-        if Globals.testing {
-            testSermonsTagsAndSeries()
-            
-            testSermonsBooksAndSeries()
-
-            testSermonsForSeries()
-           
-            //We can test whether the PDF's we have, and the ones we don't have, can be downloaded (since we can programmatically create the missing PDF filenames).
-            testSermonsPDFs(testExisting: false, testMissing: true, showTesting: false)
-
-            //Test whether the audio starts to download
-            //If we can download at all, we assume we can download it all, which allows us to test all sermons to see if they can be downloaded/played.
-            testSermonsAudioFiles()
-        }
-
-        loadDefaults()
-
-        Globals.sermonsNeedGroupsSetup = true
-        sortAndGroupSermons()
-        
-        setupSermonPlaying()
-
         return true
     }
 
-    func setupSermonPlaying()
-    {
-        setupPlayer(Globals.sermonPlaying)
-        
-        if (!Globals.sermonLoaded) {
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: "mpPlayerLoadStateDidChange:", name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
-        }
-    }
-    
     func applicationWillResignActive(application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
