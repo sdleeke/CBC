@@ -350,8 +350,29 @@ class WebViewController: UIViewController, WKNavigationDelegate {
         }
     }
     
+    func setupSplitViewController()
+    {
+        if (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
+            if (Globals.sermons == nil) {
+                splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
+            } else {
+                splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+            }
+        } else {
+            if let nvc = self.splitViewController?.viewControllers[1] as? UINavigationController {
+                if let _ = nvc.topViewController as? WebViewController {
+                    splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
+                } else {
+                    splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                }
+            }
+        }
+    }
+    
     override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator)
     {
+        setupSplitViewController()
+        
         captureContentOffsetAndZoomScale()
 
         coordinator.animateAlongsideTransition({ (UIViewControllerTransitionCoordinatorContext) -> Void in

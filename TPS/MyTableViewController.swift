@@ -1094,7 +1094,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             }
         }
         
-        self.refreshControl!.endRefreshing()
+        self.refreshControl?.endRefreshing()
         
         UIApplication.sharedApplication().networkActivityIndicatorVisible = false
         
@@ -1491,21 +1491,32 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         }
     }
     
-    override func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        setupSearchBar()
-        
-        if (splitViewController != nil) && (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
+    func setupSplitViewController()
+    {
+        if (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
             if (Globals.sermons == nil) {
                 splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
             } else {
                 splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
             }
         } else {
-            splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+            if let nvc = self.splitViewController?.viewControllers[1] as? UINavigationController {
+                if let _ = nvc.topViewController as? WebViewController {
+                    splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
+                } else {
+                    splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                }
+            }
         }
-
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        setupSearchBar()
+        
+        setupSplitViewController()
+        
         setupTitle()
         
         navigationController?.toolbarHidden = false
@@ -1701,7 +1712,10 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 
     }
 
-    override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator) {
+    override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator)
+    {
+        setupSplitViewController()
+        
         if (splitViewController == nil) {
             if (UIDeviceOrientationIsLandscape(UIDevice.currentDevice().orientation)) {
                 navigationItem.title = Constants.CBC_TITLE_LONG

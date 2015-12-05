@@ -472,10 +472,12 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     func setupSermonsInSeries(sermon:Sermon?)
     {
-        let seriesSermons = Globals.sermons?.filter({ (testSermon:Sermon) -> Bool in
-            return testSermon.hasSeries() && (testSermon.series == sermon?.series)
-        })
-        sermonsInSeries = sortSermonsByYear(seriesSermons, sorting: Globals.sorting)
+        if (sermon != nil) {
+            let seriesSermons = Globals.sermons?.filter({ (testSermon:Sermon) -> Bool in
+                return sermon!.hasSeries() ? (testSermon.series == sermon!.series) : (testSermon.keyBase == sermon!.keyBase)
+            })
+            sermonsInSeries = sortSermonsByYear(seriesSermons, sorting: Globals.sorting)
+        }
 
 //        if let sermons = Globals.sermons {
 //            var seriesSermons = [Sermon]()
@@ -1883,6 +1885,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator)
     {
+        setupSplitViewController()
+        
         captureContentOffsetAndZoomScale()
         
         coordinator.animateAlongsideTransition({ (UIViewControllerTransitionCoordinatorContext) -> Void in
@@ -2107,21 +2111,32 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         updateUI()
     }
     
-    override func viewDidAppear(animated: Bool) {
-        super.viewDidAppear(animated)
-
-//        print("viewDidAppear sermonNotesAndSlides.bounds: \(sermonNotesAndSlides.bounds)")
-//        print("viewDidAppear tableView.bounds: \(tableView.bounds)")
-
-        if (splitViewController != nil) && (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
+    func setupSplitViewController()
+    {
+        if (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
             if (Globals.sermons == nil) {
                 splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
             } else {
                 splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
             }
         } else {
-            splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+            if let nvc = self.splitViewController?.viewControllers[1] as? UINavigationController {
+                if let _ = nvc.topViewController as? WebViewController {
+                    splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
+                } else {
+                    splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                }
+            }
         }
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
+
+//        print("viewDidAppear sermonNotesAndSlides.bounds: \(sermonNotesAndSlides.bounds)")
+//        print("viewDidAppear tableView.bounds: \(tableView.bounds)")
+
+        setupSplitViewController()
         
         scrollToSermon(selectedSermon,select:true,position:UITableViewScrollPosition.Top)
     }

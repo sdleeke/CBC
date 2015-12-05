@@ -622,10 +622,8 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
         NSURLCache.sharedURLCache().removeAllCachedResponses()
     }
     
-    override func didRotateFromInterfaceOrientation(fromInterfaceOrientation: UIInterfaceOrientation) {
-        //This only matters on an iPhone where the text may have scrolled
-//        tomPenningtonBio.scrollRectToVisible(CGRectMake(0, 0, 50, 50), animated:false)
-//        cbcDescription.scrollRectToVisible(CGRectMake(0, 0, 50, 50), animated:false)
+    override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator)
+    {
         tomPenningtonBio.scrollRangeToVisible(NSMakeRange(0,0))
         cbcDescription.scrollRangeToVisible(NSMakeRange(0,0))
     }
