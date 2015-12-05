@@ -870,6 +870,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         var urlString = Constants.SCRIPTURE_URL_PREFIX + sermon!.scripture! + Constants.SCRIPTURE_URL_POSTFIX
 
         urlString = urlString.stringByReplacingOccurrencesOfString(" ", withString: "+", options: NSStringCompareOptions.LiteralSearch, range: nil)
+
 //        print("\(sermon!.scripture!)")
 //        print("\(urlString)")
 //        print("\(NSURL(string:urlString))")
@@ -1001,6 +1002,14 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             alert.addAction(action)
         }
         
+        if ((selectedSermon!.hasScripture()) && (selectedSermon!.scripture != Constants.Selected_Scriptures)) {
+            action = UIAlertAction(title: Constants.Scripture, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+                //            print("mail!")
+                self.openSermonScripture(self.selectedSermon)
+            })
+            alert.addAction(action)
+        }
+        
         if let sermons = sermonsInSeries {
             var sermonsToDownload = 0
             var sermonsDownloading = 0
@@ -1061,14 +1070,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 })
                 alert.addAction(action)
             }
-        }
-
-        if ((selectedSermon!.hasScripture()) && (selectedSermon!.scripture != Constants.Selected_Scriptures)) {
-            action = UIAlertAction(title: Constants.Scripture, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                //            print("mail!")
-                self.openSermonScripture(self.selectedSermon)
-            })
-            alert.addAction(action)
         }
         
         action = UIAlertAction(title: Constants.Email_Sermon, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in

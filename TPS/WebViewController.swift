@@ -365,6 +365,7 @@ class WebViewController: UIViewController, WKNavigationDelegate {
         super.viewWillAppear(animated)
         
         navigationItem.title = selectedSermon!.title!
+        navigationItem.hidesBackButton = true
 
         var stringURL:String?
         
@@ -403,6 +404,15 @@ class WebViewController: UIViewController, WKNavigationDelegate {
 //    }
 
 
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        navigationItem.hidesBackButton = false
+        // Seems like the following should work but doesn't.
+        //        navigationItem.backBarButtonItem?.title = Constants.Back
+        navigationController?.navigationBar.backItem?.title = Constants.Back
+    }
+    
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
         captureContentOffsetAndZoomScale()
