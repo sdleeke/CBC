@@ -10,23 +10,6 @@ import Foundation
 import UIKit
 
 
-//func removeObject<T:Equatable>(inout arr:Array<T>, object:T) -> T? {
-//    if let found = arr.indexOf(object) {
-//        return arr.removeAtIndex(found)
-//    }
-//    return nil
-//}
-//
-//func == (lhs:Sermon,rhs:Sermon) -> Bool
-//{
-//    return (lhs.date == rhs.date) && (lhs.service == rhs.service) && (lhs.title == rhs.title)
-//}
-//
-//func != (lhs:Sermon,rhs:Sermon) -> Bool
-//{
-//    return (lhs.date != rhs.date) || (lhs.service != rhs.service) || (lhs.title != rhs.title)
-//}
-
 enum State {
     case downloading
     case downloaded
@@ -57,6 +40,29 @@ struct Download {
 
 class Sermon : NSObject, NSURLSessionDownloadDelegate {
     var dict:[String:String]?
+    
+    init(dict:[String:String]?)
+    {
+        //        print("\(dict)")
+        self.dict = dict
+    }
+    
+    required convenience init?(coder decoder: NSCoder)
+    {
+        guard
+            
+            let dict = decoder.decodeObjectForKey("dict") as? [String:String]
+            
+            else {
+                return nil
+        }
+        
+        self.init(dict: dict)
+    }
+    
+    func encodeWithCoder(coder: NSCoder) {
+        coder.encodeObject(self.dict, forKey: "dict")
+    }
     
     // this supports set values that are saved in defaults between sessions
     var playing:String? {

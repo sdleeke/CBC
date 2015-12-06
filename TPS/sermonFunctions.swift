@@ -103,22 +103,12 @@ func jsonToDocumentsDirectory()
         do {
             let jsonBundleAttributes = try fileManager.attributesOfItemAtPath(jsonBundlePath!)
             
-//            print("srcAttributes")
-//            for (key,value) in srcAttributes {
-//                print("Key: \(key) Value: \(value)")
-//            }
-
             let destAttributes = try fileManager.attributesOfItemAtPath(jsonDocumentsURL!.path!)
             
-//            print("destAttributes")
-//            for (key,value) in destAttributes {
-//                print("Key: \(key) Value: \(value)")
-//            }
-
             let jsonBundleModDate = jsonBundleAttributes[NSFileModificationDate] as! NSDate
             let destModDate = destAttributes[NSFileModificationDate] as! NSDate
             
-            if (jsonBundleModDate.isLessThanDate(destModDate)) {
+            if (jsonBundleModDate.isOlderThanDate(destModDate)) {
                 //Do nothing, the json in Documents is newer, i.e. it was downloaded after the install.
                 print("JSON in Documents is newer than JSON in bundle")
             }
@@ -136,7 +126,7 @@ func jsonToDocumentsDirectory()
                 }
             }
             
-            if (jsonBundleModDate.isGreaterThanDate(destModDate)) {
+            if (jsonBundleModDate.isNewerThanDate(destModDate)) {
                 print("JSON in bundle is newer than JSON in Documents")
                 //copy the bundle into Documents directory
                 do {
@@ -174,13 +164,119 @@ func jsonDataFromDocumentsDirectory() -> JSON
     return nil
 }
 
+func sermonsFromDocumentsDirectoryArchive() -> [Sermon]?
+{
+    // JSON is newer than Archive, reutrn nil.  That will force the archive to be rebuilt from the JSON.
+    
+    let fileManager = NSFileManager.defaultManager()
+    
+    let archiveInDocumentsURL = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_ARCHIVE)
+    let archiveExistsInDocuments = fileManager.fileExistsAtPath(archiveInDocumentsURL!.path!)
+    
+    if !archiveExistsInDocuments {
+        return nil
+    }
+    
+    let jsonInDocumentsURL = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON)
+    let jsonExistsInDocuments = fileManager.fileExistsAtPath(jsonInDocumentsURL!.path!)
+    
+    if (!jsonExistsInDocuments) {
+        // This should not happen since JSON should have been copied before the first archive was created.
+        // Since we don't understand this state, return nil
+        return nil
+    }
+    
+    let jsonInBundlePath = NSBundle.mainBundle().pathForResource(Constants.JSON_ARRAY_KEY, ofType: "json")
+    let jsonExistsInBundle = fileManager.fileExistsAtPath(jsonInBundlePath!)
+    
+    if (jsonExistsInBundle && jsonExistsInBundle) {
+        // Need to see if jsonInBundle is newer
+        
+        do {
+            let jsonInBundleAttributes = try fileManager.attributesOfItemAtPath(jsonInBundlePath!)
+            let jsonInDocumentsAttributes = try fileManager.attributesOfItemAtPath(jsonInDocumentsURL!.path!)
+            
+            let jsonInBundleModDate = jsonInBundleAttributes[NSFileModificationDate] as! NSDate
+            let jsonInDocumentsModDate = jsonInDocumentsAttributes[NSFileModificationDate] as! NSDate
+            
+            print("\(jsonInBundleModDate)")
+            print("\(jsonInDocumentsModDate)")
+            
+            if (jsonInBundleModDate.isNewerThanDate(jsonInDocumentsModDate)) {
+                //The JSON in the Bundle is newer, we need to use it instead of the archive
+                print("JSON in Bundle is newer than JSON in Documents")
+                return nil
+            }
+            
+            if (jsonInDocumentsModDate.isEqualToDate(jsonInBundleModDate)) {
+                //Should never happen since JSON in Documents is created from JSON
+                print("JSON in Bundle and in Documents are the same date")
+                return nil
+            }
+        } catch _ {
+            
+        }
+    }
+    
+    if (archiveExistsInDocuments && jsonExistsInDocuments) {
+        do {
+            let jsonInDocumentsAttributes = try fileManager.attributesOfItemAtPath(jsonInDocumentsURL!.path!)
+            let archiveInDocumentsAttributes = try fileManager.attributesOfItemAtPath(archiveInDocumentsURL!.path!)
+            
+            //            print("destAttributes")
+            //            for (key,value) in destAttributes {
+            //                print("Key: \(key) Value: \(value)")
+            //            }
+            
+            let jsonInDocumentsModDate = jsonInDocumentsAttributes[NSFileModificationDate] as! NSDate
+            let archiveInDocumentsModDate = archiveInDocumentsAttributes[NSFileModificationDate] as! NSDate
+            
+            print("\(archiveInDocumentsModDate)")
+            
+            if (jsonInDocumentsModDate.isNewerThanDate(archiveInDocumentsModDate)) {
+                //Do nothing, the json in Documents is newer, i.e. it was downloaded after the archive was created.
+                print("JSON is newer than Archive in Documents")
+                return nil
+            }
+            
+            if (jsonInDocumentsModDate.isEqualToDate(archiveInDocumentsModDate)) {
+                //Should never happen since archive is created from JSON
+                print("JSON is the same date as Archive in Documents")
+                return nil
+            }
+            
+            if (archiveInDocumentsModDate.isNewerThanDate(jsonInDocumentsModDate)) {
+                print("Archive is newer than JSON in Documents")
+                
+                let data = NSData(contentsOfURL: NSURL(fileURLWithPath: archiveInDocumentsURL!.path!))
+                if (data != nil) {
+                    let sermons = NSKeyedUnarchiver.unarchiveObjectWithData(data!) as? [Sermon]
+                    if sermons != nil {
+                        return sermons
+                    } else {
+                        print("could not get sermons from archive.")
+                    }
+                } else {
+                    print("could not get data from archive.")
+                }
+            }
+        } catch _ {
+            
+        }
+    }
+    
+    return nil
+}
+
+func sermonsToDocumentsDirectoryArchive(sermons:[Sermon]?)
+{
+    let archive = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_ARCHIVE)
+    
+    NSKeyedArchiver.archivedDataWithRootObject(sermons!).writeToURL(archive!, atomically: true)
+}
+
 func loadSermonDicts() -> [[String:String]]?
 {
-    //    var json = jsonDataFromURL()
-    //    if (json == nil) {
-    //        json = jsonDataFromBundle()
-    //    }
-
     var sermonDicts = [[String:String]]()
     
     let json = jsonDataFromDocumentsDirectory()
@@ -589,9 +685,6 @@ func updatePlayingInfoCenter()
 func setupPlayingInfoCenter()
 {
     if (Globals.sermonPlaying != nil) {
-//        let imageName = "\(Globals.coverArtPreamble)\(Globals.seriesPlaying!.name)\(Globals.coverArtPostamble)"
-        //    print("\(imageName)")
-        
         var sermonInfo = [String:AnyObject]()
         
         sermonInfo.updateValue(Globals.sermonPlaying!.title!,                                               forKey: MPMediaItemPropertyTitle)
@@ -648,55 +741,55 @@ extension NSDate
         self.init(timeInterval:0, sinceDate:d)
     }
     
-    func isGreaterThanDate(dateToCompare : NSDate) -> Bool
+    func isNewerThanDate(dateToCompare : NSDate) -> Bool
     {
         //Declare Variables
-        var isGreater = false
+        var isNewer = false
         
         //Compare Values
         if self.compare(dateToCompare) == NSComparisonResult.OrderedDescending
         {
-            isGreater = true
+            isNewer = true
         }
         
         //Return Result
-        return isGreater
+        return isNewer
     }
     
     
-    func isLessThanDate(dateToCompare : NSDate) -> Bool
+    func isOlderThanDate(dateToCompare : NSDate) -> Bool
     {
         //Declare Variables
-        var isLess = false
+        var isOlder = false
         
         //Compare Values
         if self.compare(dateToCompare) == NSComparisonResult.OrderedAscending
         {
-            isLess = true
+            isOlder = true
         }
         
         //Return Result
-        return isLess
+        return isOlder
     }
     
-    
-    //    func isEqualToDate(dateToCompare : NSDate) -> Bool
-    //    {
-    //        //Declare Variables
-    //        var isEqualTo = false
-    //
-    //        //Compare Values
-    //        if self.compare(dateToCompare) == NSComparisonResult.OrderedSame
-    //        {
-    //            isEqualTo = true
-    //        }
-    //
-    //        //Return Result
-    //        return isEqualTo
-    //    }
-    
-    
-    
+
+    // Claims to be a redeclaration, but I can't find the other.
+//    func isEqualToDate(dateToCompare : NSDate) -> Bool
+//    {
+//        //Declare Variables
+//        var isEqualTo = false
+//
+//        //Compare Values
+//        if self.compare(dateToCompare) == NSComparisonResult.OrderedSame
+//        {
+//            isEqualTo = true
+//        }
+//
+//        //Return Result
+//        return isEqualTo
+//    }
+
+
     func addDays(daysToAdd : Int) -> NSDate
     {
         let secondsInDays : NSTimeInterval = Double(daysToAdd) * 60 * 60 * 24
@@ -773,6 +866,25 @@ func stringWithoutLeadingTheOrAOrAn(fromString:String?) -> String?
 }
 
 
+func clearSermonsForDisplay()
+{
+    Globals.display.sermons = nil
+    Globals.display.sections = nil
+    Globals.display.sectionIndexes = nil
+    Globals.display.sectionCounts = nil
+}
+
+
+func setupSermonsForDisplay()
+{
+    Globals.display.sermons = Globals.activeSermons
+    
+    Globals.display.sections = Globals.sermonSections
+    Globals.display.sectionIndexes = Globals.sermonSectionIndexes
+    Globals.display.sectionCounts = Globals.sermonSectionCounts
+}
+
+
 func fillSortAndGroupCache()
 {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
@@ -802,6 +914,8 @@ func fillSortAndGroupCache()
 
 
 func sortAndGroupSermons() {
+    Globals.sermonsSortingOrGrouping = true
+
     if let sortGroupTuple = Globals.sortGroupCache?[Globals.sorting! + Globals.grouping!] {
         Globals.activeSermons = sortGroupTuple.sermons
         Globals.sermonSections = sortGroupTuple.sections
@@ -865,6 +979,10 @@ func sortAndGroupSermons() {
 
         Globals.sortGroupCache?[Globals.sorting! + Globals.grouping!] = (sermons: Globals.activeSermons, sections: Globals.sermonSections, indexes: Globals.sermonSectionIndexes, counts: Globals.sermonSectionCounts)
     }
+    
+    setupSermonsForDisplay()
+    
+    Globals.sermonsSortingOrGrouping = false
 }
 
 
@@ -1012,94 +1130,6 @@ func groupSermons(sermons:[Sermon]?,grouping:String?) -> GroupTuple?
     return groupTuple
 }
 
-//func sortAndGroupSermonsAbsolute() {
-//    sortSermons()
-//    Globals.priorSorting = Globals.sorting
-//    groupSermons()
-//    Globals.priorGrouping = Globals.grouping
-//}
-//
-//func sortAndGroupSermonsOld() {
-//    switch Globals.grouping! {
-//    case Constants.YEAR:
-//        if (Globals.searchActive) {
-//            Globals.searchSermons = sortSermonsByYear(Globals.searchSermons)
-//            groupSermonsByYear(Globals.searchSermons)
-//        } else {
-//            switch Globals.showing! {
-//            case Constants.TAGGED:
-//                Globals.taggedSermons = sortSermonsByYear(Globals.taggedSermons)
-//                groupSermonsByYear(Globals.taggedSermons)
-//                break
-//                
-//            case Constants.ALL:
-//                Globals.sermons = sortSermonsByYear(Globals.sermons)
-//                groupSermonsByYear(Globals.sermons)
-//                break
-//            }
-//        }
-//        break
-//        
-//    case Constants.SERIES:
-//        if (Globals.searchActive) {
-//            Globals.searchSermons = sortSermonsBySeries(Globals.searchSermons)
-//            groupSermonsBySeries(Globals.searchSermons)
-//        } else {
-//            switch Globals.showing! {
-//            case Constants.TAGGED:
-//                Globals.taggedSermons = sortSermonsBySeries(Globals.taggedSermons)
-//                groupSermonsBySeries(Globals.taggedSermons)
-//                break
-//                
-//            case Constants.ALL:
-//                Globals.sermons = sortSermonsBySeries(Globals.sermons)
-//                groupSermonsBySeries(Globals.sermons)
-//                break
-//            }
-//        }
-//        break
-//        
-//    case Constants.BOOK:
-//        if (Globals.searchActive) {
-//            Globals.searchSermons = sortSermonsByBook(Globals.searchSermons)
-//            groupSermonsByBook(Globals.searchSermons)
-//        } else {
-//            switch Globals.showing! {
-//            case Constants.TAGGED:
-//                Globals.taggedSermons = sortSermonsByBook(Globals.taggedSermons)
-//                groupSermonsByBook(Globals.taggedSermons)
-//                break
-//                
-//            case Constants.ALL:
-//                Globals.sermons = sortSermonsByBook(Globals.sermons)
-//                groupSermonsByBook(Globals.sermons)
-//                break
-//            }
-//        }
-//        break
-//        
-//    case Constants.SPEAKER:
-//        if (Globals.searchActive) {
-//            Globals.searchSermons = sortSermonsBySpeaker(Globals.searchSermons)
-//            groupSermonsBySpeaker(Globals.searchSermons)
-//        } else {
-//            switch Globals.showing! {
-//            case Constants.TAGGED:
-//                Globals.taggedSermons = sortSermonsBySpeaker(Globals.taggedSermons)
-//                groupSermonsBySpeaker(Globals.taggedSermons)
-//                break
-//                
-//            case Constants.ALL:
-//                Globals.sermons = sortSermonsBySpeaker(Globals.sermons)
-//                groupSermonsBySpeaker(Globals.sermons)
-//                break
-//            }
-//        }
-//        break
-//    }
-//}
-
-
 func yearsFromSermons(sermons:[Sermon]?, sorting: String?) -> [Int]?
 {
     return sermons != nil ?
@@ -1130,43 +1160,6 @@ func yearsFromSermons(sermons:[Sermon]?, sorting: String?) -> [Int]?
             })
         : nil
 }
-//
-//    var sections:[Int]?
-//
-//    if let sermons = sermonsToGroup {
-//        var sermonYearsSet = Set<Int>()
-//        var sermonYearsArray = [Int]()
-//        
-//        for sermon in sermons {
-//            
-//            let calendar = NSCalendar.currentCalendar()
-//            let components = calendar.components(.Year, fromDate: sermon.fullDate!)
-//            
-//            sermonYearsSet.insert(components.year)
-//        }
-//        
-//        for year in sermonYearsSet {
-//            sermonYearsArray.append(year)
-//        }
-//        
-//        switch sorting! {
-//        case Constants.REVERSE_CHRONOLOGICAL:
-//            //            print("groupSermonsByYear reverseChronological")
-//            sections = sermonYearsArray.sort({ $1 < $0 })
-//            break
-//        case Constants.CHRONOLOGICAL:
-//            //            print("groupSermonsByYear chronological")
-//            sections = sermonYearsArray.sort({ $0 < $1 })
-//            break
-//            
-//        default:
-//            sections = nil
-//            break
-//        }
-//    }
-//    
-//    return sections
-//}
 
 
 func groupSermonsByYear(sermonsToGroup:[Sermon]?) -> GroupTuple?
@@ -1205,37 +1198,12 @@ func groupSermonsByYear(sermonsToGroup:[Sermon]?) -> GroupTuple?
         }
         sermonSectionCounts.append(counter)
         
-        //        for year in sermonSections {
-        //            var counter:Int = 0
-        //
-        //            let calendar = NSCalendar.currentCalendar()
-        //            var components:NSDateComponents
-        //
-        //            for index in 0..<sermons.count {
-        //                components = calendar.components(.Year, fromDate: sermons[index].fullDate!)
-        //
-        //                if (year == "\(components.year)") {
-        //                    if (counter == 0) {
-        //                        sermonSectionIndexes.append(index)
-        //                    }
-        //                    counter++
-        //                }
-        //            }
-        //            
-        //            sermonSectionCounts.append(counter)
-        //        }
-        
-        //    print("sermonSections: \(Globals.sermonSections)")
-        //    print("sermonSectionIndexes: \(Globals.sermonSectionIndexes)")
-        //    print("sermonSectionCounts: \(Globals.sermonSectionCounts)")
-        
         return (indexes: sermonSectionIndexes, counts: sermonSectionCounts)
     }
     
     return nil
 }
 
-//Only used in deepLinking
 func sermonsInSermonSeries(sermons:[Sermon]?,series:String?) -> [Sermon]?
 {
     return sermons?.filter({ (sermon:Sermon) -> Bool in
@@ -1244,63 +1212,11 @@ func sermonsInSermonSeries(sermons:[Sermon]?,series:String?) -> [Sermon]?
         if (first.fullDate!.isEqualToDate(second.fullDate!)) {
             return first.service < second.service
         } else {
-            return first.fullDate!.isLessThanDate(second.fullDate!)
+            return first.fullDate!.isOlderThanDate(second.fullDate!)
         }
     })
 }
-//    var sermonArray = [Sermon]()
-//    
-//    if (sermons != nil) {
-//        for sermon in sermons! {
-//            if (sermon.series == series) {
-//                //Found one
-//                sermonArray.append(sermon)
-//            }
-//        }
-//        
-//        //Why are we sorting oldest to newest rather than how the user wants to see things?
-//        
-//        //return the array sorted oldest to newest
-//        if (sermonArray.count > 0) {
-//            sermonArray.sortInPlace() {
-//                if ($0.fullDate!.isEqualToDate($1.fullDate!)) {
-//                    return $0.service == Constants.MORNING_SERVICE
-//                } else {
-//                    return $0.fullDate!.isLessThanDate($1.fullDate!)
-//                }
-//            }
-//        }
-//        
-//        //Not according to the current sorting
-//        //    if (sermonArray.count > 0) {
-//        //        switch Globals.sorting! {
-//        //        case Constants.CHRONOLOGICAL:
-//        //            sermonArray.sort() {
-//        //                if ($0.fullDate!.isEqualToDate($1.fullDate!)) {
-//        //                    return $0.service == Constants.MORNING_SERVICE
-//        //                } else {
-//        //                    return $0.fullDate!.isLessThanDate($1.fullDate!)
-//        //                }
-//        //            }
-//        //            break
-//        //
-//        //        case Constants.REVERSE_CHRONOLOGICAL:
-//        //            sermonArray.sort() {
-//        //                if ($0.fullDate!.isEqualToDate($1.fullDate!)) {
-//        //                    return $0.service == Constants.EVENING_SERVICE
-//        //                } else {
-//        //                    return $0.fullDate!.isGreaterThanDate($1.fullDate!)
-//        //                }
-//        //            }
-//        //            break
-//        //        }
-//        //    }
-//    }
-//    
-//    return sermonArray.count > 0 ? sermonArray : nil
-//}
 
-//Only used in deepLinking
 func sermonsInBook(sermons:[Sermon]?,book:String?) -> [Sermon]?
 {
     return sermons?.filter({ (sermon:Sermon) -> Bool in
@@ -1309,60 +1225,9 @@ func sermonsInBook(sermons:[Sermon]?,book:String?) -> [Sermon]?
         if (first.fullDate!.isEqualToDate(second.fullDate!)) {
             return first.service == Constants.MORNING_SERVICE
         } else {
-            return first.fullDate!.isLessThanDate(second.fullDate!)
+            return first.fullDate!.isOlderThanDate(second.fullDate!)
         }
     })
-
-//    var sermonArray = [Sermon]()
-//    
-//    if (sermons != nil) {
-//        for sermon in sermons! {
-//            if (sermon.book == book) {
-//                //Found one
-//                sermonArray.append(sermon)
-//            }
-//        }
-//        
-//        //Why are we sorting oldest to newest rather than how the user wants to see things?
-//        
-//        //return the array sorted oldest to newest
-//        if (sermonArray.count > 0) {
-//            sermonArray.sortInPlace() {
-//                if ($0.fullDate!.isEqualToDate($1.fullDate!)) {
-//                    return $0.service == Constants.MORNING_SERVICE
-//                } else {
-//                    return $0.fullDate!.isLessThanDate($1.fullDate!)
-//                }
-//            }
-//        }
-//        
-//        //Not according to the current sorting
-//        //    if (sermonArray.count > 0) {
-//        //        switch Globals.sorting! {
-//        //        case Constants.CHRONOLOGICAL:
-//        //            sermonArray.sort() {
-//        //                if ($0.fullDate!.isEqualToDate($1.fullDate!)) {
-//        //                    return $0.service == Constants.MORNING_SERVICE
-//        //                } else {
-//        //                    return $0.fullDate!.isLessThanDate($1.fullDate!)
-//        //                }
-//        //            }
-//        //            break
-//        //
-//        //        case Constants.REVERSE_CHRONOLOGICAL:
-//        //            sermonArray.sort() {
-//        //                if ($0.fullDate!.isEqualToDate($1.fullDate!)) {
-//        //                    return $0.service == Constants.EVENING_SERVICE
-//        //                } else {
-//        //                    return $0.fullDate!.isGreaterThanDate($1.fullDate!)
-//        //                }
-//        //            }
-//        //            break
-//        //        }
-//        //    }
-//    }
-//    
-//    return sermonArray.count > 0 ? sermonArray : nil
 }
 
 func booksFromSermons(sermons:[Sermon]?) -> [String]?
@@ -1380,7 +1245,6 @@ func booksFromSermons(sermons:[Sermon]?) -> [String]?
             })
         : nil
 }
-
 
 func bookSectionsFromSermons(sermons:[Sermon]?) -> [String]?
 {
@@ -1408,28 +1272,6 @@ func bookSectionsFromSermons(sermons:[Sermon]?) -> [String]?
             })
         : nil
 }
-//    var bookSet = Set<String>()
-////    var bookArray = [String]()
-//
-//    if (sermons != nil) {
-//        for sermon in sermons! {
-//            if (sermon.hasBook()) {
-//                bookSet.insert(sermon.book!)
-//            } else {
-//                //Shouldn't be necessary since the book function already does this
-//                bookSet.insert(Constants.Selected_Scriptures)
-//            }
-//        }
-//        
-////        for book in bookSet {
-////            bookArray.append(book)
-////        }
-//        
-//        return Array(bookSet).sort() { bookNumberInBible($0) < bookNumberInBible($1) }
-//    }
-//    
-//    return nil
-//}
 
 func seriesSectionsFromSermons(sermons:[Sermon]?,withTitles:Bool) -> [String]?
 {
@@ -1448,39 +1290,6 @@ func seriesSectionsFromSermons(sermons:[Sermon]?,withTitles:Bool) -> [String]?
             })
         : nil
 }
-//    var seriesSet = Set<String>()
-////    var seriesArray:[String]?
-//    
-//    if (sermons != nil) {
-//        for sermon in sermons! {
-//            if (sermon.hasSeries()) {
-//                seriesSet.insert(sermon.series!)
-//            } else {
-//                if withTitles {
-//                    seriesSet.insert(sermon.title!)
-//                } else {
-//                    seriesSet.insert(Constants.Individual_Sermons)
-//                }
-//            }
-//        }
-//        
-//        if withTitles {
-//            seriesSet.insert(Constants.Individual_Sermons)
-//        }
-//
-////        for series in seriesSet {
-////            seriesArray.append(series)
-////        }
-////
-////        if withTitles {
-////            seriesArray.append(Constants.Individual_Sermons)
-////        }
-//
-//        return Array(seriesSet).sort() { stringWithoutLeadingTheOrAOrAn($0) < stringWithoutLeadingTheOrAOrAn($1) }
-//    }
-//    
-//    return nil
-//}
 
 func seriesFromSermons(sermons:[Sermon]?) -> [String]?
 {
@@ -1515,29 +1324,6 @@ func seriesSectionsFromSermons(sermons:[Sermon]?) -> [String]?
             })
         : nil
 }
-//    if let sermons = sermonsToGroup {
-//        var sermonSeriesSet = Set<String>()
-////        var sermonSeriesArray = [String]()
-//        
-//        for sermon in sermons {
-//            //        print("\(sermon.series)")
-//            if (sermon.hasSeries()) {
-//                sermonSeriesSet.insert(sermon.series!)
-//            } else {
-//                //print("None: \(sermon.title)")
-//                sermonSeriesSet.insert(Constants.Individual_Sermons)
-//            }
-//        }
-//        
-////        for series in sermonSeriesSet {
-////            sermonSeriesArray.append(series)
-////        }
-//        
-//        return Array(sermonSeriesSet).sort() { stringWithoutLeadingTheOrAOrAn($0) < stringWithoutLeadingTheOrAOrAn($1) }
-//    }
-//    
-//    return nil
-//}
 
 func groupSermonsBySeries(sermonsToGroup:[Sermon]?) -> GroupTuple?
 {
@@ -1574,31 +1360,6 @@ func groupSermonsBySeries(sermonsToGroup:[Sermon]?) -> GroupTuple?
         }
         sermonSectionCounts.append(counter)
         
-        //        print("Last section! Section \(sermonSectionIndexes.count) at Index: \(index-1) Last section count: \(counter)")
-        
-        //        for series in Globals.sermonSeries! {
-        //            var counter:Int = 0
-        //
-        //            for index in 0..<sermons.count {
-        //                if (!sermons[index].hasSeries()) {
-        //                    if (series == Constants.Individual_Sermons) {
-        //                        if (counter == 0) {
-        //                            sermonSectionIndexes.append(index)
-        //                        }
-        //                        counter++
-        //                    }
-        //                } else
-        //                    if (sermons[index].series == series) {
-        //                        if (counter == 0) {
-        //                            sermonSectionIndexes.append(index)
-        //                        }
-        //                        counter++
-        //                }
-        //            }
-        //            
-        //            sermonSectionCounts.append(counter)
-        //        }
-        
         return (indexes: sermonSectionIndexes, counts: sermonSectionCounts)
     }
     
@@ -1621,37 +1382,6 @@ func bookNumberInBible(book:String?) -> Int?
         return nil
     }
 }
-
-//func booksFromSermons(sermonsToGroup:[Sermon]?) -> [String]?
-//{
-//    if let sermons = sermonsToGroup {
-//        var sermonBooksSet = Set<String>()
-//        var sermonBooksArray = [String]()
-//        
-//        for sermon in sermons {
-//            if (sermon.hasBook()) {
-//                sermonBooksSet.insert(sermon.book!)
-//            } else {
-//                //Shouldn't be necessary since the book function already does this
-//                sermonBooksSet.insert(Constants.Selected_Scriptures)
-//            }
-//        }
-//        
-//        //    print("\(sermonBooks)")
-//        
-//        for book in sermonBooksSet {
-//            //        print("\(book)")
-//            sermonBooksArray.append(book)
-//        }
-//        
-//        return sermonBooksArray.sort() { bookNumberInBible($0) < bookNumberInBible($1) }
-//        
-//        //    print("sermonBooks \(Globals.sermonBooks)")
-//        //    print("sermonSections \(Globals.sermonSections)")
-//    }
-//    
-//    return nil
-//}
 
 func groupSermonsByBook(sermonsToGroup:[Sermon]?) -> GroupTuple?
 {
@@ -1683,24 +1413,6 @@ func groupSermonsByBook(sermonsToGroup:[Sermon]?) -> GroupTuple?
             index++
         }
         sermonSectionCounts.append(counter)
-        
-        //        for book in Globals.sermonBooks! {
-        //            var counter:Int = 0
-        //
-        //            for index in 0..<sermons.count {
-        //                if (book == sermons[index].book) {
-        //                    if (counter == 0) {
-        //                        sermonSectionIndexes.append(index)
-        //                    }
-        //                    counter++
-        //                }
-        //            }
-        //            
-        //            sermonSectionCounts.append(counter)
-        //        }
-        
-        //    print("sermonSectionIndexes \(Globals.sermonSectionIndexes)")
-        //    print("sermonSectionCounts \(Globals.sermonSectionCounts)")
         
         return (indexes: sermonSectionIndexes, counts: sermonSectionCounts)
     }
@@ -1784,21 +1496,6 @@ func groupSermonsBySpeaker(sermonsToGroup:[Sermon]?) -> GroupTuple?
         }
         sermonSectionCounts.append(counter)
         
-        //        for speaker in Globals.sermonSpeakers! {
-        //            var counter:Int = 0
-        //
-        //            for index in 0..<sermons.count {
-        //                if (speaker == sermons[index].speaker) {
-        //                    if (counter == 0) {
-        //                        sermonSectionIndexes.append(index)
-        //                    }
-        //                    counter++
-        //                }
-        //            }
-        //            
-        //            sermonSectionCounts.append(counter)
-        //        }
-        
         return (indexes: sermonSectionIndexes, counts: sermonSectionCounts)
     }
     
@@ -1811,7 +1508,7 @@ func sortSermonsChronologically(sermons:[Sermon]?) -> [Sermon]?
         if ($0.fullDate!.isEqualToDate($1.fullDate!)) {
             return $0.service == Constants.MORNING_SERVICE
         } else {
-            return $0.fullDate!.isLessThanDate($1.fullDate!)
+            return $0.fullDate!.isOlderThanDate($1.fullDate!)
         }
     }
 }
@@ -1822,7 +1519,7 @@ func sortSermonsReverseChronologically(sermons:[Sermon]?) -> [Sermon]?
         if ($0.fullDate!.isEqualToDate($1.fullDate!)) {
             return $0.service == Constants.EVENING_SERVICE
         } else {
-            return $0.fullDate!.isGreaterThanDate($1.fullDate!)
+            return $0.fullDate!.isNewerThanDate($1.fullDate!)
         }
     }
 }
@@ -1856,7 +1553,7 @@ func compareSermonDates(first first:Sermon, second:Sermon, sorting:String?) -> B
         if (first.fullDate!.isEqualToDate(second.fullDate!)) {
             result = (first.service == Constants.MORNING_SERVICE)
         } else {
-            result = first.fullDate!.isLessThanDate(second.fullDate!)
+            result = first.fullDate!.isOlderThanDate(second.fullDate!)
         }
         break
     
@@ -1864,7 +1561,7 @@ func compareSermonDates(first first:Sermon, second:Sermon, sorting:String?) -> B
         if (first.fullDate!.isEqualToDate(second.fullDate!)) {
             result = (first.service == Constants.EVENING_SERVICE)
         } else {
-            result = first.fullDate!.isGreaterThanDate(second.fullDate!)
+            result = first.fullDate!.isNewerThanDate(second.fullDate!)
         }
         break
         
@@ -1889,23 +1586,6 @@ func sortSermonsBySeries(sermons:[Sermon]?,sorting:String?) -> [Sermon]?
             result = compareSermonDates(first: first,second: second, sorting: sorting)
         }
 
-//        if (first.hasSeries() && second.hasSeries()) {
-//            result = (first.seriesSort < second.seriesSort)
-//        } else
-//            if (!first.hasSeries() && second.hasSeries()) {
-//                result = (first.seriesSection < second.seriesSort)
-//            } else
-//                if (first.hasSeries() && !second.hasSeries()) {
-//                    result = (first.seriesSort < second.seriesSection)
-//                } else
-//                    if (!first.hasSeries() && !second.hasSeries()) {
-//                        if (first.seriesSection != second.seriesSection) {
-//                            result = first.seriesSection < second.seriesSection
-//                        } else {
-//                            result = compareSermonDates(first: first,second: second, sorting: sorting)
-//                        }
-//        }
-
         return result
     }
 }
@@ -1924,23 +1604,6 @@ func sortSermonsBySpeaker(sermons:[Sermon]?,sorting: String?) -> [Sermon]?
             result = compareSermonDates(first: first,second: second, sorting: sorting)
         }
         
-//        if (first.hasSpeaker() && second.hasSpeaker()) {
-//            result = (first.speakerSort < second.speakerSort)
-//        } else
-//            if (!first.hasSpeaker() && second.hasSpeaker()) {
-//                result = first.speakerSection < second.speakerSort
-//            } else
-//                if (first.hasSpeaker() && !second.hasSpeaker()) {
-//                    result = first.speakerSort < second.speakerSection
-//                } else
-//                    if (!first.hasSpeaker() && !second.hasSpeaker()) {
-//                        if (first.speakerSection != second.speakerSection) {
-//                            result = first.speakerSection < second.speakerSection
-//                        } else {
-//                            result = compareSermonDates(first: first,second: second, sorting: sorting)
-//                        }
-//        }
-
         return result
     }
 }
@@ -1973,25 +1636,6 @@ func sortSermonsByBook(sermons:[Sermon]?, sorting:String?) -> [Sermon]?
                             result = compareSermonDates(first: $0,second: $1, sorting: sorting)
                         }
         }
-//        var result = false
-//        
-//        let first = $0
-//        let second = $1
-//        
-//        if (!first.hasBook() && !second.hasBook()) {
-//            result = compareSermonDates(first: first,second: second, sorting: sorting)
-//        } else
-//            if (!first.hasBook()) {
-//                result = false
-//            } else
-//                if (!second.hasBook()) {
-//                    result = true
-//                } else
-//                    if (first.book == second.book) {
-//                        result = compareSermonDates(first: first,second: second, sorting: sorting)
-//                    } else {
-//                        result = (bookNumberInBible(first.book!) < bookNumberInBible(second.book!))
-//        }
         
         return result
     }
@@ -2000,7 +1644,6 @@ func sortSermonsByBook(sermons:[Sermon]?, sorting:String?) -> [Sermon]?
 
 func testSermonsPDFs(testExisting testExisting:Bool, testMissing:Bool, showTesting:Bool)
 {
-//    var fileManager = NSFileManager.defaultManager()
     var counter = 1
 
     if (testExisting) {
@@ -2067,8 +1710,6 @@ func testSermonsPDFs(testExisting testExisting:Bool, testMissing:Bool, showTesti
                         let notesURL = Constants.BASE_PDF_URL + testNotes
                         //                print("<a href=\"\(notesURL)\" target=\"_blank\">\(sermon.title!) Notes</a><br/>")
                         
-        //                if (fileManager.fileExistsAtPath(notesURL)) {
-                        
                         if (NSData(contentsOfURL: NSURL(string: notesURL)!) != nil) {
                             print("Transcript DOES exist for: \(sermon.title!) PDF: \(testNotes)")
                         } else {
@@ -2082,8 +1723,6 @@ func testSermonsPDFs(testExisting testExisting:Bool, testMissing:Bool, showTesti
                         //                print("Slides file s/b: \(testSlides)")
                         let slidesURL = Constants.BASE_PDF_URL + testSlides
                         //                print("<a href=\"\(slidesURL)\" target=\"_blank\">\(sermon.title!) Slides</a><br/>")
-                        
-        //                if (fileManager.fileExistsAtPath(slidesURL)) {
                         
                         if (NSData(contentsOfURL: NSURL(string: slidesURL)!) != nil) {
                             print("Slides DO exist for: \(sermon.title!) PDF: \(testSlides)")
@@ -2251,36 +1890,11 @@ func tagsFromSermons(sermons:[Sermon]?) -> [String]?
 
 func sermonsFromSermonDicts(sermonDicts:[[String:String]]?) -> [Sermon]?
 {
-    //    print("\(Globals.sermonDicts.count)")
-    var sermons = [Sermon]()
-    
-    for sermonDict in sermonDicts! {
-        let sermon = Sermon()
-
-        sermon.dict = sermonDict
-        
-//        if (sermon.date != nil) {
-//            sermon.fullDate = NSDate(dateString:sermon.date!)
-//        } else {
-//            print("NO DATE \(sermon.title!)")
-//        }
-
-//        sermon.bookFromScripture()
-        
-//        if sermon.isDownloaded() {
-//            sermon.download.state = .downloaded
-//        }
-
-        //        print("\(sermon)")
-        
-        sermons.append(sermon)
+    if (sermonDicts != nil) {
+        return sermonDicts?.map({ (sermonDict:[String : String]) -> Sermon in
+            Sermon(dict: sermonDict)
+        })
     }
     
-    return sermons.count > 0 ? sermons : nil
-    
-    //
-    //    print("\(Globals.sermons.count)")
-    //    for index in 0..<Globals.sermons.count {
-    //        print("\(Globals.sermons[index].title!)")
-    //    }
+    return nil
 }

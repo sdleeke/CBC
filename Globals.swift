@@ -157,6 +157,7 @@ struct Globals {
     static var sermonBooks:[String]?
     static var sermonSpeakers:[String]?
     
+    static var sermonsSortingOrGrouping:Bool = false
     static var sermonsNeedSorting:Bool = true
     static var sermonsNeedGrouping:Bool = true
     static var sermonsNeedGroupsSetup:Bool = true {
@@ -173,4 +174,11 @@ struct Globals {
     static var sermonSections:[String]?
     static var sermonSectionCounts:[Int]?
     static var sermonSectionIndexes:[Int]?
+    
+    struct display {
+        static var sermons:[Sermon]?
+        static var sections:[String]?
+        static var sectionCounts:[Int]?
+        static var sectionIndexes:[Int]?
+    }
 }

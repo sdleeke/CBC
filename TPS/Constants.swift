@@ -20,7 +20,8 @@ struct Constants {
     static let JSON_ARRAY_KEY = "sermons"
     static let JSON_URL_PREFIX = "https://s3.amazonaws.com/jd2-86d4fd0ec0a8fca71eef54e388261c5b-us/"
     static let SERMONS_JSON = "sermons.json"
-    
+    static let SERMONS_ARCHIVE = "sermons.archive"
+
     static let LIVE_STREAM_URL = "http://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
     
     static let COVER_ART_IMAGE = "cover170x170"

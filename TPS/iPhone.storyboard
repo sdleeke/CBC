@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9059" systemVersion="14F1021" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="T8F-64-B2A">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9060" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="T8F-64-B2A">
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9049"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9051"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
@@ -98,7 +98,7 @@
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2mr-qJ-uXH">
+                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2mr-qJ-uXH">
                                                     <rect key="frame" x="578" y="48" width="18" height="31"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="9dN-PR-ji7"/>
@@ -109,7 +109,7 @@
                                                         <action selector="downloadAction:" destination="hSc-gC-b1G" eventType="touchUpInside" id="GmL-am-fQI"/>
                                                     </connections>
                                                 </button>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="IeR-9v-6I1" userLabel="Icons">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="IeR-9v-6I1" userLabel="Icons">
                                                     <rect key="frame" x="567" y="79" width="29" height="12"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
@@ -204,7 +204,7 @@
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="M7W-zJ-CBC" userLabel="Play Pause">
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="M7W-zJ-CBC" userLabel="Play Pause">
                                 <rect key="frame" x="52" y="305" width="20" height="36"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="20" id="zH0-7Q-jyh"/>
@@ -912,11 +912,19 @@ Email: cbcstaff@countrysidebible.org</string>
                                     <outlet property="delegate" destination="4xA-dz-LhV" id="eTs-F1-bAt"/>
                                 </connections>
                             </tableView>
+                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="1YE-dl-Wc4" userLabel="Search Activity Indicator">
+                                <rect key="frame" x="290" y="258" width="20" height="20"/>
+                            </activityIndicatorView>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="VzS-WY-Fmg" userLabel="List Activity Indicator">
+                                <rect key="frame" x="290" y="258" width="20" height="20"/>
+                            </activityIndicatorView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="Urs-8r-5e2" firstAttribute="top" secondItem="HBU-GK-goT" secondAttribute="bottom" id="5Hi-yX-7gn"/>
                             <constraint firstItem="HBU-GK-goT" firstAttribute="leading" secondItem="96A-nP-rUw" secondAttribute="leading" id="8IA-b7-wgq"/>
+                            <constraint firstItem="VzS-WY-Fmg" firstAttribute="centerX" secondItem="96A-nP-rUw" secondAttribute="centerX" id="Iis-vC-Wbx"/>
+                            <constraint firstItem="VzS-WY-Fmg" firstAttribute="centerY" secondItem="96A-nP-rUw" secondAttribute="centerY" id="Lng-I6-90e"/>
                             <constraint firstItem="HBU-GK-goT" firstAttribute="top" secondItem="8Sa-SM-X3v" secondAttribute="bottom" id="djw-wm-DmN"/>
                             <constraint firstAttribute="trailing" secondItem="HBU-GK-goT" secondAttribute="trailing" id="xUM-7Y-tBR"/>
                         </constraints>
@@ -930,6 +938,8 @@ Email: cbcstaff@countrysidebible.org</string>
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="listActivityIndicator" destination="VzS-WY-Fmg" id="wee-Cd-eKB"/>
+                        <outlet property="searchActivityIndicator" destination="1YE-dl-Wc4" id="1DR-yv-yHf"/>
                         <outlet property="searchBar" destination="PI1-KK-22F" id="leD-jN-jHW"/>
                         <outlet property="showButton" destination="mag-xm-dO5" id="h1n-DU-VBJ"/>
                         <outlet property="tableView" destination="HBU-GK-goT" id="aBX-wH-0OI"/>

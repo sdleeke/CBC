@@ -750,7 +750,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     if ($0.fullDate!.isEqualToDate($1.fullDate!)) {
                         return $0.service == Constants.MORNING_SERVICE
                     } else {
-                        return $0.fullDate!.isLessThanDate($1.fullDate!)
+                        return $0.fullDate!.isOlderThanDate($1.fullDate!)
                     }
                 }
                 
