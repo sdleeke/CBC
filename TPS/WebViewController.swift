@@ -305,6 +305,8 @@ class WebViewController: UIViewController, WKNavigationDelegate {
     
     func setupWKContentOffset(wkWebView: WKWebView?)
     {
+        // This used in transition to size to set the content offset.
+        
         if (wkWebView != nil) && (selectedSermon != nil) {
             var contentOffsetXRatioStr:String?
             var contentOffsetYRatioStr:String?
