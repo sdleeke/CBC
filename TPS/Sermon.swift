@@ -68,7 +68,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     var playing:String? {
         get {
             if (dict![Constants.PLAYING] == nil) {
-                if let playing = Globals.sermonSettings?[keyBase+Constants.PLAYING] {
+                if let playing = Globals.sermonSettings?[keyBase]?[Constants.PLAYING] {
                     dict![Constants.PLAYING] = playing
                 } else {
                     dict![Constants.PLAYING] = Constants.AUDIO
@@ -79,7 +79,10 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         set {
             dict![Constants.PLAYING] = newValue
-            Globals.sermonSettings![keyBase+Constants.PLAYING] = newValue
+            if (Globals.sermonSettings?[keyBase] == nil) {
+                Globals.sermonSettings?[keyBase] = [String:String]()
+            }
+            Globals.sermonSettings?[keyBase]?[Constants.PLAYING] = newValue
         }
     }
     
@@ -87,7 +90,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     var showing:String? {
         get {
             if (dict![Constants.SHOWING] == nil) {
-                if let showing = Globals.sermonSettings?[keyBase+Constants.SHOWING] {
+                if let showing = Globals.sermonSettings?[keyBase]?[Constants.SHOWING] {
                     dict![Constants.SHOWING] = showing
                 } else {
                     if (hasSlides() && hasNotes()) {
@@ -109,7 +112,10 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         set {
             dict![Constants.SHOWING] = newValue
-            Globals.sermonSettings![keyBase+Constants.SHOWING] = newValue
+            if (Globals.sermonSettings?[keyBase] == nil) {
+                Globals.sermonSettings?[keyBase] = [String:String]()
+            }
+            Globals.sermonSettings?[keyBase]?[Constants.SHOWING] = newValue
         }
     }
     
@@ -118,7 +124,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         get {
             //            print("currentTime: keyBase = \(keyBase)")
             //            print("currentTime: playing = \(playing!)")
-            if let current_time = Globals.sermonSettings?[keyBase+Constants.CURRENT_TIME+playing!] {
+            if let current_time = Globals.sermonSettings?[keyBase]?[Constants.CURRENT_TIME+playing!] {
                 //                print("currentTime: current_time = \(current_time)")
                 dict![Constants.CURRENT_TIME+playing!] = current_time
             } else {
@@ -129,13 +135,23 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         set {
             dict![Constants.CURRENT_TIME+playing!] = newValue
-            Globals.sermonSettings?[keyBase+Constants.CURRENT_TIME+playing!] = newValue
+            if (Globals.sermonSettings?[keyBase] == nil) {
+                Globals.sermonSettings?[keyBase] = [String:String]()
+            }
+            Globals.sermonSettings?[keyBase]?[Constants.CURRENT_TIME+playing!] = newValue
         }
     }
     
     // These are read-only
     var keyBase:String! {
         get {
+            if (title == nil) {
+                print("\(title)")
+            }
+            if (date == nil) {
+                print("\(date)")
+            }
+//            print("\(title! + date!)")
             return title! + date!
         }
     }
@@ -196,7 +212,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     var speakerSort:String? {
         get {
             if dict![Constants.SPEAKER_SORT] == nil {
-                if let speakerSort = Globals.sermonSettings?[keyBase+Constants.SPEAKER_SORT] {
+                if let speakerSort = Globals.sermonSettings?[keyBase]?[Constants.SPEAKER_SORT] {
                     dict![Constants.SPEAKER_SORT] = speakerSort
                 } else {
                     //Sort on last names.  This assumes the speaker names are all fo the form "... <last name>" with one or more spaces before the last name and no spaces IN the last name, e.g. "Van Kirk"
@@ -205,11 +221,19 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                         while (speakerSort.rangeOfString(Constants.SINGLE_SPACE_STRING) != nil) {
                             speakerSort = speakerSort.substringFromIndex(speakerSort.rangeOfString(Constants.SINGLE_SPACE_STRING)!.endIndex)
                         }
-                        
                         dict![Constants.SPEAKER_SORT] = speakerSort
-                        Globals.sermonSettings?[keyBase+Constants.SPEAKER_SORT] = speakerSort
+                        if (Globals.sermonSettings?[keyBase] == nil) {
+                            Globals.sermonSettings?[keyBase] = [String:String]()
+                        }
+//                        print("\(keyBase)")
+                        Globals.sermonSettings?[keyBase]?[Constants.SPEAKER_SORT] = speakerSort
+                    } else {
+                        print("NO SPEAKER")
                     }
                 }
+            }
+            if dict![Constants.SPEAKER_SORT] == nil {
+                print("Speaker sort is NIL")
             }
             return dict![Constants.SPEAKER_SORT]
         }
@@ -237,12 +261,19 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     var seriesSort:String? {
         get {
             if dict![Constants.SERIES_SORT] == nil {
-                if let seriesSort = Globals.sermonSettings?[keyBase+Constants.SERIES_SORT] {
+                if let seriesSort = Globals.sermonSettings?[keyBase]?[Constants.SERIES_SORT] {
                     dict![Constants.SERIES_SORT] = seriesSort
                 } else {
-                    let seriesSort = stringWithoutLeadingTheOrAOrAn(series)
-                    dict![Constants.SERIES_SORT] = seriesSort
-                    Globals.sermonSettings?[keyBase+Constants.SERIES_SORT] = seriesSort
+                    if let seriesSort = stringWithoutLeadingTheOrAOrAn(series) {
+                        dict![Constants.SERIES_SORT] = seriesSort
+                        if (Globals.sermonSettings?[keyBase] == nil) {
+                            Globals.sermonSettings?[keyBase] = [String:String]()
+                        }
+//                        print("\(keyBase)")
+                        Globals.sermonSettings?[keyBase]?[Constants.SERIES_SORT] = seriesSort
+                    } else {
+                        print("seriesSort is nil")
+                    }
                 }
             }
             return dict![Constants.SERIES_SORT]
@@ -274,7 +305,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     var notes:String? {
         get {
             if dict![Constants.NOTES] == nil {
-                if let notes = Globals.sermonSettings?[keyBase+Constants.NOTES] {
+                if let notes = Globals.sermonSettings?[keyBase]?[Constants.NOTES] {
                     dict![Constants.NOTES] = notes
                 } else {
                     // do nothing
@@ -284,21 +315,18 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         }
         set {
             dict![Constants.NOTES] = newValue
-            Globals.sermonSettings?[keyBase+Constants.NOTES] = newValue
+            if (Globals.sermonSettings?[keyBase] == nil) {
+                Globals.sermonSettings?[keyBase] = [String:String]()
+            }
+            Globals.sermonSettings?[keyBase]?[Constants.NOTES] = newValue
         }
-        //        get {
-        //            return dict![Constants.NOTES]
-        //        }
-        //        set {
-        //            dict![Constants.NOTES] = newValue
-        //        }
     }
     
     // this supports set values that are saved in defaults between sessions
     var slides:String? {
         get {
             if dict![Constants.SLIDES] == nil {
-                if let slides = Globals.sermonSettings?[keyBase+Constants.SLIDES] {
+                if let slides = Globals.sermonSettings?[keyBase]?[Constants.SLIDES] {
                     dict![Constants.SLIDES] = slides
                 } else {
                     // do nothing
@@ -308,14 +336,11 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         }
         set {
             dict![Constants.SLIDES] = newValue
-            Globals.sermonSettings?[keyBase+Constants.SLIDES] = newValue
+            if (Globals.sermonSettings?[keyBase] == nil) {
+                Globals.sermonSettings?[keyBase] = [String:String]()
+            }
+            Globals.sermonSettings?[keyBase]?[Constants.SLIDES] = newValue
         }
-        //        get {
-        //            return dict![Constants.SLIDES]
-        //        }
-        //        set {
-        //            dict![Constants.SLIDES] = newValue
-        //        }
     }
     
     var bookSection:String! {
@@ -327,9 +352,9 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     var book:String? {
         get {
             if (dict![Constants.BOOK] == nil) {
-                if let bookTitle = Globals.sermonSettings?[keyBase+Constants.BOOK] {
-                    dict![Constants.BOOK] = bookTitle
-                } else {
+//                if let bookTitle = Globals.sermonSettings?[keyBase]?[Constants.BOOK] {
+//                    dict![Constants.BOOK] = bookTitle
+//                } else {
                     if (scripture == Constants.Selected_Scriptures) {
 //                        dict![Constants.BOOK] = Constants.Selected_Scriptures
                     } else {
@@ -352,11 +377,14 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                                     }
                                 }
                             }
-                            if (dict![Constants.BOOK] != nil) {
-                                Globals.sermonSettings?[keyBase+Constants.BOOK] = dict![Constants.BOOK]
-                            }
+//                            if (dict![Constants.BOOK] != nil) {
+//                                if (Globals.sermonSettings?[keyBase] == nil) {
+//                                    Globals.sermonSettings?[keyBase] = [String:String]()
+//                                }
+//                                Globals.sermonSettings?[keyBase]?[Constants.BOOK] = dict![Constants.BOOK]
+//                            }
                         }
-                    }
+//                    }
                 }
             }
             

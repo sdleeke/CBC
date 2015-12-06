@@ -287,7 +287,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
                 }
             }
             
-            Globals.sermonsNeedGroupsSetup = true
+            Globals.sermonsNeed.groupsSetup = true
             sortAndGroupSermons()
 
             var tvc:MyTableViewController?

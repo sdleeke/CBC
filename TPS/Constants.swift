@@ -40,17 +40,11 @@ struct Constants {
     
     static let SHOW_TRANSCRIPT_FULL_SCREEN_SEGUE_IDENTIFIER = "Show Full Screen"
     
-//    static let NOTES_CONTENT_OFFSET_X = "notesContentOffsetX"
-//    static let NOTES_CONTENT_OFFSET_Y = "notesContentOffsetY"
-    
     static let NOTES_CONTENT_OFFSET_X_RATIO = "notesContentOffsetXRatio"
     static let NOTES_CONTENT_OFFSET_Y_RATIO = "notesContentOffsetYRatio"
     
     static let NOTES_ZOOM_SCALE = "notesZoomScale"
     
-//    static let SLIDES_CONTENT_OFFSET_X = "slidesContentOffsetX"
-//    static let SLIDES_CONTENT_OFFSET_Y = "slidesContentOffsetY"
-
     static let SLIDES_CONTENT_OFFSET_X_RATIO = "slidesContentOffsetXRatio"
     static let SLIDES_CONTENT_OFFSET_Y_RATIO = "slidesContentOffsetYRatio"
 

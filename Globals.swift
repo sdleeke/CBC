@@ -37,6 +37,12 @@ struct DeepLink {
     var tag:String?
 }
 
+struct Section {
+    var titles:[String]?
+    var counts:[Int]?
+    var indexes:[Int]?
+}
+
 typealias SortGroupTuple = (sermons: [Sermon]?, sections: [String]?, indexes: [Int]?, counts: [Int]?)
 typealias SortGroupCache = [String:SortGroupTuple]
 
@@ -49,17 +55,18 @@ struct Globals {
     
     static var grouping:String? = Constants.YEAR {
         didSet {
-            Globals.sermonsNeedGrouping = (grouping != oldValue)
+            Globals.sermonsNeed.grouping = (grouping != oldValue)
         }
     }
     
     static var sorting:String? = Constants.REVERSE_CHRONOLOGICAL {
         didSet {
-            Globals.sermonsNeedSorting = (sorting != oldValue)
+            Globals.sermonsNeed.sorting = (sorting != oldValue)
         }
     }
     
     static var searchActive:Bool = false
+    static var searchText:String?
     
     static var showing:String? = Constants.ALL
     
@@ -81,7 +88,7 @@ struct Globals {
     static var sermonPlaying:Sermon?
     
     static var seriesViewSplits:[String:String]?
-    static var sermonSettings:[String:String]?
+    static var sermonSettings:[String:[String:String]]?
     
     static var sermons:[Sermon]?
     
@@ -150,35 +157,69 @@ struct Globals {
     }
     
     //These are only used when sorting and grouping, i.e. according to what is being shown
-    static var sortGroupCache:SortGroupCache?
+    static var sortGroupCache:SortGroupCache? = {
+        return SortGroupCache()
+    }()
     
-    static var sermonYears:[Int]?
-    static var sermonSeries:[String]?
-    static var sermonBooks:[String]?
-    static var sermonSpeakers:[String]?
+    static var sortGroupCacheKey:String {
+        get {
+            var key = Globals.searchActive ? (Globals.searchText != nil ? Globals.searchText! : "") : ""
+
+            key = key + Globals.showing!
+
+            switch Globals.showing! {
+            case Constants.TAGGED:
+                key = key + Globals.sermonTagsSelected!
+                break
+                
+            case Constants.ALL:
+                break
+                
+            default:
+                break
+            }
+            
+            key = key + Globals.sorting! + Globals.grouping!
+            
+            return key
+        }
+    }
+    
+    struct sermonSectionTitles {
+        static var years:[Int]?
+        static var series:[String]?
+        static var books:[String]?
+        static var speakers:[String]?
+    }
     
     static var sermonsSortingOrGrouping:Bool = false
-    static var sermonsNeedSorting:Bool = true
-    static var sermonsNeedGrouping:Bool = true
-    static var sermonsNeedGroupsSetup:Bool = true {
-        didSet {
-            if (sermonsNeedGroupsSetup == true) {
-                sortGroupCache = nil
-            }
-        }
+    
+    struct sermonsNeed {
+        static var sorting:Bool = true
+        static var grouping:Bool = true
+        static var groupsSetup:Bool = true
+//        {
+//            didSet {
+//                if (groupsSetup == true) {
+//                    sortGroupCache = nil
+//                }
+//            }
+//        }
     }
     
     //These are the tags from all sermons
     static var sermonTags:[String]?
-    
-    static var sermonSections:[String]?
-    static var sermonSectionCounts:[Int]?
-    static var sermonSectionIndexes:[Int]?
+
+    static var section:Section! = {
+        var section = Section()
+        return section
+    }()
     
     struct display {
         static var sermons:[Sermon]?
-        static var sections:[String]?
-        static var sectionCounts:[Int]?
-        static var sectionIndexes:[Int]?
+        static var section:Section! = {
+            var section = Section()
+            return section
+            }()
     }
 }

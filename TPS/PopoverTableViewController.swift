@@ -28,9 +28,13 @@ class PopoverTableViewController: UITableViewController {
     
     var strings:[String]?
     
-    var sections = [String]()
-    var sectionIndexes = [Int]()
-    var sectionCounts = [Int]()
+    lazy var section:Section! = {
+        var section = Section()
+        return section
+    }()
+//    var sections = [String]()
+//    var sectionIndexes = [Int]()
+//    var sectionCounts = [Int]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -69,32 +73,31 @@ class PopoverTableViewController: UITableViewController {
 
         if (showIndex) {
             let a = "A"
-            var sectionSet = Set<String>()
             
-            for string in strings! {
-                sectionSet.insert(stringWithoutLeadingTheOrAOrAn(string)!.substringToIndex(a.endIndex))
-            }
+            section.titles = Array(Set(strings!.map({ (string:String) -> String in
+                return stringWithoutLeadingTheOrAOrAn(string)!.substringToIndex(a.endIndex)
+            }))).sort() { $0 < $1 }
             
-            sections.removeAll()
-            for string in sectionSet {
-                sections.append(string)
-            }
-            sections.sortInPlace() { $0 < $1 }
+            var indexes = [Int]()
+            var counts = [Int]()
             
-            for section in sections {
+            for sectionTitle in section.titles! {
                 var counter = 0
                 
                 for index in 0..<strings!.count {
-                    if (section == stringWithoutLeadingTheOrAOrAn(strings![index])!.substringToIndex(a.endIndex)) {
+                    if (sectionTitle == stringWithoutLeadingTheOrAOrAn(strings![index])!.substringToIndex(a.endIndex)) {
                         if (counter == 0) {
-                            sectionIndexes.append(index)
+                            indexes.append(index)
                         }
                         counter++
                     }
                 }
                 
-                sectionCounts.append(counter)
+                counts.append(counter)
             }
+            
+            section.indexes = indexes.count > 0 ? indexes : nil
+            section.counts = counts.count > 0 ? counts : nil
         }
         
 //        print("Strings: \(strings)")
@@ -137,7 +140,7 @@ class PopoverTableViewController: UITableViewController {
         // #warning Potentially incomplete method implementation.
         // Return the number of sections.
         if (showIndex) {
-            return sections.count
+            return self.section.titles != nil ? self.section.titles!.count : 0
         } else {
             return 1
         }
@@ -147,7 +150,7 @@ class PopoverTableViewController: UITableViewController {
         // #warning Incomplete method implementation.
         // Return the number of rows in the section.
         if (showIndex) {
-            return sectionCounts[section]
+            return self.section.counts != nil ? self.section.counts![section] : 0
         } else {
             return strings != nil ? strings!.count : 0
         }
@@ -155,7 +158,7 @@ class PopoverTableViewController: UITableViewController {
 
     override func sectionIndexTitlesForTableView(tableView: UITableView) -> [String]? {
         if (showIndex) {
-            return sections
+            return self.section.titles
         } else {
             return nil
         }
@@ -175,7 +178,7 @@ class PopoverTableViewController: UITableViewController {
     
     override func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         if (showIndex && showSectionHeaders) {
-            return sections[section]
+            return self.section.titles != nil ? self.section.titles![section] : nil
         } else {
             return nil
         }
@@ -187,7 +190,7 @@ class PopoverTableViewController: UITableViewController {
         var index = -1
         
         if (showIndex) {
-            index = sectionIndexes[indexPath.section]+indexPath.row
+            index = self.section.indexes != nil ? self.section.indexes![indexPath.section]+indexPath.row : -1
         } else {
             index = indexPath.row
         }
@@ -268,7 +271,7 @@ class PopoverTableViewController: UITableViewController {
 
         var index = -1
         if (showIndex) {
-            index = sectionIndexes[indexPath.section]+indexPath.row
+            index = self.section.indexes != nil ? self.section.indexes![indexPath.section]+indexPath.row : -1
         } else {
             index = indexPath.row
         }

@@ -1831,49 +1831,40 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        return false
 //    }
     
-    func didRotate() {
+    func setupWKContentOffsets() {
         if (selectedSermon != nil) {
-            var index:String
-            var notesContentOffset:CGPoint = CGPointMake(0,0)
-            
             var notesContentOffsetXRatio:Float = 0.0
             var notesContentOffsetYRatio:Float = 0.0
             
             //        print("\(sermonNotesWebView!.scrollView.contentSize)")
             //        print("\(sermonSlidesWebView!.scrollView.contentSize)")
             
-            index = selectedSermon!.keyBase + Constants.NOTES_CONTENT_OFFSET_X_RATIO
-            if (Globals.sermonSettings![index] != nil) {
-                notesContentOffsetXRatio = Float(Globals.sermonSettings![index]!)!
+            if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] {
+                notesContentOffsetXRatio = Float(ratio)!
             }
             
-            index = selectedSermon!.keyBase + Constants.NOTES_CONTENT_OFFSET_Y_RATIO
-            if (Globals.sermonSettings![index] != nil) {
-                notesContentOffsetYRatio = Float(Globals.sermonSettings![index]!)!
+            if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] {
+                notesContentOffsetYRatio = Float(ratio)!
             }
             
-            notesContentOffset = CGPointMake(
+            let notesContentOffset = CGPointMake(
                 CGFloat(notesContentOffsetXRatio) * sermonNotesWebView!.scrollView.contentSize.width,
                 CGFloat(notesContentOffsetYRatio) * sermonNotesWebView!.scrollView.contentSize.height)
             
             sermonNotesWebView!.scrollView.setContentOffset(notesContentOffset, animated: false)
             
-            var slidesContentOffset:CGPoint = CGPointMake(0,0)
-            
             var slidesContentOffsetXRatio:Float = 0.0
             var slidesContentOffsetYRatio:Float = 0.0
             
-            index = selectedSermon!.keyBase + Constants.SLIDES_CONTENT_OFFSET_X_RATIO
-            if (Globals.sermonSettings![index] != nil) {
-                slidesContentOffsetXRatio = Float(Globals.sermonSettings![index]!)!
+            if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] {
+                slidesContentOffsetXRatio = Float(ratio)!
             }
             
-            index = selectedSermon!.keyBase + Constants.SLIDES_CONTENT_OFFSET_Y_RATIO
-            if (Globals.sermonSettings![index] != nil) {
-                slidesContentOffsetYRatio = Float(Globals.sermonSettings![index]!)!
+            if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] {
+                slidesContentOffsetYRatio = Float(ratio)!
             }
             
-            slidesContentOffset = CGPointMake(
+            let slidesContentOffset = CGPointMake(
                 CGFloat(slidesContentOffsetXRatio) * sermonSlidesWebView!.scrollView.contentSize.width,
                 CGFloat(slidesContentOffsetYRatio) * sermonSlidesWebView!.scrollView.contentSize.height)
             
@@ -1892,7 +1883,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         coordinator.animateAlongsideTransition({ (UIViewControllerTransitionCoordinatorContext) -> Void in
             
             }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-                self.didRotate()
+                self.setupWKContentOffsets()
         }
 
         if (self.splitViewController != nil) {
@@ -2176,14 +2167,18 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        print("captureContentOffset: \(sermonSelected?.title)")
 
         if (selectedSermon != nil) {
+            if (Globals.sermonSettings?[selectedSermon!.keyBase] == nil) {
+                Globals.sermonSettings?[selectedSermon!.keyBase] = [String:String]()
+            }
+            
             if (webView == sermonNotesWebView) {
-                Globals.sermonSettings![selectedSermon!.keyBase + Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.x / sermonNotesWebView!.scrollView.contentSize.width)"
-                Globals.sermonSettings![selectedSermon!.keyBase + Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.y / sermonNotesWebView!.scrollView.contentSize.height)"
+                Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.x / sermonNotesWebView!.scrollView.contentSize.width)"
+                Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.y / sermonNotesWebView!.scrollView.contentSize.height)"
             }
             
             if (webView == sermonSlidesWebView) {
-                Globals.sermonSettings![selectedSermon!.keyBase + Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.x / sermonSlidesWebView!.scrollView.contentSize.width)"
-                Globals.sermonSettings![selectedSermon!.keyBase + Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.y / sermonSlidesWebView!.scrollView.contentSize.height)"
+                Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.x / sermonSlidesWebView!.scrollView.contentSize.width)"
+                Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.y / sermonSlidesWebView!.scrollView.contentSize.height)"
             }
         }
     }
@@ -2193,12 +2188,16 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        print("captureZoomScale: \(sermonSelected?.title)")
 
         if (selectedSermon != nil) && (!webView.loading) {
+            if (Globals.sermonSettings?[selectedSermon!.keyBase] == nil) {
+                Globals.sermonSettings?[selectedSermon!.keyBase] = [String:String]()
+            }
+            
             if (webView == sermonNotesWebView) {
-                Globals.sermonSettings![selectedSermon!.keyBase + Constants.NOTES_ZOOM_SCALE] = "\(sermonNotesWebView!.scrollView.zoomScale)"
+                Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_ZOOM_SCALE] = "\(sermonNotesWebView!.scrollView.zoomScale)"
             }
             
             if (webView == sermonSlidesWebView) {
-                Globals.sermonSettings![selectedSermon!.keyBase + Constants.SLIDES_ZOOM_SCALE] = "\(sermonSlidesWebView!.scrollView.zoomScale)"
+                Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_ZOOM_SCALE] = "\(sermonSlidesWebView!.scrollView.zoomScale)"
             }
         }
     }
@@ -2208,23 +2207,27 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         if (selectedSermon != nil) {
 //            print("captureContentOffsetAndZoomScale: \(sermonSelected?.title)")
             
+            if (Globals.sermonSettings![selectedSermon!.keyBase] == nil) {
+                Globals.sermonSettings![selectedSermon!.keyBase] = [String:String]()
+            }
+
             if (sermonNotesWebView != nil) {
                 if (!sermonNotesWebView!.loading) {
-                    Globals.sermonSettings![selectedSermon!.keyBase + Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.x / sermonNotesWebView!.scrollView.contentSize.width)"
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.x / sermonNotesWebView!.scrollView.contentSize.width)"
                     
-                    Globals.sermonSettings![selectedSermon!.keyBase + Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.y / sermonNotesWebView!.scrollView.contentSize.height)"
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.y / sermonNotesWebView!.scrollView.contentSize.height)"
                     
-                    Globals.sermonSettings![selectedSermon!.keyBase + Constants.NOTES_ZOOM_SCALE] = "\(sermonNotesWebView!.scrollView.zoomScale)"
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_ZOOM_SCALE] = "\(sermonNotesWebView!.scrollView.zoomScale)"
                 }
             }
             
             if (sermonSlidesWebView != nil) {
                 if (!sermonSlidesWebView!.loading) {
-                    Globals.sermonSettings![selectedSermon!.keyBase + Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.x / sermonSlidesWebView!.scrollView.contentSize.width)"
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.x / sermonSlidesWebView!.scrollView.contentSize.width)"
                     
-                    Globals.sermonSettings![selectedSermon!.keyBase + Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.y / sermonSlidesWebView!.scrollView.contentSize.height)"
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.y / sermonSlidesWebView!.scrollView.contentSize.height)"
                     
-                    Globals.sermonSettings![selectedSermon!.keyBase + Constants.SLIDES_ZOOM_SCALE] = "\(sermonSlidesWebView!.scrollView.zoomScale)"
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_ZOOM_SCALE] = "\(sermonSlidesWebView!.scrollView.zoomScale)"
                 }
             }
         }
@@ -2439,6 +2442,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     private func setupSlider() {
         if (Globals.mpPlayer != nil) && (Globals.sermonPlaying != nil) {
+//            print("\(Globals.sermonPlaying)")
+//            print("\(selectedSermon)")
             if (Globals.sermonPlaying == selectedSermon) {
                 elapsed.hidden = false
                 remaining.hidden = false
@@ -3077,72 +3082,60 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         webView.scrollView.setContentOffset(offset,animated: false)
     }
     
-    func setNotesContentOffsetViewScale()
+    func setNotesContentOffsetAndZoomScale()
     {
-        var notesContentOffset:CGPoint = CGPointMake(0,0)
         var notesZoomScale:CGFloat = 1.0
-        
-        var index:String
         
         var notesContentOffsetXRatio:Float = 0.0
         var notesContentOffsetYRatio:Float = 0.0
         
-        index = selectedSermon!.keyBase + Constants.NOTES_CONTENT_OFFSET_X_RATIO
-        if (Globals.sermonSettings![index] != nil) {
-            notesContentOffsetXRatio = Float(Globals.sermonSettings![index]!)!
+        if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] {
+            notesContentOffsetXRatio = Float(ratio)!
         }
         
-        index = selectedSermon!.keyBase + Constants.NOTES_CONTENT_OFFSET_Y_RATIO
-        if (Globals.sermonSettings![index] != nil) {
-            notesContentOffsetYRatio = Float(Globals.sermonSettings![index]!)!
+        if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] {
+            notesContentOffsetYRatio = Float(ratio)!
         }
         
-        index = selectedSermon!.keyBase + Constants.NOTES_ZOOM_SCALE
-        if (Globals.sermonSettings![index] != nil) {
-            notesZoomScale = CGFloat(Float((Globals.sermonSettings![index]!))!)
+        if let zoomScale = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_ZOOM_SCALE] {
+            notesZoomScale = CGFloat(Float(zoomScale)!)
         }
         
 //        print("\(notesContentOffsetXRatio)")
 //        print("\(sermonNotesWebView!.scrollView.contentSize.width)")
 //        print("\(notesZoomScale)")
         
-        notesContentOffset = CGPointMake(   CGFloat(notesContentOffsetXRatio) * sermonNotesWebView!.scrollView.contentSize.width * notesZoomScale,
-                                            CGFloat(notesContentOffsetYRatio) * sermonNotesWebView!.scrollView.contentSize.height * notesZoomScale)
+        let notesContentOffset = CGPointMake(   CGFloat(notesContentOffsetXRatio) * sermonNotesWebView!.scrollView.contentSize.width * notesZoomScale,
+                                                CGFloat(notesContentOffsetYRatio) * sermonNotesWebView!.scrollView.contentSize.height * notesZoomScale)
         
         wkSetZoomAndOffset(sermonNotesWebView!, scale: notesZoomScale, offset: notesContentOffset)
     }
     
-    func setSlidesContentOffsetViewScale()
+    func setSlidesContentOffsetAndZoomScale()
     {
-        var slidesContentOffset:CGPoint = CGPointMake(0,0)
         var slidesZoomScale:CGFloat = 1.0
-        
-        var index:String
         
         var slidesContentOffsetXRatio:Float = 0.0
         var slidesContentOffsetYRatio:Float = 0.0
         
-        index = selectedSermon!.keyBase + Constants.SLIDES_CONTENT_OFFSET_X_RATIO
-        if (Globals.sermonSettings![index] != nil) {
-            slidesContentOffsetXRatio = Float(Globals.sermonSettings![index]!)!
+        if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]![Constants.SLIDES_CONTENT_OFFSET_X_RATIO] {
+            slidesContentOffsetXRatio = Float(ratio)!
         }
         
-        index = selectedSermon!.keyBase + Constants.SLIDES_CONTENT_OFFSET_Y_RATIO
-        if (Globals.sermonSettings![index] != nil) {
-            slidesContentOffsetYRatio = Float(Globals.sermonSettings![index]!)!
+        if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]![Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] {
+            slidesContentOffsetYRatio = Float(ratio)!
         }
         
-        index = selectedSermon!.keyBase + Constants.SLIDES_ZOOM_SCALE
-        if (Globals.sermonSettings![index] != nil) {
-            slidesZoomScale = CGFloat(Float((Globals.sermonSettings![index]!))!)
+        if let zoomScale = Globals.sermonSettings?[selectedSermon!.keyBase]![Constants.SLIDES_ZOOM_SCALE] {
+            slidesZoomScale = CGFloat(Float(zoomScale)!)
         }
         
 //        print("\(slidesContentOffsetXRatio)")
 //        print("\(sermonSlidesWebView!.scrollView.contentSize.width)")
 //        print("\(slidesZoomScale)")
         
-        slidesContentOffset = CGPointMake(  CGFloat(slidesContentOffsetXRatio) * sermonSlidesWebView!.scrollView.contentSize.width * slidesZoomScale,
-                                            CGFloat(slidesContentOffsetYRatio) * sermonSlidesWebView!.scrollView.contentSize.height * slidesZoomScale)
+        let slidesContentOffset = CGPointMake(  CGFloat(slidesContentOffsetXRatio) * sermonSlidesWebView!.scrollView.contentSize.width * slidesZoomScale,
+                                                CGFloat(slidesContentOffsetYRatio) * sermonSlidesWebView!.scrollView.contentSize.height * slidesZoomScale)
         
         wkSetZoomAndOffset(sermonSlidesWebView!, scale: slidesZoomScale, offset: slidesContentOffset)
     }
@@ -3167,7 +3160,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                         webView.hidden = false
                     }
 
-                    setNotesContentOffsetViewScale()
+                    setNotesContentOffsetAndZoomScale()
                 }
                 
                 if (webView == sermonSlidesWebView) {
@@ -3175,7 +3168,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                         webView.hidden = false
                     }
                     
-                    setSlidesContentOffsetViewScale()
+                    setSlidesContentOffsetAndZoomScale()
                 }
             }
         }

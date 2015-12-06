@@ -354,23 +354,29 @@ func loadDefaults()
         Globals.showing = Constants.ALL
     }
 
-    var indexOfSermon = -1
+    var indexOfSermon:Int?
     
     if let dict = defaults.dictionaryForKey(Constants.SERMON_PLAYING) {
-        for index in 0..<Globals.sermons!.count {
-            if (Globals.sermons![index].title == (dict[Constants.TITLE] as! String)) &&
-                (Globals.sermons![index].date == (dict[Constants.DATE] as! String)) &&
-                (Globals.sermons![index].service == (dict[Constants.SERVICE] as! String)) &&
-                (Globals.sermons![index].speaker == (dict[Constants.SPEAKER] as! String)) {
-                    indexOfSermon = index
-                    break
-            }
-        }
+        indexOfSermon = Globals.sermons?.indexOf({ (sermon:Sermon) -> Bool in
+            return (sermon.title == (dict[Constants.TITLE] as! String)) &&
+                (sermon.date == (dict[Constants.DATE] as! String)) &&
+                (sermon.service == (dict[Constants.SERVICE] as! String)) &&
+                (sermon.speaker == (dict[Constants.SPEAKER] as! String))
+        })
+//        for index in 0..<Globals.sermons!.count {
+//            if (Globals.sermons![index].title == (dict[Constants.TITLE] as! String)) &&
+//                (Globals.sermons![index].date == (dict[Constants.DATE] as! String)) &&
+//                (Globals.sermons![index].service == (dict[Constants.SERVICE] as! String)) &&
+//                (Globals.sermons![index].speaker == (dict[Constants.SPEAKER] as! String)) {
+//                    indexOfSermon = index
+//                    break
+//            }
+//        }
     }
     
-    if (indexOfSermon > -1) {
+    if (indexOfSermon != nil) {
         Globals.sermonLoaded = false
-        Globals.sermonPlaying = Globals.sermons?[indexOfSermon]
+        Globals.sermonPlaying = Globals.sermons?[indexOfSermon!]
     } else {
         Globals.sermonLoaded = true
     }
@@ -702,19 +708,30 @@ func setupPlayingInfoCenter()
                 sermonInfo.updateValue(Globals.sermonPlaying!.speaker!,                                         forKey: MPMediaItemPropertyAlbumArtist)
             }
 
-            if let sermons = Globals.sermons {
-                var sermonsInSeries = [Sermon]()
-                
-                for sermon in sermons {
-                    if (sermon.series == Globals.sermonPlaying?.series) {
-                        sermonsInSeries.append(sermon)
-                    }
-                }
-                sermonsInSeries.sortInPlace() { $0.title < $1.title }
-                
+            if let sermonsInSeries = Globals.sermons?.filter({ (sermon:Sermon) -> Bool in
+                return (sermon.hasSeries()) && (sermon.series == Globals.sermonPlaying!.series)
+            }).sort({ $0.title < $1.title }) {
+//                print("\(sermonsInSeries.indexOf(Globals.sermonPlaying!))")
+//                print("\(Globals.sermonPlaying!)")
+//                print("\(sermonsInSeries)")
                 sermonInfo.updateValue(sermonsInSeries.indexOf(Globals.sermonPlaying!)!,                        forKey: MPMediaItemPropertyAlbumTrackNumber)
                 sermonInfo.updateValue(sermonsInSeries.count,                                                   forKey: MPMediaItemPropertyAlbumTrackCount)
             }
+
+//            if let sermons = Globals.sermons {
+//                var sermonsInSeries = [Sermon]()
+//                
+//                for sermon in sermons {
+//                    if (sermon.series == Globals.sermonPlaying?.series) {
+//                        sermonsInSeries.append(sermon)
+//                    }
+//                }
+//                sermonsInSeries.sortInPlace() { $0.title < $1.title }
+//                
+//                print("\(sermonsInSeries.indexOf(Globals.sermonPlaying!))")
+//                sermonInfo.updateValue(sermonsInSeries.indexOf(Globals.sermonPlaying!)!,                        forKey: MPMediaItemPropertyAlbumTrackNumber)
+//                sermonInfo.updateValue(sermonsInSeries.count,                                                   forKey: MPMediaItemPropertyAlbumTrackCount)
+//            }
         }
         
         if (Globals.mpPlayer != nil) {
@@ -815,6 +832,7 @@ func saveSermonSettings()
 //    print("\(Globals.sermonSettings)")
     
     let defaults = NSUserDefaults.standardUserDefaults()
+//    print("\(Globals.sermonSettings)")
     defaults.setObject(Globals.sermonSettings,forKey: Constants.SERMON_SETTINGS_KEY)
 //    print("\(Globals.sermonSettings)")
     defaults.setObject(Globals.seriesViewSplits, forKey: Constants.SERIES_VIEW_SPLITS_KEY)
@@ -828,9 +846,11 @@ func loadSermonSettings()
     
     if let settingsDictionary = defaults.dictionaryForKey(Constants.SERMON_SETTINGS_KEY) {
 //        print("\(settingsDictionary)")
-        Globals.sermonSettings = settingsDictionary as? [String:String]
-    } else {
-        Globals.sermonSettings = [String:String]()
+        Globals.sermonSettings = settingsDictionary as? [String:[String:String]]
+    }
+    
+    if (Globals.sermonSettings == nil) {
+        Globals.sermonSettings = [String:[String:String]]()
     }
     
     if let viewSplitsDictionary = defaults.dictionaryForKey(Constants.SERIES_VIEW_SPLITS_KEY) {
@@ -859,7 +879,6 @@ func stringWithoutLeadingTheOrAOrAn(fromString:String?) -> String?
         } else
             if (fromString?.endIndex >= the.endIndex) && (fromString?.substringToIndex(the.endIndex) == the) {
                 sortString = fromString!.substringFromIndex(the.endIndex)
-//        print("\(titleSort)")
     }
     
     return sortString
@@ -869,9 +888,9 @@ func stringWithoutLeadingTheOrAOrAn(fromString:String?) -> String?
 func clearSermonsForDisplay()
 {
     Globals.display.sermons = nil
-    Globals.display.sections = nil
-    Globals.display.sectionIndexes = nil
-    Globals.display.sectionCounts = nil
+    Globals.display.section.titles = nil
+    Globals.display.section.indexes = nil
+    Globals.display.section.counts = nil
 }
 
 
@@ -879,36 +898,59 @@ func setupSermonsForDisplay()
 {
     Globals.display.sermons = Globals.activeSermons
     
-    Globals.display.sections = Globals.sermonSections
-    Globals.display.sectionIndexes = Globals.sermonSectionIndexes
-    Globals.display.sectionCounts = Globals.sermonSectionCounts
+    Globals.display.section.titles = Globals.section.titles
+    Globals.display.section.indexes = Globals.section.indexes
+    Globals.display.section.counts = Globals.section.counts
 }
 
 
 func fillSortAndGroupCache()
 {
+    /*
+        This must be done so the SortGroupTuples that is stored in the SortGroupCache area created serially.
+        Otherwise there are inexplicable crashes in Globals.sermonSettings that probably have to do with simultaneous
+        access not being thread safe.  I wish I understood this better.
+    */
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-        if (Globals.sortGroupCache == nil) {
-            Globals.sortGroupCache = SortGroupCache()
-        }
-        
         let sermons = Globals.activeSermons
+
+        let showing = Globals.showing
+        let tag = Globals.sermonTagsSelected
         
         let sortings = [Constants.CHRONOLOGICAL, Constants.REVERSE_CHRONOLOGICAL]
         let groupings = [Constants.YEAR, Constants.SERIES, Constants.BOOK, Constants.SPEAKER]
         
+        var key:String?
+        
+        let searchKey = Globals.searchActive ? (Globals.searchText != nil ? Globals.searchText! : "") : ""
+
         for sorting in sortings {
             for grouping in groupings {
-                if (Globals.sortGroupCache?[sorting + grouping] == nil) {
+                switch showing! {
+                case Constants.TAGGED:
+                    key = searchKey + showing! + tag! + sorting + grouping
+                    break
+                    
+                case Constants.ALL:
+                    key = searchKey + showing! + sorting + grouping
+                    break
+                    
+                default:
+                    break
+                }
+                
+                print("cache entry:\(key!)")
+                if (Globals.sortGroupCache?[key!] == nil) {
                     let sermonList = sortSermons(sermons, sorting: sorting, grouping: grouping)
                     let groupTuple = groupSermons(sermonList, grouping: grouping)
                     let sections = sermonSections(sermonList, sorting: sorting, grouping: grouping)
-                    if (Globals.sortGroupCache?[sorting + grouping] == nil) {
-                        Globals.sortGroupCache?[sorting + grouping] = (sermons: sermonList, sections: sections, indexes: groupTuple?.indexes, counts: groupTuple?.counts)
-                    }
+                    Globals.sortGroupCache?[key!] = (sermons: sermonList, sections: sections, indexes: groupTuple?.indexes, counts: groupTuple?.counts)
+                } else {
+                    print("This cache entry is already filled.")
                 }
             }
         }
+        print("Finished filling the cache.")
     })
 }
 
@@ -916,68 +958,57 @@ func fillSortAndGroupCache()
 func sortAndGroupSermons() {
     Globals.sermonsSortingOrGrouping = true
 
-    if let sortGroupTuple = Globals.sortGroupCache?[Globals.sorting! + Globals.grouping!] {
+    print("Looking for cache entry: \(Globals.sortGroupCacheKey)")
+    if let sortGroupTuple = Globals.sortGroupCache?[Globals.sortGroupCacheKey] {
         Globals.activeSermons = sortGroupTuple.sermons
-        Globals.sermonSections = sortGroupTuple.sections
-        Globals.sermonSectionIndexes = sortGroupTuple.indexes
-        Globals.sermonSectionCounts = sortGroupTuple.counts
+        Globals.section.titles = sortGroupTuple.sections
+        Globals.section.indexes = sortGroupTuple.indexes
+        Globals.section.counts = sortGroupTuple.counts
     } else {
-        if (Globals.sortGroupCache == nil) {
-            Globals.sortGroupCache = SortGroupCache()
-        }
-        if (Globals.sermonsNeedGroupsSetup) {
+        if (Globals.sermonsNeed.groupsSetup) {
             setupSermonGroups()
-            Globals.sermonsNeedGrouping = true
-            Globals.sermonsNeedGroupsSetup = false
+            Globals.sermonsNeed.grouping = true
+            Globals.sermonsNeed.groupsSetup = false
             fillSortAndGroupCache()
         }
         
-        if Globals.sermonsNeedGrouping {
+        if Globals.sermonsNeed.grouping {
             Globals.activeSermons = sortSermons(Globals.activeSermons,sorting: Globals.sorting, grouping: Globals.grouping)
             if let groupTuple = groupSermons(Globals.activeSermons, grouping: Globals.grouping) {
-                Globals.sermonSectionIndexes = groupTuple.indexes
-                Globals.sermonSectionCounts = groupTuple.counts
+                Globals.section.indexes = groupTuple.indexes
+                Globals.section.counts = groupTuple.counts
             }
 
-            Globals.sermonSections = sermonSections()
+            Globals.section.titles = sermonSectionTitles()
             
-            Globals.sermonsNeedGrouping = false
+            Globals.sermonsNeed.grouping = false
         } else {
-            if Globals.sermonsNeedSorting {
+            if Globals.sermonsNeed.sorting {
                 Globals.activeSermons = sortSermons(Globals.activeSermons,sorting: Globals.sorting, grouping: Globals.grouping)
                 if (Globals.grouping == Constants.YEAR) {
                     if let groupTuple = groupSermons(Globals.activeSermons, grouping: Globals.grouping) {
-                        Globals.sermonSectionIndexes = groupTuple.indexes
-                        Globals.sermonSectionCounts = groupTuple.counts
+                        Globals.section.indexes = groupTuple.indexes
+                        Globals.section.counts = groupTuple.counts
                     }
 
-                    var sections:[Int]?
-                    
                     switch Globals.sorting! {
                     case Constants.REVERSE_CHRONOLOGICAL:
-                        sections = Globals.sermonYears?.sort({ $1 < $0 })
+                        Globals.section.titles?.sortInPlace() { $1 < $0 }
                         break
                     case Constants.CHRONOLOGICAL:
-                        sections = Globals.sermonYears?.sort({ $0 < $1 })
+                        Globals.section.titles?.sortInPlace() { $0 < $1 }
                         break
                         
                     default:
-                        sections = nil
                         break
-                    }
-
-                    Globals.sermonSections = sections?.map() { (year) in
-                        return "\(year)"
                     }
                 }
                 
-                Globals.sermonsNeedSorting = false
+                Globals.sermonsNeed.sorting = false
             }
         }
  
-        //typealias SortGroupTuple = (sermons: [Sermon]?, sections: [String]?, indexes: [Int]?, counts: [Int]?)
-
-        Globals.sortGroupCache?[Globals.sorting! + Globals.grouping!] = (sermons: Globals.activeSermons, sections: Globals.sermonSections, indexes: Globals.sermonSectionIndexes, counts: Globals.sermonSectionCounts)
+        Globals.sortGroupCache?[Globals.sortGroupCacheKey] = (sermons: Globals.activeSermons, sections: Globals.section.titles, indexes: Globals.section.indexes, counts: Globals.section.counts)
     }
     
     setupSermonsForDisplay()
@@ -1019,10 +1050,10 @@ func sortSermons(sermons:[Sermon]?, sorting:String?, grouping:String?) -> [Sermo
 func setupSermonGroups() {
     let sermons = Globals.activeSermons
     
-    Globals.sermonYears = yearsFromSermons(sermons, sorting: Globals.sorting)
-    Globals.sermonSeries = seriesSectionsFromSermons(sermons)
-    Globals.sermonBooks = bookSectionsFromSermons(sermons)
-    Globals.sermonSpeakers = speakerSectionsFromSermons(sermons)
+    Globals.sermonSectionTitles.years = yearsFromSermons(sermons, sorting: Globals.sorting)
+    Globals.sermonSectionTitles.series = seriesSectionsFromSermons(sermons)
+    Globals.sermonSectionTitles.books = bookSectionsFromSermons(sermons)
+    Globals.sermonSectionTitles.speakers = speakerSectionsFromSermons(sermons)
 }
 
 
@@ -1058,7 +1089,7 @@ func sermonSections(sermons:[Sermon]?,sorting:String?,grouping:String?) -> [Stri
 }
 
 
-func sermonSections() -> [String]?
+func sermonSectionTitles() -> [String]?
 {
     var strings:[String]?
     
@@ -1066,30 +1097,30 @@ func sermonSections() -> [String]?
     case Constants.YEAR:
         switch Globals.sorting! {
         case Constants.REVERSE_CHRONOLOGICAL:
-            Globals.sermonYears?.sortInPlace() { $1 < $0 }
+            Globals.sermonSectionTitles.years?.sortInPlace() { $1 < $0 }
             break
         case Constants.CHRONOLOGICAL:
-            Globals.sermonYears?.sortInPlace() { $0 < $1 }
+            Globals.sermonSectionTitles.years?.sortInPlace() { $0 < $1 }
             break
         default:
             break
         }
         
-        strings = Globals.sermonYears?.map() { (year) in
+        strings = Globals.sermonSectionTitles.years?.map() { (year) in
             return "\(year)"
         }
         break
         
     case Constants.SERIES:
-        strings = Globals.sermonSeries
+        strings = Globals.sermonSectionTitles.series
         break
         
     case Constants.BOOK:
-        strings = Globals.sermonBooks
+        strings = Globals.sermonSectionTitles.books
         break
         
     case Constants.SPEAKER:
-        strings = Globals.sermonSpeakers
+        strings = Globals.sermonSectionTitles.speakers
         break
         
     default:
