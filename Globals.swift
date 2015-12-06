@@ -88,6 +88,8 @@ struct Globals {
     static var sermonPlaying:Sermon?
     
     static var seriesViewSplits:[String:String]?
+    
+    //This is now a dictionary of dictionaries
     static var sermonSettings:[String:[String:String]]?
     
     static var sermons:[Sermon]?
