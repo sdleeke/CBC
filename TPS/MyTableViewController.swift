@@ -1367,21 +1367,17 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     let calendar = NSCalendar.currentCalendar()
                     let components = calendar.components(.Year, fromDate: sermons![index].fullDate!)
                     
-                    var sermonYears:[String]?
-                    
                     switch Globals.sorting! {
                     case Constants.REVERSE_CHRONOLOGICAL:
-                        sermonYears = Globals.section.titles!.sort({ $1 < $0 })
+                        section = Globals.section.titles!.sort({ $1 < $0 }).indexOf("\(components.year)")!
                         break
                     case Constants.CHRONOLOGICAL:
-                        sermonYears = Globals.section.titles!.sort({ $0 < $1 })
+                        section = Globals.section.titles!.sort({ $0 < $1 }).indexOf("\(components.year)")!
                         break
                         
                     default:
                         break
                     }
-                    
-                    section = sermonYears!.indexOf("\(components.year)")!
                     break
                     
                 case Constants.SERIES:

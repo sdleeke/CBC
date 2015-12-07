@@ -939,7 +939,8 @@ func fillSortAndGroupCache()
                     break
                 }
                 
-                print("cache entry:\(key!)")
+//                print("cache entry:\(key!)")
+                
                 if (Globals.sortGroupCache?[key!] == nil) {
                     let sermonList = sortSermons(sermons, sorting: sorting, grouping: grouping)
                     let groupTuple = groupSermons(sermonList, grouping: grouping)

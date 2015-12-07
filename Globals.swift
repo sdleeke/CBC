@@ -8,26 +8,6 @@
 
 import Foundation
 import MediaPlayer
-import AVKit
-
-// Consider replacing Sorting, Grouping, and Showing with String? and Constants
-
-//enum Sorting {
-//    case chronological          // Constants.CHRONOLOGICAL
-//    case reverseChronological   // Constants.REVERSE_CHRONOLOGICAL
-//}
-//
-//enum Grouping {
-//    case year       // Constants.YEAR
-//    case series     // Constants.SERIES
-//    case book       // Constants.BOOK
-//    case speaker    // Constants.SPEAKER
-//}
-//
-//enum Showing {
-//    case all         // Constants.ALL_SERMONS
-//    case tagged      // Constants.TAGGED_SERMONS
-//}
 
 struct DeepLink {
     var path:String?
@@ -80,8 +60,6 @@ struct Globals {
     
     static var sliderObserver: NSTimer?
     static var playObserver: NSTimer?
-    
-    //    static var endPlayObserver: AnyObject?
     
     static var testing:Bool = false
     
@@ -200,13 +178,6 @@ struct Globals {
         static var sorting:Bool = true
         static var grouping:Bool = true
         static var groupsSetup:Bool = true
-//        {
-//            didSet {
-//                if (groupsSetup == true) {
-//                    sortGroupCache = nil
-//                }
-//            }
-//        }
     }
     
     //These are the tags from all sermons

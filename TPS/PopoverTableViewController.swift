@@ -47,57 +47,60 @@ class PopoverTableViewController: UITableViewController {
         tableView.allowsSelection = allowsSelection
         tableView.allowsMultipleSelection = allowsMultipleSelection
         
-        var max:Int = 0
-        for string in strings! {
-            if string.characters.count > max {
-                max = string.characters.count
+        if (strings != nil) {
+            var max:Int = 0
+            
+            for string in strings! {
+                if string.characters.count > max {
+                    max = string.characters.count
+                }
             }
-        }
-        
-//        print("count: \(CGFloat(strings!.count)) rowHeight: \(tableView.rowHeight) height: \(height)")
-        
-        var width = CGFloat(max * 10)
-        if width < 200 {
-            width = 200
-        }
-        var height = 45 * CGFloat(strings!.count) //35 tableView.rowHeight was -1 which I don't understand
-        if height < 150 {
-            height = 150
-        }
-        
-        if showSectionHeaders {
-            height = 1.5*height
-        }
-        
-        self.preferredContentSize = CGSizeMake(width, height)
+            
+    //        print("count: \(CGFloat(strings!.count)) rowHeight: \(tableView.rowHeight) height: \(height)")
+            
+            var width = CGFloat(max * 10)
+            if width < 200 {
+                width = 200
+            }
+            var height = 45 * CGFloat(strings!.count) //35 tableView.rowHeight was -1 which I don't understand
+            if height < 150 {
+                height = 150
+            }
+            
+            if showSectionHeaders {
+                height = 1.5*height
+            }
+            
+            self.preferredContentSize = CGSizeMake(width, height)
 
-        if (showIndex) {
-            let a = "A"
-            
-            section.titles = Array(Set(strings!.map({ (string:String) -> String in
-                return stringWithoutLeadingTheOrAOrAn(string)!.substringToIndex(a.endIndex)
-            }))).sort() { $0 < $1 }
-            
-            var indexes = [Int]()
-            var counts = [Int]()
-            
-            for sectionTitle in section.titles! {
-                var counter = 0
+            if (showIndex) {
+                let a = "A"
                 
-                for index in 0..<strings!.count {
-                    if (sectionTitle == stringWithoutLeadingTheOrAOrAn(strings![index])!.substringToIndex(a.endIndex)) {
-                        if (counter == 0) {
-                            indexes.append(index)
+                section.titles = Array(Set(strings!.map({ (string:String) -> String in
+                    return stringWithoutLeadingTheOrAOrAn(string)!.substringToIndex(a.endIndex)
+                }))).sort() { $0 < $1 }
+                
+                var indexes = [Int]()
+                var counts = [Int]()
+                
+                for sectionTitle in section.titles! {
+                    var counter = 0
+                    
+                    for index in 0..<strings!.count {
+                        if (sectionTitle == stringWithoutLeadingTheOrAOrAn(strings![index])!.substringToIndex(a.endIndex)) {
+                            if (counter == 0) {
+                                indexes.append(index)
+                            }
+                            counter++
                         }
-                        counter++
                     }
+                    
+                    counts.append(counter)
                 }
                 
-                counts.append(counter)
+                section.indexes = indexes.count > 0 ? indexes : nil
+                section.counts = counts.count > 0 ? counts : nil
             }
-            
-            section.indexes = indexes.count > 0 ? indexes : nil
-            section.counts = counts.count > 0 ? counts : nil
         }
         
 //        print("Strings: \(strings)")

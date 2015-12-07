@@ -1869,8 +1869,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 CGFloat(slidesContentOffsetYRatio) * sermonSlidesWebView!.scrollView.contentSize.height)
             
             sermonSlidesWebView!.scrollView.setContentOffset(slidesContentOffset, animated: false)
-            
-//            setupViewSplit()
         }
     }
     
@@ -3129,10 +3127,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         if let zoomScale = Globals.sermonSettings?[selectedSermon!.keyBase]![Constants.SLIDES_ZOOM_SCALE] {
             slidesZoomScale = CGFloat(Float(zoomScale)!)
         }
-        
-//        print("\(slidesContentOffsetXRatio)")
-//        print("\(sermonSlidesWebView!.scrollView.contentSize.width)")
-//        print("\(slidesZoomScale)")
         
         let slidesContentOffset = CGPointMake(  CGFloat(slidesContentOffsetXRatio) * sermonSlidesWebView!.scrollView.contentSize.width * slidesZoomScale,
                                                 CGFloat(slidesContentOffsetYRatio) * sermonSlidesWebView!.scrollView.contentSize.height * slidesZoomScale)

@@ -122,10 +122,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     // this supports set values that are saved in defaults between sessions
     var currentTime:String? {
         get {
-            //            print("currentTime: keyBase = \(keyBase)")
-            //            print("currentTime: playing = \(playing!)")
             if let current_time = Globals.sermonSettings?[keyBase]?[Constants.CURRENT_TIME+playing!] {
-                //                print("currentTime: current_time = \(current_time)")
                 dict![Constants.CURRENT_TIME+playing!] = current_time
             } else {
                 dict![Constants.CURRENT_TIME+playing!] = "\(0)"
@@ -352,9 +349,9 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     var book:String? {
         get {
             if (dict![Constants.BOOK] == nil) {
-//                if let bookTitle = Globals.sermonSettings?[keyBase]?[Constants.BOOK] {
-//                    dict![Constants.BOOK] = bookTitle
-//                } else {
+                if let bookTitle = Globals.sermonSettings?[keyBase]?[Constants.BOOK] {
+                    dict![Constants.BOOK] = bookTitle
+                } else {
                     if (scripture == Constants.Selected_Scriptures) {
 //                        dict![Constants.BOOK] = Constants.Selected_Scriptures
                     } else {
@@ -377,14 +374,14 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                                     }
                                 }
                             }
-//                            if (dict![Constants.BOOK] != nil) {
-//                                if (Globals.sermonSettings?[keyBase] == nil) {
-//                                    Globals.sermonSettings?[keyBase] = [String:String]()
-//                                }
-//                                Globals.sermonSettings?[keyBase]?[Constants.BOOK] = dict![Constants.BOOK]
-//                            }
+                            if (dict![Constants.BOOK] != nil) {
+                                if (Globals.sermonSettings?[keyBase] == nil) {
+                                    Globals.sermonSettings?[keyBase] = [String:String]()
+                                }
+                                Globals.sermonSettings?[keyBase]?[Constants.BOOK] = dict![Constants.BOOK]
+                            }
                         }
-//                    }
+                    }
                 }
             }
             
