@@ -156,24 +156,14 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                         
                     default:
                         //Tagged
-                        if (Globals.showing != Constants.TAGGED) {
+                        new = (Globals.showing != Constants.TAGGED) || (Globals.sermonTagsSelected != Globals.sermonTags![index])
+                        
+                        if (new) {
                             Globals.showing = Constants.TAGGED
-                            new = true
-                            
-                            Globals.searchSermons = nil
-                            
                             Globals.sermonTagsSelected = Globals.sermonTags![index]
                             
                             //Searching for tagged sermons must be done across ALL sermons so Globals.activeSermons won't work here.
                             Globals.taggedSermons = taggedSermonsFromTagSelected(Globals.sermons,tagSelected: Globals.sermonTagsSelected)
-                        } else {
-                            if (Globals.sermonTagsSelected != Globals.sermonTags![index]) {
-                                new = true
-                                Globals.sermonTagsSelected = Globals.sermonTags![index]
-
-                                //Searching for tagged sermons must be done across ALL sermons so Globals.activeSermons won't work here.
-                                Globals.taggedSermons = taggedSermonsFromTagSelected(Globals.sermons,tagSelected: Globals.sermonTagsSelected)
-                            }
                         }
                         break
                     }
