@@ -912,9 +912,6 @@ Email: cbcstaff@countrysidebible.org</string>
                                     <outlet property="delegate" destination="4xA-dz-LhV" id="eTs-F1-bAt"/>
                                 </connections>
                             </tableView>
-                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="1YE-dl-Wc4" userLabel="Search Activity Indicator">
-                                <rect key="frame" x="290" y="258" width="20" height="20"/>
-                            </activityIndicatorView>
                             <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="VzS-WY-Fmg" userLabel="List Activity Indicator">
                                 <rect key="frame" x="290" y="258" width="20" height="20"/>
                             </activityIndicatorView>
@@ -939,7 +936,6 @@ Email: cbcstaff@countrysidebible.org</string>
                     </navigationItem>
                     <connections>
                         <outlet property="listActivityIndicator" destination="VzS-WY-Fmg" id="wee-Cd-eKB"/>
-                        <outlet property="searchActivityIndicator" destination="1YE-dl-Wc4" id="1DR-yv-yHf"/>
                         <outlet property="searchBar" destination="PI1-KK-22F" id="leD-jN-jHW"/>
                         <outlet property="showButton" destination="mag-xm-dO5" id="h1n-DU-VBJ"/>
                         <outlet property="tableView" destination="HBU-GK-goT" id="aBX-wH-0OI"/>

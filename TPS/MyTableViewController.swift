@@ -55,7 +55,6 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     @IBOutlet weak var listActivityIndicator: UIActivityIndicatorView!
 
     @IBOutlet weak var searchBar: UISearchBar!
-    @IBOutlet weak var searchActivityIndicator: UIActivityIndicatorView!
 
     @IBOutlet weak var tableView: UITableView!
     
@@ -377,8 +376,6 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 break
         }
     }
-    
-//    var resultSearchController = UISearchController()
     
     func willPresentSearchController(searchController: UISearchController) {
 //        print("willPresentSearchController")
@@ -849,16 +846,6 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         }
     }
     
-    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-        print("URLSession: \(session.description) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
-        
-        let filename = downloadTask.taskDescription!
-        
-        print("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
-        
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
-    }
-    
     func mpPlayerLoadStateDidChange(notification:NSNotification)
     {
         let player = notification.object as! MPMoviePlayerController
@@ -905,7 +892,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 myvc = self.navigationController?.topViewController as? MyViewController
             }
             myvc?.spinner.stopAnimating()
-
+            
             setupTitle()
             
             NSNotificationCenter.defaultCenter().removeObserver(self)
@@ -1030,6 +1017,16 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 completion?()
             })
         })
+    }
+    
+    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+        print("URLSession: \(session.description) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
+        
+        let filename = downloadTask.taskDescription!
+        
+        print("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
+        
+        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
     }
     
     func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didFinishDownloadingToURL location: NSURL)
@@ -1291,15 +1288,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     func updateSearchResults()
     {
-//        print("updateSearchResultsForSearchController")
-        
-//        filteredTableData.removeAll()
-//        
-//        let searchPredicate = NSPredicate(format: "SELF CONTAINS[c] %@", searchController.searchBar.text)
-//        let results = (Globals.sermons as NSArray).filteredArrayUsingPredicate(searchPredicate)
-        
-        searchActivityIndicator.hidden = false
-        searchActivityIndicator.startAnimating()
+        listActivityIndicator.hidden = false
+        listActivityIndicator.startAnimating()
         
         Globals.searchText = self.searchBar.text
         
@@ -1339,7 +1329,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 if (Globals.searchText == searchText) {
                     dispatch_async(dispatch_get_main_queue(), { () -> Void in
                         self.tableView.reloadData()
-                        self.searchActivityIndicator.stopAnimating()
+                        self.listActivityIndicator.stopAnimating()
+                        self.listActivityIndicator.hidden = true
                         for barButton in self.toolbarItems! as [UIBarButtonItem] {
                             barButton.enabled = true
                         }

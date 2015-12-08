@@ -149,9 +149,6 @@
                                     <outlet property="delegate" destination="aFI-YW-IUs" id="GyF-Ks-DuZ"/>
                                 </connections>
                             </tableView>
-                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="oZ1-Dq-vHw" userLabel="Search Activity Indicator">
-                                <rect key="frame" x="290" y="258" width="20" height="20"/>
-                            </activityIndicatorView>
                             <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="UJe-f8-3w6" userLabel="List Activity Indicator">
                                 <rect key="frame" x="290" y="258" width="20" height="20"/>
                             </activityIndicatorView>
@@ -176,7 +173,6 @@
                     </navigationItem>
                     <connections>
                         <outlet property="listActivityIndicator" destination="UJe-f8-3w6" id="hX9-uT-0Ms"/>
-                        <outlet property="searchActivityIndicator" destination="oZ1-Dq-vHw" id="TzU-Rj-s38"/>
                         <outlet property="searchBar" destination="Hkg-p6-JKj" id="BUC-kc-bu8"/>
                         <outlet property="showButton" destination="VA6-vQ-Zs4" id="qlw-rw-8CU"/>
                         <outlet property="tableView" destination="VIx-eq-98g" id="E7U-PX-3tl"/>

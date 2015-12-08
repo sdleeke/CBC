@@ -478,24 +478,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             })
             sermonsInSeries = sortSermonsByYear(seriesSermons, sorting: Globals.sorting)
         }
-
-//        if let sermons = Globals.sermons {
-//            var seriesSermons = [Sermon]()
-//            
-//            if ((sermon != nil) && sermon!.hasSeries()) {
-//                for index in 0..<sermons.count {
-//                    if (sermons[index].series == sermon?.series) {
-//                        seriesSermons.append(sermons[index])
-//                    }
-//                }
-//            } else {
-//                if (sermon != nil) {
-//                    seriesSermons.append(sermon!)
-//                }
-//            }
-//            
-//            sermonsInSeries = sortSermonsByYear(seriesSermons, sorting: Globals.sorting)
-//        }
     }
     
     private func sermonNotesAndSlidesConstraintMinMax(height:CGFloat) -> (min:CGFloat,max:CGFloat)
@@ -1745,32 +1727,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             playPauseButton.hidden = true
         }
     }
-    
-    
-//    private func setupReturnToSermonButton()
-//    {
-//        returnToSermonButton.hidden = true
-//        returnToSermonButton.enabled = false
-//        
-//        if (Globals.mpPlayer != nil) && (Globals.sermonPlaying != nil) {
-//            if (selectedSermon == nil) {
-//                returnToSermonButton.hidden = true
-//            } else
-//            if (selectedSermon == Globals.sermonPlaying) {
-//                returnToSermonButton.hidden = true
-//            } else {
-//                if (Globals.playerPaused) {
-//                    returnToSermonButton.setTitle("Return to Paused", forState: UIControlState.Normal)
-//                } else {
-//                    returnToSermonButton.setTitle("Return to Playing", forState: UIControlState.Normal)
-//                }
-//                
-//                returnToSermonButton.hidden = false
-//            }
-//        } else {
-//            returnToSermonButton.hidden = true
-//        }
-//    }
     
     
     func adaptivePresentationStyleForPresentationController(controller: UIPresentationController) -> UIModalPresentationStyle {
@@ -3032,7 +2988,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //            print("Selected: \(Globals.sermonSelected?.title)")
     }
     
-    func webView(webView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
+    func webView(wkWebView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
         
         if (navigationAction.request.URL != nil) {
 //            print("\(navigationAction.request.URL!.absoluteString)")
@@ -3051,33 +3007,33 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
     }
     
-    func webView(webView: WKWebView, didFailNavigation: WKNavigation!, withError: NSError) {
+    func webView(wkWebView: WKWebView, didFailNavigation: WKNavigation!, withError: NSError) {
 //        print("wkDidFailNavigation")
         
         // Keep trying
-        let request = NSURLRequest(URL: webView.URL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
-        webView.loadRequest(request) // NSURLRequest(URL: webView.URL!)
+//        let request = NSURLRequest(URL: wkWebView.URL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
+//        wkWebView.loadRequest(request) // NSURLRequest(URL: webView.URL!)
     }
     
-    func webView(webView: WKWebView, didFailProvisionalNavigation: WKNavigation!, withError: NSError) {
+    func webView(wkWebView: WKWebView, didFailProvisionalNavigation: WKNavigation!, withError: NSError) {
 //        print("wkDidFailProvisionalNavigation")
 
     }
     
-    func webView(webView: WKWebView, didStartProvisionalNavigation: WKNavigation!) {
+    func webView(wkWebView: WKWebView, didStartProvisionalNavigation: WKNavigation!) {
 //        print("wkDidStartProvisionalNavigation")
 
     }
     
-    func wkSetZoomAndOffset(webView: WKWebView, scale:CGFloat, offset:CGPoint) {
+    func wkSetZoomAndOffset(wkWebView: WKWebView, scale:CGFloat, offset:CGPoint) {
 //        print("scale: \(scale)")
 //        print("offset: \(offset)")
 //
 //        print("contentInset: \(webView.scrollView.contentInset)")
 //        print("contentSize: \(webView.scrollView.contentSize)")
 
-        webView.scrollView.setZoomScale(scale, animated: false)
-        webView.scrollView.setContentOffset(offset,animated: false)
+        wkWebView.scrollView.setZoomScale(scale, animated: false)
+        wkWebView.scrollView.setContentOffset(offset,animated: false)
     }
     
     func setNotesContentOffsetAndZoomScale()

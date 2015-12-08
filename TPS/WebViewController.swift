@@ -207,11 +207,6 @@ class WebViewController: UIViewController, WKNavigationDelegate {
     }
     
     func webView(wkWebView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
-        //        print("wkWebViewDidFinishNavigation")
-        
-        //        print("Frame: \(webView.frame)")
-        //        print("Bounds: \(webView.bounds)")
-        
         wkWebView.hidden = false
         setupWKZoomScaleAndContentOffset(wkWebView)
 
@@ -306,7 +301,7 @@ class WebViewController: UIViewController, WKNavigationDelegate {
             }
             
             let contentOffset = CGPointMake(CGFloat(contentOffsetXRatio * wkWebView!.scrollView.contentSize.width),
-                CGFloat(contentOffsetYRatio * wkWebView!.scrollView.contentSize.height))
+                                            CGFloat(contentOffsetYRatio * wkWebView!.scrollView.contentSize.height))
             
             wkWebView?.scrollView.setContentOffset(contentOffset,animated: false)
         }
@@ -318,21 +313,21 @@ class WebViewController: UIViewController, WKNavigationDelegate {
             switch selectedSermon!.showing! {
             case Constants.NOTES:
                 if (!wkWebView!.loading) {
-                    Globals.sermonSettings![selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(wkWebView!.scrollView.contentOffset.x / wkWebView!.scrollView.contentSize.width)"
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(wkWebView!.scrollView.contentOffset.x / wkWebView!.scrollView.contentSize.width)"
                     
-                    Globals.sermonSettings![selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(wkWebView!.scrollView.contentOffset.y / wkWebView!.scrollView.contentSize.height)"
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(wkWebView!.scrollView.contentOffset.y / wkWebView!.scrollView.contentSize.height)"
                     
-                    Globals.sermonSettings![selectedSermon!.keyBase]?[Constants.NOTES_ZOOM_SCALE] = "\(wkWebView!.scrollView.zoomScale)"
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_ZOOM_SCALE] = "\(wkWebView!.scrollView.zoomScale)"
                 }
                 break
                 
             case Constants.SLIDES:
                 if (!wkWebView!.loading) {
-                    Globals.sermonSettings![selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(wkWebView!.scrollView.contentOffset.x / wkWebView!.scrollView.contentSize.width)"
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(wkWebView!.scrollView.contentOffset.x / wkWebView!.scrollView.contentSize.width)"
                     
-                    Globals.sermonSettings![selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(wkWebView!.scrollView.contentOffset.y / wkWebView!.scrollView.contentSize.height)"
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(wkWebView!.scrollView.contentOffset.y / wkWebView!.scrollView.contentSize.height)"
                     
-                    Globals.sermonSettings![selectedSermon!.keyBase]?[Constants.SLIDES_ZOOM_SCALE] = "\(wkWebView!.scrollView.zoomScale)"
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_ZOOM_SCALE] = "\(wkWebView!.scrollView.zoomScale)"
                 }
                 break
                 

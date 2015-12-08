@@ -363,15 +363,6 @@ func loadDefaults()
                 (sermon.service == (dict[Constants.SERVICE] as! String)) &&
                 (sermon.speaker == (dict[Constants.SPEAKER] as! String))
         })
-//        for index in 0..<Globals.sermons!.count {
-//            if (Globals.sermons![index].title == (dict[Constants.TITLE] as! String)) &&
-//                (Globals.sermons![index].date == (dict[Constants.DATE] as! String)) &&
-//                (Globals.sermons![index].service == (dict[Constants.SERVICE] as! String)) &&
-//                (Globals.sermons![index].speaker == (dict[Constants.SPEAKER] as! String)) {
-//                    indexOfSermon = index
-//                    break
-//            }
-//        }
     }
     
     if (indexOfSermon != nil) {
@@ -1538,7 +1529,7 @@ func sortSermonsChronologically(sermons:[Sermon]?) -> [Sermon]?
 {
     return sermons?.sort() {
         if ($0.fullDate!.isEqualToDate($1.fullDate!)) {
-            return $0.service == Constants.MORNING_SERVICE
+            return $0.service < $1.service
         } else {
             return $0.fullDate!.isOlderThanDate($1.fullDate!)
         }
@@ -1549,7 +1540,7 @@ func sortSermonsReverseChronologically(sermons:[Sermon]?) -> [Sermon]?
 {
     return sermons?.sort() {
         if ($0.fullDate!.isEqualToDate($1.fullDate!)) {
-            return $0.service == Constants.EVENING_SERVICE
+            return $0.service > $1.service
         } else {
             return $0.fullDate!.isNewerThanDate($1.fullDate!)
         }
@@ -1854,12 +1845,10 @@ func taggedSermonsFromTagSelected(sermonsWithTags:[Sermon]?,tagSelected:String?)
             var tag:String
             var tagsSet = Set<String>()
             
-            let bar:String = Constants.TAGS_SEPARATOR
-            
-            while (tags?.rangeOfString(bar) != nil) {
-                tag = tags!.substringToIndex(tags!.rangeOfString(bar)!.startIndex)
+            while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
+                tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
                 tagsSet.insert(tag)
-                tags = tags!.substringFromIndex(tags!.rangeOfString(bar)!.endIndex)
+                tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
             }
             
             if (tags != nil) {
