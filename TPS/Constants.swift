@@ -163,6 +163,7 @@ struct Constants {
     
     static let AUDIO_VIDEO_MAX_WIDTH = CGFloat(40)
     
+    // first.service < second.service relies upon the face that AM and PM are alphabetically sorted the same way they are related chronologically, i.e. AM comes before PM in both cases.
     static let MORNING_SERVICE = "AM"
     static let EVENING_SERVICE = "PM"
     

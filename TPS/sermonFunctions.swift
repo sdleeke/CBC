@@ -1246,7 +1246,7 @@ func sermonsInBook(sermons:[Sermon]?,book:String?) -> [Sermon]?
         return sermon.book == book
     }).sort({ (first:Sermon, second:Sermon) -> Bool in
         if (first.fullDate!.isEqualToDate(second.fullDate!)) {
-            return first.service == Constants.MORNING_SERVICE
+            return first.service < second.service
         } else {
             return first.fullDate!.isOlderThanDate(second.fullDate!)
         }
@@ -1574,7 +1574,7 @@ func compareSermonDates(first first:Sermon, second:Sermon, sorting:String?) -> B
     switch sorting! {
     case Constants.CHRONOLOGICAL:
         if (first.fullDate!.isEqualToDate(second.fullDate!)) {
-            result = (first.service == Constants.MORNING_SERVICE)
+            result = (first.service < second.service)
         } else {
             result = first.fullDate!.isOlderThanDate(second.fullDate!)
         }
@@ -1582,7 +1582,7 @@ func compareSermonDates(first first:Sermon, second:Sermon, sorting:String?) -> B
     
     case Constants.REVERSE_CHRONOLOGICAL:
         if (first.fullDate!.isEqualToDate(second.fullDate!)) {
-            result = (first.service == Constants.EVENING_SERVICE)
+            result = (first.service > second.service)
         } else {
             result = first.fullDate!.isNewerThanDate(second.fullDate!)
         }

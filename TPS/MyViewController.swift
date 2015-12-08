@@ -730,7 +730,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 
                 let sermonList = sermons.sort() {
                     if ($0.fullDate!.isEqualToDate($1.fullDate!)) {
-                        return $0.service == Constants.MORNING_SERVICE
+                        return $0.service < $1.service
                     } else {
                         return $0.fullDate!.isOlderThanDate($1.fullDate!)
                     }
