@@ -186,22 +186,14 @@ class WebViewController: UIViewController, WKNavigationDelegate {
         }
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        setupWKWebView()
-        setupActionButton()
-        
-        // Do any additional setup after loading the view.
-    }
-
-    func setWKZoomScaleAndContentOffset(wkWebView: WKWebView, scale:CGFloat, offset:CGPoint) {
+    func setWKZoomScaleThenContentOffset(wkWebView: WKWebView, scale:CGFloat, offset:CGPoint) {
 //        print("scale: \(scale)")
 //        print("offset: \(offset)")
 //
 //        print("contentInset: \(webView.scrollView.contentInset)")
 //        print("contentSize: \(webView.scrollView.contentSize)")
 
+        // The effects of the next two calls are strongly order dependent.
         wkWebView.scrollView.setZoomScale(scale, animated: false)
         wkWebView.scrollView.setContentOffset(offset,animated: false)
     }
@@ -217,7 +209,12 @@ class WebViewController: UIViewController, WKNavigationDelegate {
         activityIndicator.stopAnimating()
         activityIndicator.hidden = true
     }
-
+    
+    func setupWKZoomScaleAndContentOffset()
+    {
+        setupWKZoomScaleAndContentOffset(wkWebView)
+    }
+    
     func setupWKZoomScaleAndContentOffset(wkWebView: WKWebView?)
     {
         if (wkWebView != nil) && (selectedSermon != nil) {
@@ -260,9 +257,9 @@ class WebViewController: UIViewController, WKNavigationDelegate {
             }
             
             let contentOffset = CGPointMake(CGFloat(contentOffsetXRatio * wkWebView!.scrollView.contentSize.width * zoomScale),
-                CGFloat(contentOffsetYRatio * wkWebView!.scrollView.contentSize.height * zoomScale))
+                                            CGFloat(contentOffsetYRatio * wkWebView!.scrollView.contentSize.height * zoomScale))
             
-            setWKZoomScaleAndContentOffset(wkWebView!, scale: zoomScale, offset: contentOffset)
+            setWKZoomScaleThenContentOffset(wkWebView!, scale: zoomScale, offset: contentOffset)
         }
     }
     
@@ -270,17 +267,28 @@ class WebViewController: UIViewController, WKNavigationDelegate {
     {
         // This used in transition to size to set the content offset.
         
+        print("Before setContentOffset: \(wkWebView?.scrollView.contentOffset)")
+        
         if (wkWebView != nil) && (selectedSermon != nil) {
+//            var contentOffsetXStr:String?
+//            var contentOffsetYStr:String?
+
             var contentOffsetXRatioStr:String?
             var contentOffsetYRatioStr:String?
             
             switch selectedSermon!.showing! {
             case Constants.NOTES:
+//                contentOffsetXStr = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_X]
+//                contentOffsetYStr = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_Y]
+
                 contentOffsetXRatioStr = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_X_RATIO]
                 contentOffsetYRatioStr = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO]
                 break
                 
             case Constants.SLIDES:
+//                contentOffsetXStr = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_X]
+//                contentOffsetYStr = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_Y]
+
                 contentOffsetXRatioStr = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO]
                 contentOffsetYRatioStr = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO]
                 break
@@ -288,6 +296,19 @@ class WebViewController: UIViewController, WKNavigationDelegate {
             default:
                 break
             }
+            
+//            var contentOffsetX:CGFloat = 0.0
+//            var contentOffsetY:CGFloat = 0.0
+//            
+//            if let x = contentOffsetXStr {
+//                contentOffsetX = CGFloat(Float(x)!)
+//            }
+//            
+//            if let y = contentOffsetYStr {
+//                contentOffsetY = CGFloat(Float(y)!)
+//            }
+//            
+//            let contentOffset = CGPointMake(CGFloat(contentOffsetX),CGFloat(contentOffsetY))
             
             var contentOffsetXRatio:CGFloat = 0.0
             var contentOffsetYRatio:CGFloat = 0.0
@@ -300,20 +321,35 @@ class WebViewController: UIViewController, WKNavigationDelegate {
                 contentOffsetYRatio = CGFloat(Float(ratio)!)
             }
             
-            let contentOffset = CGPointMake(CGFloat(contentOffsetXRatio * wkWebView!.scrollView.contentSize.width),
-                                            CGFloat(contentOffsetYRatio * wkWebView!.scrollView.contentSize.height))
+            let contentOffset = CGPointMake(CGFloat(contentOffsetXRatio * wkWebView!.scrollView.contentSize.width), //
+                                            CGFloat(contentOffsetYRatio * wkWebView!.scrollView.contentSize.height)) //
+            
+            print("About to setContentOffset with: \(contentOffset)")
             
             wkWebView?.scrollView.setContentOffset(contentOffset,animated: false)
+            
+            print("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
         }
     }
     
-    private func captureContentOffsetAndZoomScale()
+    func captureContentOffsetAndZoomScale()
     {
-        if (selectedSermon != nil) {
+        print("\(wkWebView!.scrollView.contentOffset)")
+        print("\(wkWebView!.scrollView.zoomScale)")
+        
+        if (selectedSermon != nil) && (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
             switch selectedSermon!.showing! {
             case Constants.NOTES:
                 if (!wkWebView!.loading) {
+                    if (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
+                        print("contentOffset.x is ALWAYS zero in this case!")
+                    }
+
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_X] = "\(wkWebView!.scrollView.contentOffset.x)"
+                    
                     Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(wkWebView!.scrollView.contentOffset.x / wkWebView!.scrollView.contentSize.width)"
+
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_Y] = "\(wkWebView!.scrollView.contentOffset.y)"
                     
                     Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(wkWebView!.scrollView.contentOffset.y / wkWebView!.scrollView.contentSize.height)"
                     
@@ -323,6 +359,9 @@ class WebViewController: UIViewController, WKNavigationDelegate {
                 
             case Constants.SLIDES:
                 if (!wkWebView!.loading) {
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_X] = "\(wkWebView!.scrollView.contentOffset.x)"
+                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_Y] = "\(wkWebView!.scrollView.contentOffset.y)"
+                    
                     Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(wkWebView!.scrollView.contentOffset.x / wkWebView!.scrollView.contentSize.width)"
                     
                     Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(wkWebView!.scrollView.contentOffset.y / wkWebView!.scrollView.contentSize.height)"
@@ -343,7 +382,13 @@ class WebViewController: UIViewController, WKNavigationDelegate {
             if (Globals.sermons == nil) {
                 splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
             } else {
-                splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                if let nvc = self.splitViewController?.viewControllers[1] as? UINavigationController {
+                    if let _ = nvc.topViewController as? WebViewController {
+                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
+                    } else {
+                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                    }
+                }
             }
         } else {
             if let nvc = self.splitViewController?.viewControllers[1] as? UINavigationController {
@@ -358,14 +403,40 @@ class WebViewController: UIViewController, WKNavigationDelegate {
     
     override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator)
     {
-        setupSplitViewController()
-        
-        captureContentOffsetAndZoomScale()
-
-        coordinator.animateAlongsideTransition({ (UIViewControllerTransitionCoordinatorContext) -> Void in
-            }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            self.setupWKContentOffset(self.wkWebView)
+        if (self.view.window == nil) {
+            return
         }
+        
+        print("Size: \(size)")
+        
+        switch UIApplication.sharedApplication().applicationState {
+        case UIApplicationState.Active:
+            setupSplitViewController()
+            
+            print("Before animateAlongsideTransition: \(wkWebView?.scrollView.contentOffset)")
+            
+            captureContentOffsetAndZoomScale()
+            fallthrough
+            
+        case UIApplicationState.Background:
+            coordinator.animateAlongsideTransition({ (UIViewControllerTransitionCoordinatorContext) -> Void in
+                }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
+                    self.setupWKContentOffset(self.wkWebView)
+            }
+            break
+            
+        default:
+            break
+        }
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        setupWKWebView()
+        setupActionButton()
+        
+        // Do any additional setup after loading the view.
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -413,7 +484,7 @@ class WebViewController: UIViewController, WKNavigationDelegate {
 
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
-        
+
         navigationItem.hidesBackButton = false
         // Seems like the following should work but doesn't.
         //        navigationItem.backBarButtonItem?.title = Constants.Back

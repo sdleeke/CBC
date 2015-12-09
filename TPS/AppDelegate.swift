@@ -399,6 +399,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
 //        println("applicationWillResignActive")
         setupPlayingInfoCenter()
+
+        //iPad
+//        if let svc = self.window?.rootViewController as? UISplitViewController {
+//            if let nvc = svc.viewControllers[1] as? UINavigationController {
+//                if let myvc = nvc.topViewController as? MyViewController {
+//
+//                }
+//                if let wvc = nvc.topViewController as? WebViewController {
+//                
+//                }
+//            }
+//        }
+        
+        //iPhone
+//        if let nvc = self.window?.rootViewController as? UINavigationController {
+//            if let myvc = nvc.topViewController as? MyViewController {
+//
+//            }
+//            if let wvc = nvc.topViewController as? WebViewController {
+//            
+//            }
+//        }
     }
     
     func applicationDidEnterBackground(application: UIApplication) {
@@ -421,19 +443,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         }
         
         //iPad
-        if let rvc = self.window?.rootViewController as? UISplitViewController {
-            if let nvc = rvc.viewControllers[1] as? UINavigationController {
+        if let svc = self.window?.rootViewController as? UISplitViewController {
+            if let nvc = svc.viewControllers[1] as? UINavigationController {
                 if let myvc = nvc.topViewController as? MyViewController {
                     myvc.setupPlayPauseButton()
                 }
+//                if let wvc = nvc.topViewController as? WebViewController {
+//                    wvc.setupWKZoomScaleAndContentOffset()
+//                }
             }
         }
         
         //iPhone
-        if let rvc = self.window?.rootViewController as? UINavigationController {
-            if let myvc = rvc.topViewController as? MyViewController {
+        if let nvc = self.window?.rootViewController as? UINavigationController {
+            if let myvc = nvc.topViewController as? MyViewController {
                 myvc.setupPlayPauseButton()
             }
+//            if let wvc = nvc.topViewController as? WebViewController {
+//                wvc.setupWKZoomScaleAndContentOffset()
+//            }
         }
     }
     

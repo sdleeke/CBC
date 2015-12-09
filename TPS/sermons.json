@@ -1,6 +1,24 @@
 {
 "sermons": [
             {
+            "date":"12/06/2015",
+            "service":"PM",
+            "title":"Who is my Neighbor?",
+            "scripture":"Luke 10: 25-37",
+            "speaker":"Justin Turner",
+            "audio":"jt151206pCD.mp3"
+            },
+            
+            {
+            "date":"12/06/2015",
+            "service":"AM",
+            "title":"Trilemma: Liar, Lunatic, or Lord (Part 1)",
+            "scripture":"Mark 3:20-35",
+            "speaker":"Tom Pennington",
+            "audio":"tp151206aCD.mp3"
+            },
+            
+            {
             "date":"11/29/2015",
             "service":"PM",
             "title":"Perspectives on Tragedy",

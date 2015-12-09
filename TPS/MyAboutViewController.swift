@@ -624,6 +624,10 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
     
     override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator)
     {
+        if (self.view.window == nil) {
+            return
+        }
+        
         tomPenningtonBio.scrollRangeToVisible(NSMakeRange(0,0))
         cbcDescription.scrollRangeToVisible(NSMakeRange(0,0))
     }

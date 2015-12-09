@@ -1436,7 +1436,13 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             if (Globals.sermons == nil) {
                 splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
             } else {
-                splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                if let nvc = self.splitViewController?.viewControllers[1] as? UINavigationController {
+                    if let _ = nvc.topViewController as? WebViewController {
+                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
+                    } else {
+                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                    }
+                }
             }
         } else {
             if let nvc = self.splitViewController?.viewControllers[1] as? UINavigationController {
@@ -1653,6 +1659,10 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 
     override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator)
     {
+        if (self.view.window == nil) {
+            return
+        }
+        
         setupSplitViewController()
         
         if (splitViewController == nil) {

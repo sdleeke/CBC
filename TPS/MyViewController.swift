@@ -1830,6 +1830,10 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator)
     {
+        if (self.view.window == nil) {
+            return
+        }
+        
         setupSplitViewController()
         
         captureContentOffsetAndZoomScale()
@@ -2062,7 +2066,13 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             if (Globals.sermons == nil) {
                 splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
             } else {
-                splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                if let nvc = self.splitViewController?.viewControllers[1] as? UINavigationController {
+                    if let _ = nvc.topViewController as? WebViewController {
+                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
+                    } else {
+                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                    }
+                }
             }
         } else {
             if let nvc = self.splitViewController?.viewControllers[1] as? UINavigationController {
@@ -2156,9 +2166,12 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
     }
     
-    private func captureContentOffsetAndZoomScale()
+    func captureContentOffsetAndZoomScale()
     {
-        if (selectedSermon != nil) {
+        print("Notes contentOffset:\(sermonNotesWebView!.scrollView.contentOffset)")
+        print("Slides contentOffset:\(sermonSlidesWebView!.scrollView.contentOffset)")
+        
+        if (selectedSermon != nil) && (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
 //            print("captureContentOffsetAndZoomScale: \(sermonSelected?.title)")
             
             if (Globals.sermonSettings![selectedSermon!.keyBase] == nil) {
@@ -3025,13 +3038,14 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
     }
     
-    func wkSetZoomAndOffset(wkWebView: WKWebView, scale:CGFloat, offset:CGPoint) {
+    func wkSetZoomScaleThenContentOffset(wkWebView: WKWebView, scale:CGFloat, offset:CGPoint) {
 //        print("scale: \(scale)")
 //        print("offset: \(offset)")
 //
 //        print("contentInset: \(webView.scrollView.contentInset)")
 //        print("contentSize: \(webView.scrollView.contentSize)")
 
+        // The effects of the next two calls are strongly order dependent.
         wkWebView.scrollView.setZoomScale(scale, animated: false)
         wkWebView.scrollView.setContentOffset(offset,animated: false)
     }
@@ -3062,7 +3076,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         let notesContentOffset = CGPointMake(   CGFloat(notesContentOffsetXRatio) * sermonNotesWebView!.scrollView.contentSize.width * notesZoomScale,
                                                 CGFloat(notesContentOffsetYRatio) * sermonNotesWebView!.scrollView.contentSize.height * notesZoomScale)
         
-        wkSetZoomAndOffset(sermonNotesWebView!, scale: notesZoomScale, offset: notesContentOffset)
+        wkSetZoomScaleThenContentOffset(sermonNotesWebView!, scale: notesZoomScale, offset: notesContentOffset)
     }
     
     func setSlidesContentOffsetAndZoomScale()
@@ -3087,7 +3101,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         let slidesContentOffset = CGPointMake(  CGFloat(slidesContentOffsetXRatio) * sermonSlidesWebView!.scrollView.contentSize.width * slidesZoomScale,
                                                 CGFloat(slidesContentOffsetYRatio) * sermonSlidesWebView!.scrollView.contentSize.height * slidesZoomScale)
         
-        wkSetZoomAndOffset(sermonSlidesWebView!, scale: slidesZoomScale, offset: slidesContentOffset)
+        wkSetZoomScaleThenContentOffset(sermonSlidesWebView!, scale: slidesZoomScale, offset: slidesContentOffset)
     }
     
     func webView(webView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
