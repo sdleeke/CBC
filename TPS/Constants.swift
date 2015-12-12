@@ -40,16 +40,10 @@ struct Constants {
     
     static let SHOW_TRANSCRIPT_FULL_SCREEN_SEGUE_IDENTIFIER = "Show Full Screen"
     
-    static let NOTES_CONTENT_OFFSET_X = "notesContentOffsetX"
-    static let NOTES_CONTENT_OFFSET_Y = "notesContentOffsetY"
-    
     static let NOTES_CONTENT_OFFSET_X_RATIO = "notesContentOffsetXRatio"
     static let NOTES_CONTENT_OFFSET_Y_RATIO = "notesContentOffsetYRatio"
     
     static let NOTES_ZOOM_SCALE = "notesZoomScale"
-    
-    static let SLIDES_CONTENT_OFFSET_X = "slidesContentOffsetX"
-    static let SLIDES_CONTENT_OFFSET_Y = "slidesContentOffsetY"
     
     static let SLIDES_CONTENT_OFFSET_X_RATIO = "slidesContentOffsetXRatio"
     static let SLIDES_CONTENT_OFFSET_Y_RATIO = "slidesContentOffsetYRatio"
@@ -187,7 +181,8 @@ struct Constants {
     static let FA_DOWNLOADED = "\u{f1c7}"
     static let FA_CLOUD_DOWNLOAD = "\u{f0ed}"
     
-    static let Download_All = "Download All"
+    static let Download_Audio = "Download Audio"
+    static let Download_All_Audio = "Download All Audio"
     static let Cancel_All_Downloads = "Cancel All Downloads"
     static let Delete_All_Downloads = "Delete All Downloads"
     

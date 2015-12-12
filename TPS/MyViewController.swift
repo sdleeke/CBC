@@ -73,7 +73,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     removePlayObserver()
                     removeSliderObserver()
                     
-                    captureContentOffsetAndZoomScale()
                     setupPlayPauseButton()
                     setupSlider()
                     
@@ -82,6 +81,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     defaults.synchronize()
                 }
                 
+                captureContentOffsetAndZoomScale()
                 selectedSermon?.playing = Constants.AUDIO // Must come before setupNoteAndSlides()
                 setupNotesAndSlides() // Calls setupSTVControl()
                 
@@ -110,7 +110,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     removePlayObserver()
                     removeSliderObserver()
                     
-                    captureContentOffsetAndZoomScale()
                     setupPlayPauseButton()
                     setupSlider()
                     
@@ -119,6 +118,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     defaults.synchronize()
                 }
                 
+                captureContentOffsetAndZoomScale()
                 selectedSermon?.playing = Constants.VIDEO // Must come before setupNoteAndSlides()
                 setupNotesAndSlides() // Calls setupSTVControl()
                 
@@ -885,6 +885,9 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 
                 let twitterSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeTwitter)
                 twitterSheet.setInitialText(bodyString)
+//                let str = Constants.BASE_AUDIO_URL + sermon!.audio!
+//                print("\(str)")
+//                twitterSheet.addURL(NSURL(string:str))
                 self.presentViewController(twitterSheet, animated: true, completion: nil)
             } else {
                 let alert = UIAlertController(title: "Accounts", message: "Please login to a Twitter account to share.", preferredStyle: UIAlertControllerStyle.Alert)
@@ -904,7 +907,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             if SLComposeViewController.isAvailableForServiceType(SLServiceTypeFacebook){
                 var bodyString = String()
                 
-                bodyString = "Great sermon: \"\(sermon!.title!)\" by \(sermon!.speaker!).  " + Constants.BASE_PDF_URL + sermon!.audio!
+                bodyString = "Great sermon: \"\(sermon!.title!)\" by \(sermon!.speaker!).  " + Constants.BASE_AUDIO_URL + sermon!.audio!
 
                 //So the user can paste the initialText into the post dialog/view
                 //This is because of the known bug that when the latest FB app is installed it prevents prefilling the post.
@@ -912,6 +915,9 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
                 let facebookSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeFacebook)
                 facebookSheet.setInitialText(bodyString)
+//                let str = Constants.BASE_AUDIO_URL + sermon!.audio!
+//                print("\(str)")
+//                facebookSheet.addURL(NSURL(string: str))
                 self.presentViewController(facebookSheet, animated: true, completion: nil)
             } else {
                 let alert = UIAlertController(title: "Accounts", message: "Please login to a Facebook account to share.", preferredStyle: UIAlertControllerStyle.Alert)
@@ -1019,7 +1025,17 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             }
             
             if (sermonsToDownload > 0) {
-                action = UIAlertAction(title: Constants.Download_All, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+                var title:String?
+                switch sermonsToDownload {
+                case 1:
+                    title = Constants.Download_Audio
+                    break
+                    
+                default:
+                    title = Constants.Download_All_Audio
+                    break
+                }
+                action = UIAlertAction(title: title, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
                     //            println("mail!")
                     for sermon in sermons {
                         if (sermon.download.state == .none) {
@@ -1075,44 +1091,24 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             alert.addAction(action)
         }
         
-        action = UIAlertAction(title: Constants.Share_on_Facebook, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-            //            print("mail!")
-            self.facebook(self.selectedSermon)
-        })
-        alert.addAction(action)
-        
-        action = UIAlertAction(title: Constants.Share_on_Twitter, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-            //            print("mail!")
-            self.twitter(self.selectedSermon)
-        })
-        alert.addAction(action)
-        
-        //We can't download transcripts and slides so we can't supporting downloading, iOS 9 apparently solves this.
-//        action = UIAlertAction(title: "Download Sermon", style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//            //            print("mail!")
-//            self.downloadSermon(self.selectedSermon)
-//        })
-//        alert.addAction(action)
-//        
-//        if (selectedSermon?.series != nil) && (selectedSermon?.series != Constants.EMPTY_STRING) {
-//            action = UIAlertAction(title: "Download Series", style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                //            print("mail!")
-//                self.downloadSermonSeries(Globals.sermonsInSeries)
-//            })
-//            alert.addAction(action)
-//        }
+        if (splitViewController == nil) {
+            action = UIAlertAction(title: Constants.Share_on_Facebook, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+                self.facebook(self.selectedSermon)
+            })
+            alert.addAction(action)
+            
+            action = UIAlertAction(title: Constants.Share_on_Twitter, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+                self.twitter(self.selectedSermon)
+            })
+            alert.addAction(action)
+        }
         
 //        action = UIAlertAction(title: "Message", style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
 ////            print("message!")
 //            self.message(self.sermonSelected)
 //        })
 //        alert.addAction(action)
-//
-//        action = UIAlertAction(title: "Print", style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//            print("print!")
-//        })
-//        alert.addAction(action)
-//        
+
         action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
 //            print("cancel!")
         })
@@ -1795,11 +1791,11 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             //        print("\(sermonNotesWebView!.scrollView.contentSize)")
             //        print("\(sermonSlidesWebView!.scrollView.contentSize)")
             
-            if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] {
+            if let ratio = selectedSermon!.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] {
                 notesContentOffsetXRatio = Float(ratio)!
             }
             
-            if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] {
+            if let ratio = selectedSermon!.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] {
                 notesContentOffsetYRatio = Float(ratio)!
             }
             
@@ -1812,11 +1808,11 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             var slidesContentOffsetXRatio:Float = 0.0
             var slidesContentOffsetYRatio:Float = 0.0
             
-            if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] {
+            if let ratio = selectedSermon!.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] {
                 slidesContentOffsetXRatio = Float(ratio)!
             }
             
-            if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] {
+            if let ratio = selectedSermon!.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] {
                 slidesContentOffsetYRatio = Float(ratio)!
             }
             
@@ -1954,11 +1950,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     private func setupTitle()
     {
-        if ((selectedSermon != nil) && selectedSermon!.hasSeries()) {
-            //The selected sermon is in a series so set the title.
-            self.navigationItem.title = selectedSermon?.series
+        if (selectedSermon != nil) {
+            if (selectedSermon!.hasSeries()) {
+                //The selected sermon is in a series so set the title.
+                self.navigationItem.title = selectedSermon?.series
+            } else {
+                self.navigationItem.title = selectedSermon?.title
+            }
         } else {
-            self.navigationItem.title = selectedSermon?.title
+            self.navigationItem.title = nil
         }
     }
     
@@ -2131,18 +2131,14 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        print("captureContentOffset: \(sermonSelected?.title)")
 
         if (selectedSermon != nil) {
-            if (Globals.sermonSettings?[selectedSermon!.keyBase] == nil) {
-                Globals.sermonSettings?[selectedSermon!.keyBase] = [String:String]()
-            }
-            
             if (webView == sermonNotesWebView) {
-                Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.x / sermonNotesWebView!.scrollView.contentSize.width)"
-                Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.y / sermonNotesWebView!.scrollView.contentSize.height)"
+                selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.x / sermonNotesWebView!.scrollView.contentSize.width)"
+                selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.y / sermonNotesWebView!.scrollView.contentSize.height)"
             }
             
             if (webView == sermonSlidesWebView) {
-                Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.x / sermonSlidesWebView!.scrollView.contentSize.width)"
-                Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.y / sermonSlidesWebView!.scrollView.contentSize.height)"
+                selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.x / sermonSlidesWebView!.scrollView.contentSize.width)"
+                selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.y / sermonSlidesWebView!.scrollView.contentSize.height)"
             }
         }
     }
@@ -2152,49 +2148,41 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        print("captureZoomScale: \(sermonSelected?.title)")
 
         if (selectedSermon != nil) && (!webView.loading) {
-            if (Globals.sermonSettings?[selectedSermon!.keyBase] == nil) {
-                Globals.sermonSettings?[selectedSermon!.keyBase] = [String:String]()
-            }
-            
             if (webView == sermonNotesWebView) {
-                Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_ZOOM_SCALE] = "\(sermonNotesWebView!.scrollView.zoomScale)"
+                selectedSermon?.settings?[Constants.NOTES_ZOOM_SCALE] = "\(sermonNotesWebView!.scrollView.zoomScale)"
             }
             
             if (webView == sermonSlidesWebView) {
-                Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_ZOOM_SCALE] = "\(sermonSlidesWebView!.scrollView.zoomScale)"
+                selectedSermon?.settings?[Constants.SLIDES_ZOOM_SCALE] = "\(sermonSlidesWebView!.scrollView.zoomScale)"
             }
         }
     }
     
     func captureContentOffsetAndZoomScale()
     {
-        print("Notes contentOffset:\(sermonNotesWebView!.scrollView.contentOffset)")
-        print("Slides contentOffset:\(sermonSlidesWebView!.scrollView.contentOffset)")
+//        print("Notes contentOffset:\(sermonNotesWebView!.scrollView.contentOffset)")
+//        print("Slides contentOffset:\(sermonSlidesWebView!.scrollView.contentOffset)")
         
         if (selectedSermon != nil) && (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
 //            print("captureContentOffsetAndZoomScale: \(sermonSelected?.title)")
             
-            if (Globals.sermonSettings![selectedSermon!.keyBase] == nil) {
-                Globals.sermonSettings![selectedSermon!.keyBase] = [String:String]()
-            }
-
             if (sermonNotesWebView != nil) {
                 if (!sermonNotesWebView!.loading) {
-                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.x / sermonNotesWebView!.scrollView.contentSize.width)"
+                    selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.x / sermonNotesWebView!.scrollView.contentSize.width)"
                     
-                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.y / sermonNotesWebView!.scrollView.contentSize.height)"
+                    selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.y / sermonNotesWebView!.scrollView.contentSize.height)"
                     
-                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_ZOOM_SCALE] = "\(sermonNotesWebView!.scrollView.zoomScale)"
+                    selectedSermon?.settings?[Constants.NOTES_ZOOM_SCALE] = "\(sermonNotesWebView!.scrollView.zoomScale)"
                 }
             }
             
             if (sermonSlidesWebView != nil) {
                 if (!sermonSlidesWebView!.loading) {
-                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.x / sermonSlidesWebView!.scrollView.contentSize.width)"
+                    selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.x / sermonSlidesWebView!.scrollView.contentSize.width)"
                     
-                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.y / sermonSlidesWebView!.scrollView.contentSize.height)"
+                    selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.y / sermonSlidesWebView!.scrollView.contentSize.height)"
                     
-                    Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.SLIDES_ZOOM_SCALE] = "\(sermonSlidesWebView!.scrollView.zoomScale)"
+                    selectedSermon?.settings?[Constants.SLIDES_ZOOM_SCALE] = "\(sermonSlidesWebView!.scrollView.zoomScale)"
                 }
             }
         }
@@ -2311,7 +2299,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete method implementation.
         // Return the number of rows in the section.
-        return sermonsInSeries != nil ? sermonsInSeries!.count : 0
+        return selectedSermon != nil ? (sermonsInSeries != nil ? sermonsInSeries!.count : 0) : 0
     }
     
     /*
@@ -3057,15 +3045,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         var notesContentOffsetXRatio:Float = 0.0
         var notesContentOffsetYRatio:Float = 0.0
         
-        if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] {
+        if let ratio = selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] {
             notesContentOffsetXRatio = Float(ratio)!
         }
         
-        if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] {
+        if let ratio = selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] {
             notesContentOffsetYRatio = Float(ratio)!
         }
         
-        if let zoomScale = Globals.sermonSettings?[selectedSermon!.keyBase]?[Constants.NOTES_ZOOM_SCALE] {
+        if let zoomScale = selectedSermon?.settings?[Constants.NOTES_ZOOM_SCALE] {
             notesZoomScale = CGFloat(Float(zoomScale)!)
         }
         
@@ -3086,15 +3074,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         var slidesContentOffsetXRatio:Float = 0.0
         var slidesContentOffsetYRatio:Float = 0.0
         
-        if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]![Constants.SLIDES_CONTENT_OFFSET_X_RATIO] {
+        if let ratio = selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] {
             slidesContentOffsetXRatio = Float(ratio)!
         }
         
-        if let ratio = Globals.sermonSettings?[selectedSermon!.keyBase]![Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] {
+        if let ratio = selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] {
             slidesContentOffsetYRatio = Float(ratio)!
         }
         
-        if let zoomScale = Globals.sermonSettings?[selectedSermon!.keyBase]![Constants.SLIDES_ZOOM_SCALE] {
+        if let zoomScale = selectedSermon?.settings?[Constants.SLIDES_ZOOM_SCALE] {
             slidesZoomScale = CGFloat(Float(zoomScale)!)
         }
         

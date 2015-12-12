@@ -69,7 +69,7 @@ struct Globals {
     
     //This is now a dictionary of dictionaries
     static var sermonSettings:[String:[String:String]]?
-    
+
     static var sermons:[Sermon]?
     
     //The sermons with the selectd tags, although now we only support one tag being selected

@@ -135,6 +135,38 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     var popover : PopoverTableViewController?
     
+    func disableToolBarButtons()
+    {
+        if let barButtons = toolbarItems {
+            for barButton in barButtons {
+                barButton.enabled = false
+            }
+        }
+    }
+    
+    func disableBarButtons()
+    {
+        navigationItem.leftBarButtonItem?.enabled = false
+        
+        disableToolBarButtons()
+    }
+    
+    func enableToolBarButtons()
+    {
+        if let barButtons = toolbarItems {
+            for barButton in barButtons {
+                barButton.enabled = true
+            }
+        }
+    }
+    
+    func enableBarButtons()
+    {
+        navigationItem.leftBarButtonItem?.enabled = true
+        
+        enableToolBarButtons()
+    }
+    
     func rowClickedAtIndex(index: Int, strings: [String], purpose:PopoverPurpose) {
         dismissViewControllerAnimated(true, completion: nil)
         
@@ -191,11 +223,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                         listActivityIndicator.hidden = false
                         listActivityIndicator.startAnimating()
                         
-                        navigationItem.leftBarButtonItem?.enabled = false
-                        
-                        for barButton in toolbarItems! as [UIBarButtonItem] {
-                            barButton.enabled = false
-                        }
+                        disableBarButtons()
                         
                         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
                             sortAndGroupSermons()
@@ -203,12 +231,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                                 self.tableView.reloadData()
                                 self.listActivityIndicator.stopAnimating()
-                                
-                                self.navigationItem.leftBarButtonItem?.enabled = true
-                                
-                                for barButton in self.toolbarItems! as [UIBarButtonItem] {
-                                    barButton.enabled = true
-                                }
+                                self.enableBarButtons()
                             })
                         })
                     }
@@ -268,11 +291,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     listActivityIndicator.hidden = false
                     listActivityIndicator.startAnimating()
                     
-                    navigationItem.leftBarButtonItem?.enabled = false
-                    
-                    for barButton in toolbarItems! as [UIBarButtonItem] {
-                        barButton.enabled = false
-                    }
+                    disableBarButtons()
                     
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
                         sortAndGroupSermons()
@@ -280,12 +299,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                         dispatch_async(dispatch_get_main_queue(), { () -> Void in
                             self.tableView.reloadData()
                             self.listActivityIndicator.stopAnimating()
-                            
-                            self.navigationItem.leftBarButtonItem?.enabled = true
-                            
-                            for barButton in self.toolbarItems! as [UIBarButtonItem] {
-                                barButton.enabled = true
-                            }
+                            self.enableBarButtons()
                         })
                     })
                 }
@@ -305,11 +319,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     listActivityIndicator.hidden = false
                     listActivityIndicator.startAnimating()
                     
-                    navigationItem.leftBarButtonItem?.enabled = false
-                    
-                    for barButton in toolbarItems! as [UIBarButtonItem] {
-                        barButton.enabled = false
-                    }
+                    disableBarButtons()
                     
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
                         sortAndGroupSermons()
@@ -317,12 +327,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                         dispatch_async(dispatch_get_main_queue(), { () -> Void in
                             self.tableView.reloadData()
                             self.listActivityIndicator.stopAnimating()
-                            
-                            self.navigationItem.leftBarButtonItem?.enabled = true
-                            
-                            for barButton in self.toolbarItems! as [UIBarButtonItem] {
-                                barButton.enabled = true
-                            }
+                            self.enableBarButtons()
                             
                             if (self.splitViewController != nil) {
                                 //iPad only
@@ -393,11 +398,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         clearSermonsForDisplay()
         tableView.reloadData()
         
-        navigationItem.leftBarButtonItem?.enabled = false
-        
-        for barButton in toolbarItems! as [UIBarButtonItem] {
-            barButton.enabled = false
-        }
+        disableBarButtons()
         
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
             Globals.sermonsNeed.groupsSetup = true
@@ -406,12 +407,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 self.tableView.reloadData()
                 self.listActivityIndicator.stopAnimating()
-                
-                self.navigationItem.leftBarButtonItem?.enabled = true
-                
-                for barButton in self.toolbarItems! as [UIBarButtonItem] {
-                    barButton.enabled = true
-                }
+                self.enableBarButtons()
                 
                 //Moving the list can be very disruptive
                 self.selectOrScrollToSermon(self.selectedSermon, select: true, scroll: false, position: UITableViewScrollPosition.None)
@@ -545,9 +541,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         navigationController?.toolbar.translucent = false
         
         if (Globals.sermons == nil) {
-            for barButton in barButtons {
-                barButton.enabled = false
-            }
+            disableToolBarButtons()
         }
         
         setToolbarItems(barButtons, animated: true)
@@ -576,10 +570,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         searchBar.showsCancelButton = true
         
         clearSermonsForDisplay()
-        self.tableView.reloadData()
-        for barButton in toolbarItems! as [UIBarButtonItem] {
-            barButton.enabled = false
-        }
+        tableView.reloadData()
+        disableToolBarButtons()
     }
     
     func searchBarTextDidEndEditing(searchBar: UISearchBar) {
@@ -958,11 +950,9 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
                     mytvc!.setupSearchBar()
                     mytvc!.tableView.reloadData()
-                    mytvc!.navigationItem.leftBarButtonItem?.enabled = true
-                    for barButton in mytvc!.toolbarItems! as [UIBarButtonItem] {
-                        barButton.enabled = true
-                    }
+                    mytvc!.enableBarButtons()
                     mytvc!.listActivityIndicator.stopAnimating()
+                    mytvc!.setupTitle()
                     
                     let defaults = NSUserDefaults.standardUserDefaults()
                     
@@ -1131,6 +1121,9 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     func handleRefresh(refreshControl: UIRefreshControl) {
         cancelAllDownloads()
         
+        clearSermonsForDisplay()
+        tableView.reloadData()
+        
         /*
             This releases the old cache contents.
 
@@ -1148,6 +1141,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 }
             }
         }
+        
+        disableBarButtons()
         
         downloadJSON()
     }
@@ -1286,9 +1281,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         if let searchText = self.searchBar.text {
             clearSermonsForDisplay()
             self.tableView.reloadData()
-            for barButton in toolbarItems! as [UIBarButtonItem] {
-                barButton.enabled = false
-            }
+            disableToolBarButtons()
             
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
                 if (searchText != Constants.EMPTY_STRING) {
@@ -1321,9 +1314,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                         self.tableView.reloadData()
                         self.listActivityIndicator.stopAnimating()
                         self.listActivityIndicator.hidden = true
-                        for barButton in self.toolbarItems! as [UIBarButtonItem] {
-                            barButton.enabled = true
-                        }
+                        self.enableToolBarButtons()
                     })
                 } else {
                     print("Threw away search results!")
@@ -1488,6 +1479,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         super.viewDidAppear(animated)
         
         if Globals.sermons == nil {
+            disableBarButtons()
             loadSermons(nil)
         }
 

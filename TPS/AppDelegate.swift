@@ -449,7 +449,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
                     myvc.setupPlayPauseButton()
                 }
 //                if let wvc = nvc.topViewController as? WebViewController {
-//                    wvc.setupWKZoomScaleAndContentOffset()
+//
 //                }
             }
         }
@@ -460,7 +460,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
                 myvc.setupPlayPauseButton()
             }
 //            if let wvc = nvc.topViewController as? WebViewController {
-//                wvc.setupWKZoomScaleAndContentOffset()
+//
 //            }
         }
     }
