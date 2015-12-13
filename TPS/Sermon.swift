@@ -55,7 +55,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             
             else {
                 return nil
-        }
+            }
         
         self.init(dict: dict)
     }

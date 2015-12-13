@@ -189,7 +189,7 @@ func sermonsFromDocumentsDirectoryArchive() -> [Sermon]?
     let jsonInBundlePath = NSBundle.mainBundle().pathForResource(Constants.JSON_ARRAY_KEY, ofType: "json")
     let jsonExistsInBundle = fileManager.fileExistsAtPath(jsonInBundlePath!)
     
-    if (jsonExistsInBundle && jsonExistsInBundle) {
+    if (jsonExistsInDocuments && jsonExistsInBundle) {
         // Need to see if jsonInBundle is newer
         
         do {
@@ -199,19 +199,19 @@ func sermonsFromDocumentsDirectoryArchive() -> [Sermon]?
             let jsonInBundleModDate = jsonInBundleAttributes[NSFileModificationDate] as! NSDate
             let jsonInDocumentsModDate = jsonInDocumentsAttributes[NSFileModificationDate] as! NSDate
             
-            print("\(jsonInBundleModDate)")
-            print("\(jsonInDocumentsModDate)")
+//            print("jsonInBundleModDate: \(jsonInBundleModDate)")
+//            print("jsonInDocumentsModDate: \(jsonInDocumentsModDate)")
             
-            if (jsonInBundleModDate.isNewerThanDate(jsonInDocumentsModDate)) {
+            if (jsonInDocumentsModDate.isOlderThanDate(jsonInBundleModDate)) {
                 //The JSON in the Bundle is newer, we need to use it instead of the archive
-                print("JSON in Bundle is newer than JSON in Documents")
+                print("JSON in Documents is newer than JSON in Bundle")
                 return nil
             }
             
             if (jsonInDocumentsModDate.isEqualToDate(jsonInBundleModDate)) {
                 //Should never happen since JSON in Documents is created from JSON
                 print("JSON in Bundle and in Documents are the same date")
-                return nil
+//                return nil
             }
         } catch _ {
             
@@ -231,34 +231,32 @@ func sermonsFromDocumentsDirectoryArchive() -> [Sermon]?
             let jsonInDocumentsModDate = jsonInDocumentsAttributes[NSFileModificationDate] as! NSDate
             let archiveInDocumentsModDate = archiveInDocumentsAttributes[NSFileModificationDate] as! NSDate
             
-            print("\(archiveInDocumentsModDate)")
+//            print("archiveInDocumentsModDate: \(archiveInDocumentsModDate)")
             
-            if (jsonInDocumentsModDate.isNewerThanDate(archiveInDocumentsModDate)) {
+            if (archiveInDocumentsModDate.isOlderThanDate(jsonInDocumentsModDate)) {
                 //Do nothing, the json in Documents is newer, i.e. it was downloaded after the archive was created.
                 print("JSON is newer than Archive in Documents")
                 return nil
             }
             
-            if (jsonInDocumentsModDate.isEqualToDate(archiveInDocumentsModDate)) {
+            if (archiveInDocumentsModDate.isEqualToDate(jsonInDocumentsModDate)) {
                 //Should never happen since archive is created from JSON
                 print("JSON is the same date as Archive in Documents")
-                return nil
+//                return nil
             }
             
-            if (archiveInDocumentsModDate.isNewerThanDate(jsonInDocumentsModDate)) {
-                print("Archive is newer than JSON in Documents")
-                
-                let data = NSData(contentsOfURL: NSURL(fileURLWithPath: archiveInDocumentsURL!.path!))
-                if (data != nil) {
-                    let sermons = NSKeyedUnarchiver.unarchiveObjectWithData(data!) as? [Sermon]
-                    if sermons != nil {
-                        return sermons
-                    } else {
-                        print("could not get sermons from archive.")
-                    }
+            print("Archive is newer than JSON in Documents")
+            
+            let data = NSData(contentsOfURL: NSURL(fileURLWithPath: archiveInDocumentsURL!.path!))
+            if (data != nil) {
+                let sermons = NSKeyedUnarchiver.unarchiveObjectWithData(data!) as? [Sermon]
+                if sermons != nil {
+                    return sermons
                 } else {
-                    print("could not get data from archive.")
+                    print("could not get sermons from archive.")
                 }
+            } else {
+                print("could not get data from archive.")
             }
         } catch _ {
             
@@ -270,9 +268,12 @@ func sermonsFromDocumentsDirectoryArchive() -> [Sermon]?
 
 func sermonsToDocumentsDirectoryArchive(sermons:[Sermon]?)
 {
-    let archive = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_ARCHIVE)
-    
-    NSKeyedArchiver.archivedDataWithRootObject(sermons!).writeToURL(archive!, atomically: true)
+    if (sermons != nil) {
+        if let archive = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_ARCHIVE) {
+            NSKeyedArchiver.archivedDataWithRootObject(sermons!).writeToURL(archive, atomically: true)
+            print("Finished saving the sermon archive.")
+        }
+    }
 }
 
 func loadSermonDicts() -> [[String:String]]?
@@ -308,15 +309,17 @@ func loadSermonDicts() -> [[String:String]]?
 
 func cancelAllDownloads()
 {
-    for sermon in Globals.sermons! {
-        if sermon.download.active {
-            sermon.download.task?.cancel()
-            sermon.download.task = nil
-            
-            sermon.download.totalBytesWritten = 0
-            sermon.download.totalBytesExpectedToWrite = 0
-            
-            sermon.download.state = .none
+    if (Globals.sermons != nil) {
+        for sermon in Globals.sermons! {
+            if sermon.download.active {
+                sermon.download.task?.cancel()
+                sermon.download.task = nil
+                
+                sermon.download.totalBytesWritten = 0
+                sermon.download.totalBytesExpectedToWrite = 0
+                
+                sermon.download.state = .none
+            }
         }
     }
 }
@@ -903,6 +906,8 @@ func fillSortAndGroupCache()
         access not being thread safe.  I wish I understood this better.
     */
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
+        print("Starting to fill the cache")
+
         let sermons = Globals.activeSermons
 
         let showing = Globals.showing
@@ -930,19 +935,46 @@ func fillSortAndGroupCache()
                     break
                 }
                 
-//                print("cache entry:\(key!)")
-                
                 if (Globals.sortGroupCache?[key!] == nil) {
+                    print("Creating cache entry:\(key!)")
                     let sermonList = sortSermons(sermons, sorting: sorting, grouping: grouping)
                     let groupTuple = groupSermons(sermonList, grouping: grouping)
                     let sections = sermonSections(sermonList, sorting: sorting, grouping: grouping)
                     Globals.sortGroupCache?[key!] = (sermons: sermonList, sections: sections, indexes: groupTuple?.indexes, counts: groupTuple?.counts)
                 } else {
-                    print("This cache entry is already filled.")
+                    print("Already filled cache entry: \(key!)")
                 }
             }
         }
         print("Finished filling the cache.")
+        
+        // Save the cache
+
+        var dict = [String:[String:[String]]]()
+        
+        for (key,value) in Globals.sortGroupCache! {
+            dict[key] = [String:[String]]()
+            
+            dict[key]?["sections"] = value.sections
+            
+            dict[key]?["indexes"] = value.indexes?.map({ (value:Int) -> String in
+                return "\(value)"
+            })
+            
+            dict[key]?["counts"] = value.counts?.map({ (index:Int) -> String in
+                return "\(index)"
+            })
+            
+            dict[key]?["sermonIndexes"] = value.sermons?.map({ (sermon:Sermon) -> String in
+                return "\(Globals.sermons!.indexOf(sermon)!)"
+            })
+
+        }
+        
+        let defaults = NSUserDefaults.standardUserDefaults()
+        defaults.setObject(dict,forKey: Constants.CACHE)
+        defaults.synchronize()
+        print("Finished saving the cache.")
     })
 }
 
@@ -952,12 +984,15 @@ func sortAndGroupSermons() {
 
     print("Looking for cache entry: \(Globals.sortGroupCacheKey)")
     if let sortGroupTuple = Globals.sortGroupCache?[Globals.sortGroupCacheKey] {
+        print("Found cache entry: \(Globals.sortGroupCacheKey)")
         Globals.activeSermons = sortGroupTuple.sermons
         Globals.section.titles = sortGroupTuple.sections
         Globals.section.indexes = sortGroupTuple.indexes
         Globals.section.counts = sortGroupTuple.counts
     } else {
+        print("Didn't find cache entry: \(Globals.sortGroupCacheKey)")
         if (Globals.sermonsNeed.groupsSetup) {
+            print("Setting up groups for cache entry: \(Globals.sortGroupCacheKey)")
             setupSermonGroups()
             Globals.sermonsNeed.grouping = true
             Globals.sermonsNeed.groupsSetup = false

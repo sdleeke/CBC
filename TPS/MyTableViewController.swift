@@ -147,24 +147,26 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     func disableBarButtons()
     {
         navigationItem.leftBarButtonItem?.enabled = false
-        
         disableToolBarButtons()
     }
     
     func enableToolBarButtons()
     {
-        if let barButtons = toolbarItems {
-            for barButton in barButtons {
-                barButton.enabled = true
+        if (Globals.sermons != nil) {
+            if let barButtons = toolbarItems {
+                for barButton in barButtons {
+                    barButton.enabled = true
+                }
             }
         }
     }
     
     func enableBarButtons()
     {
-        navigationItem.leftBarButtonItem?.enabled = true
-        
-        enableToolBarButtons()
+        if (Globals.sermons != nil) {
+            navigationItem.leftBarButtonItem?.enabled = true
+            enableToolBarButtons()
+        }
     }
     
     func rowClickedAtIndex(index: Int, strings: [String], purpose:PopoverPurpose) {
@@ -892,6 +894,68 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         }
     }
     
+    func setupViews()
+    {
+        var mytvc:MyTableViewController?
+        var myvc:MyViewController?
+        
+        if let svc = self.splitViewController {
+            //iPad
+            if let nvc = svc.viewControllers[0] as? UINavigationController {
+                mytvc = nvc.topViewController as? MyTableViewController
+            }
+            if let nvc = svc.viewControllers[1] as? UINavigationController {
+                myvc = nvc.topViewController as? MyViewController
+            }
+        } else {
+            mytvc = self.navigationController?.topViewController as? MyTableViewController
+            myvc = self.navigationController?.topViewController as? MyViewController
+        }
+        
+        if (mytvc != nil) {
+            mytvc!.setupSearchBar()
+            mytvc!.tableView.reloadData()
+            mytvc!.enableBarButtons()
+            mytvc!.listActivityIndicator.stopAnimating()
+            mytvc!.setupTitle()
+            
+            let defaults = NSUserDefaults.standardUserDefaults()
+            
+            if let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_KEY) {
+                if let sermons = Globals.sermons {
+                    for sermon in sermons {
+                        if (sermon.keyBase == selectedSermonKey) {
+                            mytvc!.selectedSermon = sermon
+                            
+                            if let sermonList = Globals.activeSermons {
+                                if (sermonList.indexOf(mytvc!.selectedSermon!) != nil) {
+                                    mytvc!.selectOrScrollToSermon(sermon, select: true, scroll: true, position: UITableViewScrollPosition.Middle)
+                                }
+                            }
+                            break
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (myvc != nil) {
+            let defaults = NSUserDefaults.standardUserDefaults()
+            if let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_DETAIL_KEY) {
+                if let sermons = Globals.sermons {
+                    for sermon in sermons {
+                        if (sermon.keyBase == selectedSermonKey) {
+                            myvc?.selectedSermon = sermon
+                            myvc?.updateUI()
+                            myvc?.scrollToSermon(sermon,select:true,position:UITableViewScrollPosition.Top)
+                            break
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     func loadSermons(completion: (() -> Void)?)
     {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
@@ -902,15 +966,77 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             
             if let sermons = sermonsFromDocumentsDirectoryArchive() {
                 Globals.sermons = sermons
+                // Load the cache from disk
+                let defaults = NSUserDefaults.standardUserDefaults()
+                if let dict = defaults.objectForKey(Constants.CACHE) as? [String:[String:[String]]] {
+                    /*
+                    This releases the old cache contents.
+                    Since we are rebuilding the sermons array we can't keep any old sermon objects around.
+                    */
+                    Globals.sortGroupCache = SortGroupCache()
+                    
+                    for (key,_) in dict {
+                        
+                        let sections = dict[key]?["sections"]
+                        
+                        let indexes = dict[key]?["indexes"]?.map({ (value:String) -> Int in
+                            return Int(value)!
+                        })
+                        
+                        let counts = dict[key]?["counts"]?.map({ (value:String) -> Int in
+                            return Int(value)!
+                        })
+                        
+                        let sermonReferences = dict[key]?["sermonIndexes"]?.map({ (index:String) -> Sermon in
+                            return Globals.sermons![Int(index)!]
+                        })
+                        
+                        Globals.sortGroupCache?[key] = (sermons: sermonReferences, sections: sections!, indexes: indexes!, counts: counts!)
+                    }
+                }
             } else {
-                let sermonDicts = loadSermonDicts()
-                Globals.sermons = sermonsFromSermonDicts(sermonDicts)
-                sermonsToDocumentsDirectoryArchive(Globals.sermons)
+                var success = false
+                
+                if let sermonDicts = loadSermonDicts() {
+                    if let sermons = sermonsFromSermonDicts(sermonDicts) {
+                        Globals.sermons = sermons
+                        sermonsToDocumentsDirectoryArchive(Globals.sermons)
+                        /*
+                        This releases the old cache contents.
+                        Since we are rebuilding the sermons array we can't keep any old sermon objects around.
+                        */
+                        Globals.sortGroupCache = SortGroupCache()
+                        let defaults = NSUserDefaults.standardUserDefaults()
+                        defaults.removeObjectForKey(Constants.CACHE)
+                        defaults.synchronize()
+                        success = true
+                    }
+                }
+                
+                if (!success) {
+                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        self.setupTitle()
+                        
+                        self.listActivityIndicator.stopAnimating()
+                        self.listActivityIndicator.hidden = true
+                        self.refreshControl?.endRefreshing()
+                        
+                        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
+                            let alert = UIAlertController(title:"Unable to Load Sermons",
+                                message: "Please try to refresh the list.",
+                                preferredStyle: UIAlertControllerStyle.Alert)
+                            
+                            let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+                                
+                            })
+                            alert.addAction(action)
+                            
+                            self.presentViewController(alert, animated: true, completion: nil)
+                        }
+                    })
+                    return
+                }
             }
-            
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                self.navigationItem.title = "Synthesizing Tags"
-            })
             
             Globals.sermonTags = tagsFromSermons(Globals.sermons)
             
@@ -922,6 +1048,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 self.navigationItem.title = "Sorting and Grouping"
             })
+            
             Globals.sermonsNeed.groupsSetup = true
             sortAndGroupSermons()
             
@@ -930,68 +1057,9 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 self.setupSermonPlaying()
             })
             
-            var mytvc:MyTableViewController?
-            var myvc:MyViewController?
-            
-            if let svc = self.splitViewController {
-                //iPad
-                if let nvc = svc.viewControllers[0] as? UINavigationController {
-                    mytvc = nvc.topViewController as? MyTableViewController
-                }
-                if let nvc = svc.viewControllers[1] as? UINavigationController {
-                    myvc = nvc.topViewController as? MyViewController
-                }
-            } else {
-                mytvc = self.navigationController?.topViewController as? MyTableViewController
-                myvc = self.navigationController?.topViewController as? MyViewController
-            }
-            
-            if (mytvc != nil) {
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    mytvc!.setupSearchBar()
-                    mytvc!.tableView.reloadData()
-                    mytvc!.enableBarButtons()
-                    mytvc!.listActivityIndicator.stopAnimating()
-                    mytvc!.setupTitle()
-                    
-                    let defaults = NSUserDefaults.standardUserDefaults()
-                    
-                    if let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_KEY) {
-                        if let sermons = Globals.sermons {
-                            for sermon in sermons {
-                                if (sermon.keyBase == selectedSermonKey) {
-                                    mytvc!.selectedSermon = sermon
-                                    
-                                    if let sermonList = Globals.activeSermons {
-                                        if (sermonList.indexOf(mytvc!.selectedSermon!) != nil) {
-                                            mytvc!.selectOrScrollToSermon(sermon, select: true, scroll: true, position: UITableViewScrollPosition.Middle)
-                                        }
-                                    }
-                                    break
-                                }
-                            }
-                        }
-                    }
-                })
-            }
-            
-            if (myvc != nil) {
-                let defaults = NSUserDefaults.standardUserDefaults()
-                if let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_DETAIL_KEY) {
-                    if let sermons = Globals.sermons {
-                        for sermon in sermons {
-                            if (sermon.keyBase == selectedSermonKey) {
-                                myvc?.selectedSermon = sermon
-                                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                    myvc?.updateUI()
-                                    myvc?.scrollToSermon(sermon,select:true,position:UITableViewScrollPosition.Top)
-                                })
-                                break
-                            }
-                        }
-                    }
-                }
-            }
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                self.setupViews()
+            })
             
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 completion?()
@@ -1011,7 +1079,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didFinishDownloadingToURL location: NSURL)
     {
-        var success = true
+        var success = false
         
         print("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
         
@@ -1019,25 +1087,28 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         
         print("filename: \(filename) location: \(location)")
         
-        let fileManager = NSFileManager.defaultManager()
-        
-        //Get documents directory URL
-        let destinationURL = documentsURL()?.URLByAppendingPathComponent(filename)
-        // Check if file exist
-        if (fileManager.fileExistsAtPath(destinationURL!.path!)){
-            do {
-                try NSFileManager.defaultManager().removeItemAtURL(destinationURL!)
-            } catch _ {
-                print("failed to remove old json file")
+        if (downloadTask.countOfBytesExpectedToReceive > 0) {
+            let fileManager = NSFileManager.defaultManager()
+            
+            //Get documents directory URL
+            if let destinationURL = documentsURL()?.URLByAppendingPathComponent(filename) {
+                // Check if file exist
+                if (fileManager.fileExistsAtPath(destinationURL.path!)){
+                    do {
+                        try fileManager.removeItemAtURL(destinationURL)
+                    } catch _ {
+                        print("failed to remove old json file")
+                    }
+                }
+                
+                do {
+                    try fileManager.copyItemAtURL(location, toURL: destinationURL)
+                    try fileManager.removeItemAtURL(location)
+                    success = true
+                } catch _ {
+                    print("failed to copy new json file to Documents")
+                }
             }
-        }
-        
-        do {
-            try fileManager.copyItemAtURL(location, toURL: destinationURL!)
-            try fileManager.removeItemAtURL(location)
-        } catch _ {
-            print("failed to copy new json file to Documents")
-            success = false
         }
         
         if success {
@@ -1062,9 +1133,25 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             })
         } else {
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
+                    let alert = UIAlertController(title:"Unable to Download Sermons",
+                        message: "Please try to refresh the list again.",
+                        preferredStyle: UIAlertControllerStyle.Alert)
+                    
+                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+                        
+                    })
+                    alert.addAction(action)
+                    
+                    self.presentViewController(alert, animated: true, completion: nil)
+                }
+                
                 self.refreshControl!.endRefreshing()
                 UIApplication.sharedApplication().networkActivityIndicatorVisible = false
                 self.setupTitle()
+                setupSermonsForDisplay()
+                self.tableView.reloadData()
+                self.setupViews()
             })
         }
     }
@@ -1120,21 +1207,15 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     func handleRefresh(refreshControl: UIRefreshControl) {
         cancelAllDownloads()
-        
+
         clearSermonsForDisplay()
         tableView.reloadData()
-        
-        /*
-            This releases the old cache contents.
-
-            Since we are rebuilding the sermons array we can't keep any old sermon objects around.
-        */
-        Globals.sortGroupCache = SortGroupCache()
         
         if let svc = self.splitViewController {
             //iPad
             if let nvc = svc.viewControllers[1] as? UINavigationController {
                 if let myvc = nvc.topViewController as? MyViewController {
+                    myvc.captureContentOffsetAndZoomScale()
                     myvc.selectedSermon = nil
                     myvc.sermonsInSeries = nil
                     myvc.updateUI()

@@ -3038,6 +3038,25 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         wkWebView.scrollView.setContentOffset(offset,animated: false)
     }
     
+    func notesContentOffset() -> CGPoint?
+    {
+        var notesContentOffsetXRatio:Float = 0.0
+        var notesContentOffsetYRatio:Float = 0.0
+        
+        if let ratio = selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] {
+            notesContentOffsetXRatio = Float(ratio)!
+        }
+        
+        if let ratio = selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] {
+            notesContentOffsetYRatio = Float(ratio)!
+        }
+        
+        let notesContentOffset = CGPointMake(  CGFloat(notesContentOffsetXRatio) * sermonNotesWebView!.scrollView.contentSize.width,
+            CGFloat(notesContentOffsetYRatio) * sermonNotesWebView!.scrollView.contentSize.height)
+        
+        return notesContentOffset
+    }
+    
     func setNotesContentOffsetAndZoomScale()
     {
         var notesZoomScale:CGFloat = 1.0
@@ -3065,6 +3084,25 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                                                 CGFloat(notesContentOffsetYRatio) * sermonNotesWebView!.scrollView.contentSize.height * notesZoomScale)
         
         wkSetZoomScaleThenContentOffset(sermonNotesWebView!, scale: notesZoomScale, offset: notesContentOffset)
+    }
+    
+    func slidesContentOffset() -> CGPoint?
+    {
+        var slidesContentOffsetXRatio:Float = 0.0
+        var slidesContentOffsetYRatio:Float = 0.0
+        
+        if let ratio = selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] {
+            slidesContentOffsetXRatio = Float(ratio)!
+        }
+        
+        if let ratio = selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] {
+            slidesContentOffsetYRatio = Float(ratio)!
+        }
+        
+        let slidesContentOffset = CGPointMake(  CGFloat(slidesContentOffsetXRatio) * sermonSlidesWebView!.scrollView.contentSize.width,
+            CGFloat(slidesContentOffsetYRatio) * sermonSlidesWebView!.scrollView.contentSize.height)
+        
+        return slidesContentOffset
     }
     
     func setSlidesContentOffsetAndZoomScale()

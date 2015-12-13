@@ -26,15 +26,14 @@ class LiveViewController: UIViewController {
         Globals.mpPlayer?.stop()
         
         Globals.playerPaused = true
-        
+    
         Globals.mpPlayer?.view.removeFromSuperview()
-        
         setupLivePlayer()
     }
 
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        
+
         Globals.mpPlayer!.view.hidden = false
         Globals.mpPlayer?.play()
     }
