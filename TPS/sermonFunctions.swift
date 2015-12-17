@@ -18,6 +18,80 @@ func documentsURL() -> NSURL?
     return fileManager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask).first
 }
 
+func checkFile(url:NSURL?) -> Bool
+{
+    var result = false
+    
+    if (url != nil) && Reachability.isConnectedToNetwork() {
+        let downloadRequest = NSMutableURLRequest(URL: url!)
+        
+        let session:NSURLSession = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration(), delegate: nil, delegateQueue: nil)
+        
+        let downloadTask = session.downloadTaskWithRequest(downloadRequest)
+        downloadTask.taskDescription = url?.lastPathComponent
+        
+        downloadTask.resume()
+        
+        var count = 0
+        repeat {
+            NSThread.sleepForTimeInterval(Constants.CHECK_FILE_SLEEP_INTERVAL)
+            if (downloadTask.countOfBytesReceived > 0) && (downloadTask.countOfBytesExpectedToReceive > 0) {
+                result = true
+                break
+            } else {
+                count++
+            }
+            print("Downloaded \(count) \(downloadTask.countOfBytesReceived) of \(downloadTask.countOfBytesExpectedToReceive) for \(downloadTask.taskDescription)")
+        } while (count < Constants.CHECK_FILE_MAX_ITERATIONS) && (downloadTask.countOfBytesExpectedToReceive != -1)
+        
+        downloadTask.cancel()
+        
+        session.invalidateAndCancel()
+    }
+    
+    return result
+}
+
+func checkFileInBackground(url:NSURL?,completion: (() -> Void)?)
+{
+    if (url != nil) && Reachability.isConnectedToNetwork() {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), { () -> Void in
+            var result = false
+            
+            let downloadRequest = NSMutableURLRequest(URL: url!)
+            
+            let session:NSURLSession = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration(), delegate: nil, delegateQueue: nil)
+            
+            let downloadTask = session.downloadTaskWithRequest(downloadRequest)
+            downloadTask.taskDescription = url?.lastPathComponent
+            
+            downloadTask.resume()
+            
+            var count = 0
+            repeat {
+                NSThread.sleepForTimeInterval(Constants.CHECK_FILE_SLEEP_INTERVAL)
+                if (downloadTask.countOfBytesReceived > 0) && (downloadTask.countOfBytesExpectedToReceive > 0) {
+                    result = true
+                    break
+                } else {
+                    count++
+                }
+                print("Downloaded \(count) \(downloadTask.countOfBytesReceived) of \(downloadTask.countOfBytesExpectedToReceive) for \(downloadTask.taskDescription)")
+            } while (count < Constants.CHECK_FILE_MAX_ITERATIONS) && (downloadTask.countOfBytesExpectedToReceive != -1)
+            
+            downloadTask.cancel()
+            
+            session.invalidateAndCancel()
+            
+            if (result) {
+                dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                    completion?()
+                })
+            }
+        })
+    }
+}
+
 func removeTempFiles()
 {
     // Clean up temp directory for cancelled downloads
@@ -27,7 +101,7 @@ func removeTempFiles()
         let array = try fileManager.contentsOfDirectoryAtPath(path)
         
         for name in array {
-            if (name.rangeOfString(Constants.TMP_FILE_EXTENSION)?.endIndex == name.endIndex) {
+            if (name.rangeOfString(Constants.TMP_FILENAME_EXTENSION)?.endIndex == name.endIndex) {
                 print("Deleting: \(name)")
                 try fileManager.removeItemAtPath(path + name)
             }
@@ -38,7 +112,7 @@ func removeTempFiles()
 
 func jsonDataFromURL() -> JSON
 {
-    if let url = NSURL(string: Constants.JSON_URL_PREFIX + Constants.CBC_SHORT.lowercaseString + "." + Constants.SERMONS_JSON) {
+    if let url = NSURL(string: Constants.JSON_URL_PREFIX + Constants.CBC_SHORT.lowercaseString + "." + Constants.SERMONS_JSON_FILENAME) {
         do {
             let data = try NSData(contentsOfURL: url, options: NSDataReadingOptions.DataReadingMappedIfSafe)
             let json = JSON(data: data)
@@ -59,7 +133,7 @@ func jsonDataFromURL() -> JSON
 
 func jsonDataFromBundle() -> JSON
 {
-    if let path = NSBundle.mainBundle().pathForResource(Constants.JSON_ARRAY_KEY, ofType: "json") {
+    if let path = NSBundle.mainBundle().pathForResource(Constants.JSON_ARRAY_KEY, ofType: Constants.JSON_TYPE) {
         do {
             let data = try NSData(contentsOfURL: NSURL(fileURLWithPath: path), options: NSDataReadingOptions.DataReadingMappedIfSafe)
             let json = JSON(data: data)
@@ -82,65 +156,63 @@ func jsonToDocumentsDirectory()
 {
     let fileManager = NSFileManager.defaultManager()
     
-    //Get documents directory URL
-    let jsonDocumentsURL = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON)
+    let jsonBundlePath = NSBundle.mainBundle().pathForResource(Constants.JSON_ARRAY_KEY, ofType: Constants.JSON_TYPE)
     
-    let jsonBundlePath = NSBundle.mainBundle().pathForResource(Constants.JSON_ARRAY_KEY, ofType: "json")
-    
-    // Check if file exist
-    if (!fileManager.fileExistsAtPath(jsonDocumentsURL!.path!)){
-        if (jsonBundlePath != nil) {
-            do {
-                // Copy File From Bundle To Documents Directory
-                try fileManager.copyItemAtPath(jsonBundlePath!,toPath: jsonDocumentsURL!.path!)
-            } catch _ {
-                print("failed to copy sermons.json")
-            }
-        }
-    } else {
-        //    fileManager.removeItemAtPath(destination)
-        // Which is newer, the bundle file or the file in the Documents folder?
-        do {
-            let jsonBundleAttributes = try fileManager.attributesOfItemAtPath(jsonBundlePath!)
-            
-            let destAttributes = try fileManager.attributesOfItemAtPath(jsonDocumentsURL!.path!)
-            
-            let jsonBundleModDate = jsonBundleAttributes[NSFileModificationDate] as! NSDate
-            let destModDate = destAttributes[NSFileModificationDate] as! NSDate
-            
-            if (jsonBundleModDate.isOlderThanDate(destModDate)) {
-                //Do nothing, the json in Documents is newer, i.e. it was downloaded after the install.
-                print("JSON in Documents is newer than JSON in bundle")
-            }
-            
-            if (jsonBundleModDate.isEqualToDate(destModDate)) {
-                let jsonBundleFileSize = jsonBundleAttributes[NSFileSize] as! Int
-                let destFileSize = destAttributes[NSFileSize] as! Int
-                
-                if (jsonBundleFileSize != destFileSize) {
-                    print("Same dates different file sizes")
-                    //We have a problem.
-                } else {
-                    print("Same dates same file sizes")
-                    //Do nothing, they are the same.
-                }
-            }
-            
-            if (jsonBundleModDate.isNewerThanDate(destModDate)) {
-                print("JSON in bundle is newer than JSON in Documents")
-                //copy the bundle into Documents directory
+    if let jsonDocumentsURL = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
+        // Check if file exist
+        if (!fileManager.fileExistsAtPath(jsonDocumentsURL.path!)){
+            if (jsonBundlePath != nil) {
                 do {
                     // Copy File From Bundle To Documents Directory
-                    try fileManager.removeItemAtPath(jsonDocumentsURL!.path!)
-                    try fileManager.copyItemAtPath(jsonBundlePath!,toPath: jsonDocumentsURL!.path!)
+                    try fileManager.copyItemAtPath(jsonBundlePath!,toPath: jsonDocumentsURL.path!)
                 } catch _ {
                     print("failed to copy sermons.json")
                 }
             }
-        } catch _ {
-            
+        } else {
+            //    fileManager.removeItemAtPath(destination)
+            // Which is newer, the bundle file or the file in the Documents folder?
+            do {
+                let jsonBundleAttributes = try fileManager.attributesOfItemAtPath(jsonBundlePath!)
+                
+                let jsonDocumentsAttributes = try fileManager.attributesOfItemAtPath(jsonDocumentsURL.path!)
+                
+                let jsonBundleModDate = jsonBundleAttributes[NSFileModificationDate] as! NSDate
+                let jsonDocumentsModDate = jsonDocumentsAttributes[NSFileModificationDate] as! NSDate
+                
+                if (jsonDocumentsModDate.isNewerThanDate(jsonBundleModDate)) {
+                    //Do nothing, the json in Documents is newer, i.e. it was downloaded after the install.
+                    print("JSON in Documents is newer than JSON in bundle")
+                }
+                
+                if (jsonBundleModDate.isEqualToDate(jsonDocumentsModDate)) {
+                    let jsonBundleFileSize = jsonBundleAttributes[NSFileSize] as! Int
+                    let jsonDocumentsFileSize = jsonDocumentsAttributes[NSFileSize] as! Int
+                    
+                    if (jsonBundleFileSize != jsonDocumentsFileSize) {
+                        print("Same dates different file sizes")
+                        //We have a problem.
+                    } else {
+                        print("Same dates same file sizes")
+                        //Do nothing, they are the same.
+                    }
+                }
+                
+                if (jsonBundleModDate.isNewerThanDate(jsonDocumentsModDate)) {
+                    print("JSON in bundle is newer than JSON in Documents")
+                    //copy the bundle into Documents directory
+                    do {
+                        // Copy File From Bundle To Documents Directory
+                        try fileManager.removeItemAtPath(jsonDocumentsURL.path!)
+                        try fileManager.copyItemAtPath(jsonBundlePath!,toPath: jsonDocumentsURL.path!)
+                    } catch _ {
+                        print("failed to copy sermons.json")
+                    }
+                }
+            } catch _ {
+                
+            }
         }
-        
     }
 }
 
@@ -148,7 +220,7 @@ func jsonDataFromDocumentsDirectory() -> JSON
 {
     jsonToDocumentsDirectory()
     
-    if let jsonURL = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON) {
+    if let jsonURL = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
         if let data = NSData(contentsOfURL: jsonURL) {
             let json = JSON(data: data)
             if json != JSON.null {
@@ -177,7 +249,7 @@ func sermonsFromDocumentsDirectoryArchive() -> [Sermon]?
         return nil
     }
     
-    let jsonInDocumentsURL = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON)
+    let jsonInDocumentsURL = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME)
     let jsonExistsInDocuments = fileManager.fileExistsAtPath(jsonInDocumentsURL!.path!)
     
     if (!jsonExistsInDocuments) {
@@ -186,7 +258,7 @@ func sermonsFromDocumentsDirectoryArchive() -> [Sermon]?
         return nil
     }
     
-    let jsonInBundlePath = NSBundle.mainBundle().pathForResource(Constants.JSON_ARRAY_KEY, ofType: "json")
+    let jsonInBundlePath = NSBundle.mainBundle().pathForResource(Constants.JSON_ARRAY_KEY, ofType: Constants.JSON_TYPE)
     let jsonExistsInBundle = fileManager.fileExistsAtPath(jsonInBundlePath!)
     
     if (jsonExistsInDocuments && jsonExistsInBundle) {
@@ -222,11 +294,6 @@ func sermonsFromDocumentsDirectoryArchive() -> [Sermon]?
         do {
             let jsonInDocumentsAttributes = try fileManager.attributesOfItemAtPath(jsonInDocumentsURL!.path!)
             let archiveInDocumentsAttributes = try fileManager.attributesOfItemAtPath(archiveInDocumentsURL!.path!)
-            
-            //            print("destAttributes")
-            //            for (key,value) in destAttributes {
-            //                print("Key: \(key) Value: \(value)")
-            //            }
             
             let jsonInDocumentsModDate = jsonInDocumentsAttributes[NSFileModificationDate] as! NSDate
             let archiveInDocumentsModDate = archiveInDocumentsAttributes[NSFileModificationDate] as! NSDate
@@ -288,7 +355,6 @@ func loadSermonDicts() -> [[String:String]]?
         let sermons = json[Constants.JSON_ARRAY_KEY]
         
         for i in 0..<sermons.count {
-            //                    print("sermon: \(sermons[i])")
             
             var dict = [String:String]()
             
@@ -376,88 +442,6 @@ func loadDefaults()
     }
 }
 
-func addAccessoryEvents()
-{
-    MPRemoteCommandCenter.sharedCommandCenter().pauseCommand.enabled = true
-    MPRemoteCommandCenter.sharedCommandCenter().pauseCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-        print("RemoteControlPause")
-
-        Globals.mpPlayer?.pause()
-        
-        Globals.playerPaused = true
-        updateUserDefaultsCurrentTimeExact()
-        return MPRemoteCommandHandlerStatus.Success
-    }
-    
-    MPRemoteCommandCenter.sharedCommandCenter().stopCommand.enabled = true
-    MPRemoteCommandCenter.sharedCommandCenter().stopCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-        
-        return MPRemoteCommandHandlerStatus.Success
-    }
-    
-    MPRemoteCommandCenter.sharedCommandCenter().playCommand.enabled = true
-    MPRemoteCommandCenter.sharedCommandCenter().playCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-        print("RemoteControlPlay")
-
-        Globals.mpPlayer?.play()
-
-        Globals.playerPaused = false
-        setupPlayingInfoCenter()
-        return MPRemoteCommandHandlerStatus.Success
-    }
-    
-    MPRemoteCommandCenter.sharedCommandCenter().togglePlayPauseCommand.enabled = true
-    MPRemoteCommandCenter.sharedCommandCenter().togglePlayPauseCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-        print("RemoteControlTogglePlayPause")
-        if (Globals.playerPaused) {
-            Globals.mpPlayer?.play()
-        } else {
-            Globals.mpPlayer?.pause()
-            updateUserDefaultsCurrentTimeExact()
-        }
-        Globals.playerPaused = !Globals.playerPaused
-        return MPRemoteCommandHandlerStatus.Success
-    }
-    
-    MPRemoteCommandCenter.sharedCommandCenter().seekBackwardCommand.enabled = true
-    MPRemoteCommandCenter.sharedCommandCenter().seekBackwardCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-        Globals.mpPlayer?.beginSeekingBackward()
-        return MPRemoteCommandHandlerStatus.Success
-    }
-    
-    MPRemoteCommandCenter.sharedCommandCenter().seekForwardCommand.enabled = true
-    MPRemoteCommandCenter.sharedCommandCenter().seekForwardCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-        Globals.mpPlayer?.beginSeekingForward()
-        return MPRemoteCommandHandlerStatus.Success
-    }
-    
-    MPRemoteCommandCenter.sharedCommandCenter().skipBackwardCommand.enabled = false
-    MPRemoteCommandCenter.sharedCommandCenter().skipBackwardCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-        Globals.mpPlayer?.currentPlaybackTime -= NSTimeInterval(Constants.SKIP_TIME_INTERVAL)
-        updateUserDefaultsCurrentTimeExact()
-        setupPlayingInfoCenter()
-        return MPRemoteCommandHandlerStatus.Success
-    }
-    
-    MPRemoteCommandCenter.sharedCommandCenter().skipForwardCommand.enabled = false
-    MPRemoteCommandCenter.sharedCommandCenter().skipForwardCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-        Globals.mpPlayer?.currentPlaybackTime += NSTimeInterval(Constants.SKIP_TIME_INTERVAL)
-        updateUserDefaultsCurrentTimeExact()
-        setupPlayingInfoCenter()
-        return MPRemoteCommandHandlerStatus.Success
-    }
-    
-    MPRemoteCommandCenter.sharedCommandCenter().previousTrackCommand.enabled = false
-    MPRemoteCommandCenter.sharedCommandCenter().nextTrackCommand.enabled = false
-    
-    MPRemoteCommandCenter.sharedCommandCenter().changePlaybackRateCommand.enabled = false
-    
-    MPRemoteCommandCenter.sharedCommandCenter().ratingCommand.enabled = false
-    MPRemoteCommandCenter.sharedCommandCenter().likeCommand.enabled = false
-    MPRemoteCommandCenter.sharedCommandCenter().dislikeCommand.enabled = false
-    MPRemoteCommandCenter.sharedCommandCenter().bookmarkCommand.enabled = false
-}
-
 func updateUserDefaultsCurrentTimeWhilePlaying()
 {
     assert(Globals.mpPlayer != nil,"Globals.mpPlayer should not be nil if we're trying to update the currentTime in userDefaults")
@@ -509,11 +493,19 @@ func setupPlayer(sermon:Sermon?)
         
         switch sermon!.playing! {
         case Constants.AUDIO:
-            sermonURL = Constants.BASE_AUDIO_URL + sermon!.audio!
+            if (sermon!.audio != nil) {
+                sermonURL = Constants.BASE_AUDIO_URL + sermon!.audio!
+            } else {
+                //Error
+            }
             break
         
         case Constants.VIDEO:
-            sermonURL = Constants.BASE_VIDEO_URL_PREFIX + sermon!.video! + Constants.BASE_VIDEO_URL_POSTFIX
+            if (sermon!.video != nil) {
+                sermonURL = Constants.BASE_VIDEO_URL_PREFIX + sermon!.video! + Constants.BASE_VIDEO_URL_POSTFIX
+            } else {
+                //Error
+            }
             break
             
         default:
@@ -711,21 +703,6 @@ func setupPlayingInfoCenter()
                 sermonInfo.updateValue(sermonsInSeries.indexOf(Globals.sermonPlaying!)!,                        forKey: MPMediaItemPropertyAlbumTrackNumber)
                 sermonInfo.updateValue(sermonsInSeries.count,                                                   forKey: MPMediaItemPropertyAlbumTrackCount)
             }
-
-//            if let sermons = Globals.sermons {
-//                var sermonsInSeries = [Sermon]()
-//                
-//                for sermon in sermons {
-//                    if (sermon.series == Globals.sermonPlaying?.series) {
-//                        sermonsInSeries.append(sermon)
-//                    }
-//                }
-//                sermonsInSeries.sortInPlace() { $0.title < $1.title }
-//                
-//                print("\(sermonsInSeries.indexOf(Globals.sermonPlaying!))")
-//                sermonInfo.updateValue(sermonsInSeries.indexOf(Globals.sermonPlaying!)!,                        forKey: MPMediaItemPropertyAlbumTrackNumber)
-//                sermonInfo.updateValue(sermonsInSeries.count,                                                   forKey: MPMediaItemPropertyAlbumTrackCount)
-//            }
         }
         
         if (Globals.mpPlayer != nil) {
@@ -784,7 +761,7 @@ extension NSDate
     }
     
 
-    // Claims to be a redeclaration, but I can't find the other.
+// Claims to be a redeclaration, but I can't find the other.
 //    func isEqualToDate(dateToCompare : NSDate) -> Bool
 //    {
 //        //Declare Variables
@@ -828,9 +805,8 @@ func saveSermonSettings()
     let defaults = NSUserDefaults.standardUserDefaults()
 //    print("\(Globals.sermonSettings)")
     defaults.setObject(Globals.sermonSettings,forKey: Constants.SERMON_SETTINGS_KEY)
-//    print("\(Globals.sermonSettings)")
-    defaults.setObject(Globals.seriesViewSplits, forKey: Constants.SERIES_VIEW_SPLITS_KEY)
 //    print("\(Globals.seriesViewSplits)")
+    defaults.setObject(Globals.seriesViewSplits, forKey: Constants.SERIES_VIEW_SPLITS_KEY)
     defaults.synchronize()
 }
 
@@ -850,7 +826,9 @@ func loadSermonSettings()
     if let viewSplitsDictionary = defaults.dictionaryForKey(Constants.SERIES_VIEW_SPLITS_KEY) {
 //        print("\(viewSplitsDictionary)")
         Globals.seriesViewSplits = viewSplitsDictionary as? [String:String]
-    } else {
+    }
+    
+    if (Globals.seriesViewSplits == nil) {
         Globals.seriesViewSplits = [String:String]()
     }
 
@@ -859,11 +837,16 @@ func loadSermonSettings()
 
 func stringWithoutLeadingTheOrAOrAn(fromString:String?) -> String?
 {
+    let quote:String = "\""
     let a:String = "A "
     let an:String = "An "
     let the:String = "The "
     
     var sortString = fromString
+    
+    if (fromString?.endIndex >= quote.endIndex) && (fromString?.substringToIndex(quote.endIndex) == quote) {
+        sortString = fromString!.substringFromIndex(quote.endIndex)
+    }
     
     if (fromString?.endIndex >= a.endIndex) && (fromString?.substringToIndex(a.endIndex) == a) {
         sortString = fromString!.substringFromIndex(a.endIndex)
@@ -898,6 +881,161 @@ func setupSermonsForDisplay()
 }
 
 
+func loadCacheEntries() -> SortGroupCache?
+{
+    var sortGroupCache = SortGroupCache()
+    
+    let fileManager = NSFileManager.defaultManager()
+    let url = documentsURL()
+//    do {
+//        let array = try fileManager.contentsOfDirectoryAtPath(url!.path!)
+//        
+//        //Get the one we need now.
+//        let name = Globals.sortGroupCacheKey + Constants.CACHE_ARCHIVE
+//        
+//        if array.indexOf(name) != nil {
+//            let filename = url!.URLByAppendingPathComponent(name)
+//            //                print("\(filename)\n\n")
+//            
+//            let key = name.substringToIndex(name.rangeOfString(Constants.CACHE_ARCHIVE)!.startIndex)
+//            
+//            let data = NSData(contentsOfURL: filename)
+//            if (data != nil) {
+//                if let dict = NSKeyedUnarchiver.unarchiveObjectWithData(data!) as? [String:[String]] {
+//                    //                        print("\(name)\n\n")
+//                    
+//                    let sections = dict[Constants.CACHE_SECTIONS]
+//                    //                        print("\(sections!)\n\n")
+//                    
+//                    let indexes = dict[Constants.CACHE_INDEXES]?.map({ (value:String) -> Int in
+//                        return Int(value)!
+//                    })
+//                    //                        print("\(indexes!)\n\n")
+//                    
+//                    let counts = dict["counts"]?.map({ (value:String) -> Int in
+//                        return Int(value)!
+//                    })
+//                    //                        print("\(counts!)\n\n")
+//                    
+//                    let sermonReferences = dict[Constants.CACHE_SERMON_INDEXES]?.map({ (index:String) -> Sermon in
+//                        return Globals.sermons![Int(index)!]
+//                    })
+//                    //                        print("\(sermonReferences!)\n\n")
+//                    
+//                    print("Restoring cache entry: \(key)\n\n")
+//                    
+//                    sortGroupCache[key] = (sermons: sermonReferences, sections: sections, indexes: indexes, counts: counts)
+//                } else {
+//                    print("Could not get cache entry from archive for: \(key)\n\n")
+//                }
+//            } else {
+//                print("Could not get data from cache archive file: \(filename)\n\n")
+//            }
+//        }
+//    } catch _ {
+//    }
+    
+    // Load the rest in the background.
+    // Except this creates cases where one we're looking for isn't loaded until it too late
+    // So load in the main thread.  It is fast.
+    
+    // NO BECAUSE THIS CAN DELAY CACHE ENTRIES THAT USERS SWITCH TO.
+    
+//    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
+        print("Starting to restore the cache")
+        do {
+            let array = try fileManager.contentsOfDirectoryAtPath(url!.path!)
+            
+            for name in array {
+                if (name.rangeOfString(Constants.CACHE_ARCHIVE)?.endIndex == name.endIndex) {
+                    let filename = url!.URLByAppendingPathComponent(name)
+                    //                print("\(filename)\n\n")
+                    
+                    let key = name.substringToIndex(name.rangeOfString(Constants.CACHE_ARCHIVE)!.startIndex)
+                    if (sortGroupCache[key] == nil) {
+                        let data = NSData(contentsOfURL: filename)
+                        if (data != nil) {
+                            if let dict = NSKeyedUnarchiver.unarchiveObjectWithData(data!) as? [String:[String]] {
+                                //                        print("\(name)\n\n")
+                                
+                                let sections = dict[Constants.CACHE_SECTIONS]
+                                //                        print("\(sections!)\n\n")
+                                
+                                let indexes = dict[Constants.CACHE_INDEXES]?.map({ (value:String) -> Int in
+                                    return Int(value)!
+                                })
+                                //                        print("\(indexes!)\n\n")
+                                
+                                let counts = dict[Constants.CACHE_COUNTS]?.map({ (value:String) -> Int in
+                                    return Int(value)!
+                                })
+                                //                        print("\(counts!)\n\n")
+                                
+                                let sermonReferences = dict[Constants.CACHE_SERMON_INDEXES]?.map({ (index:String) -> Sermon in
+                                    return Globals.sermons![Int(index)!]
+                                })
+                                //                        print("\(sermonReferences!)\n\n")
+                                
+                                let key = name.substringToIndex(name.rangeOfString(Constants.CACHE_ARCHIVE)!.startIndex)
+                                print("Restoring cache entry: \(key)\n\n")
+                                
+                                sortGroupCache[key] = (sermons: sermonReferences, sections: sections, indexes: indexes, counts: counts)
+                            } else {
+                                print("could not get cache entry from archive.")
+                            }
+                        } else {
+                            print("could not get data from cache archive file.")
+                        }
+                    }
+                }
+            }
+        } catch _ {
+        }
+        print("Finished restoring the cache")
+//    })
+    
+    return sortGroupCache.count > 0 ? sortGroupCache : nil
+}
+
+func saveCacheEntry(key key:String,sermons:[Sermon]?,sections:[String]?,indexes:[Int]?,counts:[Int]?)
+{
+    print("Saving the cache archive: \(key)")
+    
+    var dict = [String:[String]]()
+    
+    dict[Constants.CACHE_SECTIONS] = sections
+    //    print("\(sections)")
+    
+    dict[Constants.CACHE_INDEXES] = indexes?.map({ (value:Int) -> String in
+        return "\(value)"
+    })
+    
+    dict[Constants.CACHE_COUNTS] = counts?.map({ (value:Int) -> String in
+        return "\(value)"
+    })
+    
+    dict[Constants.CACHE_SERMON_INDEXES] = sermons?.map({ (sermon:Sermon) -> String in
+        if let index = Globals.sermons!.indexOf(sermon) {
+            return "\(index)"
+        } else {
+            return "" // This happens when the Globals.sermons array has changed, which invalidates the cache entry
+        }
+    }).filter({ (string:String) -> Bool in
+        return string != "" // This filters out the invalid sermon indexes
+    })
+    
+    // This prevents us from saving cache entries w/ invalid sermon indexes.
+    if dict[Constants.CACHE_SERMON_INDEXES]?.count == sermons?.count {
+        if let archive = documentsURL()?.URLByAppendingPathComponent(key+Constants.CACHE_ARCHIVE) {
+            NSKeyedArchiver.archivedDataWithRootObject(dict).writeToURL(archive, atomically: true)
+            print("Finished saving the cache archive: \(key)")
+        }
+    } else {
+        print("sermonIndexes failure - Globals.sermons array has changed, likely due to downloading new JSON.")
+        print("Did NOT save the cache archive: \(key)")
+    }
+}
+
 func fillSortAndGroupCache()
 {
     /*
@@ -918,7 +1056,7 @@ func fillSortAndGroupCache()
         
         var key:String?
         
-        let searchKey = Globals.searchActive ? (Globals.searchText != nil ? Globals.searchText! : "") : ""
+        let searchKey = Globals.searchActive ? (Globals.searchText != nil ? "search"+Globals.searchText! : "search") : ""
 
         for sorting in sortings {
             for grouping in groupings {
@@ -935,53 +1073,47 @@ func fillSortAndGroupCache()
                     break
                 }
                 
-                if (Globals.sortGroupCache?[key!] == nil) {
+                key = key?.stringByReplacingOccurrencesOfString(" ", withString: "_", options: NSStringCompareOptions.LiteralSearch, range: nil)
+
+//                print("cache entry:\(key!)")
+
+                if (Globals.sortGroupCache?[key!] == nil) && (Globals.sortGroupCacheState?[key!] == nil) {
                     print("Creating cache entry:\(key!)")
+                    
+                    Globals.sortGroupCacheState?[key!] = Constants.CACHE_ENTRY_IN_PROCESS
+                    
                     let sermonList = sortSermons(sermons, sorting: sorting, grouping: grouping)
                     let groupTuple = groupSermons(sermonList, grouping: grouping)
                     let sections = sermonSections(sermonList, sorting: sorting, grouping: grouping)
                     Globals.sortGroupCache?[key!] = (sermons: sermonList, sections: sections, indexes: groupTuple?.indexes, counts: groupTuple?.counts)
+                    
+                    Globals.sortGroupCacheState?[key!] = Constants.CACHE_ENTRY_COMPLETE
+                    
+                    saveCacheEntry(key: key!, sermons: sermonList, sections: sections, indexes: groupTuple?.indexes, counts: groupTuple?.counts)
                 } else {
                     print("Already filled cache entry: \(key!)")
                 }
             }
         }
         print("Finished filling the cache.")
-        
-        // Save the cache
-
-        var dict = [String:[String:[String]]]()
-        
-        for (key,value) in Globals.sortGroupCache! {
-            dict[key] = [String:[String]]()
-            
-            dict[key]?["sections"] = value.sections
-            
-            dict[key]?["indexes"] = value.indexes?.map({ (value:Int) -> String in
-                return "\(value)"
-            })
-            
-            dict[key]?["counts"] = value.counts?.map({ (index:Int) -> String in
-                return "\(index)"
-            })
-            
-            dict[key]?["sermonIndexes"] = value.sermons?.map({ (sermon:Sermon) -> String in
-                return "\(Globals.sermons!.indexOf(sermon)!)"
-            })
-
-        }
-        
-        let defaults = NSUserDefaults.standardUserDefaults()
-        defaults.setObject(dict,forKey: Constants.CACHE)
-        defaults.synchronize()
-        print("Finished saving the cache.")
     })
 }
 
 
-func sortAndGroupSermons() {
+func sortAndGroupSermons()
+{
     Globals.sermonsSortingOrGrouping = true
-
+    
+    // This indexing in the background potentially creates errant indexes when it is running and new JSON is dowloaded, creating a new sermons array
+    // and starting a new background indexing process while the prior one is running.  We can't guarantee in which order the indexing will finish and that the results
+    // of the first, which is now out of date, own't overwrite the results of the second.
+    
+    // Instead we just save them after they are created, as they are created by the user, in the main thread.
+    
+    // It also appears to create collissions w/ Globals.sermonSettings (accessed through sermon.settings) when a cache entry is being created in the foreground.
+    
+//    fillSortAndGroupCache()
+    
     print("Looking for cache entry: \(Globals.sortGroupCacheKey)")
     if let sortGroupTuple = Globals.sortGroupCache?[Globals.sortGroupCacheKey] {
         print("Found cache entry: \(Globals.sortGroupCacheKey)")
@@ -991,12 +1123,14 @@ func sortAndGroupSermons() {
         Globals.section.counts = sortGroupTuple.counts
     } else {
         print("Didn't find cache entry: \(Globals.sortGroupCacheKey)")
+        
+        Globals.sortGroupCacheState?[Globals.sortGroupCacheKey] = Constants.CACHE_ENTRY_IN_PROCESS
+        
         if (Globals.sermonsNeed.groupsSetup) {
             print("Setting up groups for cache entry: \(Globals.sortGroupCacheKey)")
             setupSermonGroups()
             Globals.sermonsNeed.grouping = true
             Globals.sermonsNeed.groupsSetup = false
-            fillSortAndGroupCache()
         }
         
         if Globals.sermonsNeed.grouping {
@@ -1035,7 +1169,16 @@ func sortAndGroupSermons() {
             }
         }
  
-        Globals.sortGroupCache?[Globals.sortGroupCacheKey] = (sermons: Globals.activeSermons, sections: Globals.section.titles, indexes: Globals.section.indexes, counts: Globals.section.counts)
+        if (Globals.sortGroupCache?[Globals.sortGroupCacheKey] == nil) {
+            Globals.sortGroupCache?[Globals.sortGroupCacheKey] = (sermons: Globals.activeSermons, sections: Globals.section.titles, indexes: Globals.section.indexes, counts: Globals.section.counts)
+            
+            Globals.sortGroupCacheState?[Globals.sortGroupCacheKey] = Constants.CACHE_ENTRY_COMPLETE
+            
+            // Need to make sure this gets saved.
+            saveCacheEntry(key: Globals.sortGroupCacheKey, sermons: Globals.activeSermons, sections: Globals.section.titles, indexes: Globals.section.indexes, counts: Globals.section.counts)
+        } else {
+            Globals.sortGroupCacheState?[Globals.sortGroupCacheKey] = Constants.CACHE_ENTRY_COMPLETE
+        }
     }
     
     setupSermonsForDisplay()
@@ -1299,7 +1442,20 @@ func booksFromSermons(sermons:[Sermon]?) -> [String]?
             })
             )
             ).sort({ (first:String, second:String) -> Bool in
-                return bookNumberInBible(first) < bookNumberInBible(second)
+                var result = false
+                if (bookNumberInBible(first) != nil) && (bookNumberInBible(second) != nil) {
+                    result = bookNumberInBible(first) < bookNumberInBible(second)
+                } else
+                    if (bookNumberInBible(first) != nil) && (bookNumberInBible(second) == nil) {
+                        result = true
+                    } else
+                        if (bookNumberInBible(first) == nil) && (bookNumberInBible(second) != nil) {
+                            result = false
+                        } else
+                            if (bookNumberInBible(first) == nil) && (bookNumberInBible(second) == nil) {
+                                result = first < second
+                }
+                return result
             })
         : nil
 }
@@ -1331,17 +1487,16 @@ func bookSectionsFromSermons(sermons:[Sermon]?) -> [String]?
         : nil
 }
 
-func seriesSectionsFromSermons(sermons:[Sermon]?,withTitles:Bool) -> [String]?
+func seriesFromSermons(sermons:[Sermon]?) -> [String]?
 {
     return sermons != nil ?
         Array(
-            Set(sermons!.map({ (sermon:Sermon) -> String in
-                if (sermon.hasSeries()) {
+            Set(
+                sermons!.filter({ (sermon:Sermon) -> Bool in
+                    return sermon.hasSeries()
+                }).map({ (sermon:Sermon) -> String in
                     return sermon.series!
-                } else {
-                    return withTitles ? sermon.title! : Constants.Individual_Sermons
-                }
-            })
+                })
             )
             ).sort({ (first:String, second:String) -> Bool in
                 return stringWithoutLeadingTheOrAOrAn(first) < stringWithoutLeadingTheOrAOrAn(second)
@@ -1349,33 +1504,33 @@ func seriesSectionsFromSermons(sermons:[Sermon]?,withTitles:Bool) -> [String]?
         : nil
 }
 
-func seriesFromSermons(sermons:[Sermon]?) -> [String]?
-{
-    return sermons != nil ?
-        Array(
-            Set(sermons!.filter({ (sermon:Sermon) -> Bool in
-                    return sermon.hasSeries()
-                }).map({ (sermon:Sermon) -> String in
-                    return sermon.series!
-                })
-            )
-        ).sort({ (first:String, second:String) -> Bool in
-            return stringWithoutLeadingTheOrAOrAn(first) < stringWithoutLeadingTheOrAOrAn(second)
-        })
-        : nil
-}
-
 func seriesSectionsFromSermons(sermons:[Sermon]?) -> [String]?
 {
     return sermons != nil ?
         Array(
-            Set(sermons!.map({ (sermon:Sermon) -> String in
-                if (sermon.hasSeries()) {
-                    return sermon.series!
-                } else {
-                    return Constants.Individual_Sermons
-                }
+            Set(
+                sermons!.map({ (sermon:Sermon) -> String in
+                    return sermon.seriesSection!
+                })
+            )
+            ).sort({ (first:String, second:String) -> Bool in
+                return stringWithoutLeadingTheOrAOrAn(first) < stringWithoutLeadingTheOrAOrAn(second)
             })
+        : nil
+}
+
+func seriesSectionsFromSermons(sermons:[Sermon]?,withTitles:Bool) -> [String]?
+{
+    return sermons != nil ?
+        Array(
+            Set(
+                sermons!.map({ (sermon:Sermon) -> String in
+                    if (sermon.hasSeries()) {
+                        return sermon.series!
+                    } else {
+                        return withTitles ? sermon.title! : Constants.Individual_Sermons
+                    }
+                })
             )
             ).sort({ (first:String, second:String) -> Bool in
                 return stringWithoutLeadingTheOrAOrAn(first) < stringWithoutLeadingTheOrAOrAn(second)
@@ -1494,11 +1649,7 @@ func speakerSectionsFromSermons(sermons:[Sermon]?) -> [String]?
     return sermons != nil ?
         Array(
             Set(sermons!.map({ (sermon:Sermon) -> String in
-                if (sermon.hasSpeaker()) {
-                    return sermon.speaker!
-                } else {
-                    return Constants.None
-                }
+                return sermon.speakerSection!
             })
             )
             ).sort({ (first:String, second:String) -> Bool in
@@ -1718,8 +1869,6 @@ func testSermonsPDFs(testExisting testExisting:Bool, testMissing:Bool, showTesti
                 if (sermon.notes != nil) {
                     let notesURL = Constants.BASE_PDF_URL + sermon.notes!
                     
-                    //            if (!fileManager.fileExistsAtPath(notesURL)) {
-                    
                     if (NSData(contentsOfURL: NSURL(string: notesURL)!) == nil) {
                         print("Transcript DOES NOT exist for: \(sermon.title!) PDF: \(sermon.notes!)")
                     } else {
@@ -1729,8 +1878,6 @@ func testSermonsPDFs(testExisting testExisting:Bool, testMissing:Bool, showTesti
                 
                 if (sermon.slides != nil) {
                     let slidesURL = Constants.BASE_PDF_URL + sermon.slides!
-                    
-                    //            if (!fileManager.fileExistsAtPath(slidesURL)) {
                     
                     if (NSData(contentsOfURL: NSURL(string: slidesURL)!) == nil) {
                         print("Slides DO NOT exist for: \(sermon.title!) PDF: \(sermon.slides!)")
@@ -1815,6 +1962,34 @@ func testSermonsTagsAndSeries()
     print("Testing for sermon series and tags the same - end")
 }
 
+func testSermonsForAudio()
+{
+    print("Testing for audio - start")
+    
+    for sermon in Globals.sermons! {
+        if (!sermon.hasAudio()) {
+            print("Audio missing in: \(sermon.title!)")
+        } else {
+
+        }
+    }
+    
+    print("Testing for audio - end")
+}
+
+func testSermonsForSpeaker()
+{
+    print("Testing for speaker - start")
+    
+    for sermon in Globals.sermons! {
+        if (!sermon.hasSpeaker()) {
+            print("Speaker missing in: \(sermon.title!)")
+        }
+    }
+    
+    print("Testing for speaker - end")
+}
+
 func testSermonsForSeries()
 {
     print("Testing for sermons with \"(Part \" in the title but no series - start")
@@ -1851,12 +2026,10 @@ func tagsArrayFromTagsString(tagsString:String?) -> [String]?
     var tag:String
     var setOfTags = Set<String>()
     
-    let bar:String = Constants.TAGS_SEPARATOR
-    
-    while (tags?.rangeOfString(bar) != nil) {
-        tag = tags!.substringToIndex(tags!.rangeOfString(bar)!.startIndex)
+    while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
+        tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
         setOfTags.insert(tag)
-        tags = tags!.substringFromIndex(tags!.rangeOfString(bar)!.endIndex)
+        tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
     }
     
     if (tags != nil) {
@@ -1914,12 +2087,10 @@ func tagsFromSermons(sermons:[Sermon]?) -> [String]?
             var tags = sermon.tags
             var tag:String
 
-            let bar:String = Constants.TAGS_SEPARATOR
-
-            while (tags?.rangeOfString(bar) != nil) {
-                tag = tags!.substringToIndex(tags!.rangeOfString(bar)!.startIndex)
+            while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
+                tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
                 tagsSet.insert(tag)
-                tags = tags!.substringFromIndex(tags!.rangeOfString(bar)!.endIndex)
+                tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
             }
             
             if (tags != nil) {
@@ -1954,3 +2125,87 @@ func sermonsFromSermonDicts(sermonDicts:[[String:String]]?) -> [Sermon]?
     
     return nil
 }
+
+func addAccessoryEvents()
+{
+    MPRemoteCommandCenter.sharedCommandCenter().pauseCommand.enabled = true
+    MPRemoteCommandCenter.sharedCommandCenter().pauseCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+        print("RemoteControlPause")
+        
+        Globals.mpPlayer?.pause()
+        
+        Globals.playerPaused = true
+        updateUserDefaultsCurrentTimeExact()
+        return MPRemoteCommandHandlerStatus.Success
+    }
+    
+    MPRemoteCommandCenter.sharedCommandCenter().stopCommand.enabled = true
+    MPRemoteCommandCenter.sharedCommandCenter().stopCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+        
+        return MPRemoteCommandHandlerStatus.Success
+    }
+    
+    MPRemoteCommandCenter.sharedCommandCenter().playCommand.enabled = true
+    MPRemoteCommandCenter.sharedCommandCenter().playCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+        print("RemoteControlPlay")
+        
+        Globals.mpPlayer?.play()
+        
+        Globals.playerPaused = false
+        setupPlayingInfoCenter()
+        return MPRemoteCommandHandlerStatus.Success
+    }
+    
+    MPRemoteCommandCenter.sharedCommandCenter().togglePlayPauseCommand.enabled = true
+    MPRemoteCommandCenter.sharedCommandCenter().togglePlayPauseCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+        print("RemoteControlTogglePlayPause")
+        if (Globals.playerPaused) {
+            Globals.mpPlayer?.play()
+        } else {
+            Globals.mpPlayer?.pause()
+            updateUserDefaultsCurrentTimeExact()
+        }
+        Globals.playerPaused = !Globals.playerPaused
+        return MPRemoteCommandHandlerStatus.Success
+    }
+    
+    MPRemoteCommandCenter.sharedCommandCenter().seekBackwardCommand.enabled = true
+    MPRemoteCommandCenter.sharedCommandCenter().seekBackwardCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+        Globals.mpPlayer?.beginSeekingBackward()
+        return MPRemoteCommandHandlerStatus.Success
+    }
+    
+    MPRemoteCommandCenter.sharedCommandCenter().seekForwardCommand.enabled = true
+    MPRemoteCommandCenter.sharedCommandCenter().seekForwardCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+        Globals.mpPlayer?.beginSeekingForward()
+        return MPRemoteCommandHandlerStatus.Success
+    }
+    
+    MPRemoteCommandCenter.sharedCommandCenter().skipBackwardCommand.enabled = false
+    MPRemoteCommandCenter.sharedCommandCenter().skipBackwardCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+        Globals.mpPlayer?.currentPlaybackTime -= NSTimeInterval(Constants.SKIP_TIME_INTERVAL)
+        updateUserDefaultsCurrentTimeExact()
+        setupPlayingInfoCenter()
+        return MPRemoteCommandHandlerStatus.Success
+    }
+    
+    MPRemoteCommandCenter.sharedCommandCenter().skipForwardCommand.enabled = false
+    MPRemoteCommandCenter.sharedCommandCenter().skipForwardCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
+        Globals.mpPlayer?.currentPlaybackTime += NSTimeInterval(Constants.SKIP_TIME_INTERVAL)
+        updateUserDefaultsCurrentTimeExact()
+        setupPlayingInfoCenter()
+        return MPRemoteCommandHandlerStatus.Success
+    }
+    
+    MPRemoteCommandCenter.sharedCommandCenter().previousTrackCommand.enabled = false
+    MPRemoteCommandCenter.sharedCommandCenter().nextTrackCommand.enabled = false
+    
+    MPRemoteCommandCenter.sharedCommandCenter().changePlaybackRateCommand.enabled = false
+    
+    MPRemoteCommandCenter.sharedCommandCenter().ratingCommand.enabled = false
+    MPRemoteCommandCenter.sharedCommandCenter().likeCommand.enabled = false
+    MPRemoteCommandCenter.sharedCommandCenter().dislikeCommand.enabled = false
+    MPRemoteCommandCenter.sharedCommandCenter().bookmarkCommand.enabled = false
+}
+
+

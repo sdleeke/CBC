@@ -9,13 +9,13 @@
 import Foundation
 import MediaPlayer
 
-struct DeepLink {
-    var path:String?
-    var sorting:String?
-    var grouping:String?
-    var searchString:String?
-    var tag:String?
-}
+//struct DeepLink {
+//    var path:String?
+//    var sorting:String?
+//    var grouping:String?
+//    var searchString:String?
+//    var tag:String?
+//}
 
 struct Section {
     var titles:[String]?
@@ -25,13 +25,14 @@ struct Section {
 
 typealias SortGroupTuple = (sermons: [Sermon]?, sections: [String]?, indexes: [Int]?, counts: [Int]?)
 typealias SortGroupCache = [String:SortGroupTuple]
+typealias SortGroupCacheState = [String:String]
 
 struct Globals {
     static var scrolledToSermonLastSelected = false
     
-    static var loadedEnoughToDeepLink = false
-    static var deepLinkWaiting = false
-    static var deepLink = DeepLink()
+//    static var loadedEnoughToDeepLink = false
+//    static var deepLinkWaiting = false
+//    static var deepLink = DeepLink()
     
     static var grouping:String? = Constants.YEAR {
         didSet {
@@ -79,6 +80,8 @@ struct Globals {
     //The sermons in the search results, see updateSearchResults
     static var searchSermons:[Sermon]?
     
+    static var allSermons:[Sermon]?
+
     static var sermonsToSearch:[Sermon]? {
         get {
             var sermons:[Sermon]?
@@ -86,13 +89,19 @@ struct Globals {
             switch Globals.showing! {
             case Constants.TAGGED:
                 if (Globals.taggedSermons == nil) {
-                    Globals.taggedSermons = taggedSermonsFromTagSelected(Globals.sermons, tagSelected: Globals.sermonTagsSelected)
+                    if Globals.allSermons == nil {
+                        Globals.allSermons = Globals.sermons
+                    }
+                    Globals.taggedSermons = taggedSermonsFromTagSelected(Globals.allSermons, tagSelected: Globals.sermonTagsSelected)
                 }
                 sermons = Globals.taggedSermons
                 break
                 
             case Constants.ALL:
-                sermons = Globals.sermons
+                if Globals.allSermons == nil {
+                    Globals.allSermons = Globals.sermons
+                }
+                sermons = Globals.allSermons
                 break
                 
             default:
@@ -105,15 +114,11 @@ struct Globals {
     
     static var activeSermons:[Sermon]? {
         get {
-            var sermons:[Sermon]?
-        
             if (Globals.searchActive) {
-                sermons = Globals.searchSermons
+                return Globals.searchSermons
             } else {
-                sermons = Globals.sermonsToSearch
+                return Globals.sermonsToSearch
             }
-        
-            return sermons
         }
         
         set {
@@ -126,7 +131,7 @@ struct Globals {
                     break
                     
                 case Constants.ALL:
-                    Globals.sermons = newValue
+                    Globals.allSermons = newValue
                     break
                     
                 default:
@@ -136,14 +141,17 @@ struct Globals {
         }
     }
     
-    //These are only used when sorting and grouping, i.e. according to what is being shown
     static var sortGroupCache:SortGroupCache? = {
         return SortGroupCache()
     }()
     
+    static var sortGroupCacheState:SortGroupCacheState? = {
+        return SortGroupCacheState()
+    }()
+    
     static var sortGroupCacheKey:String {
         get {
-            var key = Globals.searchActive ? (Globals.searchText != nil ? Globals.searchText! : "") : ""
+            var key = Globals.searchActive ? (Globals.searchText != nil ? "search"+Globals.searchText! : "search") : ""
 
             key = key + Globals.showing!
 
@@ -161,7 +169,7 @@ struct Globals {
             
             key = key + Globals.sorting! + Globals.grouping!
             
-            return key
+            return key.stringByReplacingOccurrencesOfString(" ", withString: "_", options: NSStringCompareOptions.LiteralSearch, range: nil)
         }
     }
     
@@ -184,15 +192,13 @@ struct Globals {
     static var sermonTags:[String]?
 
     static var section:Section! = {
-        var section = Section()
-        return section
+        return Section()
     }()
     
     struct display {
         static var sermons:[Sermon]?
         static var section:Section! = {
-            var section = Section()
-            return section
+            return Section()
             }()
     }
 }

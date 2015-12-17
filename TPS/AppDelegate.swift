@@ -11,12 +11,13 @@ import AVFoundation
 import AudioToolbox
 import MediaPlayer
 
-
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { //, NSURLSessionDownloadDelegate {
 
     var window: UIWindow?
     
+    /* Not ready for release
+
     func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool
     {
         // This should be rationalized with the code in MyTableViewController to have one function (somewhere) so we aren't duplicating it.
@@ -369,6 +370,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         return true
     }
     
+    */
     
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
@@ -401,26 +403,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         setupPlayingInfoCenter()
 
         //iPad
-//        if let svc = self.window?.rootViewController as? UISplitViewController {
-//            if let nvc = svc.viewControllers[1] as? UINavigationController {
-//                if let myvc = nvc.topViewController as? MyViewController {
-//
-//                }
-//                if let wvc = nvc.topViewController as? WebViewController {
-//                
-//                }
-//            }
-//        }
+        //        if let svc = self.window?.rootViewController as? UISplitViewController {
+        //            if let nvc = svc.viewControllers[1] as? UINavigationController {
+        //                if let myvc = nvc.topViewController as? MyViewController {
+        //
+        //                }
+        //                if let wvc = nvc.topViewController as? WebViewController {
+        //
+        //                }
+        //            }
+        //        }
         
         //iPhone
-//        if let nvc = self.window?.rootViewController as? UINavigationController {
-//            if let myvc = nvc.topViewController as? MyViewController {
-//
-//            }
-//            if let wvc = nvc.topViewController as? WebViewController {
-//            
-//            }
-//        }
+        //        if let nvc = self.window?.rootViewController as? UINavigationController {
+        //            if let myvc = nvc.topViewController as? MyViewController {
+        //
+        //            }
+        //            if let wvc = nvc.topViewController as? WebViewController {
+        //            
+        //            }
+        //        }
     }
     
     func applicationDidEnterBackground(application: UIApplication) {

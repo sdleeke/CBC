@@ -589,6 +589,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         didDismissSearch()
     }
     
+    /* Not ready for release
+
     func deepLink()
     {
         // This should be rationalized with the code in AppDelegate to have one function (somewhere) so we aren't duplicating it.
@@ -830,6 +832,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         }
     }
     
+    */
+    
     func mpPlayerLoadStateDidChange(notification:NSNotification)
     {
         let player = notification.object as! MPMoviePlayerController
@@ -967,48 +971,70 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             if let sermons = sermonsFromDocumentsDirectoryArchive() {
                 Globals.sermons = sermons
                 // Load the cache from disk
-                let defaults = NSUserDefaults.standardUserDefaults()
-                if let dict = defaults.objectForKey(Constants.CACHE) as? [String:[String:[String]]] {
-                    /*
-                    This releases the old cache contents.
-                    Since we are rebuilding the sermons array we can't keep any old sermon objects around.
-                    */
-                    Globals.sortGroupCache = SortGroupCache()
-                    
-                    for (key,_) in dict {
-                        
-                        let sections = dict[key]?["sections"]
-                        
-                        let indexes = dict[key]?["indexes"]?.map({ (value:String) -> Int in
-                            return Int(value)!
-                        })
-                        
-                        let counts = dict[key]?["counts"]?.map({ (value:String) -> Int in
-                            return Int(value)!
-                        })
-                        
-                        let sermonReferences = dict[key]?["sermonIndexes"]?.map({ (index:String) -> Sermon in
-                            return Globals.sermons![Int(index)!]
-                        })
-                        
-                        Globals.sortGroupCache?[key] = (sermons: sermonReferences, sections: sections!, indexes: indexes!, counts: counts!)
-                    }
-                }
+                Globals.sortGroupCache = loadCacheEntries()
+                Globals.sortGroupCacheState = SortGroupCacheState()
+
+//                let defaults = NSUserDefaults.standardUserDefaults()
+//                if let dict = defaults.objectForKey(Constants.CACHE) as? [String:[String:[String]]] {
+//                    /*
+//                    This releases the old cache contents.
+//                    Since we are rebuilding the sermons array we can't keep any old sermon objects around.
+//                    */
+//                    Globals.sortGroupCache = SortGroupCache()
+//                    
+//                    for (key,_) in dict {
+//                        
+//                        let sections = dict[key]?["sections"]
+//                        
+//                        let indexes = dict[key]?["indexes"]?.map({ (value:String) -> Int in
+//                            return Int(value)!
+//                        })
+//                        
+//                        let counts = dict[key]?["counts"]?.map({ (value:String) -> Int in
+//                            return Int(value)!
+//                        })
+//                        
+//                        let sermonReferences = dict[key]?["sermonIndexes"]?.map({ (index:String) -> Sermon in
+//                            return Globals.sermons![Int(index)!]
+//                        })
+//                        
+//                        Globals.sortGroupCache?[key] = (sermons: sermonReferences, sections: sections!, indexes: indexes!, counts: counts!)
+//                    }
+//                }
             } else {
                 var success = false
                 
                 if let sermonDicts = loadSermonDicts() {
                     if let sermons = sermonsFromSermonDicts(sermonDicts) {
                         Globals.sermons = sermons
+                        Globals.allSermons = nil
                         sermonsToDocumentsDirectoryArchive(Globals.sermons)
                         /*
                         This releases the old cache contents.
                         Since we are rebuilding the sermons array we can't keep any old sermon objects around.
                         */
                         Globals.sortGroupCache = SortGroupCache()
-                        let defaults = NSUserDefaults.standardUserDefaults()
-                        defaults.removeObjectForKey(Constants.CACHE)
-                        defaults.synchronize()
+                        Globals.sortGroupCacheState = SortGroupCacheState()
+                        
+                        //Must remove all cache.archive files.
+                        let fileManager = NSFileManager.defaultManager()
+                        let url = documentsURL()
+                        do {
+                            let array = try fileManager.contentsOfDirectoryAtPath(url!.path!)
+                            print("Removing all cache archives.")
+                            for name in array {
+                                if (name.rangeOfString(Constants.CACHE_ARCHIVE)?.endIndex == name.endIndex) {
+                                    let filename = url!.URLByAppendingPathComponent(name)
+                                    print("Removing cache archive: \(filename)")
+                                    try fileManager.removeItemAtURL(filename)
+                                }
+                            }
+                        } catch _ {
+                        }
+                        
+//                        let defaults = NSUserDefaults.standardUserDefaults()
+//                        defaults.removeObjectForKey(Constants.CACHE)
+//                        defaults.synchronize()
                         success = true
                     }
                 }
@@ -1187,7 +1213,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     {
         navigationItem.title = "Downloading Sermons"
         
-        let jsonURL = "\(Constants.JSON_URL_PREFIX)\(Constants.CBC_SHORT.lowercaseString).\(Constants.SERMONS_JSON)"
+        let jsonURL = "\(Constants.JSON_URL_PREFIX)\(Constants.CBC_SHORT.lowercaseString).\(Constants.SERMONS_JSON_FILENAME)"
         let downloadRequest = NSMutableURLRequest(URL: NSURL(string: jsonURL)!)
         
         let configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
@@ -1195,7 +1221,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         session = NSURLSession(configuration: configuration, delegate: self, delegateQueue: nil)
         
         let downloadTask = session?.downloadTaskWithRequest(downloadRequest)
-        downloadTask?.taskDescription = Constants.SERMONS_JSON
+        downloadTask?.taskDescription = Constants.SERMONS_JSON_FILENAME
         
         downloadTask?.resume()
         
@@ -1564,11 +1590,11 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             loadSermons(nil)
         }
 
-        Globals.loadedEnoughToDeepLink = true
-        
-        if (Globals.deepLinkWaiting) {
-            deepLink()
-        } else {
+//        Globals.loadedEnoughToDeepLink = true
+//        
+//        if (Globals.deepLinkWaiting) {
+//            deepLink()
+//        } else {
             //Do we want to do this?  If someone has selected something farther down the list to view, not play, when they come back
             //the list will scroll to whatever is playing or paused.
             
@@ -1582,7 +1608,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 }
                 Globals.scrolledToSermonLastSelected = true
             }
-        }
+//        }
     }
     
     override func viewWillDisappear(animated: Bool) {

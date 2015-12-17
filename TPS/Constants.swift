@@ -10,28 +10,43 @@ import Foundation
 import UIKit
 
 struct Constants {
-    static let iosBlueColor = UIColor(colorLiteralRed: 0.0, green:122.0/255.0, blue:1.0, alpha:1.0)
+    static let JSON_URL_PREFIX = "https://s3.amazonaws.com/jd2-86d4fd0ec0a8fca71eef54e388261c5b-us/"
+
+    static let JSON_ARRAY_KEY = "sermons"
+    static let JSON_TYPE = "json"
+    static let JSON_FILENAME_EXTENSION = ".json"
+    static let SERMONS_JSON_FILENAME = Constants.JSON_ARRAY_KEY + Constants.JSON_FILENAME_EXTENSION
+
+    static let ARCHIVE_FILENAME_EXTENSION = ".archive"
+    static let SERMONS_ARCHIVE = Constants.JSON_ARRAY_KEY + Constants.ARCHIVE_FILENAME_EXTENSION
+    
+    static let DICT = "dict"
+    
+    static let CACHE_KEY = "cache"
+    static let CACHE_ARCHIVE = Constants.CACHE_KEY + Constants.ARCHIVE_FILENAME_EXTENSION
+
+    static let CACHE_SECTIONS = "sections"
+    static let CACHE_INDEXES = "indexes"
+    static let CACHE_COUNTS = "counts"
+    static let CACHE_SERMON_INDEXES = "sermonIndexes"
+
+    static let CACHE_ENTRY_IN_PROCESS = "inProcess"
+    static let CACHE_ENTRY_COMPLETE = "complete"
+    
+    static let LIVE_STREAM_URL = "http://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
+    
+    static let REACHABILITY_TEST_URL = "https://www.google.com/"
+    
+    static let COVER_ART_IMAGE = "cover170x170"
     
     static let CACHE_POLICY = NSURLRequestCachePolicy.ReturnCacheDataElseLoad
     static let CACHE_TIMEOUT = 1.0
     
-    static let SKIP_TIME_INTERVAL = 15
-    
-    static let JSON_ARRAY_KEY = "sermons"
-    static let JSON_URL_PREFIX = "https://s3.amazonaws.com/jd2-86d4fd0ec0a8fca71eef54e388261c5b-us/"
-    static let SERMONS_JSON = "sermons.json"
-    static let SERMONS_ARCHIVE = "sermons.archive"
-    
-    static let CACHE = "cache"
-
-    static let LIVE_STREAM_URL = "http://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
-    
-    static let COVER_ART_IMAGE = "cover170x170"
-    
-    static let SERMON_UPDATE_UI_NOTIFICATION = "SERMON UPDATE UI"
+   static let SERMON_UPDATE_UI_NOTIFICATION = "SERMON UPDATE UI"
     
     static let HEADER_HEIGHT = CGFloat(48)
     static let VIEW_TRANSITION_TIME = 0.75 // seconds
+    static let SKIP_TIME_INTERVAL = 15
     static let ZERO = "0"
     
     static let POPOVER_CELL_IDENTIFIER = "PopoverCell"
@@ -171,6 +186,10 @@ struct Constants {
     
     static let FontAwesome = "FontAwesome"
     
+    static let FA_PLAY_PLAUSE_FONT_SIZE = CGFloat(24.0)
+    static let FA_PLAY = "\u{f04b}"
+    static let FA_PAUSE = "\u{f04c}"
+    
     static let FA_ICONS_FONT_SIZE = CGFloat(12.0)
     static let FA_SLIDES = "\u{f022}"
     static let FA_TRANSCRIPT = "\u{f0f6}"
@@ -188,22 +207,15 @@ struct Constants {
     static let Cancel_All_Downloads = "Cancel All Downloads"
     static let Delete_All_Downloads = "Delete All Downloads"
     
-    static let FA_PLAY_PLAUSE_FONT_SIZE = CGFloat(24.0)
-    static let FA_PLAY = "\u{f04b}"
-    static let FA_PAUSE = "\u{f04c}"
-    
+    static let Cancel_Audio_Download = "Cancel Audio Download?"
+    static let Delete_Audio_Download = "Delete Downloaded Audio?"
+
     static let FA_SLIDES_SEGMENT_TITLE = Constants.FA_SLIDES
     static let FA_TRANSCRIPT_SEGMENT_TITLE = Constants.FA_TRANSCRIPT
     static let FA_VIDEO_SEGMENT_TITLE = Constants.FA_VIDEO
     
-    static let SLIDES_SEGMENT_TITLE = "S"
-    static let TRANSCRIPT_SEGMENT_TITLE = "T"
-    static let VIDEO_SEGMENT_TITLE = "V"
-    
-    static let Cancel_Audio_Download = "Cancel Audio Download?"
-    static let Delete_Audio_Download = "Delete Downloaded Audio?"
-    
-    static let REACHABILITY_TEST_URL = "https://www.google.com/"
+    static let CHECK_FILE_SLEEP_INTERVAL = 0.01
+    static let CHECK_FILE_MAX_ITERATIONS = 200
     
     static let BASE_AUDIO_URL = "http://sitedata.countrysidebible.org/avmedia/se/"
     static let BASE_PDF_URL = "http://sitedata.countrysidebible.org/avmedia/dc/"
@@ -255,7 +267,8 @@ struct Constants {
     
     static let MP3_FILENAME_EXTENSION = ".mp3"
     static let MP4_FILENAME_EXTENSION = ".mp4"
-    static let TMP_FILE_EXTENSION = ".tmp"
+    
+    static let TMP_FILENAME_EXTENSION = ".tmp"
     
     static let OLD_TESTAMENT:[String] = [
         "Genesis",

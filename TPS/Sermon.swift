@@ -43,7 +43,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     
     init(dict:[String:String]?)
     {
-        //        print("\(dict)")
+//        print("\(dict)")
         self.dict = dict
     }
     
@@ -51,7 +51,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     {
         guard
             
-            let dict = decoder.decodeObjectForKey("dict") as? [String:String]
+            let dict = decoder.decodeObjectForKey(Constants.DICT) as? [String:String]
             
             else {
                 return nil
@@ -61,10 +61,10 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     }
     
     func encodeWithCoder(coder: NSCoder) {
-        coder.encodeObject(self.dict, forKey: "dict")
+        coder.encodeObject(self.dict, forKey: Constants.DICT)
     }
     
-    // this supports set values that are saved in defaults between sessions
+    // this supports settings values that are saved in defaults between sessions
     var playing:String? {
         get {
             if (dict![Constants.PLAYING] == nil) {
@@ -83,7 +83,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         }
     }
     
-    // this supports set values that are saved in defaults between sessions
+    // this supports settings values that are saved in defaults between sessions
     var showing:String? {
         get {
             if (dict![Constants.SHOWING] == nil) {
@@ -113,7 +113,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         }
     }
     
-    // this supports set values that are saved in defaults between sessions
+    // this supports settings values that are saved in defaults between sessions
     var currentTime:String? {
         get {
             if let current_time = settings?[Constants.CURRENT_TIME+playing!] {
@@ -235,12 +235,6 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         }
     }
     
-    var series:String? {
-        get {
-            return dict![Constants.SERIES]
-        }
-    }
-    
     // this saves calculated values in defaults between sessions
     var seriesSort:String? {
         get {
@@ -257,6 +251,12 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                 }
             }
             return dict![Constants.SERIES_SORT]
+        }
+    }
+    
+    var series:String? {
+        get {
+            return dict![Constants.SERIES]
         }
     }
     
@@ -400,6 +400,9 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         var sermon:Sermon?
         
         init(sermon:Sermon?) {
+            if (sermon == nil) {
+                print("nil sermon in Settings init!")
+            }
             self.sermon = sermon
         }
         
@@ -411,7 +414,18 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                 if (Globals.sermonSettings?[sermon!.keyBase] == nil) {
                     Globals.sermonSettings?[sermon!.keyBase] = [String:String]()
                 }
-                Globals.sermonSettings?[sermon!.keyBase]?[key] = newValue
+                if (newValue != nil) {
+                    if (sermon != nil) {
+//                        print("\(Globals.sermonSettings!)")
+//                        print("\(sermon!)")
+//                        print("\(newValue!)")
+                        Globals.sermonSettings![sermon!.keyBase]![key] = newValue
+                    } else {
+                        print("sermon == nil in Settings!")
+                    }
+                } else {
+                    print("newValue == nil in Settings!")
+                }
             }
         }
     }
@@ -546,10 +560,10 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         //Get documents directory URL
         let destinationURL = documentsURL()?.URLByAppendingPathComponent(filename)
-        // Check if file exist
-        if (!NSFileManager.defaultManager().fileExistsAtPath(destinationURL!.path!)){
+        // Check if file exists
+        if (fileManager.fileExistsAtPath(destinationURL!.path!)){
             do {
-                try NSFileManager.defaultManager().removeItemAtURL(destinationURL!)
+                try fileManager.removeItemAtURL(destinationURL!)
             } catch _ {
                 print("failed to remove file")
             }
@@ -570,32 +584,38 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     }
     
     func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
-        if (error != nil) {
-            print("Download failed for: \(session.description)")
-            download.state = .none
-        } else {
-            print("Download succeeded for: \(session.description)")
-            if (download.state == .downloading) { download.state = .downloaded }
+        if (download.task == task) {
+            if (error != nil) {
+                print("Download failed for: \(session.description)")
+                download.state = .none
+            } else {
+                print("Download succeeded for: \(session.description)")
+                if (download.state == .downloading) {
+                    download.state = .downloaded
+                }
+            }
+            
+            // This deletes more than the temp file associated with this download and sometimes it deletes files in progress
+            // that are needed - e.g. the JSON!  We need to find a way to delete only the temp file created by this download task.
+            //        removeTempFiles()
+            
+            let filename = task.taskDescription
+            print("filename: \(filename!) error: \(error)")
         }
-        
-        // This deletes more than the temp file associated with this download and sometimes it deletes files in progress
-        // that are needed - e.g. the JSON!  We need to find a way to delete only the temp file created by this download task.
-        //        removeTempFiles()
-        
-        let filename = task.taskDescription
-        print("filename: \(filename!) error: \(error)")
-        
-        download.session?.invalidateAndCancel()
         
         //        if let taskIndex = Globals.downloadTasks.indexOf(task as! NSURLSessionDownloadTask) {
         //            Globals.downloadTasks.removeAtIndex(taskIndex)
         //        }
         
+        session.invalidateAndCancel()
+        
         UIApplication.sharedApplication().networkActivityIndicatorVisible = false
     }
     
     func URLSession(session: NSURLSession, didBecomeInvalidWithError error: NSError?) {
-        download.session = nil
+        if (download.session == session) {
+            download.session = nil
+        }
     }
     
     func URLSessionDidFinishEventsForBackgroundURLSession(session: NSURLSession) {
@@ -603,7 +623,6 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         var filename:String?
         
         filename = session.configuration.identifier!.substringFromIndex(Constants.DOWNLOAD_IDENTIFIER.endIndex)
-        //        filename = filename?.substringToIndex(filename!.rangeOfString(Constants.MP3_FILENAME_EXTENSION)!.startIndex)
         
         for sermon in Globals.sermons! {
             if (sermon.audio == filename) {
@@ -627,21 +646,6 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         return (video != nil) && (video != Constants.EMPTY_STRING)
     }
     
-    func hasNotesOrSlides() -> (hasNotes:Bool,hasSlides:Bool)
-    {
-        return (hasNotes(),hasSlides())
-    }
-    
-    func hasNotes() -> Bool
-    {
-        return (self.notes != nil) && (self.notes != Constants.EMPTY_STRING)
-    }
-    
-    func hasSlides() -> Bool
-    {
-        return (self.slides != nil) && (self.slides != Constants.EMPTY_STRING)
-    }
-    
     func hasScripture() -> Bool
     {
         return (self.scripture != nil) && (self.scripture != Constants.EMPTY_STRING)
@@ -662,9 +666,19 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         return (self.speaker != nil) && (self.speaker != Constants.EMPTY_STRING)
     }
     
-    func hasTags() -> Bool
+    func hasNotesOrSlides() -> (hasNotes:Bool,hasSlides:Bool)
     {
-        return (self.tags != nil) && (self.tags != Constants.EMPTY_STRING)
+        return (hasNotes(),hasSlides())
+    }
+    
+    func hasNotes() -> Bool
+    {
+        return (self.notes != nil) && (self.notes != Constants.EMPTY_STRING)
+    }
+    
+    func hasSlides() -> Bool
+    {
+        return (self.slides != nil) && (self.slides != Constants.EMPTY_STRING)
     }
     
     func hasNotesOrSlides(check:Bool) -> (hasNotes:Bool,hasSlides:Bool)
@@ -680,8 +694,6 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             //                print("Notes file s/b: \(testNotes)")
             let notesURL = Constants.BASE_PDF_URL + testNotes
             //                print("<a href=\"\(notesURL)\" target=\"_blank\">\(sermon.title!) Notes</a><br/>")
-            
-            //                if (fileManager.fileExistsAtPath(notesURL)) {
             
             if (NSData(contentsOfURL: NSURL(string: notesURL)!) != nil) {
                 notes = testNotes
@@ -706,8 +718,6 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             let slidesURL = Constants.BASE_PDF_URL + testSlides
             //                print("<a href=\"\(slidesURL)\" target=\"_blank\">\(sermon.title!) Slides</a><br/>")
             
-            //                if (fileManager.fileExistsAtPath(slidesURL)) {
-            
             if (NSData(contentsOfURL: NSURL(string: slidesURL)!) != nil) {
                 slides = testSlides
                 print("Slides DO exist for: \(title!) PDF: \(testSlides)")
@@ -722,6 +732,11 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     func hasSlides(check:Bool) -> Bool
     {
         return check ? checkSlides() : hasSlides()
+    }
+    
+    func hasTags() -> Bool
+    {
+        return (self.tags != nil) && (self.tags != Constants.EMPTY_STRING)
     }
     
     func tagsArray() -> [String]
@@ -751,33 +766,4 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         return arrayOfTags
     }
 
-//    func bookFromScripture()
-//    {
-//        if (scripture != nil) {
-//            if (scripture == Constants.Selected_Scriptures) {
-//                book = Constants.Selected_Scriptures
-//            } else {
-//                for bookTitle in Constants.OLD_TESTAMENT {
-//                    if (scripture!.endIndex >= bookTitle.endIndex) &&
-//                        (scripture!.substringToIndex(bookTitle.endIndex) == bookTitle) {
-//                            book = bookTitle
-//                    }
-//                }
-//                for bookTitle in Constants.NEW_TESTAMENT {
-//                    if (scripture!.endIndex >= bookTitle.endIndex) &&
-//                        (scripture!.substringToIndex(bookTitle.endIndex) == bookTitle) {
-//                            book = bookTitle
-//                    }
-//                }
-//            }
-//
-//            //        println("\(book)")
-//
-//            if (scripture != Constants.Selected_Scriptures) && (book == "") {
-//                print("ERROR in bookFromScripture")
-//                print("\(scripture)")
-//                print("\(book)")
-//            }
-//        }
-//    }
 }
