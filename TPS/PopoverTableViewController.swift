@@ -13,6 +13,12 @@ protocol PopoverTableViewControllerDelegate
     func rowClickedAtIndex(index:Int, strings:[String], purpose:PopoverPurpose)
 }
 
+struct Section {
+    var titles:[String]?
+    var counts:[Int]?
+    var indexes:[Int]?
+}
+
 class PopoverTableViewController: UITableViewController {
     
     var delegate : PopoverTableViewControllerDelegate?
@@ -203,7 +209,7 @@ class PopoverTableViewController: UITableViewController {
         case .showingTags:
             //            print("strings: \(strings[indexPath.row]) sermontTag: \(sermonSelected?.tags)")
             
-            if (selectedSermon?.tagsArray().indexOf(strings![index]) != nil) {
+            if (selectedSermon?.tagsArray?.indexOf(strings![index]) != nil) {
                     cell.accessoryType = UITableViewCellAccessoryType.Checkmark
             } else {
                 cell.accessoryType = UITableViewCellAccessoryType.None

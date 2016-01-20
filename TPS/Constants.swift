@@ -269,7 +269,10 @@ struct Constants {
     static let MP4_FILENAME_EXTENSION = ".mp4"
     
     static let TMP_FILENAME_EXTENSION = ".tmp"
-    
+ 
+    static let sortings = [Constants.CHRONOLOGICAL, Constants.REVERSE_CHRONOLOGICAL]
+    static let groupings = [Constants.YEAR, Constants.SERIES, Constants.BOOK, Constants.SPEAKER]
+
     static let OLD_TESTAMENT:[String] = [
         "Genesis",
         "Exodus",

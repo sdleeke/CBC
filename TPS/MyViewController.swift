@@ -472,12 +472,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     func setupSermonsInSeries(sermon:Sermon?)
     {
-        if (sermon != nil) {
-            let seriesSermons = Globals.sermons?.filter({ (testSermon:Sermon) -> Bool in
-                return sermon!.hasSeries() ? (testSermon.series == sermon!.series) : (testSermon.keyBase == sermon!.keyBase)
-            })
-            sermonsInSeries = sortSermonsByYear(seriesSermons, sorting: Globals.sorting)
-        }
+        sermonsInSeries = sermonsInSermonSeries(sermon)
     }
     
     private func sermonNotesAndSlidesConstraintMinMax(height:CGFloat) -> (min:CGFloat,max:CGFloat)
@@ -1329,7 +1324,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             let defaults = NSUserDefaults.standardUserDefaults()
             let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_DETAIL_KEY)
             if (selectedSermonKey != nil) {
-                if let sermons = Globals.sermons {
+                if let sermons = Globals.sermonRepository {
                     for sermon in sermons {
                         if (sermon.keyBase == selectedSermonKey!) {
                             selectedSermon = sermon
@@ -1663,7 +1658,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         if (sermon != nil) {
             var indexPath = NSIndexPath(forRow: 0, inSection: 0)
             
-            if (sermonsInSeries!.count > 1) {
+            if (sermonsInSeries?.count > 1) {
                 if let sermonIndex = sermonsInSeries?.indexOf(sermon!) {
 //                    print("\(sermonIndex)")
                     indexPath = NSIndexPath(forRow: sermonIndex, inSection: 0)
@@ -1749,7 +1744,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             
             popover.delegate = self
             popover.purpose = .showingTags
-            popover.strings = Globals.sermonTags
+            popover.strings = Globals.active?.sermonTags
             popover.allowsSelection = false
             popover.selectedSermon = selectedSermon
             
@@ -2063,7 +2058,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     func setupSplitViewController()
     {
         if (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
-            if (Globals.sermons == nil) {
+            if (Globals.sermonRepository == nil) {
                 splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
             } else {
                 if let nvc = self.splitViewController?.viewControllers[1] as? UINavigationController {
@@ -2646,7 +2641,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     {
 //        print("\(Globals.sermonPlaying?.playing)")
         if (Globals.sermonPlaying?.playing == Constants.AUDIO) {
-            let sermons = sortSermons(sermonsInSermonSeries(Globals.sermons,series: Globals.sermonPlaying?.series),sorting: Constants.CHRONOLOGICAL,grouping: Constants.YEAR)
+            let sermons = sortSermons(sermonsInSermonSeries(Globals.sermonRepository,series: Globals.sermonPlaying?.series),sorting: Constants.CHRONOLOGICAL,grouping: Constants.YEAR)
             if sermons?.indexOf(Globals.sermonPlaying!) < (sermons!.count - 1) {
                 if let nextSermon = sermons?[(sermons?.indexOf(Globals.sermonPlaying!))! + 1] {
                     nextSermon.playing = Constants.AUDIO

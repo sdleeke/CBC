@@ -492,7 +492,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         
         filename = identifier.substringFromIndex(Constants.DOWNLOAD_IDENTIFIER.endIndex)
         
-        for sermon in Globals.sermons! {
+        for sermon in Globals.sermonRepository! {
             if (sermon.audio == filename) {
                 sermon.download.session = NSURLSession(configuration: configuration, delegate: sermon, delegateQueue: nil)
                 sermon.download.completionHandler = completionHandler

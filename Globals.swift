@@ -17,15 +17,11 @@ import MediaPlayer
 //    var tag:String?
 //}
 
-struct Section {
-    var titles:[String]?
-    var counts:[Int]?
-    var indexes:[Int]?
-}
-
-typealias SortGroupTuple = (sermons: [Sermon]?, sections: [String]?, indexes: [Int]?, counts: [Int]?)
-typealias SortGroupCache = [String:SortGroupTuple]
-typealias SortGroupCacheState = [String:String]
+//struct Section {
+//    var titles:[String]?
+//    var counts:[Int]?
+//    var indexes:[Int]?
+//}
 
 struct Globals {
     static var scrolledToSermonLastSelected = false
@@ -71,37 +67,38 @@ struct Globals {
     //This is now a dictionary of dictionaries
     static var sermonSettings:[String:[String:String]]?
 
-    static var sermons:[Sermon]?
+    static var sermonRepository:[Sermon]?
     
-    //The sermons with the selectd tags, although now we only support one tag being selected
-    static var taggedSermons:[Sermon]?
+    struct sermons {
+        //All sermons
+        static var all:SermonsListGroupSort?
+        
+        //The sermons from a search
+        static var search:SermonsListGroupSort? // These could be in a cache, one for each search
+        
+        //The sermons with the selected tags, although now we only support one tag being selected
+        static var tagged:SermonsListGroupSort? // These could be in a cache, one for each tag
+    }
+
     static var sermonTagsSelected:String?
     
-    //The sermons in the search results, see updateSearchResults
-    static var searchSermons:[Sermon]?
-    
-    static var allSermons:[Sermon]?
-
     static var sermonsToSearch:[Sermon]? {
         get {
             var sermons:[Sermon]?
             
             switch Globals.showing! {
             case Constants.TAGGED:
-                if (Globals.taggedSermons == nil) {
-                    if Globals.allSermons == nil {
-                        Globals.allSermons = Globals.sermons
-                    }
-                    Globals.taggedSermons = taggedSermonsFromTagSelected(Globals.allSermons, tagSelected: Globals.sermonTagsSelected)
+                if (Globals.sermons.tagged == nil) {
+                    Globals.sermons.tagged = SermonsListGroupSort(sermons: taggedSermonsFromTagSelected(Globals.sermonRepository, tagSelected: Globals.sermonTagsSelected))
                 }
-                sermons = Globals.taggedSermons
+                sermons = Globals.sermons.tagged?.list
                 break
                 
             case Constants.ALL:
-                if Globals.allSermons == nil {
-                    Globals.allSermons = Globals.sermons
+                if Globals.sermons.all == nil {
+                    Globals.sermons.all = SermonsListGroupSort(sermons: Globals.sermonRepository)
                 }
-                sermons = Globals.allSermons
+                sermons = Globals.sermons.all?.list
                 break
                 
             default:
@@ -114,24 +111,49 @@ struct Globals {
     
     static var activeSermons:[Sermon]? {
         get {
+        return Globals.active?.sermons
+        }
+        
+        set {
+            Globals.active = SermonsListGroupSort(sermons: newValue)
+        }
+    }
+    
+    static var active:SermonsListGroupSort? {
+        get {
             if (Globals.searchActive) {
-                return Globals.searchSermons
+                return Globals.sermons.search
             } else {
-                return Globals.sermonsToSearch
+                var sermons:SermonsListGroupSort?
+                
+                switch Globals.showing! {
+                case Constants.TAGGED:
+                    sermons = Globals.sermons.tagged
+                    break
+                
+                case Constants.ALL:
+                    sermons = Globals.sermons.all
+                    break
+                
+                default:
+                    break
+                }
+                
+                return sermons
             }
         }
         
         set {
             if (Globals.searchActive) {
-                Globals.searchSermons = newValue
+                Globals.sermons.search = newValue
             } else {
                 switch Globals.showing! {
                 case Constants.TAGGED:
-                    Globals.taggedSermons = newValue
+                    Globals.sermons.tagged = newValue
                     break
                     
                 case Constants.ALL:
-                    Globals.allSermons = newValue
+                    Globals.sermons.all = newValue
                     break
                     
                 default:
@@ -141,64 +163,18 @@ struct Globals {
         }
     }
     
-    static var sortGroupCache:SortGroupCache? = {
-        return SortGroupCache()
-    }()
-    
-    static var sortGroupCacheState:SortGroupCacheState? = {
-        return SortGroupCacheState()
-    }()
-    
-    static var sortGroupCacheKey:String {
-        get {
-            var key = Globals.searchActive ? (Globals.searchText != nil ? "search"+Globals.searchText! : "search") : ""
-
-            key = key + Globals.showing!
-
-            switch Globals.showing! {
-            case Constants.TAGGED:
-                key = key + Globals.sermonTagsSelected!
-                break
-                
-            case Constants.ALL:
-                break
-                
-            default:
-                break
-            }
-            
-            key = key + Globals.sorting! + Globals.grouping!
-            
-            return key.stringByReplacingOccurrencesOfString(" ", withString: "_", options: NSStringCompareOptions.LiteralSearch, range: nil)
-        }
-    }
-    
-    struct sermonSectionTitles {
-        static var years:[Int]?
-        static var series:[String]?
-        static var books:[String]?
-        static var speakers:[String]?
-    }
-    
     static var sermonsSortingOrGrouping:Bool = false
     
     struct sermonsNeed {
         static var sorting:Bool = true
         static var grouping:Bool = true
-        static var groupsSetup:Bool = true
     }
-    
-    //These are the tags from all sermons
-    static var sermonTags:[String]?
-
-    static var section:Section! = {
-        return Section()
-    }()
     
     struct display {
         static var sermons:[Sermon]?
-        static var section:Section! = {
-            return Section()
-            }()
+        
+        static var sectionTitles:[String]?
+        static var sectionCounts:[Int]?
+        static var sectionIndexes:[Int]?
     }
 }

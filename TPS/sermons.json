@@ -1,9 +1,90 @@
 {
 "sermons": [
             {
+            "date":"1/17/2016",
+            "service":"PM",
+            "title":"Q & A",
+            "scripture":"Selected Scriptures",
+            "speaker":"Tom Pennington",
+            "audio":"tp160117pCD.mp3"
+            },
+            
+            {
+            "date":"1/17/2016",
+            "service":"AM",
+            "title":"Your Day in Court (Part 1)",
+            "series":"Your Day in Court",
+            "scripture":"Romans 3:19-20",
+            "speaker":"Tom Pennington",
+            "audio":"tp160117aCD.mp3"
+            },
+            
+            {
+            "date":"1/10/2016",
+            "service":"PM",
+            "title":"A Pair of Kings",
+            "scripture":"Matthew 2",
+            "speaker":"Jonathan Anderson",
+            "audio":"ja160110pCD.mp3",
+            "video":"151686282.hd.mp4?s=95c7f3fca902137584c2de3682b139b74b237c0f"
+            },
+            
+            {
+            "date":"1/10/2016",
+            "service":"AM",
+            "title":"Facing the Future",
+            "scripture":"2 Peter 1:1-3",
+            "speaker":"Rocky Wyatt",
+            "audio":"rw160110aCD.mp3",
+            "video":"151686359.hd.mp4?s=642528766aa8746199f5fad8aeb491b652976b37"
+            },
+            
+            {
+            "date":"1/3/2016",
+            "service":"PM",
+            "title":"Rejoice Always",
+            "scripture":"Philippians 4:4-7",
+            "speaker":"Terry Enns",
+            "audio":"gs160103pCD.mp3",
+            "video":"150937309.hd.mp4?s=122a15e79aa8a24d58f140dbdcfe21049e0d4715"
+            },
+            
+            {
+            "date":"1/3/2016",
+            "service":"AM",
+            "title":"The Greatest Miracle of All",
+            "scripture":"John 3:1-8",
+            "speaker":"Dr. Steve Lawson",
+            "audio":"gs160103aCD.mp3",
+            "video":"150937297.hd.mp4?s=ccffdecfcbe578254d34ac8e85ddd639610ed0bf"
+            },
+            
+            {
+            "date":"12/27/2015",
+            "service":"AM",
+            "title":"Trilemma: Liar, Lunatic, or Lord (Part 4)",
+            "series":"Trilemma: Liar, Lunatic, or Lord",
+            "scripture":"Mark 3:20-35",
+            "speaker":"Tom Pennington",
+            "audio":"tp151227aCD.mp3"
+            },
+            
+            {
+            "date":"12/20/2015",
+            "service":"AM",
+            "title":"Trilemma: Liar, Lunatic, or Lord (Part 3)",
+            "series":"Trilemma: Liar, Lunatic, or Lord",
+            "scripture":"Mark 3:20-35",
+            "speaker":"Tom Pennington",
+            "audio":"tp151220aCD.mp3",
+            "notes":"tx-un-tp151220a.pdf"
+            },
+            
+            {
             "date":"12/13/2015",
             "service":"AM",
             "title":"Trilemma: Liar, Lunatic, or Lord (Part 2)",
+            "series":"Trilemma: Liar, Lunatic, or Lord",
             "scripture":"Mark 3:20-35",
             "speaker":"Tom Pennington",
             "audio":"tp151213aCD.mp3"
@@ -22,6 +103,7 @@
             "date":"12/06/2015",
             "service":"AM",
             "title":"Trilemma: Liar, Lunatic, or Lord (Part 1)",
+            "series":"Trilemma: Liar, Lunatic, or Lord",
             "scripture":"Mark 3:20-35",
             "speaker":"Tom Pennington",
             "audio":"tp151206aCD.mp3"
@@ -89,7 +171,8 @@
             "series":"Not Even One!",
             "scripture":"Romans 3:9-20",
             "speaker":"Tom Pennington",
-            "audio":"tp151108aCD.mp3"
+            "audio":"tp151108aCD.mp3",
+            "notes":"tx-un-tp151108a.pdf"
             },
             
             {
@@ -108,7 +191,8 @@
             "scripture":"Romans 3:9-20",
             "speaker":"Tom Pennington",
             "series": "Not Even One!",
-            "audio":"tp151101aCD.mp3"
+            "audio":"tp151101aCD.mp3",
+            "notes":"tx-un-tp151101a.pdf"
             },
             
             {
@@ -146,7 +230,8 @@
             "scripture":"Romans 3:9-20",
             "speaker":"Tom Pennington",
             "series": "Not Even One!",
-            "audio":"tp151011aCD.mp3"
+            "audio":"tp151011aCD.mp3",
+            "notes":"tx-un-tp151011a.pdf"
             },
             
             {
@@ -239,7 +324,8 @@
             "series": "I Object!",
             "audio":"tp150809aCD.mp3",
             "video":"135908266.hd.mp4?s=3d74ce0a2811d4972fbb8e261b6b8f3a",
-            "slides":"tp150809a.pdf"
+            "slides":"tp150809a.pdf",
+            "notes":"tx-un-tp150809a.pdf"
             },
             
             {

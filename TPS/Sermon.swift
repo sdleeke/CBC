@@ -10,6 +10,398 @@ import Foundation
 import UIKit
 
 
+                            //Group//String//Sort
+typealias SermonGroupSort = [String:[String:[String:[Sermon]]]]
+
+                             //Group//String//Name
+typealias SermonGroupNames = [String:[String:String]]
+
+class SermonsListGroupSort {
+    var list:[Sermon]? //Not in any specific order
+    
+    var groupSort:SermonGroupSort?
+    var groupNames:SermonGroupNames?
+    
+    var tagSermons:[String:[Sermon]]?//sortTag:Sermon
+    var tagNames:[String:String]?//sortTag:tag
+    
+    var sermonTags:[String]? {
+        get {
+            return tagSermons?.keys.sort({ $0 < $1 }).map({ (string:String) -> String in
+                return self.tagNames![string]!
+            })
+        }
+    }
+    
+    func archiveList() -> [String]?
+    {
+        return list?.map({ (sermon:Sermon) -> String in
+            return "\(Globals.sermonRepository!.indexOf(sermon)!)"
+        })
+    }
+    
+    func unarchiveList(sermons:[String]?)
+    {
+        list = sermons?.map({ (index:String) -> Sermon in
+            return Globals.sermonRepository![Int(index)!]
+        })
+    }
+    
+    func archiveGroupSort() -> [String:[String:[String:[String]]]]?
+    {
+        var dict = [String:[String:[String:[String]]]]()
+        
+        for groupKey in groupSort!.keys {
+            dict[groupKey] = [String:[String:[String]]]()
+            for groupNameKey in groupSort![groupKey]!.keys {
+                dict[groupKey]![groupNameKey] = [String:[String]]()
+                for sortKey in groupSort![groupKey]![groupNameKey]!.keys {
+                    dict[groupKey]![groupNameKey]![sortKey] = groupSort![groupKey]![groupNameKey]![sortKey]?.map({ (sermon:Sermon) -> String in
+                        return "\(Globals.sermonRepository!.indexOf(sermon)!)"
+                    })
+                }
+            }
+            
+        }
+        return dict
+    }
+    
+    func unarchiveGroupSort(gs:[String:[String:[String:[String]]]]?)
+    {
+        groupSort = [String:[String:[String:[Sermon]]]]()
+        
+        for groupKey in gs!.keys {
+            groupSort?[groupKey] = [String:[String:[Sermon]]]()
+            for groupNameKey in gs![groupKey]!.keys {
+                groupSort?[groupKey]![groupNameKey] = [String:[Sermon]]()
+                for sortKey in gs![groupKey]![groupNameKey]!.keys {
+                    groupSort?[groupKey]![groupNameKey]![sortKey] = gs![groupKey]![groupNameKey]![sortKey]?.map({ (index:String) -> Sermon in
+                        return Globals.sermonRepository![Int(index)!]
+                    })
+                }
+            }
+        }
+    }
+    
+    func archiveGroupNames() -> [String:[String:String]]?
+    {
+        return groupNames
+    }
+    
+    func unarchiveGroupNames(gn:[String:[String:String]]?)
+    {
+        groupNames = gn
+    }
+    
+    func archiveTagSermons() -> [String:[String]]?
+    {
+        var dict = [String:[String]]()
+        
+        for key in tagSermons!.keys {
+            dict[key] = tagSermons?[key]?.map({ (sermon:Sermon) -> String in
+                return "\(Globals.sermonRepository!.indexOf(sermon)!)"
+            })
+        }
+        
+        return dict
+    }
+    
+    func unarchiveTagSermons(ts:[String:[String]]?)
+    {
+        tagSermons = [String:[Sermon]]()
+        
+        for key in ts!.keys {
+            tagSermons?[key] = ts?[key]?.map({ (index:String) -> Sermon in
+                return Globals.sermonRepository![Int(index)!]
+            })
+        }
+    }
+    
+    func archiveTagNames() -> [String:String]?
+    {
+        return tagNames
+    }
+    
+    func unarchiveTagNames(tn:[String:String]?)
+    {
+        tagNames = tn
+    }
+    
+    var sermons:[Sermon]? {
+        get {
+            return sermons(grouping: Globals.grouping,sorting: Globals.sorting)
+        }
+    }
+    
+    func sermons(grouping grouping:String?,sorting:String?) -> [Sermon]?
+    {
+        var groupedSortedSermons:[Sermon]?
+        
+        //        print("\(groupSort)")
+        if (groupSort![grouping!] != nil) {
+            for key in groupSort![grouping!]!.keys.sort(
+                {
+                    switch grouping! {
+                    case Constants.YEAR:
+                        switch sorting! {
+                        case Constants.CHRONOLOGICAL:
+                            return $0 < $1
+                            
+                        case Constants.REVERSE_CHRONOLOGICAL:
+                            return $1 < $0
+                            
+                        default:
+                            break
+                        }
+                        break
+                        
+                    case Constants.BOOK:
+                        return bookNumberInBible($0) < bookNumberInBible($1)
+                        
+                    default:
+                        break
+                    }
+                    
+                    return $0 < $1
+            }) {
+                let sermons = groupSort?[grouping!]?[key]?[sorting!]
+                if (groupedSortedSermons == nil) {
+                    groupedSortedSermons = sermons
+                } else {
+                    groupedSortedSermons?.appendContentsOf(sermons!)
+                }
+            }
+        }
+        
+        return groupedSortedSermons
+    }
+    
+    var sectionTitles:[String]? {
+        get {
+            return sectionTitles(grouping: Globals.grouping,sorting: Globals.sorting)
+        }
+    }
+    
+    func sectionTitles(grouping grouping:String?,sorting:String?) -> [String]?
+    {
+        return groupSort?[grouping!]?.keys.sort({
+            switch grouping! {
+            case Constants.YEAR:
+                switch sorting! {
+                case Constants.CHRONOLOGICAL:
+                    return $0 < $1
+                    
+                case Constants.REVERSE_CHRONOLOGICAL:
+                    return $1 < $0
+                    
+                default:
+                    break
+                }
+                break
+                
+            case Constants.BOOK:
+                return bookNumberInBible($0) < bookNumberInBible($1)
+                
+            default:
+                break
+            }
+            
+            return $0 < $1
+        }).map({ (string:String) -> String in
+            return groupNames![grouping!]![string]!
+        })
+    }
+    
+    var sectionCounts:[Int]? {
+        get {
+            return sectionCounts(grouping: Globals.grouping,sorting: Globals.sorting)
+        }
+    }
+    
+    func sectionCounts(grouping grouping:String?,sorting:String?) -> [Int]?
+    {
+        return groupSort?[grouping!]?.keys.sort({
+            switch grouping! {
+            case Constants.YEAR:
+                switch sorting! {
+                case Constants.CHRONOLOGICAL:
+                    return $0 < $1
+                    
+                case Constants.REVERSE_CHRONOLOGICAL:
+                    return $1 < $0
+                    
+                default:
+                    break
+                }
+                break
+                
+            case Constants.BOOK:
+                return bookNumberInBible($0) < bookNumberInBible($1)
+                
+            default:
+                break
+            }
+            
+            return $0 < $1
+        }).map({ (string:String) -> Int in
+            return groupSort![grouping!]![string]![sorting!]!.count
+        })
+    }
+    
+    var sectionIndexes:[Int]? {
+        get {
+            return sectionIndexes(grouping: Globals.grouping,sorting: Globals.sorting)
+        }
+    }
+    
+    func sectionIndexes(grouping grouping:String?,sorting:String?) -> [Int]?
+    {
+        var cumulative = 0
+        
+        return groupSort?[grouping!]?.keys.sort({
+            switch grouping! {
+            case Constants.YEAR:
+                switch sorting! {
+                case Constants.CHRONOLOGICAL:
+                    return $0 < $1
+                    
+                case Constants.REVERSE_CHRONOLOGICAL:
+                    return $1 < $0
+                    
+                default:
+                    break
+                }
+                break
+                
+            case Constants.BOOK:
+                return bookNumberInBible($0) < bookNumberInBible($1)
+                
+            default:
+                break
+            }
+            
+            return $0 < $1
+        }).map({ (string:String) -> Int in
+            let prior = cumulative
+            
+            cumulative += groupSort![grouping!]![string]![sorting!]!.count
+            
+            return prior
+        })
+    }
+    
+    init(sermons:[Sermon]?)
+    {
+        Globals.sermonsSortingOrGrouping = true
+        
+        list = sermons
+        
+        // Put the sermons into the dictionaries.
+        
+        var groupedSermons = [String:[String:[Sermon]]]()
+        
+        groupNames = SermonGroupNames()
+        
+        for sermon in sermons! {
+            for group in Constants.groupings {
+                var string:String?
+                var name:String?
+                
+                switch group {
+                case Constants.YEAR:
+                    string = "\(sermon.year)"
+                    name = string
+                    break
+                    
+                case Constants.SERIES:
+                    string = sermon.seriesSectionSort
+                    name = sermon.seriesSection
+                    break
+                    
+                case Constants.BOOK:
+                    string = sermon.bookSection
+                    name = sermon.bookSection
+                    break
+                    
+                case Constants.SPEAKER:
+                    string = sermon.speakerSectionSort
+                    name = sermon.speakerSection
+                    break
+                    
+                default:
+                    break
+                }
+                
+                if (groupNames?[group] == nil) {
+                    groupNames?[group] = [String:String]()
+                }
+                
+                groupNames?[group]?[string!] = name!
+                
+                if (groupedSermons[group] == nil) {
+                    groupedSermons[group] = [String:[Sermon]]()
+                }
+                
+                if groupedSermons[group]?[string!] == nil {
+                    groupedSermons[group]?[string!] = [sermon]
+                } else {
+                    groupedSermons[group]?[string!]?.append(sermon)
+                }
+            }
+        }
+        
+        //        print("\(groupedSermons)")
+        
+        groupSort = SermonGroupSort()
+        
+        for group in Constants.groupings {
+            if (groupedSermons[group] != nil) {
+                if (groupSort?[group] == nil) {
+                    groupSort?[group] = [String:[String:[Sermon]]]()
+                }
+                for string in groupedSermons[group]!.keys {
+                    if (groupSort?[group]?[string] == nil) {
+                        groupSort?[group]?[string] = [String:[Sermon]]()
+                    }
+                    for sort in Constants.sortings {
+                        switch sort {
+                        case Constants.CHRONOLOGICAL:
+                            groupSort?[group]?[string]?[sort] = sortSermonsChronologically(groupedSermons[group]?[string])
+                            break
+                            
+                        case Constants.REVERSE_CHRONOLOGICAL:
+                            groupSort?[group]?[string]?[sort] = sortSermonsReverseChronologically(groupedSermons[group]?[string])
+                            break
+                            
+                        default:
+                            break
+                        }
+                    }
+                }
+            }
+        }
+        
+        tagSermons = [String:[Sermon]]()
+        tagNames = [String:String]()
+        
+        for sermon in sermons! {
+            if let tags =  sermon.tagsSet {
+                for tag in tags {
+                    let sortTag = stringWithoutLeadingTheOrAOrAn(tag)
+                    if tagSermons?[sortTag!] == nil {
+                        tagSermons?[sortTag!] = [sermon]
+                    } else {
+                        tagSermons?[sortTag!]?.append(sermon)
+                    }
+                    tagNames?[sortTag!] = tag
+                }
+            }
+        }
+        
+        Globals.sermonsSortingOrGrouping = false
+    }
+}
+
 enum State {
     case downloading
     case downloaded
@@ -40,7 +432,56 @@ struct Download {
 
 class Sermon : NSObject, NSURLSessionDownloadDelegate {
     var dict:[String:String]?
-    
+
+//    struct Dict {
+//        var sermon:Sermon?
+//        
+//        private let queue = dispatch_queue_create("com.leeke.sermon.dict", nil)
+//        func with(queue: dispatch_queue_t, f: Void -> Void) {
+//            dispatch_sync(queue, f)
+//        }
+//        
+//        init(sermon:Sermon?) {
+//            if (sermon == nil) {
+//                print("nil sermon in dict init!")
+//            }
+//            self.sermon = sermon
+//        }
+//        
+//        subscript(key:String) -> String? {
+//            get {
+//                var value:String?
+//                with(queue) {
+//                    value = self.sermon?.dictionary?[key]
+//                }
+//                return value
+//            }
+//            set {
+//                with(queue) {
+//                    if (self.sermon?.dictionary == nil) {
+//                        self.sermon?.dictionary = [String:String]()
+//                    }
+//                    if (newValue != nil) {
+//                        if (self.sermon != nil) {
+//                            //                        print("\(Globals.sermonSettings!)")
+//                            //                        print("\(sermon!)")
+//                            //                        print("\(newValue!)")
+//                            self.sermon?.dictionary?[key] = newValue
+//                        } else {
+//                            print("sermon == nil in Dict!")
+//                        }
+//                    } else {
+//                        print("newValue == nil in dict!")
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    lazy var dict:Dict? = {
+//        return Dict(sermon:self)
+//    }()
+
     init(dict:[String:String]?)
     {
 //        print("\(dict)")
@@ -112,7 +553,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             settings?[Constants.SHOWING] = newValue
         }
     }
-    
+
     // this supports settings values that are saved in defaults between sessions
     var currentTime:String? {
         get {
@@ -151,6 +592,12 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             } else {
                 return keyBase
             }
+        }
+    }
+    
+    var year:Int! {
+        get {
+            return NSCalendar.currentCalendar().components(.Year, fromDate: fullDate!).year
         }
     }
     
@@ -267,6 +714,53 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         }
     }
     
+    var tagsSet:Set<String>? {
+        get {
+            var tag:String
+            var tags = self.tags
+            var tagsSet = Set<String>()
+            
+            while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
+                tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
+                tagsSet.insert(tag)
+                tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
+            }
+            
+            if (tags != nil) {
+                tagsSet.insert(tags!)
+            }
+            
+            return tagsSet.count == 0 ? nil : tagsSet
+        }
+    }
+    
+    var tagsArray:[String]?
+        {
+        get {
+            //        var arrayOfTags = [String]()
+            
+            //        var tags = self.tags
+            //        var tag:String
+            //        var setOfTags = Set<String>()
+            //
+            //        while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
+            //            tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
+            //            setOfTags.insert(tag)
+            //            tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
+            //        }
+            //
+            //        if (tags != nil) {
+            //            setOfTags.insert(tags!)
+            //        }
+            
+            //        print("\(tagsSet)")
+            
+            return tagsSet == nil ? nil : Array(tagsSet!) //.sort() { $0 < $1 } // Not sorted
+            
+            //        return arrayOfTags
+        }
+    }
+    
     var audio:String? {
         get {
             return dict![Constants.AUDIO]
@@ -296,6 +790,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         set {
             dict![Constants.NOTES] = newValue
             settings?[Constants.NOTES] = newValue
+            NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
         }
     }
     
@@ -314,6 +809,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         set {
             dict![Constants.SLIDES] = newValue
             settings?[Constants.SLIDES] = newValue
+            NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
         }
     }
     
@@ -399,6 +895,14 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     struct Settings {
         var sermon:Sermon?
         
+        // Not sure this thread safe serial queue code matters.  NO problems w/ GTY but nothing but problems
+        // in TPS w/ fillSortGroupCache() creating cache entries in the background.
+        
+//        private let queue = dispatch_queue_create("com.leeke.sermon.settings", nil)
+//        func with(queue: dispatch_queue_t, f: Void -> Void) {
+//            dispatch_sync(queue, f)
+//        }
+        
         init(sermon:Sermon?) {
             if (sermon == nil) {
                 print("nil sermon in Settings init!")
@@ -408,24 +912,30 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         subscript(key:String) -> String? {
             get {
-                return Globals.sermonSettings?[sermon!.keyBase]?[key]
+                var value:String?
+//                with(queue) {
+                    value = Globals.sermonSettings?[self.sermon!.keyBase]?[key]
+//                }
+                return value
             }
             set {
-                if (Globals.sermonSettings?[sermon!.keyBase] == nil) {
-                    Globals.sermonSettings?[sermon!.keyBase] = [String:String]()
-                }
-                if (newValue != nil) {
-                    if (sermon != nil) {
-//                        print("\(Globals.sermonSettings!)")
-//                        print("\(sermon!)")
-//                        print("\(newValue!)")
-                        Globals.sermonSettings![sermon!.keyBase]![key] = newValue
-                    } else {
-                        print("sermon == nil in Settings!")
+//                with(queue) {
+                    if (Globals.sermonSettings?[self.sermon!.keyBase] == nil) {
+                        Globals.sermonSettings?[self.sermon!.keyBase] = [String:String]()
                     }
-                } else {
-                    print("newValue == nil in Settings!")
-                }
+                    if (newValue != nil) {
+                        if (self.sermon != nil) {
+    //                        print("\(Globals.sermonSettings!)")
+    //                        print("\(sermon!)")
+    //                        print("\(newValue!)")
+                            Globals.sermonSettings?[self.sermon!.keyBase]?[key] = newValue
+                        } else {
+                            print("sermon == nil in Settings!")
+                        }
+                    } else {
+                        print("newValue == nil in Settings!")
+                    }
+//                }
             }
         }
     }
@@ -624,7 +1134,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         filename = session.configuration.identifier!.substringFromIndex(Constants.DOWNLOAD_IDENTIFIER.endIndex)
         
-        for sermon in Globals.sermons! {
+        for sermon in Globals.sermonRepository! {
             if (sermon.audio == filename) {
                 sermon.download.completionHandler?()
             }
@@ -737,33 +1247,6 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     func hasTags() -> Bool
     {
         return (self.tags != nil) && (self.tags != Constants.EMPTY_STRING)
-    }
-    
-    func tagsArray() -> [String]
-    {
-        var arrayOfTags = [String]()
-        
-        var tags = self.tags
-        var tag:String
-        var setOfTags = Set<String>()
-        
-        let bar:String = Constants.TAGS_SEPARATOR
-        
-        while (tags?.rangeOfString(bar) != nil) {
-            tag = tags!.substringToIndex(tags!.rangeOfString(bar)!.startIndex)
-            setOfTags.insert(tag)
-            tags = tags!.substringFromIndex(tags!.rangeOfString(bar)!.endIndex)
-        }
-        
-        if (tags != nil) {
-            setOfTags.insert(tags!)
-        }
-        
-        //        print("\(tagsSet)")
-        arrayOfTags = Array(setOfTags)
-        arrayOfTags.sortInPlace() { $0 < $1 }
-        
-        return arrayOfTags
     }
 
 }

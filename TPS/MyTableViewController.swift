@@ -152,7 +152,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     func enableToolBarButtons()
     {
-        if (Globals.sermons != nil) {
+        if (Globals.sermonRepository != nil) {
             if let barButtons = toolbarItems {
                 for barButton in barButtons {
                     barButton.enabled = true
@@ -163,7 +163,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     func enableBarButtons()
     {
-        if (Globals.sermons != nil) {
+        if (Globals.sermonRepository != nil) {
             navigationItem.leftBarButtonItem?.enabled = true
             enableToolBarButtons()
         }
@@ -174,72 +174,101 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         
         switch purpose {
             case .selectingTags:
-                if (index >= 0) && (index < Globals.sermonTags!.count) {
-                    var new:Bool = false
-                    
-                    switch index {
-                    case (Globals.sermonTags!.count-1):
-                        //All
-                        if (Globals.showing != Constants.ALL) {
-                            new = true
-                            Globals.showing = Constants.ALL
-                            Globals.sermonTagsSelected = nil
-                            Globals.taggedSermons = nil
-                        }
-                        break
+                
+                // Should we be showing Globals.active!.sermonTags instead?  That would be the equivalent of drilling down.
+                
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
+                    if (index >= 0) && (index <= Globals.sermons.all!.sermonTags!.count) {
+                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                            clearSermonsForDisplay()
+                            self.tableView.reloadData()
+                            
+                            self.listActivityIndicator.hidden = false
+                            self.listActivityIndicator.startAnimating()
+                            
+                            self.disableBarButtons()
+                        })
                         
-                    default:
-                        //Tagged
-                        new = (Globals.showing != Constants.TAGGED) || (Globals.sermonTagsSelected != Globals.sermonTags![index])
+                        var new:Bool = false
+                        
+                        switch index {
+                        case Globals.sermons.all!.sermonTags!.count:
+                            //All
+                            if (Globals.showing != Constants.ALL) {
+                                new = true
+                                Globals.showing = Constants.ALL
+                                Globals.sermonTagsSelected = nil
+                                Globals.sermons.tagged = nil
+                            }
+                            break
+                            
+                        default:
+                            //Tagged
+                            new = (Globals.showing != Constants.TAGGED) || (Globals.sermonTagsSelected != Globals.sermons.all!.sermonTags![index])
+                            
+                            if (new) {
+                                print("\(Globals.active!.sermonTags)")
+                                
+                                Globals.sermonTagsSelected = Globals.sermons.all!.sermonTags![index] // s/b sermons.all not active
+                                
+                                Globals.showing = Constants.TAGGED
+                                
+                                //Searching for tagged sermons must be done across ALL sermons so Globals.activeSermons won't work here.
+                                
+                                //All of the work is being done in SermonsListGroupSort() initializer.  This should be done in the background
+                                Globals.sermons.tagged = SermonsListGroupSort(sermons: Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
+                                    
+                                    return sermon.tagsSet != nil ? sermon.tagsSet!.contains(Globals.sermonTagsSelected!) : false
+                                }))
+                            }
+                            break
+                        }
+                        
+                        //Can't get to the searchResults button when there is a search string so this is redundant.
+                        //                    searchBar.text = nil
+                        //And search may most definitely be active and just setting this to false doesn't deactivate the searchBar
+                        //                    Globals.searchActive = false
                         
                         if (new) {
-                            Globals.showing = Constants.TAGGED
-                            Globals.sermonTagsSelected = Globals.sermonTags![index]
+                            let defaults = NSUserDefaults.standardUserDefaults()
+                            if (index < Globals.sermons.all!.sermonTags!.count) {
+                                defaults.setObject(Globals.sermons.all!.sermonTags![index],forKey: Constants.COLLECTION)
+                            } else {
+                                defaults.setObject(Constants.All,forKey: Constants.COLLECTION)
+                            }
+                            defaults.synchronize()
                             
-                            //Searching for tagged sermons must be done across ALL sermons so Globals.activeSermons won't work here.
-                            Globals.taggedSermons = taggedSermonsFromTagSelected(Globals.sermons,tagSelected: Globals.sermonTagsSelected)
-                        }
-                        break
-                    }
-
-                    //Can't get to the searchResults button when there is a search string so this is redundant.
-                    //                    searchBar.text = nil
-                    //And search may most definitely be active and just setting this to false doesn't deactivate the searchBar
-                    //                    Globals.searchActive = false
-                    
-                    if (new) {
-                        let defaults = NSUserDefaults.standardUserDefaults()
-                        defaults.setObject(Globals.sermonTags![index],forKey: Constants.COLLECTION)
-                        defaults.synchronize()
-                        
-                        searchBar.placeholder = Globals.sermonTags![index]
-                        
-                        if (Globals.searchActive) {
-                            updateSearchResults()
+                            if (Globals.searchActive) {
+                                self.updateSearchResults()
+                            }
                         }
                         
-                        Globals.sermonsNeed.groupsSetup = true
-                        clearSermonsForDisplay()
-                        tableView.reloadData()
-                        
-                        listActivityIndicator.hidden = false
-                        listActivityIndicator.startAnimating()
-                        
-                        disableBarButtons()
-                        
-                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
-                            sortAndGroupSermons()
+                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                            setupSermonsForDisplay()
                             
-                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                self.tableView.reloadData()
-                                self.listActivityIndicator.stopAnimating()
-                                self.enableBarButtons()
-                            })
+                            self.tableView.reloadData()
+                            self.listActivityIndicator.stopAnimating()
+                            
+                            switch Globals.showing! {
+                            case Constants.ALL:
+                                self.searchBar.placeholder = Constants.All
+                                break
+                                
+                            case Constants.TAGGED:
+                                self.searchBar.placeholder = Globals.sermonTagsSelected
+                                break
+                                
+                            default:
+                                self.searchBar.placeholder = nil
+                                break
+                            }
+                            
+                            self.enableBarButtons()
                         })
+                    } else {
+                        print("Index out of range")
                     }
-                } else {
-                    print("Index out of range")
-                }
+                })
                 break
                 
             case .selectingSection:
@@ -296,7 +325,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     disableBarButtons()
                     
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
-                        sortAndGroupSermons()
+                        setupSermonsForDisplay()
                         
                         dispatch_async(dispatch_get_main_queue(), { () -> Void in
                             self.tableView.reloadData()
@@ -324,7 +353,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     disableBarButtons()
                     
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
-                        sortAndGroupSermons()
+                        setupSermonsForDisplay()
                         
                         dispatch_async(dispatch_get_main_queue(), { () -> Void in
                             self.tableView.reloadData()
@@ -390,9 +419,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     }
     
     func didDismissSearch() {
-        //        navigationController?.toolbarHidden = false
-        
-        Globals.searchSermons = nil
+        Globals.sermons.search = nil
         
         listActivityIndicator.hidden = false
         listActivityIndicator.startAnimating()
@@ -403,8 +430,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         disableBarButtons()
         
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
-            Globals.sermonsNeed.groupsSetup = true
-            sortAndGroupSermons()
+            setupSermonsForDisplay()
             
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 self.tableView.reloadData()
@@ -437,7 +463,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         
         popover?.delegate = self
         popover?.purpose = .selectingSection
-        popover?.strings = Globals.section.titles
+        popover?.strings = Globals.active?.sectionTitles
 
         // Too slow
 //        if (Globals.grouping == Constants.SERIES) {
@@ -519,7 +545,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     private func setupShowMenu()
     {
-        navigationItem.leftBarButtonItem?.enabled = (Globals.sermons != nil) && !Globals.sermonsSortingOrGrouping
+        navigationItem.leftBarButtonItem?.enabled = (Globals.sermonRepository != nil) && !Globals.sermonsSortingOrGrouping
     }
     
     private func setupSortingAndGroupingOptions()
@@ -542,7 +568,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         
         navigationController?.toolbar.translucent = false
         
-        if (Globals.sermons == nil) {
+        if (Globals.sermonRepository == nil) {
             disableToolBarButtons()
         }
         
@@ -563,7 +589,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     func searchBarShouldBeginEditing(searchBar: UISearchBar) -> Bool
     {
-        return !Globals.sermonsSortingOrGrouping && (Globals.sermons != nil)
+        return !Globals.sermonsSortingOrGrouping && (Globals.sermonRepository != nil)
     }
     
     func searchBarTextDidBeginEditing(searchBar: UISearchBar) {
@@ -926,7 +952,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             let defaults = NSUserDefaults.standardUserDefaults()
             
             if let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_KEY) {
-                if let sermons = Globals.sermons {
+                if let sermons = Globals.sermonRepository {
                     for sermon in sermons {
                         if (sermon.keyBase == selectedSermonKey) {
                             mytvc!.selectedSermon = sermon
@@ -946,7 +972,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         if (myvc != nil) {
             let defaults = NSUserDefaults.standardUserDefaults()
             if let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_DETAIL_KEY) {
-                if let sermons = Globals.sermons {
+                if let sermons = Globals.sermonRepository {
                     for sermon in sermons {
                         if (sermon.keyBase == selectedSermonKey) {
                             myvc?.selectedSermon = sermon
@@ -969,72 +995,14 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             })
             
             if let sermons = sermonsFromDocumentsDirectoryArchive() {
-                Globals.sermons = sermons
-                // Load the cache from disk
-                Globals.sortGroupCache = loadCacheEntries()
-                Globals.sortGroupCacheState = SortGroupCacheState()
-
-//                let defaults = NSUserDefaults.standardUserDefaults()
-//                if let dict = defaults.objectForKey(Constants.CACHE) as? [String:[String:[String]]] {
-//                    /*
-//                    This releases the old cache contents.
-//                    Since we are rebuilding the sermons array we can't keep any old sermon objects around.
-//                    */
-//                    Globals.sortGroupCache = SortGroupCache()
-//                    
-//                    for (key,_) in dict {
-//                        
-//                        let sections = dict[key]?["sections"]
-//                        
-//                        let indexes = dict[key]?["indexes"]?.map({ (value:String) -> Int in
-//                            return Int(value)!
-//                        })
-//                        
-//                        let counts = dict[key]?["counts"]?.map({ (value:String) -> Int in
-//                            return Int(value)!
-//                        })
-//                        
-//                        let sermonReferences = dict[key]?["sermonIndexes"]?.map({ (index:String) -> Sermon in
-//                            return Globals.sermons![Int(index)!]
-//                        })
-//                        
-//                        Globals.sortGroupCache?[key] = (sermons: sermonReferences, sections: sections!, indexes: indexes!, counts: counts!)
-//                    }
-//                }
+                Globals.sermonRepository = sermons
             } else {
                 var success = false
                 
                 if let sermonDicts = loadSermonDicts() {
                     if let sermons = sermonsFromSermonDicts(sermonDicts) {
-                        Globals.sermons = sermons
-                        Globals.allSermons = nil
-                        sermonsToDocumentsDirectoryArchive(Globals.sermons)
-                        /*
-                        This releases the old cache contents.
-                        Since we are rebuilding the sermons array we can't keep any old sermon objects around.
-                        */
-                        Globals.sortGroupCache = SortGroupCache()
-                        Globals.sortGroupCacheState = SortGroupCacheState()
-                        
-                        //Must remove all cache.archive files.
-                        let fileManager = NSFileManager.defaultManager()
-                        let url = documentsURL()
-                        do {
-                            let array = try fileManager.contentsOfDirectoryAtPath(url!.path!)
-                            print("Removing all cache archives.")
-                            for name in array {
-                                if (name.rangeOfString(Constants.CACHE_ARCHIVE)?.endIndex == name.endIndex) {
-                                    let filename = url!.URLByAppendingPathComponent(name)
-                                    print("Removing cache archive: \(filename)")
-                                    try fileManager.removeItemAtURL(filename)
-                                }
-                            }
-                        } catch _ {
-                        }
-                        
-//                        let defaults = NSUserDefaults.standardUserDefaults()
-//                        defaults.removeObjectForKey(Constants.CACHE)
-//                        defaults.synchronize()
+                        Globals.sermonRepository = sermons
+                        sermonsToDocumentsDirectoryArchive(Globals.sermonRepository)
                         success = true
                     }
                 }
@@ -1064,8 +1032,21 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 }
             }
             
-            Globals.sermonTags = tagsFromSermons(Globals.sermons)
-            
+            if Globals.testing {
+                testSermonsTagsAndSeries()
+                
+                testSermonsBooksAndSeries()
+                
+                testSermonsForSeries()
+                
+                //We can test whether the PDF's we have, and the ones we don't have, can be downloaded (since we can programmatically create the missing PDF filenames).
+                testSermonsPDFs(testExisting: false, testMissing: true, showTesting: false)
+                
+                //Test whether the audio starts to download
+                //If we can download at all, we assume we can download it all, which allows us to test all sermons to see if they can be downloaded/played.
+                //                testSermonsAudioFiles()
+            }
+
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 self.navigationItem.title = "Loading Defaults"
             })
@@ -1075,8 +1056,13 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 self.navigationItem.title = "Sorting and Grouping"
             })
             
-            Globals.sermonsNeed.groupsSetup = true
-            sortAndGroupSermons()
+            Globals.sermons.all = SermonsListGroupSort(sermons: Globals.sermonRepository)
+            
+            if (Globals.showing == Constants.TAGGED) {
+                Globals.sermons.tagged = SermonsListGroupSort(sermons: taggedSermonsFromTagSelected(Globals.sermonRepository, tagSelected: Globals.sermonTagsSelected))
+            }
+            
+            setupSermonsForDisplay()
             
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 self.navigationItem.title = "Setting up Player"
@@ -1275,7 +1261,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         
         let defaults = NSUserDefaults.standardUserDefaults()
         if let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_KEY) {
-            if let sermons = Globals.sermons {
+            if let sermons = Globals.sermonRepository {
                 for sermon in sermons {
                     if (sermon.keyBase == selectedSermonKey) {
                         selectedSermon = sermon
@@ -1351,7 +1337,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     func searchBarResultsListButtonClicked(searchBar: UISearchBar) {
 //        print("searchBarResultsListButtonClicked")
         
-        if (!Globals.sermonsSortingOrGrouping) && (Globals.sermonTags != nil) && (self.storyboard != nil) {
+        if (!Globals.sermonsSortingOrGrouping) && (Globals.sermons.all?.sermonTags != nil) && (self.storyboard != nil) {
             popover = storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? PopoverTableViewController
             
             popover?.modalPresentationStyle = .Popover
@@ -1365,8 +1351,10 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 
             popover?.delegate = self
             popover?.purpose = .selectingTags
-            popover?.strings = Globals.sermonTags
-                
+            popover?.strings = Globals.sermons.all?.sermonTags
+            
+            popover?.strings?.append(Constants.All)
+            
             if (popover != nil) {
                 presentViewController(popover!, animated: true, completion: nil)
             }
@@ -1410,11 +1398,10 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                         }
                     }
                     
-                    Globals.searchSermons = searchSermons.count > 0 ? searchSermons : nil
+                    Globals.sermons.search = SermonsListGroupSort(sermons: searchSermons)
                 }
                 
-                Globals.sermonsNeed.groupsSetup = true
-                sortAndGroupSermons()
+                setupSermonsForDisplay()
                 
                 if (Globals.searchText == searchText) {
                     dispatch_async(dispatch_get_main_queue(), { () -> Void in
@@ -1448,10 +1435,10 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     
                     switch Globals.sorting! {
                     case Constants.REVERSE_CHRONOLOGICAL:
-                        section = Globals.section.titles!.sort({ $1 < $0 }).indexOf("\(components.year)")!
+                        section = Globals.active!.sectionTitles!.sort({ $1 < $0 }).indexOf("\(components.year)")!
                         break
                     case Constants.CHRONOLOGICAL:
-                        section = Globals.section.titles!.sort({ $0 < $1 }).indexOf("\(components.year)")!
+                        section = Globals.active!.sectionTitles!.sort({ $0 < $1 }).indexOf("\(components.year)")!
                         break
                         
                     default:
@@ -1460,22 +1447,22 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     break
                     
                 case Constants.SERIES:
-                    section = Globals.section.titles!.indexOf(sermon!.seriesSection!)!
+                    section = Globals.active!.sectionTitles!.indexOf(sermon!.seriesSection!)!
                     break
                     
                 case Constants.BOOK:
-                    section = Globals.section.titles!.indexOf(sermon!.bookSection!)!
+                    section = Globals.active!.sectionTitles!.indexOf(sermon!.bookSection!)!
                     break
                     
                 case Constants.SPEAKER:
-                    section = Globals.section.titles!.indexOf(sermon!.speakerSection!)!
+                    section = Globals.active!.sectionTitles!.indexOf(sermon!.speakerSection!)!
                     break
                     
                 default:
                     break
                 }
 
-                row = index - Globals.display.section.indexes![section]
+                row = index - Globals.display.sectionIndexes![section]
             }
 
             if (section > -1) && (row > -1) {
@@ -1502,7 +1489,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     {
         switch Globals.showing! {
         case Constants.ALL:
-            searchBar.placeholder = Globals.sermonTags?[Globals.sermonTags!.count - 1]
+            searchBar.placeholder = Constants.All
             break
             
         case Constants.TAGGED:
@@ -1531,7 +1518,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     func setupSplitViewController()
     {
         if (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
-            if (Globals.sermons == nil) {
+            if (Globals.sermonRepository == nil) {
                 splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
             } else {
                 if let nvc = self.splitViewController?.viewControllers[1] as? UINavigationController {
@@ -1585,7 +1572,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
         
-        if Globals.sermons == nil {
+        if Globals.sermonRepository == nil {
             disableBarButtons()
             loadSermons(nil)
         }
@@ -1727,7 +1714,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 } else {
                     if let myCell = sender as? MyTableViewCell {
                         if let indexPath = tableView.indexPathForCell(myCell) {
-                            let index = Globals.display.section.indexes![indexPath.section]+indexPath.row
+                            let index = Globals.display.sectionIndexes![indexPath.section]+indexPath.row
                             
                             selectedSermon = Globals.activeSermons![index]
                             if let sermon = selectedSermon {
@@ -1792,7 +1779,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     func numberOfSectionsInTableView(TableView: UITableView) -> Int {
         //#warning Incomplete method implementation -- Return the number of sections
         //return series.count
-        return Globals.display.section.titles != nil ? Globals.display.section.titles!.count : 0
+        return Globals.display.sectionTitles != nil ? Globals.display.sectionTitles!.count : 0
     }
 
     func sectionIndexTitlesForTableView(tableView: UITableView) -> [AnyObject]! {
@@ -1808,19 +1795,19 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     }
     
     func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return Globals.display.section.titles != nil ? Globals.display.section.titles![section] : nil
+        return Globals.display.sectionTitles != nil ? Globals.display.sectionTitles![section] : nil
     }
     
     func tableView(TableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         //#warning Incomplete method implementation -- Return the number of items in the section
-        return Globals.display.section.counts != nil ? Globals.display.section.counts![section] : 0
+        return Globals.display.sectionCounts != nil ? Globals.display.sectionCounts![section] : 0
     }
 
     func tableView(TableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> MyTableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier(Constants.SERMONS_CELL_IDENTIFIER, forIndexPath: indexPath) as! MyTableViewCell
     
         // Configure the cell
-        if let section = Globals.display.section.indexes?[indexPath.section] {
+        if let section = Globals.display.sectionIndexes?[indexPath.section] {
             cell.sermon = Globals.display.sermons?[section + indexPath.row]
         } else {
             print("No sermon for cell!")
