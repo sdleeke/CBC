@@ -17,13 +17,10 @@ import MediaPlayer
 //    var tag:String?
 //}
 
-//struct Section {
-//    var titles:[String]?
-//    var counts:[Int]?
-//    var indexes:[Int]?
-//}
-
 struct Globals {
+    static var finished = 0
+    static var progress = 0
+    
     static var scrolledToSermonLastSelected = false
     
 //    static var loadedEnoughToDeepLink = false
@@ -163,7 +160,7 @@ struct Globals {
         }
     }
     
-    static var sermonsSortingOrGrouping:Bool = false
+//    static var sermonsSortingOrGrouping:Bool = false
     
     struct sermonsNeed {
         static var sorting:Bool = true

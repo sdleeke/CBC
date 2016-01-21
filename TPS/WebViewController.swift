@@ -349,20 +349,24 @@ class WebViewController: UIViewController, WKNavigationDelegate {
             if (Globals.sermonRepository == nil) {
                 splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
             } else {
-                if let nvc = self.splitViewController?.viewControllers[1] as? UINavigationController {
-                    if let _ = nvc.topViewController as? WebViewController {
-                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
-                    } else {
-                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                if (splitViewController != nil) {
+                    if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
+                        if let _ = nvc.visibleViewController as? WebViewController {
+                            splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
+                        } else {
+                            splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                        }
                     }
                 }
             }
         } else {
-            if let nvc = self.splitViewController?.viewControllers[1] as? UINavigationController {
-                if let _ = nvc.topViewController as? WebViewController {
-                    splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
-                } else {
-                    splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+            if (splitViewController != nil) {
+                if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
+                    if let _ = nvc.visibleViewController as? WebViewController {
+                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
+                    } else {
+                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                    }
                 }
             }
         }

@@ -446,8 +446,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         
         //iPad
         if let svc = self.window?.rootViewController as? UISplitViewController {
-            if let nvc = svc.viewControllers[1] as? UINavigationController {
-                if let myvc = nvc.topViewController as? MyViewController {
+            if let nvc = svc.viewControllers[svc.viewControllers.count - 1] as? UINavigationController {
+                if let myvc = nvc.visibleViewController as? MyViewController {
                     myvc.setupPlayPauseButton()
                 }
 //                if let wvc = nvc.topViewController as? WebViewController {
@@ -458,7 +458,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         
         //iPhone
         if let nvc = self.window?.rootViewController as? UINavigationController {
-            if let myvc = nvc.topViewController as? MyViewController {
+            if let myvc = nvc.visibleViewController as? MyViewController {
                 myvc.setupPlayPauseButton()
             }
 //            if let wvc = nvc.topViewController as? WebViewController {

@@ -6,6 +6,7 @@
         <capability name="Alignment constraints with different attributes" minToolsVersion="5.1"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
     </dependencies>
     <customFonts key="customFonts">
         <mutableArray key="fontawesome-webfont.ttf">
@@ -149,18 +150,32 @@
                                     <outlet property="delegate" destination="aFI-YW-IUs" id="GyF-Ks-DuZ"/>
                                 </connections>
                             </tableView>
-                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="UJe-f8-3w6" userLabel="List Activity Indicator">
+                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="UJe-f8-3w6" userLabel="List Activity Indicator">
                                 <rect key="frame" x="290" y="258" width="20" height="20"/>
                             </activityIndicatorView>
+                            <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="JeO-c3-71m">
+                                <rect key="frame" x="75" y="267" width="450" height="2"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="150" id="Hlp-uI-WvN"/>
+                                </constraints>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="Hlp-uI-WvN"/>
+                                    </mask>
+                                </variation>
+                            </progressView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="VIx-eq-98g" firstAttribute="leading" secondItem="NpF-M6-DhB" secondAttribute="leading" id="1zm-Sq-101"/>
                             <constraint firstItem="UJe-f8-3w6" firstAttribute="centerY" secondItem="NpF-M6-DhB" secondAttribute="centerY" id="B0L-fN-aZT"/>
                             <constraint firstItem="VIx-eq-98g" firstAttribute="top" secondItem="TA6-b3-HPP" secondAttribute="bottom" id="Gmd-mz-JWI"/>
+                            <constraint firstItem="JeO-c3-71m" firstAttribute="centerX" secondItem="UJe-f8-3w6" secondAttribute="centerX" id="KbV-gK-5LN"/>
                             <constraint firstAttribute="trailing" secondItem="VIx-eq-98g" secondAttribute="trailing" id="KxI-ow-z9l"/>
                             <constraint firstItem="KAY-ks-SIC" firstAttribute="top" secondItem="VIx-eq-98g" secondAttribute="bottom" id="PhN-wb-2kh"/>
+                            <constraint firstItem="JeO-c3-71m" firstAttribute="centerY" secondItem="UJe-f8-3w6" secondAttribute="centerY" id="aa8-gz-0cf"/>
                             <constraint firstItem="UJe-f8-3w6" firstAttribute="centerX" secondItem="NpF-M6-DhB" secondAttribute="centerX" id="mbj-e0-qKg"/>
+                            <constraint firstItem="JeO-c3-71m" firstAttribute="width" secondItem="NpF-M6-DhB" secondAttribute="width" multiplier="0.75" id="q24-xA-Fsh"/>
                         </constraints>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
@@ -173,6 +188,7 @@
                     </navigationItem>
                     <connections>
                         <outlet property="listActivityIndicator" destination="UJe-f8-3w6" id="hX9-uT-0Ms"/>
+                        <outlet property="progressIndicator" destination="JeO-c3-71m" id="tMU-CT-Hb1"/>
                         <outlet property="searchBar" destination="Hkg-p6-JKj" id="BUC-kc-bu8"/>
                         <outlet property="showButton" destination="VA6-vQ-Zs4" id="qlw-rw-8CU"/>
                         <outlet property="tableView" destination="VIx-eq-98g" id="E7U-PX-3tl"/>
@@ -266,8 +282,8 @@
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iq3-ZA-EGB" userLabel="Download">
-                                                    <rect key="frame" x="554" y="48" width="18" height="31"/>
+                                                <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iq3-ZA-EGB" userLabel="Download">
+                                                    <rect key="frame" x="554" y="44" width="18" height="33"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="Bqj-uH-acL"/>
                                                     </constraints>
@@ -277,8 +293,8 @@
                                                         <action selector="downloadAction:" destination="pos-sk-GNz" eventType="touchUpInside" id="sYz-WL-BSM"/>
                                                     </connections>
                                                 </button>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="L9x-Xt-BKK" userLabel="Icons">
-                                                    <rect key="frame" x="543" y="79" width="29" height="12"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="L9x-Xt-BKK" userLabel="Icons">
+                                                    <rect key="frame" x="542" y="77" width="30" height="14"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                     <nil key="highlightedColor"/>
@@ -351,8 +367,8 @@
                                     <action selector="audioOrVideoSelection:" destination="H2E-ZS-FbW" eventType="valueChanged" id="wZK-xl-Nnc"/>
                                 </connections>
                             </segmentedControl>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OPH-xi-iII" userLabel="Play Pause">
-                                <rect key="frame" x="52" y="305" width="20" height="36"/>
+                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OPH-xi-iII" userLabel="Play Pause">
+                                <rect key="frame" x="52" y="303" width="20" height="40"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="20" id="425-ex-yxw"/>
                                 </constraints>

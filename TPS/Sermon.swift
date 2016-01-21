@@ -9,7 +9,6 @@
 import Foundation
 import UIKit
 
-
                             //Group//String//Sort
 typealias SermonGroupSort = [String:[String:[String:[Sermon]]]]
 
@@ -292,15 +291,20 @@ class SermonsListGroupSort {
     
     init(sermons:[Sermon]?)
     {
-        Globals.sermonsSortingOrGrouping = true
+//        Globals.sermonsSortingOrGrouping = true
         
         list = sermons
+        
+        Globals.finished = 0
+        Globals.progress = 0
         
         // Put the sermons into the dictionaries.
         
         var groupedSermons = [String:[String:[Sermon]]]()
         
         groupNames = SermonGroupNames()
+        
+        Globals.finished = list!.count * Constants.groupings.count
         
         for sermon in sermons! {
             for group in Constants.groupings {
@@ -347,13 +351,18 @@ class SermonsListGroupSort {
                 } else {
                     groupedSermons[group]?[string!]?.append(sermon)
                 }
+                
+                Globals.progress++
             }
         }
         
         //        print("\(groupedSermons)")
         
         groupSort = SermonGroupSort()
-        
+
+        for group in Constants.groupings {
+            Globals.finished += groupedSermons[group]!.keys.count
+        }
         for group in Constants.groupings {
             if (groupedSermons[group] != nil) {
                 if (groupSort?[group] == nil) {
@@ -377,6 +386,8 @@ class SermonsListGroupSort {
                             break
                         }
                     }
+                    
+                    Globals.progress++
                 }
             }
         }
@@ -384,6 +395,8 @@ class SermonsListGroupSort {
         tagSermons = [String:[Sermon]]()
         tagNames = [String:String]()
         
+        Globals.finished += list!.count
+
         for sermon in sermons! {
             if let tags =  sermon.tagsSet {
                 for tag in tags {
@@ -396,9 +409,11 @@ class SermonsListGroupSort {
                     tagNames?[sortTag!] = tag
                 }
             }
+            
+            Globals.progress++
         }
         
-        Globals.sermonsSortingOrGrouping = false
+//        Globals.sermonsSortingOrGrouping = false
     }
 }
 
@@ -734,30 +749,9 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         }
     }
     
-    var tagsArray:[String]?
-        {
+    var tagsArray:[String]? {
         get {
-            //        var arrayOfTags = [String]()
-            
-            //        var tags = self.tags
-            //        var tag:String
-            //        var setOfTags = Set<String>()
-            //
-            //        while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
-            //            tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
-            //            setOfTags.insert(tag)
-            //            tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
-            //        }
-            //
-            //        if (tags != nil) {
-            //            setOfTags.insert(tags!)
-            //        }
-            
-            //        print("\(tagsSet)")
-            
             return tagsSet == nil ? nil : Array(tagsSet!) //.sort() { $0 < $1 } // Not sorted
-            
-            //        return arrayOfTags
         }
     }
     

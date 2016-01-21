@@ -54,6 +54,10 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 
     @IBOutlet weak var listActivityIndicator: UIActivityIndicatorView!
 
+    var progressTimer:NSTimer?
+    
+    @IBOutlet weak var progressIndicator: UIProgressView!
+    
     @IBOutlet weak var searchBar: UISearchBar!
 
     @IBOutlet weak var tableView: UITableView!
@@ -96,8 +100,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             }
             
             if (splitViewController != nil) {
-                if let nvc = splitViewController!.viewControllers[1] as? UINavigationController {
-                    if let myvc = nvc.topViewController as? MyViewController {
+                if let nvc = splitViewController!.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
+                    if let myvc = nvc.visibleViewController as? MyViewController {
                         if (myvc.selectedSermon != nil) {
                             if (myvc.selectedSermon?.title != Globals.sermonPlaying?.title) || (myvc.selectedSermon?.date != Globals.sermonPlaying?.date) {
                                 // The sermonPlaying is not the one showing
@@ -362,8 +366,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                             
                             if (self.splitViewController != nil) {
                                 //iPad only
-                                if let nvc = self.splitViewController!.viewControllers[1] as? UINavigationController {
-                                    if let myvc = nvc.topViewController as? MyViewController {
+                                if let nvc = self.splitViewController!.viewControllers[self.splitViewController!.viewControllers.count - 1] as? UINavigationController {
+                                    if let myvc = nvc.visibleViewController as? MyViewController {
                                         myvc.sortSermonsInSeries()
                                     }
                                 }
@@ -545,7 +549,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     private func setupShowMenu()
     {
-        navigationItem.leftBarButtonItem?.enabled = (Globals.sermonRepository != nil) && !Globals.sermonsSortingOrGrouping
+        navigationItem.leftBarButtonItem?.enabled = (Globals.sermons.all != nil) // && !Globals.sermonsSortingOrGrouping
     }
     
     private func setupSortingAndGroupingOptions()
@@ -589,7 +593,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     func searchBarShouldBeginEditing(searchBar: UISearchBar) -> Bool
     {
-        return !Globals.sermonsSortingOrGrouping && (Globals.sermonRepository != nil)
+        return (Globals.sermons.all != nil) // !Globals.sermonsSortingOrGrouping &&
     }
     
     func searchBarTextDidBeginEditing(searchBar: UISearchBar) {
@@ -899,11 +903,11 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             
             if let svc = splitViewController {
                 //iPad
-                if let nvc = svc.viewControllers[1] as? UINavigationController {
-                    myvc = nvc.topViewController as? MyViewController
+                if let nvc = svc.viewControllers[svc.viewControllers.count - 1] as? UINavigationController {
+                    myvc = nvc.visibleViewController as? MyViewController
                 }
             } else {
-                myvc = self.navigationController?.topViewController as? MyViewController
+                myvc = self.navigationController?.visibleViewController as? MyViewController
             }
             myvc?.spinner.stopAnimating()
             
@@ -932,14 +936,14 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         if let svc = self.splitViewController {
             //iPad
             if let nvc = svc.viewControllers[0] as? UINavigationController {
-                mytvc = nvc.topViewController as? MyTableViewController
+                mytvc = nvc.visibleViewController as? MyTableViewController
             }
-            if let nvc = svc.viewControllers[1] as? UINavigationController {
-                myvc = nvc.topViewController as? MyViewController
+            if let nvc = svc.viewControllers[svc.viewControllers.count - 1] as? UINavigationController {
+                myvc = nvc.visibleViewController as? MyViewController
             }
         } else {
-            mytvc = self.navigationController?.topViewController as? MyTableViewController
-            myvc = self.navigationController?.topViewController as? MyViewController
+            mytvc = self.navigationController?.visibleViewController as? MyTableViewController
+            myvc = self.navigationController?.visibleViewController as? MyViewController
         }
         
         if (mytvc != nil) {
@@ -986,8 +990,37 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         }
     }
     
+    func updateProgress()
+    {
+        print("\(Float(Globals.progress))")
+        print("\(Float(Globals.finished))")
+        print("\(Float(Globals.progress) / Float(Globals.finished))")
+        
+        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            self.progressIndicator.progress = 0
+            if (Globals.finished > 0) {
+                self.progressIndicator.progress = Float(Globals.progress) / Float(Globals.finished)
+            }
+            
+            print("\(self.progressIndicator.progress)")
+            
+            if self.progressIndicator.progress == 1.0 {
+                self.progressTimer?.invalidate()
+                self.progressIndicator.hidden = true
+                self.progressIndicator.progress = 0
+                Globals.progress = 0
+                Globals.finished = 0
+            }
+        })
+    }
+    
     func loadSermons(completion: (() -> Void)?)
     {
+        //        Globals.sermonsSortingOrGrouping = true
+        
+        progressIndicator.hidden = false
+        progressTimer = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: "updateProgress", userInfo: nil, repeats: true)
+        
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
             
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
@@ -1225,8 +1258,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         
         if let svc = self.splitViewController {
             //iPad
-            if let nvc = svc.viewControllers[1] as? UINavigationController {
-                if let myvc = nvc.topViewController as? MyViewController {
+            if let nvc = svc.viewControllers[svc.viewControllers.count - 1] as? UINavigationController {
+                if let myvc = nvc.visibleViewController as? MyViewController {
                     myvc.captureContentOffsetAndZoomScale()
                     myvc.selectedSermon = nil
                     myvc.sermonsInSeries = nil
@@ -1242,6 +1275,11 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        if Globals.sermonRepository == nil {
+            //            disableBarButtons()
+            loadSermons(nil)
+        }
 
         //Eliminates blank cells at end.
         tableView.tableFooterView = UIView()
@@ -1337,7 +1375,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     func searchBarResultsListButtonClicked(searchBar: UISearchBar) {
 //        print("searchBarResultsListButtonClicked")
         
-        if (!Globals.sermonsSortingOrGrouping) && (Globals.sermons.all?.sermonTags != nil) && (self.storyboard != nil) {
+        if (Globals.sermons.all?.sermonTags != nil) && (self.storyboard != nil) { // !Globals.sermonsSortingOrGrouping &&
             popover = storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? PopoverTableViewController
             
             popover?.modalPresentationStyle = .Popover
@@ -1521,20 +1559,24 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             if (Globals.sermonRepository == nil) {
                 splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
             } else {
-                if let nvc = self.splitViewController?.viewControllers[1] as? UINavigationController {
-                    if let _ = nvc.topViewController as? WebViewController {
-                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
-                    } else {
-                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                if (splitViewController != nil) {
+                    if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
+                        if let _ = nvc.visibleViewController as? WebViewController {
+                            splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
+                        } else {
+                            splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                        }
                     }
                 }
             }
         } else {
-            if let nvc = self.splitViewController?.viewControllers[1] as? UINavigationController {
-                if let _ = nvc.topViewController as? WebViewController {
-                    splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
-                } else {
-                    splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+            if (splitViewController != nil) {
+                if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
+                    if let _ = nvc.visibleViewController as? WebViewController {
+                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
+                    } else {
+                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                    }
                 }
             }
         }
@@ -1542,7 +1584,15 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        
+
+        if (Globals.sermons.all == nil) { // SortingOrGrouping
+            listActivityIndicator.startAnimating()
+            disableBarButtons()
+        } else {
+            listActivityIndicator.stopAnimating()
+            enableBarButtons()
+        }
+
         setupSearchBar()
         
         setupSplitViewController()
@@ -1562,9 +1612,11 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     override func remoteControlReceivedWithEvent(event: UIEvent?) {
         remoteControlEvent(event!)
-        if let nvc = splitViewController?.viewControllers[1] as? UINavigationController {
-            if let myvc = nvc.topViewController as? MyViewController {
-                myvc.setupPlayPauseButton()
+        if (splitViewController != nil) {
+            if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
+                if let myvc = nvc.visibleViewController as? MyViewController {
+                    myvc.setupPlayPauseButton()
+                }
             }
         }
     }
@@ -1572,10 +1624,10 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
         
-        if Globals.sermonRepository == nil {
-            disableBarButtons()
-            loadSermons(nil)
-        }
+//        if Globals.sermonRepository == nil {
+//            disableBarButtons()
+//            loadSermons(nil)
+//        }
 
 //        Globals.loadedEnoughToDeepLink = true
 //        

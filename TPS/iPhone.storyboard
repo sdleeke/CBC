@@ -5,6 +5,7 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9529"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
     </dependencies>
     <customFonts key="customFonts">
         <mutableArray key="fontawesome-webfont.ttf">
@@ -915,14 +916,28 @@ Email: cbcstaff@countrysidebible.org</string>
                             <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="VzS-WY-Fmg" userLabel="List Activity Indicator">
                                 <rect key="frame" x="290" y="258" width="20" height="20"/>
                             </activityIndicatorView>
+                            <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="QaS-gl-tEL">
+                                <rect key="frame" x="75" y="267" width="450" height="2"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="150" id="Z19-bX-e9p"/>
+                                </constraints>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="Z19-bX-e9p"/>
+                                    </mask>
+                                </variation>
+                            </progressView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstItem="QaS-gl-tEL" firstAttribute="centerX" secondItem="VzS-WY-Fmg" secondAttribute="centerX" id="4al-nR-1qf"/>
                             <constraint firstItem="Urs-8r-5e2" firstAttribute="top" secondItem="HBU-GK-goT" secondAttribute="bottom" id="5Hi-yX-7gn"/>
                             <constraint firstItem="HBU-GK-goT" firstAttribute="leading" secondItem="96A-nP-rUw" secondAttribute="leading" id="8IA-b7-wgq"/>
                             <constraint firstItem="VzS-WY-Fmg" firstAttribute="centerX" secondItem="96A-nP-rUw" secondAttribute="centerX" id="Iis-vC-Wbx"/>
                             <constraint firstItem="VzS-WY-Fmg" firstAttribute="centerY" secondItem="96A-nP-rUw" secondAttribute="centerY" id="Lng-I6-90e"/>
                             <constraint firstItem="HBU-GK-goT" firstAttribute="top" secondItem="8Sa-SM-X3v" secondAttribute="bottom" id="djw-wm-DmN"/>
+                            <constraint firstItem="QaS-gl-tEL" firstAttribute="width" secondItem="96A-nP-rUw" secondAttribute="width" multiplier="0.75" id="n2k-Sb-bv4"/>
+                            <constraint firstItem="QaS-gl-tEL" firstAttribute="centerY" secondItem="VzS-WY-Fmg" secondAttribute="centerY" id="pOS-LE-K9q"/>
                             <constraint firstAttribute="trailing" secondItem="HBU-GK-goT" secondAttribute="trailing" id="xUM-7Y-tBR"/>
                         </constraints>
                     </view>
@@ -936,6 +951,7 @@ Email: cbcstaff@countrysidebible.org</string>
                     </navigationItem>
                     <connections>
                         <outlet property="listActivityIndicator" destination="VzS-WY-Fmg" id="wee-Cd-eKB"/>
+                        <outlet property="progressIndicator" destination="QaS-gl-tEL" id="svu-5O-lrL"/>
                         <outlet property="searchBar" destination="PI1-KK-22F" id="leD-jN-jHW"/>
                         <outlet property="showButton" destination="mag-xm-dO5" id="h1n-DU-VBJ"/>
                         <outlet property="tableView" destination="HBU-GK-goT" id="aBX-wH-0OI"/>
