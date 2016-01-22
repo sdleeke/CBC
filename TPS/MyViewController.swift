@@ -309,43 +309,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
     }
 
-    //returnToSermon has been deprecated
-//    @IBOutlet weak var returnToSermonButton: UIButton!
-//    @IBAction func returnToSermonPlaying(sender: UIButton)
-//    {
-////        print("Selected: \(Globals.sermonSelected?.title) \(Globals.sermonSelected?.series)")
-////        print("Playing: \(Globals.sermonPlaying?.title) \(Globals.sermonPlaying?.series)")
-//        
-//        if (!Globals.sermonLoaded) {
-//            spinner.startAnimating()
-//        } else {
-//            spinner.stopAnimating()
-//        }
-//        
-//        captureViewSplit()
-//        captureContentOffsetAndZoomScale()
-//        
-//        setupSermonsInSeries(Globals.sermonPlaying)
-//        selectedSermon = Globals.sermonPlaying
-//
-//        let defaults = NSUserDefaults.standardUserDefaults()
-//        defaults.setObject(selectedSermon!.keyBase,forKey: Constants.SELECTED_SERMON_DETAIL_KEY)
-//        defaults.synchronize()
-//        
-//        tableView.reloadData()
-//
-//        setupTitle()
-//        setupViewSplit()
-//        setupAudioOrVideo()
-//        setupPlayPauseButton()
-//        setupReturnToSermonButton()
-//        setupActionAndTagsButtons()
-//        setupSlider()
-//        setupNotesAndSlides()
-//        
-//        scrollToSermon(selectedSermon,select:true,position:UITableViewScrollPosition.Top)
-//    }
-    
     @IBAction func playPause(sender: UIButton) {
         if (Globals.mpPlayer != nil) && (Globals.sermonPlaying != nil) && (Globals.sermonPlaying == selectedSermon) {
             let loadstate:UInt8 = UInt8(Globals.mpPlayer!.loadState.rawValue)
@@ -2038,7 +2001,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         setupTitle()
         setupAudioOrVideo()
         setupPlayPauseButton()
-//        setupReturnToSermonButton()
         setupSTVControl()
         setupSlider()
         setupNotesAndSlides()
@@ -2058,7 +2020,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     func setupSplitViewController()
     {
         if (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
-            if (Globals.sermonRepository == nil) {
+            if (Globals.sermons.all == nil) {
                 splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
             } else {
                 if (splitViewController != nil) {
@@ -2092,7 +2054,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
         setupSplitViewController()
         
-        scrollToSermon(selectedSermon,select:true,position:UITableViewScrollPosition.Top)
+        scrollToSermon(selectedSermon,select:true,position:UITableViewScrollPosition.None)
     }
     
     func removeSliderObserver() {
@@ -2936,8 +2898,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     setupSTVControl()
                     setupSlider()
                     setupPlayPauseButton()
-//                    setupReturnToSermonButton()
-    //                setupFlipButton()
                     setupActionAndTagsButtons()
                 }
             } else {
@@ -2979,7 +2939,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
         setupAudioOrVideo()
         setupPlayPauseButton()
-//        setupReturnToSermonButton()
         setupSlider()
         setupNotesAndSlides()
         setupActionAndTagsButtons()

@@ -976,16 +976,14 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         if (myvc != nil) {
             let defaults = NSUserDefaults.standardUserDefaults()
             if let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_DETAIL_KEY) {
-                if let sermons = Globals.sermonRepository {
-                    for sermon in sermons {
-                        if (sermon.keyBase == selectedSermonKey) {
-                            myvc?.selectedSermon = sermon
-                            myvc?.updateUI()
-                            myvc?.scrollToSermon(sermon,select:true,position:UITableViewScrollPosition.Top)
-                            break
-                        }
-                    }
-                }
+                let sermon = Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
+                    return sermon.keyBase == selectedSermonKey
+                }).first
+
+                myvc?.selectedSermon = sermon
+                myvc?.updateUI()
+
+                myvc?.scrollToSermon(sermon,select:true,position:UITableViewScrollPosition.None)
             }
         }
     }
@@ -1556,7 +1554,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     func setupSplitViewController()
     {
         if (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
-            if (Globals.sermonRepository == nil) {
+            if (Globals.sermons.all == nil) {
                 splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
             } else {
                 if (splitViewController != nil) {

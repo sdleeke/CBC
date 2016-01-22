@@ -346,7 +346,7 @@ class WebViewController: UIViewController, WKNavigationDelegate {
     func setupSplitViewController()
     {
         if (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
-            if (Globals.sermonRepository == nil) {
+            if (Globals.sermons.all == nil) {
                 splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
             } else {
                 if (splitViewController != nil) {
