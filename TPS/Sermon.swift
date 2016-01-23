@@ -304,7 +304,7 @@ class SermonsListGroupSort {
         
         groupNames = SermonGroupNames()
         
-        Globals.finished = list!.count * Constants.groupings.count
+        Globals.finished = list!.count * (Constants.groupings.count + 1)
         
         for sermon in sermons! {
             for group in Constants.groupings {
@@ -395,8 +395,6 @@ class SermonsListGroupSort {
         tagSermons = [String:[Sermon]]()
         tagNames = [String:String]()
         
-        Globals.finished += list!.count
-
         for sermon in sermons! {
             if let tags =  sermon.tagsSet {
                 for tag in tags {
@@ -751,7 +749,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     
     var tagsArray:[String]? {
         get {
-            return tagsSet == nil ? nil : Array(tagsSet!) //.sort() { $0 < $1 } // Not sorted
+            return tagsSet == nil ? nil : Array(tagsSet!).sort() { $0 < $1 }
         }
     }
     

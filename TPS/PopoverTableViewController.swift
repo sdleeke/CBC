@@ -209,11 +209,12 @@ class PopoverTableViewController: UITableViewController {
         case .showingTags:
             //            print("strings: \(strings[indexPath.row]) sermontTag: \(sermonSelected?.tags)")
             
-            if (selectedSermon?.tagsArray?.indexOf(strings![index]) != nil) {
-                    cell.accessoryType = UITableViewCellAccessoryType.Checkmark
-            } else {
-                cell.accessoryType = UITableViewCellAccessoryType.None
-            }
+            cell.accessoryType = UITableViewCellAccessoryType.None
+//            if (selectedSermon?.tagsArray?.indexOf(strings![index]) != nil) {
+//                    cell.accessoryType = UITableViewCellAccessoryType.Checkmark
+//            } else {
+//                cell.accessoryType = UITableViewCellAccessoryType.None
+//            }
             break
             
         case .selectingTags:

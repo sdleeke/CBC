@@ -990,9 +990,9 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     func updateProgress()
     {
-        print("\(Float(Globals.progress))")
-        print("\(Float(Globals.finished))")
-        print("\(Float(Globals.progress) / Float(Globals.finished))")
+//        print("\(Float(Globals.progress))")
+//        print("\(Float(Globals.finished))")
+//        print("\(Float(Globals.progress) / Float(Globals.finished))")
         
         dispatch_async(dispatch_get_main_queue(), { () -> Void in
             self.progressIndicator.progress = 0
@@ -1000,7 +1000,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 self.progressIndicator.progress = Float(Globals.progress) / Float(Globals.finished)
             }
             
-            print("\(self.progressIndicator.progress)")
+//            print("\(self.progressIndicator.progress)")
             
             if self.progressIndicator.progress == 1.0 {
                 self.progressTimer?.invalidate()

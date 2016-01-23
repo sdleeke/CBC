@@ -1707,7 +1707,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             
             popover.delegate = self
             popover.purpose = .showingTags
-            popover.strings = Globals.active?.sermonTags
+            popover.strings = selectedSermon?.tagsArray
             popover.allowsSelection = false
             popover.selectedSermon = selectedSermon
             
