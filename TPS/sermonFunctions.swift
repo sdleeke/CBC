@@ -180,12 +180,13 @@ func jsonToDocumentsDirectory()
                 let jsonBundleModDate = jsonBundleAttributes[NSFileModificationDate] as! NSDate
                 let jsonDocumentsModDate = jsonDocumentsAttributes[NSFileModificationDate] as! NSDate
                 
-                if (jsonDocumentsModDate.isNewerThanDate(jsonBundleModDate)) {
+                if (jsonDocumentsModDate.isNewerThan(jsonBundleModDate)) {
                     //Do nothing, the json in Documents is newer, i.e. it was downloaded after the install.
                     print("JSON in Documents is newer than JSON in bundle")
                 }
                 
-                if (jsonBundleModDate.isEqualToDate(jsonDocumentsModDate)) {
+                if (jsonDocumentsModDate.isEqualTo(jsonBundleModDate)) {
+                    print("JSON in Documents is the same date as JSON in bundle")
                     let jsonBundleFileSize = jsonBundleAttributes[NSFileSize] as! Int
                     let jsonDocumentsFileSize = jsonDocumentsAttributes[NSFileSize] as! Int
                     
@@ -198,7 +199,7 @@ func jsonToDocumentsDirectory()
                     }
                 }
                 
-                if (jsonBundleModDate.isNewerThanDate(jsonDocumentsModDate)) {
+                if (jsonBundleModDate.isNewerThan(jsonDocumentsModDate)) {
                     print("JSON in bundle is newer than JSON in Documents")
                     //copy the bundle into Documents directory
                     do {
@@ -274,16 +275,20 @@ func sermonsFromDocumentsDirectoryArchive() -> [Sermon]?
 //            print("jsonInBundleModDate: \(jsonInBundleModDate)")
 //            print("jsonInDocumentsModDate: \(jsonInDocumentsModDate)")
             
-            if (jsonInDocumentsModDate.isOlderThanDate(jsonInBundleModDate)) {
+            if (jsonInDocumentsModDate.isOlderThan(jsonInBundleModDate)) {
                 //The JSON in the Bundle is newer, we need to use it instead of the archive
                 print("JSON in Documents is older than JSON in Bundle")
                 return nil
             }
             
-            if (jsonInDocumentsModDate.isEqualToDate(jsonInBundleModDate)) {
-                //Should never happen since JSON in Documents is created from JSON
+            if (jsonInDocumentsModDate.isEqualTo(jsonInBundleModDate)) {
+                //This is normal since JSON in Documents is copied from JSON in Bundle.  Do nothing.
                 print("JSON in Bundle and in Documents are the same date")
-//                return nil
+            }
+            
+            if (jsonInDocumentsModDate.isNewerThan(jsonInBundleModDate)) {
+                //The JSON in Documents is newer, we need to see if it is newer than the archive.
+                print("JSON in Documents is newer than JSON in Bundle")
             }
         } catch _ {
             
@@ -300,30 +305,32 @@ func sermonsFromDocumentsDirectoryArchive() -> [Sermon]?
             
 //            print("archiveInDocumentsModDate: \(archiveInDocumentsModDate)")
             
-            if (archiveInDocumentsModDate.isOlderThanDate(jsonInDocumentsModDate)) {
+            if (jsonInDocumentsModDate.isNewerThan(archiveInDocumentsModDate)) {
                 //Do nothing, the json in Documents is newer, i.e. it was downloaded after the archive was created.
-                print("JSON is newer than Archive in Documents")
+                print("JSON in Documents is newer than Archive in Documents")
                 return nil
             }
             
-            if (archiveInDocumentsModDate.isEqualToDate(jsonInDocumentsModDate)) {
+            if (archiveInDocumentsModDate.isEqualTo(jsonInDocumentsModDate)) {
                 //Should never happen since archive is created from JSON
-                print("JSON is the same date as Archive in Documents")
-//                return nil
+                print("JSON in Documents is the same date as Archive in Documents")
+                return nil
             }
             
-            print("Archive is newer than JSON in Documents")
-            
-            let data = NSData(contentsOfURL: NSURL(fileURLWithPath: archiveInDocumentsURL!.path!))
-            if (data != nil) {
-                let sermons = NSKeyedUnarchiver.unarchiveObjectWithData(data!) as? [Sermon]
-                if sermons != nil {
-                    return sermons
+            if (archiveInDocumentsModDate.isNewerThan(jsonInDocumentsModDate)) {
+                print("Archive in Documents is newer than JSON in Documents")
+                
+                let data = NSData(contentsOfURL: NSURL(fileURLWithPath: archiveInDocumentsURL!.path!))
+                if (data != nil) {
+                    let sermons = NSKeyedUnarchiver.unarchiveObjectWithData(data!) as? [Sermon]
+                    if sermons != nil {
+                        return sermons
+                    } else {
+                        print("could not get sermons from archive.")
+                    }
                 } else {
-                    print("could not get sermons from archive.")
+                    print("could not get data from archive.")
                 }
-            } else {
-                print("could not get data from archive.")
             }
         } catch _ {
             
@@ -666,54 +673,22 @@ extension NSDate
         self.init(timeInterval:0, sinceDate:d)
     }
     
-    func isNewerThanDate(dateToCompare : NSDate) -> Bool
+    func isNewerThan(dateToCompare : NSDate) -> Bool
     {
-        //Declare Variables
-        var isNewer = false
-        
-        //Compare Values
-        if self.compare(dateToCompare) == NSComparisonResult.OrderedDescending
-        {
-            isNewer = true
-        }
-        
-        //Return Result
-        return isNewer
+        return (self.compare(dateToCompare) == NSComparisonResult.OrderedDescending) && (self.compare(dateToCompare) != NSComparisonResult.OrderedSame)
     }
     
     
-    func isOlderThanDate(dateToCompare : NSDate) -> Bool
+    func isOlderThan(dateToCompare : NSDate) -> Bool
     {
-        //Declare Variables
-        var isOlder = false
-        
-        //Compare Values
-        if self.compare(dateToCompare) == NSComparisonResult.OrderedAscending
-        {
-            isOlder = true
-        }
-        
-        //Return Result
-        return isOlder
+        return (self.compare(dateToCompare) == NSComparisonResult.OrderedAscending) && (self.compare(dateToCompare) != NSComparisonResult.OrderedSame)
     }
     
 
-// Claims to be a redeclaration, but I can't find the other.
-//    func isEqualToDate(dateToCompare : NSDate) -> Bool
-//    {
-//        //Declare Variables
-//        var isEqualTo = false
-//
-//        //Compare Values
-//        if self.compare(dateToCompare) == NSComparisonResult.OrderedSame
-//        {
-//            isEqualTo = true
-//        }
-//
-//        //Return Result
-//        return isEqualTo
-//    }
-
+    func isEqualTo(dateToCompare : NSDate) -> Bool
+    {
+        return self.compare(dateToCompare) == NSComparisonResult.OrderedSame
+    }
 
     func addDays(daysToAdd : Int) -> NSDate
     {
@@ -723,7 +698,6 @@ extension NSDate
         //Return Result
         return dateWithDaysAdded
     }
-    
     
     func addHours(hoursToAdd : Int) -> NSDate
     {
@@ -1347,10 +1321,10 @@ func sermonsInSermonSeries(sermons:[Sermon]?,series:String?) -> [Sermon]?
     return sermons?.filter({ (sermon:Sermon) -> Bool in
         return sermon.series == series
     }).sort({ (first:Sermon, second:Sermon) -> Bool in
-        if (first.fullDate!.isEqualToDate(second.fullDate!)) {
+        if (first.fullDate!.isEqualTo(second.fullDate!)) {
             return first.service < second.service
         } else {
-            return first.fullDate!.isOlderThanDate(second.fullDate!)
+            return first.fullDate!.isOlderThan(second.fullDate!)
         }
     })
 }
@@ -1380,10 +1354,10 @@ func sermonsInBook(sermons:[Sermon]?,book:String?) -> [Sermon]?
     return sermons?.filter({ (sermon:Sermon) -> Bool in
         return sermon.book == book
     }).sort({ (first:Sermon, second:Sermon) -> Bool in
-        if (first.fullDate!.isEqualToDate(second.fullDate!)) {
+        if (first.fullDate!.isEqualTo(second.fullDate!)) {
             return first.service < second.service
         } else {
-            return first.fullDate!.isOlderThanDate(second.fullDate!)
+            return first.fullDate!.isOlderThan(second.fullDate!)
         }
     })
 }
@@ -1671,10 +1645,10 @@ func speakersFromSermons(sermons:[Sermon]?) -> [String]?
 func sortSermonsChronologically(sermons:[Sermon]?) -> [Sermon]?
 {
     return sermons?.sort() {
-        if ($0.fullDate!.isEqualToDate($1.fullDate!)) {
+        if ($0.fullDate!.isEqualTo($1.fullDate!)) {
             return $0.service < $1.service
         } else {
-            return $0.fullDate!.isOlderThanDate($1.fullDate!)
+            return $0.fullDate!.isOlderThan($1.fullDate!)
         }
     }
 }
@@ -1682,10 +1656,10 @@ func sortSermonsChronologically(sermons:[Sermon]?) -> [Sermon]?
 func sortSermonsReverseChronologically(sermons:[Sermon]?) -> [Sermon]?
 {
     return sermons?.sort() {
-        if ($0.fullDate!.isEqualToDate($1.fullDate!)) {
+        if ($0.fullDate!.isEqualTo($1.fullDate!)) {
             return $0.service > $1.service
         } else {
-            return $0.fullDate!.isNewerThanDate($1.fullDate!)
+            return $0.fullDate!.isNewerThan($1.fullDate!)
         }
     }
 }
@@ -1716,18 +1690,18 @@ func compareSermonDates(first first:Sermon, second:Sermon, sorting:String?) -> B
 
     switch sorting! {
     case Constants.CHRONOLOGICAL:
-        if (first.fullDate!.isEqualToDate(second.fullDate!)) {
+        if (first.fullDate!.isEqualTo(second.fullDate!)) {
             result = (first.service < second.service)
         } else {
-            result = first.fullDate!.isOlderThanDate(second.fullDate!)
+            result = first.fullDate!.isOlderThan(second.fullDate!)
         }
         break
     
     case Constants.REVERSE_CHRONOLOGICAL:
-        if (first.fullDate!.isEqualToDate(second.fullDate!)) {
+        if (first.fullDate!.isEqualTo(second.fullDate!)) {
             result = (first.service > second.service)
         } else {
-            result = first.fullDate!.isNewerThanDate(second.fullDate!)
+            result = first.fullDate!.isNewerThan(second.fullDate!)
         }
         break
         

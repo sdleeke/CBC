@@ -687,10 +687,10 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 bodyString = bodyString! + "<br/>" + "<br/>"
                 
                 let sermonList = sermons.sort() {
-                    if ($0.fullDate!.isEqualToDate($1.fullDate!)) {
+                    if ($0.fullDate!.isEqualTo($1.fullDate!)) {
                         return $0.service < $1.service
                     } else {
-                        return $0.fullDate!.isOlderThanDate($1.fullDate!)
+                        return $0.fullDate!.isOlderThan($1.fullDate!)
                     }
                 }
                 
