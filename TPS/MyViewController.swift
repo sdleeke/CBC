@@ -389,7 +389,12 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                         playOn = true
                     }
                 } else {
-                    playOn = true
+                    if !Reachability.isConnectedToNetwork() {
+                        networkUnavailable("Unable to play video: \(Globals.mpPlayer!.contentURL!)")
+                        playOn = false
+                    } else {
+                        playOn = true
+                    }
                 }
                 
                 if (playOn) {
@@ -527,7 +532,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     private func adjustAudioAfterUserMovedSlider()
     {
-        if (Globals.mpPlayer == nil) {
+        if (Globals.mpPlayer == nil) && Reachability.isConnectedToNetwork() {
             setupPlayer(selectedSermon)
         }
         
@@ -1287,6 +1292,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        print("\(Globals.mpPlayer?.contentURL)")
 //        print("\(Constants.LIVE_STREAM_URL)")
         if (Globals.mpPlayer?.contentURL == NSURL(string:Constants.LIVE_STREAM_URL)) {
+            Globals.mpPlayer = nil
             Globals.mpPlayer?.stop()
             setupPlayer(selectedSermon)
         }
@@ -3005,7 +3011,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     setupActionAndTagsButtons()
                 }
             } else {
-                networkUnavailable("Unable to play new sermon: \(sermonURL!)")
+                networkUnavailable("Unable to play sermon: \(sermonURL!)")
             }
         }
     }

@@ -733,14 +733,42 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
         cbcDescription.scrollRangeToVisible(NSMakeRange(0,0))
     }
 
-    /*
+    private func networkUnavailable(message:String?)
+    {
+        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
+            let alert = UIAlertController(title:Constants.Network_Error,
+                message: message,
+                preferredStyle: UIAlertControllerStyle.Alert)
+            
+            let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+                
+            })
+            alert.addAction(action)
+            
+            UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
+        }
+    }
+    
     // MARK: - Navigation
 
+    override func shouldPerformSegueWithIdentifier(identifier: String, sender: AnyObject?) -> Bool
+    {
+        if (identifier == "Show Live") {
+            if !Reachability.isConnectedToNetwork() {
+                networkUnavailable("Unable to connect to the internet.")
+                return false
+            }
+        }
+        
+        return true
+    }
+    
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         // Get the new view controller using segue.destinationViewController.
         // Pass the selected object to the new view controller.
+        if (segue.identifier == "Show Live") {
+            
+        }
     }
-    */
-
 }

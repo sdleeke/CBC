@@ -570,10 +570,7 @@ func setupPlayer(sermon:Sermon?)
         }
         
         if !networkRequired || (networkRequired && Reachability.isConnectedToNetwork()) {
-            Globals.sermonLoaded = false
-            
             Globals.mpPlayer = MPMoviePlayerController(contentURL: url)
-            
             Globals.mpPlayer?.shouldAutoplay = false
             Globals.mpPlayer?.controlStyle = MPMovieControlStyle.None
             Globals.mpPlayer?.prepareToPlay()
@@ -581,8 +578,11 @@ func setupPlayer(sermon:Sermon?)
             setupPlayingInfoCenter()
             
             Globals.playerPaused = true
+            
             Globals.sermonLoaded = false
-        } else {
+        }
+        
+        if !networkRequired || !Reachability.isConnectedToNetwork() {
             Globals.sermonLoaded = true
         }
     }
