@@ -24,7 +24,7 @@ class WebViewController: UIViewController, WKNavigationDelegate {
     var selectedSermon:Sermon?
     
     override func canBecomeFirstResponder() -> Bool {
-        return splitViewController == nil
+        return true //splitViewController == nil
     }
     
     override func motionEnded(motion: UIEventSubtype, withEvent event: UIEvent?) {
@@ -102,11 +102,11 @@ class WebViewController: UIViewController, WKNavigationDelegate {
         }
     }
     
-    private func networkUnavailable()
+    private func networkUnavailable(message:String?)
     {
         if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
-            let alert = UIAlertController(title:Constants.Network_Unavailable,
-                message: "",
+            let alert = UIAlertController(title:Constants.Network_Error,
+                message: message,
                 preferredStyle: UIAlertControllerStyle.Alert)
             
             let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
@@ -118,6 +118,106 @@ class WebViewController: UIViewController, WKNavigationDelegate {
         }
     }
     
+    func seekingTimer()
+    {
+        setupPlayingInfoCenter()
+    }
+    
+    override func remoteControlReceivedWithEvent(event: UIEvent?) {
+        print("remoteControlReceivedWithEvent")
+        
+        switch event!.subtype {
+        case UIEventSubtype.MotionShake:
+            print("RemoteControlShake")
+            break
+            
+        case UIEventSubtype.None:
+            print("RemoteControlNone")
+            break
+            
+        case UIEventSubtype.RemoteControlStop:
+            print("RemoteControlStop")
+            Globals.mpPlayer?.stop()
+            Globals.playerPaused = true
+            break
+            
+        case UIEventSubtype.RemoteControlPlay:
+            print("RemoteControlPlay")
+            Globals.mpPlayer?.play()
+            Globals.playerPaused = false
+            setupPlayingInfoCenter()
+            break
+            
+        case UIEventSubtype.RemoteControlPause:
+            print("RemoteControlPause")
+            Globals.mpPlayer?.pause()
+            Globals.playerPaused = true
+            updateUserDefaultsCurrentTimeExact()
+            break
+            
+        case UIEventSubtype.RemoteControlTogglePlayPause:
+            print("RemoteControlTogglePlayPause")
+            if (Globals.playerPaused) {
+                Globals.mpPlayer?.play()
+            } else {
+                Globals.mpPlayer?.pause()
+                updateUserDefaultsCurrentTimeExact()
+            }
+            Globals.playerPaused = !Globals.playerPaused
+            break
+            
+        case UIEventSubtype.RemoteControlPreviousTrack:
+            print("RemoteControlPreviousTrack")
+            break
+            
+        case UIEventSubtype.RemoteControlNextTrack:
+            print("RemoteControlNextTrack")
+            break
+            
+            //The lock screen time elapsed/remaining don't track well with seeking
+            //But at least this has them moving in the right direction.
+            
+        case UIEventSubtype.RemoteControlBeginSeekingBackward:
+            print("RemoteControlBeginSeekingBackward")
+            
+            Globals.seekingObserver = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: "seekingTimer", userInfo: nil, repeats: true)
+            
+            Globals.mpPlayer?.beginSeekingBackward()
+            //        updatePlayingInfoCenter()
+            setupPlayingInfoCenter()
+            break
+            
+        case UIEventSubtype.RemoteControlEndSeekingBackward:
+            print("RemoteControlEndSeekingBackward")
+            Globals.mpPlayer?.endSeeking()
+            Globals.seekingObserver?.invalidate()
+            Globals.seekingObserver = nil
+            updateUserDefaultsCurrentTimeExact()
+            //        updatePlayingInfoCenter()
+            setupPlayingInfoCenter()
+            break
+            
+        case UIEventSubtype.RemoteControlBeginSeekingForward:
+            print("RemoteControlBeginSeekingForward")
+            
+            Globals.seekingObserver = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: "seekingTimer", userInfo: nil, repeats: true)
+            
+            Globals.mpPlayer?.beginSeekingForward()
+            //        updatePlayingInfoCenter()
+            setupPlayingInfoCenter()
+            break
+            
+        case UIEventSubtype.RemoteControlEndSeekingForward:
+            print("RemoteControlEndSeekingForward")
+            Globals.seekingObserver?.invalidate()
+            Globals.seekingObserver = nil
+            Globals.mpPlayer?.endSeeking()
+            updateUserDefaultsCurrentTimeExact()
+            //        updatePlayingInfoCenter()
+            setupPlayingInfoCenter()
+            break
+        }
+    }
     
     func actions()
     {
@@ -137,18 +237,40 @@ class WebViewController: UIViewController, WKNavigationDelegate {
         if (selectedSermon!.hasNotes() || selectedSermon!.hasSlides()) {
             action = UIAlertAction(title:Constants.Print, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
                 //            print("print!")
-                self.printSermon(self.selectedSermon)
+                if Reachability.isConnectedToNetwork() {
+                    self.printSermon(self.selectedSermon)
+                } else {
+                    self.networkUnavailable("Unable to print.)")
+                }
             })
             alert.addAction(action)
             
             action = UIAlertAction(title:Constants.Open_in_Browser, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                let urlString = Constants.BASE_PDF_URL + self.selectedSermon!.notes!
+
+                var urlString:String?
                 
-                if let url = NSURL(string:urlString) {
-                    if (Reachability.isConnectedToNetwork() && UIApplication.sharedApplication().canOpenURL(url)) {
-                        UIApplication.sharedApplication().openURL(url)
+                switch self.selectedSermon!.showing! {
+                case Constants.NOTES:
+                    urlString = Constants.BASE_PDF_URL + self.selectedSermon!.notes!
+                    break
+                    
+                case Constants.SLIDES:
+                    urlString = Constants.BASE_PDF_URL + self.selectedSermon!.slides!
+                    break
+                    
+                default:
+                    break
+                }
+                
+                if let url = NSURL(string:urlString!) {
+                    if Reachability.isConnectedToNetwork() {
+                        if UIApplication.sharedApplication().canOpenURL(url) {
+                            UIApplication.sharedApplication().openURL(url)
+                        } else {
+                            self.networkUnavailable("Unable to open in browser: \(urlString)")
+                        }
                     } else {
-                        self.networkUnavailable()
+                        self.networkUnavailable("Unable to open in browser: \(urlString)")
                     }
                 }
             })
@@ -442,8 +564,10 @@ class WebViewController: UIViewController, WKNavigationDelegate {
             loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loading", userInfo: nil, repeats: true)
         }
         
-        let request = NSURLRequest(URL: NSURL(string: stringURL!)!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
-        wkWebView?.loadRequest(request) // NSURLRequest(URL: NSURL(string: stringURL!)!)
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
+            let request = NSURLRequest(URL: NSURL(string: stringURL!)!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
+            self.wkWebView?.loadRequest(request) // NSURLRequest(URL: NSURL(string: stringURL!)!)
+        })
     }
 
     

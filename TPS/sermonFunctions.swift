@@ -409,6 +409,11 @@ func loadDefaults()
     }
     
     Globals.sermonTagsSelected = defaults.stringForKey(Constants.COLLECTION)
+
+    if (Globals.sermonTagsSelected == Constants.New) {
+        Globals.sermonTagsSelected = nil
+    }
+    
     if (Globals.sermonTagsSelected != nil) {
         switch Globals.sermonTagsSelected! {
         case Constants.All:
@@ -483,6 +488,38 @@ func setupSermonPlayingUserDefaults()
         defaults.setObject(Constants.ZERO, forKey: Constants.CURRENT_TIME)
         
         defaults.synchronize()
+    }
+}
+
+func networkUnavailable(message:String?)
+{
+    if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
+        let alert = UIAlertController(title:Constants.Network_Error,
+            message: message,
+            preferredStyle: UIAlertControllerStyle.Alert)
+        
+        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+            
+        })
+        alert.addAction(action)
+        
+//        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
+        
+        UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
+    }
+}
+
+func removeSliderObserver() {
+    if (Globals.sliderObserver != nil) {
+        Globals.sliderObserver!.invalidate()
+        Globals.sliderObserver = nil
+    }
+}
+
+func removePlayObserver() {
+    if (Globals.playObserver != nil) {
+        Globals.playObserver!.invalidate()
+        Globals.playObserver = nil
     }
 }
 
@@ -571,106 +608,6 @@ func updateUserDefaultsCurrentTimeExact(seekToTime:Float)
         defaults.synchronize()
         
         Globals.sermonPlaying?.currentTime = seekToTime.description
-    }
-}
-
-func remoteControlEvent(event: UIEvent) {
-    print("remoteControlReceivedWithEvent")
-    
-    switch event.subtype {
-    case UIEventSubtype.RemoteControlStop:
-        print("RemoteControlStop")
-        Globals.mpPlayer?.stop()
-        Globals.playerPaused = true
-        break
-        
-    case UIEventSubtype.RemoteControlPlay:
-        print("RemoteControlPlay")
-        Globals.mpPlayer?.play()
-        Globals.playerPaused = false
-        setupPlayingInfoCenter()
-        break
-        
-    case UIEventSubtype.RemoteControlPause:
-        print("RemoteControlPause")
-        Globals.mpPlayer?.pause()
-        Globals.playerPaused = true
-        updateUserDefaultsCurrentTimeExact()
-        break
-        
-    case UIEventSubtype.RemoteControlTogglePlayPause:
-        print("RemoteControlTogglePlayPause")
-        if (Globals.playerPaused) {
-            Globals.mpPlayer?.play()
-        } else {
-            Globals.mpPlayer?.pause()
-            updateUserDefaultsCurrentTimeExact()
-        }
-        Globals.playerPaused = !Globals.playerPaused
-        break
-        
-    case UIEventSubtype.RemoteControlPreviousTrack:
-        print("RemoteControlPreviousTrack")
-        break
-        
-    case UIEventSubtype.RemoteControlNextTrack:
-        print("RemoteControlNextTrack")
-        break
-        
-        //The lock screen time elapsed/remaining don't track well with seeking
-        //But at least this has them moving in the right direction.
-        
-    case UIEventSubtype.RemoteControlBeginSeekingBackward:
-        print("RemoteControlBeginSeekingBackward")
-        Globals.mpPlayer?.beginSeekingBackward()
-//        updatePlayingInfoCenter()
-        setupPlayingInfoCenter()
-        break
-        
-    case UIEventSubtype.RemoteControlEndSeekingBackward:
-        print("RemoteControlEndSeekingBackward")
-        Globals.mpPlayer?.endSeeking()
-        updateUserDefaultsCurrentTimeExact()
-//        updatePlayingInfoCenter()
-        setupPlayingInfoCenter()
-        break
-        
-    case UIEventSubtype.RemoteControlBeginSeekingForward:
-        print("RemoteControlBeginSeekingForward")
-        Globals.mpPlayer?.beginSeekingForward()
-//        updatePlayingInfoCenter()
-        setupPlayingInfoCenter()
-        break
-        
-    case UIEventSubtype.RemoteControlEndSeekingForward:
-        print("RemoteControlEndSeekingForward")
-        Globals.mpPlayer?.endSeeking()
-        updateUserDefaultsCurrentTimeExact()
-//        updatePlayingInfoCenter()
-        setupPlayingInfoCenter()
-        break
-        
-    default:
-        print("None")
-        break
-    }
-}
-
-func updatePlayingInfoCenter()
-{
-    if (Globals.sermonPlaying != nil) {
-        //        let imageName = "\(Globals.coverArtPreamble)\(Globals.seriesPlaying!.name)\(Globals.coverArtPostamble)"
-        //    print("\(imageName)")
-        
-        var sermonInfo = [String:AnyObject]()
-        
-        sermonInfo.updateValue(NSNumber(double: Globals.mpPlayer!.duration),            forKey: MPMediaItemPropertyPlaybackDuration)
-        sermonInfo.updateValue(NSNumber(double: Globals.mpPlayer!.currentPlaybackTime), forKey: MPNowPlayingInfoPropertyElapsedPlaybackTime)
-        sermonInfo.updateValue(NSNumber(float: Globals.mpPlayer!.currentPlaybackRate),  forKey: MPNowPlayingInfoPropertyPlaybackRate)
-        
-        //    print("\(sermonInfo.count)")
-        
-        MPNowPlayingInfoCenter.defaultCenter().nowPlayingInfo = sermonInfo
     }
 }
 
@@ -2101,28 +2038,37 @@ func tagsFromSermons(sermons:[Sermon]?) -> [String]?
 {
     if sermons != nil {
         var tagsSet = Set<String>()
-        var tagsArray = [String]()
-        
-        for sermon in sermons! {
-            var tags = sermon.tags
-            var tag:String
 
-            while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
-                tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
-                tagsSet.insert(tag)
-                tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
-            }
-            
-            if (tags != nil) {
-                tagsSet.insert(tags!)
+        for sermon in sermons! {
+            if let tags = sermon.tagsSet {
+                tagsSet.unionInPlace(tags)
             }
         }
         
-        for tag in tagsSet {
-            tagsArray.append(tag)
-        }
-        
-        tagsArray.sortInPlace() { stringWithoutLeadingTheOrAOrAn($0) < stringWithoutLeadingTheOrAOrAn($1) }
+        var tagsArray = Array(tagsSet).sort({ stringWithoutLeadingTheOrAOrAn($0) < stringWithoutLeadingTheOrAOrAn($1) })
+
+//        var tagsArray = [String]()
+//        
+//        for sermon in sermons! {
+//            var tags = sermon.tags
+//            var tag:String
+//
+//            while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
+//                tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
+//                tagsSet.insert(tag)
+//                tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
+//            }
+//            
+//            if (tags != nil) {
+//                tagsSet.insert(tags!)
+//            }
+//        }
+//        
+//        for tag in tagsSet {
+//            tagsArray.append(tag)
+//        }
+//        
+//        tagsArray.sortInPlace() { stringWithoutLeadingTheOrAOrAn($0) < stringWithoutLeadingTheOrAOrAn($1) }
         
         tagsArray.append(Constants.All)
         

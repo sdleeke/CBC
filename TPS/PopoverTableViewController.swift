@@ -131,9 +131,12 @@ class PopoverTableViewController: UITableViewController {
         super.viewDidAppear(animated)
         
         if (purpose == .selectingTags) && (Globals.sermonTagsSelected != nil) && (Globals.sermonTagsSelected != Constants.All) {
-            let row = strings!.indexOf(Globals.sermonTagsSelected!)!
-            let indexPath = NSIndexPath(forRow: row, inSection: 0)
-            tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: UITableViewScrollPosition.None, animated: true)
+            if (strings != nil) && (Globals.sermonTagsSelected != nil) {
+                if let row = strings!.indexOf(Globals.sermonTagsSelected!) {
+                    let indexPath = NSIndexPath(forRow: row, inSection: 0)
+                    tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: UITableViewScrollPosition.None, animated: true)
+                }
+            }
         }
     }
     

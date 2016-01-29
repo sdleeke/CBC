@@ -54,7 +54,8 @@ struct Globals {
     
     static var sliderObserver: NSTimer?
     static var playObserver: NSTimer?
-    
+    static var seekingObserver: NSTimer?
+
     static var testing:Bool = false
     
     static var sermonPlaying:Sermon?

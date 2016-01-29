@@ -492,12 +492,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         
         filename = identifier.substringFromIndex(Constants.DOWNLOAD_IDENTIFIER.endIndex)
         
-        for sermon in Globals.sermonRepository! {
-            if (sermon.audio == filename) {
-                sermon.download.session = NSURLSession(configuration: configuration, delegate: sermon, delegateQueue: nil)
-                sermon.download.completionHandler = completionHandler
-                //Do we need to recreate the downloadTask for this session?
-            }
+        if let downloadSermon = Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
+            return sermon.audio == filename
+        }).first {
+            downloadSermon.download.session = NSURLSession(configuration: configuration, delegate: downloadSermon, delegateQueue: nil)
+            downloadSermon.download.completionHandler = completionHandler
+            //Do we need to recreate the downloadTask for this session?
         }
     }
 }

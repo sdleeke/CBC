@@ -295,120 +295,121 @@ class SermonsListGroupSort {
         
         list = sermons
         
-        Globals.finished = 0
-        Globals.progress = 0
-        
         // Put the sermons into the dictionaries.
         
-        var groupedSermons = [String:[String:[Sermon]]]()
-        
         groupNames = SermonGroupNames()
-        
-        Globals.finished = list!.count * (Constants.groupings.count + 1)
-        
-        for sermon in sermons! {
-            for group in Constants.groupings {
-                var string:String?
-                var name:String?
-                
-                switch group {
-                case Constants.YEAR:
-                    string = "\(sermon.year)"
-                    name = string
-                    break
-                    
-                case Constants.SERIES:
-                    string = sermon.seriesSectionSort
-                    name = sermon.seriesSection
-                    break
-                    
-                case Constants.BOOK:
-                    string = sermon.bookSection
-                    name = sermon.bookSection
-                    break
-                    
-                case Constants.SPEAKER:
-                    string = sermon.speakerSectionSort
-                    name = sermon.speakerSection
-                    break
-                    
-                default:
-                    break
-                }
-                
-                if (groupNames?[group] == nil) {
-                    groupNames?[group] = [String:String]()
-                }
-                
-                groupNames?[group]?[string!] = name!
-                
-                if (groupedSermons[group] == nil) {
-                    groupedSermons[group] = [String:[Sermon]]()
-                }
-                
-                if groupedSermons[group]?[string!] == nil {
-                    groupedSermons[group]?[string!] = [sermon]
-                } else {
-                    groupedSermons[group]?[string!]?.append(sermon)
-                }
-                
-                Globals.progress++
-            }
-        }
-        
-        //        print("\(groupedSermons)")
-        
         groupSort = SermonGroupSort()
+        tagSermons = [String:[Sermon]]()
+        tagNames = [String:String]()
 
-        for group in Constants.groupings {
-            Globals.finished += groupedSermons[group]!.keys.count
-        }
-        for group in Constants.groupings {
-            if (groupedSermons[group] != nil) {
-                if (groupSort?[group] == nil) {
-                    groupSort?[group] = [String:[String:[Sermon]]]()
-                }
-                for string in groupedSermons[group]!.keys {
-                    if (groupSort?[group]?[string] == nil) {
-                        groupSort?[group]?[string] = [String:[Sermon]]()
+        if (list != nil) {
+            var groupedSermons = [String:[String:[Sermon]]]()
+            
+            Globals.finished = list!.count * (Constants.groupings.count + 1)
+            Globals.progress = 0
+            
+            for sermon in sermons! {
+                for group in Constants.groupings {
+                    var string:String?
+                    var name:String?
+                    
+                    switch group {
+                    case Constants.YEAR:
+                        string = "\(sermon.year)"
+                        name = string
+                        break
+                        
+                    case Constants.SERIES:
+                        string = sermon.seriesSectionSort
+                        name = sermon.seriesSection
+                        break
+                        
+                    case Constants.BOOK:
+                        string = sermon.bookSection
+                        name = sermon.bookSection
+                        break
+                        
+                    case Constants.SPEAKER:
+                        string = sermon.speakerSectionSort
+                        name = sermon.speakerSection
+                        break
+                        
+                    default:
+                        break
                     }
-                    for sort in Constants.sortings {
-                        switch sort {
-                        case Constants.CHRONOLOGICAL:
-                            groupSort?[group]?[string]?[sort] = sortSermonsChronologically(groupedSermons[group]?[string])
-                            break
-                            
-                        case Constants.REVERSE_CHRONOLOGICAL:
-                            groupSort?[group]?[string]?[sort] = sortSermonsReverseChronologically(groupedSermons[group]?[string])
-                            break
-                            
-                        default:
-                            break
-                        }
+                    
+                    if (groupNames?[group] == nil) {
+                        groupNames?[group] = [String:String]()
+                    }
+                    
+                    groupNames?[group]?[string!] = name!
+                    
+                    if (groupedSermons[group] == nil) {
+                        groupedSermons[group] = [String:[Sermon]]()
+                    }
+                    
+                    if groupedSermons[group]?[string!] == nil {
+                        groupedSermons[group]?[string!] = [sermon]
+                    } else {
+                        groupedSermons[group]?[string!]?.append(sermon)
                     }
                     
                     Globals.progress++
                 }
             }
-        }
-        
-        tagSermons = [String:[Sermon]]()
-        tagNames = [String:String]()
-        
-        for sermon in sermons! {
-            if let tags =  sermon.tagsSet {
-                for tag in tags {
-                    let sortTag = stringWithoutLeadingTheOrAOrAn(tag)
-                    if tagSermons?[sortTag!] == nil {
-                        tagSermons?[sortTag!] = [sermon]
-                    } else {
-                        tagSermons?[sortTag!]?.append(sermon)
+            
+            //        print("\(groupedSermons)")
+
+            for group in Constants.groupings {
+                Globals.finished += groupedSermons[group]!.keys.count
+            }
+            for group in Constants.groupings {
+                if (groupedSermons[group] != nil) {
+                    if (groupSort?[group] == nil) {
+                        groupSort?[group] = [String:[String:[Sermon]]]()
                     }
-                    tagNames?[sortTag!] = tag
+                    for string in groupedSermons[group]!.keys {
+                        if (groupSort?[group]?[string] == nil) {
+                            groupSort?[group]?[string] = [String:[Sermon]]()
+                        }
+                        for sort in Constants.sortings {
+                            switch sort {
+                            case Constants.CHRONOLOGICAL:
+                                groupSort?[group]?[string]?[sort] = sortSermonsChronologically(groupedSermons[group]?[string])
+                                break
+                                
+                            case Constants.REVERSE_CHRONOLOGICAL:
+                                groupSort?[group]?[string]?[sort] = sortSermonsReverseChronologically(groupedSermons[group]?[string])
+                                break
+                                
+                            default:
+                                break
+                            }
+                        }
+                        
+                        Globals.progress++
+                    }
                 }
             }
             
-            Globals.progress++
+            for sermon in sermons! {
+                if let tags =  sermon.tagsSet {
+                    for tag in tags {
+                        let sortTag = stringWithoutLeadingTheOrAOrAn(tag)
+                        if tagSermons?[sortTag!] == nil {
+                            tagSermons?[sortTag!] = [sermon]
+                        } else {
+                            tagSermons?[sortTag!]?.append(sermon)
+                        }
+                        tagNames?[sortTag!] = tag
+                    }
+                }
+                
+                Globals.progress++
+            }
+        } else {
+            Globals.finished = 1
+            Globals.progress = 1
         }
         
 //        Globals.sermonsSortingOrGrouping = false
@@ -723,7 +724,32 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     // nil better be okay for these or expect a crash
     var tags:String? {
         get {
+            if let tags = settings?[Constants.TAGS] {
+                dict![Constants.TAGS] = tags
+            } else {
+                // do nothing
+            }
             return dict![Constants.TAGS]
+        }
+        set {
+            var tag:String
+            var tags = newValue
+            var tagsSet = Set<String>()
+            
+            while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
+                tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
+                tagsSet.insert(tag)
+                tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
+            }
+            
+            if (tags != nil) {
+                tagsSet.insert(tags!)
+            }
+            if (!tagsSet.contains(Constants.New)) {
+                settings?[Constants.TAGS] = newValue
+            } else {
+                dict![Constants.TAGS] = newValue
+            }
         }
     }
     
@@ -1126,11 +1152,16 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         filename = session.configuration.identifier!.substringFromIndex(Constants.DOWNLOAD_IDENTIFIER.endIndex)
         
-        for sermon in Globals.sermonRepository! {
-            if (sermon.audio == filename) {
-                sermon.download.completionHandler?()
-            }
+        if let downloadSermon = Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
+            return sermon.audio == filename
+        }).first {
+            downloadSermon.download.completionHandler?()
         }
+//        for sermon in Globals.sermonRepository! {
+//            if (sermon.audio == filename) {
+//                sermon.download.completionHandler?()
+//            }
+//        }
     }
     
     func hasDate() -> Bool

@@ -35,7 +35,7 @@ struct Constants {
     
     static let LIVE_STREAM_URL = "http://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
     
-    static let REACHABILITY_TEST_URL = "https://www.google.com/"
+    static let REACHABILITY_TEST_URL = "http://www.countrysidebible.org/"
     
     static let COVER_ART_IMAGE = "cover170x170"
     
@@ -91,7 +91,7 @@ struct Constants {
     static let CBC_TITLE_SHORT = Constants.CBC_SHORT + Constants.CBC_TITLE_POSTFIX
     static let CBC_TITLE_LONG = Constants.CBC_LONG + Constants.CBC_TITLE_POSTFIX
     
-    static let Network_Unavailable = "Network Unavailable"
+    static let Network_Error = "Network Error"
     static let Content_Failed_to_Load = "Content Failed to Load"
     
     static let TAGGED = "tagged"
@@ -230,6 +230,7 @@ struct Constants {
     static let TRANSCRIPT_PREFIX = "tx-un-"
     static let PDF_FILE_EXTENSION = ".pdf"
     
+    static let New = "New"
     static let All = "All"
     static let None = "None"
     static let Okay = "OK"

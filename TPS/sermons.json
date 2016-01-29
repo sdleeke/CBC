@@ -1,6 +1,16 @@
 {
 "sermons": [
             {
+            "date":"1/24/2016",
+            "service":"AM",
+            "title":"Your Day in Court (Part 2)",
+            "series":"Your Day in Court",
+            "scripture":"Romans 3:19-20",
+            "speaker":"Tom Pennington",
+            "audio":"tp160124aCD.mp3"
+            },
+            
+            {
             "date":"1/17/2016",
             "service":"PM",
             "title":"Q & A",

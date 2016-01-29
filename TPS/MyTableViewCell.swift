@@ -63,61 +63,86 @@ class MyTableViewCell: UITableViewCell {
     @IBAction func downloadAction(sender: UIButton)
     {
 //        print("Download!")
-        if (sermon != nil) {
-            switch sermon!.download.state {
-            case .none:
-                downloadAudio()
-                break
-            case .downloading:
-                let alert = UIAlertController(title: Constants.Cancel_Audio_Download,
-                    message: Constants.EMPTY_STRING,
-                    preferredStyle: UIAlertControllerStyle.ActionSheet)
-                
-                var action : UIAlertAction
-                
-                action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                    self.cancelDownload()
-                })
-                alert.addAction(action)
-                
-                action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+        if (Reachability.isConnectedToNetwork()) {
+            if (sermon != nil) {
+                switch sermon!.download.state {
+                case .none:
+                    downloadAudio()
+                    break
+                case .downloading:
+                    let alert = UIAlertController(title: Constants.Cancel_Audio_Download,
+                        message: Constants.EMPTY_STRING,
+                        preferredStyle: UIAlertControllerStyle.ActionSheet)
                     
-                })
-                alert.addAction(action)
-                
-                alert.modalPresentationStyle = UIModalPresentationStyle.Popover
-                alert.popoverPresentationController?.sourceView = self
-                alert.popoverPresentationController?.sourceRect = downloadButton.frame
-                
-                UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
-                break
-            case .downloaded:
-                let alert = UIAlertController(title: Constants.Delete_Audio_Download,
-                    message: Constants.EMPTY_STRING,
-                    preferredStyle: UIAlertControllerStyle.ActionSheet)
-                
-                var action : UIAlertAction
-                
-                action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                    self.deleteDownload()
-                })
-                alert.addAction(action)
-                
-                action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+                    var action : UIAlertAction
                     
-                })
-                alert.addAction(action)
-                
-                alert.modalPresentationStyle = UIModalPresentationStyle.Popover
-                alert.popoverPresentationController?.sourceView = self
-                alert.popoverPresentationController?.sourceRect = downloadButton.frame
-                
-                UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
-                break
+                    action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+                        self.cancelDownload()
+                    })
+                    alert.addAction(action)
+                    
+                    action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+                        
+                    })
+                    alert.addAction(action)
+                    
+                    alert.modalPresentationStyle = UIModalPresentationStyle.Popover
+                    alert.popoverPresentationController?.sourceView = self
+                    alert.popoverPresentationController?.sourceRect = downloadButton.frame
+                    
+                    UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
+                    break
+                case .downloaded:
+                    let alert = UIAlertController(title: Constants.Delete_Audio_Download,
+                        message: Constants.EMPTY_STRING,
+                        preferredStyle: UIAlertControllerStyle.ActionSheet)
+                    
+                    var action : UIAlertAction
+                    
+                    action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+                        self.deleteDownload()
+                    })
+                    alert.addAction(action)
+                    
+                    action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+                        
+                    })
+                    alert.addAction(action)
+                    
+                    alert.modalPresentationStyle = UIModalPresentationStyle.Popover
+                    alert.popoverPresentationController?.sourceView = self
+                    alert.popoverPresentationController?.sourceRect = downloadButton.frame
+                    
+                    UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
+                    break
+                }
+                updateUI()
             }
-            updateUI()
+        } else {
+            self.networkUnavailable("Unable to download audio.")
         }
     }
+    
+    private func networkUnavailable(message:String?)
+    {
+        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
+            let alert = UIAlertController(title:Constants.Network_Error,
+                message: message,
+                preferredStyle: UIAlertControllerStyle.ActionSheet)
+            
+            let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+                
+            })
+            alert.addAction(action)
+            
+            alert.modalPresentationStyle = UIModalPresentationStyle.Popover
+            alert.popoverPresentationController?.sourceView = self
+            alert.popoverPresentationController?.sourceRect = downloadButton.frame
+            
+            UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
+        }
+    }
+    
     
     func setupDownloadButton()
     {
