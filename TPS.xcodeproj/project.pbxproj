@@ -24,6 +24,7 @@
 		17763BE31BEA329400BB5556 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17763BE21BEA329400BB5556 /* Constants.swift */; };
 		17763BE51BEA32C700BB5556 /* Sermon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17763BE41BEA32C700BB5556 /* Sermon.swift */; };
 		17763BE71BEA350500BB5556 /* Globals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17763BE61BEA350500BB5556 /* Globals.swift */; };
+		177FBA951C5CF36400AFBB50 /* OBSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 177FBA941C5CF36400AFBB50 /* OBSlider.swift */; };
 		1780A7B81B7759FC0003FD39 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1780A7B71B7759FC0003FD39 /* MapKit.framework */; };
 		1795C8D01BF13EC2009511FD /* LiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1795C8CF1BF13EC2009511FD /* LiveViewController.swift */; };
 		17BBEDD71BBF631F0070BF89 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17BBEDD61BBF631F0070BF89 /* SwiftyJSON.swift */; };
@@ -64,6 +65,7 @@
 		17763BE21BEA329400BB5556 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		17763BE41BEA32C700BB5556 /* Sermon.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sermon.swift; sourceTree = "<group>"; };
 		17763BE61BEA350500BB5556 /* Globals.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Globals.swift; path = ../Globals.swift; sourceTree = "<group>"; };
+		177FBA941C5CF36400AFBB50 /* OBSlider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OBSlider.swift; sourceTree = "<group>"; };
 		1780A7B71B7759FC0003FD39 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		1795C8CF1BF13EC2009511FD /* LiveViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = LiveViewController.swift; path = ../LiveViewController.swift; sourceTree = "<group>"; };
 		17BBEDD61BBF631F0070BF89 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
@@ -119,6 +121,7 @@
 				17763BE41BEA32C700BB5556 /* Sermon.swift */,
 				175EDA251BAC80F600942E6D /* Reachability.swift */,
 				17BBEDD61BBF631F0070BF89 /* SwiftyJSON.swift */,
+				177FBA941C5CF36400AFBB50 /* OBSlider.swift */,
 				176BD8CD1BBF6CCA00991D19 /* sermons.json */,
 				17E75EC91B835FC600AE8ED5 /* sermonFunctions.swift */,
 				174EEE8B1B74C11E004F6942 /* MyTableViewCell.swift */,
@@ -291,6 +294,7 @@
 				174EEE8D1B74C11E004F6942 /* MyTableViewController.swift in Sources */,
 				175EDA261BAC80F600942E6D /* Reachability.swift in Sources */,
 				174EEE921B74C11E004F6942 /* MyTableViewCell.swift in Sources */,
+				177FBA951C5CF36400AFBB50 /* OBSlider.swift in Sources */,
 				171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */,
 				17763BE51BEA32C700BB5556 /* Sermon.swift in Sources */,
 			);

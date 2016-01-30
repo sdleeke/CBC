@@ -528,7 +528,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     @IBOutlet weak var tableView: UITableView!
     
-    @IBOutlet weak var slider: UISlider!
+    @IBOutlet weak var slider: OBSlider!
     
     private func adjustAudioAfterUserMovedSlider()
     {

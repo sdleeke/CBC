@@ -13,11 +13,12 @@
             {
             "date":"1/17/2016",
             "service":"PM",
-            "title":"Q & A",
-            "tags":"Q & A",
+            "title":"Q & A Session",
             "scripture":"Selected Scriptures",
             "speaker":"Tom Pennington",
-            "audio":"tp160117pCD.mp3"
+            "tags":"Q & A",
+            "audio":"tp160117pCD.mp3",
+            "video":"153281759.hd.mp4?s=7d646b8c5f4114a3b90246d6083fceb211caf413"
             },
             
             {
@@ -27,7 +28,8 @@
             "series":"Your Day in Court",
             "scripture":"Romans 3:19-20",
             "speaker":"Tom Pennington",
-            "audio":"tp160117aCD.mp3"
+            "audio":"tp160117aCD.mp3",
+            "video":"153280454.hd.mp4?s=6b101092986c103f4e868a1420a28516c07f3565"
             },
             
             {

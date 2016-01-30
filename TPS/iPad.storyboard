@@ -282,8 +282,8 @@
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iq3-ZA-EGB" userLabel="Download">
-                                                    <rect key="frame" x="554" y="44" width="18" height="33"/>
+                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iq3-ZA-EGB" userLabel="Download">
+                                                    <rect key="frame" x="554" y="48" width="18" height="31"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="Bqj-uH-acL"/>
                                                     </constraints>
@@ -293,8 +293,8 @@
                                                         <action selector="downloadAction:" destination="pos-sk-GNz" eventType="touchUpInside" id="sYz-WL-BSM"/>
                                                     </connections>
                                                 </button>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="L9x-Xt-BKK" userLabel="Icons">
-                                                    <rect key="frame" x="542" y="77" width="30" height="14"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="L9x-Xt-BKK" userLabel="Icons">
+                                                    <rect key="frame" x="543" y="79" width="29" height="12"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                     <nil key="highlightedColor"/>
@@ -367,8 +367,8 @@
                                     <action selector="audioOrVideoSelection:" destination="H2E-ZS-FbW" eventType="valueChanged" id="wZK-xl-Nnc"/>
                                 </connections>
                             </segmentedControl>
-                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OPH-xi-iII" userLabel="Play Pause">
-                                <rect key="frame" x="52" y="303" width="20" height="40"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OPH-xi-iII" userLabel="Play Pause">
+                                <rect key="frame" x="52" y="305" width="20" height="36"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="20" id="425-ex-yxw"/>
                                 </constraints>
@@ -384,7 +384,7 @@
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="sE0-gY-Yu6">
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="sE0-gY-Yu6" customClass="OBSlider" customModule="TPS" customModuleProvider="target">
                                 <rect key="frame" x="125" y="308" width="338" height="31"/>
                                 <connections>
                                     <action selector="sliderTouchDown:" destination="H2E-ZS-FbW" eventType="touchDown" id="OJQ-Wa-fRc"/>
