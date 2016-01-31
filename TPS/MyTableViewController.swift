@@ -961,10 +961,12 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     return sermon.keyBase == selectedSermonKey
                 }).first
                 
-                if (Globals.activeSermons?.indexOf(mytvc!.selectedSermon!) != nil) {
-                    mytvc!.selectOrScrollToSermon(mytvc?.selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.Middle)
+                if (mytvc?.selectedSermon != nil) {
+                    if (Globals.activeSermons?.indexOf(mytvc!.selectedSermon!) != nil) {
+                        mytvc!.selectOrScrollToSermon(mytvc?.selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.Middle)
+                    }
                 }
-//                
+//
 //                if let sermons = Globals.sermonRepository {
 //                    for sermon in sermons {
 //                        if (sermon.keyBase == selectedSermonKey) {
