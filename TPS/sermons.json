@@ -1,13 +1,32 @@
 {
 "sermons": [
             {
+            "date":"1/31/2016",
+            "service":"PM",
+            "title":"Partners with God",
+            "scripture":"2 Peter 1:4-7",
+            "speaker":"Rocky Wyatt",
+            "audio":"rw160131pCD.mp3"
+            },
+            
+            {
+            "date":"1/31/2016",
+            "service":"AM",
+            "title":"When Jesus Doesn't Meet Your Expectations",
+            "scripture":"Matthew 11:1-6",
+            "speaker":"Jonathan Anderson",
+            "audio":"ja160131aCD.mp3"
+            },
+            
+            {
             "date":"1/24/2016",
             "service":"AM",
             "title":"Your Day in Court (Part 2)",
             "series":"Your Day in Court",
             "scripture":"Romans 3:19-20",
             "speaker":"Tom Pennington",
-            "audio":"tp160124aCD.mp3"
+            "audio":"tp160124aCD.mp3",
+            "video":"153300955.hd.mp4?s=4cec9800ce5a88acf26ceaeacb8d2576efe7bb0e"
             },
             
             {

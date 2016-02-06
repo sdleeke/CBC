@@ -65,6 +65,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     Globals.mpPlayer?.stop()
                     
                     Globals.playerPaused = true
+
+                    // Because there is a sermon selected but we've STOPPED so there isn't one playing.
                     Globals.sermonPlaying = nil
                     
                     spinner.stopAnimating()
@@ -76,16 +78,19 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     setupPlayPauseButton()
                     setupSlider()
                     
+                    // Because there is a sermon selected but we've STOPPED so there isn't one playing.
                     let defaults = NSUserDefaults.standardUserDefaults()
                     defaults.removeObjectForKey(Constants.SERMON_PLAYING)
                     defaults.synchronize()
                 }
                 
+                // We need to do this whether the sermon was playing or not
                 captureContentOffsetAndZoomScale()
                 selectedSermon?.playing = Constants.AUDIO // Must come before setupNoteAndSlides()
                 setupNotesAndSlides() // Calls setupSTVControl()
                 
-                saveSermonSettings()
+                // We should only do this if video was visible.
+                saveSermonSettingsBackground()
                 break
                 
             default:
@@ -102,6 +107,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     Globals.mpPlayer?.stop()
                     
                     Globals.playerPaused = true
+                    
+                    // Because there is a sermon selected but we've STOPPED so there isn't one playing.
                     Globals.sermonPlaying = nil
                     
                     spinner.stopAnimating()
@@ -113,16 +120,19 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     setupPlayPauseButton()
                     setupSlider()
                     
+                    // Because there is a sermon selected but we've STOPPED so there isn't one playing.
                     let defaults = NSUserDefaults.standardUserDefaults()
                     defaults.removeObjectForKey(Constants.SERMON_PLAYING)
                     defaults.synchronize()
                 }
                 
+                // We need to do this whether the sermon was playing or not
                 captureContentOffsetAndZoomScale()
                 selectedSermon?.playing = Constants.VIDEO // Must come before setupNoteAndSlides()
                 setupNotesAndSlides() // Calls setupSTVControl()
                 
-                saveSermonSettings()
+                // We should only do this if video was visible.
+                saveSermonSettingsBackground()
                 break
                 
             case Constants.VIDEO:
@@ -188,7 +198,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 self.sermonSlidesWebView?.hidden = false
                 self.sermonNotesAndSlides.bringSubviewToFront(self.sermonSlidesWebView!)
                 self.selectedSermon!.showing = Constants.SLIDES
-            
+                
                 }, completion: { finished in
                     view!.hidden = true
             })
@@ -202,7 +212,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 self.sermonNotesWebView?.hidden = false
                 self.sermonNotesAndSlides.bringSubviewToFront(self.sermonNotesWebView!)
                 self.selectedSermon!.showing = Constants.NOTES
-                
+
                 }, completion: { finished in
                     view!.hidden = true
             })
@@ -213,13 +223,9 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             
             UIView.transitionWithView(self.sermonNotesAndSlides, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {
 
-                var playerView:UIView!
-                
-                playerView = Globals.mpPlayer?.view
-                
-                playerView.hidden = false
+                Globals.mpPlayer?.view.hidden = false
 
-                self.sermonNotesAndSlides.bringSubviewToFront(playerView)
+                self.sermonNotesAndSlides.bringSubviewToFront(Globals.mpPlayer!.view)
                 self.selectedSermon!.showing = Constants.VIDEO
 
                 }, completion: { finished in
@@ -231,7 +237,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             break
         }
 
-        saveSermonSettings()
+        saveSermonSettingsBackground()
     }
     
     func setupSTVControl()
@@ -314,8 +320,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             let loadstate:UInt8 = UInt8(Globals.mpPlayer!.loadState.rawValue)
             let loadvalue:UInt8 = UInt8(MPMovieLoadState.PlaythroughOK.rawValue)
             
-            print("\(loadstate)")
-            print("\(loadvalue)")
+//            print("\(loadstate)")
+//            print("\(loadvalue)")
 
             if ((loadstate & loadvalue) == (1<<1)) {
                 print("mpPlayerLoadStateDidChange.MPMovieLoadState.PlaythroughOK")
@@ -333,7 +339,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 Globals.mpPlayer?.pause()
                 updateUserDefaultsCurrentTimeExact(Float(Globals.mpPlayer!.currentPlaybackTime))
                 setupPlayPauseButton()
-                saveSermonSettings()
+                saveSermonSettingsBackground()
                 break
                 
             case .SeekingBackward:
@@ -398,8 +404,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 }
                 
                 if (playOn) {
-                    print("\(selectedSermon!.currentTime!)")
-                    print("\(NSTimeInterval(Float(selectedSermon!.currentTime!)!))")
+//                    print("\(selectedSermon!.currentTime!)")
+//                    print("\(NSTimeInterval(Float(selectedSermon!.currentTime!)!))")
                     
                     //Make the comparision an Int to avoid missing minor differences
                     if (Int(Float(selectedSermon!.currentTime!)!) < Int(Float(Globals.mpPlayer!.duration))) {
@@ -479,7 +485,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         switch gesture.state {
         case .Ended:
             captureViewSplit()
-            saveSermonSettings()
+            saveSermonSettingsBackground()
             break
         
         case .Changed:
@@ -559,7 +565,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             setupPlayPauseButton()
             addSliderObserver()
 
-            saveSermonSettings()
+            saveSermonSettingsBackground()
         }
     }
     
@@ -1192,7 +1198,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        print("\(sermonNotesAndSlides.frame)")
 //        sermonNotesWebView?.UIDelegate = self
         
-//        sermonNotesWebView?.scrollView.delegate = self //seems to cause crash
+        sermonNotesWebView?.scrollView.delegate = self //seems to cause crash
         sermonNotesWebView?.navigationDelegate = self
         sermonNotesWebView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
         sermonNotesAndSlides.addSubview(sermonNotesWebView!)
@@ -1203,7 +1209,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        print("\(sermonNotesAndSlides.frame)")
 //        sermonSlidesWebView?.UIDelegate = self
 
-//        sermonSlidesWebView?.scrollView.delegate = self //seems to cause crash
+        sermonSlidesWebView?.scrollView.delegate = self //seems to cause crash
         sermonSlidesWebView?.navigationDelegate = self
         sermonSlidesWebView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
         sermonNotesAndSlides.addSubview(sermonSlidesWebView!)
@@ -1242,19 +1248,19 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     }
     
     func scrollViewDidEndZooming(scrollView: UIScrollView, withView view: UIView?, atScale scale: CGFloat) {
-//        print("scrollViewDidEndZooming")
+        print("scrollViewDidEndZooming")
         if let view = scrollView.superview as? WKWebView {
             captureContentOffset(view)
             captureZoomScale(view)
-//            saveSermonSettings() //seems to cause crash
+            saveSermonSettingsBackground() //seems to cause crash
         }
     }
     
     func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-//        print("scrollViewDidEndDragging")
+        print("scrollViewDidEndDragging")
         if let view = scrollView.superview as? WKWebView {
             captureContentOffset(view)
-//            saveSermonSettings() //seems to cause crash
+            saveSermonSettingsBackground() //seems to cause crash
         }
     }
     
@@ -1804,7 +1810,9 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 CGFloat(notesContentOffsetXRatio) * sermonNotesWebView!.scrollView.contentSize.width,
                 CGFloat(notesContentOffsetYRatio) * sermonNotesWebView!.scrollView.contentSize.height)
             
-            sermonNotesWebView!.scrollView.setContentOffset(notesContentOffset, animated: false)
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                self.sermonNotesWebView!.scrollView.setContentOffset(notesContentOffset, animated: false)
+            })
             
             var slidesContentOffsetXRatio:Float = 0.0
             var slidesContentOffsetYRatio:Float = 0.0
@@ -1821,7 +1829,9 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 CGFloat(slidesContentOffsetXRatio) * sermonSlidesWebView!.scrollView.contentSize.width,
                 CGFloat(slidesContentOffsetYRatio) * sermonSlidesWebView!.scrollView.contentSize.height)
             
-            sermonSlidesWebView!.scrollView.setContentOffset(slidesContentOffset, animated: false)
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                self.sermonSlidesWebView!.scrollView.setContentOffset(slidesContentOffset, animated: false)
+            })
         }
     }
     
@@ -2116,71 +2126,92 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
     }
     
-    private func captureContentOffset(webView:WKWebView)
+    private func captureContentOffset(webView:WKWebView?)
     {
-//        print("captureContentOffset: \(sermonSelected?.title)")
+//        print("captureContentOffset: \(selectedSermon?.title)")
 
-        if (selectedSermon != nil) {
-            if (webView == sermonNotesWebView) {
+        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) && (webView != nil) && (!webView!.loading) {
+            switch webView! {
+            case sermonNotesWebView!:
                 selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.x / sermonNotesWebView!.scrollView.contentSize.width)"
                 selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.y / sermonNotesWebView!.scrollView.contentSize.height)"
-            }
-            
-            if (webView == sermonSlidesWebView) {
+                break
+                
+            case sermonSlidesWebView!:
                 selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.x / sermonSlidesWebView!.scrollView.contentSize.width)"
                 selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.y / sermonSlidesWebView!.scrollView.contentSize.height)"
+                break
+                
+            default:
+                break
             }
         }
     }
     
-    private func captureZoomScale(webView:WKWebView)
+    private func captureZoomScale(webView:WKWebView?)
     {
-//        print("captureZoomScale: \(sermonSelected?.title)")
+//        print("captureZoomScale: \(selectedSermon?.title)")
 
-        if (selectedSermon != nil) && (!webView.loading) {
-            if (webView == sermonNotesWebView) {
+        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) && (webView != nil) && (!webView!.loading) {
+            switch webView! {
+            case sermonNotesWebView!:
                 selectedSermon?.settings?[Constants.NOTES_ZOOM_SCALE] = "\(sermonNotesWebView!.scrollView.zoomScale)"
-            }
-            
-            if (webView == sermonSlidesWebView) {
+                break
+                
+            case sermonSlidesWebView!:
                 selectedSermon?.settings?[Constants.SLIDES_ZOOM_SCALE] = "\(sermonSlidesWebView!.scrollView.zoomScale)"
+                break
+                
+            default:
+                break
             }
         }
     }
     
     func captureContentOffsetAndZoomScale()
     {
+//            print("captureContentOffsetAndZoomScale: \(sermonSelected?.title)")
+        
 //        print("Notes contentOffset:\(sermonNotesWebView!.scrollView.contentOffset)")
 //        print("Slides contentOffset:\(sermonSlidesWebView!.scrollView.contentOffset)")
         
-        if (selectedSermon != nil) && (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
-//            print("captureContentOffsetAndZoomScale: \(sermonSelected?.title)")
+//        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) { // (selectedSermon != nil) &&
+
+        captureContentOffset(sermonNotesWebView)
+        captureZoomScale(sermonNotesWebView)
+        
+        captureContentOffset(sermonSlidesWebView)
+        captureZoomScale(sermonSlidesWebView)
+
+//            if (sermonNotesWebView != nil) {
+//                if (!sermonNotesWebView!.loading) {
+//                    selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.x / sermonNotesWebView!.scrollView.contentSize.width)"
+//                    
+//                    selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.y / sermonNotesWebView!.scrollView.contentSize.height)"
+//                    
+//                    selectedSermon?.settings?[Constants.NOTES_ZOOM_SCALE] = "\(sermonNotesWebView!.scrollView.zoomScale)"
+//                }
+//            }
             
-            if (sermonNotesWebView != nil) {
-                if (!sermonNotesWebView!.loading) {
-                    selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.x / sermonNotesWebView!.scrollView.contentSize.width)"
-                    
-                    selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.y / sermonNotesWebView!.scrollView.contentSize.height)"
-                    
-                    selectedSermon?.settings?[Constants.NOTES_ZOOM_SCALE] = "\(sermonNotesWebView!.scrollView.zoomScale)"
-                }
-            }
-            
-            if (sermonSlidesWebView != nil) {
-                if (!sermonSlidesWebView!.loading) {
-                    selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.x / sermonSlidesWebView!.scrollView.contentSize.width)"
-                    
-                    selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.y / sermonSlidesWebView!.scrollView.contentSize.height)"
-                    
-                    selectedSermon?.settings?[Constants.SLIDES_ZOOM_SCALE] = "\(sermonSlidesWebView!.scrollView.zoomScale)"
-                }
-            }
-        }
+//            if (sermonSlidesWebView != nil) {
+//                if (!sermonSlidesWebView!.loading) {
+//                    selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.x / sermonSlidesWebView!.scrollView.contentSize.width)"
+//                    
+//                    selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(sermonSlidesWebView!.scrollView.contentOffset.y / sermonSlidesWebView!.scrollView.contentSize.height)"
+//                    
+//                    selectedSermon?.settings?[Constants.SLIDES_ZOOM_SCALE] = "\(sermonSlidesWebView!.scrollView.zoomScale)"
+//                }
+//            }
+//        }
     }
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
         navigationItem.rightBarButtonItem = nil
+        
+        // Remove these two lines and this view will crash the app.
+        sermonNotesWebView?.scrollView.delegate = nil
+        sermonSlidesWebView?.scrollView.delegate = nil
         
 //        print("viewWillDisappear: \(sermonSelected?.title)")
 
@@ -2193,7 +2224,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        removeSliderObserver()
 //        removePlayObserver()
         
-        saveSermonSettings()
+        saveSermonSettingsBackground()
         
         //        NSNotificationCenter.defaultCenter().removeObserver(self,name: UIApplicationWillResignActiveNotification, object: UIApplication.sharedApplication())
         //        NSNotificationCenter.defaultCenter().removeObserver(self,name: UIApplicationWillEnterForegroundNotification, object: UIApplication.sharedApplication())
@@ -2547,8 +2578,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         if (!Globals.sermonLoaded) {
             let defaults = NSUserDefaults.standardUserDefaults()
             if let currentTime = defaults.stringForKey(Constants.CURRENT_TIME) {
-                print("\(currentTime)")
-                print("\(NSTimeInterval(Float(currentTime)!))")
+//                print("\(currentTime)")
+//                print("\(NSTimeInterval(Float(currentTime)!))")
                 
                 if (Float(currentTime)! <= Float(Globals.mpPlayer!.duration)) {
                     Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(currentTime)!)
@@ -2854,8 +2885,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        if ((loadstate & loadvalue) == (1<<1)) {
 //            print("mpPlayerLoadStateDidChange.MPMovieLoadState.PlaythroughOK")
         if !Globals.sermonLoaded {
-            print("\(Globals.sermonPlaying!.currentTime!)")
-            print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
+//            print("\(Globals.sermonPlaying!.currentTime!)")
+//            print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
             
             // The comparison below is Int because I'm concerned Float leaves room for small differences.  We'll see.
             if (Int(Float(Globals.sermonPlaying!.currentTime!)!) == Int(Globals.mpPlayer!.duration)) {
@@ -3025,36 +3056,38 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         let sermonSelected = sermonsInSeries![indexPath.row]
         
-        captureContentOffsetAndZoomScale()
-        saveSermonSettings()
-        
-//        sermonSelected.description()
-//        selectedSermon.description()
-
-        self.selectedSermon = sermonSelected
-
-        let defaults = NSUserDefaults.standardUserDefaults()
-        defaults.setObject(sermonSelected.keyBase,forKey: Constants.SELECTED_SERMON_DETAIL_KEY)
-        defaults.synchronize()
-
-        if (selectedSermon != nil) && (selectedSermon == Globals.sermonPlaying) {
-            if (!Globals.sermonLoaded) {
-                spinner.startAnimating()
+        if sermonSelected != selectedSermon {
+            captureContentOffsetAndZoomScale()
+            saveSermonSettingsBackground()
+            
+            //        sermonSelected.description()
+            //        selectedSermon.description()
+            
+            selectedSermon = sermonSelected
+            
+            let defaults = NSUserDefaults.standardUserDefaults()
+            defaults.setObject(sermonSelected.keyBase,forKey: Constants.SELECTED_SERMON_DETAIL_KEY)
+            defaults.synchronize()
+            
+            if (selectedSermon != nil) && (selectedSermon == Globals.sermonPlaying) {
+                if (!Globals.sermonLoaded) {
+                    spinner.startAnimating()
+                } else {
+                    spinner.stopAnimating()
+                }
             } else {
                 spinner.stopAnimating()
             }
-        } else {
-            spinner.stopAnimating()
+            
+            setupAudioOrVideo()
+            setupPlayPauseButton()
+            setupSlider()
+            setupNotesAndSlides()
+            setupActionAndTagsButtons()
+            
+            //            print("Playing: \(Globals.sermonPlaying?.title)")
+            //            print("Selected: \(Globals.sermonSelected?.title)")
         }
-
-        setupAudioOrVideo()
-        setupPlayPauseButton()
-        setupSlider()
-        setupNotesAndSlides()
-        setupActionAndTagsButtons()
-        
-//            print("Playing: \(Globals.sermonPlaying?.title)")
-//            print("Selected: \(Globals.sermonSelected?.title)")
     }
     
     func webView(wkWebView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
@@ -3097,13 +3130,49 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     func wkSetZoomScaleThenContentOffset(wkWebView: WKWebView, scale:CGFloat, offset:CGPoint) {
 //        print("scale: \(scale)")
 //        print("offset: \(offset)")
-//
-//        print("contentInset: \(webView.scrollView.contentInset)")
-//        print("contentSize: \(webView.scrollView.contentSize)")
+//        
+//        print("zoomScale: \(wkWebView.scrollView.zoomScale)")
+//        print("contentScaleFactor: \(wkWebView.scrollView.contentScaleFactor)")
+//        
+//        print("contentOffset: \(wkWebView.scrollView.contentOffset)")
+//        
+//        print("contentInset: \(wkWebView.scrollView.contentInset)")
+//        print("contentSize: \(wkWebView.scrollView.contentSize)")
+//        
+//        print("minimumZoomScale: \(wkWebView.scrollView.minimumZoomScale)")
+//        print("maximumZoomScale: \(wkWebView.scrollView.maximumZoomScale)")
 
-        // The effects of the next two calls are strongly order dependent.
-        wkWebView.scrollView.setZoomScale(scale, animated: false)
-        wkWebView.scrollView.setContentOffset(offset,animated: false)
+//        var newScale = scale
+//        
+//        if newScale > wkWebView.scrollView.maximumZoomScale {
+//            newScale = wkWebView.scrollView.maximumZoomScale
+//        }
+//        
+//        if newScale < wkWebView.scrollView.minimumZoomScale {
+//            newScale = wkWebView.scrollView.minimumZoomScale
+//        }
+//        
+//        var newOffset = offset
+//        
+//        if newOffset.y > wkWebView.scrollView.contentSize.height {
+//            newOffset.y = wkWebView.scrollView.contentSize.height
+//        }
+//        
+//        if newOffset.x > wkWebView.scrollView.contentSize.width {
+//            newOffset.x = wkWebView.scrollView.contentSize.width
+//        }
+        
+
+//        print("zoomScale after: \(wkWebView.scrollView.zoomScale)")
+//        print("contentScaleFactor after: \(wkWebView.scrollView.contentScaleFactor)")
+
+        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            // The effects of the next two calls are strongly order dependent.
+            wkWebView.scrollView.setZoomScale(scale, animated: false)
+            wkWebView.scrollView.setContentOffset(offset,animated: false)
+        })
+
+//        print("contentOffset after: \(wkWebView.scrollView.contentOffset)")
     }
     
     func notesContentOffset() -> CGPoint?
@@ -3127,21 +3196,31 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     func setNotesContentOffsetAndZoomScale()
     {
+//        print("setNotesContentOffsetAndZoomScale Loading: \(sermonNotesWebView!.loading)")
+
         var notesZoomScale:CGFloat = 1.0
         
         var notesContentOffsetXRatio:Float = 0.0
         var notesContentOffsetYRatio:Float = 0.0
         
         if let ratio = selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] {
+//            print("X ratio string: \(ratio)")
             notesContentOffsetXRatio = Float(ratio)!
+        } else {
+            print("No notes X ratio")
         }
         
         if let ratio = selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] {
+//            print("Y ratio string: \(ratio)")
             notesContentOffsetYRatio = Float(ratio)!
+        } else {
+            print("No notes Y ratio")
         }
         
         if let zoomScale = selectedSermon?.settings?[Constants.NOTES_ZOOM_SCALE] {
             notesZoomScale = CGFloat(Float(zoomScale)!)
+        } else {
+            print("No notes zoomScale")
         }
         
 //        print("\(notesContentOffsetXRatio)")
@@ -3175,21 +3254,31 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     func setSlidesContentOffsetAndZoomScale()
     {
+//        print("setSlidesContentOffsetAndZoomScale Loading: \(sermonSlidesWebView!.loading)")
+
         var slidesZoomScale:CGFloat = 1.0
         
         var slidesContentOffsetXRatio:Float = 0.0
         var slidesContentOffsetYRatio:Float = 0.0
         
         if let ratio = selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] {
+//            print("X ratio string: \(ratio)")
             slidesContentOffsetXRatio = Float(ratio)!
+        } else {
+            print("No slides X ratio")
         }
         
         if let ratio = selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] {
+//            print("Y ratio string: \(ratio)")
             slidesContentOffsetYRatio = Float(ratio)!
+        } else {
+            print("No slides Y ratio")
         }
         
         if let zoomScale = selectedSermon?.settings?[Constants.SLIDES_ZOOM_SCALE] {
             slidesZoomScale = CGFloat(Float(zoomScale)!)
+        } else {
+            print("No slides zoomScale")
         }
         
         let slidesContentOffset = CGPointMake(  CGFloat(slidesContentOffsetXRatio) * sermonSlidesWebView!.scrollView.contentSize.width * slidesZoomScale,
@@ -3199,7 +3288,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     }
     
     func webView(webView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
-//        print("wkWebViewDidFinishNavigation")
+//        print("wkWebViewDidFinishNavigation Loading:\(webView.loading)")
         
 //        print("Frame: \(webView.frame)")
 //        print("Bounds: \(webView.bounds)")
@@ -3213,20 +3302,24 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             progressIndicator.hidden = true
 
             if (selectedSermon != nil) {
-                if (webView == sermonNotesWebView) {
+                switch webView {
+                case sermonNotesWebView!:
                     if (selectedSermon!.showing == Constants.NOTES) {
                         webView.hidden = false
                     }
-
                     setNotesContentOffsetAndZoomScale()
-                }
-                
-                if (webView == sermonSlidesWebView) {
+                    break
+                    
+                case sermonSlidesWebView!:
                     if (selectedSermon!.showing == Constants.SLIDES) {
                         webView.hidden = false
                     }
                     
                     setSlidesContentOffsetAndZoomScale()
+                    break
+                    
+                default:
+                    break
                 }
             }
         }

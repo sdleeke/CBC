@@ -83,7 +83,7 @@ class PopoverTableViewController: UITableViewController {
                 let a = "A"
                 
                 section.titles = Array(Set(strings!.map({ (string:String) -> String in
-                    return stringWithoutLeadingTheOrAOrAn(string)!.substringToIndex(a.endIndex)
+                    return stringWithoutPrefixes(string)!.substringToIndex(a.endIndex)
                 }))).sort() { $0 < $1 }
                 
                 var indexes = [Int]()
@@ -93,7 +93,7 @@ class PopoverTableViewController: UITableViewController {
                     var counter = 0
                     
                     for index in 0..<strings!.count {
-                        if (sectionTitle == stringWithoutLeadingTheOrAOrAn(strings![index])!.substringToIndex(a.endIndex)) {
+                        if (sectionTitle == stringWithoutPrefixes(strings![index])!.substringToIndex(a.endIndex)) {
                             if (counter == 0) {
                                 indexes.append(index)
                             }

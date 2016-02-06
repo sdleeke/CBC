@@ -9,7 +9,7 @@
 import UIKit
 import WebKit
 
-class WebViewController: UIViewController, WKNavigationDelegate {
+class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
 
     var wkWebView:WKWebView?
     
@@ -39,10 +39,36 @@ class WebViewController: UIViewController, WKNavigationDelegate {
         }
     }
     
+    func scrollViewDidZoom(scrollView: UIScrollView) {
+        //        print("scrollViewDidZoom")
+    }
+    
+    func scrollViewDidScroll(scrollView: UIScrollView) {
+        //        print("scrollViewDidScroll")
+    }
+    
+    func scrollViewDidEndZooming(scrollView: UIScrollView, withView view: UIView?, atScale scale: CGFloat) {
+        print("scrollViewDidEndZooming")
+        if let _ = scrollView.superview as? WKWebView {
+            captureContentOffsetAndZoomScale()
+            saveSermonSettingsBackground() //seems to cause crash
+        }
+    }
+    
+    func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        print("scrollViewDidEndDragging")
+        if let _ = scrollView.superview as? WKWebView {
+            captureContentOffsetAndZoomScale()
+            saveSermonSettingsBackground() //seems to cause crash
+        }
+    }
+    
     private func setupWKWebView()
     {
         wkWebView = WKWebView()
         wkWebView?.multipleTouchEnabled = true
+
+        wkWebView?.scrollView.delegate = self //seems to cause crash
 
         wkWebView?.navigationDelegate = self
         wkWebView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
@@ -315,9 +341,11 @@ class WebViewController: UIViewController, WKNavigationDelegate {
 //        print("contentInset: \(webView.scrollView.contentInset)")
 //        print("contentSize: \(webView.scrollView.contentSize)")
 
-        // The effects of the next two calls are strongly order dependent.
-        wkWebView.scrollView.setZoomScale(scale, animated: false)
-        wkWebView.scrollView.setContentOffset(offset,animated: false)
+        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            // The effects of the next two calls are strongly order dependent.
+            wkWebView.scrollView.setZoomScale(scale, animated: false)
+            wkWebView.scrollView.setContentOffset(offset,animated: false)
+        })
     }
     
     func webView(wkWebView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
@@ -426,7 +454,9 @@ class WebViewController: UIViewController, WKNavigationDelegate {
             
             print("About to setContentOffset with: \(contentOffset)")
             
-            wkWebView?.scrollView.setContentOffset(contentOffset,animated: false)
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                wkWebView?.scrollView.setContentOffset(contentOffset,animated: false)
+            })
             
             print("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
         }
@@ -434,8 +464,8 @@ class WebViewController: UIViewController, WKNavigationDelegate {
     
     func captureContentOffsetAndZoomScale()
     {
-        print("\(wkWebView!.scrollView.contentOffset)")
-        print("\(wkWebView!.scrollView.zoomScale)")
+//        print("\(wkWebView!.scrollView.contentOffset)")
+//        print("\(wkWebView!.scrollView.zoomScale)")
         
         if (selectedSermon != nil) && (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
             switch selectedSermon!.showing! {
@@ -588,6 +618,10 @@ class WebViewController: UIViewController, WKNavigationDelegate {
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
+        
+        //Remove the next line and the app will crash
+        wkWebView?.scrollView.delegate = nil
+        
         captureContentOffsetAndZoomScale()
     }
     

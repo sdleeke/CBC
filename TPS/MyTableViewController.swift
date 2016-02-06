@@ -211,7 +211,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                             new = (Globals.showing != Constants.TAGGED) || (Globals.sermonTagsSelected != Globals.sermons.all!.sermonTags![index])
                             
                             if (new) {
-                                print("\(Globals.active!.sermonTags)")
+//                                print("\(Globals.active!.sermonTags)")
                                 
                                 Globals.sermonTagsSelected = Globals.sermons.all!.sermonTags![index] // s/b sermons.all not active
                                 
@@ -883,16 +883,16 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             print("AppDelegate mpPlayerLoadStateDidChange.MPMovieLoadState.PlaythroughOK")
             //should be called only once, only for  first time audio load.
             if(!Globals.sermonLoaded) {
-                print("\(Globals.sermonPlaying!.currentTime!)")
-                print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
+//                print("\(Globals.sermonPlaying!.currentTime!)")
+//                print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
                 
                 let defaults = NSUserDefaults.standardUserDefaults()
                 if let currentTime = defaults.stringForKey(Constants.CURRENT_TIME) {
                     Globals.sermonPlaying!.currentTime = currentTime
                 }
                 
-                print("\(Globals.sermonPlaying!.currentTime!)")
-                print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
+//                print("\(Globals.sermonPlaying!.currentTime!)")
+//                print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
                 
                 Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!)
                 
@@ -1135,7 +1135,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                         sermon.tags = sermon.tags! + Constants.TAGS_SEPARATOR + Constants.New
                     }
                 }
-                print("\(sermonsNewToUser)")
+//                print("\(sermonsNewToUser)")
                 
                 Globals.showing = Constants.TAGGED
                 Globals.sermonTagsSelected = Constants.New
@@ -1222,7 +1222,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 Globals.mpPlayer?.pause()
                 
                 updateUserDefaultsCurrentTimeExact()
-                saveSermonSettings()
+                saveSermonSettingsBackground()
                 
                 Globals.mpPlayer?.view.hidden = true
                 Globals.mpPlayer?.view.removeFromSuperview()
@@ -1336,7 +1336,9 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     func addRefreshControl()
     {
-        tableView.addSubview(refreshControl!)
+        if (refreshControl?.superview != tableView) {
+            tableView.addSubview(refreshControl!)
+        }
     }
     
     override func viewDidLoad() {
@@ -1656,6 +1658,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         setupSplitViewController()
         
         setupTitle()
+        
+        addRefreshControl()
         
         navigationController?.toolbarHidden = false
         

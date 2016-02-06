@@ -395,7 +395,7 @@ class SermonsListGroupSort {
             for sermon in sermons! {
                 if let tags =  sermon.tagsSet {
                     for tag in tags {
-                        let sortTag = stringWithoutLeadingTheOrAOrAn(tag)
+                        let sortTag = stringWithoutPrefixes(tag)
                         if tagSermons?[sortTag!] == nil {
                             tagSermons?[sortTag!] = [sermon]
                         } else {
@@ -703,7 +703,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                 if let seriesSort = settings?[Constants.SERIES_SORT] {
                     dict![Constants.SERIES_SORT] = seriesSort
                 } else {
-                    if let seriesSort = stringWithoutLeadingTheOrAOrAn(series) {
+                    if let seriesSort = stringWithoutPrefixes(series) {
                         dict![Constants.SERIES_SORT] = seriesSort
                         settings?[Constants.SERIES_SORT] = seriesSort
                     } else {
@@ -913,14 +913,6 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     struct Settings {
         var sermon:Sermon?
         
-        // Not sure this thread safe serial queue code matters.  NO problems w/ GTY but nothing but problems
-        // in TPS w/ fillSortGroupCache() creating cache entries in the background.
-        
-//        private let queue = dispatch_queue_create("com.leeke.sermon.settings", nil)
-//        func with(queue: dispatch_queue_t, f: Void -> Void) {
-//            dispatch_sync(queue, f)
-//        }
-        
         init(sermon:Sermon?) {
             if (sermon == nil) {
                 print("nil sermon in Settings init!")
@@ -931,29 +923,25 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         subscript(key:String) -> String? {
             get {
                 var value:String?
-//                with(queue) {
-                    value = Globals.sermonSettings?[self.sermon!.keyBase]?[key]
-//                }
+                value = Globals.sermonSettings?[self.sermon!.keyBase]?[key]
                 return value
             }
             set {
-//                with(queue) {
-                    if (Globals.sermonSettings?[self.sermon!.keyBase] == nil) {
-                        Globals.sermonSettings?[self.sermon!.keyBase] = [String:String]()
-                    }
-                    if (newValue != nil) {
-                        if (self.sermon != nil) {
-    //                        print("\(Globals.sermonSettings!)")
-    //                        print("\(sermon!)")
-    //                        print("\(newValue!)")
-                            Globals.sermonSettings?[self.sermon!.keyBase]?[key] = newValue
-                        } else {
-                            print("sermon == nil in Settings!")
-                        }
+                if (Globals.sermonSettings?[self.sermon!.keyBase] == nil) {
+                    Globals.sermonSettings?[self.sermon!.keyBase] = [String:String]()
+                }
+                if (newValue != nil) {
+                    if (self.sermon != nil) {
+                        //                        print("\(Globals.sermonSettings!)")
+                        //                        print("\(sermon!)")
+                        //                        print("\(newValue!)")
+                        Globals.sermonSettings?[self.sermon!.keyBase]?[key] = newValue
                     } else {
-                        print("newValue == nil in Settings!")
+                        print("sermon == nil in Settings!")
                     }
-//                }
+                } else {
+                    print("newValue == nil in Settings!")
+                }
             }
         }
     }

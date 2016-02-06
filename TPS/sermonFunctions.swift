@@ -478,7 +478,7 @@ func updateUserDefaultsCurrentTimeWhilePlaying()
             defaults.setObject(timeNow.description,forKey: Constants.CURRENT_TIME)
             defaults.synchronize()
             
-            saveSermonSettings()
+            saveSermonSettingsBackground()
         }
     }
 }
@@ -709,14 +709,21 @@ extension NSDate
     }
 }
 
+func saveSermonSettingsBackground()
+{
+    print("saveSermonSettingsBackground")
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0)) { () -> Void in
+        saveSermonSettings()
+    }
+}
+
 func saveSermonSettings()
 {
-//    print("\(Globals.sermonSettings)")
-    
+    print("saveSermonSettings")
     let defaults = NSUserDefaults.standardUserDefaults()
-//    print("\(Globals.sermonSettings)")
+    //    print("\(Globals.sermonSettings)")
     defaults.setObject(Globals.sermonSettings,forKey: Constants.SERMON_SETTINGS_KEY)
-//    print("\(Globals.seriesViewSplits)")
+    //    print("\(Globals.seriesViewSplits)")
     defaults.setObject(Globals.seriesViewSplits, forKey: Constants.SERIES_VIEW_SPLITS_KEY)
     defaults.synchronize()
 }
@@ -746,28 +753,45 @@ func loadSermonSettings()
 //    print("\(Globals.sermonSettings)")
 }
 
-func stringWithoutLeadingTheOrAOrAn(fromString:String?) -> String?
+func stringWithoutPrefixes(fromString:String?) -> String?
 {
     let quote:String = "\""
-    let a:String = "A "
-    let an:String = "An "
-    let the:String = "The "
     
     var sortString = fromString
+    let prefixes = ["A ","An ","And ","The "]
     
     if (fromString?.endIndex >= quote.endIndex) && (fromString?.substringToIndex(quote.endIndex) == quote) {
         sortString = fromString!.substringFromIndex(quote.endIndex)
     }
     
-    if (fromString?.endIndex >= a.endIndex) && (fromString?.substringToIndex(a.endIndex) == a) {
-        sortString = fromString!.substringFromIndex(a.endIndex)
-    } else
-        if (fromString?.endIndex >= an.endIndex) && (fromString?.substringToIndex(an.endIndex) == an) {
-            sortString = fromString!.substringFromIndex(an.endIndex)
-        } else
-            if (fromString?.endIndex >= the.endIndex) && (fromString?.substringToIndex(the.endIndex) == the) {
-                sortString = fromString!.substringFromIndex(the.endIndex)
+    for prefix in prefixes {
+        if (fromString?.endIndex >= prefix.endIndex) && (fromString?.substringToIndex(prefix.endIndex) == prefix) {
+            sortString = fromString!.substringFromIndex(prefix.endIndex)
+            break
+        }
     }
+
+//    let quote:String = "\""
+//
+//    let a:String = "A "
+//    let an:String = "An "
+//    let the:String = "The "
+//    
+//    var sortString = fromString
+//    
+//    if (fromString?.endIndex >= quote.endIndex) && (fromString?.substringToIndex(quote.endIndex) == quote) {
+//        sortString = fromString!.substringFromIndex(quote.endIndex)
+//    }
+//    
+//    if (fromString?.endIndex >= a.endIndex) && (fromString?.substringToIndex(a.endIndex) == a) {
+//        sortString = fromString!.substringFromIndex(a.endIndex)
+//    } else
+//        if (fromString?.endIndex >= an.endIndex) && (fromString?.substringToIndex(an.endIndex) == an) {
+//            sortString = fromString!.substringFromIndex(an.endIndex)
+//        } else
+//            if (fromString?.endIndex >= the.endIndex) && (fromString?.substringToIndex(the.endIndex) == the) {
+//                sortString = fromString!.substringFromIndex(the.endIndex)
+//    }
     
     return sortString
 }
@@ -1430,7 +1454,7 @@ func seriesFromSermons(sermons:[Sermon]?) -> [String]?
                 })
             )
             ).sort({ (first:String, second:String) -> Bool in
-                return stringWithoutLeadingTheOrAOrAn(first) < stringWithoutLeadingTheOrAOrAn(second)
+                return stringWithoutPrefixes(first) < stringWithoutPrefixes(second)
             })
         : nil
 }
@@ -1445,7 +1469,7 @@ func seriesSectionsFromSermons(sermons:[Sermon]?) -> [String]?
                 })
             )
             ).sort({ (first:String, second:String) -> Bool in
-                return stringWithoutLeadingTheOrAOrAn(first) < stringWithoutLeadingTheOrAOrAn(second)
+                return stringWithoutPrefixes(first) < stringWithoutPrefixes(second)
             })
         : nil
 }
@@ -1464,7 +1488,7 @@ func seriesSectionsFromSermons(sermons:[Sermon]?,withTitles:Bool) -> [String]?
                 })
             )
             ).sort({ (first:String, second:String) -> Bool in
-                return stringWithoutLeadingTheOrAOrAn(first) < stringWithoutLeadingTheOrAOrAn(second)
+                return stringWithoutPrefixes(first) < stringWithoutPrefixes(second)
             })
         : nil
 }
@@ -1976,36 +2000,47 @@ func tagsArrayFromTagsString(tagsString:String?) -> [String]?
 
 func taggedSermonsFromTagSelected(sermonsWithTags:[Sermon]?,tagSelected:String?) -> [Sermon]?
 {
-    if let sermons = sermonsWithTags {
-        var taggedSermons = [Sermon]()
-        
-        for sermon in sermons {
-            var tags = sermon.tags
-            var tag:String
-            var tagsSet = Set<String>()
-            
-            while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
-                tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
-                tagsSet.insert(tag)
-                tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
-            }
-            
-            if (tags != nil) {
-                tagsSet.insert(tags!)
-            }
-            
-            //        print("\(tagsSet)")
-            for tag in tagsSet {
-                if (tag == tagSelected) {
-                    taggedSermons.append(sermon)
-                }
-            }
-        }
-
-        return taggedSermons.count > 0 ? taggedSermons : nil
+    if (tagSelected != nil) {
+        return Globals.sermons.all?.tagSermons?[stringWithoutPrefixes(tagSelected)!]
+    } else {
+        return nil
     }
-    
-    return nil
+
+//    return tagSelected != nil ?
+//        sermonsWithTags?.filter({ (sermon:Sermon) -> Bool in
+//            return sermon.tagsSet?.contains(tagSelected!) != nil
+//        }) : nil
+
+//    if let sermons = sermonsWithTags {
+//        var taggedSermons = [Sermon]()
+//        
+//        for sermon in sermons {
+//            var tags = sermon.tags
+//            var tag:String
+//            var tagsSet = Set<String>()
+//            
+//            while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
+//                tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
+//                tagsSet.insert(tag)
+//                tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
+//            }
+//            
+//            if (tags != nil) {
+//                tagsSet.insert(tags!)
+//            }
+//            
+//            //        print("\(tagsSet)")
+//            for tag in tagsSet {
+//                if (tag == tagSelected) {
+//                    taggedSermons.append(sermon)
+//                }
+//            }
+//        }
+//
+//        return taggedSermons.count > 0 ? taggedSermons : nil
+//    }
+//    
+//    return nil
 }
 
 func tagsFromSermons(sermons:[Sermon]?) -> [String]?
@@ -2019,7 +2054,7 @@ func tagsFromSermons(sermons:[Sermon]?) -> [String]?
             }
         }
         
-        var tagsArray = Array(tagsSet).sort({ stringWithoutLeadingTheOrAOrAn($0) < stringWithoutLeadingTheOrAOrAn($1) })
+        var tagsArray = Array(tagsSet).sort({ stringWithoutPrefixes($0) < stringWithoutPrefixes($1) })
 
 //        var tagsArray = [String]()
 //        

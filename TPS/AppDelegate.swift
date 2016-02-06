@@ -475,6 +475,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
     func applicationWillTerminate(application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 //        println("applicationWillTerminate")
+        
+//        //iPad
+//        if let svc = self.window?.rootViewController as? UISplitViewController {
+//            if let nvc = svc.viewControllers[svc.viewControllers.count - 1] as? UINavigationController {
+//                if let myvc = nvc.visibleViewController as? MyViewController {
+//                    myvc.captureContentOffsetAndZoomScale()
+//                    saveSermonSettings()
+//                }
+//                //                if let wvc = nvc.topViewController as? WebViewController {
+//                //
+//                //                }
+//            }
+//        }
+//        
+//        //iPhone
+//        if let nvc = self.window?.rootViewController as? UINavigationController {
+//            if let myvc = nvc.visibleViewController as? MyViewController {
+//                myvc.captureContentOffsetAndZoomScale()
+//                saveSermonSettings()
+//            }
+//            //            if let wvc = nvc.topViewController as? WebViewController {
+//            //
+//            //            }
+//        }
     }
 
     func application(application: UIApplication, handleEventsForBackgroundURLSession identifier: String, completionHandler: () -> Void)
