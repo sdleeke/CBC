@@ -438,7 +438,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         setupPlayingInfoCenter()
 
         if (Globals.mpPlayer?.currentPlaybackRate == 0) {
-            updateUserDefaultsCurrentTimeExact()
+            updateCurrentTimeExact()
             Globals.playerPaused = true
         } else {
             Globals.playerPaused = false

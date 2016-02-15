@@ -39,6 +39,9 @@ struct Globals {
         }
     }
     
+    static var refreshing:Bool = false
+    static var loading:Bool = false
+    
     static var searchActive:Bool = false
     static var searchText:String?
     

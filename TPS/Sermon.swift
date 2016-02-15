@@ -293,16 +293,16 @@ class SermonsListGroupSort {
     {
 //        Globals.sermonsSortingOrGrouping = true
         
-        list = sermons
-        
         // Put the sermons into the dictionaries.
         
-        groupNames = SermonGroupNames()
-        groupSort = SermonGroupSort()
-        tagSermons = [String:[Sermon]]()
-        tagNames = [String:String]()
-
-        if (list != nil) {
+        if (sermons != nil) {
+            groupNames = SermonGroupNames()
+            groupSort = SermonGroupSort()
+            tagSermons = [String:[Sermon]]()
+            tagNames = [String:String]()
+            
+            list = sermons
+            
             var groupedSermons = [String:[String:[Sermon]]]()
             
             Globals.finished = list!.count * (Constants.groupings.count + 1)
@@ -361,7 +361,9 @@ class SermonsListGroupSort {
             //        print("\(groupedSermons)")
 
             for group in Constants.groupings {
-                Globals.finished += groupedSermons[group]!.keys.count
+                if (groupedSermons[group] != nil) {
+                    Globals.finished += groupedSermons[group]!.keys.count
+                }
             }
             for group in Constants.groupings {
                 if (groupedSermons[group] != nil) {
@@ -568,6 +570,11 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         }
     }
 
+    func hasCurrentTime() -> Bool
+    {
+        return (currentTime != nil) && (currentTime != "nan")
+    }
+    
     // this supports settings values that are saved in defaults between sessions
     var currentTime:String? {
         get {
@@ -724,33 +731,48 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     // nil better be okay for these or expect a crash
     var tags:String? {
         get {
-            if let tags = settings?[Constants.TAGS] {
-                dict![Constants.TAGS] = tags
-            } else {
-                // do nothing
-            }
+//            if let tags = settings?[Constants.TAGS] {
+//                dict![Constants.TAGS] = tags
+//            } else {
+//                // do nothing
+//            }
             return dict![Constants.TAGS]
         }
         set {
-            var tag:String
-            var tags = newValue
-            var tagsSet = Set<String>()
-            
-            while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
-                tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
-                tagsSet.insert(tag)
-                tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
-            }
-            
-            if (tags != nil) {
-                tagsSet.insert(tags!)
-            }
-            if (!tagsSet.contains(Constants.New)) {
-                settings?[Constants.TAGS] = newValue
-            } else {
-                dict![Constants.TAGS] = newValue
+//            var tag:String
+//            var tags = newValue
+//            var tagsSet = Set<String>()
+//            
+//            while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
+//                tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
+//                tagsSet.insert(tag)
+//                tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
+//            }
+//            
+//            if (tags != nil) {
+//                tagsSet.insert(tags!)
+//            }
+
+//            settings?[Constants.TAGS] = newValue
+            dict![Constants.TAGS] = newValue
+        }
+    }
+    
+    func tagsSetToString(tagsSet:Set<String>?) -> String?
+    {
+        var tags:String?
+        
+        if tagsSet != nil {
+            for tag in tagsSet! {
+                if tags == nil {
+                    tags = tag
+                } else {
+                    tags = tags! + Constants.TAGS_SEPARATOR + tag
+                }
             }
         }
+        
+        return tags
     }
     
     var tagsSet:Set<String>? {
@@ -923,25 +945,25 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         subscript(key:String) -> String? {
             get {
                 var value:String?
-                value = Globals.sermonSettings?[self.sermon!.keyBase]?[key]
+                value = Globals.sermonSettings?[sermon!.keyBase]?[key]
                 return value
             }
             set {
-                if (Globals.sermonSettings?[self.sermon!.keyBase] == nil) {
-                    Globals.sermonSettings?[self.sermon!.keyBase] = [String:String]()
-                }
-                if (newValue != nil) {
-                    if (self.sermon != nil) {
-                        //                        print("\(Globals.sermonSettings!)")
-                        //                        print("\(sermon!)")
-                        //                        print("\(newValue!)")
-                        Globals.sermonSettings?[self.sermon!.keyBase]?[key] = newValue
-                    } else {
-                        print("sermon == nil in Settings!")
+                if (sermon != nil) {
+                    if (Globals.sermonSettings?[sermon!.keyBase] == nil) {
+                        Globals.sermonSettings?[sermon!.keyBase] = [String:String]()
                     }
+                    //                        print("\(Globals.sermonSettings!)")
+                    //                        print("\(sermon!)")
+                    //                        print("\(newValue!)")
+                    Globals.sermonSettings?[sermon!.keyBase]?[key] = newValue
                 } else {
-                    print("newValue == nil in Settings!")
+                    print("sermon == nil in Settings!")
                 }
+//                if (newValue != nil) {
+//                } else {
+//                    print("newValue == nil in Settings!")
+//                }
             }
         }
     }
@@ -1187,10 +1209,10 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         return (self.speaker != nil) && (self.speaker != Constants.EMPTY_STRING)
     }
     
-    func hasNotesOrSlides() -> (hasNotes:Bool,hasSlides:Bool)
-    {
-        return (hasNotes(),hasSlides())
-    }
+//    func hasNotesOrSlides() -> (hasNotes:Bool,hasSlides:Bool)
+//    {
+//        return (hasNotes(),hasSlides())
+//    }
     
     func hasNotes() -> Bool
     {
@@ -1202,14 +1224,14 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         return (self.slides != nil) && (self.slides != Constants.EMPTY_STRING)
     }
     
-    func hasNotesOrSlides(check:Bool) -> (hasNotes:Bool,hasSlides:Bool)
-    {
-        return (hasNotes(check),hasSlides(check))
-    }
+//    func hasNotesOrSlides(check:Bool) -> (hasNotes:Bool,hasSlides:Bool)
+//    {
+//        return (hasNotes(check),hasSlides(check))
+//    }
     
     func checkNotes() -> Bool
     {
-        if !hasNotes() && Reachability.isConnectedToNetwork() {
+        if !hasNotes() { //  && Reachability.isConnectedToNetwork()
             let testString = "tp150705a"
             let testNotes = Constants.TRANSCRIPT_PREFIX + audio!.substringToIndex(testString.endIndex) + Constants.PDF_FILE_EXTENSION
             //                print("Notes file s/b: \(testNotes)")
@@ -1232,7 +1254,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     
     func checkSlides() -> Bool
     {
-        if !hasSlides() && Reachability.isConnectedToNetwork() {
+        if !hasSlides() { //  && Reachability.isConnectedToNetwork()
             let testString = "tp150705a"
             let testSlides = audio!.substringToIndex(testString.endIndex) + Constants.PDF_FILE_EXTENSION
             //                print("Slides file s/b: \(testSlides)")

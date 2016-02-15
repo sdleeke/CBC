@@ -1,6 +1,26 @@
 {
 "sermons": [
             {
+            "date":"2/07/2016",
+            "service":"PM",
+            "title":"Baptism Service",
+            "scripture":"Selected Scriptures",
+            "speaker":"Tom Pennington",
+            "tags":"Baptism",
+            "audio":"tp160207pCD.mp3"
+            },
+            
+            {
+            "date":"2/07/2016",
+            "service":"AM",
+            "title":"Found Righteous (Part 1)",
+            "series":"Found Righteous",
+            "scripture":"Romans 3:21-31",
+            "speaker":"Tom Pennington",
+            "audio":"tp160207aCD.mp3"
+            },
+            
+            {
             "date":"1/31/2016",
             "service":"PM",
             "title":"Partners with God",
@@ -98,7 +118,8 @@
             "series":"Trilemma: Liar, Lunatic, or Lord",
             "scripture":"Mark 3:20-35",
             "speaker":"Tom Pennington",
-            "audio":"tp151227aCD.mp3"
+            "audio":"tp151227aCD.mp3",
+            "notes":"tx-un-tp151227a.pdf"
             },
             
             {
@@ -174,6 +195,7 @@
             "title":"Baptism Service",
             "scripture":"Selected Scriptures",
             "speaker":"Tom Pennington",
+            "tags":"Baptism",
             "audio":"tp151115pCD.mp3"
             },
             
@@ -213,6 +235,7 @@
             "title":"Baptism Service",
             "scripture":"Selected Scriptures",
             "speaker":"Tom Pennington",
+            "tags":"Baptism",
             "audio":"tp151101pCD.mp3"
             },
             
@@ -1077,7 +1100,7 @@
         "scripture":"John 15:12-17",
         "speaker":"Tom Pennington",
         "audio":"tp140720aCD.mp3",
-        "slides":"tp140420a.pdf"
+        "slides":"tp140720a.pdf"
 },
 
 {

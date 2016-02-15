@@ -22,7 +22,7 @@ class LiveViewController: UIViewController {
                 Globals.mpPlayer?.play()
             } else {
                 Globals.mpPlayer?.pause()
-                updateUserDefaultsCurrentTimeExact()
+                updateCurrentTimeExact()
             }
             Globals.playerPaused = !Globals.playerPaused
         }
@@ -105,7 +105,7 @@ class LiveViewController: UIViewController {
             print("RemoteControlPause")
             Globals.mpPlayer?.pause()
             Globals.playerPaused = true
-            updateUserDefaultsCurrentTimeExact()
+            updateCurrentTimeExact()
             break
             
         case UIEventSubtype.RemoteControlTogglePlayPause:
@@ -114,7 +114,7 @@ class LiveViewController: UIViewController {
                 Globals.mpPlayer?.play()
             } else {
                 Globals.mpPlayer?.pause()
-                updateUserDefaultsCurrentTimeExact()
+                updateCurrentTimeExact()
             }
             Globals.playerPaused = !Globals.playerPaused
             break
@@ -145,7 +145,7 @@ class LiveViewController: UIViewController {
             Globals.mpPlayer?.endSeeking()
             Globals.seekingObserver?.invalidate()
             Globals.seekingObserver = nil
-            updateUserDefaultsCurrentTimeExact()
+            updateCurrentTimeExact()
             //        updatePlayingInfoCenter()
             setupPlayingInfoCenter()
             break
@@ -165,7 +165,7 @@ class LiveViewController: UIViewController {
             Globals.seekingObserver?.invalidate()
             Globals.seekingObserver = nil
             Globals.mpPlayer?.endSeeking()
-            updateUserDefaultsCurrentTimeExact()
+            updateCurrentTimeExact()
             //        updatePlayingInfoCenter()
             setupPlayingInfoCenter()
             break

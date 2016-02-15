@@ -42,7 +42,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 Globals.mpPlayer?.play()
             } else {
                 Globals.mpPlayer?.pause()
-                updateUserDefaultsCurrentTimeExact()
+                updateCurrentTimeExact()
             }
             Globals.playerPaused = !Globals.playerPaused
         }
@@ -363,16 +363,16 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                             self.tableView.reloadData()
                             self.listActivityIndicator.stopAnimating()
                             self.enableBarButtons()
-                            
-                            if (self.splitViewController != nil) {
-                                //iPad only
-                                if let nvc = self.splitViewController!.viewControllers[self.splitViewController!.viewControllers.count - 1] as? UINavigationController {
-                                    if let myvc = nvc.visibleViewController as? MyViewController {
-                                        myvc.sortSermonsInSeries()
-                                    }
-                                }
-                                
-                            }
+//                            
+//                            if (self.splitViewController != nil) {
+//                                //iPad only
+//                                if let nvc = self.splitViewController!.viewControllers[self.splitViewController!.viewControllers.count - 1] as? UINavigationController {
+//                                    if let myvc = nvc.visibleViewController as? MyViewController {
+//                                        myvc.sortSermonsInSeries()
+//                                    }
+//                                }
+//                                
+//                            }
                         })
                     })
                 }
@@ -866,30 +866,32 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     func mpPlayerLoadStateDidChange(notification:NSNotification)
     {
+        print("MyTVC.mpPlayerLoadStateDidChange")
+
         let player = notification.object as! MPMoviePlayerController
         
         /* Enough data has been buffered for playback to continue uninterrupted. */
         
         let loadstate:UInt8 = UInt8(player.loadState.rawValue)
-        let loadvalue:UInt8 = UInt8(MPMovieLoadState.PlaythroughOK.rawValue)
+        let loadvalue:UInt8 = UInt8(MPMovieLoadState.Playable.rawValue)
         
         // If there is a sermon that was playing before and we want to start back at the same place,
-        // the PlayPause button must NOT be active until loadState & PlaythroughOK == 1.
+        // the PlayPause button must NOT be active until loadState & Playable == 1.
         
-        //        println("\(loadstate)")
-        //        println("\(loadvalue)")
+        print("\(loadstate)")
+        print("\(loadvalue)")
         
-        if ((loadstate & loadvalue) == (1<<1)) {
-            print("AppDelegate mpPlayerLoadStateDidChange.MPMovieLoadState.PlaythroughOK")
+        if ((loadstate & loadvalue) == loadvalue) { // (1<<1)
+            print("MyTVC.mpPlayerLoadStateDidChange.MPMovieLoadState.Playable")
             //should be called only once, only for  first time audio load.
             if(!Globals.sermonLoaded) {
 //                print("\(Globals.sermonPlaying!.currentTime!)")
 //                print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
                 
-                let defaults = NSUserDefaults.standardUserDefaults()
-                if let currentTime = defaults.stringForKey(Constants.CURRENT_TIME) {
-                    Globals.sermonPlaying!.currentTime = currentTime
-                }
+//                let defaults = NSUserDefaults.standardUserDefaults()
+//                if let currentTime = defaults.stringForKey(Constants.CURRENT_TIME) {
+//                    Globals.sermonPlaying!.currentTime = currentTime
+//                }
                 
 //                print("\(Globals.sermonPlaying!.currentTime!)")
 //                print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
@@ -899,21 +901,49 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 Globals.sermonLoaded = true
             }
             
-            var myvc:MyViewController?
-            
-            if let svc = splitViewController {
-                //iPad
-                if let nvc = svc.viewControllers[svc.viewControllers.count - 1] as? UINavigationController {
-                    myvc = nvc.visibleViewController as? MyViewController
-                }
-            } else {
-                myvc = self.navigationController?.visibleViewController as? MyViewController
-            }
-            myvc?.spinner.stopAnimating()
+//            var myvc:MyViewController?
+//            
+//            if let svc = splitViewController {
+//                //iPad
+//                if let nvc = svc.viewControllers[svc.viewControllers.count - 1] as? UINavigationController {
+//                    myvc = nvc.visibleViewController as? MyViewController
+//                }
+//            } else {
+//                myvc = self.navigationController?.visibleViewController as? MyViewController
+//            }
+//            myvc?.spinner.stopAnimating()
             
             setupTitle()
             
             NSNotificationCenter.defaultCenter().removeObserver(self)
+        } else {
+            print("MyTVC.mpPlayerLoadStateDidChange.MPMovieLoadState.Playthrough NOT OK")
+        }
+
+        switch Globals.mpPlayer!.playbackState {
+        case .Playing:
+            print("MyTVC.mpPlayerLoadStateDidChange.Playing")
+            break
+            
+        case .SeekingBackward:
+            print("MyTVC.mpPlayerLoadStateDidChange.SeekingBackward")
+            break
+            
+        case .SeekingForward:
+            print("MyTVC.mpPlayerLoadStateDidChange.SeekingForward")
+            break
+            
+        case .Stopped:
+            print("MyTVC.mpPlayerLoadStateDidChange.Stopped")
+            break
+            
+        case .Interrupted:
+            print("MyTVC.mpPlayerLoadStateDidChange.Interrupted")
+            break
+            
+        case .Paused:
+            print("MyTVC.mpPlayerLoadStateDidChange.Paused")
+            break
         }
     }
     
@@ -1032,7 +1062,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         progressTimer = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: "updateProgress", userInfo: nil, repeats: true)
         
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
-            
+            Globals.loading = true
+
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 self.navigationItem.title = "Loading Sermons"
             })
@@ -1048,40 +1079,6 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 sermonsToDocumentsDirectoryArchive(sermons)
                 success = true
             }
-            
-            var sermonsNewToUser:[Sermon]?
-            
-            if (Globals.sermonRepository != nil) {
-                
-                let old = Set(Globals.sermonRepository!.map({ (sermon:Sermon) -> String in
-                    return sermon.keyBase!
-                }))
-                
-                let new = Set(newSermons!.map({ (sermon:Sermon) -> String in
-                    return sermon.keyBase!
-                }))
-                
-//                let inOldAndNew = old.intersect(new)
-//                let onlyInOld = old.subtract(new)
-
-                let onlyInNew = new.subtract(old)
-                
-//                print("\(old.count)")
-//                print("\(new.count)")
-//                print("\(inOldAndNew.count)")
-//                print("\(onlyInNew.count)")
-//                print("\(onlyInOld.count)")
-                
-                if (onlyInNew.count > 0) {
-                    sermonsNewToUser = onlyInNew.map({ (keyBase:String) -> Sermon in
-                        return newSermons!.filter({ (sermon:Sermon) -> Bool in
-                            return sermon.keyBase == keyBase
-                        }).first!
-                    })
-                }
-            }
-            
-            Globals.sermonRepository = newSermons
             
             if (!success) {
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
@@ -1107,6 +1104,53 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 return
             }
 
+            var sermonsNewToUser:[Sermon]?
+            
+            if (Globals.sermonRepository != nil) {
+                
+                let old = Set(Globals.sermonRepository!.map({ (sermon:Sermon) -> String in
+                    return sermon.keyBase!
+                }))
+                
+                let new = Set(newSermons!.map({ (sermon:Sermon) -> String in
+                    return sermon.keyBase!
+                }))
+                
+                //                print("\(old.count)")
+                //                print("\(new.count)")
+                
+                let inOldAndNew = old.intersect(new)
+                //                print("\(inOldAndNew.count)")
+                
+                if inOldAndNew.count == 0 {
+                    print("There were NO sermons in BOTH the old JSON and the new JSON.")
+                }
+                
+                let onlyInOld = old.subtract(new)
+                //                print("\(onlyInOld.count)")
+                
+                if onlyInOld.count > 0 {
+                    print("There were \(onlyInOld.count) sermons in the old JSON that are NOT in the new JSON.")
+                }
+                
+                let onlyInNew = new.subtract(old)
+                //                print("\(onlyInNew.count)")
+                
+                if onlyInNew.count > 0 {
+                    print("There are \(onlyInNew.count) sermons in the new JSON that were NOT in the old JSON.")
+                }
+                
+                if (onlyInNew.count > 0) {
+                    sermonsNewToUser = onlyInNew.map({ (keyBase:String) -> Sermon in
+                        return newSermons!.filter({ (sermon:Sermon) -> Bool in
+                            return sermon.keyBase == keyBase
+                        }).first!
+                    })
+                }
+            }
+            
+            Globals.sermonRepository = newSermons
+            
             if Globals.testing {
                 testSermonsTagsAndSeries()
                 
@@ -1127,6 +1171,18 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             })
             loadDefaults()
             
+//            if (newSermons != nil) {
+//                for sermon in newSermons! {
+//                    if sermon.tagsSet != nil {
+//                        if sermon.tagsSet!.contains(Constants.New) {
+//                            var tagsSet = sermon.tagsSet
+//                            tagsSet?.remove(Constants.New)
+//                            sermon.tags = sermon.tagsSetToString(tagsSet)
+//                        }
+//                    }
+//                }
+//            }
+            
             if (sermonsNewToUser != nil) {
                 for sermon in sermonsNewToUser! {
                     if (sermon.tags == nil) {
@@ -1135,18 +1191,26 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                         sermon.tags = sermon.tags! + Constants.TAGS_SEPARATOR + Constants.New
                     }
                 }
-//                print("\(sermonsNewToUser)")
+                //                print("\(sermonsNewToUser)")
                 
                 Globals.showing = Constants.TAGGED
                 Globals.sermonTagsSelected = Constants.New
+            } else {
+                if (Globals.showing == Constants.TAGGED) {
+                    if (Globals.sermonTagsSelected == Constants.New) {
+                        Globals.sermonTagsSelected = nil
+                        Globals.showing = Constants.ALL
+                    }
+                }
             }
+            
             
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 self.navigationItem.title = "Sorting and Grouping"
             })
             
             Globals.sermons.all = SermonsListGroupSort(sermons: Globals.sermonRepository)
-            
+
             if (Globals.showing == Constants.TAGGED) {
                 Globals.sermons.tagged = SermonsListGroupSort(sermons: taggedSermonsFromTagSelected(Globals.sermonRepository, tagSelected: Globals.sermonTagsSelected))
             }
@@ -1165,6 +1229,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 completion?()
             })
+            
+            Globals.loading = false
         })
     }
     
@@ -1221,7 +1287,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 Globals.playerPaused = true
                 Globals.mpPlayer?.pause()
                 
-                updateUserDefaultsCurrentTimeExact()
+                updateCurrentTimeExact()
                 saveSermonSettingsBackground()
                 
                 Globals.mpPlayer?.view.hidden = true
@@ -1230,6 +1296,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 self.loadSermons() {
                     self.refreshControl?.endRefreshing()
                     UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+                    Globals.refreshing = false
                 }
             })
         } else {
@@ -1253,6 +1320,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 setupSermonsForDisplay()
                 self.tableView.reloadData()
                 self.setupViews()
+                Globals.refreshing = false
             })
         }
     }
@@ -1307,6 +1375,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     }
     
     func handleRefresh(refreshControl: UIRefreshControl) {
+        Globals.refreshing = true
+        
         cancelAllDownloads()
 
         clearSermonsForDisplay()
@@ -1444,7 +1514,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     func searchBarResultsListButtonClicked(searchBar: UISearchBar) {
 //        print("searchBarResultsListButtonClicked")
         
-        if (Globals.sermons.all?.sermonTags != nil) && (self.storyboard != nil) { // !Globals.sermonsSortingOrGrouping &&
+        if !Globals.loading && !Globals.refreshing && (Globals.sermons.all?.sermonTags != nil) && (self.storyboard != nil) { // !Globals.sermonsSortingOrGrouping &&
             popover = storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? PopoverTableViewController
             
             popover?.modalPresentationStyle = .Popover
@@ -1602,14 +1672,16 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 
     func setupTitle()
     {
-        if (splitViewController == nil) {
-            if (UIDeviceOrientationIsLandscape(UIDevice.currentDevice().orientation)) {
-                navigationItem.title = Constants.CBC_LONG_TITLE
+        if (!Globals.loading) {
+            if (splitViewController == nil) {
+                if (UIDeviceOrientationIsLandscape(UIDevice.currentDevice().orientation)) {
+                    navigationItem.title = Constants.CBC_LONG_TITLE
+                } else {
+                    navigationItem.title = Constants.CBC_SHORT_TITLE
+                }
             } else {
                 navigationItem.title = Constants.CBC_SHORT_TITLE
             }
-        } else {
-            navigationItem.title = Constants.CBC_SHORT_TITLE
         }
     }
     
@@ -1706,7 +1778,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             print("RemoteControlPause")
             Globals.mpPlayer?.pause()
             Globals.playerPaused = true
-            updateUserDefaultsCurrentTimeExact()
+            updateCurrentTimeExact()
             break
             
         case UIEventSubtype.RemoteControlTogglePlayPause:
@@ -1715,7 +1787,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 Globals.mpPlayer?.play()
             } else {
                 Globals.mpPlayer?.pause()
-                updateUserDefaultsCurrentTimeExact()
+                updateCurrentTimeExact()
             }
             Globals.playerPaused = !Globals.playerPaused
             break
@@ -1746,7 +1818,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             Globals.mpPlayer?.endSeeking()
             Globals.seekingObserver?.invalidate()
             Globals.seekingObserver = nil
-            updateUserDefaultsCurrentTimeExact()
+            updateCurrentTimeExact()
             //        updatePlayingInfoCenter()
             setupPlayingInfoCenter()
             break
@@ -1766,7 +1838,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             Globals.seekingObserver?.invalidate()
             Globals.seekingObserver = nil
             Globals.mpPlayer?.endSeeking()
-            updateUserDefaultsCurrentTimeExact()
+            updateCurrentTimeExact()
             //        updatePlayingInfoCenter()
             setupPlayingInfoCenter()
             break
@@ -1886,6 +1958,15 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 break
 
             case Constants.Show_Sermon:
+                // We might check and see if the cell sermon is in a series and if not don't segue if we've
+                // already done so, but I think we'll just let it go.
+                // Mainly because if it is in series and we've selected another sermon in the series
+                // we may want to reselect from the master list to go to that sermon in the series since it is no longer
+                // selected in the detail list.
+
+//                if let myCell = sender as? MyTableViewCell {
+//                    show = (splitViewController == nil) || ((splitViewController != nil) && (splitViewController!.viewControllers.count == 1)) || (myCell.sermon != selectedSermon)
+//                }
                 break
             
             default:
@@ -1925,18 +2006,20 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     navigationItem.setRightBarButtonItem(nil, animated: true)
                 } else {
                     if let myCell = sender as? MyTableViewCell {
-                        if let indexPath = tableView.indexPathForCell(myCell) {
-                            let index = Globals.display.sectionIndexes![indexPath.section]+indexPath.row
+//                        if let indexPath = tableView.indexPathForCell(myCell) {
+//                            let index = Globals.display.sectionIndexes![indexPath.section]+indexPath.row
+//                            
+//                        }
+
+                        selectedSermon = myCell.sermon //Globals.activeSermons![index]
+
+                        if selectedSermon != nil {
+                            let defaults = NSUserDefaults.standardUserDefaults()
+                            defaults.setObject(selectedSermon!.keyBase,forKey: Constants.SELECTED_SERMON_KEY)
+                            defaults.synchronize()
                             
-                            selectedSermon = Globals.activeSermons![index]
-                            if let sermon = selectedSermon {
-                                let defaults = NSUserDefaults.standardUserDefaults()
-                                defaults.setObject(sermon.keyBase,forKey: Constants.SELECTED_SERMON_KEY)
-                                defaults.synchronize()
-                                
-                                if let destination = dvc as? MyViewController {
-                                    destination.selectedSermon = sermon
-                                }
+                            if let destination = dvc as? MyViewController {
+                                destination.selectedSermon = selectedSermon
                             }
                         }
                     }
@@ -1962,14 +2045,10 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         }
         
         setupSplitViewController()
+
+        setupTitle()
         
-        if (splitViewController == nil) {
-            if (UIDeviceOrientationIsLandscape(UIDevice.currentDevice().orientation)) {
-                navigationItem.title = Constants.CBC_TITLE_LONG
-            } else {
-                navigationItem.title = Constants.CBC_TITLE_SHORT
-            }
-        } else {
+        if (splitViewController != nil) {
             if (popover != nil) {
                 dismissViewControllerAnimated(true, completion: nil)
                 popover = nil
@@ -2039,11 +2118,11 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     func tableView(TableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
 //        print("didSelect")
 
-//        if let cell: MyTableViewCell = tableView.cellForRowAtIndexPath(indexPath) as? MyTableViewCell {
-//            //cell.backgroundColor = UIColor.whiteColor()
-//        } else {
-//            
-//        }
+        if let cell: MyTableViewCell = tableView.cellForRowAtIndexPath(indexPath) as? MyTableViewCell {
+            selectedSermon = cell.sermon
+        } else {
+            
+        }
     }
     
     func tableView(TableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {

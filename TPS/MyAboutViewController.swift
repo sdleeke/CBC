@@ -22,7 +22,7 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
                 Globals.mpPlayer?.play()
             } else {
                 Globals.mpPlayer?.pause()
-                updateUserDefaultsCurrentTimeExact()
+                updateCurrentTimeExact()
             }
             Globals.playerPaused = !Globals.playerPaused
         }
@@ -88,7 +88,7 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
             print("RemoteControlPause")
             Globals.mpPlayer?.pause()
             Globals.playerPaused = true
-            updateUserDefaultsCurrentTimeExact()
+            updateCurrentTimeExact()
             break
             
         case UIEventSubtype.RemoteControlTogglePlayPause:
@@ -97,7 +97,7 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
                 Globals.mpPlayer?.play()
             } else {
                 Globals.mpPlayer?.pause()
-                updateUserDefaultsCurrentTimeExact()
+                updateCurrentTimeExact()
             }
             Globals.playerPaused = !Globals.playerPaused
             break
@@ -128,7 +128,7 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
             Globals.mpPlayer?.endSeeking()
             Globals.seekingObserver?.invalidate()
             Globals.seekingObserver = nil
-            updateUserDefaultsCurrentTimeExact()
+            updateCurrentTimeExact()
             //        updatePlayingInfoCenter()
             setupPlayingInfoCenter()
             break
@@ -148,7 +148,7 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
             Globals.seekingObserver?.invalidate()
             Globals.seekingObserver = nil
             Globals.mpPlayer?.endSeeking()
-            updateUserDefaultsCurrentTimeExact()
+            updateCurrentTimeExact()
             //        updatePlayingInfoCenter()
             setupPlayingInfoCenter()
             break
@@ -179,7 +179,7 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
     private func openWebSite(urlString:String)
     {
         if let url = NSURL(string:urlString) {
-            if (Reachability.isConnectedToNetwork() && UIApplication.sharedApplication().canOpenURL(url)) {
+            if (UIApplication.sharedApplication().canOpenURL(url)) { // Reachability.isConnectedToNetwork() &&
                 UIApplication.sharedApplication().openURL(url)
             } else {
                 let alert = UIAlertController(title: Constants.Network_Error,
@@ -200,7 +200,7 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
     {
         let urlAddress = Constants.CBC_FULL_ADDRESS.stringByReplacingOccurrencesOfString(" ", withString: "+", options: NSStringCompareOptions.LiteralSearch, range: nil)
         
-        if (Reachability.isConnectedToNetwork() && UIApplication.sharedApplication().canOpenURL(NSURL(string:"comgooglemaps://")!)) {
+        if (UIApplication.sharedApplication().canOpenURL(NSURL(string:"comgooglemaps://")!)) { // Reachability.isConnectedToNetwork() &&
             let querystring = "comgooglemaps://?q="+urlAddress
             UIApplication.sharedApplication().openURL(NSURL(string:querystring)!)
         } else {
@@ -735,7 +735,7 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
 
     private func networkUnavailable(message:String?)
     {
-        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
+        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) { //  && (self.view.window != nil)
             let alert = UIAlertController(title:Constants.Network_Error,
                 message: message,
                 preferredStyle: UIAlertControllerStyle.Alert)
@@ -754,10 +754,10 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
     override func shouldPerformSegueWithIdentifier(identifier: String, sender: AnyObject?) -> Bool
     {
         if (identifier == "Show Live") {
-            if !Reachability.isConnectedToNetwork() {
-                networkUnavailable("Unable to connect to the internet.")
-                return false
-            }
+//            if !Reachability.isConnectedToNetwork() {
+//                networkUnavailable("Unable to connect to the internet.")
+//                return false
+//            }
         }
         
         return true

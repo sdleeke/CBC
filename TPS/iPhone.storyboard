@@ -70,6 +70,7 @@
                                     <constraint firstItem="LlX-g7-t7F" firstAttribute="centerY" secondItem="0w1-6z-2Ef" secondAttribute="centerY" id="Crr-YG-Ypk"/>
                                     <constraint firstAttribute="centerX" secondItem="ZIR-LB-dI1" secondAttribute="centerX" id="GVV-AI-JaA"/>
                                     <constraint firstItem="LlX-g7-t7F" firstAttribute="centerX" secondItem="0w1-6z-2Ef" secondAttribute="centerX" id="aD5-bS-6Dl"/>
+                                    <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="ZIR-LB-dI1" secondAttribute="bottom" id="dJa-dr-6jg"/>
                                     <constraint firstAttribute="centerY" secondItem="0w1-6z-2Ef" secondAttribute="centerY" id="foh-Ns-FlK"/>
                                 </constraints>
                             </view>

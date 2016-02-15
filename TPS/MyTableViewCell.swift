@@ -63,7 +63,7 @@ class MyTableViewCell: UITableViewCell {
     @IBAction func downloadAction(sender: UIButton)
     {
 //        print("Download!")
-        if (Reachability.isConnectedToNetwork()) {
+//        if (Reachability.isConnectedToNetwork()) {
             if (sermon != nil) {
                 switch sermon!.download.state {
                 case .none:
@@ -118,9 +118,9 @@ class MyTableViewCell: UITableViewCell {
                 }
                 updateUI()
             }
-        } else {
-            self.networkUnavailable("Unable to download audio.")
-        }
+//        } else {
+//            self.networkUnavailable("Unable to download audio.")
+//        }
     }
     
     private func networkUnavailable(message:String?)

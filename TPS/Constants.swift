@@ -46,6 +46,9 @@ struct Constants {
     
     static let HEADER_HEIGHT = CGFloat(48)
     static let VIEW_TRANSITION_TIME = 0.75 // seconds
+    
+    static let PLAY_OBSERVER_TIME_INTERVAL = 10.0 // seconds
+
     static let SKIP_TIME_INTERVAL = 15
     static let ZERO = "0"
     

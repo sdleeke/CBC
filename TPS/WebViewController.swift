@@ -33,7 +33,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 Globals.mpPlayer?.play()
             } else {
                 Globals.mpPlayer?.pause()
-                updateUserDefaultsCurrentTimeExact()
+                updateCurrentTimeExact()
             }
             Globals.playerPaused = !Globals.playerPaused
         }
@@ -61,6 +61,53 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             captureContentOffsetAndZoomScale()
             saveSermonSettingsBackground() //seems to cause crash
         }
+    }
+    
+    func webView(wkWebView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
+        
+        if (navigationAction.request.URL != nil) {
+            //            print("\(navigationAction.request.URL!.absoluteString)")
+            
+            if (navigationAction.request.URL!.absoluteString.endIndex < Constants.BASE_PDF_URL.endIndex) {
+                decisionHandler(WKNavigationActionPolicy.Cancel)
+            } else {
+                if (navigationAction.request.URL!.absoluteString.substringToIndex(Constants.BASE_PDF_URL.endIndex) == Constants.BASE_PDF_URL) {
+                    decisionHandler(WKNavigationActionPolicy.Allow)
+                } else {
+                    decisionHandler(WKNavigationActionPolicy.Cancel)
+                }
+            }
+        } else {
+            decisionHandler(WKNavigationActionPolicy.Cancel)
+        }
+    }
+    
+    func webView(wkWebView: WKWebView, didFailNavigation: WKNavigation!, withError: NSError) {
+        if (splitViewController != nil) || (self == navigationController?.visibleViewController) {
+            print("wkDidFailNavigation")
+            activityIndicator.stopAnimating()
+            activityIndicator.hidden = true
+            progressIndicator.hidden = true
+            networkUnavailable(withError.localizedDescription)
+        }
+        // Keep trying
+        //        let request = NSURLRequest(URL: wkWebView.URL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
+        //        wkWebView.loadRequest(request) // NSURLRequest(URL: webView.URL!)
+    }
+    
+    func webView(wkWebView: WKWebView, didFailProvisionalNavigation: WKNavigation!, withError: NSError) {
+        if (splitViewController != nil) || (self == navigationController?.visibleViewController) {
+            print("wkDidFailProvisionalNavigation")
+            activityIndicator.stopAnimating()
+            activityIndicator.hidden = true
+            progressIndicator.hidden = true
+            networkUnavailable(withError.localizedDescription)
+        }
+    }
+    
+    func webView(wkWebView: WKWebView, didStartProvisionalNavigation: WKNavigation!) {
+        //        print("wkDidStartProvisionalNavigation")
+        
     }
     
     private func setupWKWebView()
@@ -130,7 +177,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     
     private func networkUnavailable(message:String?)
     {
-        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
+        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) { //  && (self.view.window != nil)
             let alert = UIAlertController(title:Constants.Network_Error,
                 message: message,
                 preferredStyle: UIAlertControllerStyle.Alert)
@@ -140,7 +187,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             })
             alert.addAction(action)
             
-            presentViewController(alert, animated: true, completion: nil)
+            UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
         }
     }
     
@@ -178,7 +225,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             print("RemoteControlPause")
             Globals.mpPlayer?.pause()
             Globals.playerPaused = true
-            updateUserDefaultsCurrentTimeExact()
+            updateCurrentTimeExact()
             break
             
         case UIEventSubtype.RemoteControlTogglePlayPause:
@@ -187,7 +234,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 Globals.mpPlayer?.play()
             } else {
                 Globals.mpPlayer?.pause()
-                updateUserDefaultsCurrentTimeExact()
+                updateCurrentTimeExact()
             }
             Globals.playerPaused = !Globals.playerPaused
             break
@@ -218,7 +265,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             Globals.mpPlayer?.endSeeking()
             Globals.seekingObserver?.invalidate()
             Globals.seekingObserver = nil
-            updateUserDefaultsCurrentTimeExact()
+            updateCurrentTimeExact()
             //        updatePlayingInfoCenter()
             setupPlayingInfoCenter()
             break
@@ -238,7 +285,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             Globals.seekingObserver?.invalidate()
             Globals.seekingObserver = nil
             Globals.mpPlayer?.endSeeking()
-            updateUserDefaultsCurrentTimeExact()
+            updateCurrentTimeExact()
             //        updatePlayingInfoCenter()
             setupPlayingInfoCenter()
             break
@@ -263,11 +310,12 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         if (selectedSermon!.hasNotes() || selectedSermon!.hasSlides()) {
             action = UIAlertAction(title:Constants.Print, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
                 //            print("print!")
-                if Reachability.isConnectedToNetwork() {
-                    self.printSermon(self.selectedSermon)
-                } else {
-                    self.networkUnavailable("Unable to print.)")
-                }
+                self.printSermon(self.selectedSermon)
+//                if Reachability.isConnectedToNetwork() {
+//                    self.printSermon(self.selectedSermon)
+//                } else {
+//                    self.networkUnavailable("Unable to print.)")
+//                }
             })
             alert.addAction(action)
             
@@ -289,15 +337,20 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 }
                 
                 if let url = NSURL(string:urlString!) {
-                    if Reachability.isConnectedToNetwork() {
-                        if UIApplication.sharedApplication().canOpenURL(url) {
-                            UIApplication.sharedApplication().openURL(url)
-                        } else {
-                            self.networkUnavailable("Unable to open in browser: \(urlString)")
-                        }
+                    if UIApplication.sharedApplication().canOpenURL(url) {
+                        UIApplication.sharedApplication().openURL(url)
                     } else {
                         self.networkUnavailable("Unable to open in browser: \(urlString)")
                     }
+//                    if Reachability.isConnectedToNetwork() {
+//                        if UIApplication.sharedApplication().canOpenURL(url) {
+//                            UIApplication.sharedApplication().openURL(url)
+//                        } else {
+//                            self.networkUnavailable("Unable to open in browser: \(urlString)")
+//                        }
+//                    } else {
+//                        self.networkUnavailable("Unable to open in browser: \(urlString)")
+//                    }
                 }
             })
             alert.addAction(action)
@@ -467,7 +520,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
 //        print("\(wkWebView!.scrollView.contentOffset)")
 //        print("\(wkWebView!.scrollView.zoomScale)")
         
-        if (selectedSermon != nil) && (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
+        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) && (selectedSermon != nil) {
             switch selectedSermon!.showing! {
             case Constants.NOTES:
                 if (!wkWebView!.loading) {
@@ -553,9 +606,25 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         }
     }
     
+//    override func prefersStatusBarHidden() -> Bool {
+//        return navigationController?.navigationBarHidden == true
+//    }
+//    
+//    override func preferredStatusBarUpdateAnimation() -> UIStatusBarAnimation {
+//        return UIStatusBarAnimation.Slide
+//    }
+
+    func tap()
+    {
+        navigationController?.setNavigationBarHidden(!navigationController!.navigationBar.hidden, animated: splitViewController != nil)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        self.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: "tap"))
+        navigationController?.setToolbarHidden(true, animated: true)
+
         setupWKWebView()
         setupActionButton()
         
@@ -599,13 +668,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             self.wkWebView?.loadRequest(request) // NSURLRequest(URL: NSURL(string: stringURL!)!)
         })
     }
-
-    
-//    override func prefersStatusBarHidden() -> Bool
-//    {
-//        return false
-//    }
-
 
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)

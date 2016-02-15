@@ -56,6 +56,9 @@ class SplitView: UIView {
     override func drawRect(rect: CGRect)
     {
         if let startingPoint = splitCenter {
+            let context = UIGraphicsGetCurrentContext()
+            CGContextSaveGState(context)
+
             let indicatorPath = UIBezierPath()
             
             let height:CGFloat = bounds.width/4
@@ -107,6 +110,7 @@ class SplitView: UIView {
             color.set()
             boundsPath.stroke()
 
+            CGContextRestoreGState(context)
         } else {
             print("No starting point!")
         }
