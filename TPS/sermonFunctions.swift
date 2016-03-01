@@ -18,6 +18,12 @@ func documentsURL() -> NSURL?
     return fileManager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask).first
 }
 
+func cachesURL() -> NSURL?
+{
+    let fileManager = NSFileManager.defaultManager()
+    return fileManager.URLsForDirectory(.CachesDirectory, inDomains: .UserDomainMask).first
+}
+
 func checkFile(url:NSURL?) -> Bool
 {
     var result = false
@@ -158,13 +164,13 @@ func jsonToDocumentsDirectory()
     
     let jsonBundlePath = NSBundle.mainBundle().pathForResource(Constants.JSON_ARRAY_KEY, ofType: Constants.JSON_TYPE)
     
-    if let jsonDocumentsURL = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
+    if let jsonFileURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
         // Check if file exist
-        if (!fileManager.fileExistsAtPath(jsonDocumentsURL.path!)){
+        if (!fileManager.fileExistsAtPath(jsonFileURL.path!)){
             if (jsonBundlePath != nil) {
                 do {
                     // Copy File From Bundle To Documents Directory
-                    try fileManager.copyItemAtPath(jsonBundlePath!,toPath: jsonDocumentsURL.path!)
+                    try fileManager.copyItemAtPath(jsonBundlePath!,toPath: jsonFileURL.path!)
                 } catch _ {
                     print("failed to copy sermons.json")
                 }
@@ -175,7 +181,7 @@ func jsonToDocumentsDirectory()
             do {
                 let jsonBundleAttributes = try fileManager.attributesOfItemAtPath(jsonBundlePath!)
                 
-                let jsonDocumentsAttributes = try fileManager.attributesOfItemAtPath(jsonDocumentsURL.path!)
+                let jsonDocumentsAttributes = try fileManager.attributesOfItemAtPath(jsonFileURL.path!)
                 
                 let jsonBundleModDate = jsonBundleAttributes[NSFileModificationDate] as! NSDate
                 let jsonDocumentsModDate = jsonDocumentsAttributes[NSFileModificationDate] as! NSDate
@@ -204,8 +210,8 @@ func jsonToDocumentsDirectory()
                     //copy the bundle into Documents directory
                     do {
                         // Copy File From Bundle To Documents Directory
-                        try fileManager.removeItemAtPath(jsonDocumentsURL.path!)
-                        try fileManager.copyItemAtPath(jsonBundlePath!,toPath: jsonDocumentsURL.path!)
+                        try fileManager.removeItemAtPath(jsonFileURL.path!)
+                        try fileManager.copyItemAtPath(jsonBundlePath!,toPath: jsonFileURL.path!)
                     } catch _ {
                         print("failed to copy sermons.json")
                     }
@@ -221,7 +227,7 @@ func jsonDataFromDocumentsDirectory() -> JSON
 {
     jsonToDocumentsDirectory()
     
-    if let jsonURL = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
+    if let jsonURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
         if let data = NSData(contentsOfURL: jsonURL) {
             let json = JSON(data: data)
             if json != JSON.null {
@@ -237,23 +243,23 @@ func jsonDataFromDocumentsDirectory() -> JSON
     return nil
 }
 
-func sermonsFromDocumentsDirectoryArchive() -> [Sermon]?
+func sermonsFromArchive() -> [Sermon]?
 {
     // JSON is newer than Archive, reutrn nil.  That will force the archive to be rebuilt from the JSON.
     
     let fileManager = NSFileManager.defaultManager()
     
-    let archiveInDocumentsURL = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_ARCHIVE)
-    let archiveExistsInDocuments = fileManager.fileExistsAtPath(archiveInDocumentsURL!.path!)
+    let archiveFileSystemURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_ARCHIVE)
+    let archiveExistsInFileSystem = fileManager.fileExistsAtPath(archiveFileSystemURL!.path!)
     
-    if !archiveExistsInDocuments {
+    if !archiveExistsInFileSystem {
         return nil
     }
     
-    let jsonInDocumentsURL = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME)
-    let jsonExistsInDocuments = fileManager.fileExistsAtPath(jsonInDocumentsURL!.path!)
+    let jsonFileSystemURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME)
+    let jsonExistsInFileSystem = fileManager.fileExistsAtPath(jsonFileSystemURL!.path!)
     
-    if (!jsonExistsInDocuments) {
+    if (!jsonExistsInFileSystem) {
         // This should not happen since JSON should have been copied before the first archive was created.
         // Since we don't understand this state, return nil
         return nil
@@ -262,15 +268,15 @@ func sermonsFromDocumentsDirectoryArchive() -> [Sermon]?
     let jsonInBundlePath = NSBundle.mainBundle().pathForResource(Constants.JSON_ARRAY_KEY, ofType: Constants.JSON_TYPE)
     let jsonExistsInBundle = fileManager.fileExistsAtPath(jsonInBundlePath!)
     
-    if (jsonExistsInDocuments && jsonExistsInBundle) {
+    if (jsonExistsInFileSystem && jsonExistsInBundle) {
         // Need to see if jsonInBundle is newer
         
         do {
             let jsonInBundleAttributes = try fileManager.attributesOfItemAtPath(jsonInBundlePath!)
-            let jsonInDocumentsAttributes = try fileManager.attributesOfItemAtPath(jsonInDocumentsURL!.path!)
+            let jsonInFileSystemAttributes = try fileManager.attributesOfItemAtPath(jsonFileSystemURL!.path!)
             
             let jsonInBundleModDate = jsonInBundleAttributes[NSFileModificationDate] as! NSDate
-            let jsonInDocumentsModDate = jsonInDocumentsAttributes[NSFileModificationDate] as! NSDate
+            let jsonInDocumentsModDate = jsonInFileSystemAttributes[NSFileModificationDate] as! NSDate
             
 //            print("jsonInBundleModDate: \(jsonInBundleModDate)")
 //            print("jsonInDocumentsModDate: \(jsonInDocumentsModDate)")
@@ -295,10 +301,10 @@ func sermonsFromDocumentsDirectoryArchive() -> [Sermon]?
         }
     }
     
-    if (archiveExistsInDocuments && jsonExistsInDocuments) {
+    if (archiveExistsInFileSystem && jsonExistsInFileSystem) {
         do {
-            let jsonInDocumentsAttributes = try fileManager.attributesOfItemAtPath(jsonInDocumentsURL!.path!)
-            let archiveInDocumentsAttributes = try fileManager.attributesOfItemAtPath(archiveInDocumentsURL!.path!)
+            let jsonInDocumentsAttributes = try fileManager.attributesOfItemAtPath(jsonFileSystemURL!.path!)
+            let archiveInDocumentsAttributes = try fileManager.attributesOfItemAtPath(archiveFileSystemURL!.path!)
             
             let jsonInDocumentsModDate = jsonInDocumentsAttributes[NSFileModificationDate] as! NSDate
             let archiveInDocumentsModDate = archiveInDocumentsAttributes[NSFileModificationDate] as! NSDate
@@ -320,7 +326,7 @@ func sermonsFromDocumentsDirectoryArchive() -> [Sermon]?
             if (archiveInDocumentsModDate.isNewerThan(jsonInDocumentsModDate)) {
                 print("Archive in Documents is newer than JSON in Documents")
                 
-                let data = NSData(contentsOfURL: NSURL(fileURLWithPath: archiveInDocumentsURL!.path!))
+                let data = NSData(contentsOfURL: NSURL(fileURLWithPath: archiveFileSystemURL!.path!))
                 if (data != nil) {
                     let sermons = NSKeyedUnarchiver.unarchiveObjectWithData(data!) as? [Sermon]
                     if sermons != nil {
@@ -340,10 +346,10 @@ func sermonsFromDocumentsDirectoryArchive() -> [Sermon]?
     return nil
 }
 
-func sermonsToDocumentsDirectoryArchive(sermons:[Sermon]?)
+func sermonsToArchive(sermons:[Sermon]?)
 {
     if (sermons != nil) {
-        if let archive = documentsURL()?.URLByAppendingPathComponent(Constants.SERMONS_ARCHIVE) {
+        if let archive = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_ARCHIVE) {
             NSKeyedArchiver.archivedDataWithRootObject(sermons!).writeToURL(archive, atomically: true)
             print("Finished saving the sermon archive.")
         }
@@ -424,6 +430,7 @@ func loadDefaults()
     if (Globals.sermonTagsSelected != nil) {
         switch Globals.sermonTagsSelected! {
         case Constants.All:
+            Globals.sermonTagsSelected = nil
             Globals.showing = Constants.ALL
             break
             
@@ -469,37 +476,27 @@ func updateUserDefaultsCurrentTimeWhilePlaying()
     }
 
     if ((timeNow > 0) && (Int(timeNow) % 10) == 0) {
-        if (Globals.sermonPlaying != nil) {
-            Globals.sermonPlaying?.currentTime = timeNow.description
-            
-//            let defaults = NSUserDefaults.standardUserDefaults()
-//            //                print("\(timeNow.description)")
-//            defaults.setObject(timeNow.description,forKey: Constants.CURRENT_TIME)
-//            defaults.synchronize()
-            
-            saveSermonSettingsBackground()
-        }
+        Globals.sermonPlaying?.currentTime = Globals.mpPlayer!.currentPlaybackTime.description
+//        saveSermonSettingsBackground()
     }
 }
 
-func setupSermonPlayingUserDefaults()
-{
-    assert(Globals.sermonPlaying != nil,"Globals.sermonPlaying should not be nil if we're trying to update the userDefaults for the sermon that is playing")
-    
-    if (Globals.sermonPlaying != nil) {
-        let defaults = NSUserDefaults.standardUserDefaults()
-        
-        defaults.setObject(Globals.sermonPlaying?.dict, forKey: Constants.SERMON_PLAYING)
-        
-//        defaults.setObject(Constants.ZERO, forKey: Constants.CURRENT_TIME)
-        
-        defaults.synchronize()
-    }
-}
+//func setupSermonPlayingUserDefaults()
+//{
+//    assert(Globals.sermonPlaying != nil,"Globals.sermonPlaying should not be nil if we're trying to update the userDefaults for the sermon that is playing")
+//    
+//    if (Globals.sermonPlaying != nil) {
+//        let defaults = NSUserDefaults.standardUserDefaults()
+//        defaults.setObject(Globals.sermonPlaying?.dict, forKey: Constants.SERMON_PLAYING)
+//        defaults.synchronize()
+//    }
+//}
 
 func networkUnavailable(message:String?)
 {
     if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
+        UIApplication.sharedApplication().keyWindow?.rootViewController?.dismissViewControllerAnimated(true, completion: nil)
+        
         let alert = UIAlertController(title:Constants.Network_Error,
             message: message,
             preferredStyle: UIAlertControllerStyle.Alert)
@@ -522,70 +519,26 @@ func removeSliderObserver() {
     }
 }
 
-func removePlayObserver() {
-    if (Globals.playObserver != nil) {
-        Globals.playObserver!.invalidate()
-        Globals.playObserver = nil
-    }
-}
+//func removePlayObserver() {
+//    if (Globals.playObserver != nil) {
+//        Globals.playObserver!.invalidate()
+//        Globals.playObserver = nil
+//    }
+//}
 
 func setupPlayer(sermon:Sermon?)
 {
     if (sermon != nil) {
-        var sermonURL:String?
-        
-        switch sermon!.playing! {
-        case Constants.AUDIO:
-            if (sermon!.audio != nil) {
-                sermonURL = Constants.BASE_AUDIO_URL + sermon!.audio!
-            } else {
-                //Error
-            }
-            break
-        
-        case Constants.VIDEO:
-            if (sermon!.video != nil) {
-                sermonURL = Constants.BASE_VIDEO_URL_PREFIX + sermon!.video! + Constants.BASE_VIDEO_URL_POSTFIX
-            } else {
-                //Error
-            }
-            break
-            
-        default:
-            break
-        }
-        
-        //        print("playNewSermon: \(sermonURL)")
+        Globals.sermonLoaded = false
 
-        var url = NSURL(string:sermonURL!)
-//        var networkRequired = true
+        Globals.mpPlayer = MPMoviePlayerController(contentURL: sermon?.playingURL)
+        Globals.mpPlayer?.shouldAutoplay = false
+        Globals.mpPlayer?.controlStyle = MPMovieControlStyle.None
+        Globals.mpPlayer?.prepareToPlay()
         
-        if (sermon?.playing == Constants.AUDIO) {
-            let fileURL = documentsURL()?.URLByAppendingPathComponent(sermon!.audio!)
-            if (NSFileManager.defaultManager().fileExistsAtPath(fileURL!.path!)){
-                url = fileURL
-//                networkRequired = false
-            }
-        }
+        setupPlayingInfoCenter()
         
-//        if !networkRequired || (networkRequired && Reachability.isConnectedToNetwork()) {
-            Globals.sermonLoaded = false
-
-            Globals.mpPlayer = MPMoviePlayerController(contentURL: url)
-            Globals.mpPlayer?.shouldAutoplay = false
-            Globals.mpPlayer?.controlStyle = MPMovieControlStyle.None
-            Globals.mpPlayer?.prepareToPlay()
-            
-            setupPlayingInfoCenter()
-            
-            Globals.playerPaused = true
-            
-//            Globals.sermonLoaded = !networkRequired
-//        }
-        
-//        if !networkRequired { // || !Reachability.isConnectedToNetwork()
-//            Globals.sermonLoaded = true
-//        }
+        Globals.playerPaused = true
     }
 }
 
@@ -603,20 +556,17 @@ func setupPlayerAtEnd(sermon:Sermon?)
 func updateCurrentTimeExact()
 {
     if (Globals.mpPlayer != nil) {
-        updateCurrentTimeExact(Float(Globals.mpPlayer!.currentPlaybackTime))
+        if (Globals.mpPlayer?.contentURL != NSURL(string:Constants.LIVE_STREAM_URL)) {
+            updateCurrentTimeExact(Globals.mpPlayer!.currentPlaybackTime)
+        }
     }
 }
 
-func updateCurrentTimeExact(seekToTime:Float)
+func updateCurrentTimeExact(seekToTime:NSTimeInterval)
 {
     if (seekToTime >= 0) {
-//        let defaults = NSUserDefaults.standardUserDefaults()
-//        //        print("\(seekToTime.description)")
-//        defaults.setObject(seekToTime.description,forKey: Constants.CURRENT_TIME)
-//        defaults.synchronize()
-        
         Globals.sermonPlaying?.currentTime = seekToTime.description
-        saveSermonSettingsBackground()
+//        saveSermonSettingsBackground()
     }
 }
 
@@ -713,7 +663,7 @@ extension NSDate
 
 func saveSermonSettingsBackground()
 {
-    print("saveSermonSettingsBackground")
+//    print("saveSermonSettingsBackground")
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0)) { () -> Void in
         saveSermonSettings()
     }
@@ -721,7 +671,7 @@ func saveSermonSettingsBackground()
 
 func saveSermonSettings()
 {
-    print("saveSermonSettings")
+//    print("saveSermonSettings")
     let defaults = NSUserDefaults.standardUserDefaults()
     //    print("\(Globals.sermonSettings)")
     defaults.setObject(Globals.sermonSettings,forKey: Constants.SERMON_SETTINGS_KEY)
@@ -1271,9 +1221,7 @@ func testSermonsPDFs(testExisting testExisting:Bool, testMissing:Bool, showTesti
                 }
                 
                 if (sermon.notes != nil) {
-                    let notesURL = Constants.BASE_PDF_URL + sermon.notes!
-                    
-                    if (NSData(contentsOfURL: NSURL(string: notesURL)!) == nil) {
+                    if (NSData(contentsOfURL: sermon.notesURL!) == nil) {
                         print("Transcript DOES NOT exist for: \(sermon.title!) PDF: \(sermon.notes!)")
                     } else {
                         
@@ -1281,9 +1229,7 @@ func testSermonsPDFs(testExisting testExisting:Bool, testMissing:Bool, showTesti
                 }
                 
                 if (sermon.slides != nil) {
-                    let slidesURL = Constants.BASE_PDF_URL + sermon.slides!
-                    
-                    if (NSData(contentsOfURL: NSURL(string: slidesURL)!) == nil) {
+                    if (NSData(contentsOfURL: sermon.slidesURL!) == nil) {
                         print("Slides DO NOT exist for: \(sermon.title!) PDF: \(sermon.slides!)")
                     } else {
                         

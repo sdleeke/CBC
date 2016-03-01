@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1712CD701C77449B005E09D6 /* MySettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1712CD6F1C77449B005E09D6 /* MySettingsViewController.swift */; };
 		171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171A6ED41BF2172100E3323C /* WebViewController.swift */; };
 		174EEE6D1B74C0DD004F6942 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 174EEE6C1B74C0DD004F6942 /* Images.xcassets */; };
 		174EEE7C1B74C0DE004F6942 /* TPSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE7B1B74C0DE004F6942 /* TPSTests.swift */; };
@@ -27,6 +28,7 @@
 		177FBA951C5CF36400AFBB50 /* OBSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 177FBA941C5CF36400AFBB50 /* OBSlider.swift */; };
 		1780A7B81B7759FC0003FD39 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1780A7B71B7759FC0003FD39 /* MapKit.framework */; };
 		1795C8D01BF13EC2009511FD /* LiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1795C8CF1BF13EC2009511FD /* LiveViewController.swift */; };
+		17A275731C85CE8B00D24CEE /* TPSUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17A275721C85CE8B00D24CEE /* TPSUITests.swift */; };
 		17BBEDD71BBF631F0070BF89 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17BBEDD61BBF631F0070BF89 /* SwiftyJSON.swift */; };
 		17E75ECA1B835FC600AE8ED5 /* sermonFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E75EC91B835FC600AE8ED5 /* sermonFunctions.swift */; };
 		17E893541BA83FCE00D5D2FB /* SplitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E893531BA83FCE00D5D2FB /* SplitView.swift */; };
@@ -41,9 +43,24 @@
 			remoteGlobalIDString = 174EEE5F1B74C0DD004F6942;
 			remoteInfo = TPS;
 		};
+		17A275671C85CE7600D24CEE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 174EEE581B74C0DD004F6942 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 174EEE5F1B74C0DD004F6942;
+			remoteInfo = TPS;
+		};
+		17A275751C85CE8B00D24CEE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 174EEE581B74C0DD004F6942 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 174EEE5F1B74C0DD004F6942;
+			remoteInfo = TPS;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1712CD6F1C77449B005E09D6 /* MySettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MySettingsViewController.swift; sourceTree = "<group>"; };
 		171A6ED41BF2172100E3323C /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
 		174EEE601B74C0DD004F6942 /* TPS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TPS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		174EEE6C1B74C0DD004F6942 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
@@ -68,6 +85,10 @@
 		177FBA941C5CF36400AFBB50 /* OBSlider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OBSlider.swift; sourceTree = "<group>"; };
 		1780A7B71B7759FC0003FD39 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		1795C8CF1BF13EC2009511FD /* LiveViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = LiveViewController.swift; path = ../LiveViewController.swift; sourceTree = "<group>"; };
+		17A275621C85CE7600D24CEE /* SermonsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SermonsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		17A275701C85CE8B00D24CEE /* TPSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TPSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		17A275721C85CE8B00D24CEE /* TPSUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TPSUITests.swift; sourceTree = "<group>"; };
+		17A275741C85CE8B00D24CEE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		17BBEDD61BBF631F0070BF89 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
 		17D9AA061BE0EDF700ED5090 /* fontawesome-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "fontawesome-webfont.ttf"; sourceTree = "<group>"; };
 		17E75EC91B835FC600AE8ED5 /* sermonFunctions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = sermonFunctions.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -90,6 +111,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		17A2755F1C85CE7600D24CEE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		17A2756D1C85CE8B00D24CEE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -98,6 +133,7 @@
 			children = (
 				174EEE621B74C0DD004F6942 /* TPS */,
 				174EEE781B74C0DE004F6942 /* TPSTests */,
+				17A275711C85CE8B00D24CEE /* TPSUITests */,
 				174EEE611B74C0DD004F6942 /* Products */,
 				1780A7B71B7759FC0003FD39 /* MapKit.framework */,
 			);
@@ -108,6 +144,8 @@
 			children = (
 				174EEE601B74C0DD004F6942 /* TPS.app */,
 				174EEE751B74C0DE004F6942 /* TPSTests.xctest */,
+				17A275621C85CE7600D24CEE /* SermonsUITests.xctest */,
+				17A275701C85CE8B00D24CEE /* TPSUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -133,6 +171,7 @@
 				174EEE891B74C11E004F6942 /* MyViewController.swift */,
 				171A6ED41BF2172100E3323C /* WebViewController.swift */,
 				174EEE8A1B74C11E004F6942 /* MyAboutViewController.swift */,
+				1712CD6F1C77449B005E09D6 /* MySettingsViewController.swift */,
 				1795C8CF1BF13EC2009511FD /* LiveViewController.swift */,
 				174EEE6C1B74C0DD004F6942 /* Images.xcassets */,
 				174EEE951B74C1B1004F6942 /* LaunchScreen.xib */,
@@ -165,6 +204,15 @@
 				174EEE7A1B74C0DE004F6942 /* Info.plist */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		17A275711C85CE8B00D24CEE /* TPSUITests */ = {
+			isa = PBXGroup;
+			children = (
+				17A275721C85CE8B00D24CEE /* TPSUITests.swift */,
+				17A275741C85CE8B00D24CEE /* Info.plist */,
+			);
+			path = TPSUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -205,6 +253,42 @@
 			productReference = 174EEE751B74C0DE004F6942 /* TPSTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		17A275611C85CE7600D24CEE /* SermonsUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 17A2756B1C85CE7600D24CEE /* Build configuration list for PBXNativeTarget "SermonsUITests" */;
+			buildPhases = (
+				17A2755E1C85CE7600D24CEE /* Sources */,
+				17A2755F1C85CE7600D24CEE /* Frameworks */,
+				17A275601C85CE7600D24CEE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				17A275681C85CE7600D24CEE /* PBXTargetDependency */,
+			);
+			name = SermonsUITests;
+			productName = SermonsUITests;
+			productReference = 17A275621C85CE7600D24CEE /* SermonsUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		17A2756F1C85CE8B00D24CEE /* TPSUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 17A275771C85CE8B00D24CEE /* Build configuration list for PBXNativeTarget "TPSUITests" */;
+			buildPhases = (
+				17A2756C1C85CE8B00D24CEE /* Sources */,
+				17A2756D1C85CE8B00D24CEE /* Frameworks */,
+				17A2756E1C85CE8B00D24CEE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				17A275761C85CE8B00D24CEE /* PBXTargetDependency */,
+			);
+			name = TPSUITests;
+			productName = TPSUITests;
+			productReference = 17A275701C85CE8B00D24CEE /* TPSUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -212,7 +296,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftMigration = 0700;
-				LastSwiftUpdateCheck = 0700;
+				LastSwiftUpdateCheck = 0720;
 				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = "Steve Leeke";
 				TargetAttributes = {
@@ -232,6 +316,14 @@
 						CreatedOnToolsVersion = 6.4;
 						TestTargetID = 174EEE5F1B74C0DD004F6942;
 					};
+					17A275611C85CE7600D24CEE = {
+						CreatedOnToolsVersion = 7.2.1;
+						TestTargetID = 174EEE5F1B74C0DD004F6942;
+					};
+					17A2756F1C85CE8B00D24CEE = {
+						CreatedOnToolsVersion = 7.2.1;
+						TestTargetID = 174EEE5F1B74C0DD004F6942;
+					};
 				};
 			};
 			buildConfigurationList = 174EEE5B1B74C0DD004F6942 /* Build configuration list for PBXProject "TPS" */;
@@ -249,6 +341,8 @@
 			targets = (
 				174EEE5F1B74C0DD004F6942 /* TPS */,
 				174EEE741B74C0DE004F6942 /* TPSTests */,
+				17A275611C85CE7600D24CEE /* SermonsUITests */,
+				17A2756F1C85CE8B00D24CEE /* TPSUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -274,6 +368,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		17A275601C85CE7600D24CEE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		17A2756E1C85CE8B00D24CEE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -290,6 +398,7 @@
 				174EEE901B74C11E004F6942 /* MyViewController.swift in Sources */,
 				17763BE71BEA350500BB5556 /* Globals.swift in Sources */,
 				17E893541BA83FCE00D5D2FB /* SplitView.swift in Sources */,
+				1712CD701C77449B005E09D6 /* MySettingsViewController.swift in Sources */,
 				174EEE911B74C11E004F6942 /* MyAboutViewController.swift in Sources */,
 				174EEE8D1B74C11E004F6942 /* MyTableViewController.swift in Sources */,
 				175EDA261BAC80F600942E6D /* Reachability.swift in Sources */,
@@ -308,6 +417,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		17A2755E1C85CE7600D24CEE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		17A2756C1C85CE8B00D24CEE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				17A275731C85CE8B00D24CEE /* TPSUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -315,6 +439,16 @@
 			isa = PBXTargetDependency;
 			target = 174EEE5F1B74C0DD004F6942 /* TPS */;
 			targetProxy = 174EEE761B74C0DE004F6942 /* PBXContainerItemProxy */;
+		};
+		17A275681C85CE7600D24CEE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 174EEE5F1B74C0DD004F6942 /* TPS */;
+			targetProxy = 17A275671C85CE7600D24CEE /* PBXContainerItemProxy */;
+		};
+		17A275761C85CE8B00D24CEE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 174EEE5F1B74C0DD004F6942 /* TPS */;
+			targetProxy = 17A275751C85CE8B00D24CEE /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -469,6 +603,60 @@
 			};
 			name = Release;
 		};
+		17A275691C85CE7600D24CEE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				INFOPLIST_FILE = SermonsUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.leeke.SermonsUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = TPS;
+				USES_XCTRUNNER = YES;
+			};
+			name = Debug;
+		};
+		17A2756A1C85CE7600D24CEE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = SermonsUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.leeke.SermonsUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = TPS;
+				USES_XCTRUNNER = YES;
+			};
+			name = Release;
+		};
+		17A275781C85CE8B00D24CEE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				INFOPLIST_FILE = TPSUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.leeke.TPSUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = TPS;
+				USES_XCTRUNNER = YES;
+			};
+			name = Debug;
+		};
+		17A275791C85CE8B00D24CEE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = TPSUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.leeke.TPSUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = TPS;
+				USES_XCTRUNNER = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -498,6 +686,22 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		17A2756B1C85CE7600D24CEE /* Build configuration list for PBXNativeTarget "SermonsUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				17A275691C85CE7600D24CEE /* Debug */,
+				17A2756A1C85CE7600D24CEE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		17A275771C85CE8B00D24CEE /* Build configuration list for PBXNativeTarget "TPSUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				17A275781C85CE8B00D24CEE /* Debug */,
+				17A275791C85CE8B00D24CEE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};

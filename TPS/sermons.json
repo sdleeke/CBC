@@ -1,6 +1,35 @@
 {
 "sermons": [
             {
+            "date":"2/14/2016",
+            "service":"PM",
+            "title":"Baptism Service",
+            "scripture":"Selected Scriptures",
+            "speaker":"Tom Pennington",
+            "tags":"Baptism",
+            "audio":"tp160214pCD.mp3"
+            },
+            
+            {
+            "date":"2/14/2016",
+            "service":"PM",
+            "title":"The Secret to Joshua's Success",
+            "scripture":"Joshua 1:1-9",
+            "speaker":"Justin Turner",
+            "audio":"jt160214pCD.mp3"
+            },
+            
+            {
+            "date":"2/14/2016",
+            "service":"AM",
+            "title":"Found Righteous (Part 2)",
+            "series":"Found Righteous",
+            "scripture":"Romans 3:21-31",
+            "speaker":"Tom Pennington",
+            "audio":"tp160214aCD.mp3"
+            },
+            
+            {
             "date":"2/07/2016",
             "service":"PM",
             "title":"Baptism Service",
@@ -5766,6 +5795,7 @@
         "series":"A Voice Crying",
         "tags":"The Memoirs of Peter",
         "audio":"tp080608pCD.mp3",
+        "notes":"tx-un-tp080608p.pdf",
         "slides":"tp080608p.pdf"
 },
 

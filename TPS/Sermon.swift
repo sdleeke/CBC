@@ -521,6 +521,60 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         coder.encodeObject(self.dict, forKey: Constants.DICT)
     }
     
+    var showingPDF:NSURL? {
+        get {
+            var url:NSURL?
+            
+            switch showing! {
+            case Constants.NOTES:
+                url = notesURL
+                break
+            case Constants.SLIDES:
+                url = slidesURL
+                break
+                
+            default:
+                break
+            }
+            
+            return url
+        }
+    }
+    
+    var playingURL:NSURL? {
+        get {
+            var url:NSURL?
+            
+            switch playing! {
+            case Constants.AUDIO:
+                url = cachesURL()?.URLByAppendingPathComponent(audio!)
+                if (!NSFileManager.defaultManager().fileExistsAtPath(url!.path!)){
+                    url = audioURL
+                }
+                break
+                
+            case Constants.VIDEO:
+                //Needs work - video! is not the right thing to add.
+//                url = cachesURL()?.URLByAppendingPathComponent(video!)
+//                if (!NSFileManager.defaultManager().fileExistsAtPath(url!.path!)){
+                    url = videoURL
+//                }
+                break
+                
+            default:
+                break
+            }
+            
+            return url
+        }
+    }
+    
+    var isPlaying:Bool {
+        get {
+            return Globals.mpPlayer?.contentURL == playingURL
+        }
+    }
+    
     // this supports settings values that are saved in defaults between sessions
     var playing:String? {
         get {
@@ -807,9 +861,21 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         }
     }
     
+    var audioURL:NSURL? {
+        get {
+            return NSURL(string: Constants.BASE_AUDIO_URL + audio!)
+        }
+    }
+    
     var video:String? {
         get {
             return dict![Constants.VIDEO]
+        }
+    }
+    
+    var videoURL:NSURL? {
+        get {
+            return NSURL(string: Constants.BASE_VIDEO_URL_PREFIX + video! + Constants.BASE_VIDEO_URL_POSTFIX)
         }
     }
     
@@ -834,6 +900,12 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         }
     }
     
+    var notesURL:NSURL? {
+        get {
+            return NSURL(string: Constants.BASE_PDF_URL + notes!)
+        }
+    }
+    
     // this supports set values that are saved in defaults between sessions
     var slides:String? {
         get {
@@ -850,6 +922,12 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             dict![Constants.SLIDES] = newValue
             settings?[Constants.SLIDES] = newValue
             NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+        }
+    }
+    
+    var slidesURL:NSURL? {
+        get {
+            return NSURL(string: Constants.BASE_PDF_URL + slides!)
         }
     }
     
@@ -957,13 +1035,14 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                     //                        print("\(sermon!)")
                     //                        print("\(newValue!)")
                     Globals.sermonSettings?[sermon!.keyBase]?[key] = newValue
+                    saveSermonSettingsBackground()
                 } else {
                     print("sermon == nil in Settings!")
                 }
-//                if (newValue != nil) {
-//                } else {
-//                    print("newValue == nil in Settings!")
-//                }
+                //                if (newValue != nil) {
+                //                } else {
+                //                    print("newValue == nil in Settings!")
+                //                }
             }
         }
     }
@@ -971,6 +1050,50 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     lazy var settings:Settings? = {
         return Settings(sermon:self)
     }()
+    
+    struct SeriesSettings {
+        var sermon:Sermon?
+        
+        init(sermon:Sermon?) {
+            if (sermon == nil) {
+                print("nil sermon in Settings init!")
+            }
+            self.sermon = sermon
+        }
+        
+        subscript(key:String) -> String? {
+            get {
+                return Globals.seriesViewSplits?[sermon!.seriesKeyBase]
+            }
+            set {
+                if (sermon != nil) {
+                    if (Globals.seriesViewSplits == nil) {
+                        Globals.seriesViewSplits = [String:String]()
+                    }
+                    //                        print("\(Globals.seriesViewSplits!)")
+                    //                        print("\(sermon!)")
+                    //                        print("\(newValue!)")
+                    Globals.seriesViewSplits?[sermon!.seriesKeyBase] = newValue
+                    saveSermonSettingsBackground()
+                } else {
+                    print("sermon == nil in Settings!")
+                }
+            }
+        }
+    }
+    
+    lazy var seriesSettings:SeriesSettings? = {
+        return SeriesSettings(sermon:self)
+    }()
+    
+    var viewSplit:String? {
+        get {
+            return seriesSettings?[seriesKeyBase]
+        }
+        set {
+            seriesSettings?[seriesKeyBase] = newValue
+        }
+    }
     
 //    func settingForKey(key:String) -> String?
 //    {
@@ -995,7 +1118,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     func isDownloaded() -> Bool
     {
         if (hasAudio()) {
-            if let fileURL = documentsURL()?.URLByAppendingPathComponent(audio!) {
+            if let fileURL = cachesURL()?.URLByAppendingPathComponent(audio!) {
                 return NSFileManager.defaultManager().fileExistsAtPath(fileURL.path!)
             }
         }
@@ -1006,7 +1129,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     func deleteDownload()
     {
         if (hasAudio()) {
-            if let fileURL = documentsURL()?.URLByAppendingPathComponent(audio!) {
+            if let fileURL = cachesURL()?.URLByAppendingPathComponent(audio!) {
                 // Check if file exists and if so, delete it.
                 if (NSFileManager.defaultManager().fileExistsAtPath(fileURL.path!)){
                     do {
@@ -1097,7 +1220,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         let fileManager = NSFileManager.defaultManager()
         
         //Get documents directory URL
-        let destinationURL = documentsURL()?.URLByAppendingPathComponent(filename)
+        let destinationURL = cachesURL()?.URLByAppendingPathComponent(filename)
         // Check if file exists
         if (fileManager.fileExistsAtPath(destinationURL!.path!)){
             do {
@@ -1184,9 +1307,24 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         return (audio != nil) && (audio != Constants.EMPTY_STRING)
     }
     
+    func playingAudio() -> Bool
+    {
+        return (playing == Constants.AUDIO)
+    }
+    
     func hasVideo() -> Bool
     {
         return (video != nil) && (video != Constants.EMPTY_STRING)
+    }
+    
+    func playingVideo() -> Bool
+    {
+        return (playing == Constants.VIDEO)
+    }
+    
+    func showingVideo() -> Bool
+    {
+        return (showing == Constants.VIDEO)
     }
     
     func hasScripture() -> Bool
@@ -1219,9 +1357,19 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         return (self.notes != nil) && (self.notes != Constants.EMPTY_STRING)
     }
     
+    func showingNotes() -> Bool
+    {
+        return (showing == Constants.NOTES)
+    }
+    
     func hasSlides() -> Bool
     {
         return (self.slides != nil) && (self.slides != Constants.EMPTY_STRING)
+    }
+    
+    func showingSlides() -> Bool
+    {
+        return (showing == Constants.SLIDES)
     }
     
 //    func hasNotesOrSlides(check:Bool) -> (hasNotes:Bool,hasSlides:Bool)

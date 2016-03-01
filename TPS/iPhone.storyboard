@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9531" systemVersion="15D21" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="T8F-64-B2A">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9532" systemVersion="15D21" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="T8F-64-B2A">
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9529"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9530"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
@@ -347,37 +347,20 @@
                         <viewControllerLayoutGuide type="bottom" id="cOM-3y-U9L"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="c2Z-FM-joi">
-                        <rect key="frame" x="0.0" y="64" width="600" height="536"/>
+                        <rect key="frame" x="0.0" y="64" width="600" height="1136"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="nCV-BS-j1l">
-                                <rect key="frame" x="0.0" y="0.0" width="600" height="466"/>
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="1086"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" secondItem="nCV-BS-j1l" secondAttribute="height" multiplier="16:9" id="hKx-Lj-sMI"/>
-                                </constraints>
-                                <variation key="default">
-                                    <mask key="constraints">
-                                        <exclude reference="hKx-Lj-sMI"/>
-                                    </mask>
-                                </variation>
                             </view>
-                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="center" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4c2-R2-KTG">
-                                <rect key="frame" x="20" y="466" width="560" height="70"/>
+                            <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" textAlignment="center" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4c2-R2-KTG">
+                                <rect key="frame" x="20" y="1086" width="560" height="50"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="70" id="cK5-FT-rks"/>
-                                    <constraint firstAttribute="height" constant="100" id="gQJ-Jg-2PE"/>
-                                </constraints>
                                 <string key="text">Countryside's worship services are broadcast live on Sundays at
 9:30 am, 11:05 am, and 6:00 pm.</string>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                                <variation key="default">
-                                    <mask key="constraints">
-                                        <exclude reference="gQJ-Jg-2PE"/>
-                                    </mask>
-                                </variation>
                             </textView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -387,10 +370,14 @@
                             <constraint firstItem="4c2-R2-KTG" firstAttribute="top" secondItem="nCV-BS-j1l" secondAttribute="bottom" id="7pv-b5-cUi"/>
                             <constraint firstItem="nCV-BS-j1l" firstAttribute="leading" secondItem="c2Z-FM-joi" secondAttribute="leading" id="Aan-gV-Gxt"/>
                             <constraint firstAttribute="trailing" secondItem="4c2-R2-KTG" secondAttribute="trailing" constant="20" symbolic="YES" id="Jkn-Wa-2y8"/>
+                            <constraint firstItem="nCV-BS-j1l" firstAttribute="centerX" secondItem="c2Z-FM-joi" secondAttribute="centerX" id="NqA-R1-XQ7"/>
                             <constraint firstAttribute="trailing" secondItem="nCV-BS-j1l" secondAttribute="trailing" id="TCv-wJ-g3C"/>
                             <constraint firstAttribute="bottomMargin" secondItem="4c2-R2-KTG" secondAttribute="bottom" id="Z7M-uy-nAQ"/>
+                            <constraint firstItem="4c2-R2-KTG" firstAttribute="centerX" secondItem="c2Z-FM-joi" secondAttribute="centerX" id="j05-Ox-jdp"/>
                         </constraints>
                     </view>
+                    <extendedEdge key="edgesForExtendedLayout"/>
+                    <toolbarItems/>
                     <connections>
                         <outlet property="view" destination="nCV-BS-j1l" id="73j-a9-0GM"/>
                         <outlet property="webView" destination="nCV-BS-j1l" id="Tb0-w3-7LK"/>
@@ -398,7 +385,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="PwX-Z7-Yg7" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1594" y="1520"/>
+            <point key="canvasLocation" x="3102" y="1806"/>
         </scene>
         <!--About-->
         <scene sceneID="URY-BH-Jcn">
@@ -739,7 +726,7 @@ Email: cbcstaff@countrysidebible.org</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="6ce-yY-cq0" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="714" y="1582"/>
+            <point key="canvasLocation" x="2276" y="1582"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="P8h-Gh-TYp">
@@ -762,9 +749,9 @@ Email: cbcstaff@countrysidebible.org</string>
         <!--Popover Table View Controller-->
         <scene sceneID="WLo-r9-vIY">
             <objects>
-                <tableViewController storyboardIdentifier="PopoverTableView" id="lu5-Rc-8lP" customClass="PopoverTableViewController" customModule="TPS" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController id="lu5-Rc-8lP" customClass="PopoverTableViewController" customModule="TPS" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="35" sectionHeaderHeight="22" sectionFooterHeight="22" id="4sE-HL-f4C">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <rect key="frame" x="0.0" y="64" width="600" height="536"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <prototypes>
@@ -792,10 +779,11 @@ Email: cbcstaff@countrysidebible.org</string>
                         </connections>
                     </tableView>
                     <extendedEdge key="edgesForExtendedLayout"/>
+                    <navigationItem key="navigationItem" id="9U4-kJ-woR"/>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="2FF-mK-FmL" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-122" y="1582"/>
+            <point key="canvasLocation" x="690" y="1582"/>
         </scene>
         <!--CBC Sermons-->
         <scene sceneID="T5y-cO-uYR">
@@ -957,6 +945,10 @@ Email: cbcstaff@countrysidebible.org</string>
                         <outlet property="showButton" destination="mag-xm-dO5" id="h1n-DU-VBJ"/>
                         <outlet property="tableView" destination="HBU-GK-goT" id="aBX-wH-0OI"/>
                         <segue destination="6uU-x7-vf8" kind="show" identifier="Show About" id="4rU-ae-wsU"/>
+                        <segue destination="bBf-jU-GHv" kind="show" identifier="Show About2" id="J3g-fc-gic"/>
+                        <segue destination="lwY-VQ-aAG" kind="popoverPresentation" identifier="Show Settings" popoverAnchorBarButtonItem="mag-xm-dO5" id="O6r-KI-fGh">
+                            <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES" left="YES" right="YES"/>
+                        </segue>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="fau-gO-Lwo" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1016,9 +1008,323 @@ Email: cbcstaff@countrysidebible.org</string>
             </objects>
             <point key="canvasLocation" x="2290" y="793"/>
         </scene>
+        <!--About 2-->
+        <scene sceneID="nli-ql-NxL">
+            <objects>
+                <viewController title="About 2" id="bBf-jU-GHv" customClass="MyAboutViewController" customModule="TPS" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="Vnm-p3-zP1"/>
+                        <viewControllerLayoutGuide type="bottom" id="84i-nP-tr7"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="2tD-aa-xdh">
+                        <rect key="frame" x="0.0" y="64" width="600" height="1136"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="BQq-cI-QAD">
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="1136"/>
+                                <subviews>
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="tom_pennington" translatesAutoresizingMaskIntoConstraints="NO" id="c5P-aS-8jA">
+                                        <rect key="frame" x="172" y="20" width="256" height="256"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" secondItem="c5P-aS-8jA" secondAttribute="height" multiplier="1:1" id="A4K-it-Ll7"/>
+                                            <constraint firstAttribute="width" constant="256" id="EzJ-ls-o6d"/>
+                                            <constraint firstAttribute="height" constant="256" id="bMc-2Z-cga"/>
+                                        </constraints>
+                                    </imageView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tom Pennington" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jOp-pB-6FT">
+                                        <rect key="frame" x="6" y="284" width="133" height="21"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="21" id="Iwr-1f-RBT"/>
+                                            <constraint firstAttribute="width" constant="135" id="dgp-YY-k8P"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                        <nil key="highlightedColor"/>
+                                        <variation key="default">
+                                            <mask key="constraints">
+                                                <exclude reference="Iwr-1f-RBT"/>
+                                                <exclude reference="dgp-YY-k8P"/>
+                                            </mask>
+                                        </variation>
+                                    </label>
+                                    <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VWj-4M-Alv">
+                                        <rect key="frame" x="0.0" y="313" width="600" height="184"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="300" id="Ewq-fQ-dUW"/>
+                                        </constraints>
+                                        <string key="text">Tom Pennington is Pastor-Teacher of Countryside Bible Church in Southlake, Texas. His pulpit ministry provides the material for The Word Unleashed.
+
+Before Texas, Tom served 16 years in various roles connected to Grace Community Church, including executive pastor and personal assistant to John MacArthur. For many years he was also managing director of Grace to You. In addition to his role at Countryside and The Word Unleashed, Tom is also involved internationally in training pastors in expository preaching.</string>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                        <variation key="default">
+                                            <mask key="constraints">
+                                                <exclude reference="Ewq-fQ-dUW"/>
+                                            </mask>
+                                        </variation>
+                                    </textView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Countryside Bible Church" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Kbb-43-nva">
+                                        <rect key="frame" x="6" y="505" width="210" height="21"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="21" id="J6n-B9-YtG"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                        <nil key="highlightedColor"/>
+                                        <variation key="default">
+                                            <mask key="constraints">
+                                                <exclude reference="J6n-B9-YtG"/>
+                                            </mask>
+                                        </variation>
+                                    </label>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rBZ-F8-JPZ">
+                                        <rect key="frame" x="562" y="501" width="30" height="30"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="40" id="JfK-4M-0ni"/>
+                                        </constraints>
+                                        <state key="normal" title="Live"/>
+                                        <variation key="default">
+                                            <mask key="constraints">
+                                                <exclude reference="JfK-4M-0ni"/>
+                                            </mask>
+                                        </variation>
+                                        <connections>
+                                            <segue destination="SFZ-lA-c8M" kind="show" identifier="Show Live" id="rVd-jT-QQZ"/>
+                                        </connections>
+                                    </button>
+                                    <textView clipsSubviews="YES" contentMode="scaleToFill" verticalCompressionResistancePriority="749" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Wuh-YI-qca">
+                                        <rect key="frame" x="0.0" y="534" width="600" height="268"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="60" id="Wxu-Mb-VAh"/>
+                                            <constraint firstAttribute="height" constant="227" id="ZSB-SY-F1M"/>
+                                        </constraints>
+                                        <string key="text">Countryside Bible Church is conveniently located approximately 10 miles west of DFW airport on HWY 114 at the White Chapel Blvd exit.
+
+Address:
+250 Countryside Ct.
+Southlake, TX 76092
+ 
+Phone: (817) 488-5381
+ 
+Fax: (817) 421-6623 fax
+ 
+Email: cbcstaff@countrysidebible.org</string>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                        <dataDetectorType key="dataDetectorTypes" phoneNumber="YES" link="YES" address="YES"/>
+                                        <variation key="default">
+                                            <mask key="constraints">
+                                                <exclude reference="Wxu-Mb-VAh"/>
+                                                <exclude reference="ZSB-SY-F1M"/>
+                                            </mask>
+                                        </variation>
+                                    </textView>
+                                    <mapView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" mapType="standard" zoomEnabled="NO" scrollEnabled="NO" rotateEnabled="NO" pitchEnabled="NO" showsBuildings="NO" showsPointsOfInterest="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Bae-LN-lry">
+                                        <rect key="frame" x="0.0" y="810" width="600" height="256"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="256" id="dqR-46-kYO"/>
+                                            <constraint firstAttribute="width" secondItem="Bae-LN-lry" secondAttribute="height" multiplier="1:1" id="g3t-z6-Sad"/>
+                                            <constraint firstAttribute="height" constant="256" id="nw4-xV-PQ7"/>
+                                        </constraints>
+                                        <variation key="default">
+                                            <mask key="constraints">
+                                                <exclude reference="g3t-z6-Sad"/>
+                                                <exclude reference="nw4-xV-PQ7"/>
+                                            </mask>
+                                        </variation>
+                                    </mapView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gA6-LE-HQU">
+                                        <rect key="frame" x="550" y="1037" width="42" height="21"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="42" id="mzR-rn-Lim"/>
+                                            <constraint firstAttribute="height" constant="21" id="wqo-LN-jT5"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstItem="c5P-aS-8jA" firstAttribute="centerX" secondItem="BQq-cI-QAD" secondAttribute="centerX" id="9DH-ME-JmE"/>
+                                    <constraint firstAttribute="trailing" secondItem="VWj-4M-Alv" secondAttribute="trailing" id="9hW-eS-Jrz"/>
+                                    <constraint firstItem="c5P-aS-8jA" firstAttribute="top" secondItem="BQq-cI-QAD" secondAttribute="top" constant="20" symbolic="YES" id="D1I-5U-3BC"/>
+                                    <constraint firstItem="jOp-pB-6FT" firstAttribute="top" secondItem="c5P-aS-8jA" secondAttribute="bottom" constant="8" symbolic="YES" id="Ebf-4g-m6X"/>
+                                    <constraint firstItem="Kbb-43-nva" firstAttribute="top" secondItem="VWj-4M-Alv" secondAttribute="bottom" constant="8" symbolic="YES" id="FGz-fM-3Un"/>
+                                    <constraint firstItem="gA6-LE-HQU" firstAttribute="bottom" secondItem="BQq-cI-QAD" secondAttribute="bottomMargin" id="FZf-kN-ycD"/>
+                                    <constraint firstItem="jOp-pB-6FT" firstAttribute="leading" secondItem="BQq-cI-QAD" secondAttribute="leading" constant="6" id="Hgy-UW-Bjw"/>
+                                    <constraint firstItem="rBZ-F8-JPZ" firstAttribute="baseline" secondItem="Kbb-43-nva" secondAttribute="baseline" id="O8K-be-ax4"/>
+                                    <constraint firstAttribute="trailing" secondItem="rBZ-F8-JPZ" secondAttribute="trailing" constant="8" id="OAe-Og-ZV7"/>
+                                    <constraint firstItem="Bae-LN-lry" firstAttribute="top" secondItem="Wuh-YI-qca" secondAttribute="bottom" constant="8" symbolic="YES" id="R91-mc-o5M"/>
+                                    <constraint firstItem="Bae-LN-lry" firstAttribute="leading" secondItem="BQq-cI-QAD" secondAttribute="leading" id="UqU-2w-azr"/>
+                                    <constraint firstAttribute="trailing" secondItem="Wuh-YI-qca" secondAttribute="trailing" id="Uz5-Bi-hZ0"/>
+                                    <constraint firstItem="Wuh-YI-qca" firstAttribute="top" secondItem="Kbb-43-nva" secondAttribute="bottom" constant="8" symbolic="YES" id="VrE-XU-8Bi"/>
+                                    <constraint firstItem="VWj-4M-Alv" firstAttribute="leading" secondItem="BQq-cI-QAD" secondAttribute="leading" id="Wvx-M2-Ul3"/>
+                                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="c5P-aS-8jA" secondAttribute="trailing" constant="20" symbolic="YES" id="X7K-r9-iuj"/>
+                                    <constraint firstItem="Kbb-43-nva" firstAttribute="leading" secondItem="BQq-cI-QAD" secondAttribute="leading" constant="6" id="Y9a-dw-oEE"/>
+                                    <constraint firstAttribute="trailing" secondItem="Bae-LN-lry" secondAttribute="trailing" id="bwC-En-psV"/>
+                                    <constraint firstItem="Wuh-YI-qca" firstAttribute="leading" secondItem="BQq-cI-QAD" secondAttribute="leading" id="c6A-vf-8ye"/>
+                                    <constraint firstAttribute="trailing" secondItem="gA6-LE-HQU" secondAttribute="trailing" constant="8" id="cZm-je-3yx"/>
+                                    <constraint firstItem="jOp-pB-6FT" firstAttribute="centerX" secondItem="BQq-cI-QAD" secondAttribute="centerX" id="dmd-b4-9qk"/>
+                                    <constraint firstItem="VWj-4M-Alv" firstAttribute="top" secondItem="jOp-pB-6FT" secondAttribute="bottom" constant="8" symbolic="YES" id="eoM-zr-l80"/>
+                                    <constraint firstItem="Kbb-43-nva" firstAttribute="centerX" secondItem="BQq-cI-QAD" secondAttribute="centerX" id="ezX-I8-7ty"/>
+                                    <constraint firstAttribute="bottom" secondItem="Bae-LN-lry" secondAttribute="bottom" id="hX7-mT-fl0"/>
+                                    <constraint firstItem="VWj-4M-Alv" firstAttribute="centerX" secondItem="BQq-cI-QAD" secondAttribute="centerX" id="xMY-sc-YHD"/>
+                                </constraints>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="dmd-b4-9qk"/>
+                                        <exclude reference="ezX-I8-7ty"/>
+                                    </mask>
+                                </variation>
+                            </scrollView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="BQq-cI-QAD" firstAttribute="leading" secondItem="2tD-aa-xdh" secondAttribute="leading" id="Jwz-zW-FkQ"/>
+                            <constraint firstItem="BQq-cI-QAD" firstAttribute="height" secondItem="2tD-aa-xdh" secondAttribute="height" id="R6f-hn-j0v"/>
+                            <constraint firstItem="BQq-cI-QAD" firstAttribute="top" secondItem="Vnm-p3-zP1" secondAttribute="bottom" id="Spa-Ht-rEV"/>
+                            <constraint firstItem="BQq-cI-QAD" firstAttribute="top" secondItem="Vnm-p3-zP1" secondAttribute="bottom" id="UhG-m3-tnP"/>
+                            <constraint firstAttribute="trailing" secondItem="BQq-cI-QAD" secondAttribute="trailing" id="YQQ-Ae-zUq"/>
+                            <constraint firstItem="c5P-aS-8jA" firstAttribute="top" secondItem="Vnm-p3-zP1" secondAttribute="bottom" constant="8" id="bjm-B2-Na1"/>
+                            <constraint firstItem="BQq-cI-QAD" firstAttribute="top" secondItem="2tD-aa-xdh" secondAttribute="top" id="e23-4Q-RwK"/>
+                            <constraint firstItem="BQq-cI-QAD" firstAttribute="centerY" secondItem="2tD-aa-xdh" secondAttribute="centerY" id="fr7-LE-9WE"/>
+                            <constraint firstItem="84i-nP-tr7" firstAttribute="top" secondItem="BQq-cI-QAD" secondAttribute="bottom" id="imh-0W-aUh"/>
+                            <constraint firstItem="BQq-cI-QAD" firstAttribute="width" secondItem="2tD-aa-xdh" secondAttribute="width" id="j49-ME-XWv"/>
+                            <constraint firstItem="BQq-cI-QAD" firstAttribute="centerX" secondItem="2tD-aa-xdh" secondAttribute="centerX" id="veP-NJ-XAA"/>
+                        </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="R6f-hn-j0v"/>
+                                <exclude reference="Spa-Ht-rEV"/>
+                                <exclude reference="e23-4Q-RwK"/>
+                                <exclude reference="fr7-LE-9WE"/>
+                                <exclude reference="j49-ME-XWv"/>
+                                <exclude reference="veP-NJ-XAA"/>
+                                <exclude reference="bjm-B2-Na1"/>
+                            </mask>
+                        </variation>
+                    </view>
+                    <extendedEdge key="edgesForExtendedLayout"/>
+                    <navigationItem key="navigationItem" title="Countryside Bible Church" id="nvR-lF-QXn">
+                        <barButtonItem key="rightBarButtonItem" systemItem="action" id="SC8-F8-c7r">
+                            <connections>
+                                <action selector="actions:" destination="bBf-jU-GHv" id="tRW-3S-XKU"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+                    <size key="freeformSize" width="600" height="1200"/>
+                    <connections>
+                        <outlet property="actionButton" destination="SC8-F8-c7r" id="bHT-MB-JC9"/>
+                        <outlet property="mapView" destination="Bae-LN-lry" id="gev-4N-XpU"/>
+                        <outlet property="scrollView" destination="BQq-cI-QAD" id="w8o-Ny-psD"/>
+                        <outlet property="versionLabel" destination="gA6-LE-HQU" id="py8-XD-N9A"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="hpc-XM-Z8d" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="714" y="2648"/>
+        </scene>
+        <!--My Settings View Controller-->
+        <scene sceneID="gmZ-v4-5Te">
+            <objects>
+                <viewController id="lwY-VQ-aAG" customClass="MySettingsViewController" customModule="TPS" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="6DQ-va-nUy"/>
+                        <viewControllerLayoutGuide type="bottom" id="Zkk-XP-pEF"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="7D8-xw-5RF">
+                        <rect key="frame" x="0.0" y="0.0" width="225" height="235"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Auto Advance" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vBh-SO-Qdo">
+                                <rect key="frame" x="28" y="46" width="106" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="I6c-nI-Tck">
+                                <rect key="frame" x="142" y="41" width="51" height="31"/>
+                                <connections>
+                                    <action selector="autoAdvanceAction:" destination="lwY-VQ-aAG" eventType="valueChanged" id="zLA-2J-7Vd"/>
+                                </connections>
+                            </switch>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Settings" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="f9V-1V-QO1">
+                                <rect key="frame" x="81" y="12" width="64" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="L7r-pJ-fZg">
+                                <rect key="frame" x="20" y="80" width="185" height="135"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <string key="text">When a sermon comes to the end, if Auto Advance is on and there is another sermon in the series, it will automatically start playing from the beginning.  (Audio only)</string>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                            </textView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="L7r-pJ-fZg" firstAttribute="leading" secondItem="7D8-xw-5RF" secondAttribute="leading" constant="20" symbolic="YES" id="3vx-MN-IIW"/>
+                            <constraint firstItem="I6c-nI-Tck" firstAttribute="top" secondItem="f9V-1V-QO1" secondAttribute="bottom" constant="8" symbolic="YES" id="EIk-8d-d2K"/>
+                            <constraint firstItem="vBh-SO-Qdo" firstAttribute="centerY" secondItem="I6c-nI-Tck" secondAttribute="centerY" id="JDv-je-PwU"/>
+                            <constraint firstItem="vBh-SO-Qdo" firstAttribute="centerY" secondItem="7D8-xw-5RF" secondAttribute="centerY" id="LJK-VL-jdU"/>
+                            <constraint firstItem="L7r-pJ-fZg" firstAttribute="top" secondItem="I6c-nI-Tck" secondAttribute="bottom" constant="8" symbolic="YES" id="RmW-5I-4sl"/>
+                            <constraint firstItem="vBh-SO-Qdo" firstAttribute="leading" secondItem="7D8-xw-5RF" secondAttribute="leadingMargin" constant="12" id="Wox-XB-pi5"/>
+                            <constraint firstItem="vBh-SO-Qdo" firstAttribute="leading" secondItem="7D8-xw-5RF" secondAttribute="leadingMargin" constant="12" id="c3I-8q-QuN"/>
+                            <constraint firstItem="I6c-nI-Tck" firstAttribute="leading" secondItem="vBh-SO-Qdo" secondAttribute="trailing" constant="8" symbolic="YES" id="gOh-e1-UPs"/>
+                            <constraint firstItem="vBh-SO-Qdo" firstAttribute="top" secondItem="6DQ-va-nUy" secondAttribute="bottom" constant="8" symbolic="YES" id="gx9-NQ-nEw"/>
+                            <constraint firstAttribute="trailing" secondItem="L7r-pJ-fZg" secondAttribute="trailing" constant="20" symbolic="YES" id="mDV-UY-EmQ"/>
+                            <constraint firstItem="f9V-1V-QO1" firstAttribute="centerX" secondItem="7D8-xw-5RF" secondAttribute="centerX" id="pPv-tD-k8z"/>
+                            <constraint firstAttribute="bottom" secondItem="L7r-pJ-fZg" secondAttribute="bottom" constant="20" symbolic="YES" id="vY3-5P-su5"/>
+                            <constraint firstItem="f9V-1V-QO1" firstAttribute="top" secondItem="7D8-xw-5RF" secondAttribute="top" constant="12" id="z9v-Bg-e4G"/>
+                        </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="LJK-VL-jdU"/>
+                                <exclude reference="c3I-8q-QuN"/>
+                                <exclude reference="gx9-NQ-nEw"/>
+                            </mask>
+                        </variation>
+                    </view>
+                    <extendedEdge key="edgesForExtendedLayout"/>
+                    <value key="contentSizeForViewInPopover" type="size" width="225" height="235"/>
+                    <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+                    <size key="freeformSize" width="225" height="235"/>
+                    <connections>
+                        <outlet property="autoAdvanceSwitch" destination="I6c-nI-Tck" id="maT-S9-BTa"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="2Tp-17-jFQ" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1143.5" y="192.5"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="ia0-Y0-bsZ">
+            <objects>
+                <navigationController storyboardIdentifier="PopoverTableView" automaticallyAdjustsScrollViewInsets="NO" id="otb-Qc-hXy" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="QIl-V5-TFH">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="lu5-Rc-8lP" kind="relationship" relationship="rootViewController" id="CZF-se-IHb"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="xqW-gO-C9d" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-122" y="1582"/>
+        </scene>
     </scenes>
     <resources>
         <image name="CBC_logo" width="279" height="72"/>
         <image name="tom_pennington" width="800" height="800"/>
     </resources>
+    <inferredMetricsTieBreakers>
+        <segue reference="rVd-jT-QQZ"/>
+    </inferredMetricsTieBreakers>
 </document>

@@ -51,6 +51,8 @@ struct Constants {
 
     static let SKIP_TIME_INTERVAL = 15
     static let ZERO = "0"
+
+    static let AUTO_ADVANCE = "AUTO_ADVANCE"
     
     static let POPOVER_CELL_IDENTIFIER = "PopoverCell"
     static let POPOVER_TABLEVIEW_IDENTIFIER = "PopoverTableView"
@@ -58,7 +60,9 @@ struct Constants {
     static let SERMONS_CELL_IDENTIFIER = "Sermons"
     static let SERMONS_IN_SERIES_CELL_IDENTIFIER = "SermonSeries"
     
-    static let SHOW_TRANSCRIPT_FULL_SCREEN_SEGUE_IDENTIFIER = "Show Full Screen"
+    static let SHOW_FULL_SCREEN_SEGUE_IDENTIFIER = "Show Full Screen"
+    
+    static let Show_Live = "Show Live"
     
     static let NOTES_CONTENT_OFFSET_X_RATIO = "notesContentOffsetXRatio"
     static let NOTES_CONTENT_OFFSET_Y_RATIO = "notesContentOffsetYRatio"
@@ -205,6 +209,13 @@ struct Constants {
     static let FA_DOWNLOADED = "\u{f1c7}"
     static let FA_CLOUD_DOWNLOAD = "\u{f0ed}"
     
+    static let FA_SHOW_FONT_SIZE = CGFloat(24.0)
+    static let FA_REORDER = "\u{f0c9}"
+    
+    static let FA_TAGS_FONT_SIZE = CGFloat(24.0)
+    static let FA_TAG = "\u{f02b}"
+    static let FA_TAGS = "\u{f02c}"
+    
     static let Download_Audio = "Download Audio"
     static let Download_All_Audio = "Download All Audio"
     static let Cancel_All_Downloads = "Cancel All Downloads"
@@ -247,8 +258,12 @@ struct Constants {
     static let Sermon_Playing = "Sermon Playing"
     static let Sermon_Paused = "Sermon Paused"
     
+    static let Show_Settings = "Show Settings"
+    static let Settings = "Settings"
+    
     static let Show_Sermon = "Show Sermon"
     static let Show_About = "Show About"
+    static let Show_About2 = "Show About2"
     
     static let Print = "Print"
     

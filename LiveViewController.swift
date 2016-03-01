@@ -28,34 +28,45 @@ class LiveViewController: UIViewController {
         }
     }
     
+    func fullScreen()
+    {
+        Globals.mpPlayer?.setFullscreen(!Globals.mpPlayer!.fullscreen, animated: true)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-
-        Globals.sliderObserver?.invalidate()
-        Globals.sliderObserver = nil
         
-        Globals.playObserver?.invalidate()
-        Globals.playObserver = nil
+        removeSliderObserver()
         
-        Globals.mpPlayer?.stop()
+//        print("\(Globals.mpPlayer?.contentURL)")
+//        print("\(NSURL(string:Constants.LIVE_STREAM_URL))")
         
-        Globals.playerPaused = true
-    
+        if (Globals.mpPlayer?.contentURL != NSURL(string:Constants.LIVE_STREAM_URL)) {
+            Globals.mpPlayer?.stop()
+            Globals.playerPaused = true
+        }
+        
         Globals.mpPlayer?.view.removeFromSuperview()
         setupLivePlayer()
+        
+        Globals.mpPlayer?.view.hidden = false
+        Globals.mpPlayer?.play()
+        
+        self.navigationItem.setRightBarButtonItem(UIBarButtonItem(title: "Full Screen", style: UIBarButtonItemStyle.Plain, target: self, action: "fullScreen"),animated: true)
     }
 
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-
-        Globals.mpPlayer!.view.hidden = false
-        Globals.mpPlayer?.play()
+        Globals.mpPlayer?.controlStyle = MPMovieControlStyle.Embedded
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
     }
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
-        
     }
     
     override func didReceiveMemoryWarning() {
@@ -175,17 +186,21 @@ class LiveViewController: UIViewController {
     private func setupLivePlayer()
     {
         var view:UIView!
+
+        if (Globals.mpPlayer?.contentURL != NSURL(string:Constants.LIVE_STREAM_URL)) {
+            Globals.mpPlayer = MPMoviePlayerController(contentURL: NSURL(string: Constants.LIVE_STREAM_URL)!)
+            Globals.mpPlayer?.prepareToPlay()
+        }
         
         let tap = UITapGestureRecognizer(target: self, action: "zoomScreen")
         tap.numberOfTapsRequired = 2
-
-        Globals.mpPlayer = MPMoviePlayerController(contentURL: NSURL(string: Constants.LIVE_STREAM_URL)!)
-        Globals.mpPlayer?.prepareToPlay()
         
-        Globals.mpPlayer!.view.addGestureRecognizer(tap)
-        Globals.mpPlayer!.view!.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+        view = Globals.mpPlayer?.view
         
-        view = Globals.mpPlayer!.view!
+        view.frame = webView.bounds
+        
+        view.addGestureRecognizer(tap)
+        view.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
         
         webView.addSubview(view)
         
@@ -202,5 +217,8 @@ class LiveViewController: UIViewController {
         webView!.addConstraint(bottom)
         
         webView!.setNeedsLayout()
+        webView!.layoutIfNeeded()
+        
+        webView.bringSubviewToFront(view)
     }
 }

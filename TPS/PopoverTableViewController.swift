@@ -38,9 +38,6 @@ class PopoverTableViewController: UITableViewController {
         var section = Section()
         return section
     }()
-//    var sections = [String]()
-//    var sectionIndexes = [Int]()
-//    var sectionCounts = [Int]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -129,15 +126,30 @@ class PopoverTableViewController: UITableViewController {
     override func viewDidAppear(animated: Bool)
     {
         super.viewDidAppear(animated)
-        
-        if (purpose == .selectingTags) && (Globals.sermonTagsSelected != nil) && (Globals.sermonTagsSelected != Constants.All) {
-            if (strings != nil) && (Globals.sermonTagsSelected != nil) {
-                if let row = strings!.indexOf(Globals.sermonTagsSelected!) {
-                    let indexPath = NSIndexPath(forRow: row, inSection: 0)
-                    tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: UITableViewScrollPosition.None, animated: true)
-                }
-            }
-        }
+
+        // The code below scrolls to the currently selected tag (if there is one), but that makes getting to All at the top of the list harder.
+        // And since the currently selectd tag (if there is one) is shown in the search bar prompt text, I don't think this is needed.
+//        if (purpose == .selectingTags) && (Globals.sermonTagsSelected != nil) && (Globals.sermonTagsSelected != Constants.All) {
+//            if (strings != nil) && (Globals.sermonTagsSelected != nil) {
+//                if (showSectionHeaders) {
+//                    let sectionNumber = section.titles!.indexOf(Globals.sermonTagsSelected!.substringToIndex("A".endIndex))
+//                    var row = section.indexes![sectionNumber!]
+//                    for increment in 0..<section.counts![sectionNumber!] {
+//                        if Globals.sermonTagsSelected == strings?[row+increment] {
+//                            row = increment
+//                            break
+//                        }
+//                    }
+//                    let indexPath = NSIndexPath(forRow: row, inSection: sectionNumber!)
+//                    tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: UITableViewScrollPosition.None, animated: true)
+//                } else {
+//                    if let row = strings!.indexOf(Globals.sermonTagsSelected!) {
+//                        let indexPath = NSIndexPath(forRow: row, inSection: 0)
+//                        tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: UITableViewScrollPosition.None, animated: true)
+//                    }
+//                }
+//            }
+//        }
     }
     
     override func didReceiveMemoryWarning() {
@@ -202,7 +214,7 @@ class PopoverTableViewController: UITableViewController {
         var index = -1
         
         if (showIndex) {
-            index = self.section.indexes != nil ? self.section.indexes![indexPath.section]+indexPath.row : -1
+            index = section.indexes != nil ? section.indexes![indexPath.section]+indexPath.row : -1
         } else {
             index = indexPath.row
         }
@@ -213,6 +225,7 @@ class PopoverTableViewController: UITableViewController {
             //            print("strings: \(strings[indexPath.row]) sermontTag: \(sermonSelected?.tags)")
             
             cell.accessoryType = UITableViewCellAccessoryType.None
+            
 //            if (selectedSermon?.tagsArray?.indexOf(strings![index]) != nil) {
 //                    cell.accessoryType = UITableViewCellAccessoryType.Checkmark
 //            } else {

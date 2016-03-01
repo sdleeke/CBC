@@ -12,6 +12,8 @@ class MyTableViewCell: UITableViewCell {
 
     var downloadObserver:NSTimer?
 
+    var vc:UIViewController?
+
     func updateUI()
     {
         if (sermon != nil) {
@@ -67,9 +69,34 @@ class MyTableViewCell: UITableViewCell {
             if (sermon != nil) {
                 switch sermon!.download.state {
                 case .none:
-                    downloadAudio()
+                    vc?.dismissViewControllerAnimated(true, completion: nil)
+                    
+                    let alert = UIAlertController(title: "Download audio?",
+                        message: Constants.EMPTY_STRING,
+                        preferredStyle: UIAlertControllerStyle.ActionSheet)
+                    
+                    var action : UIAlertAction
+                    
+                    action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+                        self.downloadAudio()
+                    })
+                    alert.addAction(action)
+                    
+                    action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+                        
+                    })
+                    alert.addAction(action)
+                    
+                    alert.modalPresentationStyle = UIModalPresentationStyle.Popover
+                    alert.popoverPresentationController?.sourceView = self
+                    alert.popoverPresentationController?.sourceRect = downloadButton.frame
+                    
+                    vc?.presentViewController(alert, animated: true, completion: nil)
                     break
+
                 case .downloading:
+                    vc?.dismissViewControllerAnimated(true, completion: nil)
+                    
                     let alert = UIAlertController(title: Constants.Cancel_Audio_Download,
                         message: Constants.EMPTY_STRING,
                         preferredStyle: UIAlertControllerStyle.ActionSheet)
@@ -90,9 +117,11 @@ class MyTableViewCell: UITableViewCell {
                     alert.popoverPresentationController?.sourceView = self
                     alert.popoverPresentationController?.sourceRect = downloadButton.frame
                     
-                    UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
+                    vc?.presentViewController(alert, animated: true, completion: nil)
                     break
                 case .downloaded:
+                    vc?.dismissViewControllerAnimated(true, completion: nil)
+                    
                     let alert = UIAlertController(title: Constants.Delete_Audio_Download,
                         message: Constants.EMPTY_STRING,
                         preferredStyle: UIAlertControllerStyle.ActionSheet)
@@ -113,7 +142,7 @@ class MyTableViewCell: UITableViewCell {
                     alert.popoverPresentationController?.sourceView = self
                     alert.popoverPresentationController?.sourceRect = downloadButton.frame
                     
-                    UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
+                    vc?.presentViewController(alert, animated: true, completion: nil)
                     break
                 }
                 updateUI()
@@ -126,6 +155,8 @@ class MyTableViewCell: UITableViewCell {
     private func networkUnavailable(message:String?)
     {
         if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
+            vc?.dismissViewControllerAnimated(true, completion: nil)
+            
             let alert = UIAlertController(title:Constants.Network_Error,
                 message: message,
                 preferredStyle: UIAlertControllerStyle.ActionSheet)
@@ -139,7 +170,7 @@ class MyTableViewCell: UITableViewCell {
             alert.popoverPresentationController?.sourceView = self
             alert.popoverPresentationController?.sourceRect = downloadButton.frame
             
-            UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
+            vc?.presentViewController(alert, animated: true, completion: nil)
         }
     }
     
@@ -176,6 +207,14 @@ class MyTableViewCell: UITableViewCell {
     func setupIcons()
     {
         var tsva = String()
+        
+        if (sermon!.hasTags()) {
+            if (sermon?.tagsSet?.count > 1) {
+                tsva = tsva + Constants.SINGLE_SPACE_STRING + Constants.FA_TAGS
+            } else {
+                tsva = tsva + Constants.SINGLE_SPACE_STRING + Constants.FA_TAG
+            }
+        }
         
         if (sermon!.hasNotes()) {
             tsva = tsva + Constants.SINGLE_SPACE_STRING + Constants.FA_TRANSCRIPT

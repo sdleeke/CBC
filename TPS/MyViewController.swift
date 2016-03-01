@@ -17,6 +17,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
     var panning = false
     
+    var loadingFromLive = false
+    
     override func canBecomeFirstResponder() -> Bool {
         return true //splitViewController == nil
     }
@@ -34,7 +36,19 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
     }
     
-    var selectedSermon:Sermon?
+    var selectedSermon:Sermon? {
+        didSet {
+            let defaults = NSUserDefaults.standardUserDefaults()
+            if (selectedSermon != nil) {
+                defaults.setObject(selectedSermon!.keyBase,forKey: Constants.SELECTED_SERMON_DETAIL_KEY)
+            } else {
+                // We always select, never deselect, so this should not be done.  If we set this to nil it is for some other reason, like clearing the UI.
+//                defaults.removeObjectForKey(Constants.SELECTED_SERMON_DETAIL_KEY)
+            }
+            defaults.synchronize()
+        }
+    }
+    
     var sermonsInSeries:[Sermon]?
 
     var loadTimer:NSTimer?
@@ -79,11 +93,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     
                     setupPlayPauseButton()
                     setupSlider()
-                    
-                    // Because there is a sermon selected but we've STOPPED so there isn't one playing.
-                    let defaults = NSUserDefaults.standardUserDefaults()
-                    defaults.removeObjectForKey(Constants.SERMON_PLAYING)
-                    defaults.synchronize()
                 }
                 
                 // We need to do this whether the sermon was playing or not
@@ -92,7 +101,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 setupNotesSlidesVideo() // Calls setupSTVControl()
                 
                 // We should only do this if video was visible.
-                saveSermonSettingsBackground()
+//                saveSermonSettingsBackground()
                 break
                 
             default:
@@ -116,16 +125,10 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     spinner.stopAnimating()
                     spinner.hidden = true
                     
-//                    removePlayObserver()
                     removeSliderObserver()
                     
                     setupPlayPauseButton()
                     setupSlider()
-                    
-                    // Because there is a sermon selected but we've STOPPED so there isn't one playing.
-                    let defaults = NSUserDefaults.standardUserDefaults()
-                    defaults.removeObjectForKey(Constants.SERMON_PLAYING)
-                    defaults.synchronize()
                 }
                 
                 // We need to do this whether the sermon was playing or not
@@ -134,7 +137,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 setupNotesSlidesVideo() // Calls setupSTVControl()
                 
                 // We should only do this if video was visible.
-                saveSermonSettingsBackground()
+//                saveSermonSettingsBackground()
                 break
                 
             case Constants.VIDEO:
@@ -245,16 +248,12 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             break
         }
 
-        saveSermonSettingsBackground()
+//        saveSermonSettingsBackground()
     }
     
     func setupSTVControl()
     {
         if (selectedSermon != nil) {
-            stvControl.enabled = true
-//            print("\(shouldShowLogo())")
-            stvControl.hidden = shouldShowLogo()
-
             stvControl.removeAllSegments()
             
             var index = 0
@@ -305,16 +304,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             default:
                 break
             }
-            
-//                if (Globals.sermonPlaying == selectedSermon) && (selectedSermon?.playing == .video) {
-//                    stvControl.selectedSegmentIndex = videoIndex
-//                }
 
             if (stvControl.numberOfSegments < 2) {
                 stvControl.enabled = false
                 stvControl.hidden = true
                 stvWidthConstraint.constant = 0
                 view.setNeedsLayout()
+            } else {
+                stvControl.enabled = true
+                stvControl.hidden = false
             }
         } else {
             stvControl.enabled = false
@@ -327,18 +325,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     @IBAction func playPause(sender: UIButton) {
         if (Globals.mpPlayer != nil) && (Globals.sermonPlaying != nil) && (Globals.sermonPlaying == selectedSermon) {
             switch Globals.mpPlayer!.playbackState {
-            case .Playing:
-                print("playPause.Playing")
-                Globals.playerPaused = true
-                
-//                removePlayObserver()
-                
-                Globals.mpPlayer?.pause()
-                updateCurrentTimeExact(Float(Globals.mpPlayer!.currentPlaybackTime))
-                setupPlayPauseButton()
-                saveSermonSettingsBackground()
-                break
-                
             case .SeekingBackward:
                 print("playPause.SeekingBackward")
                 fallthrough
@@ -346,6 +332,17 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             case .SeekingForward:
                 print("playPause.SeekingForward")
                 fallthrough
+                
+            case .Playing:
+                print("playPause.Playing")
+                
+//                removePlayObserver()
+                
+                Globals.mpPlayer?.pause()
+                Globals.playerPaused = true
+                updateCurrentTimeExact()
+                setupPlayPauseButton()
+                break
                 
             case .Stopped:
                 print("playPause.Stopped")
@@ -361,92 +358,46 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 let loadstate:UInt8 = UInt8(Globals.mpPlayer!.loadState.rawValue)
                 let loadvalue:UInt8 = UInt8(MPMovieLoadState.Playable.rawValue)
                 
-                print("\(loadstate)")
-                print("\(loadvalue)")
+                let playable = ((loadstate & loadvalue) == loadvalue)
+
+//                print("\(loadstate)")
+//                print("\(loadvalue)")
                 
-                if ((loadstate & loadvalue) == loadvalue) { // (1<<1)
+                if (playable) {
                     print("playPause.MPMovieLoadState.Playable")
                     Globals.playerPaused = false
                     
-                    var playOn = true
-                    
-                    //Since we save the currentPlayTime with each sermon this should work.
-                    // BUT it blanks the screen and starts from time zero.
-                    //                playNewSermon(Globals.sermonPlaying)
-                    
-//                    removePlayObserver()
-                    
-                    if (selectedSermon?.playing == Constants.AUDIO) {
-                        //See if there is a download
-                        //                    var sermonURL:String?
-                        var fileURL:NSURL?
-                        
-                        fileURL = documentsURL()?.URLByAppendingPathComponent(selectedSermon!.audio!)
-                        if (!NSFileManager.defaultManager().fileExistsAtPath(fileURL!.path!)){
-                            //                        sermonURL = "\(Constants.BASE_AUDIO_URL)\(selectedSermon!.audio!)"
-                            //        println("playNewSermon: \(sermonURL)")
-                            fileURL = NSURL(string:"\(Constants.BASE_AUDIO_URL)\(selectedSermon!.audio!)")
-                            //                        if !Reachability.isConnectedToNetwork() {
-                            //                            networkUnavailable("Unable to open audio file: \(sermonURL)")
-                            //                            fileURL = nil
-                            //                        }
-                        }
-                        
-                        if (Globals.mpPlayer!.contentURL != fileURL) {
-                            print("different url's!")
-                            //                        Globals.mpPlayer?.contentURL = url
-                            playOn = false
-                            playNewSermon(selectedSermon)
-                        } else {
-                            playOn = true
-                        }
-                    } else {
-                        //                    if !Reachability.isConnectedToNetwork() {
-                        //                        networkUnavailable("Unable to play video: \(Globals.mpPlayer!.contentURL!)")
-                        //                        playOn = false
-                        //                    } else {
-                        playOn = true
-                        //                    }
-                    }
-                    
-                    if (playOn) {
+                    if (Globals.mpPlayer?.contentURL == selectedSermon?.playingURL) {
                         //                    print("\(selectedSermon!.currentTime!)")
                         //                    print("\(NSTimeInterval(Float(selectedSermon!.currentTime!)!))")
                         
-                        //Make the comparision an Int to avoid missing minor differences
                         if selectedSermon!.hasCurrentTime() {
-                            if (Int(Float(selectedSermon!.currentTime!)!) < Int(Float(Globals.mpPlayer!.duration))) {
-                                Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(selectedSermon!.currentTime!)!)
-                            } else {
+                            //Make the comparision an Int to avoid missing minor differences
+                            if (Globals.mpPlayer!.duration >= 0) && (Int(Float(Globals.mpPlayer!.duration)) == Int(Float(selectedSermon!.currentTime!)!)) {
+                                Globals.sermonPlaying?.currentTime = Constants.ZERO
                                 Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(0)
                             }
+                            if (Globals.mpPlayer!.currentPlaybackTime >= 0) && (Int(Globals.mpPlayer!.currentPlaybackTime) != Int(Float(selectedSermon!.currentTime!)!)) {
+                                print("currentPlayBackTime: \(Globals.mpPlayer!.currentPlaybackTime) != currentTime: \(selectedSermon!.currentTime!)")
+                            }
                         } else {
+                            Globals.sermonPlaying?.currentTime = Constants.ZERO
                             Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(0)
                         }
                         
                         if (Globals.mpPlayer?.currentPlaybackTime == 0) {
                             print("Globals.mpPlayer?.currentPlaybackTime == 0!")
                         }
-                        
-                        //                assert(Float(selectedSermon!.currentTime!)! == Float(Globals.mpPlayer!.currentPlaybackTime),"player and sermon times should be the same")
-                        
-                        //Make the comparision an Int to avoid missing minor differences
-                        if selectedSermon!.hasCurrentTime() {
-                            if (Globals.mpPlayer!.currentPlaybackTime > 0) {
-                                if (Int(Globals.mpPlayer!.currentPlaybackTime) != Int(Float(selectedSermon!.currentTime!)!)) {
-                                    print("currentPlayBackTime: \(Globals.mpPlayer!.currentPlaybackTime) != currentTime: \(selectedSermon!.currentTime!)")
-                                }
-                            }
-                        }
-                        
+
                         spinner.stopAnimating()
-                        //Too late now
-//                        Globals.sermonLoaded = true
+                        spinner.hidden = true
+
                         Globals.mpPlayer?.play()
                         
-//                        addPlayObserver()
                         setupPlayingInfoCenter()
                         setupPlayPauseButton()
+                    } else {
+                        playNewSermon(selectedSermon)
                     }
                 } else {
                     print("playPause.MPMovieLoadState.Playthrough NOT OK")
@@ -552,7 +503,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             
         case .Ended:
             captureViewSplit()
-            saveSermonSettingsBackground()
+//            saveSermonSettingsBackground()
             switch selectedSermon!.showing! {
             case Constants.NOTES:
                 sermonNotesWebView?.hidden = (sermonNotesWebView?.URL == nil)
@@ -634,25 +585,27 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 let length = Float(Globals.mpPlayer!.duration)
                 let seekToTime = Float(slider.value * Float(length))
                 Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(seekToTime)
-                updateCurrentTimeExact(seekToTime)
+                Globals.sermonPlaying?.currentTime = seekToTime.description
+//                updateCurrentTimeExact(seekToTime)
                 
-                if (Globals.playerPaused) {
-                    Globals.mpPlayer?.pause()
-                } else {
-                    Globals.mpPlayer?.play()
-                }
+//                if (Globals.playerPaused) {
+//                    Globals.mpPlayer?.pause()
+//                } else {
+//                    Globals.mpPlayer?.play()
+//                }
             } else {
+                Globals.mpPlayer?.pause()
                 Globals.playerPaused = true
 
-                Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(Globals.mpPlayer!.duration))
-                updateCurrentTimeExact(Float(Globals.mpPlayer!.duration))
-                Globals.mpPlayer?.pause()
+                Globals.mpPlayer?.currentPlaybackTime = Globals.mpPlayer!.duration
+                Globals.sermonPlaying?.currentTime = Globals.mpPlayer!.duration.description
+//                updateCurrentTimeExact(Float(Globals.mpPlayer!.duration))
             }
             
             setupPlayPauseButton()
             addSliderObserver()
 
-            saveSermonSettingsBackground()
+//            saveSermonSettingsBackground()
         }
     }
     
@@ -724,18 +677,18 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         if (sermon != nil) {
             bodyString = "\"" + sermon!.title! + "\"" + " by " + sermon!.speaker! + " from " + Constants.CBC_LONG
 
-            bodyString = bodyString! + "\n\nAudio: " + Constants.BASE_AUDIO_URL + sermon!.audio!
+            bodyString = bodyString! + "\n\nAudio: " + sermon!.audioURL!.absoluteString
             
             if sermon!.hasVideo() {
-                bodyString = bodyString! + "\n\nVideo " + Constants.BASE_VIDEO_URL_PREFIX + sermon!.video! + Constants.BASE_VIDEO_URL_POSTFIX
+                bodyString = bodyString! + "\n\nVideo " + sermon!.videoURL!.absoluteString
             }
             
             if sermon!.hasSlides() {
-                bodyString = bodyString! + "\n\nSlides: " + Constants.BASE_PDF_URL + sermon!.slides!
+                bodyString = bodyString! + "\n\nSlides: " + sermon!.slidesURL!.absoluteString
             }
             
             if sermon!.hasNotes() {
-                bodyString = bodyString! + "\n\nTranscript " + Constants.BASE_PDF_URL + sermon!.notes!
+                bodyString = bodyString! + "\n\nTranscript " + sermon!.notesURL!.absoluteString
             }
         }
         
@@ -748,18 +701,18 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         if (sermon != nil) {
             bodyString = "\"" + sermon!.title! + "\"" + " by " + sermon!.speaker! + " from <a href=\"\(Constants.CBC_WEBSITE)\">" + Constants.CBC_LONG + "</a>"
             
-            bodyString = bodyString! + " (<a href=\"" + Constants.BASE_AUDIO_URL + sermon!.audio! + "\">Audio</a>)"
+            bodyString = bodyString! + " (<a href=\"" + sermon!.audioURL!.absoluteString + "\">Audio</a>)"
             
             if sermon!.hasVideo() {
-                bodyString = bodyString! + " (<a href=\"" + Constants.BASE_VIDEO_URL_PREFIX + sermon!.video! + Constants.BASE_VIDEO_URL_POSTFIX + "\">Video</a>) "
+                bodyString = bodyString! + " (<a href=\"" + sermon!.videoURL!.absoluteString + "\">Video</a>) "
             }
 
             if sermon!.hasSlides() {
-                bodyString = bodyString! + " (<a href=\"" + Constants.BASE_PDF_URL + sermon!.slides! + "\">Slides</a>)"
+                bodyString = bodyString! + " (<a href=\"" + sermon!.slidesURL!.absoluteString + "\">Slides</a>)"
             }
             
             if sermon!.hasNotes() {
-                bodyString = bodyString! + " (<a href=\"" + Constants.BASE_PDF_URL + sermon!.notes! + "\">Transcript</a>) "
+                bodyString = bodyString! + " (<a href=\"" + sermon!.notesURL!.absoluteString + "\">Transcript</a>) "
             }
             
             bodyString = bodyString! + "<br/>"
@@ -795,18 +748,18 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 for sermon in sermonList {
                     bodyString = bodyString! + sermon.title!
                     
-                    bodyString = bodyString! + " (<a href=\"" + Constants.BASE_AUDIO_URL + sermon.audio! + "\">Audio</a>)"
+                    bodyString = bodyString! + " (<a href=\"" + sermon.audioURL!.absoluteString + "\">Audio</a>)"
                     
                     if sermon.hasVideo() {
-                        bodyString = bodyString! + " (<a href=\"" + Constants.BASE_VIDEO_URL_PREFIX + sermon.video! + Constants.BASE_VIDEO_URL_POSTFIX + "\">Video</a>) "
+                        bodyString = bodyString! + " (<a href=\"" + sermon.videoURL!.absoluteString + "\">Video</a>) "
                     }
                     
                     if sermon.hasSlides() {
-                        bodyString = bodyString! + " (<a href=\"" + Constants.BASE_PDF_URL + sermon.slides! + "\">Slides</a>)"
+                        bodyString = bodyString! + " (<a href=\"" + sermon.slidesURL!.absoluteString + "\">Slides</a>)"
                     }
                     
                     if sermon.hasNotes() {
-                        bodyString = bodyString! + " (<a href=\"" + Constants.BASE_PDF_URL + sermon.notes! + "\">Transcript</a>) "
+                        bodyString = bodyString! + " (<a href=\"" + sermon.notesURL!.absoluteString + "\">Transcript</a>) "
                     }
                     
                     bodyString = bodyString! + "<br/>"
@@ -875,21 +828,21 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     {
         if (UIPrintInteractionController.isPrintingAvailable() && (sermon != nil))
         {
-            var printURL:String?
+            var printURL:NSURL?
             
             switch sermon!.showing! {
             case Constants.NOTES:
-                printURL = Constants.BASE_PDF_URL + sermon!.notes!
+                printURL = sermon!.notesURL
                 break
             case Constants.SLIDES:
-                printURL = Constants.BASE_PDF_URL + sermon!.slides!
+                printURL = sermon!.slidesURL
                 break
                 
             default:
                 break
             }
             
-            if (printURL != nil) && UIPrintInteractionController.canPrintURL(NSURL(string: printURL!)!) {
+            if (printURL != nil) && UIPrintInteractionController.canPrintURL(printURL!) {
 //                print("can print!")
                 let pi = UIPrintInfo.printInfo()
                 pi.outputType = UIPrintInfoOutputType.General
@@ -904,7 +857,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 //Never could get this to work:
 //            pic?.printFormatter = webView?.viewPrintFormatter()
                 
-                pic.printingItem = NSURL(string: printURL!)!
+                pic.printingItem = printURL
                 pic.presentFromBarButtonItem(navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
             }
         }
@@ -1038,73 +991,54 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         
         var action : UIAlertAction
         
-        if (selectedSermon!.hasNotes() || selectedSermon!.hasSlides()) {
-            if (selectedSermon?.showing == Constants.NOTES) || (selectedSermon?.showing == Constants.SLIDES) {
-                action = UIAlertAction(title: Constants.Print, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                    //            print("print!")
-                    self.printSermon(self.selectedSermon)
-//                    if (Reachability.isConnectedToNetwork()) {
-//                        self.printSermon(self.selectedSermon)
-//                    } else {
-//                        self.networkUnavailable("Unable to print.")
-//                    }
-                })
-                alert.addAction(action)
-            }
+        if (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) || (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) {
+            action = UIAlertAction(title: Constants.Print, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+                //            print("print!")
+                self.printSermon(self.selectedSermon)
+                //                    if (Reachability.isConnectedToNetwork()) {
+                //                        self.printSermon(self.selectedSermon)
+                //                    } else {
+                //                        self.networkUnavailable("Unable to print.")
+                //                    }
+            })
+            alert.addAction(action)
         }
         
-        action = UIAlertAction(title: Constants.Full_Screen, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-            //            print("full screen!")
-            if (self.selectedSermon!.hasVideo() &&
-                (self.selectedSermon!.playing == Constants.VIDEO) &&
-                (self.selectedSermon!.showing == Constants.VIDEO)) {
-                self.zoomScreen() // Crashes when return from zoom on 9.x but not on 8.4
-//                    if (Reachability.isConnectedToNetwork()) {
-//                        self.zoomScreen() // Crashes when return from zoom on 9.x but not on 8.4
-//                    } else {
-//                        self.networkUnavailable("Unable to zoom screen.")
-//                    }
-            }
-            
-            if (self.selectedSermon!.showing == Constants.SLIDES) || (self.selectedSermon!.showing == Constants.NOTES) {
-                self.performSegueWithIdentifier(Constants.SHOW_TRANSCRIPT_FULL_SCREEN_SEGUE_IDENTIFIER, sender: self.selectedSermon)
-//                if (Reachability.isConnectedToNetwork()) {
-//                    self.performSegueWithIdentifier(Constants.SHOW_TRANSCRIPT_FULL_SCREEN_SEGUE_IDENTIFIER, sender: self.selectedSermon)
-//                } else {
-//                    if (self.selectedSermon?.showing == Constants.NOTES) {
-//                        let sermonURL = Constants.BASE_PDF_URL + self.selectedSermon!.notes!
-//                        self.networkUnavailable("Unable to open sermon transcript at: \(sermonURL)")
-//                    }
-//                    if (self.selectedSermon?.showing == Constants.SLIDES) {
-//                        let sermonURL = Constants.BASE_PDF_URL + self.selectedSermon!.slides!
-//                        self.networkUnavailable("Unable to open sermon slides at: \(sermonURL)")
-//                    }
-//                }
-            }
-        })
-        alert.addAction(action)
+        if (selectedSermon!.hasVideo() && selectedSermon!.playingVideo() && selectedSermon!.showingVideo()) {
+                action = UIAlertAction(title: Constants.Full_Screen, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+                    self.zoomScreen()
+                })
+            alert.addAction(action)
+        }
+        
+        if (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) || (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) {
+            action = UIAlertAction(title: Constants.Full_Screen, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+                self.performSegueWithIdentifier(Constants.SHOW_FULL_SCREEN_SEGUE_IDENTIFIER, sender: self.selectedSermon)
+            })
+            alert.addAction(action)
+        }
     
-        if (self.selectedSermon!.showing == Constants.SLIDES) || (self.selectedSermon!.showing == Constants.NOTES) {
+        if (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) || (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) {
             action = UIAlertAction(title: Constants.Open_in_Browser, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
                 //            print("mail!")
                 
-                var urlString:String?
+                var url:NSURL?
                 
                 switch self.selectedSermon!.showing! {
                 case Constants.NOTES:
-                    urlString = Constants.BASE_PDF_URL + self.selectedSermon!.notes!
+                    url = self.selectedSermon!.notesURL
                     break
                 case Constants.SLIDES:
-                    urlString = Constants.BASE_PDF_URL + self.selectedSermon!.slides!
+                    url = self.selectedSermon!.slidesURL
                     break
                     
                 default:
                     break
                 }
 
-                if let url = NSURL(string:urlString!) {
-                    if (UIApplication.sharedApplication().canOpenURL(url)) { // Reachability.isConnectedToNetwork() &&
-                        UIApplication.sharedApplication().openURL(url)
+                if  url != nil {
+                    if (UIApplication.sharedApplication().canOpenURL(url!)) { // Reachability.isConnectedToNetwork() &&
+                        UIApplication.sharedApplication().openURL(url!)
                     } else {
                         self.networkUnavailable("Unable to open transcript in browser at: \(url)")
                     }
@@ -1281,7 +1215,9 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             let tap = UITapGestureRecognizer(target: self, action: "zoomScreen")
             tap.numberOfTapsRequired = 2
             view?.addGestureRecognizer(tap)
-                        
+            
+            view?.frame = sermonNotesAndSlides.bounds
+
             view?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
             
             sermonNotesAndSlides.addSubview(view!)
@@ -1362,7 +1298,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     private func setupWKWebViews()
     {
-        sermonNotesWebView = WKWebView(frame: sermonNotesAndSlides.frame)
+        sermonNotesWebView = WKWebView(frame: sermonNotesAndSlides.bounds)
         sermonNotesWebView?.multipleTouchEnabled = true
         
 //        print("\(sermonNotesAndSlides.frame)")
@@ -1373,7 +1309,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         sermonNotesWebView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
         sermonNotesAndSlides.addSubview(sermonNotesWebView!)
         
-        sermonSlidesWebView = WKWebView(frame: sermonNotesAndSlides.frame)
+        sermonSlidesWebView = WKWebView(frame: sermonNotesAndSlides.bounds)
         sermonSlidesWebView?.multipleTouchEnabled = true
         
 //        print("\(sermonNotesAndSlides.frame)")
@@ -1420,19 +1356,19 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     }
     
     func scrollViewDidEndZooming(scrollView: UIScrollView, withView view: UIView?, atScale scale: CGFloat) {
-        print("scrollViewDidEndZooming")
+//        print("scrollViewDidEndZooming")
         if let view = scrollView.superview as? WKWebView {
             captureContentOffset(view)
             captureZoomScale(view)
-            saveSermonSettingsBackground() //seems to cause crash
+//            saveSermonSettingsBackground() //seems to cause crash
         }
     }
     
     func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        print("scrollViewDidEndDragging")
+//        print("scrollViewDidEndDragging")
         if let view = scrollView.superview as? WKWebView {
             captureContentOffset(view)
-            saveSermonSettingsBackground() //seems to cause crash
+//            saveSermonSettingsBackground() //seems to cause crash
         }
     }
     
@@ -1458,7 +1394,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        addSliderObserver()
         setupPlayPauseButton()
     }
-    
+        
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -1469,10 +1405,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         
 //        print("\(Globals.mpPlayer?.contentURL)")
 //        print("\(Constants.LIVE_STREAM_URL)")
-        if (Globals.mpPlayer?.contentURL == NSURL(string:Constants.LIVE_STREAM_URL)) {
-            Globals.mpPlayer = nil
+        if (selectedSermon == Globals.sermonPlaying) && (Globals.mpPlayer?.contentURL == NSURL(string:Constants.LIVE_STREAM_URL)) {
+            loadingFromLive = true
+            
             Globals.mpPlayer?.stop()
+            Globals.mpPlayer = nil
+            
             setupPlayer(selectedSermon)
+            
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: "mpPlayerLoadStateDidChange:", name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
         }
         
         //Eliminates blank cells at end.
@@ -1513,10 +1454,10 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //                    }
 //                }
 //            }
-        } else {
-            let defaults = NSUserDefaults.standardUserDefaults()
-            defaults.setObject(selectedSermon!.keyBase,forKey: Constants.SELECTED_SERMON_DETAIL_KEY)
-            defaults.synchronize()
+//        } else {
+//            let defaults = NSUserDefaults.standardUserDefaults()
+//            defaults.setObject(selectedSermon!.keyBase,forKey: Constants.SELECTED_SERMON_DETAIL_KEY)
+//            defaults.synchronize()
         }
         
         //We can't set the currentPlaybackTime until the player is ready
@@ -1645,11 +1586,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             splitView.hidden = false
             
             if (selectedSermon!.hasNotes()) {
-                sermonNotesWebView = WKWebView(frame: sermonNotesAndSlides.frame)
+                sermonNotesWebView = WKWebView(frame: sermonNotesAndSlides.bounds)
                 setupWKWebView(sermonNotesWebView)
-                
-                let notesURL = Constants.BASE_PDF_URL + selectedSermon!.notes!
-                //                            print("\(notesURL)")
                 
                 sermonNotesWebView!.hidden = true // Will be made visible when the URL finishes loading
                 
@@ -1663,7 +1601,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 
                 dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
                     self.sermonNotesWebView!.stopLoading()
-                    let request = NSURLRequest(URL: NSURL(string: notesURL)!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
+                    let request = NSURLRequest(URL: self.selectedSermon!.notesURL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
                     self.sermonNotesWebView!.loadRequest(request)
                 })
 
@@ -1691,12 +1629,9 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             }
             
             if (selectedSermon!.hasSlides()) {
-                sermonSlidesWebView = WKWebView(frame: sermonNotesAndSlides.frame)
+                sermonSlidesWebView = WKWebView(frame: sermonNotesAndSlides.bounds)
                 setupWKWebView(sermonSlidesWebView)
 
-                let slidesURL = Constants.BASE_PDF_URL + selectedSermon!.slides!
-                //                            print("\(slidesURL)")
-                
                 sermonSlidesWebView!.hidden = true // Will be made visible when the URL finishes loading
                 
                 activityIndicator.hidden = false
@@ -1709,7 +1644,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 
                 dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
                     self.sermonSlidesWebView!.stopLoading()
-                    let request = NSURLRequest(URL: NSURL(string: slidesURL)!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
+                    let request = NSURLRequest(URL: self.selectedSermon!.slidesURL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
                     self.sermonSlidesWebView!.loadRequest(request)
                 })
 
@@ -1886,20 +1821,23 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     func setupPlayPauseButton()
     {
-        playPauseButton.setTitle(Constants.FA_PLAY, forState: UIControlState.Normal)
-
-        if (selectedSermon != nil) {
-            playPauseButton.hidden = false
-            
-            if (Globals.sermonPlaying != nil) {
-                if (selectedSermon?.title == Globals.sermonPlaying?.title) &&
-                    (selectedSermon?.date == Globals.sermonPlaying?.date) {
-                    if (!Globals.playerPaused) {
-                        playPauseButton.setTitle(Constants.FA_PAUSE, forState: UIControlState.Normal)
-                    }
+        if selectedSermon != nil {
+            if (selectedSermon == Globals.sermonPlaying) {
+                playPauseButton.enabled = Globals.sermonLoaded
+                
+                if (Globals.playerPaused) {
+                    playPauseButton.setTitle(Constants.FA_PLAY, forState: UIControlState.Normal)
+                } else {
+                    playPauseButton.setTitle(Constants.FA_PAUSE, forState: UIControlState.Normal)
                 }
+            } else {
+                playPauseButton.enabled = true
+                playPauseButton.setTitle(Constants.FA_PLAY, forState: UIControlState.Normal)
             }
+
+            playPauseButton.hidden = false
         } else {
+            playPauseButton.enabled = false
             playPauseButton.hidden = true
         }
     }
@@ -1917,23 +1855,33 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         //In case we have one already showing
         dismissViewControllerAnimated(true, completion: nil)
         
-        let button = object as? UIBarButtonItem
-        
-        if let popover = self.storyboard?.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? PopoverTableViewController {
-            popover.modalPresentationStyle = .Popover
-//            popover.preferredContentSize = CGSizeMake(300, 500)
-            
-            popover.popoverPresentationController?.permittedArrowDirections = .Up
-            popover.popoverPresentationController?.delegate = self
-            popover.popoverPresentationController?.barButtonItem = button
-            
-            popover.delegate = self
-            popover.purpose = .showingTags
-            popover.strings = selectedSermon?.tagsArray
-            popover.allowsSelection = false
-            popover.selectedSermon = selectedSermon
-            
-            presentViewController(popover, animated: true, completion: nil)
+        if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                let button = object as? UIBarButtonItem
+                
+                navigationController.modalPresentationStyle = .Popover
+                //            popover?.preferredContentSize = CGSizeMake(300, 500)
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .Up
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.barButtonItem = button
+                
+                popover.navigationItem.title = "Sermon Tags"
+                
+                popover.delegate = self
+                
+                popover.purpose = .showingTags
+                popover.strings = selectedSermon?.tagsArray
+                
+                popover.showIndex = false
+                popover.showSectionHeaders = false
+                
+                popover.allowsSelection = false
+                popover.selectedSermon = selectedSermon
+                
+                presentViewController(navigationController, animated: true, completion: nil)
+            }
         }
     }
     
@@ -1946,15 +1894,22 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             barButtons.append(actionButton!)
         
             if (selectedSermon!.hasTags()) {
-                tagsButton = UIBarButtonItem(title: Constants.Tags, style: UIBarButtonItemStyle.Plain, target: self, action: "tags:")
+                if (selectedSermon?.tagsSet?.count > 1) {
+                    tagsButton = UIBarButtonItem(title: Constants.FA_TAGS, style: UIBarButtonItemStyle.Plain, target: self, action: "tags:")
+                } else {
+                    tagsButton = UIBarButtonItem(title: Constants.FA_TAG, style: UIBarButtonItemStyle.Plain, target: self, action: "tags:")
+                }
+                
+                tagsButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FontAwesome, size: Constants.FA_TAGS_FONT_SIZE)!], forState: UIControlState.Normal)
+                
                 barButtons.append(tagsButton!)
             }
 
             self.navigationItem.setRightBarButtonItems(barButtons, animated: true)
         } else {
-            self.navigationItem.rightBarButtonItem = nil
             actionButton = nil
             tagsButton = nil
+            self.navigationItem.setRightBarButtonItems(nil, animated: true)
         }
     }
 
@@ -2061,7 +2016,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             if (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
                 //If we started out in landscape on an iPhone and segued to this view and then transitioned to Portrait
                 //The constraint is not setup because it is not active in landscape so we have to set it up
-                if let viewSplit = Globals.seriesViewSplits![selectedSermon!.seriesKeyBase] {
+                if let viewSplit = selectedSermon?.viewSplit {
                     var newConstraintConstant = size.height * CGFloat(Float(viewSplit)!)
                     
                     let (minConstraintConstant,maxConstraintConstant) = sermonNotesAndSlidesConstraintMinMax(size.height - 12) //Adjustment of 12 for difference in NavBar height between landscape (shorter) and portrait (taller by 12)
@@ -2093,7 +2048,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         var ratio:CGFloat?
         
         if (selectedSermon != nil) {
-            if let viewSplit = Globals.seriesViewSplits![selectedSermon!.seriesKeyBase] {
+            if let viewSplit = selectedSermon?.viewSplit {
                 ratio = CGFloat(Float(viewSplit)!)
             }
         }
@@ -2203,17 +2158,27 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         
         sermonsInSeries = sermonsInSermonSeries(selectedSermon)
         
+        //Done in sliderTimer()
 //        if (!Globals.sermonLoaded && (Globals.sermonPlaying != nil) && (selectedSermon == Globals.sermonPlaying)) {
 //            spinner.startAnimating()
 //        }
-        
-        if (Globals.sermonLoaded || (selectedSermon != Globals.sermonPlaying)) {
-            // Redundant - also done in viewDidLoad
-            spinner.stopAnimating()
-        } else {
-            //            //This is really misplaced since we're dependent upon the AppDelegate to address loading the default sermon and setting the currentPlayTime.
-            //            NSNotificationCenter.defaultCenter().addObserver(self, selector: "mpPlayerLoadStateDidChange:", name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
+
+        // This next line is for the case when video is playing and the video has been zoomed to full screen and that makes the embedded controls visible
+        // allowing the user to control playback, pausing or stopping, and then unzooming makes the play pause button vislble and it has to be
+        // updated according to the player state, which may have changed.
+        if (Globals.mpPlayer?.contentURL != NSURL(string:Constants.LIVE_STREAM_URL)) {
+            Globals.playerPaused = (Globals.mpPlayer?.playbackState == .Paused) || (Globals.mpPlayer?.playbackState == .Stopped)
         }
+        
+        //Done in sliderTimer()
+//        if (Globals.sermonLoaded || (selectedSermon != Globals.sermonPlaying)) {
+//            // Redundant - also done in viewDidLoad
+//            spinner.stopAnimating()
+//            spinner.hidden = true
+//        } else {
+//            //            //This is really misplaced since we're dependent upon the AppDelegate to address loading the default sermon and setting the currentPlayTime.
+//            //            NSNotificationCenter.defaultCenter().addObserver(self, selector: "mpPlayerLoadStateDidChange:", name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
+//        }
         
         if (selectedSermon != nil) && (Globals.mpPlayer == nil) {
             setupPlayerAtEnd(selectedSermon)
@@ -2225,13 +2190,11 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         //        print("viewWillAppear 2 tableView.bounds: \(tableView.bounds)")
         
         //These are being added here for the case when this view is opened and the sermon selected is playing already
-//        addPlayObserver()
         addSliderObserver()
         
         setupTitle()
         setupAudioOrVideo()
         setupPlayPauseButton()
-        setupSTVControl()
         setupSlider()
         setupNotesSlidesVideo()
         setupActionAndTagsButtons()
@@ -2243,8 +2206,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
 
-//        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic
-        
         updateUI()
     }
     
@@ -2299,7 +2260,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 
                 //            print("captureViewSplit ratio: \(ratio)")
                 
-                Globals.seriesViewSplits![selectedSermon!.seriesKeyBase] = "\(ratio)"
+                selectedSermon?.viewSplit = "\(ratio)"
             }
         }
     }
@@ -2360,7 +2321,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        removeSliderObserver()
 //        removePlayObserver()
         
-        saveSermonSettingsBackground()
+//        saveSermonSettingsBackground()
         
         //        NSNotificationCenter.defaultCenter().removeObserver(self,name: UIApplicationWillResignActiveNotification, object: UIApplication.sharedApplication())
         //        NSNotificationCenter.defaultCenter().removeObserver(self,name: UIApplicationWillEnterForegroundNotification, object: UIApplication.sharedApplication())
@@ -2436,7 +2397,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         if let wvc = destination as? WebViewController {
             if let identifier = segue.identifier {
                 switch identifier {
-                case Constants.SHOW_TRANSCRIPT_FULL_SCREEN_SEGUE_IDENTIFIER:
+                case Constants.SHOW_FULL_SCREEN_SEGUE_IDENTIFIER:
                     splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden
                     wvc.selectedSermon = sender as? Sermon
                     break
@@ -2465,6 +2426,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         let cell = tableView.dequeueReusableCellWithIdentifier(Constants.SERMONS_IN_SERIES_CELL_IDENTIFIER, forIndexPath: indexPath) as! MyTableViewCell
     
         cell.sermon = sermonsInSeries?[indexPath.row]
+        
+        cell.vc = self
         
         return cell
     }
@@ -2553,9 +2516,14 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     }
     
     private func setupSlider() {
+        if spinner.isAnimating() {
+            spinner.stopAnimating()
+            spinner.hidden = true
+        }
+        
+        slider.enabled = Globals.sermonLoaded
+        
         if (Globals.mpPlayer != nil) && (Globals.sermonPlaying != nil) {
-//            print("\(Globals.sermonPlaying)")
-//            print("\(selectedSermon)")
             if (Globals.sermonPlaying == selectedSermon) {
                 elapsed.hidden = false
                 remaining.hidden = false
@@ -2574,232 +2542,103 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
     }
 
-//    func playTimer()
-//    {
-//        if (Globals.mpPlayer != nil) {
-//            switch Globals.mpPlayer!.playbackState {
-//            case .Interrupted:
-//                print("playTimer.Interrupted")
-//                Globals.playerPaused = true
-//                updateCurrentTimeExact(Float(Globals.mpPlayer!.currentPlaybackTime))
-//                removePlayObserver()
-//                break
-//                
-//            case .Paused:
-//                print("playTimer.Paused")
-//                if (!Globals.playerPaused) {
-//                    networkUnavailable("The internet connection appears to be offline.")
-//                    Globals.playerPaused = true
-//                    setupPlayPauseButton()
-//                }
-//
-//                //I'm not sure this is reliable - esp. with video - it seems to happen after dragging the slider
-//                //We might need to have a delay before we call an unauthorized pause as a network outage.
-//                
-//                //
-////                if (!Globals.playerPaused) {
-////                    if (Int(Globals.mpPlayer!.currentPlaybackTime) < Int(Globals.mpPlayer!.duration)) {
-////                        print("player paused when it should be playing")
-////                        
-////                        //Something happened.  We called this because we wanted the audio to play.
-////                        //Can't say this since this is called on viewWillAppear to handle spinner
-////                        
-////                        //Alert - network unavailable.
-////                        networkUnavailable()
-////                    }
-////                    
-////                    updateCurrentTimeExact(Float(Globals.mpPlayer!.currentPlaybackTime))
-////                    
-////                    //Don't stop and don't lose the time.
-////                    //                Globals.mpPlayer?.stop()
-////                    
-////                    spinner.stopAnimating()
-////                    Globals.playerPaused = true
-////                    setupPlayPauseButton()
-////                    
-////                    removePlayObserver()
-////                }
-//                break
-//                
-//            case .Playing:
-//                print("playTimer.Playing")
-//                if (Globals.mpPlayer?.currentPlaybackRate == 0) {
-//                    //Force a restart of the sermon currently playing?
-//                    //But don't use playNewSermon() as that assumes the MVC visible is the one the sermonPlaying is a part of.
-//                    print("currentPlaybackRate is 0 for Globals.sermonPlaying: \(Globals.sermonPlaying)")
-//                    if (Globals.sermonPlaying != nil) && (Globals.sermonPlaying == selectedSermon) {
-//                        playNewSermon(Globals.sermonPlaying)
-//                    }
-//                }
-//                if (Globals.playerPaused) {
-//                    Globals.playerPaused = false
-//                    setupPlayPauseButton()
-//                }
-//                //Don't do the following so we can determine if, after it starts playing, the player stops when it shouldn't
-//                //removePlayObserver()
-//                break
-//                
-//            case .SeekingBackward:
-//                print("playTimer.SeekingBackward")
-//                if (Globals.playerPaused) {
-//                    Globals.playerPaused = false
-//                    setupPlayPauseButton()
-//                }
-//                break
-//                
-//            case .SeekingForward:
-//                print("playTimer.SeekingForward")
-//                if (Globals.playerPaused) {
-//                    Globals.playerPaused = false
-//                    setupPlayPauseButton()
-//                }
-//                break
-//                
-//            case .Stopped:
-//                print("playTimer.Stopped")
-//                spinner.stopAnimating()
-//                if (Globals.mpPlayer != nil) && (!Globals.playerPaused || !Globals.sermonLoaded)  {
-//                    networkUnavailable("The internet connection appears to be offline.")
-//                    Globals.sermonLoaded = true
-//                    Globals.playerPaused = true
-//                    setupPlayPauseButton()
-//                }
-//                
-//                //I'm not sure this is reliable - esp. with video - it seems to happen after dragging the slider
-//                //We might need to have a delay before we call an unauthorized pause as a network outage.
-//                
-//                //
-////                if (!Globals.playerPaused) && ((Globals.mpPlayer!.currentPlaybackTime >= 0) && (Globals.mpPlayer!.duration >= 0)) {
-////                    if (Int(Globals.mpPlayer!.currentPlaybackTime) < Int(Globals.mpPlayer!.duration)) {
-////                        print("player stopped when it should be playing")
-////                        
-////                        //Something happened.  We called this because we wanted the audio to play.
-////                        //Can't say this since this is called on viewWillAppear to handle spinner
-////                        
-////                        //Alert - network unavailable.
-////                        networkUnavailable()
-////                    }
-////                    
-////                    updateCurrentTimeExact(Float(Globals.mpPlayer!.currentPlaybackTime))
-////                    
-////                    Globals.mpPlayer?.stop()  //s/b unnecessary
-////                    
-////                    spinner.stopAnimating()
-////                    Globals.playerPaused = true
-////                    setupPlayPauseButton()
-////                    
-////                    removePlayObserver()
-////                }
-//                break
-//            }
-//        }
-//    }
-    
-    
     func sliderTimer()
     {
-        if (Globals.mpPlayer!.fullscreen) {
-            Globals.mpPlayer?.controlStyle = MPMovieControlStyle.Embedded // Fullscreen
-        } else {
-            Globals.mpPlayer?.controlStyle = MPMovieControlStyle.None
-        }
-
-//        if (splitViewController == nil) {
-//            setupSlider()
-//            slider.hidden = !((Globals.sermonPlaying == selectedSermon) && (slider.bounds.width >= Constants.MIN_SLIDER_WIDTH))
-//        }
-        
-        //The conditional below depends upon sliderTimer running even when, in fact especially when, nothing is playing.
-        if (!Globals.sermonLoaded) {
-//            let defaults = NSUserDefaults.standardUserDefaults()
-            if let currentTime = Globals.sermonPlaying?.currentTime { // defaults.stringForKey(Constants.CURRENT_TIME)
-//                print("\(currentTime)")
-//                print("\(NSTimeInterval(Float(currentTime)!))")
-                
-                if (Float(currentTime)! <= Float(Globals.mpPlayer!.duration)) {
-                    Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(currentTime)!)
-                } else {
-                    Globals.mpPlayer?.currentPlaybackTime = Globals.mpPlayer!.duration
-                }
-
-                //Since currentPlaybackTime doesn't change instantly we have to check explicitly
-//                if (Globals.mpPlayer!.currentPlaybackTime == NSTimeInterval(Float(currentTime)!)) {
-//                    spinner.stopAnimating()
-//                    spinner.hidden = true
-//                    Globals.sermonLoaded = true
-//                }
+        if (Globals.mpPlayer?.contentURL != NSURL(string:Constants.LIVE_STREAM_URL)) {
+            if (Globals.mpPlayer!.fullscreen) {
+                Globals.mpPlayer?.controlStyle = MPMovieControlStyle.Embedded
+            } else {
+                Globals.mpPlayer?.controlStyle = MPMovieControlStyle.None
             }
-        } else {
-            spinner.stopAnimating()
-            spinner.hidden = true
-        }
-
-        setSliderAndTimesToAudio()
-        
-        if (Globals.mpPlayer?.currentPlaybackRate > 0) {
-            updateUserDefaultsCurrentTimeWhilePlaying()
-        }
-
-        if (Globals.mpPlayer != nil) {
-            switch Globals.mpPlayer!.playbackState {
-            case .Interrupted:
-//                print("sliderTimer.Interrupted")
-                break
+            
+            if (selectedSermon == Globals.sermonPlaying) {
+                playPauseButton.enabled = Globals.sermonLoaded
+                slider.enabled = Globals.sermonLoaded
                 
-            case .Paused:
-//                print("sliderTimer.Paused")
-                if (!Globals.playerPaused) {
+                if (!Globals.sermonLoaded) {
+                    if (!spinner.isAnimating()) {
+                        spinner.hidden = false
+                        spinner.startAnimating()
+                    }
+                } else {
+                    if (Globals.mpPlayer?.playbackState != .SeekingForward) && (Globals.mpPlayer?.playbackState != .SeekingBackward) {
+                        setSliderAndTimesToAudio()
+                        if spinner.isAnimating() {
+                            spinner.stopAnimating()
+                            spinner.hidden = true
+                        }
+                    } else {
+                        if !spinner.isAnimating() {
+                            spinner.hidden = false
+                            spinner.startAnimating()
+                        }
+                    }
+                }
+            }
+            
+            if (Globals.mpPlayer?.currentPlaybackRate > 0) {
+                updateUserDefaultsCurrentTimeWhilePlaying()
+            }
+            
+            if (Globals.mpPlayer != nil) {
+                switch Globals.mpPlayer!.playbackState {
+                case .Interrupted:
+                    print("sliderTimer.Interrupted")
+                    break
+                    
+                case .Paused:
+                    print("sliderTimer.Paused")
+//                    if (!Globals.playerPaused) {
+//                        Globals.mpPlayer?.play()
+//                        Globals.playerPaused = true
+//                        setupPlayPauseButton()
+//                    }
+                    break
+                    
+                case .Playing:
+                    print("sliderTimer.Playing")
+//                    if (Globals.playerPaused) {
+//                        Globals.mpPlayer?.pause()
+//                        Globals.playerPaused = false
+//                        setupPlayPauseButton()
+//                    }
+                    break
+                    
+                case .SeekingBackward:
+                    print("sliderTimer.SeekingBackward")
+                    break
+                    
+                case .SeekingForward:
+                    print("sliderTimer.SeekingForward")
+                    break
+                    
+                case .Stopped:
+                    print("sliderTimer.Stopped")
+                    break
+                }
+            }
+            
+            //        print("Duration: \(Globals.mpPlayer!.duration) CurrentPlaybackTime: \(Globals.mpPlayer!.currentPlaybackTime)")
+            //        print("CurrentTime: \(Globals.sermonPlaying?.currentTime)")
+            
+            if (Globals.mpPlayer!.duration > 0) && (Globals.mpPlayer!.currentPlaybackTime > 0) &&
+                (slider.value > 0.9999) {
+                    // The comparison below is Int because I'm concerned Float leaves room for small differences.  We'll see.
+                    //            (Int(Globals.mpPlayer!.currentPlaybackTime) == Int(Globals.mpPlayer!.duration)) {
+                    //            print("sliderTimer currentPlaybackTime == duration")
+                    
+                    Globals.mpPlayer?.pause()
                     Globals.playerPaused = true
                     setupPlayPauseButton()
-                }
-                break
-                
-            case .Playing:
-//                print("sliderTimer.Playing")
-                if (Globals.playerPaused) {
-                    Globals.playerPaused = false
-                    setupPlayPauseButton()
-                }
-                break
-                
-            case .SeekingBackward:
-//                print("sliderTimer.SeekingBackward")
-                break
-                
-            case .SeekingForward:
-//                print("sliderTimer.SeekingForward")
-                break
-                
-            case .Stopped:
-//                print("sliderTimer.Stopped")
-                break
-            }
-        }
-        
-        //        print("Duration: \(Globals.mpPlayer!.duration) CurrentPlaybackTime: \(Globals.mpPlayer!.currentPlaybackTime)")
-        //        print("CurrentTime: \(Globals.sermonPlaying?.currentTime)")
-        
-        if (Globals.mpPlayer!.duration > 0) && (Globals.mpPlayer!.currentPlaybackTime > 0) &&
-            // The comparison below is Int because I'm concerned Float leaves room for small differences.  We'll see.
-            (Int(Globals.mpPlayer!.currentPlaybackTime) == Int(Globals.mpPlayer!.duration)) {
-            print("sliderTimer currentPlaybackTime == duration")
-            
-            //Prefer that it pause
-            Globals.mpPlayer?.pause()
-            Globals.mpPlayer?.currentPlaybackTime = Globals.mpPlayer!.duration
-
-            //pause() doesn't change state at end!
-            Globals.mpPlayer?.stop()
-            
-            setupPlayPauseButton()
-            updateCurrentTimeExact(Float(Globals.mpPlayer!.duration))
-            setupPlayingInfoCenter()
-            
-            spinner.stopAnimating()
-            spinner.hidden = true
-            
-            if (!Globals.playerPaused) {
-                advanceSermon()
+                    
+                    if (Globals.sermonPlaying?.currentTime != Globals.mpPlayer!.duration.description) {
+                        Globals.sermonPlaying?.currentTime = Globals.mpPlayer!.duration.description
+//                        saveSermonSettingsBackground()
+                    }
+                    
+                    if (NSUserDefaults.standardUserDefaults().boolForKey(Constants.AUTO_ADVANCE)) {
+                        advanceSermon()
+                    }
             }
         }
     }
@@ -2809,21 +2648,23 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        print("\(Globals.sermonPlaying?.playing)")
         if (Globals.sermonPlaying?.playing == Constants.AUDIO) {
             let sermons = sermonsInSermonSeries(Globals.sermonPlaying)
-            if sermons?.indexOf(Globals.sermonPlaying!) < (sermons!.count - 1) {
-                if let nextSermon = sermons?[(sermons?.indexOf(Globals.sermonPlaying!))! + 1] {
-                    nextSermon.playing = Constants.AUDIO
-                    nextSermon.currentTime = Constants.ZERO
-                    if (self.view.window != nil) && (sermonsInSeries!.indexOf(nextSermon) != nil) {
-                        selectedSermon = nextSermon
-                        updateUI()
-                        scrollToSermon(nextSermon, select: true, position: UITableViewScrollPosition.Top)
+            if let index = sermons?.indexOf(Globals.sermonPlaying!) {
+                if index < (sermons!.count - 1) {
+                    if let nextSermon = sermons?[index + 1] {
+                        nextSermon.playing = Constants.AUDIO
+                        nextSermon.currentTime = Constants.ZERO
+                        if (self.view.window != nil) && (sermons?.indexOf(nextSermon) != nil) {
+                            selectedSermon = nextSermon
+                            updateUI()
+                            scrollToSermon(nextSermon, select: true, position: UITableViewScrollPosition.Top)
+                        }
+                        //            print("\(selectedSermon)")
+                        playNewSermon(nextSermon)
                     }
-                    //            print("\(selectedSermon)")
-                    playNewSermon(nextSermon)
+                } else {
+                    Globals.playerPaused = true
+                    setupPlayPauseButton()
                 }
-            } else {
-                Globals.playerPaused = true
-                setupPlayPauseButton()
             }
         } else {
             Globals.playerPaused = true
@@ -2841,7 +2682,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
 
         if (Globals.mpPlayer != nil) {
-            Globals.sliderObserver = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "sliderTimer", userInfo: nil, repeats: true)
+            Globals.sliderObserver = NSTimer.scheduledTimerWithTimeInterval(0.5, target: self, selector: "sliderTimer", userInfo: nil, repeats: true)
         } else {
             // This will happen when there is no sermonPlaying, e.g. when a clean install is done and the app is put into the background and then brought back to the forground
             print("Globals.player == nil in sliderObserver")
@@ -2871,6 +2712,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     private func networkUnavailable(message:String?)
     {
         if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) { // && (self.view.window != nil) 
+            dismissViewControllerAnimated(true, completion: nil)
+            
             let alert = UIAlertController(title: Constants.Network_Error,
                 message: message,
                 preferredStyle: UIAlertControllerStyle.Alert)
@@ -2880,13 +2723,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             })
             alert.addAction(action)
             
-            UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
+            presentViewController(alert, animated: true, completion: nil)
         }
     }
     
     private func failedToLoad()
     {
         if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
+            dismissViewControllerAnimated(true, completion: nil)
+
             let alert = UIAlertController(title: Constants.Content_Failed_to_Load,
                 message: Constants.EMPTY_STRING,
                 preferredStyle: UIAlertControllerStyle.Alert)
@@ -3008,36 +2853,26 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     {
         let player = notification.object as! MPMoviePlayerController
         
-        /* Enough data has been buffered for playback to continue uninterrupted. */
-        
         let loadstate:UInt8 = UInt8(player.loadState.rawValue)
-        let loadvalue:UInt8 = UInt8(MPMovieLoadState.Playable.rawValue)
-        
-        // If there is a sermon that was playing before and we want to start back at the same place,
-        // the PlayPause button must NOT be active until loadState & Playable == 1.
-        
-        print("\(loadstate)")
-        print("\(loadvalue)")
-        
-        //For loading
-//        if ((loadstate & loadvalue) != (1<<1)) {
-//            print("mpPlayerLoadStateDidChange.MPMovieLoadState != Playable")
-//        }
-//        if ((loadstate & loadvalue) == (1<<1)) {
-//            print("mpPlayerLoadStateDidChange.MPMovieLoadState == Playable")
-//        }
 
-        if !Globals.sermonLoaded {
+        let playable = (loadstate & UInt8(MPMovieLoadState.Playable.rawValue)) > 0
+        let playthrough = (loadstate & UInt8(MPMovieLoadState.PlaythroughOK.rawValue)) > 0
+
+//        print("\(loadstate)")
+//        print("\(playable)")
+//        print("\(playthrough)")
+        
+        if (playable || playthrough) &&  !Globals.sermonLoaded && (Globals.sermonPlaying != nil) {
 //            print("\(Globals.sermonPlaying!.currentTime!)")
 //            print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
             
             // The comparison below is Int because I'm concerned Float leaves room for small differences.  We'll see.
-            if selectedSermon!.hasCurrentTime() {
-                if (Int(Float(Globals.sermonPlaying!.currentTime!)!) == Int(Globals.mpPlayer!.duration)) {
-                    Globals.sermonPlaying!.currentTime = Constants.ZERO
+            if Globals.sermonPlaying!.hasCurrentTime() {
+                if !loadingFromLive && (Int(Float(Globals.sermonPlaying!.currentTime!)!) == Int(Globals.mpPlayer!.duration)) {
+                    Globals.sermonPlaying?.currentTime = Constants.ZERO
                 }
             } else {
-                Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(0)
+                Globals.sermonPlaying?.currentTime = Constants.ZERO
             }
 
             Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!)
@@ -3048,13 +2883,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             spinner.stopAnimating()
             Globals.sermonLoaded = true
             
-            Globals.mpPlayer?.play()
+            if !loadingFromLive {
+                Globals.mpPlayer?.play()
+            }
             
-            // This removes ALL notifications for this observer so the "for playing" below will likely never happen.
-            // Which is fine since all it did was stop the spinner, which is done above.
+            playPauseButton.enabled = true
+            slider.enabled = true
+            
             NSNotificationCenter.defaultCenter().removeObserver(self)
         }
-//        }
         
         //For playing
         if (Globals.mpPlayer != nil) {
@@ -3094,115 +2931,53 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     }
     
     private func playNewSermon(sermon:Sermon?) {
-        //We don't set Globals.sermonSelected because that is only for selections made from the main sermon list, not from the series list.
-        
-//        updateCurrentTimeExact()
         Globals.mpPlayer?.stop()
         
         Globals.mpPlayer?.view.removeFromSuperview()
         
-        // Why, when we're showing Video, are we doing this?
-        // Why aren't we doing it in every case?
-        // Because we don't know if the WKWebViews are setup otherwise?
-        // That would be odd because just because you have video doesn't mean there are notes or slides
-//        if (sermon?.playing == Constants.VIDEO) {
-//            captureContentOffsetAndZoomScale()
-//        }
         captureContentOffsetAndZoomScale()
         
         if (sermon != nil) && (sermon!.hasVideo() || sermon!.hasAudio()) {
-            //Too late now
-//            Globals.sermonLoaded = true
-
             Globals.sermonPlaying = sermon
             Globals.playerPaused = false
             
             Globals.mpPlayer?.stop()
             
-            setupSermonPlayingUserDefaults()
-
-            var sermonURL:String?
+            removeSliderObserver()
             
-            switch sermon!.playing! {
-            case Constants.AUDIO:
-                sermonURL = Constants.BASE_AUDIO_URL + sermon!.audio!
-                break
-            case Constants.VIDEO:
-                sermonURL = Constants.BASE_VIDEO_URL_PREFIX + sermon!.video! + Constants.BASE_VIDEO_URL_POSTFIX
-                break
-            default:
-                break
-            }
+            //This guarantees a fresh start.
+            Globals.mpPlayer = MPMoviePlayerController(contentURL: sermon?.playingURL)
             
-            var url = NSURL(string:sermonURL!)
-//            var networkRequired = true
+            print("\(Globals.mpPlayer?.contentURL)")
             
-            if (sermon?.playing == Constants.AUDIO) {
-                let fileURL = documentsURL()?.URLByAppendingPathComponent(sermon!.audio!)
-                if (NSFileManager.defaultManager().fileExistsAtPath(fileURL!.path!)){
-                    url = fileURL!
-//                    networkRequired = false
-                }
-            }
+            setupPlayerView(Globals.mpPlayer?.view)
             
-            //        print("playNewSermon: \(sermonURL)")
-            
-//            if !networkRequired || (networkRequired && Reachability.isConnectedToNetwork()) {
-                removeSliderObserver()
-//                removePlayObserver()
-            
-                //This guarantees a fresh start.
-                Globals.mpPlayer = MPMoviePlayerController(contentURL: url)
-
-                setupPlayerView(Globals.mpPlayer?.view)
-
-                if (sermon!.hasVideo() && (sermon!.playing == Constants.VIDEO)) {
-                    if (view.window != nil) {
-                        Globals.mpPlayer!.view.hidden = false
-                        sermonNotesAndSlides.bringSubviewToFront(Globals.mpPlayer!.view!)
-                    }
-                    sermon!.showing = Constants.VIDEO
-                } else {
-
-                }
-
-                Globals.mpPlayer?.shouldAutoplay = false
-                Globals.mpPlayer?.controlStyle = MPMovieControlStyle.None
-                Globals.mpPlayer?.prepareToPlay()
-                
-                spinner.hidden = false
-                spinner.startAnimating()
-                // This stops the spinner spinning once the audio starts
-                Globals.sermonLoaded = false
-                NSNotificationCenter.defaultCenter().addObserver(self, selector: "mpPlayerLoadStateDidChange:", name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
-                
-                setupPlayingInfoCenter()
-
-                //Does this crash if prepareToPlay is not complete?
-                //Can we even call this here if the sermon is not available?
-                //If the sermon isn't available, how do we timeout?
-                //Do we need to set a flag and call this from mpPlayerLoadStateDidChange?  What if it never gets called?
-                //Is this causing crashes when prepareToPlay() is not completed and Globals.mpPlayer.loadState does not include MPMovieLoadState.Playable?
-//                Globals.mpPlayer?.play() // occurs in mpPlayerLoadStateDidChange after sermon has loaded
-                
-//                addPlayObserver()
-                addSliderObserver()
-                
+            if (sermon!.hasVideo() && (sermon!.playing == Constants.VIDEO)) {
                 if (view.window != nil) {
-                    setupSTVControl()
-                    setupSlider()
-                    setupPlayPauseButton()
-                    setupActionAndTagsButtons()
+                    Globals.mpPlayer!.view.hidden = false
+                    sermonNotesAndSlides.bringSubviewToFront(Globals.mpPlayer!.view!)
                 }
+                sermon!.showing = Constants.VIDEO
+            }
             
-//            if !networkRequired {
-//                Globals.sermonLoaded = true
-//                Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!)
-//                Globals.mpPlayer?.play()
-//            }
-//            } else {
-//                networkUnavailable("Unable to play sermon: \(sermonURL!)")
-//            }
+            Globals.mpPlayer?.shouldAutoplay = false
+            Globals.mpPlayer?.controlStyle = MPMovieControlStyle.None
+            Globals.mpPlayer?.prepareToPlay()
+
+            // This stops the spinner spinning once the audio starts
+            Globals.sermonLoaded = false
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: "mpPlayerLoadStateDidChange:", name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
+            
+            setupPlayingInfoCenter()
+
+            addSliderObserver()
+            
+            if (view.window != nil) {
+                setupSTVControl()
+                setupSlider()
+                setupPlayPauseButton()
+                setupActionAndTagsButtons()
+            }
         }
     }
     
@@ -3213,40 +2988,29 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let sermonSelected = sermonsInSeries![indexPath.row]
+        captureContentOffsetAndZoomScale()
+//        saveSermonSettingsBackground()
         
-//        if sermonSelected != selectedSermon {
-            captureContentOffsetAndZoomScale()
-            saveSermonSettingsBackground()
+        selectedSermon = sermonsInSeries![indexPath.row]
+        
+        if (selectedSermon == Globals.sermonPlaying) && (Globals.mpPlayer?.contentURL == NSURL(string:Constants.LIVE_STREAM_URL)) {
+            loadingFromLive = true
             
-            //        sermonSelected.description()
-            //        selectedSermon.description()
+            Globals.mpPlayer?.stop()
+            Globals.mpPlayer = nil
             
-            selectedSermon = sermonSelected
+            setupPlayer(selectedSermon)
             
-            let defaults = NSUserDefaults.standardUserDefaults()
-            defaults.setObject(sermonSelected.keyBase,forKey: Constants.SELECTED_SERMON_DETAIL_KEY)
-            defaults.synchronize()
+            setupPlayerView(Globals.mpPlayer?.view)
             
-            if (selectedSermon != nil) && (selectedSermon == Globals.sermonPlaying) {
-                if (!Globals.sermonLoaded) {
-//                    spinner.startAnimating()
-                } else {
-                    spinner.stopAnimating()
-                }
-            } else {
-                spinner.stopAnimating()
-            }
-            
-            setupAudioOrVideo()
-            setupPlayPauseButton()
-            setupSlider()
-            setupNotesSlidesVideo()
-            setupActionAndTagsButtons()
-            
-            //            print("Playing: \(Globals.sermonPlaying?.title)")
-            //            print("Selected: \(Globals.sermonSelected?.title)")
-//        }
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: "mpPlayerLoadStateDidChange:", name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
+        }
+
+        setupAudioOrVideo()
+        setupPlayPauseButton()
+        setupSlider()
+        setupNotesSlidesVideo()
+        setupActionAndTagsButtons()
     }
     
     func webView(wkWebView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
@@ -3397,20 +3161,20 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //            print("X ratio string: \(ratio)")
             notesContentOffsetXRatio = Float(ratio)!
         } else {
-            print("No notes X ratio")
+//            print("No notes X ratio")
         }
         
         if let ratio = selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] {
 //            print("Y ratio string: \(ratio)")
             notesContentOffsetYRatio = Float(ratio)!
         } else {
-            print("No notes Y ratio")
+//            print("No notes Y ratio")
         }
         
         if let zoomScale = selectedSermon?.settings?[Constants.NOTES_ZOOM_SCALE] {
             notesZoomScale = CGFloat(Float(zoomScale)!)
         } else {
-            print("No notes zoomScale")
+//            print("No notes zoomScale")
         }
         
 //        print("\(notesContentOffsetXRatio)")
@@ -3455,20 +3219,20 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //            print("X ratio string: \(ratio)")
             slidesContentOffsetXRatio = Float(ratio)!
         } else {
-            print("No slides X ratio")
+//            print("No slides X ratio")
         }
         
         if let ratio = selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] {
 //            print("Y ratio string: \(ratio)")
             slidesContentOffsetYRatio = Float(ratio)!
         } else {
-            print("No slides Y ratio")
+//            print("No slides Y ratio")
         }
         
         if let zoomScale = selectedSermon?.settings?[Constants.SLIDES_ZOOM_SCALE] {
             slidesZoomScale = CGFloat(Float(zoomScale)!)
         } else {
-            print("No slides zoomScale")
+//            print("No slides zoomScale")
         }
         
         let slidesContentOffset = CGPointMake(  CGFloat(slidesContentOffsetXRatio) * sermonSlidesWebView!.scrollView.contentSize.width * slidesZoomScale,
@@ -3493,13 +3257,13 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
             if (selectedSermon != nil) {
                 if (webView == sermonNotesWebView) {
-                    if (selectedSermon!.showing == Constants.NOTES) {
+                    if (selectedSermon!.showingNotes()) {
                         webView.hidden = panning
                     }
                     setNotesContentOffsetAndZoomScale()
                 }
                 if (webView == sermonSlidesWebView) {
-                    if (selectedSermon!.showing == Constants.SLIDES) {
+                    if (selectedSermon!.showingSlides()) {
                         webView.hidden = panning
                     }
                     

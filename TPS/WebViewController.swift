@@ -51,7 +51,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         print("scrollViewDidEndZooming")
         if let _ = scrollView.superview as? WKWebView {
             captureContentOffsetAndZoomScale()
-            saveSermonSettingsBackground() //seems to cause crash
+//            saveSermonSettingsBackground() //seems to cause crash
         }
     }
     
@@ -59,7 +59,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         print("scrollViewDidEndDragging")
         if let _ = scrollView.superview as? WKWebView {
             captureContentOffsetAndZoomScale()
-            saveSermonSettingsBackground() //seems to cause crash
+//            saveSermonSettingsBackground() //seems to cause crash
         }
     }
     
@@ -114,24 +114,28 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     {
         wkWebView = WKWebView()
         wkWebView?.multipleTouchEnabled = true
+        
+        wkWebView?.frame = webView.bounds
 
         wkWebView?.scrollView.delegate = self //seems to cause crash
 
         wkWebView?.navigationDelegate = self
         wkWebView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
         webView.addSubview(wkWebView!)
+
+        webView.bringSubviewToFront(wkWebView!)
         
-        let centerXNotes = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.CenterX, relatedBy: NSLayoutRelation.Equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.CenterX, multiplier: 1.0, constant: 0.0)
-        wkWebView?.superview?.addConstraint(centerXNotes)
+        let centerX = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.CenterX, relatedBy: NSLayoutRelation.Equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.CenterX, multiplier: 1.0, constant: 0.0)
+        wkWebView?.superview?.addConstraint(centerX)
         
-        let centerYNotes = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.CenterY, relatedBy: NSLayoutRelation.Equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.CenterY, multiplier: 1.0, constant: 0.0)
-        wkWebView?.superview?.addConstraint(centerYNotes)
+        let centerY = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.CenterY, relatedBy: NSLayoutRelation.Equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.CenterY, multiplier: 1.0, constant: 0.0)
+        wkWebView?.superview?.addConstraint(centerY)
         
-        let widthXNotes = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.Width, relatedBy: NSLayoutRelation.Equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.Width, multiplier: 1.0, constant: 0.0)
-        wkWebView?.superview?.addConstraint(widthXNotes)
+        let width = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.Width, relatedBy: NSLayoutRelation.Equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.Width, multiplier: 1.0, constant: 0.0)
+        wkWebView?.superview?.addConstraint(width)
         
-        let widthYNotes = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.Height, relatedBy: NSLayoutRelation.Equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.Height, multiplier: 1.0, constant: 0.0)
-        wkWebView?.superview?.addConstraint(widthYNotes)
+        let height = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.Height, relatedBy: NSLayoutRelation.Equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.Height, multiplier: 1.0, constant: 0.0)
+        wkWebView?.superview?.addConstraint(height)
         
         wkWebView?.superview?.setNeedsLayout()
     }
@@ -140,21 +144,21 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     {
         if (UIPrintInteractionController.isPrintingAvailable() && (sermon != nil))
         {
-            var printURL:String?
+            var printURL:NSURL?
             
             switch sermon!.showing! {
             case Constants.NOTES:
-                printURL = Constants.BASE_PDF_URL + sermon!.notes!
+                printURL = sermon!.notesURL
                 break
             case Constants.SLIDES:
-                printURL = Constants.BASE_PDF_URL + sermon!.slides!
+                printURL = sermon!.slidesURL
                 break
                 
             default:
                 break
             }
             
-            if (printURL != "") && UIPrintInteractionController.canPrintURL(NSURL(string: printURL!)!) {
+            if (printURL != "") && UIPrintInteractionController.canPrintURL(printURL!) {
                 //                print("can print!")
                 let pi = UIPrintInfo.printInfo()
                 pi.outputType = UIPrintInfoOutputType.General
@@ -169,7 +173,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 //Never could get this to work:
                 //            pic?.printFormatter = webView?.viewPrintFormatter()
                 
-                pic.printingItem = NSURL(string: printURL!)!
+                pic.printingItem = printURL
                 pic.presentFromBarButtonItem(navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
             }
         }
@@ -178,6 +182,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     private func networkUnavailable(message:String?)
     {
         if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) { //  && (self.view.window != nil)
+            dismissViewControllerAnimated(true, completion: nil)
+            
             let alert = UIAlertController(title:Constants.Network_Error,
                 message: message,
                 preferredStyle: UIAlertControllerStyle.Alert)
@@ -187,7 +193,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             })
             alert.addAction(action)
             
-            UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
+            presentViewController(alert, animated: true, completion: nil)
         }
     }
     
@@ -321,26 +327,26 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             
             action = UIAlertAction(title:Constants.Open_in_Browser, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
 
-                var urlString:String?
+                var url:NSURL?
                 
                 switch self.selectedSermon!.showing! {
                 case Constants.NOTES:
-                    urlString = Constants.BASE_PDF_URL + self.selectedSermon!.notes!
+                    url = self.selectedSermon!.notesURL
                     break
                     
                 case Constants.SLIDES:
-                    urlString = Constants.BASE_PDF_URL + self.selectedSermon!.slides!
+                    url = self.selectedSermon!.slidesURL
                     break
                     
                 default:
                     break
                 }
                 
-                if let url = NSURL(string:urlString!) {
-                    if UIApplication.sharedApplication().canOpenURL(url) {
-                        UIApplication.sharedApplication().openURL(url)
+                if url != nil {
+                    if UIApplication.sharedApplication().canOpenURL(url!) {
+                        UIApplication.sharedApplication().openURL(url!)
                     } else {
-                        self.networkUnavailable("Unable to open in browser: \(urlString)")
+                        self.networkUnavailable("Unable to open in browser: \(url)")
                     }
 //                    if Reachability.isConnectedToNetwork() {
 //                        if UIApplication.sharedApplication().canOpenURL(url) {
@@ -606,10 +612,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         }
     }
     
-//    override func prefersStatusBarHidden() -> Bool {
-//        return navigationController?.navigationBarHidden == true
-//    }
-//    
+    override func prefersStatusBarHidden() -> Bool {
+        return true // navigationController?.navigationBarHidden ==
+    }
+    
 //    override func preferredStatusBarUpdateAnimation() -> UIStatusBarAnimation {
 //        return UIStatusBarAnimation.Slide
 //    }
@@ -637,14 +643,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         navigationItem.title = selectedSermon!.title!
         navigationItem.hidesBackButton = true
 
-        var stringURL:String?
+        var url:NSURL?
         
         switch selectedSermon!.showing! {
         case Constants.NOTES:
-            stringURL = Constants.BASE_PDF_URL + selectedSermon!.notes!
+            url = selectedSermon!.notesURL
             break
         case Constants.SLIDES:
-            stringURL = Constants.BASE_PDF_URL + selectedSermon!.slides!
+            url = selectedSermon!.slidesURL
             break
             
         default:
@@ -664,7 +670,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         }
         
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-            let request = NSURLRequest(URL: NSURL(string: stringURL!)!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
+            let request = NSURLRequest(URL: url!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
             self.wkWebView?.loadRequest(request) // NSURLRequest(URL: NSURL(string: stringURL!)!)
         })
     }

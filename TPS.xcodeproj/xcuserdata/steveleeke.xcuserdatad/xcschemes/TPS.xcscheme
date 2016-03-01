@@ -52,6 +52,26 @@
                ReferencedContainer = "container:TPS.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "17A275611C85CE7600D24CEE"
+               BuildableName = "SermonsUITests.xctest"
+               BlueprintName = "SermonsUITests"
+               ReferencedContainer = "container:TPS.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "17A2756F1C85CE8B00D24CEE"
+               BuildableName = "TPSUITests.xctest"
+               BlueprintName = "TPSUITests"
+               ReferencedContainer = "container:TPS.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference

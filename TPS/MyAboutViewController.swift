@@ -28,19 +28,21 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
         }
     }
     
-    @IBOutlet weak var tpPageControl: UIPageControl!
+    @IBOutlet weak var scrollView: UIScrollView!
     
-    @IBAction func tpPageControlAction(sender: UIPageControl)
-    {
-        flipView(tpView)
-    }
-
-    @IBOutlet weak var cbcPageControl: UIPageControl!
-    
-    @IBAction func cbcPageControlAction(sender: UIPageControl)
-    {
-        flipView(cbcView)
-    }
+//    @IBOutlet weak var tpPageControl: UIPageControl!
+//    
+//    @IBAction func tpPageControlAction(sender: UIPageControl)
+//    {
+//        flipView(tpView)
+//    }
+//
+//    @IBOutlet weak var cbcPageControl: UIPageControl!
+//    
+//    @IBAction func cbcPageControlAction(sender: UIPageControl)
+//    {
+//        flipView(cbcView)
+//    }
     
     var item:MKMapItem?
     
@@ -282,377 +284,377 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
     }
 
     //iPhone only BELOW
-    @IBOutlet weak var tpView: UIView!
-    @IBOutlet weak var cbcView: UIView!
+//    @IBOutlet weak var tpView: UIView!
+//    @IBOutlet weak var cbcView: UIView!
+//    
+//    @IBOutlet weak var tomPenningtonImage: UIImageView! {
+//        didSet {
+//            if (splitViewController == nil) {
+//                let tap = UITapGestureRecognizer(target: self, action: "flipGRView:")
+//                tomPenningtonImage.addGestureRecognizer(tap)
+//                
+//                let swipeRight = UISwipeGestureRecognizer(target: self, action: "flipFromLeft:")
+//                swipeRight.direction = UISwipeGestureRecognizerDirection.Right
+//                tomPenningtonImage.addGestureRecognizer(swipeRight)
+//                
+//                let swipeLeft = UISwipeGestureRecognizer(target: self, action: "flipFromRight:")
+//                swipeLeft.direction = UISwipeGestureRecognizerDirection.Left
+//                tomPenningtonImage.addGestureRecognizer(swipeLeft)
+//            }
+//        }
+//    }
+//    
+//    @IBOutlet weak var tomPenningtonBio: UITextView! {
+//        didSet {
+//            if (splitViewController == nil) {
+//                let tap = UITapGestureRecognizer(target: self, action: "flipGRView:")
+//                tomPenningtonBio.addGestureRecognizer(tap)
+//                
+//                let swipeRight = UISwipeGestureRecognizer(target: self, action: "flipFromLeft:")
+//                swipeRight.direction = UISwipeGestureRecognizerDirection.Right
+//                tomPenningtonBio.addGestureRecognizer(swipeRight)
+//                
+//                let swipeLeft = UISwipeGestureRecognizer(target: self, action: "flipFromRight:")
+//                swipeLeft.direction = UISwipeGestureRecognizerDirection.Left
+//                tomPenningtonBio.addGestureRecognizer(swipeLeft)
+//            }
+//        }
+//    }
+//
+//    @IBOutlet weak var cbcDescription: UITextView! {
+//        didSet {
+//            if (splitViewController == nil) {
+//                let tap = UITapGestureRecognizer(target: self, action: "flipGRView:")
+//                cbcDescription.addGestureRecognizer(tap)
+//                
+//                let swipeRight = UISwipeGestureRecognizer(target: self, action: "flipFromLeft:")
+//                swipeRight.direction = UISwipeGestureRecognizerDirection.Right
+//                cbcDescription.addGestureRecognizer(swipeRight)
+//                
+//                let swipeLeft = UISwipeGestureRecognizer(target: self, action: "flipFromRight:")
+//                swipeLeft.direction = UISwipeGestureRecognizerDirection.Left
+//                cbcDescription.addGestureRecognizer(swipeLeft)
+//            }
+//        }
+//    }
+//    
+    @IBOutlet weak var mapView: MKMapView! // {
+//        didSet {
+//            if (splitViewController == nil) {
+//                let tap = UITapGestureRecognizer(target: self, action: "flipGRView:")
+//                mapView.addGestureRecognizer(tap)
+//                
+//                let swipeRight = UISwipeGestureRecognizer(target: self, action: "flipFromLeft:")
+//                swipeRight.direction = UISwipeGestureRecognizerDirection.Right
+//                mapView.addGestureRecognizer(swipeRight)
+//                
+//                let swipeLeft = UISwipeGestureRecognizer(target: self, action: "flipFromRight:")
+//                swipeLeft.direction = UISwipeGestureRecognizerDirection.Left
+//                mapView.addGestureRecognizer(swipeLeft)
+//            }
+//        }
+//    }
     
-    @IBOutlet weak var tomPenningtonImage: UIImageView! {
-        didSet {
-            if (splitViewController == nil) {
-                let tap = UITapGestureRecognizer(target: self, action: "flipGRView:")
-                tomPenningtonImage.addGestureRecognizer(tap)
-                
-                let swipeRight = UISwipeGestureRecognizer(target: self, action: "flipFromLeft:")
-                swipeRight.direction = UISwipeGestureRecognizerDirection.Right
-                tomPenningtonImage.addGestureRecognizer(swipeRight)
-                
-                let swipeLeft = UISwipeGestureRecognizer(target: self, action: "flipFromRight:")
-                swipeLeft.direction = UISwipeGestureRecognizerDirection.Left
-                tomPenningtonImage.addGestureRecognizer(swipeLeft)
-            }
-        }
-    }
-    
-    @IBOutlet weak var tomPenningtonBio: UITextView! {
-        didSet {
-            if (splitViewController == nil) {
-                let tap = UITapGestureRecognizer(target: self, action: "flipGRView:")
-                tomPenningtonBio.addGestureRecognizer(tap)
-                
-                let swipeRight = UISwipeGestureRecognizer(target: self, action: "flipFromLeft:")
-                swipeRight.direction = UISwipeGestureRecognizerDirection.Right
-                tomPenningtonBio.addGestureRecognizer(swipeRight)
-                
-                let swipeLeft = UISwipeGestureRecognizer(target: self, action: "flipFromRight:")
-                swipeLeft.direction = UISwipeGestureRecognizerDirection.Left
-                tomPenningtonBio.addGestureRecognizer(swipeLeft)
-            }
-        }
-    }
-
-    @IBOutlet weak var cbcDescription: UITextView! {
-        didSet {
-            if (splitViewController == nil) {
-                let tap = UITapGestureRecognizer(target: self, action: "flipGRView:")
-                cbcDescription.addGestureRecognizer(tap)
-                
-                let swipeRight = UISwipeGestureRecognizer(target: self, action: "flipFromLeft:")
-                swipeRight.direction = UISwipeGestureRecognizerDirection.Right
-                cbcDescription.addGestureRecognizer(swipeRight)
-                
-                let swipeLeft = UISwipeGestureRecognizer(target: self, action: "flipFromRight:")
-                swipeLeft.direction = UISwipeGestureRecognizerDirection.Left
-                cbcDescription.addGestureRecognizer(swipeLeft)
-            }
-        }
-    }
-    
-    @IBOutlet weak var mapView: MKMapView! {
-        didSet {
-            if (splitViewController == nil) {
-                let tap = UITapGestureRecognizer(target: self, action: "flipGRView:")
-                mapView.addGestureRecognizer(tap)
-                
-                let swipeRight = UISwipeGestureRecognizer(target: self, action: "flipFromLeft:")
-                swipeRight.direction = UISwipeGestureRecognizerDirection.Right
-                mapView.addGestureRecognizer(swipeRight)
-                
-                let swipeLeft = UISwipeGestureRecognizer(target: self, action: "flipFromRight:")
-                swipeLeft.direction = UISwipeGestureRecognizerDirection.Left
-                mapView.addGestureRecognizer(swipeLeft)
-            }
-        }
-    }
-    
-    func flipFromLeft(sender: UIGestureRecognizer) {
-        //        println("tap")
-        
-        // set a transition style
-        let transitionOptions = UIViewAnimationOptions.TransitionFlipFromLeft
-        
-        var view:UIView?
-        
-        switch sender.view! {
-        case tomPenningtonImage:
-            view = tpView
-            break
-
-        case tomPenningtonBio:
-            view = tpView
-            break
-            
-        case cbcDescription:
-            view = cbcView
-            break
-            
-        case mapView:
-            view = cbcView
-            break
-            
-        default:
-            break
-        }
-        
-        let frontView = view!.subviews[0]
-        let backView = view!.subviews[1]
-        
-        if let textView = view!.subviews[0] as? UITextView {
-            textView.scrollRectToVisible(CGRectMake(0, 0, 1, 1), animated: false)
-            //            view.scrollRangeToVisible(NSMakeRange(0, 0))  // snaps in to place because it animates by default
-        }
-        
-        UIView.transitionWithView(view!, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {
-            //            println("\(self.seriesArtAndDescription.subviews.count)")
-            //The following assumes there are only 2 subviews, 0 and 1, and this alternates between them.
-            frontView.hidden = false
-            view?.bringSubviewToFront(frontView)
-            backView.hidden = true
-            
-            switch frontView {
-            case self.tomPenningtonImage:
-                self.tpPageControl.currentPage = 0
-                break
-                
-            case self.tomPenningtonBio:
-                self.tpPageControl.currentPage = 1
-                break
-                
-            case self.cbcDescription:
-                self.cbcPageControl.currentPage = 0
-                break
-                
-            case self.mapView:
-                self.cbcPageControl.currentPage = 1
-                break
-                
-            default:
-                print("\(sender)")
-                print("no tap match!")
-                break
-            }
-            
-            }, completion: { finished in
-                
-        })
-        
-    }
-    
-    func flipFromRight(sender: UIGestureRecognizer) {
-        //        println("tap")
-        
-        // set a transition style
-        let transitionOptions = UIViewAnimationOptions.TransitionFlipFromRight
-
-        var view:UIView?
-        
-        switch sender.view! {
-        case tomPenningtonImage:
-            view = tpView
-            break
-            
-        case tomPenningtonBio:
-            view = tpView
-            break
-            
-        case cbcDescription:
-            view = cbcView
-            break
-            
-        case mapView:
-            view = cbcView
-            break
-            
-        default:
-            break
-        }
-
-        let frontView = view!.subviews[0]
-        let backView = view!.subviews[1]
-        
-        if let textView = view!.subviews[0] as? UITextView {
-            textView.scrollRectToVisible(CGRectMake(0, 0, 1, 1), animated: false)
-            //            view.scrollRangeToVisible(NSMakeRange(0, 0))  // snaps in to place because it animates by default
-        }
-        
-        UIView.transitionWithView(view!, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {
-            //            println("\(self.seriesArtAndDescription.subviews.count)")
-            //The following assumes there are only 2 subviews, 0 and 1, and this alternates between them.
-            frontView.hidden = false
-            view?.bringSubviewToFront(frontView)
-            backView.hidden = true
-            
-            switch frontView {
-            case self.tomPenningtonImage:
-                self.tpPageControl.currentPage = 0
-                break
-                
-            case self.tomPenningtonBio:
-                self.tpPageControl.currentPage = 1
-                break
-                
-            case self.cbcDescription:
-                self.cbcPageControl.currentPage = 0
-                break
-                
-            case self.mapView:
-                self.cbcPageControl.currentPage = 1
-                break
-                
-            default:
-                print("\(sender)")
-                print("no tap match!")
-                break
-            }
-            
-            }, completion: { finished in
-                
-        })
-        
-    }
-    
-    func flipView(sender: UIView) {
-        //        println("tap")
-        
-        // set a transition style
-        var transitionOptions:UIViewAnimationOptions!
-        
-        let frontView = sender.subviews[0]
-        let backView = sender.subviews[1]
-        
-        switch backView {
-        case tomPenningtonImage:
-            transitionOptions = UIViewAnimationOptions.TransitionFlipFromRight
-            break
-            
-        case tomPenningtonBio:
-            transitionOptions = UIViewAnimationOptions.TransitionFlipFromLeft
-            break
-            
-        case cbcDescription:
-            transitionOptions = UIViewAnimationOptions.TransitionFlipFromRight
-            break
-            
-        case mapView:
-            transitionOptions = UIViewAnimationOptions.TransitionFlipFromLeft
-            break
-            
-        default:
-            print("\(sender)")
-            print("no tap match!")
-            break
-        }
-        
-        if let textView = view!.subviews[0] as? UITextView {
-            textView.scrollRectToVisible(CGRectMake(0, 0, 1, 1), animated: false)
-            //            view.scrollRangeToVisible(NSMakeRange(0, 0))  // snaps in to place because it animates by default
-        }
-        
-        UIView.transitionWithView(sender, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {
-            //            println("\(self.seriesArtAndDescription.subviews.count)")
-            //The following assumes there are only 2 subviews, 0 and 1, and this alternates between them.
-            frontView.hidden = false
-            sender.bringSubviewToFront(frontView)
-            backView.hidden = true
-            
-            switch frontView {
-            case self.tomPenningtonImage:
-                self.tpPageControl.currentPage = 0
-                break
-                
-            case self.tomPenningtonBio:
-                self.tpPageControl.currentPage = 1
-                break
-                
-            case self.cbcDescription:
-                self.cbcPageControl.currentPage = 0
-                break
-                
-            case self.mapView:
-                self.cbcPageControl.currentPage = 1
-                break
-                
-            default:
-                print("\(sender)")
-                print("no tap match!")
-                break
-            }
-            
-            }, completion: { finished in
-                
-        })
-        
-    }
-    
-    func flipGRView(sender: UIGestureRecognizer) {
-        //        println("tap")
-        if (sender.view != nil) {
-            // set a transition style
-            var transitionOptions:UIViewAnimationOptions!
-            var parentView:UIView?
-            
-            switch sender.view! {
-            case tomPenningtonImage:
-                parentView = tpView
-                transitionOptions = UIViewAnimationOptions.TransitionFlipFromRight
-                break
-                
-            case tomPenningtonBio:
-                parentView = tpView
-                transitionOptions = UIViewAnimationOptions.TransitionFlipFromLeft
-                break
-                
-            case cbcDescription:
-                parentView = cbcView
-                transitionOptions = UIViewAnimationOptions.TransitionFlipFromRight
-                break
-                
-            case mapView:
-                parentView = cbcView
-                transitionOptions = UIViewAnimationOptions.TransitionFlipFromLeft
-                break
-                
-            default:
-                print("\(sender)")
-                print("no tap match!")
-                break
-            }
-            
-            let frontView = parentView!.subviews[0]
-            let backView = parentView!.subviews[1]
-
-            if let textView = parentView!.subviews[0] as? UITextView {
-                textView.scrollRectToVisible(CGRectMake(0, 0, 1, 1), animated: false)
-                //            view.scrollRangeToVisible(NSMakeRange(0, 0))  // snaps in to place because it animates by default
-            }
-            
-            UIView.transitionWithView(parentView!, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {
-                //            println("\(self.seriesArtAndDescription.subviews.count)")
-                //The following assumes there are only 2 subviews, 0 and 1, and this alternates between them.
-                frontView.hidden = false
-                parentView!.bringSubviewToFront(frontView)
-                backView.hidden = true
-                
-                switch frontView {
-                case self.tomPenningtonImage:
-                    self.tpPageControl.currentPage = 0
-                    break
-                    
-                case self.tomPenningtonBio:
-                    self.tpPageControl.currentPage = 1
-                    break
-                    
-                case self.cbcDescription:
-                    self.cbcPageControl.currentPage = 0
-                    break
-                    
-                case self.mapView:
-                    self.cbcPageControl.currentPage = 1
-                    break
-                    
-                default:
-                    print("\(sender)")
-                    print("no tap match!")
-                    break
-                }
-                
-                }, completion: { finished in
-                    
-            })
-        }
-    }
+//    func flipFromLeft(sender: UIGestureRecognizer) {
+//        //        println("tap")
+//        
+//        // set a transition style
+//        let transitionOptions = UIViewAnimationOptions.TransitionFlipFromLeft
+//        
+//        var view:UIView?
+//        
+//        switch sender.view! {
+//        case tomPenningtonImage:
+//            view = tpView
+//            break
+//
+//        case tomPenningtonBio:
+//            view = tpView
+//            break
+//            
+//        case cbcDescription:
+//            view = cbcView
+//            break
+//            
+//        case mapView:
+//            view = cbcView
+//            break
+//            
+//        default:
+//            break
+//        }
+//        
+//        let frontView = view!.subviews[0]
+//        let backView = view!.subviews[1]
+//        
+//        if let textView = view!.subviews[0] as? UITextView {
+//            textView.scrollRectToVisible(CGRectMake(0, 0, 1, 1), animated: false)
+//            //            view.scrollRangeToVisible(NSMakeRange(0, 0))  // snaps in to place because it animates by default
+//        }
+//        
+//        UIView.transitionWithView(view!, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {
+//            //            println("\(self.seriesArtAndDescription.subviews.count)")
+//            //The following assumes there are only 2 subviews, 0 and 1, and this alternates between them.
+//            frontView.hidden = false
+//            view?.bringSubviewToFront(frontView)
+//            backView.hidden = true
+//            
+//            switch frontView {
+//            case self.tomPenningtonImage:
+//                self.tpPageControl.currentPage = 0
+//                break
+//                
+//            case self.tomPenningtonBio:
+//                self.tpPageControl.currentPage = 1
+//                break
+//                
+//            case self.cbcDescription:
+//                self.cbcPageControl.currentPage = 0
+//                break
+//                
+//            case self.mapView:
+//                self.cbcPageControl.currentPage = 1
+//                break
+//                
+//            default:
+//                print("\(sender)")
+//                print("no tap match!")
+//                break
+//            }
+//            
+//            }, completion: { finished in
+//                
+//        })
+//        
+//    }
+//    
+//    func flipFromRight(sender: UIGestureRecognizer) {
+//        //        println("tap")
+//        
+//        // set a transition style
+//        let transitionOptions = UIViewAnimationOptions.TransitionFlipFromRight
+//
+//        var view:UIView?
+//        
+//        switch sender.view! {
+//        case tomPenningtonImage:
+//            view = tpView
+//            break
+//            
+//        case tomPenningtonBio:
+//            view = tpView
+//            break
+//            
+//        case cbcDescription:
+//            view = cbcView
+//            break
+//            
+//        case mapView:
+//            view = cbcView
+//            break
+//            
+//        default:
+//            break
+//        }
+//
+//        let frontView = view!.subviews[0]
+//        let backView = view!.subviews[1]
+//        
+//        if let textView = view!.subviews[0] as? UITextView {
+//            textView.scrollRectToVisible(CGRectMake(0, 0, 1, 1), animated: false)
+//            //            view.scrollRangeToVisible(NSMakeRange(0, 0))  // snaps in to place because it animates by default
+//        }
+//        
+//        UIView.transitionWithView(view!, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {
+//            //            println("\(self.seriesArtAndDescription.subviews.count)")
+//            //The following assumes there are only 2 subviews, 0 and 1, and this alternates between them.
+//            frontView.hidden = false
+//            view?.bringSubviewToFront(frontView)
+//            backView.hidden = true
+//            
+//            switch frontView {
+//            case self.tomPenningtonImage:
+//                self.tpPageControl.currentPage = 0
+//                break
+//                
+//            case self.tomPenningtonBio:
+//                self.tpPageControl.currentPage = 1
+//                break
+//                
+//            case self.cbcDescription:
+//                self.cbcPageControl.currentPage = 0
+//                break
+//                
+//            case self.mapView:
+//                self.cbcPageControl.currentPage = 1
+//                break
+//                
+//            default:
+//                print("\(sender)")
+//                print("no tap match!")
+//                break
+//            }
+//            
+//            }, completion: { finished in
+//                
+//        })
+//        
+//    }
+//    
+//    func flipView(sender: UIView) {
+//        //        println("tap")
+//        
+//        // set a transition style
+//        var transitionOptions:UIViewAnimationOptions!
+//        
+//        let frontView = sender.subviews[0]
+//        let backView = sender.subviews[1]
+//        
+//        switch backView {
+//        case tomPenningtonImage:
+//            transitionOptions = UIViewAnimationOptions.TransitionFlipFromRight
+//            break
+//            
+//        case tomPenningtonBio:
+//            transitionOptions = UIViewAnimationOptions.TransitionFlipFromLeft
+//            break
+//            
+//        case cbcDescription:
+//            transitionOptions = UIViewAnimationOptions.TransitionFlipFromRight
+//            break
+//            
+//        case mapView:
+//            transitionOptions = UIViewAnimationOptions.TransitionFlipFromLeft
+//            break
+//            
+//        default:
+//            print("\(sender)")
+//            print("no tap match!")
+//            break
+//        }
+//        
+//        if let textView = view!.subviews[0] as? UITextView {
+//            textView.scrollRectToVisible(CGRectMake(0, 0, 1, 1), animated: false)
+//            //            view.scrollRangeToVisible(NSMakeRange(0, 0))  // snaps in to place because it animates by default
+//        }
+//        
+//        UIView.transitionWithView(sender, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {
+//            //            println("\(self.seriesArtAndDescription.subviews.count)")
+//            //The following assumes there are only 2 subviews, 0 and 1, and this alternates between them.
+//            frontView.hidden = false
+//            sender.bringSubviewToFront(frontView)
+//            backView.hidden = true
+//            
+//            switch frontView {
+//            case self.tomPenningtonImage:
+//                self.tpPageControl.currentPage = 0
+//                break
+//                
+//            case self.tomPenningtonBio:
+//                self.tpPageControl.currentPage = 1
+//                break
+//                
+//            case self.cbcDescription:
+//                self.cbcPageControl.currentPage = 0
+//                break
+//                
+//            case self.mapView:
+//                self.cbcPageControl.currentPage = 1
+//                break
+//                
+//            default:
+//                print("\(sender)")
+//                print("no tap match!")
+//                break
+//            }
+//            
+//            }, completion: { finished in
+//                
+//        })
+//        
+//    }
+//    
+//    func flipGRView(sender: UIGestureRecognizer) {
+//        //        println("tap")
+//        if (sender.view != nil) {
+//            // set a transition style
+//            var transitionOptions:UIViewAnimationOptions!
+//            var parentView:UIView?
+//            
+//            switch sender.view! {
+//            case tomPenningtonImage:
+//                parentView = tpView
+//                transitionOptions = UIViewAnimationOptions.TransitionFlipFromRight
+//                break
+//                
+//            case tomPenningtonBio:
+//                parentView = tpView
+//                transitionOptions = UIViewAnimationOptions.TransitionFlipFromLeft
+//                break
+//                
+//            case cbcDescription:
+//                parentView = cbcView
+//                transitionOptions = UIViewAnimationOptions.TransitionFlipFromRight
+//                break
+//                
+//            case mapView:
+//                parentView = cbcView
+//                transitionOptions = UIViewAnimationOptions.TransitionFlipFromLeft
+//                break
+//                
+//            default:
+//                print("\(sender)")
+//                print("no tap match!")
+//                break
+//            }
+//            
+//            let frontView = parentView!.subviews[0]
+//            let backView = parentView!.subviews[1]
+//
+//            if let textView = parentView!.subviews[0] as? UITextView {
+//                textView.scrollRectToVisible(CGRectMake(0, 0, 1, 1), animated: false)
+//                //            view.scrollRangeToVisible(NSMakeRange(0, 0))  // snaps in to place because it animates by default
+//            }
+//            
+//            UIView.transitionWithView(parentView!, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {
+//                //            println("\(self.seriesArtAndDescription.subviews.count)")
+//                //The following assumes there are only 2 subviews, 0 and 1, and this alternates between them.
+//                frontView.hidden = false
+//                parentView!.bringSubviewToFront(frontView)
+//                backView.hidden = true
+//                
+//                switch frontView {
+//                case self.tomPenningtonImage:
+//                    self.tpPageControl.currentPage = 0
+//                    break
+//                    
+//                case self.tomPenningtonBio:
+//                    self.tpPageControl.currentPage = 1
+//                    break
+//                    
+//                case self.cbcDescription:
+//                    self.cbcPageControl.currentPage = 0
+//                    break
+//                    
+//                case self.mapView:
+//                    self.cbcPageControl.currentPage = 1
+//                    break
+//                    
+//                default:
+//                    print("\(sender)")
+//                    print("no tap match!")
+//                    break
+//                }
+//                
+//                }, completion: { finished in
+//                    
+//            })
+//        }
+//    }
     //iPhone only ABOVE
 
     //Only on iPad
-    @IBOutlet weak var cbcContactInformation: UITextView!
+//    @IBOutlet weak var cbcContactInformation: UITextView!
     //
     
     override func viewDidLoad() {
@@ -673,12 +675,16 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
         super.viewWillAppear(animated)
         setVersion()
         
+//        if (Globals.mpPlayer?.contentURL == NSURL(string:Constants.LIVE_STREAM_URL)) {
+//            Globals.mpPlayer?.stop()
+//        }
+        
         if (splitViewController == nil) {
-            tomPenningtonImage.hidden = false
-            tomPenningtonBio.hidden = true
-            
-            cbcDescription.hidden = false
-            mapView.hidden = true
+//            tomPenningtonImage.hidden = false
+//            tomPenningtonBio.hidden = true
+//            
+//            cbcDescription.hidden = false
+//            mapView.hidden = true
         }
         
 //        var rightBarButtonItems = [UIBarButtonItem]()
@@ -686,8 +692,8 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
 //        rightBarButtonItems.append(UIBarButtonItem(title: "Help", style: UIBarButtonItemStyle.Plain, target: self, action: "help:"))
 //        navigationItem.rightBarButtonItems = rightBarButtonItems
         
-        tomPenningtonBio.scrollRangeToVisible(NSMakeRange(0,0))
-        cbcDescription.scrollRangeToVisible(NSMakeRange(0,0))
+//        tomPenningtonBio.scrollRangeToVisible(NSMakeRange(0,0))
+//        cbcDescription.scrollRangeToVisible(NSMakeRange(0,0))
         
         let geocoder = CLGeocoder()
         geocoder.geocodeAddressString(Constants.CBC_FULL_ADDRESS, completionHandler:{(placemarks, error) -> Void in
@@ -715,6 +721,8 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
     
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
+        
+        scrollView.flashScrollIndicators()
     }
     
     override func didReceiveMemoryWarning() {
@@ -729,8 +737,8 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
             return
         }
         
-        tomPenningtonBio.scrollRangeToVisible(NSMakeRange(0,0))
-        cbcDescription.scrollRangeToVisible(NSMakeRange(0,0))
+//        tomPenningtonBio.scrollRangeToVisible(NSMakeRange(0,0))
+//        cbcDescription.scrollRangeToVisible(NSMakeRange(0,0))
     }
 
     private func networkUnavailable(message:String?)
@@ -745,7 +753,7 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
             })
             alert.addAction(action)
             
-            UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
+            presentViewController(alert, animated: true, completion: nil)
         }
     }
     
@@ -753,7 +761,7 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
 
     override func shouldPerformSegueWithIdentifier(identifier: String, sender: AnyObject?) -> Bool
     {
-        if (identifier == "Show Live") {
+        if (identifier == Constants.Show_Live) {
 //            if !Reachability.isConnectedToNetwork() {
 //                networkUnavailable("Unable to connect to the internet.")
 //                return false
@@ -767,7 +775,7 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         // Get the new view controller using segue.destinationViewController.
         // Pass the selected object to the new view controller.
-        if (segue.identifier == "Show Live") {
+        if (segue.identifier == Constants.Show_Live) {
             
         }
     }

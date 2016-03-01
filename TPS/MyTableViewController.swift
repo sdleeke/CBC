@@ -64,78 +64,98 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     @IBOutlet weak var showButton: UIBarButtonItem!
     @IBAction func show(button: UIBarButtonItem) {
-        popover = storyboard?.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? PopoverTableViewController
-        popover?.modalPresentationStyle = .Popover
-//        popover!.preferredContentSize = CGSizeMake(300, 500)
-        
-        popover?.popoverPresentationController?.permittedArrowDirections = .Up
-        popover?.popoverPresentationController?.delegate = self
-        popover?.popoverPresentationController?.barButtonItem = button
-        
-        popover?.delegate = self
-        popover?.purpose = .selectingShow
-        
-        var showMenu = [String]()
-    
-        if (splitViewController != nil) {
-            if (!Globals.showingAbout) {
-                showMenu.append(Constants.About)
-            }
-        } else {
-            showMenu.append(Constants.About)
-        }
-        
-        //Because the list extends above and below the visible area, visibleCells is deceptive - the cell can be hidden behind a navbar or toolbar and still returned in the array of visibleCells.
-        if (Globals.display.sermons != nil) && (selectedSermon != nil) && (Globals.display.sermons?.indexOf(selectedSermon!) != nil) {
-            showMenu.append(Constants.Current_Selection)
-        }
-
-        if (Globals.sermonPlaying != nil) {
-            var show:String = Constants.EMPTY_STRING
-            
-            if (Globals.playerPaused) {
-                show = Constants.Sermon_Paused
-            } else {
-                show = Constants.Sermon_Playing
-            }
-            
-            if (splitViewController != nil) {
-                if let nvc = splitViewController!.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
-                    if let myvc = nvc.visibleViewController as? MyViewController {
-                        if (myvc.selectedSermon != nil) {
-                            if (myvc.selectedSermon?.title != Globals.sermonPlaying?.title) || (myvc.selectedSermon?.date != Globals.sermonPlaying?.date) {
-                                // The sermonPlaying is not the one showing
-                                showMenu.append(show)
+        if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .Popover
+                //            popover?.preferredContentSize = CGSizeMake(300, 500)
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .Up
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.barButtonItem = button
+                
+                popover.navigationItem.title = "Show"
+                
+                popover.delegate = self
+                popover.purpose = .selectingShow
+                
+                var showMenu = [String]()
+                
+                if (self.splitViewController != nil) {
+                    // What if it is collapsed and the detail view is showing?
+                    if (!Globals.showingAbout) {
+                        showMenu.append(Constants.About)
+                    }
+                } else {
+                    showMenu.append(Constants.About)
+                }
+                
+                //Because the list extends above and below the visible area, visibleCells is deceptive - the cell can be hidden behind a navbar or toolbar and still returned in the array of visibleCells.
+                if (Globals.display.sermons != nil) && (selectedSermon != nil) && (Globals.display.sermons?.indexOf(selectedSermon!) != nil) {
+                    showMenu.append(Constants.Current_Selection)
+                }
+                
+                if (Globals.sermonPlaying != nil) {
+                    var show:String = Constants.EMPTY_STRING
+                    
+                    if (Globals.playerPaused) {
+                        show = Constants.Sermon_Paused
+                    } else {
+                        show = Constants.Sermon_Playing
+                    }
+                    
+                    if (self.splitViewController != nil) {
+                        if let nvc = self.splitViewController!.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
+                            if let myvc = nvc.topViewController as? MyViewController {
+                                if (myvc.selectedSermon != nil) {
+                                    if (myvc.selectedSermon?.title != Globals.sermonPlaying?.title) || (myvc.selectedSermon?.date != Globals.sermonPlaying?.date) {
+                                        // The sermonPlaying is not the one showing
+                                        showMenu.append(show)
+                                    } else {
+                                        // The sermonPlaying is the one showing
+                                    }
+                                } else {
+                                    // There is no selectedSermon - which should never happen
+                                    print("There is no selectedSermon - which should never happen")
+                                }
                             } else {
-                                // The sermonPlaying is the one showing
+                                // About is showing
+                                showMenu.append(show)
                             }
-                        } else {
-                            // There is no selectedSermon - which should never happen
-                            print("There is no selectedSermon - which should never happen")
                         }
                     } else {
-                        // About is showing
+                        //Always show it
                         showMenu.append(show)
                     }
+                } else {
+                    //Nothing to show
                 }
-            } else {
-                //Always show it
-                showMenu.append(show)
+                
+                showMenu.append(Constants.Settings)
+                
+                popover.strings = showMenu
+                
+                popover.showIndex = false //(Globals.grouping == .series)
+                popover.showSectionHeaders = false
+                
+                presentViewController(navigationController, animated: true, completion: nil)
             }
-        } else {
-            //Nothing to show
-        }
-
-        popover?.strings = showMenu
-
-        popover?.showIndex = false //(Globals.grouping == Constants.SERIES)
-        
-        if (popover != nil) {
-            presentViewController(popover!, animated: true, completion: nil)
         }
     }
     
-    var selectedSermon:Sermon?
+    var selectedSermon:Sermon? {
+        didSet {
+            let defaults = NSUserDefaults.standardUserDefaults()
+            if (selectedSermon != nil) {
+                defaults.setObject(selectedSermon!.keyBase,forKey: Constants.SELECTED_SERMON_KEY)
+            } else {
+                // We always select, never deselect, so this should not be done.  If we set this to nil it is for some other reason, like clearing the UI.
+//                defaults.removeObjectForKey(Constants.SELECTED_SERMON_KEY)
+            }
+            defaults.synchronize()
+        }
+    }
+
     
     var popover : PopoverTableViewController?
     
@@ -182,7 +202,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 // Should we be showing Globals.active!.sermonTags instead?  That would be the equivalent of drilling down.
                 
                 dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
-                    if (index >= 0) && (index <= Globals.sermons.all!.sermonTags!.count) {
+//                    if (index >= 0) && (index <= Globals.sermons.all!.sermonTags!.count) {
+                    if (index < strings.count) {
                         dispatch_async(dispatch_get_main_queue(), { () -> Void in
                             clearSermonsForDisplay()
                             self.tableView.reloadData()
@@ -195,35 +216,39 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                         
                         var new:Bool = false
                         
-                        switch index {
-                        case Globals.sermons.all!.sermonTags!.count:
+                        switch strings[index] {
+                        case Constants.All:
                             //All
                             if (Globals.showing != Constants.ALL) {
                                 new = true
                                 Globals.showing = Constants.ALL
                                 Globals.sermonTagsSelected = nil
-                                Globals.sermons.tagged = nil
+//                                Globals.sermons.tagged = nil
                             }
                             break
                             
                         default:
                             //Tagged
-                            new = (Globals.showing != Constants.TAGGED) || (Globals.sermonTagsSelected != Globals.sermons.all!.sermonTags![index])
+                            
+                            let tagSelected = strings[index]
+                            
+                            new = (Globals.showing != Constants.TAGGED) || (Globals.sermonTagsSelected != tagSelected)
                             
                             if (new) {
 //                                print("\(Globals.active!.sermonTags)")
                                 
-                                Globals.sermonTagsSelected = Globals.sermons.all!.sermonTags![index] // s/b sermons.all not active
+                                Globals.sermonTagsSelected = tagSelected
                                 
                                 Globals.showing = Constants.TAGGED
                                 
                                 //Searching for tagged sermons must be done across ALL sermons so Globals.activeSermons won't work here.
                                 
                                 //All of the work is being done in SermonsListGroupSort() initializer.  This should be done in the background
-                                Globals.sermons.tagged = SermonsListGroupSort(sermons: Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
-                                    
-                                    return sermon.tagsSet != nil ? sermon.tagsSet!.contains(Globals.sermonTagsSelected!) : false
-                                }))
+//                                Globals.sermons.tagged = SermonsListGroupSort(sermons: Globals.sermons.all?.tagSermons?[stringWithoutPrefixes(Globals.sermonTagsSelected)!])
+                                
+//                                Globals.sermons.tagged = SermonsListGroupSort(sermons: Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
+//                                    return sermon.tagsSet != nil ? sermon.tagsSet!.contains(Globals.sermonTagsSelected!) : false
+//                                }))
                             }
                             break
                         }
@@ -234,41 +259,33 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                         //                    Globals.searchActive = false
                         
                         if (new) {
-                            let defaults = NSUserDefaults.standardUserDefaults()
-                            if (index < Globals.sermons.all!.sermonTags!.count) {
-                                defaults.setObject(Globals.sermons.all!.sermonTags![index],forKey: Constants.COLLECTION)
-                            } else {
-                                defaults.removeObjectForKey(Constants.COLLECTION)
-                            }
-                            defaults.synchronize()
-                            
                             if (Globals.searchActive) {
                                 self.updateSearchResults()
                             }
+                            
+                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                                setupSermonsForDisplay()
+                                
+                                self.tableView.reloadData()
+                                self.listActivityIndicator.stopAnimating()
+                                
+                                switch Globals.showing! {
+                                case Constants.ALL:
+                                    self.searchBar.placeholder = Constants.All
+                                    break
+                                    
+                                case Constants.TAGGED:
+                                    self.searchBar.placeholder = Globals.sermonTagsSelected
+                                    break
+                                    
+                                default:
+                                    self.searchBar.placeholder = nil
+                                    break
+                                }
+                                
+                                self.enableBarButtons()
+                            })
                         }
-                        
-                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                            setupSermonsForDisplay()
-                            
-                            self.tableView.reloadData()
-                            self.listActivityIndicator.stopAnimating()
-                            
-                            switch Globals.showing! {
-                            case Constants.ALL:
-                                self.searchBar.placeholder = Constants.All
-                                break
-                                
-                            case Constants.TAGGED:
-                                self.searchBar.placeholder = Globals.sermonTagsSelected
-                                break
-                                
-                            default:
-                                self.searchBar.placeholder = nil
-                                break
-                            }
-                            
-                            self.enableBarButtons()
-                        })
                     } else {
                         print("Index out of range")
                     }
@@ -315,9 +332,6 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             case .selectingGrouping:
                 dismissViewControllerAnimated(true, completion: nil)
                 Globals.grouping = strings[index].lowercaseString
-                let defaults = NSUserDefaults.standardUserDefaults()
-                defaults.setObject(Globals.grouping,forKey: Constants.GROUPING)
-                defaults.synchronize()
                 
                 if (Globals.sermonsNeed.grouping) {
                     clearSermonsForDisplay()
@@ -343,9 +357,6 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             case .selectingSorting:
                 dismissViewControllerAnimated(true, completion: nil)
                 Globals.sorting = strings[index].lowercaseString
-                let defaults = NSUserDefaults.standardUserDefaults()
-                defaults.setObject(Globals.sorting,forKey: Constants.SORTING)
-                defaults.synchronize()
 
                 if (Globals.sermonsNeed.sorting) {
                     clearSermonsForDisplay()
@@ -395,6 +406,10 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 case Constants.Sermon_Paused:
                     Globals.gotoPlayingPaused = true
                     performSegueWithIdentifier(Constants.Show_Sermon, sender: self)
+                    break
+                    
+                case Constants.Settings:
+                    performSegueWithIdentifier(Constants.Show_Settings, sender: nil)
                     break
                     
                 default:
@@ -455,19 +470,31 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.sermonSections
         //And when the user chooses one, scroll to the first time in that section.
         
-        let button = object as? UIBarButtonItem
-        
-        popover = storyboard?.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? PopoverTableViewController
-        popover?.modalPresentationStyle = .Popover
-//        popover!.preferredContentSize = CGSizeMake(300, 500)
-        
-        popover?.popoverPresentationController?.permittedArrowDirections = .Down
-        popover?.popoverPresentationController?.delegate = self
-        popover?.popoverPresentationController?.barButtonItem = button
-        
-        popover?.delegate = self
-        popover?.purpose = .selectingSection
-        popover?.strings = Globals.active?.sectionTitles
+        if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                let button = object as? UIBarButtonItem
+                
+                navigationController.modalPresentationStyle = .Popover
+                //            popover?.preferredContentSize = CGSizeMake(300, 500)
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .Down
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.barButtonItem = button
+                
+                popover.navigationItem.title = "Index"
+                
+                popover.delegate = self
+                
+                popover.purpose = .selectingSection
+                popover.strings = Globals.active?.sectionTitles
+                
+                popover.showIndex = (Globals.grouping == Constants.SERIES)
+                popover.showSectionHeaders = (Globals.grouping == Constants.SERIES)
+                
+                presentViewController(navigationController, animated: true, completion: nil)
+            }
+        }
 
         // Too slow
 //        if (Globals.grouping == Constants.SERIES) {
@@ -476,13 +503,6 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 //        } else {
 //            popover?.strings = Globals.sermonSections
 //        }
-        
-        popover?.showIndex = false // (Globals.grouping == Constants.SERIES) // too cumbersome
-        popover?.showSectionHeaders = false // (Globals.grouping == Constants.SERIES)  // too cumbersome
-
-        if (popover != nil) {
-            presentViewController(popover!, animated: true, completion: nil)
-        }
     }
 
     func grouping(object:AnyObject?)
@@ -493,24 +513,30 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.sermonSections
         //And when the user chooses one, scroll to the first time in that section.
         
-        let button = object as? UIBarButtonItem
-        
-        popover = storyboard?.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? PopoverTableViewController
-        popover?.modalPresentationStyle = .Popover
-        //        popover!.preferredContentSize = CGSizeMake(300, 500)
-        
-        popover?.popoverPresentationController?.permittedArrowDirections = .Down
-        popover?.popoverPresentationController?.delegate = self
-        popover?.popoverPresentationController?.barButtonItem = button
-        
-        popover?.delegate = self
-        popover?.purpose = .selectingGrouping
-        popover?.strings = [Constants.Year,Constants.Series,Constants.Book,Constants.Speaker]
-        
-        popover?.showIndex = false
-        
-        if (popover != nil) {
-            presentViewController(popover!, animated: true, completion: nil)
+        if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                let button = object as? UIBarButtonItem
+                
+                navigationController.modalPresentationStyle = .Popover
+                //            popover?.preferredContentSize = CGSizeMake(300, 500)
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .Down
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.barButtonItem = button
+                
+                popover.navigationItem.title = "Group Sermons By"
+                
+                popover.delegate = self
+                
+                popover.purpose = .selectingGrouping
+                popover.strings = [Constants.Year,Constants.Series,Constants.Book,Constants.Speaker]
+                
+                popover.showIndex = false
+                popover.showSectionHeaders = false
+                
+                presentViewController(navigationController, animated: true, completion: nil)
+            }
         }
     }
     
@@ -522,24 +548,30 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         //Present a modal dialog (iPhone) or a popover w/ tableview list of Globals.sermonSections
         //And when the user chooses one, scroll to the first time in that section.
         
-        let button = object as? UIBarButtonItem
-        
-        popover = storyboard?.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? PopoverTableViewController
-        popover?.modalPresentationStyle = .Popover
-        //        popover!.preferredContentSize = CGSizeMake(300, 500)
-        
-        popover?.popoverPresentationController?.permittedArrowDirections = .Down
-        popover?.popoverPresentationController?.delegate = self
-        popover?.popoverPresentationController?.barButtonItem = button
-        
-        popover?.delegate = self
-        popover?.purpose = .selectingSorting
-        popover?.strings = [Constants.Chronological,Constants.Reverse_Chronological]
-        
-        popover?.showIndex = false
-        
-        if (popover != nil) {
-            presentViewController(popover!, animated: true, completion: nil)
+        if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                let button = object as? UIBarButtonItem
+                
+                navigationController.modalPresentationStyle = .Popover
+                //            popover?.preferredContentSize = CGSizeMake(300, 500)
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .Down
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.barButtonItem = button
+                
+                popover.navigationItem.title = "Sermon Sorting"
+                
+                popover.delegate = self
+                
+                popover.purpose = .selectingSorting
+                popover.strings = [Constants.Chronological,Constants.Reverse_Chronological]
+                
+                popover.showIndex = false
+                popover.showSectionHeaders = false
+                
+                presentViewController(navigationController, animated: true, completion: nil)
+            }
         }
     }
 
@@ -549,7 +581,12 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     private func setupShowMenu()
     {
-        navigationItem.leftBarButtonItem?.enabled = (Globals.sermons.all != nil) // && !Globals.sermonsSortingOrGrouping
+        let showButton = navigationItem.leftBarButtonItem
+        
+        showButton?.title = Constants.FA_REORDER
+        showButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FontAwesome, size: Constants.FA_SHOW_FONT_SIZE)!], forState: UIControlState.Normal)
+        
+        showButton?.enabled = (Globals.sermons.all != nil) //&& !Globals.sermonsSortingOrGrouping
     }
     
     private func setupSortingAndGroupingOptions()
@@ -580,7 +617,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     }
     
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
-        print("searchBar:textDidChange:")
+//        print("searchBar:textDidChange:")
         //Unstable results from incremental search
 //        updateSearchResults()
     }
@@ -593,7 +630,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     func searchBarShouldBeginEditing(searchBar: UISearchBar) -> Bool
     {
-        return (Globals.sermons.all != nil) // !Globals.sermonsSortingOrGrouping &&
+        return !Globals.loading && !Globals.refreshing && (Globals.sermons.all != nil) // !Globals.sermonsSortingOrGrouping &&
     }
     
     func searchBarTextDidBeginEditing(searchBar: UISearchBar) {
@@ -870,48 +907,31 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 
         let player = notification.object as! MPMoviePlayerController
         
-        /* Enough data has been buffered for playback to continue uninterrupted. */
-        
         let loadstate:UInt8 = UInt8(player.loadState.rawValue)
-        let loadvalue:UInt8 = UInt8(MPMovieLoadState.Playable.rawValue)
         
-        // If there is a sermon that was playing before and we want to start back at the same place,
-        // the PlayPause button must NOT be active until loadState & Playable == 1.
+        let playable = (loadstate & UInt8(MPMovieLoadState.Playable.rawValue)) > 0
+        let playthrough = (loadstate & UInt8(MPMovieLoadState.PlaythroughOK.rawValue)) > 0
         
-        print("\(loadstate)")
-        print("\(loadvalue)")
+//        print("\(loadstate)")
+//        print("\(playable)")
+//        print("\(playthrough)")
         
-        if ((loadstate & loadvalue) == loadvalue) { // (1<<1)
+        if (playable || playthrough) {
             print("MyTVC.mpPlayerLoadStateDidChange.MPMovieLoadState.Playable")
             //should be called only once, only for  first time audio load.
             if(!Globals.sermonLoaded) {
 //                print("\(Globals.sermonPlaying!.currentTime!)")
 //                print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
                 
-//                let defaults = NSUserDefaults.standardUserDefaults()
-//                if let currentTime = defaults.stringForKey(Constants.CURRENT_TIME) {
-//                    Globals.sermonPlaying!.currentTime = currentTime
-//                }
-                
-//                print("\(Globals.sermonPlaying!.currentTime!)")
-//                print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
-                
-                Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!)
-                
+                if (Globals.sermonPlaying != nil) && Globals.sermonPlaying!.hasCurrentTime() {
+                    Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!)
+                } else {
+                    Globals.sermonPlaying?.currentTime = Constants.ZERO
+                    Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(0)
+                }
+
                 Globals.sermonLoaded = true
             }
-            
-//            var myvc:MyViewController?
-//            
-//            if let svc = splitViewController {
-//                //iPad
-//                if let nvc = svc.viewControllers[svc.viewControllers.count - 1] as? UINavigationController {
-//                    myvc = nvc.visibleViewController as? MyViewController
-//                }
-//            } else {
-//                myvc = self.navigationController?.visibleViewController as? MyViewController
-//            }
-//            myvc?.spinner.stopAnimating()
             
             setupTitle()
             
@@ -1015,8 +1035,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         }
         
         if (myvc != nil) {
-            let defaults = NSUserDefaults.standardUserDefaults()
-            if let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_DETAIL_KEY) {
+            if let selectedSermonKey = NSUserDefaults.standardUserDefaults().stringForKey(Constants.SELECTED_SERMON_DETAIL_KEY) {
                 let sermon = Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
                     return sermon.keyBase == selectedSermonKey
                 }).first
@@ -1059,6 +1078,9 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         //        Globals.sermonsSortingOrGrouping = true
         
 //        progressIndicator.hidden = false
+        Globals.progress = 0
+        Globals.finished = 0
+        
         progressTimer = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: "updateProgress", userInfo: nil, repeats: true)
         
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
@@ -1071,12 +1093,12 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             var success = false
             var newSermons:[Sermon]?
 
-            if let sermons = sermonsFromDocumentsDirectoryArchive() {
+            if let sermons = sermonsFromArchive() {
                 newSermons = sermons
                 success = true
             } else if let sermons = sermonsFromSermonDicts(loadSermonDicts()) {
                 newSermons = sermons
-                sermonsToDocumentsDirectoryArchive(sermons)
+                sermonsToArchive(sermons)
                 success = true
             }
             
@@ -1171,18 +1193,6 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             })
             loadDefaults()
             
-//            if (newSermons != nil) {
-//                for sermon in newSermons! {
-//                    if sermon.tagsSet != nil {
-//                        if sermon.tagsSet!.contains(Constants.New) {
-//                            var tagsSet = sermon.tagsSet
-//                            tagsSet?.remove(Constants.New)
-//                            sermon.tags = sermon.tagsSetToString(tagsSet)
-//                        }
-//                    }
-//                }
-//            }
-            
             if (sermonsNewToUser != nil) {
                 for sermon in sermonsNewToUser! {
                     if (sermon.tags == nil) {
@@ -1212,7 +1222,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             Globals.sermons.all = SermonsListGroupSort(sermons: Globals.sermonRepository)
 
             if (Globals.showing == Constants.TAGGED) {
-                Globals.sermons.tagged = SermonsListGroupSort(sermons: taggedSermonsFromTagSelected(Globals.sermonRepository, tagSelected: Globals.sermonTagsSelected))
+//                Globals.sermons.tagged = SermonsListGroupSort(sermons: taggedSermonsFromTagSelected(Globals.sermonRepository, tagSelected: Globals.sermonTagsSelected))
             }
             
             setupSermonsForDisplay()
@@ -1258,7 +1268,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             let fileManager = NSFileManager.defaultManager()
             
             //Get documents directory URL
-            if let destinationURL = documentsURL()?.URLByAppendingPathComponent(filename) {
+            if let destinationURL = cachesURL()?.URLByAppendingPathComponent(filename) {
                 // Check if file exist
                 if (fileManager.fileExistsAtPath(destinationURL.path!)){
                     do {
@@ -1288,7 +1298,6 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 Globals.mpPlayer?.pause()
                 
                 updateCurrentTimeExact()
-                saveSermonSettingsBackground()
                 
                 Globals.mpPlayer?.view.hidden = true
                 Globals.mpPlayer?.view.removeFromSuperview()
@@ -1433,8 +1442,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 //        tableView.contentOffset = CGPointMake(0,searchBar.frame.size.height - tableView.contentOffset.y);
 //        tableView.tableHeaderView = searchBar
         
-        let defaults = NSUserDefaults.standardUserDefaults()
-        if let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_KEY) {
+        if let selectedSermonKey = NSUserDefaults.standardUserDefaults().stringForKey(Constants.SELECTED_SERMON_KEY) {
             selectedSermon = Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
                 return sermon.keyBase == selectedSermonKey
             }).first
@@ -1456,40 +1464,6 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         
 //        definesPresentationContext = true
 
-        // Programmatically created search bar used when this was a subclass of UITableViewController.
-        // This did not work when rotating between portrait and landscape w/ the searchBar active because
-        // the searchBar would change position and be hidden under the navbar depending on which orientation 
-        // the search changed.  Also, depending upon the UITableViewController (and/or NavBarController it was
-        // embedded in) settings for whether the list extended under bars at the top and bottom (and whether it did
-        // so when they were opaque) the searchBar would change position when activated and the change would be 
-        // different in portrait than in landscape - one would be fine (e.g. landscape) and the other would not.
-        // Solved by making this class a subclass of UIViewController and adding the tableView separately and putting
-        // a searchBar directly in the tableView in the storyBoard.  This makes everything work.  the UISearchBarDelegate
-        // functions must be used rather than the UISearchControllerDelegate functions, but that's not a big deal,
-        // I used the same searchResultsUpdate function, just w/o the searchResultsController argument.
-        // The UISearchBarDelegate functions are straightforward, offer better control, and are simple to implement.
-        // The searchBar appears to behave slightly differently, but this is the only way to get reliable searchBar
-        // layout behavior in different orientations and when switching between orientations w/ the searchBar active.
-        
-//        resultSearchController = ({
-//            let controller = UISearchController(searchResultsController: nil)
-//            controller.searchResultsUpdater = self
-//            controller.delegate = self
-//            controller.searchBar.delegate = self
-//            controller.dimsBackgroundDuringPresentation = false
-//            controller.searchBar.sizeToFit()
-//            controller.hidesNavigationBarDuringPresentation = false
-//
-//            controller.searchBar.showsSearchResultsButton = true
-//
-////            controller.searchBar.showsScopeBar = true
-////            controller.searchBar.scopeButtonTitles = ["Foo","Bar"]
-//            
-//            self.tableView.tableHeaderView = controller.searchBar
-//            
-//            return controller
-//        })()
-        
         // Reload the table
         tableView.reloadData()
 
@@ -1515,25 +1489,30 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 //        print("searchBarResultsListButtonClicked")
         
         if !Globals.loading && !Globals.refreshing && (Globals.sermons.all?.sermonTags != nil) && (self.storyboard != nil) { // !Globals.sermonsSortingOrGrouping &&
-            popover = storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? PopoverTableViewController
-            
-            popover?.modalPresentationStyle = .Popover
-//            popover?.preferredContentSize = CGSizeMake(300, 500)
-            
-            popover?.popoverPresentationController?.permittedArrowDirections = .Up
-            popover?.popoverPresentationController?.delegate = self
-
-            popover?.popoverPresentationController?.sourceView = searchBar
-            popover?.popoverPresentationController?.sourceRect = searchBar.bounds
-
-            popover?.delegate = self
-            popover?.purpose = .selectingTags
-            popover?.strings = Globals.sermons.all?.sermonTags
-            
-            popover?.strings?.append(Constants.All)
-            
-            if (popover != nil) {
-                presentViewController(popover!, animated: true, completion: nil)
+            if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+                if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                    navigationController.modalPresentationStyle = .Popover
+                    //            popover?.preferredContentSize = CGSizeMake(300, 500)
+                    
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .Up
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.sourceView = searchBar
+                    navigationController.popoverPresentationController?.sourceRect = searchBar.bounds
+                    
+                    popover.navigationItem.title = "Show Sermons Tagged With"
+                    
+                    popover.delegate = self
+                    popover.purpose = .selectingTags
+                    
+                    popover.strings = [Constants.All]
+                    popover.strings?.appendContentsOf(Globals.sermons.all!.sermonTags!)
+                    
+                    popover.showIndex = true
+                    popover.showSectionHeaders = true
+                    
+                    presentViewController(navigationController, animated: true, completion: nil)
+                }
             }
         }
     }
@@ -1545,15 +1524,20 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     func updateSearchResults()
     {
-        listActivityIndicator.hidden = false
-        listActivityIndicator.startAnimating()
+        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            self.listActivityIndicator.hidden = false
+            self.listActivityIndicator.startAnimating()
+        })
         
         Globals.searchText = self.searchBar.text
         
         if let searchText = self.searchBar.text {
             clearSermonsForDisplay()
-            self.tableView.reloadData()
-            disableToolBarButtons()
+
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                self.tableView.reloadData()
+                self.disableToolBarButtons()
+            })
             
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
                 if (searchText != Constants.EMPTY_STRING) {
@@ -1672,7 +1656,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 
     func setupTitle()
     {
-        if (!Globals.loading) {
+        if (!Globals.loading && !Globals.refreshing) {
             if (splitViewController == nil) {
                 if (UIDeviceOrientationIsLandscape(UIDevice.currentDevice().orientation)) {
                     navigationItem.title = Constants.CBC_LONG_TITLE
@@ -1731,7 +1715,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         
         setupTitle()
         
-        addRefreshControl()
+//        addRefreshControl()
         
         navigationController?.toolbarHidden = false
         
@@ -1741,7 +1725,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     func about()
     {
-        performSegueWithIdentifier(Constants.Show_About, sender: self)
+        performSegueWithIdentifier(Constants.Show_About2, sender: self)
     }
     
     func seekingTimer()
@@ -1989,7 +1973,16 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         
         if let identifier = segue.identifier {
             switch identifier {
+            case Constants.Show_Settings:
+                if let svc = dvc as? MySettingsViewController {
+                    svc.modalPresentationStyle = .Popover
+                    svc.popoverPresentationController?.delegate = self
+                }
+                break
+                
             case Constants.Show_About:
+                fallthrough
+            case Constants.Show_About2:
                 Globals.showingAbout = true
 //                setPlayingPausedButton()
                 break
@@ -2006,18 +1999,9 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     navigationItem.setRightBarButtonItem(nil, animated: true)
                 } else {
                     if let myCell = sender as? MyTableViewCell {
-//                        if let indexPath = tableView.indexPathForCell(myCell) {
-//                            let index = Globals.display.sectionIndexes![indexPath.section]+indexPath.row
-//                            
-//                        }
-
                         selectedSermon = myCell.sermon //Globals.activeSermons![index]
 
                         if selectedSermon != nil {
-                            let defaults = NSUserDefaults.standardUserDefaults()
-                            defaults.setObject(selectedSermon!.keyBase,forKey: Constants.SELECTED_SERMON_KEY)
-                            defaults.synchronize()
-                            
                             if let destination = dvc as? MyViewController {
                                 destination.selectedSermon = selectedSermon
                             }
@@ -2109,6 +2093,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 //        print("\(indexPath.row)")
 //        print("\(Globals.sermons[indexPath.row].title)")
 //        print("\(Globals.sermons[indexPath.row].date)")
+
+        cell.vc = self
 
         return cell
     }

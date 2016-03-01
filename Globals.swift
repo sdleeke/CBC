@@ -30,12 +30,30 @@ struct Globals {
     static var grouping:String? = Constants.YEAR {
         didSet {
             Globals.sermonsNeed.grouping = (grouping != oldValue)
+            
+            let defaults = NSUserDefaults.standardUserDefaults()
+            if (grouping != nil) {
+                defaults.setObject(grouping,forKey: Constants.GROUPING)
+            } else {
+                //Should not happen
+                defaults.removeObjectForKey(Constants.GROUPING)
+            }
+            defaults.synchronize()
         }
     }
     
     static var sorting:String? = Constants.REVERSE_CHRONOLOGICAL {
         didSet {
             Globals.sermonsNeed.sorting = (sorting != oldValue)
+            
+            let defaults = NSUserDefaults.standardUserDefaults()
+            if (sorting != nil) {
+                defaults.setObject(sorting,forKey: Constants.SORTING)
+            } else {
+                //Should not happen
+                defaults.removeObjectForKey(Constants.SORTING)
+            }
+            defaults.synchronize()
         }
     }
     
@@ -52,20 +70,36 @@ struct Globals {
     
     static var mpPlayer:MPMoviePlayerController?
     
-    static var playerPaused:Bool = true
+    static var playerPaused:Bool = true {
+        didSet {
+            print("playerPaused")
+        }
+    }
+    
     static var sermonLoaded:Bool = false
     
     static var sliderObserver: NSTimer?
-    static var playObserver: NSTimer?
     static var seekingObserver: NSTimer?
+    
+//    static var playObserver: NSTimer?
 
     static var testing:Bool = false
     
-    static var sermonPlaying:Sermon?
-    
+    static var sermonPlaying:Sermon? {
+        didSet {
+            let defaults = NSUserDefaults.standardUserDefaults()
+            if sermonPlaying != nil {
+                defaults.setObject(sermonPlaying?.dict, forKey: Constants.SERMON_PLAYING)
+            } else {
+                defaults.removeObjectForKey(Constants.SERMON_PLAYING)
+            }
+            defaults.synchronize()
+        }
+    }
+
+
+    // These are hidden behind custom accessors in Sermon
     static var seriesViewSplits:[String:String]?
-    
-    //This is now a dictionary of dictionaries
     static var sermonSettings:[String:[String:String]]?
 
     static var sermonRepository:[Sermon]?
@@ -77,11 +111,42 @@ struct Globals {
         //The sermons from a search
         static var search:SermonsListGroupSort? // These could be in a cache, one for each search
         
+        static var hiddenTagged:SermonsListGroupSort?
+
         //The sermons with the selected tags, although now we only support one tag being selected
-        static var tagged:SermonsListGroupSort? // These could be in a cache, one for each tag
+        static var tagged:SermonsListGroupSort? { // These could be in a cache, one for each tag
+            get {
+                if hiddenTagged == nil {
+                    if (Globals.showing == Constants.TAGGED) && (Globals.sermonTagsSelected != nil) {
+                        if Globals.sermons.all == nil {
+                            hiddenTagged = SermonsListGroupSort(sermons: taggedSermonsFromTagSelected(Globals.sermonRepository, tagSelected: Globals.sermonTagsSelected))
+                        } else {
+                            hiddenTagged = SermonsListGroupSort(sermons: Globals.sermons.all?.tagSermons?[stringWithoutPrefixes(Globals.sermonTagsSelected!)!])
+                        }
+                    } else {
+                        hiddenTagged = nil
+                    }
+                }
+                return hiddenTagged
+            }
+        }
     }
 
-    static var sermonTagsSelected:String?
+    static var sermonTagsSelected:String? {
+        didSet {
+            if sermonTagsSelected != oldValue {
+                sermons.hiddenTagged = nil
+            }
+            
+            let defaults = NSUserDefaults.standardUserDefaults()
+            if sermonTagsSelected != nil {
+                defaults.setObject(sermonTagsSelected, forKey: Constants.COLLECTION)
+            } else {
+                defaults.removeObjectForKey(Constants.COLLECTION)
+            }
+            defaults.synchronize()
+        }
+    }
     
     static var sermonsToSearch:[Sermon]? {
         get {
@@ -89,9 +154,13 @@ struct Globals {
             
             switch Globals.showing! {
             case Constants.TAGGED:
-                if (Globals.sermons.tagged == nil) {
-                    Globals.sermons.tagged = SermonsListGroupSort(sermons: taggedSermonsFromTagSelected(Globals.sermonRepository, tagSelected: Globals.sermonTagsSelected))
-                }
+//                if (Globals.sermons.tagged == nil) {
+//                    if Globals.sermons.all == nil {
+//                        Globals.sermons.tagged = SermonsListGroupSort(sermons: taggedSermonsFromTagSelected(Globals.sermonRepository, tagSelected: Globals.sermonTagsSelected))
+//                    } else {
+//                        Globals.sermons.tagged = SermonsListGroupSort(sermons: Globals.sermons.all?.tagSermons?[stringWithoutPrefixes(Globals.sermonTagsSelected!)!])
+//                    }
+//                }
                 sermons = Globals.sermons.tagged?.list
                 break
                 
@@ -150,7 +219,7 @@ struct Globals {
             } else {
                 switch Globals.showing! {
                 case Constants.TAGGED:
-                    Globals.sermons.tagged = newValue
+//                    Globals.sermons.tagged = newValue
                     break
                     
                 case Constants.ALL:
