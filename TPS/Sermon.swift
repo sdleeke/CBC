@@ -521,7 +521,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         coder.encodeObject(self.dict, forKey: Constants.DICT)
     }
     
-    var showingPDF:NSURL? {
+    var showingPDFURL:NSURL? {
         get {
             var url:NSURL?
             
