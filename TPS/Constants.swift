@@ -39,7 +39,7 @@ struct Constants {
     
     static let COVER_ART_IMAGE = "cover170x170"
     
-    static let CACHE_POLICY = NSURLRequestCachePolicy.ReturnCacheDataElseLoad
+    static let CACHE_POLICY = NSURLRequestCachePolicy.ReloadRevalidatingCacheData
     static let CACHE_TIMEOUT = 1.0
     
    static let SERMON_UPDATE_UI_NOTIFICATION = "SERMON UPDATE UI"
@@ -53,6 +53,7 @@ struct Constants {
     static let ZERO = "0"
 
     static let AUTO_ADVANCE = "AUTO_ADVANCE"
+    static let CACHE_DOWNLOADS = "CACHE DOWNLOADS"
     
     static let POPOVER_CELL_IDENTIFIER = "PopoverCell"
     static let POPOVER_TABLEVIEW_IDENTIFIER = "PopoverTableView"
@@ -103,7 +104,8 @@ struct Constants {
     
     static let TAGGED = "tagged"
     static let ALL = "all"
-    
+    static let DOWNLOADED = "downloaded"
+
     static let ID = "id"
     static let DATE = "date"
     static let SERVICE = "service"
@@ -114,7 +116,9 @@ struct Constants {
     static let SPEAKER_SORT = "speaker sort"
     
     static let SCRIPTURE = "scripture"
-    static let Scripture = "Scripture"
+    
+    static let Scripture_Full_Screen = "Scripture Full Screen"
+    static let Scripture_in_Browser = "Scripture in Browser"
     
     static let SERIES = "series"
     static let SERIES_SORT = "series sort"
@@ -154,6 +158,12 @@ struct Constants {
     
     static let Sorting_Options =  Constants.Sorting + Constants.SINGLE_SPACE_STRING + Constants.Options
     static let Grouping_Options = Constants.Grouping + Constants.SINGLE_SPACE_STRING + Constants.Options
+    
+    static let DEFAULTS_VERSION_KEY = "Defaults Version"
+    static let DEFAULTS_VERSION = "2.0"
+    
+    static let SERMON_SETTINGS_VERSION_KEY = "Sermon Settings Version"
+    static let SERMON_SETTINGS_VERSION = "2.0"
     
     static let SERMON_SETTINGS_KEY = "Sermon Settings"
     static let SERIES_VIEW_SPLITS_KEY = "Series View Splits"
@@ -246,6 +256,7 @@ struct Constants {
     
     static let New = "New"
     static let All = "All"
+    static let Downloaded = "Downloaded"
     static let None = "None"
     static let Okay = "OK"
     static let Cancel = "Cancel"
@@ -260,6 +271,9 @@ struct Constants {
     
     static let Show_Settings = "Show Settings"
     static let Settings = "Settings"
+    
+    static let Scripture_Index = "Scripture Index"
+    static let Show_Scripture_Index = "Show Scripture Index"
     
     static let Show_Sermon = "Show Sermon"
     static let Show_About = "Show About"
@@ -292,7 +306,10 @@ struct Constants {
     static let sortings = [Constants.CHRONOLOGICAL, Constants.REVERSE_CHRONOLOGICAL]
     static let groupings = [Constants.YEAR, Constants.SERIES, Constants.BOOK, Constants.SPEAKER]
 
-    static let OLD_TESTAMENT:[String] = [
+    static let Old_Testament = "Old Testament"
+    static let New_Testament = "New Testament"
+    
+    static let OLD_TESTAMENT_BOOKS:[String] = [
         "Genesis",
         "Exodus",
         "Leviticus",
@@ -334,7 +351,49 @@ struct Constants {
         "Malachi"
     ]
     
-    static let NEW_TESTAMENT:[String] = [
+    static let OLD_TESTAMENT_CHAPTERS:[Int] = [
+        50,
+        40,
+        27,
+        36,
+        34,
+        24,
+        21,
+        4,
+        31,
+        24,
+        22,
+        25,
+        29,
+        36,
+        10,
+        13,
+        10,
+        42,
+        150,
+        31,
+        12,
+        8,
+        66,
+        52,
+        5,
+        48,
+        12,
+        14,
+        3,
+        9,
+        1,
+        4,
+        7,
+        3,
+        3,
+        3,
+        2,
+        14,
+        4
+    ]
+    
+    static let NEW_TESTAMENT_BOOKS:[String] = [
         "Matthew",
         "Mark",
         "Luke",
@@ -362,5 +421,35 @@ struct Constants {
         "3 John",
         "Jude",
         "Revelation"
+    ]
+    
+    static let NEW_TESTAMENT_CHAPTERS:[Int] = [
+        28,
+        16,
+        24,
+        21,
+        28,
+        16,
+        16,
+        13,
+        6,
+        6,
+        4,
+        4,
+        5,
+        3,
+        6,
+        4,
+        3,
+        1,
+        13,
+        5,
+        5,
+        3,
+        5,
+        1,
+        1,
+        1,
+        22
     ]
 }

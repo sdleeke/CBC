@@ -12,6 +12,22 @@ import AVKit
 
 //typealias GroupTuple = (indexes: [Int]?, counts: [Int]?)
 
+func startAudio()
+{
+    let audioSession: AVAudioSession  = AVAudioSession.sharedInstance()
+    
+    do {
+        try audioSession.setCategory(AVAudioSessionCategoryPlayback)
+    } catch _ {
+    }
+    
+    do {
+        //        audioSession.setCategory(AVAudioSessionCategoryPlayback, withOptions: AVAudioSessionCategoryOptions.MixWithOthers, error:nil)
+        try audioSession.setActive(true)
+    } catch _ {
+    }
+}
+
 func documentsURL() -> NSURL?
 {
     let fileManager = NSFileManager.defaultManager()
@@ -388,76 +404,103 @@ func loadSermonDicts() -> [[String:String]]?
 
 func cancelAllDownloads()
 {
-    if (Globals.sermonRepository != nil) {
-        for sermon in Globals.sermonRepository! {
-            if sermon.download.active {
-                sermon.download.task?.cancel()
-                sermon.download.task = nil
-                
-                sermon.download.totalBytesWritten = 0
-                sermon.download.totalBytesExpectedToWrite = 0
-                
-                sermon.download.state = .none
+    if (Globals.sermonRepository.list != nil) {
+        for sermon in Globals.sermonRepository.list! {
+            for download in sermon.downloads.values {
+                if download.active {
+                    download.task?.cancel()
+                    download.task = nil
+                    
+                    download.totalBytesWritten = 0
+                    download.totalBytesExpectedToWrite = 0
+                    
+                    download.state = .none
+                }
             }
         }
     }
+    //    if (Globals.sermonRepository != nil) {
+    //        for sermon in Globals.sermonRepository! {
+    //            if sermon.download.active {
+    //                sermon.download.task?.cancel()
+    //                sermon.download.task = nil
+    //
+    //                sermon.download.totalBytesWritten = 0
+    //                sermon.download.totalBytesExpectedToWrite = 0
+    //
+    //                sermon.download.state = .none
+    //            }
+    //        }
+    //    }
 }
 
 func loadDefaults()
 {
     loadSermonSettings()
-
+    
     let defaults = NSUserDefaults.standardUserDefaults()
-    
-    if let sorting = defaults.stringForKey(Constants.SORTING) {
-        Globals.sorting = sorting
-    } else {
-        Globals.sorting = Constants.REVERSE_CHRONOLOGICAL
-    }
-    
-    if let grouping = defaults.stringForKey(Constants.GROUPING) {
-        Globals.grouping = grouping
-    } else {
-        Globals.grouping = Constants.YEAR
-    }
-    
-    Globals.sermonTagsSelected = defaults.stringForKey(Constants.COLLECTION)
 
-    if (Globals.sermonTagsSelected == Constants.New) {
-        Globals.sermonTagsSelected = nil
-    }
-    
-    if (Globals.sermonTagsSelected != nil) {
-        switch Globals.sermonTagsSelected! {
-        case Constants.All:
-            Globals.sermonTagsSelected = nil
-            Globals.showing = Constants.ALL
-            break
+    if let defaultsVersion = defaults.stringForKey(Constants.DEFAULTS_VERSION_KEY) {
+        if (defaultsVersion == Constants.DEFAULTS_VERSION) {
+            if let sorting = defaults.stringForKey(Constants.SORTING) {
+                Globals.sorting = sorting
+            } else {
+                Globals.sorting = Constants.REVERSE_CHRONOLOGICAL
+            }
             
-        default:
-            Globals.showing = Constants.TAGGED
-            break
+            if let grouping = defaults.stringForKey(Constants.GROUPING) {
+                Globals.grouping = grouping
+            } else {
+                Globals.grouping = Constants.YEAR
+            }
+            
+            Globals.sermonTagsSelected = defaults.stringForKey(Constants.COLLECTION)
+            
+            if (Globals.sermonTagsSelected == Constants.New) {
+                Globals.sermonTagsSelected = nil
+            }
+            
+            if (Globals.sermonTagsSelected != nil) {
+                switch Globals.sermonTagsSelected! {
+                case Constants.All:
+                    Globals.sermonTagsSelected = nil
+                    Globals.showing = Constants.ALL
+                    break
+                    
+                default:
+                    Globals.showing = Constants.TAGGED
+                    break
+                }
+            } else {
+                Globals.showing = Constants.ALL
+            }
+            
+            var indexOfSermon:Int?
+            
+            if let dict = defaults.dictionaryForKey(Constants.SERMON_PLAYING) {
+                indexOfSermon = Globals.sermonRepository.list?.indexOf({ (sermon:Sermon) -> Bool in
+                    return (sermon.title == (dict[Constants.TITLE] as! String)) &&
+                        (sermon.date == (dict[Constants.DATE] as! String)) &&
+                        (sermon.service == (dict[Constants.SERVICE] as! String)) &&
+                        (sermon.speaker == (dict[Constants.SPEAKER] as! String))
+                })
+            }
+            
+            if (indexOfSermon != nil) {
+                Globals.sermonLoaded = false
+                Globals.sermonPlaying = Globals.sermonRepository.list?[indexOfSermon!]
+            } else {
+                Globals.sermonLoaded = true
+            }
+        } else {
+            //This is where we should map the old version on to the new one and preserve the user's information.
+            defaults.setObject(Constants.DEFAULTS_VERSION, forKey: Constants.DEFAULTS_VERSION_KEY)
+            defaults.synchronize()
         }
     } else {
-        Globals.showing = Constants.ALL
-    }
-
-    var indexOfSermon:Int?
-    
-    if let dict = defaults.dictionaryForKey(Constants.SERMON_PLAYING) {
-        indexOfSermon = Globals.sermonRepository?.indexOf({ (sermon:Sermon) -> Bool in
-            return (sermon.title == (dict[Constants.TITLE] as! String)) &&
-                (sermon.date == (dict[Constants.DATE] as! String)) &&
-                (sermon.service == (dict[Constants.SERVICE] as! String)) &&
-                (sermon.speaker == (dict[Constants.SPEAKER] as! String))
-        })
-    }
-    
-    if (indexOfSermon != nil) {
-        Globals.sermonLoaded = false
-        Globals.sermonPlaying = Globals.sermonRepository?[indexOfSermon!]
-    } else {
-        Globals.sermonLoaded = true
+        //This is where we should map the old version (if there is one) on to the new one and preserve the user's information.
+        defaults.setObject(Constants.DEFAULTS_VERSION, forKey: Constants.DEFAULTS_VERSION_KEY)
+        defaults.synchronize()
     }
 }
 
@@ -477,7 +520,6 @@ func updateUserDefaultsCurrentTimeWhilePlaying()
 
     if ((timeNow > 0) && (Int(timeNow) % 10) == 0) {
         Globals.sermonPlaying?.currentTime = Globals.mpPlayer!.currentPlaybackTime.description
-//        saveSermonSettingsBackground()
     }
 }
 
@@ -566,7 +608,6 @@ func updateCurrentTimeExact(seekToTime:NSTimeInterval)
 {
     if (seekToTime >= 0) {
         Globals.sermonPlaying?.currentTime = seekToTime.description
-//        saveSermonSettingsBackground()
     }
 }
 
@@ -590,7 +631,7 @@ func setupPlayingInfoCenter()
                 sermonInfo.updateValue(Globals.sermonPlaying!.speaker!,                                         forKey: MPMediaItemPropertyAlbumArtist)
             }
 
-            if let sermonsInSeries = Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
+            if let sermonsInSeries = Globals.sermonRepository.list?.filter({ (sermon:Sermon) -> Bool in
                 return (sermon.hasSeries()) && (sermon.series == Globals.sermonPlaying!.series)
             }).sort({ $0.title < $1.title }) {
 //                print("\(sermonsInSeries.indexOf(Globals.sermonPlaying!))")
@@ -671,35 +712,41 @@ func saveSermonSettingsBackground()
 
 func saveSermonSettings()
 {
-//    print("saveSermonSettings")
-    let defaults = NSUserDefaults.standardUserDefaults()
-    //    print("\(Globals.sermonSettings)")
-    defaults.setObject(Globals.sermonSettings,forKey: Constants.SERMON_SETTINGS_KEY)
-    //    print("\(Globals.seriesViewSplits)")
-    defaults.setObject(Globals.seriesViewSplits, forKey: Constants.SERIES_VIEW_SPLITS_KEY)
-    defaults.synchronize()
+    if Globals.saveSettings {
+        print("saveSermonSettings")
+        let defaults = NSUserDefaults.standardUserDefaults()
+        //    print("\(Globals.sermonSettings)")
+        defaults.setObject(Globals.sermonSettings,forKey: Constants.SERMON_SETTINGS_KEY)
+        //    print("\(Globals.seriesViewSplits)")
+        defaults.setObject(Globals.seriesViewSplits, forKey: Constants.SERIES_VIEW_SPLITS_KEY)
+        defaults.synchronize()
+    }
 }
 
 func loadSermonSettings()
 {
     let defaults = NSUserDefaults.standardUserDefaults()
     
-    if let settingsDictionary = defaults.dictionaryForKey(Constants.SERMON_SETTINGS_KEY) {
-//        print("\(settingsDictionary)")
-        Globals.sermonSettings = settingsDictionary as? [String:[String:String]]
-    }
-    
-    if (Globals.sermonSettings == nil) {
-        Globals.sermonSettings = [String:[String:String]]()
-    }
-    
-    if let viewSplitsDictionary = defaults.dictionaryForKey(Constants.SERIES_VIEW_SPLITS_KEY) {
-//        print("\(viewSplitsDictionary)")
-        Globals.seriesViewSplits = viewSplitsDictionary as? [String:String]
-    }
-    
-    if (Globals.seriesViewSplits == nil) {
-        Globals.seriesViewSplits = [String:String]()
+    if let sermonSettingsVersion = defaults.stringForKey(Constants.SERMON_SETTINGS_VERSION_KEY) {
+        if sermonSettingsVersion == Constants.SERMON_SETTINGS_VERSION {
+            if let settingsDictionary = defaults.dictionaryForKey(Constants.SERMON_SETTINGS_KEY) {
+        //        print("\(settingsDictionary)")
+                Globals.sermonSettings = settingsDictionary as? [String:[String:String]]
+            }
+            
+            if let viewSplitsDictionary = defaults.dictionaryForKey(Constants.SERIES_VIEW_SPLITS_KEY) {
+        //        print("\(viewSplitsDictionary)")
+                Globals.seriesViewSplits = viewSplitsDictionary as? [String:String]
+            }
+        } else {
+            //This is where we should map the old version on to the new one and preserve the user's information.
+            defaults.setObject(Constants.SERMON_SETTINGS_VERSION, forKey: Constants.SERMON_SETTINGS_VERSION_KEY)
+            defaults.synchronize()
+        }
+    } else {
+        //This is where we should map the old version (if there is one) on to the new one and preserve the user's information.
+        defaults.setObject(Constants.SERMON_SETTINGS_VERSION, forKey: Constants.SERMON_SETTINGS_VERSION_KEY)
+        defaults.synchronize()
     }
 
 //    print("\(Globals.sermonSettings)")
@@ -840,28 +887,206 @@ func yearsFromSermons(sermons:[Sermon]?, sorting: String?) -> [Int]?
 }
 
 
-//func sermonsInSermonSeries(sermons:[Sermon]?,series:String?) -> [Sermon]?
-//{
-//    if (series != nil) {
-//        if let seriesSort = stringWithoutPrefixes(series) {
-//            return Globals.sermons.all?.groupSort?[Constants.SERIES]?[seriesSort]?[Constants.CHRONOLOGICAL]
-//        } else {
-//            return nil
-//        }
+func testament(book:String) -> String
+{
+    if (Constants.OLD_TESTAMENT_BOOKS.contains(book)) {
+        return Constants.Old_Testament
+    } else
+        if (Constants.NEW_TESTAMENT_BOOKS.contains(book)) {
+            return Constants.New_Testament
+    }
+    
+    return ""
+}
+
+func chaptersFromScripture(scripture:String?) -> [Int]
+{
+    var chapters = [Int]()
+    
+    var colonCount = 0
+    
+    if (scripture != nil) {
+        let string = scripture?.stringByReplacingOccurrencesOfString(Constants.SINGLE_SPACE_STRING, withString: Constants.EMPTY_STRING)
+        
+        //        if (string!.rangeOfString(Constants.SINGLE_SPACE_STRING) != nil) {
+        //            string = string?.substringFromIndex(string!.rangeOfString(Constants.SINGLE_SPACE_STRING)!.endIndex)
+        //        } else {
+        //            return []
+        //        }
+        
+        if (string == "") {
+            return []
+        }
+        
+        //        print("\(string!)")
+        
+        let colon = string!.rangeOfString(":")
+        let hyphen = string!.rangeOfString("-")
+        let comma = string!.rangeOfString(",")
+        
+        if (colon == nil) && (hyphen == nil) &&  (comma == nil) {
+            chapters = [Int(string!)!]
+        } else {
+            var chars = ""
+            
+            var seenColon = false
+            var seenHyphen = false
+            var seenComma = false
+            
+            var startChapter = 0
+            var endChapter = 0
+            
+            for character in string!.characters {
+                switch character {
+                case ":":
+                    if !seenColon {
+                        seenColon = true
+                        if (startChapter == 0) {
+                            startChapter = Int(chars)!
+                        } else {
+                            endChapter = Int(chars)!
+                        }
+                    } else {
+                        if (seenHyphen) {
+                            endChapter = Int(chars)!
+                        } else {
+                            //Error
+                        }
+                    }
+                    colonCount++
+                    chars = ""
+                    break
+                    
+                case "–":
+                    fallthrough
+                case "-":
+                    seenHyphen = true
+                    if !seenColon {
+                        // This is a chapter not a verse
+                        if (startChapter == 0) {
+                            startChapter = Int(chars)!
+                        }
+                    }
+                    chars = ""
+                    break
+                    
+                case ",":
+                    seenComma = true
+                    if !seenColon {
+                        // This is a chapter not a verse
+                        chapters.append(Int(chars)!)
+                        chars = ""
+                    } else {
+                        // Could be chapter or a verse
+                        chars = ""
+                    }
+                    break
+                    
+                default:
+                    chars.append(character)
+                    //                    print(chars)
+                    break
+                }
+            }
+            if (colonCount == 1) {
+                chapters.append(startChapter)
+            }
+            if (startChapter != 0) && (endChapter == 0) && (colonCount == 0) {
+                endChapter = Int(chars)!
+                chars = ""
+            }
+            if (startChapter != 0) && (endChapter != 0) {
+                for chapter in startChapter...endChapter {
+                    chapters.append(chapter)
+                }
+            }
+            
+            //            if (colon != nil) {
+            //                let stringToColon = string?.substringToIndex(colon!.startIndex)
+            //
+            //                print("stringToColon: \(stringToColon)")
+            //
+            //                chapters = [Int(stringToColon!)!]
+            //
+            //                let stringFromColon = string?.substringFromIndex(colon!.endIndex)
+            //
+            //                print("stringFromColon: \(stringFromColon)")
+            //            } else {
+            //                if (hyphen != nil) {
+            //                    let stringToHyphen = string?.substringToIndex(hyphen!.startIndex)
+            //                    let startingChapter = Int(stringToHyphen!)!
+            //
+            //                    let stringFromHyphen = string?.substringFromIndex(hyphen!.endIndex)
+            //                    let endingChapter = Int(stringFromHyphen!)!
+            //
+            //                    for index in startingChapter...endingChapter {
+            //                        chapters.append(index)
+            //                    }
+            //                    //                            print("\(chapters)")
+            //                    //                            print("\(chapters)")
+            //                }
+            //                if (comma != nil) {
+            //                    let stringToComma = string?.substringToIndex(comma!.startIndex)
+            //                    let startingChapter = Int(stringToComma!)!
+            //                    chapters = [startingChapter]
+            //
+            //                    let stringFromComma = string?.substringFromIndex(comma!.endIndex)
+            //                    let endingChapter = Int(stringFromComma!)!
+            //                    chapters.append(endingChapter)
+            //                    //                            print("\(chapters)")
+            //                    //                            print("\(chapters)")
+            //                }
+            //            }
+        }
+    }
+    
+//    if (colonCount > 1) || (chapters.count > 1) {
+//        print("\(scripture)")
+//        print("\(chapters)")
+////        print("ERROR")
 //    }
-//    
-//    return nil
-//    //
-//    //    return sermons?.filter({ (sermon:Sermon) -> Bool in
-//    //        return sermon.series == series
-//    //    }).sort({ (first:Sermon, second:Sermon) -> Bool in
-//    //        if (first.fullDate!.isEqualTo(second.fullDate!)) {
-//    //            return first.id < second.id
-//    //        } else {
-//    //            return first.fullDate!.isOlderThan(second.fullDate!)
-//    //        }
-//    //    })
-//}
+    
+    //    print("\(scripture)")
+    //    print("\(chapters)")
+    
+    return chapters
+}
+
+func booksFromScripture(scripture:String?) -> [String]
+{
+    var books = [String]()
+    
+    if (scripture != nil) {
+        var string:String?
+        
+        string = scripture
+        
+        for book in Constants.OLD_TESTAMENT_BOOKS {
+            if string?.rangeOfString(book) != nil {
+                books.append(book)
+                string = string!.substringToIndex(string!.rangeOfString(book)!.startIndex) + " " + string!.substringFromIndex(string!.rangeOfString(book)!.endIndex)
+            }
+        }
+        
+        string = scripture
+        
+        for book in Constants.NEW_TESTAMENT_BOOKS.reverse() {
+            if string?.rangeOfString(book) != nil {
+                books.append(book)
+                
+                //                print("\(scripture)")
+                //                print("\(string)")
+                //                print("\(string!.rangeOfString(book))")
+                //                print("\(string!.substringToIndex(string!.rangeOfString(book)!.startIndex))")
+                //                print("\(string!.substringFromIndex(string!.rangeOfString(book)!.endIndex))")
+                
+                string = string!.substringToIndex(string!.rangeOfString(book)!.startIndex) + " " + string!.substringFromIndex(string!.rangeOfString(book)!.endIndex)
+            }
+        }
+    }
+    
+    return books
+}
 
 func sermonsInSermonSeries(sermon:Sermon?) -> [Sermon]?
 {
@@ -869,9 +1094,9 @@ func sermonsInSermonSeries(sermon:Sermon?) -> [Sermon]?
     
     if (sermon != nil) {
         if (sermon!.hasSeries()) {
-            if (Globals.sermons.all == nil) {
-                let seriesSermons = Globals.sermonRepository?.filter({ (testSermon:Sermon) -> Bool in
-                    return sermon!.hasSeries() ? (testSermon.series == sermon!.series) : (testSermon.keyBase == sermon!.keyBase)
+            if (Globals.sermons.all?.groupSort?[Constants.SERIES]?[sermon!.seriesSort!]?[Constants.CHRONOLOGICAL] == nil) {
+                let seriesSermons = Globals.sermonRepository.list?.filter({ (testSermon:Sermon) -> Bool in
+                    return sermon!.hasSeries() ? (testSermon.series == sermon!.series) : (testSermon.id == sermon!.id)
                 })
                 sermonsInSeries = sortSermonsByYear(seriesSermons, sorting: Constants.CHRONOLOGICAL)
             } else {
@@ -1009,15 +1234,15 @@ func seriesSectionsFromSermons(sermons:[Sermon]?,withTitles:Bool) -> [String]?
 func bookNumberInBible(book:String?) -> Int?
 {
     if (book != nil) {
-        if let index = Constants.OLD_TESTAMENT.indexOf(book!) {
+        if let index = Constants.OLD_TESTAMENT_BOOKS.indexOf(book!) {
             return index
         }
         
-        if let index = Constants.NEW_TESTAMENT.indexOf(book!) {
-            return Constants.OLD_TESTAMENT.count + index
+        if let index = Constants.NEW_TESTAMENT_BOOKS.indexOf(book!) {
+            return Constants.OLD_TESTAMENT_BOOKS.count + index
         }
         
-        return Constants.OLD_TESTAMENT.count + Constants.NEW_TESTAMENT.count + 1 // Not in the Bible.  E.g. Selected Scriptures
+        return Constants.OLD_TESTAMENT_BOOKS.count + Constants.NEW_TESTAMENT_BOOKS.count + 1 // Not in the Bible.  E.g. Selected Scriptures
     } else {
         return nil
     }
@@ -1212,7 +1437,7 @@ func testSermonsPDFs(testExisting testExisting:Bool, testMissing:Bool, showTesti
     if (testExisting) {
         print("Testing the availability of sermon transcripts and slides that we DO have in the sermonDicts - start")
         
-        if let sermons = Globals.sermonRepository {
+        if let sermons = Globals.sermonRepository.list {
             for sermon in sermons {
                 if (showTesting) {
                     print("Testing: \(counter) \(sermon.title!)")
@@ -1247,7 +1472,7 @@ func testSermonsPDFs(testExisting testExisting:Bool, testMissing:Bool, showTesti
         print("Testing the availability of sermon transcripts and slides that we DO NOT have in the sermonDicts - start")
         
         counter = 1
-        if let sermons = Globals.sermonRepository {
+        if let sermons = Globals.sermonRepository.list {
             for sermon in sermons {
                 if (showTesting) {
                     print("Testing: \(counter) \(sermon.title!)")
@@ -1299,7 +1524,7 @@ func testSermonsTagsAndSeries()
 {
     print("Testing for sermon series and tags the same - start")
     
-    if let sermons = Globals.sermonRepository {
+    if let sermons = Globals.sermonRepository.list {
         for sermon in sermons {
             if (sermon.hasSeries()) && (sermon.hasTags()) {
                 if (sermon.series == sermon.tags) {
@@ -1316,7 +1541,7 @@ func testSermonsForAudio()
 {
     print("Testing for audio - start")
     
-    for sermon in Globals.sermonRepository! {
+    for sermon in Globals.sermonRepository.list! {
         if (!sermon.hasAudio()) {
             print("Audio missing in: \(sermon.title!)")
         } else {
@@ -1331,7 +1556,7 @@ func testSermonsForSpeaker()
 {
     print("Testing for speaker - start")
     
-    for sermon in Globals.sermonRepository! {
+    for sermon in Globals.sermonRepository.list! {
         if (!sermon.hasSpeaker()) {
             print("Speaker missing in: \(sermon.title!)")
         }
@@ -1344,7 +1569,7 @@ func testSermonsForSeries()
 {
     print("Testing for sermons with \"(Part \" in the title but no series - start")
     
-    for sermon in Globals.sermonRepository! {
+    for sermon in Globals.sermonRepository.list! {
         if (sermon.title?.rangeOfString("(Part ", options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil) != nil) && sermon.hasSeries() {
             print("Series missing in: \(sermon.title!)")
         }
@@ -1357,7 +1582,7 @@ func testSermonsBooksAndSeries()
 {
     print("Testing for sermon series and book the same - start")
 
-    for sermon in Globals.sermonRepository! {
+    for sermon in Globals.sermonRepository.list! {
         if (sermon.hasSeries()) && (sermon.hasBook()) {
             if (sermon.series == sermon.book) {
                 print("Series and Book the same in: \(sermon.title!) Series:\(sermon.series!) Book:\(sermon.book!)")
@@ -1368,10 +1593,8 @@ func testSermonsBooksAndSeries()
     print("Testing for sermon series and book the same - end")
 }
 
-func tagsArrayFromTagsString(tagsString:String?) -> [String]?
+func tagsSetFromTagsString(tagsString:String?) -> Set<String>?
 {
-    var arrayOfTags = [String]()
-    
     var tags = tagsString
     var tag:String
     var setOfTags = Set<String>()
@@ -1386,20 +1609,70 @@ func tagsArrayFromTagsString(tagsString:String?) -> [String]?
         setOfTags.insert(tags!)
     }
     
-    //        print("\(tagsSet)")
-    arrayOfTags = Array(setOfTags)
-    arrayOfTags.sortInPlace() { $0 < $1 }
-    
-    return arrayOfTags.count > 0 ? arrayOfTags : nil
+    return setOfTags.count > 0 ? setOfTags : nil
 }
 
-func taggedSermonsFromTagSelected(sermonsWithTags:[Sermon]?,tagSelected:String?) -> [Sermon]?
+func tagsArrayToTagsString(tagsArray:[String]?) -> String?
 {
-    if (tagSelected != nil) {
-        return Globals.sermons.all?.tagSermons?[stringWithoutPrefixes(tagSelected)!]
+    if tagsArray != nil {
+        var tagString:String?
+        
+        for tag in tagsArray! {
+            if tagString == nil {
+                tagString = tag
+            } else {
+                tagString = tagString! + Constants.TAGS_SEPARATOR + tag
+            }
+        }
+        
+        return tagString
     } else {
         return nil
     }
+}
+
+func tagsArrayFromTagsString(tagsString:String?) -> [String]?
+{
+    var arrayOfTags:[String]?
+    
+    if let tags = tagsSetFromTagsString(tagsString) {
+        arrayOfTags = Array(tags) //.sort() { $0 < $1 } // .sort() { stringWithoutLeadingTheOrAOrAn($0) < stringWithoutLeadingTheOrAOrAn($1) } // Not sorted
+    }
+    
+    return arrayOfTags
+//    var arrayOfTags = [String]()
+//    
+//    var tags = tagsString
+//    var tag:String
+//    var setOfTags = Set<String>()
+//    
+//    while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
+//        tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
+//        setOfTags.insert(tag)
+//        tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
+//    }
+//    
+//    if (tags != nil) {
+//        setOfTags.insert(tags!)
+//    }
+//    
+//    //        print("\(tagsSet)")
+//    arrayOfTags = Array(setOfTags)
+//    arrayOfTags.sortInPlace() { $0 < $1 }
+//    
+//    return arrayOfTags.count > 0 ? arrayOfTags : nil
+}
+
+func sermonsWithTag(sermons:[Sermon]?,tag:String?) -> [Sermon]?
+{
+    return tag != nil ?
+        sermons?.filter({ (sermon:Sermon) -> Bool in
+            if let tagSet = sermon.tagsSet {
+                return tagSet.contains(tag!)
+            } else {
+                return false
+            }
+        }) : nil
 }
 
 func tagsFromSermons(sermons:[Sermon]?) -> [String]?

@@ -28,6 +28,8 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
         }
     }
     
+    @IBOutlet weak var liveStreamButton: UIButton!
+    
     @IBOutlet weak var scrollView: UIScrollView!
     
 //    @IBOutlet weak var tpPageControl: UIPageControl!
@@ -660,16 +662,11 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem()
+        navigationItem.leftItemsSupplementBackButton = true
+        
         // Do any additional setup after loading the view.  E.g.
     }
-    
-//    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController) -> UIModalPresentationStyle {
-//        return UIModalPresentationStyle.None;
-//    }
-    
-//    func help(sender:UIBarButtonItem) {
-//        print("help!")
-//    }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)

@@ -16,7 +16,18 @@ typealias SermonGroupSort = [String:[String:[String:[Sermon]]]]
 typealias SermonGroupNames = [String:[String:String]]
 
 class SermonsListGroupSort {
-    var list:[Sermon]? //Not in any specific order
+    var list:[Sermon]? { //Not in any specific order
+        didSet {
+            if (list != nil) {
+                index = [String:Sermon]()
+                
+                for sermon in list! {
+                    index![sermon.id!] = sermon
+                }
+            }
+        }
+    }
+    var index:[String:Sermon]? //Sermons indexed by ID.
     
     var groupSort:SermonGroupSort?
     var groupNames:SermonGroupNames?
@@ -35,14 +46,14 @@ class SermonsListGroupSort {
     func archiveList() -> [String]?
     {
         return list?.map({ (sermon:Sermon) -> String in
-            return "\(Globals.sermonRepository!.indexOf(sermon)!)"
+            return "\(Globals.sermonRepository.list!.indexOf(sermon)!)"
         })
     }
     
     func unarchiveList(sermons:[String]?)
     {
         list = sermons?.map({ (index:String) -> Sermon in
-            return Globals.sermonRepository![Int(index)!]
+            return Globals.sermonRepository.list![Int(index)!]
         })
     }
     
@@ -56,7 +67,7 @@ class SermonsListGroupSort {
                 dict[groupKey]![groupNameKey] = [String:[String]]()
                 for sortKey in groupSort![groupKey]![groupNameKey]!.keys {
                     dict[groupKey]![groupNameKey]![sortKey] = groupSort![groupKey]![groupNameKey]![sortKey]?.map({ (sermon:Sermon) -> String in
-                        return "\(Globals.sermonRepository!.indexOf(sermon)!)"
+                        return sermon.id!
                     })
                 }
             }
@@ -74,8 +85,10 @@ class SermonsListGroupSort {
             for groupNameKey in gs![groupKey]!.keys {
                 groupSort?[groupKey]![groupNameKey] = [String:[Sermon]]()
                 for sortKey in gs![groupKey]![groupNameKey]!.keys {
-                    groupSort?[groupKey]![groupNameKey]![sortKey] = gs![groupKey]![groupNameKey]![sortKey]?.map({ (index:String) -> Sermon in
-                        return Globals.sermonRepository![Int(index)!]
+                    groupSort?[groupKey]![groupNameKey]![sortKey] = gs![groupKey]![groupNameKey]![sortKey]?.filter({ (index:String) -> Bool in
+                        return Globals.sermonRepository.index![index] != nil
+                    }).map({ (index:String) -> Sermon in
+                        return Globals.sermonRepository.index![index]!
                     })
                 }
             }
@@ -98,7 +111,7 @@ class SermonsListGroupSort {
         
         for key in tagSermons!.keys {
             dict[key] = tagSermons?[key]?.map({ (sermon:Sermon) -> String in
-                return "\(Globals.sermonRepository!.indexOf(sermon)!)"
+                return sermon.id!
             })
         }
         
@@ -110,8 +123,10 @@ class SermonsListGroupSort {
         tagSermons = [String:[Sermon]]()
         
         for key in ts!.keys {
-            tagSermons?[key] = ts?[key]?.map({ (index:String) -> Sermon in
-                return Globals.sermonRepository![Int(index)!]
+            tagSermons?[key] = ts?[key]?.filter({ (index:String) -> Bool in
+                return Globals.sermonRepository.index![index] != nil
+            }).map({ (index:String) -> Sermon in
+                return Globals.sermonRepository.index![index]!
             })
         }
     }
@@ -132,9 +147,109 @@ class SermonsListGroupSort {
         }
     }
     
+    func sortGroup(grouping:String?)
+    {
+        if (list == nil) {
+            return
+        }
+        
+        var string:String?
+        var name:String?
+        
+        var groupedSermons = [String:[String:[Sermon]]]()
+        
+        Globals.finished += list!.count
+        
+        for sermon in list! {
+            switch grouping! {
+            case Constants.YEAR:
+                string = sermon.yearString
+                name = string
+                break
+                
+            case Constants.SERIES:
+                string = sermon.seriesSectionSort
+                name = sermon.seriesSection
+                break
+                
+            case Constants.BOOK:
+                string = sermon.bookSection
+                name = sermon.bookSection
+                break
+                
+            case Constants.SPEAKER:
+                string = sermon.speakerSectionSort
+                name = sermon.speakerSection
+                break
+                
+            default:
+                break
+            }
+            
+            if (groupNames?[grouping!] == nil) {
+                groupNames?[grouping!] = [String:String]()
+            }
+            
+            groupNames?[grouping!]?[string!] = name!
+            
+            if (groupedSermons[grouping!] == nil) {
+                groupedSermons[grouping!] = [String:[Sermon]]()
+            }
+            
+            if groupedSermons[grouping!]?[string!] == nil {
+                groupedSermons[grouping!]?[string!] = [sermon]
+            } else {
+                groupedSermons[grouping!]?[string!]?.append(sermon)
+            }
+            
+            Globals.progress++
+        }
+        
+        if (groupedSermons[grouping!] != nil) {
+            Globals.finished += groupedSermons[grouping!]!.keys.count
+        }
+        
+        if (groupSort?[grouping!] == nil) {
+            groupSort?[grouping!] = [String:[String:[Sermon]]]()
+        }
+        if (groupedSermons[grouping!] != nil) {
+            for string in groupedSermons[grouping!]!.keys {
+                if (groupSort?[grouping!]?[string] == nil) {
+                    groupSort?[grouping!]?[string] = [String:[Sermon]]()
+                }
+                for sort in Constants.sortings {
+                    let array = sortSermonsChronologically(groupedSermons[grouping!]?[string])
+                    
+                    switch sort {
+                    case Constants.CHRONOLOGICAL:
+                        groupSort?[grouping!]?[string]?[sort] = array
+                        break
+                        
+                    case Constants.REVERSE_CHRONOLOGICAL:
+                        groupSort?[grouping!]?[string]?[sort] = array?.reverse()
+                        break
+                        
+                    default:
+                        break
+                    }
+                    
+                    Globals.progress++
+                }
+            }
+        }
+    }
+    
     func sermons(grouping grouping:String?,sorting:String?) -> [Sermon]?
     {
         var groupedSortedSermons:[Sermon]?
+        
+        if (groupSort == nil) {
+            return nil
+        }
+        
+        if (groupSort?[grouping!] == nil) {
+            sortGroup(grouping)
+        }
         
         //        print("\(groupSort)")
         if (groupSort![grouping!] != nil) {
@@ -291,110 +406,22 @@ class SermonsListGroupSort {
     
     init(sermons:[Sermon]?)
     {
-//        Globals.sermonsSortingOrGrouping = true
-        
-        // Put the sermons into the dictionaries.
-        
         if (sermons != nil) {
+            Globals.finished = 0
+            Globals.progress = 0
+            
+            list = sermons
+            
             groupNames = SermonGroupNames()
             groupSort = SermonGroupSort()
             tagSermons = [String:[Sermon]]()
             tagNames = [String:String]()
             
-            list = sermons
-            
-            var groupedSermons = [String:[String:[Sermon]]]()
-            
-            Globals.finished = list!.count * (Constants.groupings.count + 1)
-            Globals.progress = 0
-            
-            for sermon in sermons! {
-                for group in Constants.groupings {
-                    var string:String?
-                    var name:String?
-                    
-                    switch group {
-                    case Constants.YEAR:
-                        string = "\(sermon.year)"
-                        name = string
-                        break
-                        
-                    case Constants.SERIES:
-                        string = sermon.seriesSectionSort
-                        name = sermon.seriesSection
-                        break
-                        
-                    case Constants.BOOK:
-                        string = sermon.bookSection
-                        name = sermon.bookSection
-                        break
-                        
-                    case Constants.SPEAKER:
-                        string = sermon.speakerSectionSort
-                        name = sermon.speakerSection
-                        break
-                        
-                    default:
-                        break
-                    }
-                    
-                    if (groupNames?[group] == nil) {
-                        groupNames?[group] = [String:String]()
-                    }
-                    
-                    groupNames?[group]?[string!] = name!
-                    
-                    if (groupedSermons[group] == nil) {
-                        groupedSermons[group] = [String:[Sermon]]()
-                    }
-                    
-                    if groupedSermons[group]?[string!] == nil {
-                        groupedSermons[group]?[string!] = [sermon]
-                    } else {
-                        groupedSermons[group]?[string!]?.append(sermon)
-                    }
-                    
-                    Globals.progress++
-                }
-            }
-            
-            //        print("\(groupedSermons)")
+            sortGroup(Globals.grouping)
 
-            for group in Constants.groupings {
-                if (groupedSermons[group] != nil) {
-                    Globals.finished += groupedSermons[group]!.keys.count
-                }
-            }
-            for group in Constants.groupings {
-                if (groupedSermons[group] != nil) {
-                    if (groupSort?[group] == nil) {
-                        groupSort?[group] = [String:[String:[Sermon]]]()
-                    }
-                    for string in groupedSermons[group]!.keys {
-                        if (groupSort?[group]?[string] == nil) {
-                            groupSort?[group]?[string] = [String:[Sermon]]()
-                        }
-                        for sort in Constants.sortings {
-                            switch sort {
-                            case Constants.CHRONOLOGICAL:
-                                groupSort?[group]?[string]?[sort] = sortSermonsChronologically(groupedSermons[group]?[string])
-                                break
-                                
-                            case Constants.REVERSE_CHRONOLOGICAL:
-                                groupSort?[group]?[string]?[sort] = sortSermonsReverseChronologically(groupedSermons[group]?[string])
-                                break
-                                
-                            default:
-                                break
-                            }
-                        }
-                        
-                        Globals.progress++
-                    }
-                }
-            }
+            Globals.finished += list!.count
             
-            for sermon in sermons! {
+            for sermon in list! {
                 if let tags =  sermon.tagsSet {
                     for tag in tags {
                         let sortTag = stringWithoutPrefixes(tag)
@@ -406,15 +433,12 @@ class SermonsListGroupSort {
                         tagNames?[sortTag!] = tag
                     }
                 }
-                
                 Globals.progress++
             }
         } else {
             Globals.finished = 1
             Globals.progress = 1
         }
-        
-//        Globals.sermonsSortingOrGrouping = false
     }
 }
 
@@ -424,7 +448,11 @@ enum State {
     case none
 }
 
-struct Download {
+class Download {
+    weak var sermon:Sermon?
+    
+    var purpose:String?
+    
     var location:NSURL?
 
     var totalBytesWritten:Int64 = 0
@@ -441,7 +469,17 @@ struct Download {
         }
     }
     
-    var state:State = .none
+    var state:State = .none {
+        didSet {
+            if (purpose == Constants.AUDIO) {
+                if state == .downloaded {
+                    sermon?.addTag(Constants.Downloaded)
+                } else {
+                    sermon?.removeTag(Constants.Downloaded)
+                }
+            }
+        }
+    }
     
     var completionHandler: ((Void) -> (Void))?
 }
@@ -449,61 +487,56 @@ struct Download {
 class Sermon : NSObject, NSURLSessionDownloadDelegate {
     var dict:[String:String]?
 
-//    struct Dict {
-//        var sermon:Sermon?
-//        
-//        private let queue = dispatch_queue_create("com.leeke.sermon.dict", nil)
-//        func with(queue: dispatch_queue_t, f: Void -> Void) {
-//            dispatch_sync(queue, f)
-//        }
-//        
-//        init(sermon:Sermon?) {
-//            if (sermon == nil) {
-//                print("nil sermon in dict init!")
-//            }
-//            self.sermon = sermon
-//        }
-//        
-//        subscript(key:String) -> String? {
-//            get {
-//                var value:String?
-//                with(queue) {
-//                    value = self.sermon?.dictionary?[key]
-//                }
-//                return value
-//            }
-//            set {
-//                with(queue) {
-//                    if (self.sermon?.dictionary == nil) {
-//                        self.sermon?.dictionary = [String:String]()
-//                    }
-//                    if (newValue != nil) {
-//                        if (self.sermon != nil) {
-//                            //                        print("\(Globals.sermonSettings!)")
-//                            //                        print("\(sermon!)")
-//                            //                        print("\(newValue!)")
-//                            self.sermon?.dictionary?[key] = newValue
-//                        } else {
-//                            print("sermon == nil in Dict!")
-//                        }
-//                    } else {
-//                        print("newValue == nil in dict!")
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
-//    lazy var dict:Dict? = {
-//        return Dict(sermon:self)
-//    }()
-
     init(dict:[String:String]?)
     {
 //        print("\(dict)")
         self.dict = dict
     }
     
+    lazy var downloads:[String:Download]! = {
+        return [String:Download]()
+    }()
+    
+    lazy var audioDownload:Download? = {
+        [unowned self] in
+        var download = Download()
+        download.sermon = self
+        download.purpose = Constants.AUDIO
+        download.state = self.isDownloaded(self.audioInFileSystemURL) ? .downloaded : .none
+        self.downloads[Constants.AUDIO] = download
+        return download
+        }()
+    
+    lazy var videoDownload:Download? = {
+        [unowned self] in
+        var download = Download()
+        download.sermon = self
+        download.purpose = Constants.VIDEO
+        download.state = self.isDownloaded(self.videoInFileSystemURL) ? .downloaded : .none
+        self.downloads[Constants.VIDEO] = download
+        return download
+        }()
+    
+    lazy var slidesDownload:Download? = {
+        [unowned self] in
+        var download = Download()
+        download.sermon = self
+        download.purpose = Constants.SLIDES
+        download.state = self.isDownloaded(self.slidesInFileSystemURL) ? .downloaded : .none
+        self.downloads[Constants.SLIDES] = download
+        return download
+        }()
+    
+    lazy var notesDownload:Download? = {
+        [unowned self] in
+        var download = Download()
+        download.sermon = self
+        download.purpose = Constants.NOTES
+        download.state = self.isDownloaded(self.notesInFileSystemURL) ? .downloaded : .none
+        self.downloads[Constants.NOTES] = download
+        return download
+        }()
+
     required convenience init?(coder decoder: NSCoder)
     {
         guard
@@ -521,6 +554,48 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         coder.encodeObject(self.dict, forKey: Constants.DICT)
     }
     
+    var id:String! {
+        get {
+            if dict?[Constants.ID] != nil {
+                return dict?[Constants.ID]
+            } else {
+                if let cd = audio?.rangeOfString("CD") {
+                    return audio?.substringToIndex(cd.startIndex)
+                } else {
+                    return audio?.substringToIndex(audio!.rangeOfString(Constants.MP3_FILENAME_EXTENSION)!.startIndex)
+                }
+            }
+        }
+    }
+    
+    var sermonsInSeries:[Sermon]? {
+        get {
+            if (hasSeries()) {
+                if (Globals.sermons.all?.groupSort?[Constants.SERIES]?[seriesSort!]?[Constants.CHRONOLOGICAL] == nil) {
+                    let seriesSermons = Globals.sermonRepository.list?.filter({ (testSermon:Sermon) -> Bool in
+                        return hasSeries() ? (testSermon.series == series) : (testSermon.id == id)
+                    })
+                    return sortSermonsByYear(seriesSermons, sorting: Constants.CHRONOLOGICAL)
+                } else {
+                    return Globals.sermons.all?.groupSort?[Constants.SERIES]?[seriesSort!]?[Constants.CHRONOLOGICAL]
+                }
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    func sermonsInCollection(tag:String) -> [Sermon]?
+    {
+        var sermons:[Sermon]?
+        
+        if (tagsSet != nil) && tagsSet!.contains(tag) {
+            sermons = Globals.sermons.all?.tagSermons?[tag]
+        }
+        
+        return sermons
+    }
+
     var showingPDFURL:NSURL? {
         get {
             var url:NSURL?
@@ -547,18 +622,17 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             
             switch playing! {
             case Constants.AUDIO:
-                url = cachesURL()?.URLByAppendingPathComponent(audio!)
+                url = audioInFileSystemURL
                 if (!NSFileManager.defaultManager().fileExistsAtPath(url!.path!)){
                     url = audioURL
                 }
                 break
                 
             case Constants.VIDEO:
-                //Needs work - video! is not the right thing to add.
-//                url = cachesURL()?.URLByAppendingPathComponent(video!)
-//                if (!NSFileManager.defaultManager().fileExistsAtPath(url!.path!)){
+                url = videoInFileSystemURL
+                if (!NSFileManager.defaultManager().fileExistsAtPath(url!.path!)){
                     url = videoURL
-//                }
+                }
                 break
                 
             default:
@@ -647,32 +721,44 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     }
     
     // These are read-only
-    var keyBase:String! {
-        get {
-            if (title == nil) {
-                print("\(title)")
-            }
-            if (date == nil) {
-                print("\(date)")
-            }
-//            print("\(title! + date!)")
-            return title! + date!
-        }
-    }
+//    var keyBase:String! {
+//        get {
+////            if (title == nil) {
+////                print("\(title)")
+////            }
+////            if (date == nil) {
+////                print("\(date)")
+////            }
+//////            print("\(title! + date!)")
+////            return title! + date!
+//            return id!
+//        }
+//    }
     
-    var seriesKeyBase:String! {
+    var seriesID:String! {
         get {
             if (series != nil) {
                 return series!
             } else {
-                return keyBase
+                return id!
             }
         }
     }
     
-    var year:Int! {
+    var year:Int? {
         get {
-            return NSCalendar.currentCalendar().components(.Year, fromDate: fullDate!).year
+            if (fullDate != nil) {
+                return NSCalendar.currentCalendar().components(.Year, fromDate: fullDate!).year
+            }
+            return nil
+        }
+    }
+    
+    var yearString:String! {
+        if (year != nil) {
+            return "\(year!)"
+        } else {
+            return "None"
         }
     }
     
@@ -732,7 +818,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                             speakerSort = speakerSort.substringFromIndex(speakerSort.rangeOfString(Constants.SINGLE_SPACE_STRING)!.endIndex)
                         }
                         dict![Constants.SPEAKER_SORT] = speakerSort
-                        settings?[Constants.SPEAKER_SORT] = speakerSort
+//                        settings?[Constants.SPEAKER_SORT] = speakerSort
                     } else {
                         print("NO SPEAKER")
                     }
@@ -766,7 +852,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                 } else {
                     if let seriesSort = stringWithoutPrefixes(series) {
                         dict![Constants.SERIES_SORT] = seriesSort
-                        settings?[Constants.SERIES_SORT] = seriesSort
+//                        settings?[Constants.SERIES_SORT] = seriesSort
                     } else {
                         print("seriesSort is nil")
                     }
@@ -785,14 +871,17 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     // nil better be okay for these or expect a crash
     var tags:String? {
         get {
-//            if let tags = settings?[Constants.TAGS] {
-//                dict![Constants.TAGS] = tags
-//            } else {
-//                // do nothing
-//            }
-            return dict![Constants.TAGS]
+            if let tags = settings?[Constants.TAGS] {
+                if dict![Constants.TAGS] != nil {
+                    return dict![Constants.TAGS]! + Constants.TAGS_SEPARATOR + tags
+                } else {
+                    return tags
+                }
+            } else {
+                return dict![Constants.TAGS]
+            }
         }
-        set {
+//        set {
 //            var tag:String
 //            var tags = newValue
 //            var tagsSet = Set<String>()
@@ -808,7 +897,44 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
 //            }
 
 //            settings?[Constants.TAGS] = newValue
-            dict![Constants.TAGS] = newValue
+//            dict![Constants.TAGS] = newValue
+//        }
+    }
+    
+    func addTag(tag:String)
+    {
+        let tags = tagsArrayFromTagsString(settings![Constants.TAGS])
+        if tags?.indexOf(tag) == nil {
+            if (settings?[Constants.TAGS] == nil) {
+                settings?[Constants.TAGS] = tag
+            } else {
+                settings?[Constants.TAGS] = settings![Constants.TAGS]! + Constants.TAGS_SEPARATOR + tag
+            }
+            
+            if Globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!] != nil {
+                if Globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!]!.indexOf(self) == nil {
+                    Globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!]!.append(self)
+                    Globals.sermons.all!.tagNames![stringWithoutPrefixes(tag)!] = tag
+                }
+            } else {
+                Globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!] = [self]
+                Globals.sermons.all!.tagNames![stringWithoutPrefixes(tag)!] = tag
+            }
+        }
+    }
+    
+    func removeTag(tag:String)
+    {
+        if (settings?[Constants.TAGS] != nil) {
+            var tags = tagsArrayFromTagsString(settings![Constants.TAGS])
+            if tags?.indexOf(tag) != nil {
+                tags?.removeAtIndex(tags!.indexOf(tag)!)
+                settings?[Constants.TAGS] = tagsArrayToTagsString(tags)
+
+                if let index = Globals.sermons.all?.tagSermons?[stringWithoutPrefixes(tag)!]?.indexOf(self) {
+                    Globals.sermons.all?.tagSermons?[stringWithoutPrefixes(tag)!]?.removeAtIndex(index)
+                }
+            }
         }
     }
     
@@ -861,21 +987,9 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         }
     }
     
-    var audioURL:NSURL? {
-        get {
-            return NSURL(string: Constants.BASE_AUDIO_URL + audio!)
-        }
-    }
-    
     var video:String? {
         get {
             return dict![Constants.VIDEO]
-        }
-    }
-    
-    var videoURL:NSURL? {
-        get {
-            return NSURL(string: Constants.BASE_VIDEO_URL_PREFIX + video! + Constants.BASE_VIDEO_URL_POSTFIX)
         }
     }
     
@@ -896,13 +1010,9 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         set {
             dict![Constants.NOTES] = newValue
             settings?[Constants.NOTES] = newValue
-            NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
-        }
-    }
-    
-    var notesURL:NSURL? {
-        get {
-            return NSURL(string: Constants.BASE_PDF_URL + notes!)
+            dispatch_async(dispatch_get_main_queue()) { () -> Void in
+                NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+            }
         }
     }
     
@@ -921,13 +1031,89 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         set {
             dict![Constants.SLIDES] = newValue
             settings?[Constants.SLIDES] = newValue
-            NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+            dispatch_async(dispatch_get_main_queue()) { () -> Void in
+                NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+            }
+        }
+    }
+    
+    var audioURL:NSURL? {
+        get {
+            if (audio != nil) {
+                return NSURL(string: Constants.BASE_AUDIO_URL + audio!)
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    var videoURL:NSURL? {
+        get {
+            if video != nil {
+                return NSURL(string: Constants.BASE_VIDEO_URL_PREFIX + video! + Constants.BASE_VIDEO_URL_POSTFIX)
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    var notesURL:NSURL? {
+        get {
+            if (notes != nil) {
+                return NSURL(string: Constants.BASE_PDF_URL + notes!)
+            } else {
+                return nil
+            }
         }
     }
     
     var slidesURL:NSURL? {
         get {
-            return NSURL(string: Constants.BASE_PDF_URL + slides!)
+            if (slides != nil) {
+                return NSURL(string: Constants.BASE_PDF_URL + slides!)
+            } else {
+                return nil
+            }
+        }
+    }
+
+    var audioInFileSystemURL:NSURL? {
+        get {
+            if (audio != nil) {
+                return cachesURL()?.URLByAppendingPathComponent(audio!)
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    var videoInFileSystemURL:NSURL? {
+        get {
+            if video != nil {
+                return cachesURL()?.URLByAppendingPathComponent(video!)
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    var slidesInFileSystemURL:NSURL? {
+        get {
+            if (slides != nil) {
+                return cachesURL()?.URLByAppendingPathComponent(slides!)
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    var notesInFileSystemURL:NSURL? {
+        get {
+            if (notes != nil) {
+                return cachesURL()?.URLByAppendingPathComponent(notes!)
+            } else {
+                return nil
+            }
         }
     }
     
@@ -936,6 +1122,100 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             return hasBook() ? book! : hasScripture() ? scripture! : Constants.None
         }
     }
+    
+    var testament:String? {
+        if (hasBook()) {
+            if (Constants.OLD_TESTAMENT_BOOKS.contains(book!)) {
+                return Constants.Old_Testament
+            }
+            if (Constants.NEW_TESTAMENT_BOOKS.contains(book!)) {
+                return Constants.New_Testament
+            }
+        } else {
+            return nil
+        }
+        
+        return nil
+    }
+    
+    func chapters(thisBook:String) -> [Int]
+    {
+        var chaptersForBook = [Int]()
+        
+        let books = booksFromScripture(scripture)
+        
+        switch books.count {
+        case 0:
+            break
+            
+        case 1:
+            if book == books.first {
+                if ["Philemon","Jude","2 John","3 John"].contains(thisBook) {
+                    chaptersForBook = [1]
+                } else {
+                    var string = scripture!
+                    
+                    if (string.rangeOfString(";") == nil) {
+                        chaptersForBook = chaptersFromScripture(string.substringFromIndex(scripture!.rangeOfString(thisBook)!.endIndex))
+                    } else {
+                        repeat {
+                            var subString = string.substringToIndex(string.rangeOfString(";")!.startIndex)
+                            
+                            if (subString.rangeOfString(thisBook) != nil) {
+                                subString = subString.substringFromIndex(subString.rangeOfString(thisBook)!.endIndex)
+                            }
+                            chaptersForBook.appendContentsOf(chaptersFromScripture(subString))
+                            
+                            string = string.substringFromIndex(string.rangeOfString(";")!.endIndex)
+                        } while (string.rangeOfString(";") != nil)
+                        
+                        //                        print(string)
+                        if (string.rangeOfString(thisBook) != nil) {
+                            string = string.substringFromIndex(string.rangeOfString(thisBook)!.endIndex)
+                        }
+                        chaptersForBook.appendContentsOf(chaptersFromScripture(string))
+                    }
+                }
+            }
+            break
+            
+        default:
+            var scriptures = [String]()
+            
+            var string = scripture!
+            
+            let separator = ";"
+            
+            repeat {
+                if string.rangeOfString(separator) != nil {
+                    scriptures.append(string.substringToIndex(string.rangeOfString(separator)!.startIndex))
+                    string = string.substringFromIndex(string.rangeOfString(separator)!.endIndex)
+                }
+            } while (string.rangeOfString(separator) != nil)
+            
+            scriptures.append(string)
+            
+            for scripture in scriptures {
+                if (scripture.rangeOfString(thisBook) != nil) {
+                    chaptersForBook.appendContentsOf(chaptersFromScripture(scripture.substringFromIndex(scripture.rangeOfString(thisBook)!.endIndex)))
+                }
+            }
+            break
+        }
+        
+//        if chaptersForBook.count > 1 {
+//            print("\(scripture)")
+//            print("\(chaptersForBook)")
+//        }
+        
+        return chaptersForBook
+    }
+    
+    var books:[String]? {
+        get {
+            return booksFromScripture(scripture)
+        }
+    } //Derived from scripture
     
     var book:String? {
         get {
@@ -948,7 +1228,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                     } else {
                         if scripture != nil {
                             if (dict![Constants.BOOK] == nil) {
-                                for bookTitle in Constants.OLD_TESTAMENT {
+                                for bookTitle in Constants.OLD_TESTAMENT_BOOKS {
                                     if (scripture!.endIndex >= bookTitle.endIndex) &&
                                         (scripture!.substringToIndex(bookTitle.endIndex) == bookTitle) {
                                             dict![Constants.BOOK] = bookTitle
@@ -957,7 +1237,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                                 }
                             }
                             if (dict![Constants.BOOK] == nil) {
-                                for bookTitle in Constants.NEW_TESTAMENT {
+                                for bookTitle in Constants.NEW_TESTAMENT_BOOKS {
                                     if (scripture!.endIndex >= bookTitle.endIndex) &&
                                         (scripture!.substringToIndex(bookTitle.endIndex) == bookTitle) {
                                             dict![Constants.BOOK] = bookTitle
@@ -966,7 +1246,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                                 }
                             }
                             if (dict![Constants.BOOK] != nil) {
-                                settings?[Constants.BOOK] = dict![Constants.BOOK]
+//                                settings?[Constants.BOOK] = dict![Constants.BOOK]
                             }
                         }
                     }
@@ -1022,27 +1302,26 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         subscript(key:String) -> String? {
             get {
-                var value:String?
-                value = Globals.sermonSettings?[sermon!.keyBase]?[key]
-                return value
+                return Globals.sermonSettings?[sermon!.id]?[key]
             }
             set {
                 if (sermon != nil) {
-                    if (Globals.sermonSettings?[sermon!.keyBase] == nil) {
-                        Globals.sermonSettings?[sermon!.keyBase] = [String:String]()
+                    if (Globals.sermonSettings == nil) {
+                        Globals.sermonSettings = [String:[String:String]]()
                     }
-                    //                        print("\(Globals.sermonSettings!)")
-                    //                        print("\(sermon!)")
-                    //                        print("\(newValue!)")
-                    Globals.sermonSettings?[sermon!.keyBase]?[key] = newValue
-                    saveSermonSettingsBackground()
+                    if (Globals.sermonSettings?[sermon!.id] == nil) {
+                        Globals.sermonSettings?[sermon!.id] = [String:String]()
+                    }
+                    if (Globals.sermonSettings?[sermon!.id]?[key] != newValue) {
+//                        print("\(sermon)")
+                        Globals.sermonSettings?[sermon!.id]?[key] = newValue
+                        
+                        // For a high volume of activity this can be very expensive.
+                        saveSermonSettingsBackground()
+                    }
                 } else {
                     print("sermon == nil in Settings!")
                 }
-                //                if (newValue != nil) {
-                //                } else {
-                //                    print("newValue == nil in Settings!")
-                //                }
             }
         }
     }
@@ -1063,18 +1342,19 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         subscript(key:String) -> String? {
             get {
-                return Globals.seriesViewSplits?[sermon!.seriesKeyBase]
+                return Globals.seriesViewSplits?[sermon!.seriesID]
             }
             set {
                 if (sermon != nil) {
                     if (Globals.seriesViewSplits == nil) {
                         Globals.seriesViewSplits = [String:String]()
                     }
-                    //                        print("\(Globals.seriesViewSplits!)")
-                    //                        print("\(sermon!)")
-                    //                        print("\(newValue!)")
-                    Globals.seriesViewSplits?[sermon!.seriesKeyBase] = newValue
-                    saveSermonSettingsBackground()
+                    if (Globals.seriesViewSplits?[sermon!.seriesID] != newValue) {
+                        Globals.seriesViewSplits?[sermon!.seriesID] = newValue
+                        
+                        // For a high volume of activity this can be very expensive.
+                        saveSermonSettingsBackground()
+                    }
                 } else {
                     print("sermon == nil in Settings!")
                 }
@@ -1088,10 +1368,10 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     
     var viewSplit:String? {
         get {
-            return seriesSettings?[seriesKeyBase]
+            return seriesSettings?[seriesID]
         }
         set {
-            seriesSettings?[seriesKeyBase] = newValue
+            seriesSettings?[seriesID] = newValue
         }
     }
     
@@ -1108,28 +1388,37 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
 //        Globals.sermonSettings?[keyBase]?[key] = value
 //    }
     
-    lazy var download:Download! = {
-        [unowned self] in
-        var download = Download()
-        download.state = self.isDownloaded() ? .downloaded : .none
-        return download
-    }()
+//    lazy var download:Download! = {
+//        [unowned self] in
+//        var download = Download()
+//        download.state = self.isDownloaded() ? .downloaded : .none
+//        return download
+//    }()
     
-    func isDownloaded() -> Bool
+//    func isDownloaded() -> Bool
+//    {
+//        if (hasAudio()) {
+//            if let fileURL = audioInFileSystemURL {
+//                return NSFileManager.defaultManager().fileExistsAtPath(fileURL.path!)
+//            }
+//        }
+//
+//        return false
+//    }
+    
+    func isDownloaded(url:NSURL?) -> Bool
     {
-        if (hasAudio()) {
-            if let fileURL = cachesURL()?.URLByAppendingPathComponent(audio!) {
-                return NSFileManager.defaultManager().fileExistsAtPath(fileURL.path!)
-            }
+        if url != nil {
+            return NSFileManager.defaultManager().fileExistsAtPath(url!.path!)
+        } else {
+            return false
         }
-
-        return false
     }
     
-    func deleteDownload()
+    func deleteAudioDownload()
     {
         if (hasAudio()) {
-            if let fileURL = cachesURL()?.URLByAppendingPathComponent(audio!) {
+            if let fileURL = audioInFileSystemURL {
                 // Check if file exists and if so, delete it.
                 if (NSFileManager.defaultManager().fileExistsAtPath(fileURL.path!)){
                     do {
@@ -1140,133 +1429,396 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             }
         }
         
-        download.totalBytesWritten = 0
-        download.totalBytesExpectedToWrite = 0
+        audioDownload?.totalBytesWritten = 0
+        audioDownload?.totalBytesExpectedToWrite = 0
         
-        download.state = .none
+        audioDownload?.state = .none
         
         // The following must appear AFTER we change the state
-        NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+        dispatch_async(dispatch_get_main_queue()) { () -> Void in
+            NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+        }
     }
     
-    func cancelDownload()
+    func cancelAudioDownload()
     {
-        if (download.active) {
+        if (audioDownload != nil) && (audioDownload!.active) {
             //            download.task?.cancelByProducingResumeData({ (data: NSData?) -> Void in
             //            })
-            download.task?.cancel()
-            download.task = nil
+            audioDownload?.task?.cancel()
+            audioDownload?.task = nil
             
-            download.totalBytesWritten = 0
-            download.totalBytesExpectedToWrite = 0
+            audioDownload?.totalBytesWritten = 0
+            audioDownload?.totalBytesExpectedToWrite = 0
             
-            download.state = .none
+            audioDownload?.state = .none
             
             // The following must appear AFTER we change the state
-            NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+            dispatch_async(dispatch_get_main_queue()) { () -> Void in
+                NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+            }
         }
     }
     
     func downloadAudio()
     {
-        if (hasAudio()) && (download.state == .none) {
-            download.state = .downloading
+        if (hasAudio()) && (audioDownload?.state == .none) {
+            audioDownload?.state = .downloading
             
-            let filename = audio! //String(format: Constants.FILENAME_FORMAT, id)
-            let audioURL = "\(Constants.BASE_AUDIO_URL)\(filename)"
-            let downloadRequest = NSMutableURLRequest(URL: NSURL(string: audioURL)!)
+            let downloadRequest = NSMutableURLRequest(URL: audioURL!)
             
-            let configuration = NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier(Constants.DOWNLOAD_IDENTIFIER + filename)
+            let configuration = NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier(Constants.DOWNLOAD_IDENTIFIER + audio!)
             configuration.sessionSendsLaunchEvents = true
             
             //        let configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
             
-            download.session = NSURLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+            audioDownload?.session = NSURLSession(configuration: configuration, delegate: self, delegateQueue: nil)
             
-            download.task = download.session?.downloadTaskWithRequest(downloadRequest)
-            download.task?.taskDescription = filename
+            audioDownload?.task = audioDownload?.session?.downloadTaskWithRequest(downloadRequest)
+            audioDownload?.task?.taskDescription = audio
             
-            download.task?.resume()
+            audioDownload?.task?.resume()
             
             UIApplication.sharedApplication().networkActivityIndicatorVisible = true
             
             // The following must appear AFTER we change the state
+            dispatch_async(dispatch_get_main_queue()) { () -> Void in
+                NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+            }
+        }
+    }
+    
+    func deleteVideoDownload()
+    {
+        if (hasVideo()) {
+            if let fileURL = videoInFileSystemURL {
+                // Check if file exists and if so, delete it.
+                if (NSFileManager.defaultManager().fileExistsAtPath(fileURL.path!)){
+                    do {
+                        try NSFileManager.defaultManager().removeItemAtURL(fileURL)
+                    } catch _ {
+                    }
+                }
+            }
+        }
+        
+        videoDownload?.totalBytesWritten = 0
+        videoDownload?.totalBytesExpectedToWrite = 0
+        
+        videoDownload?.state = .none
+        
+        // The following must appear AFTER we change the state
+        dispatch_async(dispatch_get_main_queue()) { () -> Void in
             NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
         }
     }
     
-    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-        print("URLSession: \(session.description) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
+    func cancelVideoDownload()
+    {
+        if (videoDownload != nil) && (videoDownload!.active) {
+            //            download.task?.cancelByProducingResumeData({ (data: NSData?) -> Void in
+            //            })
+            videoDownload?.task?.cancel()
+            videoDownload?.task = nil
+            
+            videoDownload?.totalBytesWritten = 0
+            videoDownload?.totalBytesExpectedToWrite = 0
+            
+            videoDownload?.state = .none
+            
+            // The following must appear AFTER we change the state
+            dispatch_async(dispatch_get_main_queue()) { () -> Void in
+                NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+            }
+        }
+    }
+    
+    func downloadVideo()
+    {
+        if (hasVideo()) && (videoDownload?.state == .none) {
+            videoDownload?.state = .downloading
+            
+            let downloadRequest = NSMutableURLRequest(URL: videoURL!)
+            
+            let configuration = NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier(Constants.DOWNLOAD_IDENTIFIER + video!)
+            configuration.sessionSendsLaunchEvents = true
+            
+            //        let configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
+            
+            videoDownload?.session = NSURLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+            
+            videoDownload?.task = videoDownload?.session?.downloadTaskWithRequest(downloadRequest)
+            videoDownload?.task?.taskDescription = video!
+            
+            videoDownload?.task?.resume()
+            
+            UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+            
+            // The following must appear AFTER we change the state
+            dispatch_async(dispatch_get_main_queue()) { () -> Void in
+                NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+            }
+        }
+    }
+    
+    func cancelSlidesDownload()
+    {
+        if (slidesDownload!.active) {
+            //            download.task?.cancelByProducingResumeData({ (data: NSData?) -> Void in
+            //            })
+            slidesDownload?.task?.cancel()
+            slidesDownload?.task = nil
+            
+            slidesDownload?.totalBytesWritten = 0
+            slidesDownload?.totalBytesExpectedToWrite = 0
+            
+            slidesDownload?.state = .none
+            
+            // The following must appear AFTER we change the state
+            dispatch_async(dispatch_get_main_queue()) { () -> Void in
+                NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+            }
+        }
+    }
+    
+    func deleteSlidesDownload()
+    {
+        //Delete any previously downloaded file
         
-        let filename = downloadTask.taskDescription!
-        
-        if (download.state == .downloading) {
-            download.totalBytesWritten = totalBytesWritten
-            download.totalBytesExpectedToWrite = totalBytesExpectedToWrite
+        // Check if file exists and if so, delete it.
+        if (NSFileManager.defaultManager().fileExistsAtPath(slidesInFileSystemURL!.path!)){
+            do {
+                try NSFileManager.defaultManager().removeItemAtURL(slidesInFileSystemURL!)
+            } catch _ {
+            }
         }
         
-        print("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
+        slidesDownload?.totalBytesWritten = 0
+        slidesDownload?.totalBytesExpectedToWrite = 0
+        
+        slidesDownload?.state = .none
+        
+        // The following must appear AFTER we change the state
+        dispatch_async(dispatch_get_main_queue()) { () -> Void in
+            NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+        }
+    }
+    
+    func downloadSlides()
+    {
+        if hasSlides() && (slidesDownload?.state == .none) {
+            slidesDownload?.state = .downloading
+            
+            let downloadRequest = NSMutableURLRequest(URL: slidesURL!)
+            
+            // This allows the downloading to continue even if the app goes into the background or terminates.
+            let configuration = NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier(Constants.DOWNLOAD_IDENTIFIER + slides!)
+            configuration.sessionSendsLaunchEvents = true
+            
+            //        let configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
+            
+            slidesDownload?.session = NSURLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+            
+            slidesDownload?.task = slidesDownload?.session?.downloadTaskWithRequest(downloadRequest)
+            slidesDownload?.task?.taskDescription = slides!
+            
+            slidesDownload?.task?.resume()
+            
+            UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+            
+            // The following must appear AFTER we change the state
+            dispatch_async(dispatch_get_main_queue()) { () -> Void in
+                NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+            }
+        }
+    }
+    
+    func deleteNotesDownload()
+    {
+        //Delete any previously downloaded file
+        let fileManager = NSFileManager.defaultManager()
+        
+        // Check if file exists and if so, delete it.
+        if (fileManager.fileExistsAtPath(notesInFileSystemURL!.path!)){
+            do {
+                try fileManager.removeItemAtURL(notesInFileSystemURL!)
+            } catch _ {
+            }
+        }
+        
+        notesDownload?.totalBytesWritten = 0
+        notesDownload?.totalBytesExpectedToWrite = 0
+        
+        notesDownload?.state = .none
+        
+        // The following must appear AFTER we change the state
+        dispatch_async(dispatch_get_main_queue()) { () -> Void in
+            NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+        }
+    }
+    
+    func downloadNotes()
+    {
+        if hasNotes() && (notesDownload?.state == .none) {
+            notesDownload?.state = .downloading
+            
+            let downloadRequest = NSMutableURLRequest(URL: notesURL!)
+            
+            // This allows the downloading to continue even if the app goes into the background or terminates.
+            let configuration = NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier(Constants.DOWNLOAD_IDENTIFIER + notes!)
+            configuration.sessionSendsLaunchEvents = true
+            
+            //        let configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
+            
+            notesDownload?.session = NSURLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+            
+            notesDownload?.task = notesDownload?.session?.downloadTaskWithRequest(downloadRequest)
+            notesDownload?.task?.taskDescription = notes
+            
+            notesDownload?.task?.resume()
+            
+            UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+            
+            // The following must appear AFTER we change the state
+            dispatch_async(dispatch_get_main_queue()) { () -> Void in
+                NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+            }
+        }
+    }
+    
+    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+//        print("URLSession: \(session.description) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
+        
+//        let filename = downloadTask.taskDescription!
+        
+        for key in downloads.keys {
+            if (downloads[key]?.task == downloadTask) {
+                if (downloads[key]?.state == .downloading) {
+//                    print("Downloading: \(filename) \(key)")
+                    
+                    downloads[key]?.totalBytesWritten = totalBytesWritten
+                    downloads[key]?.totalBytesExpectedToWrite = totalBytesExpectedToWrite
+                }
+                
+                break
+            }
+        }
+        
+//        print("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
         
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
     }
     
     func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didFinishDownloadingToURL location: NSURL) {
-        print("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
+//        print("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
+        
+        var download:Download?
+        
+        for key in downloads.keys {
+            if (downloads[key]?.task == downloadTask) {
+                download = downloads[key]
+                print("Finished Downloading: \(key)")
+                break
+            }
+        }
         
         let filename = downloadTask.taskDescription!
-        
         print("filename: \(filename) location: \(location)")
         
         let fileManager = NSFileManager.defaultManager()
         
         //Get documents directory URL
-        let destinationURL = cachesURL()?.URLByAppendingPathComponent(filename)
-        // Check if file exists
-        if (fileManager.fileExistsAtPath(destinationURL!.path!)){
+        if let destinationURL = cachesURL()?.URLByAppendingPathComponent(filename) {
+            // Check if file exists
+            if (fileManager.fileExistsAtPath(destinationURL.path!)){
+                do {
+                    try fileManager.removeItemAtURL(destinationURL)
+                } catch _ {
+                }
+            }
+            
+//            print("location: \(location) \n\ndestinationURL: \(destinationURL)\n\n")
+            
             do {
-                try fileManager.removeItemAtURL(destinationURL!)
+                if (download?.state == .downloading) {
+                    try fileManager.copyItemAtURL(location, toURL: destinationURL)
+                    try fileManager.removeItemAtURL(location)
+                    download?.state = .downloaded
+                    
+                    //downloading isn't on the main thread
+                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        // The following must appear AFTER we change the state
+                        NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+                    })
+                }
             } catch _ {
-                print("failed to remove file")
+                print("failed to copy temp audio download file")
+                download?.state = .none
+                
+                //downloading isn't on the main thread
+                dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                    // The following must appear AFTER we change the state
+                    NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+                })
             }
-        }
-        
-        do {
-            if (download.state == .downloading) {
-                try fileManager.copyItemAtURL(location, toURL: destinationURL!)
-                try fileManager.removeItemAtURL(location)
-                download.state = .downloaded
-            }
-        } catch _ {
-            print("failed to copy temp audio download file")
-            download.state = .none
         }
         
         UIApplication.sharedApplication().networkActivityIndicatorVisible = false
     }
     
-    func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
-        if (download.task == task) {
-            if (error != nil) {
-                print("Download failed for: \(session.description)")
-                download.state = .none
-            } else {
-                print("Download succeeded for: \(session.description)")
-                if (download.state == .downloading) {
-                    download.state = .downloaded
-                }
+    func removeTempFiles()
+    {
+        // Clean up temp directory for cancelled downloads
+        let fileManager = NSFileManager.defaultManager()
+        let path = NSTemporaryDirectory()
+        do {
+            let array = try fileManager.contentsOfDirectoryAtPath(path)
+            
+            for string in array {
+                print("Deleting: \(string)")
+                try fileManager.removeItemAtPath(path + string)
             }
-            
-            // This deletes more than the temp file associated with this download and sometimes it deletes files in progress
-            // that are needed - e.g. the JSON!  We need to find a way to delete only the temp file created by this download task.
-            //        removeTempFiles()
-            
-            let filename = task.taskDescription
-            print("filename: \(filename!) error: \(error)")
+        } catch _ {
+        }
+    }
+    
+    func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
+        var download:Download?
+        
+        for key in downloads.keys {
+            if (downloads[key]?.session == session) {
+                download = downloads[key]
+                print("Session didComplete: \(key)")
+                break
+            }
         }
         
-        //        if let taskIndex = Globals.downloadTasks.indexOf(task as! NSURLSessionDownloadTask) {
-        //            Globals.downloadTasks.removeAtIndex(taskIndex)
-        //        }
+        print("Download error: \(error)")
+        
+        if (download?.totalBytesExpectedToWrite == 0) {
+            download?.state = .none
+            
+            //downloading isn't on the main thread
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                // The following must appear AFTER we change the state
+                NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+            })
+        } else {
+            print("Download succeeded for: \(session.description)")
+            download?.state = .downloaded
+            
+            //downloading isn't on the main thread
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                // The following must appear AFTER we change the state
+                NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: self)
+            })
+        }
+        
+        // This may delete temp files other than the one we just downloaded, so don't do it.
+        //        removeTempFiles()
+        
+        let filename = task.taskDescription
+        print("filename: \(filename!) error: \(error)")
         
         session.invalidateAndCancel()
         
@@ -1274,9 +1826,17 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     }
     
     func URLSession(session: NSURLSession, didBecomeInvalidWithError error: NSError?) {
-        if (download.session == session) {
-            download.session = nil
+        var download:Download?
+        
+        for key in downloads.keys {
+            if (downloads[key]?.session == session) {
+                download = downloads[key]
+                print("Session didBecomeInvalidWithError: \(key)")
+                break
+            }
         }
+        
+        download?.session = nil
     }
     
     func URLSessionDidFinishEventsForBackgroundURLSession(session: NSURLSession) {
@@ -1285,12 +1845,33 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         filename = session.configuration.identifier!.substringFromIndex(Constants.DOWNLOAD_IDENTIFIER.endIndex)
         
-        if let downloadSermon = Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
+        Globals.sermonRepository.list?.filter({ (sermon:Sermon) -> Bool in
             return sermon.audio == filename
-        }).first {
-            downloadSermon.download.completionHandler?()
-        }
-//        for sermon in Globals.sermonRepository! {
+        }).first?.downloads.filter({ (key:String, value:Download) -> Bool in
+            return value.session == session
+        }).first?.1.completionHandler?()
+        //
+        //        for sermon in Globals.sermonRepository.list! {
+        //            if (sermon.audio == filename) {
+        //                var download:Download?
+        //
+        //                for (key,value) in sermon.downloads {
+        //                    if (value.session == session) {
+        //                        download = value
+        //                        print("Session didComplete: \(key)")
+        //                        break
+        //                    }
+        //                }
+        //
+        //                download?.completionHandler?()
+        //            }
+        //        }
+//        if let downloadSermon = Globals.sermonRepository.list?.filter({ (sermon:Sermon) -> Bool in
+//            return sermon.audio == filename
+//        }).first {
+//            downloadSermon.download.completionHandler?()
+//        }
+//        for sermon in Globals.sermonRepository.list! {
 //            if (sermon.audio == filename) {
 //                sermon.download.completionHandler?()
 //            }

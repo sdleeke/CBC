@@ -378,19 +378,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         let cache = NSURLCache(memoryCapacity: 10 * 1024 * 1024, diskCapacity: 100 * 1024 * 1024, diskPath: nil)
         NSURLCache.setSharedURLCache(cache)
         
-        let audioSession: AVAudioSession  = AVAudioSession.sharedInstance()
-
-        do {
-            try audioSession.setCategory(AVAudioSessionCategoryPlayback)
-        } catch _ {
-        }
+        startAudio()
         
-        do {
-            //        audioSession.setCategory(AVAudioSessionCategoryPlayback, withOptions: AVAudioSessionCategoryOptions.MixWithOthers, error:nil)
-            try audioSession.setActive(true)
-        } catch _ {
-        }
-
         UIApplication.sharedApplication().beginReceivingRemoteControlEvents()
         
         return true
@@ -516,13 +505,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         
         filename = identifier.substringFromIndex(Constants.DOWNLOAD_IDENTIFIER.endIndex)
         
-        if let downloadSermon = Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
-            return sermon.audio == filename
-        }).first {
-            downloadSermon.download.session = NSURLSession(configuration: configuration, delegate: downloadSermon, delegateQueue: nil)
-            downloadSermon.download.completionHandler = completionHandler
-            //Do we need to recreate the downloadTask for this session?
+        for sermon in Globals.sermonRepository.list! {
+            let download = sermon.downloads.filter({ (key:String, value:Download) -> Bool in
+                //                print("handleEventsForBackgroundURLSession: \(filename) \(key)")
+                return value.task?.taskDescription == filename
+            }).first!.1
+            
+            download.session = NSURLSession(configuration: configuration, delegate: sermon, delegateQueue: nil)
+            download.completionHandler = completionHandler
         }
+        //        if let downloadSermon = Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
+        //            return sermon.audio == filename
+        //        }).first {
+        //            downloadSermon.download.session = NSURLSession(configuration: configuration, delegate: downloadSermon, delegateQueue: nil)
+        //            downloadSermon.download.completionHandler = completionHandler
+        //            //Do we need to recreate the downloadTask for this session?
+        //        }
     }
 }
 

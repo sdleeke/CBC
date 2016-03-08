@@ -12,16 +12,16 @@ class MyTableViewCell: UITableViewCell {
 
     var downloadObserver:NSTimer?
 
-    var vc:UIViewController?
+    weak var vc:UIViewController?
 
     func updateUI()
     {
         if (sermon != nil) {
-            if (sermon!.download.state == .downloading) && (downloadObserver == nil) {
+            if (sermon!.audioDownload?.state == .downloading) && (downloadObserver == nil) {
                 downloadObserver = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "updateUI", userInfo: nil, repeats: true)
             }
             
-            if (sermon!.download.state == .downloaded) && (downloadObserver != nil) {
+            if (sermon!.audioDownload?.state == .downloaded) && (downloadObserver != nil) {
                 downloadObserver?.invalidate()
                 downloadObserver = nil
             }
@@ -67,7 +67,7 @@ class MyTableViewCell: UITableViewCell {
 //        print("Download!")
 //        if (Reachability.isConnectedToNetwork()) {
             if (sermon != nil) {
-                switch sermon!.download.state {
+                switch sermon!.audioDownload!.state {
                 case .none:
                     vc?.dismissViewControllerAnimated(true, completion: nil)
                     
@@ -185,7 +185,7 @@ class MyTableViewCell: UITableViewCell {
             
 //            attributes = [NSFontAttributeName:UIFont(name: Constants.FontAwesome, size: Constants.FA_DOWNLOAD_FONT_SIZE)!,NSForegroundColorAttributeName:Constants.iosBlueColor] //
             
-            switch sermon!.download.state {
+            switch sermon!.audioDownload!.state {
             case .none:
                 downloadButton.setTitle(Constants.FA_DOWNLOAD, forState: UIControlState.Normal)
 //                downloadButton.setAttributedTitle(NSMutableAttributedString(string: Constants.FA_DOWNLOAD,attributes: attributes), forState: downloadButton.state)//UIControlState.Normal
@@ -242,7 +242,7 @@ class MyTableViewCell: UITableViewCell {
     func setupProgressBar()
     {
         if sermon != nil {
-            switch sermon!.download.state {
+            switch sermon!.audioDownload!.state {
             case .none:
                 downloadProgressBar.hidden = true
                 downloadProgressBar.progress = 0
@@ -254,8 +254,8 @@ class MyTableViewCell: UITableViewCell {
                 break
             case .downloading:
                 downloadProgressBar.hidden = false
-                if (sermon!.download.totalBytesExpectedToWrite > 0) {
-                    downloadProgressBar.progress = Float(sermon!.download.totalBytesWritten) / Float(sermon!.download.totalBytesExpectedToWrite)
+                if (sermon!.audioDownload!.totalBytesExpectedToWrite > 0) {
+                    downloadProgressBar.progress = Float(sermon!.audioDownload!.totalBytesWritten) / Float(sermon!.audioDownload!.totalBytesExpectedToWrite)
                 } else {
                     downloadProgressBar.progress = 0
                 }
@@ -266,20 +266,20 @@ class MyTableViewCell: UITableViewCell {
     
     func deleteDownload()
     {
-        sermon?.deleteDownload()
+        sermon?.deleteAudioDownload()
     }
     
     func cancelDownload()
     {
         // It may complete downloading before the user clicks okay.
         
-        switch sermon!.download.state {
+        switch sermon!.audioDownload!.state {
         case .downloading:
-            sermon?.cancelDownload()
+            sermon?.cancelAudioDownload()
             break
             
         case .downloaded:
-            sermon?.deleteDownload()
+            sermon?.deleteAudioDownload()
             break
             
         default:

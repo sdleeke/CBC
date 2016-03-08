@@ -47,11 +47,7 @@ class LiveViewController: UIViewController {
             Globals.playerPaused = true
         }
         
-        Globals.mpPlayer?.view.removeFromSuperview()
-        setupLivePlayer()
-        
-        Globals.mpPlayer?.view.hidden = false
-        Globals.mpPlayer?.play()
+        setupLivePlayerView()
         
         self.navigationItem.setRightBarButtonItem(UIBarButtonItem(title: "Full Screen", style: UIBarButtonItemStyle.Plain, target: self, action: "fullScreen"),animated: true)
     }
@@ -183,42 +179,52 @@ class LiveViewController: UIViewController {
         }
     }
     
-    private func setupLivePlayer()
+    private func setupLivePlayerView()
     {
-        var view:UIView!
-
         if (Globals.mpPlayer?.contentURL != NSURL(string:Constants.LIVE_STREAM_URL)) {
             Globals.mpPlayer = MPMoviePlayerController(contentURL: NSURL(string: Constants.LIVE_STREAM_URL)!)
             Globals.mpPlayer?.prepareToPlay()
         }
         
-        let tap = UITapGestureRecognizer(target: self, action: "zoomScreen")
-        tap.numberOfTapsRequired = 2
-        
-        view = Globals.mpPlayer?.view
-        
-        view.frame = webView.bounds
-        
-        view.addGestureRecognizer(tap)
-        view.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
-        
-        webView.addSubview(view)
-        
-        let left = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.Left, multiplier: 1.0, constant: 0.0)
-        webView!.addConstraint(left)
-        
-        let right = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Right, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.Right, multiplier: 1.0, constant: 0.0)
-        webView!.addConstraint(right)
-        
-        let top = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.Top, multiplier: 1.0, constant: 0.0)
-        webView!.addConstraint(top)
-        
-        let bottom = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Bottom, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: 0.0)
-        webView!.addConstraint(bottom)
-        
-        webView!.setNeedsLayout()
-        webView!.layoutIfNeeded()
-        
-        webView.bringSubviewToFront(view)
+        if (Globals.mpPlayer != nil) {
+//            Globals.mpPlayer!.setFullscreen(false, animated: false)
+//
+            let view = Globals.mpPlayer!.view
+
+            view.hidden = true
+            view.removeFromSuperview()
+            
+            view.gestureRecognizers = nil
+            
+            let tap = UITapGestureRecognizer(target: self, action: "zoomScreen")
+            tap.numberOfTapsRequired = 2
+            view.addGestureRecognizer(tap)
+            
+            view.frame = webView.bounds
+            
+            view.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+            
+            webView.addSubview(view)
+            
+            let centerX = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.CenterX, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.CenterX, multiplier: 1.0, constant: 0.0)
+            webView.addConstraint(centerX)
+            
+            let centerY = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.CenterY, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.CenterY, multiplier: 1.0, constant: 0.0)
+            webView.addConstraint(centerY)
+            
+            let widthX = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Width, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.Width, multiplier: 1.0, constant: 0.0)
+            webView.addConstraint(widthX)
+            
+            let widthY = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Height, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.Height, multiplier: 1.0, constant: 0.0)
+            webView.addConstraint(widthY)
+
+            webView!.setNeedsLayout()
+
+            webView.bringSubviewToFront(view)
+
+            view.hidden = false
+
+            Globals.mpPlayer!.play()
+        }
     }
 }

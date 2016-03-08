@@ -131,6 +131,10 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     //Nothing to show
                 }
                 
+                if (splitViewController != nil) {
+                    showMenu.append(Constants.Scripture_Index)
+                }
+
                 showMenu.append(Constants.Settings)
                 
                 popover.strings = showMenu
@@ -147,7 +151,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         didSet {
             let defaults = NSUserDefaults.standardUserDefaults()
             if (selectedSermon != nil) {
-                defaults.setObject(selectedSermon!.keyBase,forKey: Constants.SELECTED_SERMON_KEY)
+                defaults.setObject(selectedSermon!.id,forKey: Constants.SELECTED_SERMON_KEY)
             } else {
                 // We always select, never deselect, so this should not be done.  If we set this to nil it is for some other reason, like clearing the UI.
 //                defaults.removeObjectForKey(Constants.SELECTED_SERMON_KEY)
@@ -155,7 +159,6 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             defaults.synchronize()
         }
     }
-
     
     var popover : PopoverTableViewController?
     
@@ -176,7 +179,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     func enableToolBarButtons()
     {
-        if (Globals.sermonRepository != nil) {
+        if (Globals.sermonRepository.list != nil) {
             if let barButtons = toolbarItems {
                 for barButton in barButtons {
                     barButton.enabled = true
@@ -187,7 +190,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     func enableBarButtons()
     {
-        if (Globals.sermonRepository != nil) {
+        if (Globals.sermonRepository.list != nil) {
             navigationItem.leftBarButtonItem?.enabled = true
             enableToolBarButtons()
         }
@@ -204,26 +207,14 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
 //                    if (index >= 0) && (index <= Globals.sermons.all!.sermonTags!.count) {
                     if (index < strings.count) {
-                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                            clearSermonsForDisplay()
-                            self.tableView.reloadData()
-                            
-                            self.listActivityIndicator.hidden = false
-                            self.listActivityIndicator.startAnimating()
-                            
-                            self.disableBarButtons()
-                        })
-                        
                         var new:Bool = false
                         
                         switch strings[index] {
                         case Constants.All:
-                            //All
                             if (Globals.showing != Constants.ALL) {
                                 new = true
                                 Globals.showing = Constants.ALL
                                 Globals.sermonTagsSelected = nil
-//                                Globals.sermons.tagged = nil
                             }
                             break
                             
@@ -240,50 +231,35 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                                 Globals.sermonTagsSelected = tagSelected
                                 
                                 Globals.showing = Constants.TAGGED
-                                
-                                //Searching for tagged sermons must be done across ALL sermons so Globals.activeSermons won't work here.
-                                
-                                //All of the work is being done in SermonsListGroupSort() initializer.  This should be done in the background
-//                                Globals.sermons.tagged = SermonsListGroupSort(sermons: Globals.sermons.all?.tagSermons?[stringWithoutPrefixes(Globals.sermonTagsSelected)!])
-                                
-//                                Globals.sermons.tagged = SermonsListGroupSort(sermons: Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
-//                                    return sermon.tagsSet != nil ? sermon.tagsSet!.contains(Globals.sermonTagsSelected!) : false
-//                                }))
                             }
                             break
                         }
                         
-                        //Can't get to the searchResults button when there is a search string so this is redundant.
-                        //                    searchBar.text = nil
-                        //And search may most definitely be active and just setting this to false doesn't deactivate the searchBar
-                        //                    Globals.searchActive = false
-                        
                         if (new) {
+                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                                clearSermonsForDisplay()
+                                self.tableView.reloadData()
+                                
+                                self.listActivityIndicator.hidden = false
+                                self.listActivityIndicator.startAnimating()
+                                
+                                self.disableBarButtons()
+                            })
+                            
                             if (Globals.searchActive) {
                                 self.updateSearchResults()
                             }
                             
                             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                                 setupSermonsForDisplay()
-                                
                                 self.tableView.reloadData()
+                                
                                 self.listActivityIndicator.stopAnimating()
-                                
-                                switch Globals.showing! {
-                                case Constants.ALL:
-                                    self.searchBar.placeholder = Constants.All
-                                    break
-                                    
-                                case Constants.TAGGED:
-                                    self.searchBar.placeholder = Globals.sermonTagsSelected
-                                    break
-                                    
-                                default:
-                                    self.searchBar.placeholder = nil
-                                    break
-                                }
-                                
+                                self.listActivityIndicator.hidden = true
+
                                 self.enableBarButtons()
+                                
+                                self.setupSearchBar()
                             })
                         }
                     } else {
@@ -343,6 +319,13 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     disableBarButtons()
                     
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
+                        Globals.progress = 0
+                        Globals.finished = 0
+                        
+                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                            self.progressTimer = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: "updateProgress", userInfo: nil, repeats: true)
+                        })
+                        
                         setupSermonsForDisplay()
                         
                         dispatch_async(dispatch_get_main_queue(), { () -> Void in
@@ -406,6 +389,10 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 case Constants.Sermon_Paused:
                     Globals.gotoPlayingPaused = true
                     performSegueWithIdentifier(Constants.Show_Sermon, sender: self)
+                    break
+                    
+                case Constants.Scripture_Index:
+                    performSegueWithIdentifier(Constants.Show_Scripture_Index, sender: nil)
                     break
                     
                 case Constants.Settings:
@@ -575,6 +562,12 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         }
     }
 
+    // Specifically for Plus size iPhones.
+    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.None
+    }
+    
     func adaptivePresentationStyleForPresentationController(controller: UIPresentationController) -> UIModalPresentationStyle {
         return UIModalPresentationStyle.None
     }
@@ -609,7 +602,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         
         navigationController?.toolbar.translucent = false
         
-        if (Globals.sermonRepository == nil) {
+        if (Globals.sermonRepository.list == nil) {
             disableToolBarButtons()
         }
         
@@ -1007,8 +1000,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             let defaults = NSUserDefaults.standardUserDefaults()
             
             if let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_KEY) {
-                mytvc?.selectedSermon = Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
-                    return sermon.keyBase == selectedSermonKey
+                mytvc?.selectedSermon = Globals.sermonRepository.list?.filter({ (sermon:Sermon) -> Bool in
+                    return sermon.id == selectedSermonKey
                 }).first
                 
                 if (mytvc?.selectedSermon != nil) {
@@ -1017,7 +1010,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     }
                 }
 //
-//                if let sermons = Globals.sermonRepository {
+//                if let sermons = Globals.sermonRepository.list {
 //                    for sermon in sermons {
 //                        if (sermon.keyBase == selectedSermonKey) {
 //                            mytvc!.selectedSermon = sermon
@@ -1036,8 +1029,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         
         if (myvc != nil) {
             if let selectedSermonKey = NSUserDefaults.standardUserDefaults().stringForKey(Constants.SELECTED_SERMON_DETAIL_KEY) {
-                let sermon = Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
-                    return sermon.keyBase == selectedSermonKey
+                let sermon = Globals.sermonRepository.list?.filter({ (sermon:Sermon) -> Bool in
+                    return sermon.id == selectedSermonKey
                 }).first
 
                 myvc?.selectedSermon = sermon
@@ -1054,23 +1047,21 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 //        print("\(Float(Globals.finished))")
 //        print("\(Float(Globals.progress) / Float(Globals.finished))")
         
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+        self.progressIndicator.progress = 0
+        if (Globals.finished > 0) {
+            self.progressIndicator.hidden = false
+            self.progressIndicator.progress = Float(Globals.progress) / Float(Globals.finished)
+        }
+        
+        //            print("\(self.progressIndicator.progress)")
+        
+        if self.progressIndicator.progress == 1.0 {
+            self.progressTimer?.invalidate()
+            self.progressIndicator.hidden = true
             self.progressIndicator.progress = 0
-            if (Globals.finished > 0) {
-                self.progressIndicator.hidden = false
-                self.progressIndicator.progress = Float(Globals.progress) / Float(Globals.finished)
-            }
-            
-//            print("\(self.progressIndicator.progress)")
-            
-            if self.progressIndicator.progress == 1.0 {
-                self.progressTimer?.invalidate()
-                self.progressIndicator.hidden = true
-                self.progressIndicator.progress = 0
-                Globals.progress = 0
-                Globals.finished = 0
-            }
-        })
+            Globals.progress = 0
+            Globals.finished = 0
+        }
     }
     
     func loadSermons(completion: (() -> Void)?)
@@ -1128,14 +1119,14 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 
             var sermonsNewToUser:[Sermon]?
             
-            if (Globals.sermonRepository != nil) {
+            if (Globals.sermonRepository.list != nil) {
                 
-                let old = Set(Globals.sermonRepository!.map({ (sermon:Sermon) -> String in
-                    return sermon.keyBase!
+                let old = Set(Globals.sermonRepository.list!.map({ (sermon:Sermon) -> String in
+                    return sermon.id
                 }))
                 
                 let new = Set(newSermons!.map({ (sermon:Sermon) -> String in
-                    return sermon.keyBase!
+                    return sermon.id
                 }))
                 
                 //                print("\(old.count)")
@@ -1163,15 +1154,47 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 }
                 
                 if (onlyInNew.count > 0) {
-                    sermonsNewToUser = onlyInNew.map({ (keyBase:String) -> Sermon in
+                    sermonsNewToUser = onlyInNew.map({ (id:String) -> Sermon in
                         return newSermons!.filter({ (sermon:Sermon) -> Bool in
-                            return sermon.keyBase == keyBase
+                            return sermon.id == id
                         }).first!
                     })
                 }
             }
             
-            Globals.sermonRepository = newSermons
+            Globals.sermonRepository.list = newSermons
+
+//            var scriptures = 0
+//            var ot = 0
+//            var nt = 0
+//            var total = 0
+//            
+//            for sermon in Globals.sermonRepository.list! {
+//                if (sermon.scripture != nil) && (sermon.scripture != Constants.Selected_Scriptures) {
+//                    scriptures++
+//                    for book in booksFromScripture(sermon.scripture) {
+//                        switch testament(book) {
+//                        case Constants.New_Testament:
+//                            nt++
+//                            break
+//                        case Constants.Old_Testament:
+//                            ot++
+//                            break
+//                        default:
+//                            break
+//                        }
+//                    }
+//                }
+//                total++
+//            }
+//            print(total)
+//            print(scriptures)
+//            print(ot)
+//            print(nt)
+
+//            for sermon in newSermons! {
+//                print("\(sermon.title!):\(sermon.id!)")
+//            }
             
             if Globals.testing {
                 testSermonsTagsAndSeries()
@@ -1194,12 +1217,12 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             loadDefaults()
             
             if (sermonsNewToUser != nil) {
+                for sermon in Globals.sermonRepository.list! {
+                    sermon.removeTag(Constants.New)
+                }
+
                 for sermon in sermonsNewToUser! {
-                    if (sermon.tags == nil) {
-                        sermon.tags = Constants.New
-                    } else {
-                        sermon.tags = sermon.tags! + Constants.TAGS_SEPARATOR + Constants.New
-                    }
+                    sermon.addTag(Constants.New)
                 }
                 //                print("\(sermonsNewToUser)")
                 
@@ -1219,12 +1242,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 self.navigationItem.title = "Sorting and Grouping"
             })
             
-            Globals.sermons.all = SermonsListGroupSort(sermons: Globals.sermonRepository)
+            Globals.sermons.all = SermonsListGroupSort(sermons: Globals.sermonRepository.list)
 
-            if (Globals.showing == Constants.TAGGED) {
-//                Globals.sermons.tagged = SermonsListGroupSort(sermons: taggedSermonsFromTagSelected(Globals.sermonRepository, tagSelected: Globals.sermonTagsSelected))
-            }
-            
             setupSermonsForDisplay()
             
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
@@ -1245,11 +1264,11 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     }
     
     func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-        print("URLSession: \(session.description) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
+//        print("URLSession: \(session.description) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
         
-        let filename = downloadTask.taskDescription!
+//        let filename = downloadTask.taskDescription!
         
-        print("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
+//        print("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
         
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
     }
@@ -1258,11 +1277,11 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     {
         var success = false
         
-        print("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
+//        print("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
         
         let filename = downloadTask.taskDescription!
         
-        print("filename: \(filename) location: \(location)")
+//        print("filename: \(filename) location: \(location)")
         
         if (downloadTask.countOfBytesExpectedToReceive > 0) {
             let fileManager = NSFileManager.defaultManager()
@@ -1426,7 +1445,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         refreshControl = UIRefreshControl()
         refreshControl!.addTarget(self, action: Selector("handleRefresh:"), forControlEvents: UIControlEvents.ValueChanged)
 
-        if Globals.sermonRepository == nil {
+        if Globals.sermonRepository.list == nil {
             //            disableBarButtons()
             loadSermons(nil)
         }
@@ -1443,10 +1462,10 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 //        tableView.tableHeaderView = searchBar
         
         if let selectedSermonKey = NSUserDefaults.standardUserDefaults().stringForKey(Constants.SELECTED_SERMON_KEY) {
-            selectedSermon = Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
-                return sermon.keyBase == selectedSermonKey
+            selectedSermon = Globals.sermonRepository.list?.filter({ (sermon:Sermon) -> Bool in
+                return sermon.id == selectedSermonKey
             }).first
-//            if let sermons = Globals.sermonRepository {
+//            if let sermons = Globals.sermonRepository.list {
 //                for sermon in sermons {
 //                    if (sermon.keyBase == selectedSermonKey) {
 //                        selectedSermon = sermon
@@ -1478,7 +1497,6 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         //tableView!.registerClass(MyTableViewCell.self, forCellWithReuseIdentifier: reuseIdentifier)
 
         // Do any additional setup after loading the view.
-//        setPlayingPausedButton()
         
         navigationController?.toolbarHidden = false
         setupSortingAndGroupingOptions()
@@ -1571,7 +1589,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
 
     func selectOrScrollToSermon(sermon:Sermon?, select:Bool, scroll:Bool, position: UITableViewScrollPosition)
     {
-        if (sermon != nil) {
+        if (sermon != nil) && (Globals.display.sermons != nil) {
             var indexPath = NSIndexPath(forItem: 0, inSection: 0)
             
             var section:Int = -1
@@ -1715,12 +1733,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         
         setupTitle()
         
-//        addRefreshControl()
-        
         navigationController?.toolbarHidden = false
-        
-        //Make sure the rightBarButton is setup
-//        setPlayingPausedButton()
     }
     
     func about()
@@ -1840,7 +1853,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
         
-//        if Globals.sermonRepository == nil {
+//        if Globals.sermonRepository.list == nil {
 //            disableBarButtons()
 //            loadSermons(nil)
 //        }
@@ -1885,41 +1898,41 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     }
 
 
-    func setPlayingPausedButton()
-    {
-        if (Globals.sermonPlaying != nil) {
-            var title:String = Constants.EMPTY_STRING
-            
-            if (Globals.playerPaused) {
-                title = Constants.Paused
-            } else {
-                title = Constants.Playing
-            }
-            
-            var playingPausedButton = navigationItem.rightBarButtonItem
-            
-            if (playingPausedButton == nil) {
-                playingPausedButton = UIBarButtonItem(title: Constants.EMPTY_STRING, style: UIBarButtonItemStyle.Plain, target: self, action: "gotoPlayingPaused")
-            }
-            
-            playingPausedButton!.title = title
-            
-            if (splitViewController != nil) {
-                //Only need to show it if About is being displayed.
-                if (Globals.showingAbout) || (selectedSermon == nil) {
-                    navigationItem.setRightBarButtonItem(playingPausedButton, animated: true)
-                }
-            } else {
-                if (navigationItem.rightBarButtonItem == nil) {
-                    navigationItem.setRightBarButtonItem(playingPausedButton, animated: true)
-                }
-            }
-        } else {
-            if (navigationItem.rightBarButtonItem != nil) {
-                navigationItem.setRightBarButtonItem(nil, animated: true)
-            }
-        }
-    }
+//    func setPlayingPausedButton()
+//    {
+//        if (Globals.sermonPlaying != nil) {
+//            var title:String = Constants.EMPTY_STRING
+//            
+//            if (Globals.playerPaused) {
+//                title = Constants.Paused
+//            } else {
+//                title = Constants.Playing
+//            }
+//            
+//            var playingPausedButton = navigationItem.rightBarButtonItem
+//            
+//            if (playingPausedButton == nil) {
+//                playingPausedButton = UIBarButtonItem(title: Constants.EMPTY_STRING, style: UIBarButtonItemStyle.Plain, target: self, action: "gotoPlayingPaused")
+//            }
+//            
+//            playingPausedButton!.title = title
+//            
+//            if (splitViewController != nil) {
+//                //Only need to show it if About is being displayed.
+//                if (Globals.showingAbout) || (selectedSermon == nil) {
+//                    navigationItem.setRightBarButtonItem(playingPausedButton, animated: true)
+//                }
+//            } else {
+//                if (navigationItem.rightBarButtonItem == nil) {
+//                    navigationItem.setRightBarButtonItem(playingPausedButton, animated: true)
+//                }
+//            }
+//        } else {
+//            if (navigationItem.rightBarButtonItem != nil) {
+//                navigationItem.setRightBarButtonItem(nil, animated: true)
+//            }
+//        }
+//    }
     
     /*
     // MARK: - Navigation
@@ -1980,11 +1993,13 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 }
                 break
                 
+            case Constants.Show_Scripture_Index:
+                break
+                
             case Constants.Show_About:
                 fallthrough
             case Constants.Show_About2:
                 Globals.showingAbout = true
-//                setPlayingPausedButton()
                 break
                 
             case Constants.Show_Sermon:
@@ -1995,8 +2010,6 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     if let destination = dvc as? MyViewController {
                         destination.selectedSermon = Globals.sermonPlaying
                     }
-
-                    navigationItem.setRightBarButtonItem(nil, animated: true)
                 } else {
                     if let myCell = sender as? MyTableViewCell {
                         selectedSermon = myCell.sermon //Globals.activeSermons![index]
@@ -2006,10 +2019,6 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                                 destination.selectedSermon = selectedSermon
                             }
                         }
-                    }
-                    
-                    if (splitViewController != nil) {
-                        navigationItem.setRightBarButtonItem(nil, animated: true)
                     }
                 }
 

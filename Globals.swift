@@ -21,6 +21,8 @@ struct Globals {
     static var finished = 0
     static var progress = 0
     
+    static var saveSettings = true
+
     static var scrolledToSermonLastSelected = false
     
 //    static var loadedEnoughToDeepLink = false
@@ -97,12 +99,27 @@ struct Globals {
         }
     }
 
-
     // These are hidden behind custom accessors in Sermon
     static var seriesViewSplits:[String:String]?
     static var sermonSettings:[String:[String:String]]?
 
-    static var sermonRepository:[Sermon]?
+    struct sermonRepository {
+        static var list:[Sermon]? { //Not in any specific order
+            didSet {
+                if (list != nil) {
+                    index = [String:Sermon]()
+                    
+                    for sermon in list! {
+                        index![sermon.id!] = sermon
+                    }
+                    
+                    scriptureIndex = nil
+                }
+            }
+        }
+        static var index:[String:Sermon]?
+        static var scriptureIndex:ScriptureIndex?
+    }
     
     struct sermons {
         //All sermons
@@ -116,18 +133,18 @@ struct Globals {
         //The sermons with the selected tags, although now we only support one tag being selected
         static var tagged:SermonsListGroupSort? { // These could be in a cache, one for each tag
             get {
-                if hiddenTagged == nil {
+                if self.hiddenTagged == nil {
                     if (Globals.showing == Constants.TAGGED) && (Globals.sermonTagsSelected != nil) {
                         if Globals.sermons.all == nil {
-                            hiddenTagged = SermonsListGroupSort(sermons: taggedSermonsFromTagSelected(Globals.sermonRepository, tagSelected: Globals.sermonTagsSelected))
+                            self.hiddenTagged = SermonsListGroupSort(sermons: sermonsWithTag(Globals.sermonRepository.list, tag: Globals.sermonTagsSelected))
                         } else {
-                            hiddenTagged = SermonsListGroupSort(sermons: Globals.sermons.all?.tagSermons?[stringWithoutPrefixes(Globals.sermonTagsSelected!)!])
+                            self.hiddenTagged = SermonsListGroupSort(sermons: Globals.sermons.all?.tagSermons?[stringWithoutPrefixes(Globals.sermonTagsSelected!)!])
                         }
                     } else {
-                        hiddenTagged = nil
+                        self.hiddenTagged = nil
                     }
                 }
-                return hiddenTagged
+                return self.hiddenTagged
             }
         }
     }
@@ -154,19 +171,12 @@ struct Globals {
             
             switch Globals.showing! {
             case Constants.TAGGED:
-//                if (Globals.sermons.tagged == nil) {
-//                    if Globals.sermons.all == nil {
-//                        Globals.sermons.tagged = SermonsListGroupSort(sermons: taggedSermonsFromTagSelected(Globals.sermonRepository, tagSelected: Globals.sermonTagsSelected))
-//                    } else {
-//                        Globals.sermons.tagged = SermonsListGroupSort(sermons: Globals.sermons.all?.tagSermons?[stringWithoutPrefixes(Globals.sermonTagsSelected!)!])
-//                    }
-//                }
                 sermons = Globals.sermons.tagged?.list
                 break
                 
             case Constants.ALL:
                 if Globals.sermons.all == nil {
-                    Globals.sermons.all = SermonsListGroupSort(sermons: Globals.sermonRepository)
+                    Globals.sermons.all = SermonsListGroupSort(sermons: Globals.sermonRepository.list)
                 }
                 sermons = Globals.sermons.all?.list
                 break
@@ -181,7 +191,7 @@ struct Globals {
     
     static var activeSermons:[Sermon]? {
         get {
-        return Globals.active?.sermons
+            return Globals.active?.sermons
         }
         
         set {
@@ -220,6 +230,7 @@ struct Globals {
                 switch Globals.showing! {
                 case Constants.TAGGED:
 //                    Globals.sermons.tagged = newValue
+                    print("ERROR: setting active while TAGGED.")
                     break
                     
                 case Constants.ALL:
@@ -232,8 +243,6 @@ struct Globals {
             }
         }
     }
-    
-//    static var sermonsSortingOrGrouping:Bool = false
     
     struct sermonsNeed {
         static var sorting:Bool = true

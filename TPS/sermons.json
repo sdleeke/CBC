@@ -1,6 +1,25 @@
 {
 "sermons": [
             {
+            "date":"2/28/2016",
+            "service":"PM",
+            "title":"Revelation: Rejected or Received",
+            "scripture":"Matthew 11:20-30",
+            "speaker":"Jonathan Anderson",
+            "audio":"ja160228pCD.mp3"
+            },
+            
+            {
+            "date":"2/28/2016",
+            "service":"AM",
+            "title":"Found Righteous (Part 3)",
+            "series":"Found Righteous",
+            "scripture":"Romans 3:21-31",
+            "speaker":"Tom Pennington",
+            "audio":"tp160228aCD.mp3"
+            },
+            
+            {
             "date":"2/14/2016",
             "service":"PM",
             "title":"Baptism Service",

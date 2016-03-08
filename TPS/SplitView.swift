@@ -14,7 +14,7 @@ import UIKit
 
 @IBDesignable
 class SplitView: UIView {
-    var splitViewController:UISplitViewController?
+    weak var splitViewController:UISplitViewController?
     
     var lineWidth: CGFloat = 1.0 { didSet { setNeedsDisplay() } }
     

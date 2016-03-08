@@ -17,25 +17,60 @@ class MySettingsViewController: UIViewController {
         NSUserDefaults.standardUserDefaults().synchronize()
     }
     
-    @IBAction func doneAction(sender: UIButton) {
-        dismissViewControllerAnimated(true, completion: nil)
+    @IBOutlet weak var cacheSwitch: UISwitch!
+    
+    @IBAction func cacheAction(sender: UISwitch) {
+        NSUserDefaults.standardUserDefaults().setBool(sender.on, forKey: Constants.CACHE_DOWNLOADS)
+        NSUserDefaults.standardUserDefaults().synchronize()
+        
+        if !sender.on {
+            NSURLCache.sharedURLCache().removeAllCachedResponses()
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
+                do {
+                    let fileManager = NSFileManager.defaultManager()
+                    for sermon in Globals.sermonRepository.list! {
+                        if sermon.isDownloaded(sermon.notesInFileSystemURL) {
+                            try fileManager.removeItemAtURL(sermon.notesInFileSystemURL!)
+                            sermon.notesDownload?.state = .none
+                        }
+                        if sermon.isDownloaded(sermon.slidesInFileSystemURL) {
+                            try fileManager.removeItemAtURL(sermon.slidesInFileSystemURL!)
+                            sermon.slidesDownload?.state = .none
+                        }
+                    }
+                } catch _ {
+                }
+            })
+        }
     }
+    
+    
+//    @IBAction func doneAction(sender: UIButton) {
+//        dismissViewControllerAnimated(true, completion: nil)
+//    }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-
+        
         autoAdvanceSwitch.on = NSUserDefaults.standardUserDefaults().boolForKey(Constants.AUTO_ADVANCE)
+        cacheSwitch.on = NSUserDefaults.standardUserDefaults().boolForKey(Constants.CACHE_DOWNLOADS)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
+        if #available(iOS 9.0, *) {
+            cacheSwitch.enabled = true
+        } else {
+            cacheSwitch.enabled = false
+        }
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+        NSURLCache.sharedURLCache().removeAllCachedResponses()
     }
 
     /*
