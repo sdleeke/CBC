@@ -12,6 +12,25 @@ import AVKit
 
 //typealias GroupTuple = (indexes: [Int]?, counts: [Int]?)
 
+func addToHistory(sermon:Sermon?)
+{
+    if (sermon != nil) {
+        if Globals.sermonHistory == nil {
+            Globals.sermonHistory = [sermon!.id]
+        } else {
+            Globals.sermonHistory?.append(sermon!.id)
+        }
+        
+//        print(Globals.sermonHistory)
+        
+        let defaults = NSUserDefaults.standardUserDefaults()
+        defaults.setObject(Globals.sermonHistory, forKey: Constants.HISTORY)
+        defaults.synchronize()
+    } else {
+        print("Sermon NIL!")
+    }
+}
+
 func startAudio()
 {
     let audioSession: AVAudioSession  = AVAudioSession.sharedInstance()
@@ -19,12 +38,14 @@ func startAudio()
     do {
         try audioSession.setCategory(AVAudioSessionCategoryPlayback)
     } catch _ {
+        print("failed to setCategory(AVAudioSessionCategoryPlayback)")
     }
     
     do {
         //        audioSession.setCategory(AVAudioSessionCategoryPlayback, withOptions: AVAudioSessionCategoryOptions.MixWithOthers, error:nil)
         try audioSession.setActive(true)
     } catch _ {
+        print("failed to audioSession.setActive(true)")
     }
 }
 
@@ -40,79 +61,79 @@ func cachesURL() -> NSURL?
     return fileManager.URLsForDirectory(.CachesDirectory, inDomains: .UserDomainMask).first
 }
 
-func checkFile(url:NSURL?) -> Bool
-{
-    var result = false
-    
-    if (url != nil) { //  && Reachability.isConnectedToNetwork()
-        let downloadRequest = NSMutableURLRequest(URL: url!)
-        
-        let session:NSURLSession = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration(), delegate: nil, delegateQueue: nil)
-        
-        let downloadTask = session.downloadTaskWithRequest(downloadRequest)
-        downloadTask.taskDescription = url?.lastPathComponent
-        
-        downloadTask.resume()
-        
-        var count = 0
-        repeat {
-            NSThread.sleepForTimeInterval(Constants.CHECK_FILE_SLEEP_INTERVAL)
-            if (downloadTask.countOfBytesReceived > 0) && (downloadTask.countOfBytesExpectedToReceive > 0) {
-                result = true
-                break
-            } else {
-                count++
-            }
-            print("Downloaded \(count) \(downloadTask.countOfBytesReceived) of \(downloadTask.countOfBytesExpectedToReceive) for \(downloadTask.taskDescription)")
-        } while (count < Constants.CHECK_FILE_MAX_ITERATIONS) && (downloadTask.countOfBytesExpectedToReceive != -1)
-        
-        downloadTask.cancel()
-        
-        session.invalidateAndCancel()
-    }
-    
-    return result
-}
-
-func checkFileInBackground(url:NSURL?,completion: (() -> Void)?)
-{
-    if (url != nil) { //  && Reachability.isConnectedToNetwork()
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), { () -> Void in
-            var result = false
-            
-            let downloadRequest = NSMutableURLRequest(URL: url!)
-            
-            let session:NSURLSession = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration(), delegate: nil, delegateQueue: nil)
-            
-            let downloadTask = session.downloadTaskWithRequest(downloadRequest)
-            downloadTask.taskDescription = url?.lastPathComponent
-            
-            downloadTask.resume()
-            
-            var count = 0
-            repeat {
-                NSThread.sleepForTimeInterval(Constants.CHECK_FILE_SLEEP_INTERVAL)
-                if (downloadTask.countOfBytesReceived > 0) && (downloadTask.countOfBytesExpectedToReceive > 0) {
-                    result = true
-                    break
-                } else {
-                    count++
-                }
-                print("Downloaded \(count) \(downloadTask.countOfBytesReceived) of \(downloadTask.countOfBytesExpectedToReceive) for \(downloadTask.taskDescription)")
-            } while (count < Constants.CHECK_FILE_MAX_ITERATIONS) && (downloadTask.countOfBytesExpectedToReceive != -1)
-            
-            downloadTask.cancel()
-            
-            session.invalidateAndCancel()
-            
-            if (result) {
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    completion?()
-                })
-            }
-        })
-    }
-}
+//func checkFile(url:NSURL?) -> Bool
+//{
+//    var result = false
+//    
+//    if (url != nil) { //  && Reachability.isConnectedToNetwork()
+//        let downloadRequest = NSMutableURLRequest(URL: url!)
+//        
+//        let session:NSURLSession = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration(), delegate: nil, delegateQueue: nil)
+//        
+//        let downloadTask = session.downloadTaskWithRequest(downloadRequest)
+//        downloadTask.taskDescription = url?.lastPathComponent
+//        
+//        downloadTask.resume()
+//        
+//        var count = 0
+//        repeat {
+//            NSThread.sleepForTimeInterval(Constants.CHECK_FILE_SLEEP_INTERVAL)
+//            if (downloadTask.countOfBytesReceived > 0) && (downloadTask.countOfBytesExpectedToReceive > 0) {
+//                result = true
+//                break
+//            } else {
+//                count++
+//            }
+//            print("Downloaded \(count) \(downloadTask.countOfBytesReceived) of \(downloadTask.countOfBytesExpectedToReceive) for \(downloadTask.taskDescription)")
+//        } while (count < Constants.CHECK_FILE_MAX_ITERATIONS) && (downloadTask.countOfBytesExpectedToReceive != -1)
+//        
+//        downloadTask.cancel()
+//        
+//        session.invalidateAndCancel()
+//    }
+//    
+//    return result
+//}
+//
+//func checkFileInBackground(url:NSURL?,completion: (() -> Void)?)
+//{
+//    if (url != nil) { //  && Reachability.isConnectedToNetwork()
+//        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), { () -> Void in
+//            var result = false
+//            
+//            let downloadRequest = NSMutableURLRequest(URL: url!)
+//            
+//            let session:NSURLSession = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration(), delegate: nil, delegateQueue: nil)
+//            
+//            let downloadTask = session.downloadTaskWithRequest(downloadRequest)
+//            downloadTask.taskDescription = url?.lastPathComponent
+//            
+//            downloadTask.resume()
+//            
+//            var count = 0
+//            repeat {
+//                NSThread.sleepForTimeInterval(Constants.CHECK_FILE_SLEEP_INTERVAL)
+//                if (downloadTask.countOfBytesReceived > 0) && (downloadTask.countOfBytesExpectedToReceive > 0) {
+//                    result = true
+//                    break
+//                } else {
+//                    count++
+//                }
+//                print("Downloaded \(count) \(downloadTask.countOfBytesReceived) of \(downloadTask.countOfBytesExpectedToReceive) for \(downloadTask.taskDescription)")
+//            } while (count < Constants.CHECK_FILE_MAX_ITERATIONS) && (downloadTask.countOfBytesExpectedToReceive != -1)
+//            
+//            downloadTask.cancel()
+//            
+//            session.invalidateAndCancel()
+//            
+//            if (result) {
+//                dispatch_async(dispatch_get_main_queue(), { () -> Void in
+//                    completion?()
+//                })
+//            }
+//        })
+//    }
+//}
 
 func removeTempFiles()
 {
@@ -129,7 +150,26 @@ func removeTempFiles()
             }
         }
     } catch _ {
+        print("failed to remove temp files")
     }
+}
+
+func totalCacheSize() -> Int64
+{
+    return cacheSize(Constants.AUDIO) + cacheSize(Constants.VIDEO) + cacheSize(Constants.NOTES) + cacheSize(Constants.SLIDES)
+}
+
+func cacheSize(contents:String) -> Int64
+{
+    var totalFileSize:Int64 = 0
+    
+    for sermon in Globals.sermonRepository.list! {
+        if sermon.downloads[contents] != nil {
+            totalFileSize += sermon.downloads[contents]!.fileSize
+        }
+    }
+    
+    return totalFileSize
 }
 
 func jsonDataFromURL() -> JSON
@@ -233,7 +273,7 @@ func jsonToDocumentsDirectory()
                     }
                 }
             } catch _ {
-                
+                print("failed to get json file attributes")
             }
         }
     }
@@ -313,7 +353,7 @@ func sermonsFromArchive() -> [Sermon]?
                 print("JSON in Documents is newer than JSON in Bundle")
             }
         } catch _ {
-            
+            print("failed to get json file attributes")
         }
     }
     
@@ -355,7 +395,7 @@ func sermonsFromArchive() -> [Sermon]?
                 }
             }
         } catch _ {
-            
+            print("failed to get json file attributes")
         }
     }
     
@@ -491,6 +531,11 @@ func loadDefaults()
                 Globals.sermonPlaying = Globals.sermonRepository.list?[indexOfSermon!]
             } else {
                 Globals.sermonLoaded = true
+            }
+            
+            if let historyArray = defaults.arrayForKey(Constants.HISTORY) {
+                //        print("\(settingsDictionary)")
+                Globals.sermonHistory = historyArray as? [String]
             }
         } else {
             //This is where we should map the old version on to the new one and preserve the user's information.

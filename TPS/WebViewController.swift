@@ -9,7 +9,7 @@
 import UIKit
 import WebKit
 
-class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
+class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate, UIPopoverPresentationControllerDelegate, PopoverTableViewControllerDelegate {
 
     var wkWebView:WKWebView?
     
@@ -338,80 +338,176 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         }
     }
     
-    func actions()
+    // Specifically for Plus size iPhones.
+    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
     {
-        //        print("action!")
-        
-        //In case we have one already showing
+        return UIModalPresentationStyle.None
+    }
+    
+    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController) -> UIModalPresentationStyle {
+        return UIModalPresentationStyle.None
+    }
+    
+    func rowClickedAtIndex(index: Int, strings: [String], purpose:PopoverPurpose, sermon:Sermon?) {
         dismissViewControllerAnimated(true, completion: nil)
         
-        // Put up an action sheet
-        
-        let alert = UIAlertController(title: Constants.EMPTY_STRING,
-            message: Constants.EMPTY_STRING,
-            preferredStyle: UIAlertControllerStyle.ActionSheet)
-        
-        var action : UIAlertAction
-        
-        if (selectedSermon!.hasNotes() || selectedSermon!.hasSlides()) {
-            action = UIAlertAction(title:Constants.Print, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                //            print("print!")
-                self.printSermon(self.selectedSermon)
-//                if Reachability.isConnectedToNetwork() {
-//                    self.printSermon(self.selectedSermon)
-//                } else {
-//                    self.networkUnavailable("Unable to print.)")
-//                }
-            })
-            alert.addAction(action)
-            
-            action = UIAlertAction(title:Constants.Open_in_Browser, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-
+        switch purpose {
+        case .selectingAction:
+            switch strings[index] {
+            case Constants.Print:
+                printSermon(selectedSermon)
+                break
+                
+            case Constants.Open_in_Browser:
                 var url:NSURL?
                 
-                switch self.selectedSermon!.showing! {
+                switch selectedSermon!.showing! {
                 case Constants.NOTES:
-                    url = self.selectedSermon!.notesURL
+                    url = selectedSermon!.notesURL
                     break
-                    
                 case Constants.SLIDES:
-                    url = self.selectedSermon!.slidesURL
+                    url = selectedSermon!.slidesURL
                     break
                     
                 default:
                     break
                 }
                 
-                if url != nil {
-                    if UIApplication.sharedApplication().canOpenURL(url!) {
+                if  url != nil {
+                    if (UIApplication.sharedApplication().canOpenURL(url!)) { // Reachability.isConnectedToNetwork() &&
                         UIApplication.sharedApplication().openURL(url!)
                     } else {
-                        self.networkUnavailable("Unable to open in browser: \(url)")
+                        networkUnavailable("Unable to open in browser at: \(url)")
                     }
-//                    if Reachability.isConnectedToNetwork() {
-//                        if UIApplication.sharedApplication().canOpenURL(url) {
-//                            UIApplication.sharedApplication().openURL(url)
-//                        } else {
-//                            self.networkUnavailable("Unable to open in browser: \(urlString)")
-//                        }
-//                    } else {
-//                        self.networkUnavailable("Unable to open in browser: \(urlString)")
-//                    }
                 }
-            })
-            alert.addAction(action)
-
-            action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
-            })
-            alert.addAction(action)
-
-            //on iPad this is a popover
-            alert.modalPresentationStyle = UIModalPresentationStyle.Popover
-            alert.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+                break
+                
+            default:
+                break
+            }
+            break
             
-            presentViewController(alert, animated: true, completion: nil)
+        default:
+            break
         }
     }
+    
+    func actions()
+    {
+        //In case we have one already showing
+        dismissViewControllerAnimated(true, completion: nil)
+        
+        if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .Popover
+                //            popover?.preferredContentSize = CGSizeMake(300, 500)
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .Up
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+                
+                //                popover.navigationItem.title = "Actions"
+                
+                popover.navigationController?.navigationBarHidden = true
+                
+                popover.delegate = self
+                popover.purpose = .selectingAction
+                
+                var actionMenu = [String]()
+                
+                if (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) || (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) {
+                    actionMenu.append(Constants.Print)
+                }
+                
+                if (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) || (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) {
+                    actionMenu.append(Constants.Open_in_Browser)
+                }
+                
+                popover.strings = actionMenu
+                
+                popover.showIndex = false //(Globals.grouping == .series)
+                popover.showSectionHeaders = false
+                
+                presentViewController(navigationController, animated: true, completion: nil)
+            }
+        }
+    }
+    
+//    func actions()
+//    {
+//        //        print("action!")
+//        
+//        //In case we have one already showing
+//        dismissViewControllerAnimated(true, completion: nil)
+//        
+//        // Put up an action sheet
+//        
+//        let alert = UIAlertController(title: Constants.EMPTY_STRING,
+//            message: Constants.EMPTY_STRING,
+//            preferredStyle: UIAlertControllerStyle.ActionSheet)
+//        
+//        var action : UIAlertAction
+//        
+//        if (selectedSermon!.hasNotes() || selectedSermon!.hasSlides()) {
+//            action = UIAlertAction(title:Constants.Print, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                //            print("print!")
+//                self.printSermon(self.selectedSermon)
+////                if Reachability.isConnectedToNetwork() {
+////                    self.printSermon(self.selectedSermon)
+////                } else {
+////                    self.networkUnavailable("Unable to print.)")
+////                }
+//            })
+//            alert.addAction(action)
+//            
+//            action = UIAlertAction(title:Constants.Open_in_Browser, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//
+//                var url:NSURL?
+//                
+//                switch self.selectedSermon!.showing! {
+//                case Constants.NOTES:
+//                    url = self.selectedSermon!.notesURL
+//                    break
+//                    
+//                case Constants.SLIDES:
+//                    url = self.selectedSermon!.slidesURL
+//                    break
+//                    
+//                default:
+//                    break
+//                }
+//                
+//                if url != nil {
+//                    if UIApplication.sharedApplication().canOpenURL(url!) {
+//                        UIApplication.sharedApplication().openURL(url!)
+//                    } else {
+//                        self.networkUnavailable("Unable to open in browser: \(url)")
+//                    }
+////                    if Reachability.isConnectedToNetwork() {
+////                        if UIApplication.sharedApplication().canOpenURL(url) {
+////                            UIApplication.sharedApplication().openURL(url)
+////                        } else {
+////                            self.networkUnavailable("Unable to open in browser: \(urlString)")
+////                        }
+////                    } else {
+////                        self.networkUnavailable("Unable to open in browser: \(urlString)")
+////                    }
+//                }
+//            })
+//            alert.addAction(action)
+//
+//            action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+//            })
+//            alert.addAction(action)
+//
+//            //on iPad this is a popover
+//            alert.modalPresentationStyle = UIModalPresentationStyle.Popover
+//            alert.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+//            
+//            presentViewController(alert, animated: true, completion: nil)
+//        }
+//    }
     
     private func setupActionButton()
     {
@@ -424,7 +520,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
 
     func loading()
     {
-        progressIndicator.progress = Float(wkWebView!.estimatedProgress)
+        if (wkWebView != nil) {
+            progressIndicator.progress = Float(wkWebView!.estimatedProgress)
+        }
         
         if progressIndicator.progress == 1 {
             loadTimer?.invalidate()
@@ -452,15 +550,18 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     }
     
     func webView(wkWebView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
-        wkWebView.hidden = false
         setupWKZoomScaleAndContentOffset(wkWebView)
 
-        loadTimer?.invalidate()
-        loadTimer = nil
-        progressIndicator.hidden = true
-        
-        activityIndicator.stopAnimating()
-        activityIndicator.hidden = true
+        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            self.activityIndicator.stopAnimating()
+            self.activityIndicator.hidden = true
+            
+            self.loadTimer?.invalidate()
+            self.loadTimer = nil
+            self.progressIndicator.hidden = true
+            
+            wkWebView.hidden = false
+        })
     }
     
     func setupWKZoomScaleAndContentOffset()
@@ -570,7 +671,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
 //        print("\(wkWebView!.scrollView.contentOffset)")
 //        print("\(wkWebView!.scrollView.zoomScale)")
         
-        if !showScripture && (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) && (selectedSermon != nil) {
+        if !showScripture && (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) && (selectedSermon != nil) &&
+            (wkWebView != nil) && (!wkWebView!.loading) && (wkWebView!.URL != nil) {
             switch selectedSermon!.showing! {
             case Constants.NOTES:
                 if (!wkWebView!.loading) {
@@ -685,124 +787,124 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         // Do any additional setup after loading the view.
     }
     
-    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-//        print("URLSession: \(session.description) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
-        
+//    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+////        print("URLSession: \(session.description) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
+//        
+////        let filename = downloadTask.taskDescription!
+//        
+////        print("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
+//        
+//        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+//    }
+//    
+//    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didFinishDownloadingToURL location: NSURL)
+//    {
+////        print("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
+//        
 //        let filename = downloadTask.taskDescription!
-        
-//        print("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
-        
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
-    }
-    
-    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didFinishDownloadingToURL location: NSURL)
-    {
-//        print("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
-        
-        let filename = downloadTask.taskDescription!
-        
-//        print("filename: \(filename) location: \(location)")
-        
-        let fileManager = NSFileManager.defaultManager()
-        
-        //Get documents directory URL
-        let destinationURL = cachesURL()?.URLByAppendingPathComponent(filename)
-        // Check if file exist
-        if (fileManager.fileExistsAtPath(destinationURL!.path!)){
-            do {
-                try fileManager.removeItemAtURL(destinationURL!)
-            } catch _ {
-                print("failed to remove old file")
-            }
-        }
-        
-        do {
-            try fileManager.copyItemAtURL(location, toURL: destinationURL!)
-            try fileManager.removeItemAtURL(location)
-        } catch _ {
-            print("failed to copy new file to Documents")
-        }
-        
-        // URL call back does NOT run on the main queue
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-            if (filename == self.selectedSermon?.notes) {
-                if #available(iOS 9.0, *) {
-                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-                        self.wkWebView?.loadFileURL(destinationURL!, allowingReadAccessToURL: destinationURL!)
-                        
-                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                            
-                        })
-                    })
-                } else {
-                    // Fallback on earlier versions
-                }
-                //                let url = self.fileURLForWKWebView(filename)
-                //                print("\(url)")
-                //                self.sermonNotesWebView!.loadRequest(NSURLRequest(URL: url))
-            }
-            
-            if (filename == self.selectedSermon?.slides) {
-                if #available(iOS 9.0, *) {
-                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-                        self.wkWebView?.loadFileURL(destinationURL!, allowingReadAccessToURL: destinationURL!)
-                        
-                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                            
-                        })
-                    })
-                } else {
-                    // Fallback on earlier versions
-                }
-                //                let url = self.fileURLForWKWebView(filename)
-                //                print("\(url)")
-                //                self.sermonSlidesWebView!.loadRequest(NSURLRequest(URL: url))
-            }
-        })
-        
-    }
-    
-    func removeTempFiles()
-    {
-        // Clean up temp directory for cancelled downloads
-        let fileManager = NSFileManager.defaultManager()
-        let path = NSTemporaryDirectory()
-        do {
-            let array = try fileManager.contentsOfDirectoryAtPath(path)
-            
-            for string in array {
-                print("Deleting: \(string)")
-                try fileManager.removeItemAtPath(path + string)
-            }
-        } catch _ {
-        }
-    }
-    
-    func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
-        if (error != nil) {
-            print("Download failed for: \(session.description)")
-        } else {
-            print("Download succeeded for: \(session.description)")
-        }
-        
-        //        removeTempFiles()
-        
-        let filename = task.taskDescription
-        print("filename: \(filename!) error: \(error)")
-        
-        session.invalidateAndCancel()
-        
-        //        if let taskIndex = Globals.downloadTasks.indexOf(task as! NSURLSessionDownloadTask) {
-        //            Globals.downloadTasks.removeAtIndex(taskIndex)
-        //        }
-        
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = false
-    }
-    
-    func URLSession(session: NSURLSession, didBecomeInvalidWithError error: NSError?)
-    {
-        
-    }
+//        
+////        print("filename: \(filename) location: \(location)")
+//        
+//        let fileManager = NSFileManager.defaultManager()
+//        
+//        //Get documents directory URL
+//        let destinationURL = cachesURL()?.URLByAppendingPathComponent(filename)
+//        // Check if file exist
+//        if (fileManager.fileExistsAtPath(destinationURL!.path!)){
+//            do {
+//                try fileManager.removeItemAtURL(destinationURL!)
+//            } catch _ {
+//                print("failed to remove old file")
+//            }
+//        }
+//        
+//        do {
+//            try fileManager.copyItemAtURL(location, toURL: destinationURL!)
+//            try fileManager.removeItemAtURL(location)
+//        } catch _ {
+//            print("failed to copy new file to Documents")
+//        }
+//        
+//        // URL call back does NOT run on the main queue
+//        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+//            if (filename == self.selectedSermon?.notes) {
+//                if #available(iOS 9.0, *) {
+//                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
+//                        self.wkWebView?.loadFileURL(destinationURL!, allowingReadAccessToURL: destinationURL!)
+//                        
+//                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+//                            
+//                        })
+//                    })
+//                } else {
+//                    // Fallback on earlier versions
+//                }
+//                //                let url = self.fileURLForWKWebView(filename)
+//                //                print("\(url)")
+//                //                self.sermonNotesWebView!.loadRequest(NSURLRequest(URL: url))
+//            }
+//            
+//            if (filename == self.selectedSermon?.slides) {
+//                if #available(iOS 9.0, *) {
+//                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
+//                        self.wkWebView?.loadFileURL(destinationURL!, allowingReadAccessToURL: destinationURL!)
+//                        
+//                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+//                            
+//                        })
+//                    })
+//                } else {
+//                    // Fallback on earlier versions
+//                }
+//                //                let url = self.fileURLForWKWebView(filename)
+//                //                print("\(url)")
+//                //                self.sermonSlidesWebView!.loadRequest(NSURLRequest(URL: url))
+//            }
+//        })
+//        
+//    }
+//    
+//    func removeTempFiles()
+//    {
+//        // Clean up temp directory for cancelled downloads
+//        let fileManager = NSFileManager.defaultManager()
+//        let path = NSTemporaryDirectory()
+//        do {
+//            let array = try fileManager.contentsOfDirectoryAtPath(path)
+//            
+//            for string in array {
+//                print("Deleting: \(string)")
+//                try fileManager.removeItemAtPath(path + string)
+//            }
+//        } catch _ {
+//        }
+//    }
+//    
+//    func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
+//        if (error != nil) {
+//            print("Download failed for: \(session.description)")
+//        } else {
+//            print("Download succeeded for: \(session.description)")
+//        }
+//        
+//        //        removeTempFiles()
+//        
+//        let filename = task.taskDescription
+//        print("filename: \(filename!) error: \(error)")
+//        
+//        session.invalidateAndCancel()
+//        
+//        //        if let taskIndex = Globals.downloadTasks.indexOf(task as! NSURLSessionDownloadTask) {
+//        //            Globals.downloadTasks.removeAtIndex(taskIndex)
+//        //        }
+//        
+//        UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+//    }
+//    
+//    func URLSession(session: NSURLSession, didBecomeInvalidWithError error: NSError?)
+//    {
+//        
+//    }
     
     func downloading()
     {
@@ -821,7 +923,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             if (download?.state == .downloaded) {
                 if #available(iOS 9.0, *) {
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-                        self.wkWebView?.loadFileURL(self.selectedSermon!.slidesInFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.slidesInFileSystemURL!)
+                        self.wkWebView?.loadFileURL(self.selectedSermon!.slidesFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.slidesFileSystemURL!)
                         
                         dispatch_async(dispatch_get_main_queue(), { () -> Void in
                             self.loadTimer?.invalidate()
@@ -847,7 +949,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             if (download?.state == .downloaded) {
                 if #available(iOS 9.0, *) {
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-                        self.wkWebView?.loadFileURL(self.selectedSermon!.notesInFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.notesInFileSystemURL!)
+                        self.wkWebView?.loadFileURL(self.selectedSermon!.notesFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.notesFileSystemURL!)
                         
                         dispatch_async(dispatch_get_main_queue(), { () -> Void in
                             self.loadTimer?.invalidate()
@@ -888,7 +990,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         // This is all trying to catch download failures, but I'm afraid it is generating false positives.
         //        if ((download?.totalBytesWritten == 0) && (download?.totalBytesExpectedToWrite == 0)) {
         //            download?.state = .none
-        //            NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: selectedSermon)
         //        }
         //
         //        if (download?.state != .downloading) && (download?.state != .downloaded) {
@@ -939,10 +1040,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 
                 switch selectedSermon!.showing! {
                 case Constants.NOTES:
-                    destinationURL = selectedSermon!.notesInFileSystemURL!
+                    destinationURL = selectedSermon!.notesFileSystemURL!
                     break
                 case Constants.SLIDES:
-                    destinationURL = selectedSermon!.slidesInFileSystemURL!
+                    destinationURL = selectedSermon!.slidesFileSystemURL!
                     break
                     
                 default:
@@ -975,7 +1076,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                         if loadTimer == nil {
                             loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "downloading", userInfo: nil, repeats: true)
                         }
-                        selectedSermon!.downloadNotes()
+                        selectedSermon!.notesDownload?.download()
                         break
                         
                     case Constants.SLIDES:
@@ -987,7 +1088,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                         if loadTimer == nil {
                             loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "downloading", userInfo: nil, repeats: true)
                         }
-                        selectedSermon!.downloadSlides()
+                        selectedSermon!.slidesDownload?.download()
                         break
                         
                     default:
@@ -1077,7 +1178,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         //Remove the next line and the app will crash
         wkWebView?.scrollView.delegate = nil
         
-        captureContentOffsetAndZoomScale()
+//        captureContentOffsetAndZoomScale()
+        
+        loadTimer?.invalidate()
     }
     
     override func didReceiveMemoryWarning() {

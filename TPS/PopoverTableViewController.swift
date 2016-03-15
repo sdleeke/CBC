@@ -10,7 +10,7 @@ import UIKit
 
 protocol PopoverTableViewControllerDelegate
 {
-    func rowClickedAtIndex(index:Int, strings:[String], purpose:PopoverPurpose)
+    func rowClickedAtIndex(index:Int, strings:[String], purpose:PopoverPurpose, sermon:Sermon?)
 }
 
 struct Section {
@@ -51,21 +51,44 @@ class PopoverTableViewController: UITableViewController {
         tableView.allowsMultipleSelection = allowsMultipleSelection
         
         if (strings != nil) {
-            var max:Int = 0
+            var max = 0
+            
+            if (navigationItem.title != nil) {
+                max = navigationItem.title!.characters.count
+            }
             
             for string in strings! {
-                if string.characters.count > max {
-                    max = string.characters.count
+                if string.characters.contains("\n") {
+                    var newString = string
+                    
+                    var strings = [String]()
+                    
+                    repeat {
+                        strings.append(newString.substringToIndex(newString.rangeOfString("\n")!.startIndex))
+                        newString = newString.substringFromIndex(newString.rangeOfString("\n")!.endIndex)
+                    } while newString.characters.contains("\n")
+
+                    strings.append(newString)
+
+                    for string in strings {
+                        if string.characters.count > max {
+                            max = string.characters.count
+                        }
+                    }
+                } else {
+                    if string.characters.count > max {
+                        max = string.characters.count
+                    }
                 }
             }
             
     //        print("count: \(CGFloat(strings!.count)) rowHeight: \(tableView.rowHeight) height: \(height)")
             
-            var width = CGFloat(max * 10)
+            var width = CGFloat(max * 12)
             if width < 200 {
                 width = 200
             }
-            var height = 45 * CGFloat(strings!.count) //35 tableView.rowHeight was -1 which I don't understand
+            var height = 50 * CGFloat(strings!.count) //35 tableView.rowHeight was -1 which I don't understand
             if height < 150 {
                 height = 150
             }
@@ -221,6 +244,18 @@ class PopoverTableViewController: UITableViewController {
         
         // Configure the cell...
         switch purpose! {
+        case .selectingHistory:
+            cell.accessoryType = UITableViewCellAccessoryType.None
+            break
+            
+        case .selectingAction:
+            cell.accessoryType = UITableViewCellAccessoryType.None
+            break
+            
+        case .selectingCellAction:
+            cell.accessoryType = UITableViewCellAccessoryType.None
+            break
+            
         case .showingTags:
             //            print("strings: \(strings[indexPath.row]) sermontTag: \(sermonSelected?.tags)")
             
@@ -302,7 +337,7 @@ class PopoverTableViewController: UITableViewController {
             index = indexPath.row
         }
 
-        delegate?.rowClickedAtIndex(index, strings: self.strings!, purpose: self.purpose!)
+        delegate?.rowClickedAtIndex(index, strings: self.strings!, purpose: self.purpose!, sermon: self.selectedSermon)
     }
 
     /*

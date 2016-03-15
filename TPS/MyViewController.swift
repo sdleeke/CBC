@@ -40,17 +40,20 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     var selectedSermon:Sermon? {
         didSet {
-            let defaults = NSUserDefaults.standardUserDefaults()
             if (selectedSermon != nil) {
+                sermonsInSeries = selectedSermon?.sermonsInSeries // sermonsInSermonSeries(selectedSermon)
+                
+                let defaults = NSUserDefaults.standardUserDefaults()
                 defaults.setObject(selectedSermon!.id,forKey: Constants.SELECTED_SERMON_DETAIL_KEY)
+                defaults.synchronize()
+                
+                NSNotificationCenter.defaultCenter().removeObserver(self, name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: oldValue)
+                NSNotificationCenter.defaultCenter().addObserver(self, selector: "setupActionAndTagsButtons", name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: selectedSermon)
             } else {
                 // We always select, never deselect, so this should not be done.  If we set this to nil it is for some other reason, like clearing the UI.
-//                defaults.removeObjectForKey(Constants.SELECTED_SERMON_DETAIL_KEY)
+                //                defaults.removeObjectForKey(Constants.SELECTED_SERMON_DETAIL_KEY)
+                sermonsInSeries = nil
             }
-            defaults.synchronize()
-    
-            NSNotificationCenter.defaultCenter().removeObserver(self)
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: "setupActionAndTagsButtons", name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: selectedSermon)
         }
     }
     
@@ -61,8 +64,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     @IBOutlet weak var progressIndicator: UIProgressView!
 
 //    var popover : PopoverTableViewController?
-    
-    func rowClickedAtIndex(index:Int, strings:[String], purpose:PopoverPurpose) {}
     
     @IBOutlet weak var splitView: SplitView!
 
@@ -1003,216 +1004,603 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        }
     }
     
-    func actions()
-    {
-        //        print("action!")
-        
-        //In case we have one already showing
+    func rowClickedAtIndex(index: Int, strings: [String], purpose:PopoverPurpose, sermon:Sermon?) {
         dismissViewControllerAnimated(true, completion: nil)
-
-        // Put up an action sheet
-
-        let alert = UIAlertController(title: Constants.EMPTY_STRING,
-            message: Constants.EMPTY_STRING,
-            preferredStyle: UIAlertControllerStyle.ActionSheet)
         
-        var action : UIAlertAction
-        
-        if (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) || (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) {
-            action = UIAlertAction(title: Constants.Print, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                //            print("print!")
-                self.printSermon(self.selectedSermon)
-                //                    if (Reachability.isConnectedToNetwork()) {
-                //                        self.printSermon(self.selectedSermon)
-                //                    } else {
-                //                        self.networkUnavailable("Unable to print.")
-                //                    }
-            })
-            alert.addAction(action)
-        }
-        
-        if (selectedSermon!.hasVideo() && selectedSermon!.playingVideo() && selectedSermon!.showingVideo()) {
-                action = UIAlertAction(title: Constants.Full_Screen, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                    self.zoomScreen()
-                })
-            alert.addAction(action)
-        }
-        
-        if (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) || (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) {
-            action = UIAlertAction(title: Constants.Full_Screen, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                self.showScripture = false
-                self.performSegueWithIdentifier(Constants.SHOW_FULL_SCREEN_SEGUE_IDENTIFIER, sender: self.selectedSermon)
-            })
-            alert.addAction(action)
-        }
-    
-        if (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) || (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) {
-            action = UIAlertAction(title: Constants.Open_in_Browser, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                //            print("mail!")
+        switch purpose {
+        case .selectingCellAction:
+            switch strings[index] {
+            case Constants.Download_Audio:
+                sermon?.audioDownload?.download()
+                break
                 
+            case Constants.Delete_Audio_Download:
+                sermon?.audioDownload?.deleteDownload()
+                break
+                
+            case Constants.Cancel_Audio_Download:
+                sermon?.audioDownload?.cancelOrDeleteDownload()
+                break
+                
+            case Constants.Download_Audio:
+                sermon?.audioDownload?.download()
+                break
+                
+            default:
+                break
+            }
+            break
+            
+        case .selectingAction:
+            switch strings[index] {
+            case Constants.Print:
+                printSermon(selectedSermon)
+                break
+                
+            case Constants.Add_to_Favorites:
+                selectedSermon?.addTag(Constants.Favorites)
+                break
+                
+            case Constants.Add_All_to_Favorites:
+                for sermon in sermonsInSeries! {
+                    sermon.addTag(Constants.Favorites)
+                }
+                break
+                
+            case Constants.Remove_From_Favorites:
+                selectedSermon?.removeTag(Constants.Favorites)
+                break
+                
+            case Constants.Remove_All_From_Favorites:
+                for sermon in sermonsInSeries! {
+                    sermon.removeTag(Constants.Favorites)
+                }
+                break
+                
+            case Constants.Full_Screen:
+                if (selectedSermon!.hasVideo() && selectedSermon!.playingVideo() && selectedSermon!.showingVideo()) {
+                    zoomScreen()
+                }
+                
+                if (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) || (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) {
+                    showScripture = false
+                    performSegueWithIdentifier(Constants.SHOW_FULL_SCREEN_SEGUE_IDENTIFIER, sender: selectedSermon)
+                }
+                break
+                
+            case Constants.Open_in_Browser:
                 var url:NSURL?
                 
-                switch self.selectedSermon!.showing! {
+                switch selectedSermon!.showing! {
                 case Constants.NOTES:
-                    url = self.selectedSermon!.notesURL
+                    url = selectedSermon!.notesURL
                     break
                 case Constants.SLIDES:
-                    url = self.selectedSermon!.slidesURL
+                    url = selectedSermon!.slidesURL
                     break
                     
                 default:
                     break
                 }
-
+                
                 if  url != nil {
                     if (UIApplication.sharedApplication().canOpenURL(url!)) { // Reachability.isConnectedToNetwork() &&
                         UIApplication.sharedApplication().openURL(url!)
                     } else {
-                        self.networkUnavailable("Unable to open transcript in browser at: \(url)")
+                        networkUnavailable("Unable to open transcript in browser at: \(url)")
                     }
                 }
-            })
-            alert.addAction(action)
-        }
-        
-        if (selectedSermon!.hasScripture() && (selectedSermon?.scripture != Constants.Selected_Scriptures)) {
-            action = UIAlertAction(title: Constants.Scripture_Full_Screen, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                //            print("mail!")
-                self.showScripture = true
-                self.performSegueWithIdentifier(Constants.SHOW_FULL_SCREEN_SEGUE_IDENTIFIER, sender: self.selectedSermon)
-                //                if (Reachability.isConnectedToNetwork()) {
-                //                    self.openSermonScripture(self.selectedSermon)
-                //                } else {
-                //                    let urlString = Constants.SCRIPTURE_URL_PREFIX + self.selectedSermon!.scripture! + Constants.SCRIPTURE_URL_POSTFIX
-                //                    self.networkUnavailable("Unable to open scripture at: \(urlString)")
-                //                }
-            })
-            alert.addAction(action)
-        }
-        
-        if (selectedSermon!.hasScripture() && (selectedSermon?.scripture != Constants.Selected_Scriptures)) {
-            action = UIAlertAction(title: Constants.Scripture_in_Browser, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                //            print("mail!")
-                self.openSermonScripture(self.selectedSermon)
-                //                if (Reachability.isConnectedToNetwork()) {
-                //                    self.openSermonScripture(self.selectedSermon)
-                //                } else {
-                //                    let urlString = Constants.SCRIPTURE_URL_PREFIX + self.selectedSermon!.scripture! + Constants.SCRIPTURE_URL_POSTFIX
-                //                    self.networkUnavailable("Unable to open scripture at: \(urlString)")
-                //                }
-            })
-            alert.addAction(action)
-        }
-        
-        if let sermons = sermonsInSeries {
-            var sermonsToDownload = 0
-            var sermonsDownloading = 0
-            var sermonsDownloaded = 0
-            
-            for sermon in sermons {
-                switch sermon.audioDownload!.state {
-                case .none:
-                    sermonsToDownload++
-                    break
-                case .downloading:
-                    sermonsDownloading++
-                    break
-                case .downloaded:
-                    sermonsDownloaded++
-                    break
+                break
+                
+            case Constants.Scripture_Full_Screen:
+                showScripture = true
+                performSegueWithIdentifier(Constants.SHOW_FULL_SCREEN_SEGUE_IDENTIFIER, sender: selectedSermon)
+                break
+                
+            case Constants.Scripture_in_Browser:
+                openSermonScripture(selectedSermon)
+                break
+                
+            case Constants.Download_Audio:
+                selectedSermon?.audioDownload?.download()
+                break
+                
+            case Constants.Download_All_Audio:
+                for sermon in sermonsInSeries! {
+                    sermon.audioDownload?.download()
                 }
+//                tableView.reloadData()
+//                scrollToSermon(selectedSermon, select: true, position: UITableViewScrollPosition.Middle)
+                break
+                
+            case Constants.Cancel_All_Downloads:
+                for sermon in sermonsInSeries! {
+                    sermon.audioDownload?.cancelDownload()
+                }
+//                tableView.reloadData()
+//                scrollToSermon(selectedSermon, select: true, position: UITableViewScrollPosition.Middle)
+                break
+                
+            case Constants.Delete_All_Downloads:
+                for sermon in sermonsInSeries! {
+                    sermon.audioDownload?.deleteDownload()
+                }
+//                tableView.reloadData()
+//                scrollToSermon(selectedSermon, select: true, position: UITableViewScrollPosition.Middle)
+                break
+                
+            case Constants.Email_Sermon:
+                mailSermon(selectedSermon)
+                break
+                
+            case Constants.Email_Series:
+                mailSermonSeries(sermonsInSeries)
+                break
+                
+            default:
+                break
             }
+            break
             
-            if (sermonsToDownload > 0) {
-                var title:String?
-                switch sermonsToDownload {
-                case 1:
-                    title = Constants.Download_Audio
-                    break
-                    
-                default:
-                    title = Constants.Download_All_Audio
-                    break
-                }
-                action = UIAlertAction(title: title, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                    for sermon in sermons {
-                        if (sermon.audioDownload?.state == .none) {
-                            sermon.downloadAudio()
-                        }
-                    }
-                    self.tableView.reloadData()
-                    self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Middle)
+        default:
+            break
+        }
+    }
 
-//                    if (Reachability.isConnectedToNetwork()) {
-//                        //            println("mail!")
-//                        for sermon in sermons {
-//                            if (sermon.download.state == .none) {
-//                                sermon.downloadAudio()
-//                            }
-//                        }
-//                        self.tableView.reloadData()
-//                        self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Middle)
-//                    } else {
-//                        self.networkUnavailable("Unable to download audio.")
+    func actions()
+    {
+        //In case we have one already showing
+        dismissViewControllerAnimated(true, completion: nil)
+
+        if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .Popover
+                //            popover?.preferredContentSize = CGSizeMake(300, 500)
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .Up
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.barButtonItem = actionButton
+                
+                //                popover.navigationItem.title = "Show"
+                
+                popover.navigationController?.navigationBarHidden = true
+                
+                popover.delegate = self
+                popover.purpose = .selectingAction
+                
+                var actionMenu = [String]()
+                
+                if (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) || (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) {
+                    actionMenu.append(Constants.Print)
+                }
+
+                if selectedSermon!.hasFavoritesTag() {
+                    actionMenu.append(Constants.Remove_From_Favorites)
+                } else {
+                    actionMenu.append(Constants.Add_to_Favorites)
+                }
+                
+                if sermonsInSeries?.count > 1 {
+                    var favoriteSermons = 0
+                    
+                    for sermon in sermonsInSeries! {
+                        if (sermon.hasFavoritesTag()) {
+                            favoriteSermons++
+                        }
+                    }
+                    switch favoriteSermons {
+                    case 0:
+                        actionMenu.append(Constants.Add_All_to_Favorites)
+                        break
+                        
+                    case 1:
+                        actionMenu.append(Constants.Add_All_to_Favorites)
+
+                        if !selectedSermon!.hasFavoritesTag() {
+                            actionMenu.append(Constants.Remove_All_From_Favorites)
+                        }
+                        break
+                        
+                    case sermonsInSeries!.count - 1:
+                        if selectedSermon!.hasFavoritesTag() {
+                            actionMenu.append(Constants.Add_All_to_Favorites)
+                        }
+                        
+                        actionMenu.append(Constants.Remove_All_From_Favorites)
+                        break
+                        
+                    case sermonsInSeries!.count:
+                        actionMenu.append(Constants.Remove_All_From_Favorites)
+                        break
+                        
+                    default:
+                        actionMenu.append(Constants.Add_All_to_Favorites)
+                        actionMenu.append(Constants.Remove_All_From_Favorites)
+                        break
+                    }
+                }
+                
+                if (selectedSermon!.hasVideo() && selectedSermon!.playingVideo() && selectedSermon!.showingVideo()) ||
+                   (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) || (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) {
+                    actionMenu.append(Constants.Full_Screen)
+                }
+                
+                if (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) || (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) {
+                    actionMenu.append(Constants.Open_in_Browser)
+                }
+                
+                if (selectedSermon!.hasScripture() && (selectedSermon?.scripture != Constants.Selected_Scriptures)) {
+                    actionMenu.append(Constants.Scripture_Full_Screen)
+                }
+                
+                if (selectedSermon!.hasScripture() && (selectedSermon?.scripture != Constants.Selected_Scriptures)) {
+                    actionMenu.append(Constants.Scripture_in_Browser)
+                }
+                
+                if let sermons = sermonsInSeries {
+                    var sermonsToDownload = 0
+                    var sermonsDownloading = 0
+                    var sermonsDownloaded = 0
+                    
+                    for sermon in sermons {
+                        switch sermon.audioDownload!.state {
+                        case .none:
+                            sermonsToDownload++
+                            break
+                        case .downloading:
+                            sermonsDownloading++
+                            break
+                        case .downloaded:
+                            sermonsDownloaded++
+                            break
+                        }
+                    }
+                    
+                    if (sermonsToDownload > 0) {
+                        switch sermonsToDownload {
+                        case 1:
+                            actionMenu.append(Constants.Download_Audio)
+                            break
+                            
+                        default:
+                            actionMenu.append(Constants.Download_All_Audio)
+                            break
+                        }
+                    }
+                    
+                    if (sermonsDownloading > 0) {
+                        actionMenu.append(Constants.Cancel_All_Downloads)
+                    }
+                    
+                    if (sermonsDownloaded > 0) {
+                        actionMenu.append(Constants.Delete_All_Downloads)
+                    }
+                }
+                
+                actionMenu.append(Constants.Email_Sermon)
+                if (selectedSermon!.hasSeries()) {
+                        actionMenu.append(Constants.Email_Series)
+                }
+
+                popover.strings = actionMenu
+                
+                popover.showIndex = false //(Globals.grouping == .series)
+                popover.showSectionHeaders = false
+                
+                presentViewController(navigationController, animated: true, completion: nil)
+            }
+        }
+        //        print("action!")
+        
+//        //In case we have one already showing
+//        dismissViewControllerAnimated(true, completion: nil)
+
+        // Put up an action sheet
+
+//        let alert = UIAlertController(title: Constants.EMPTY_STRING,
+//            message: Constants.EMPTY_STRING,
+//            preferredStyle: UIAlertControllerStyle.ActionSheet)
+//        
+//        var action : UIAlertAction
+        
+//        if (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) || (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) {
+//            action = UIAlertAction(title: Constants.Print, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                //            print("print!")
+//                self.printSermon(self.selectedSermon)
+//                //                    if (Reachability.isConnectedToNetwork()) {
+//                //                        self.printSermon(self.selectedSermon)
+//                //                    } else {
+//                //                        self.networkUnavailable("Unable to print.")
+//                //                    }
+//            })
+//            alert.addAction(action)
+//        }
+
+//        var title:String?
+//        
+//        if selectedSermon!.hasFavoritesTag() {
+//            title = Constants.Remove_From_Favorites
+//        } else {
+//            title = Constants.Add_to_Favorites
+//        }
+//        
+//        action = UIAlertAction(title:title, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//            switch title! {
+//            case Constants.Add_to_Favorites:
+//                self.selectedSermon?.addTag(Constants.Favorites)
+//                break
+//            case Constants.Remove_From_Favorites:
+//                self.selectedSermon?.removeTag(Constants.Favorites)
+//                break
+//            default:
+//                break
+//            }
+//        })
+//        alert.addAction(action)
+//
+//        if sermonsInSeries?.count > 1 {
+//            var favoriteSermons = 0
+//            
+//            for sermon in sermonsInSeries! {
+//                if (sermon.hasFavoritesTag()) {
+//                    favoriteSermons++
+//                }
+//            }
+//            switch favoriteSermons {
+//            case 0:
+//                action = UIAlertAction(title:Constants.Add_All_to_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                    for sermon in self.sermonsInSeries! {
+//                        sermon.addTag(Constants.Favorites)
 //                    }
-                })
-                alert.addAction(action)
-            }
-            
-            if (sermonsDownloading > 0) {
-                action = UIAlertAction(title: Constants.Cancel_All_Downloads, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                    //            println("mail!")
-                    for sermon in sermons {
-                        if (sermon.audioDownload?.state == .downloading) {
-                            sermon.cancelAudioDownload()
-                        }
-                    }
-                    self.tableView.reloadData()
-                    self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Middle)
-                })
-                alert.addAction(action)
-            }
-            
-            if (sermonsDownloaded > 0) {
-                action = UIAlertAction(title: Constants.Delete_All_Downloads, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                    //            println("mail!")
-                    for sermon in sermons {
-                        if (sermon.audioDownload?.state == .downloaded) {
-                            sermon.deleteAudioDownload()
-                        }
-                    }
-                    self.tableView.reloadData()
-                    self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Middle)
-                })
-                alert.addAction(action)
-            }
-        }
-        
-        action = UIAlertAction(title: Constants.Email_Sermon, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-            //            print("mail!")
-            self.mailSermon(self.selectedSermon)
-        })
-        alert.addAction(action)
-        
-        if (selectedSermon!.hasSeries()) {
-            action = UIAlertAction(title: Constants.Email_Series, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                //            print("mail!")
-                self.mailSermonSeries(self.sermonsInSeries)
-            })
-            alert.addAction(action)
-        }
-        
-        if (splitViewController == nil) {
-            action = UIAlertAction(title: Constants.Share_on_Facebook, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                self.facebook(self.selectedSermon)
-            })
-            alert.addAction(action)
-            
-            action = UIAlertAction(title: Constants.Share_on_Twitter, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                self.twitter(self.selectedSermon)
-            })
-            alert.addAction(action)
-        }
+//                })
+//                alert.addAction(action)
+//                break
+//                
+//            case 1:
+//                if !selectedSermon!.hasFavoritesTag() {
+//                    action = UIAlertAction(title:Constants.Remove_All_From_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                        for sermon in self.sermonsInSeries! {
+//                            sermon.removeTag(Constants.Favorites)
+//                        }
+//                    })
+//                    alert.addAction(action)
+//                }
+//                
+//                action = UIAlertAction(title:Constants.Add_All_to_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                    for sermon in self.sermonsInSeries! {
+//                        sermon.addTag(Constants.Favorites)
+//                    }
+//                })
+//                alert.addAction(action)
+//                break
+//                
+//            case sermonsInSeries!.count - 1:
+//                if selectedSermon!.hasFavoritesTag() {
+//                    action = UIAlertAction(title:Constants.Add_All_to_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                        for sermon in self.sermonsInSeries! {
+//                            sermon.addTag(Constants.Favorites)
+//                        }
+//                    })
+//                    alert.addAction(action)
+//                }
+//                
+//                action = UIAlertAction(title:Constants.Remove_All_From_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                    for sermon in self.sermonsInSeries! {
+//                        sermon.removeTag(Constants.Favorites)
+//                    }
+//                })
+//                alert.addAction(action)
+//                break
+//                
+//            case sermonsInSeries!.count:
+//                action = UIAlertAction(title:Constants.Remove_All_From_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                    for sermon in self.sermonsInSeries! {
+//                        sermon.removeTag(Constants.Favorites)
+//                    }
+//                })
+//                alert.addAction(action)
+//                break
+//                
+//            default:
+//                action = UIAlertAction(title:Constants.Add_All_to_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                    for sermon in self.sermonsInSeries! {
+//                        sermon.addTag(Constants.Favorites)
+//                    }
+//                })
+//                alert.addAction(action)
+//                action = UIAlertAction(title:Constants.Remove_All_From_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                    for sermon in self.sermonsInSeries! {
+//                        sermon.removeTag(Constants.Favorites)
+//                    }
+//                })
+//                alert.addAction(action)
+//                break
+//            }
+//        }
+//        
+//        if (selectedSermon!.hasVideo() && selectedSermon!.playingVideo() && selectedSermon!.showingVideo()) {
+//                action = UIAlertAction(title: Constants.Full_Screen, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                    self.zoomScreen()
+//                })
+//            alert.addAction(action)
+//        }
+//        
+//        if (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) || (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) {
+//            action = UIAlertAction(title: Constants.Full_Screen, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                self.showScripture = false
+//                self.performSegueWithIdentifier(Constants.SHOW_FULL_SCREEN_SEGUE_IDENTIFIER, sender: self.selectedSermon)
+//            })
+//            alert.addAction(action)
+//        }
+//    
+//        if (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) || (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) {
+//            action = UIAlertAction(title: Constants.Open_in_Browser, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                //            print("mail!")
+//                
+//                var url:NSURL?
+//                
+//                switch self.selectedSermon!.showing! {
+//                case Constants.NOTES:
+//                    url = self.selectedSermon!.notesURL
+//                    break
+//                case Constants.SLIDES:
+//                    url = self.selectedSermon!.slidesURL
+//                    break
+//                    
+//                default:
+//                    break
+//                }
+//
+//                if  url != nil {
+//                    if (UIApplication.sharedApplication().canOpenURL(url!)) { // Reachability.isConnectedToNetwork() &&
+//                        UIApplication.sharedApplication().openURL(url!)
+//                    } else {
+//                        self.networkUnavailable("Unable to open transcript in browser at: \(url)")
+//                    }
+//                }
+//            })
+//            alert.addAction(action)
+//        }
+//        
+//        if (selectedSermon!.hasScripture() && (selectedSermon?.scripture != Constants.Selected_Scriptures)) {
+//            action = UIAlertAction(title: Constants.Scripture_Full_Screen, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                //            print("mail!")
+//                self.showScripture = true
+//                self.performSegueWithIdentifier(Constants.SHOW_FULL_SCREEN_SEGUE_IDENTIFIER, sender: self.selectedSermon)
+//                //                if (Reachability.isConnectedToNetwork()) {
+//                //                    self.openSermonScripture(self.selectedSermon)
+//                //                } else {
+//                //                    let urlString = Constants.SCRIPTURE_URL_PREFIX + self.selectedSermon!.scripture! + Constants.SCRIPTURE_URL_POSTFIX
+//                //                    self.networkUnavailable("Unable to open scripture at: \(urlString)")
+//                //                }
+//            })
+//            alert.addAction(action)
+//        }
+//        
+//        if (selectedSermon!.hasScripture() && (selectedSermon?.scripture != Constants.Selected_Scriptures)) {
+//            action = UIAlertAction(title: Constants.Scripture_in_Browser, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                //            print("mail!")
+//                self.openSermonScripture(self.selectedSermon)
+//                //                if (Reachability.isConnectedToNetwork()) {
+//                //                    self.openSermonScripture(self.selectedSermon)
+//                //                } else {
+//                //                    let urlString = Constants.SCRIPTURE_URL_PREFIX + self.selectedSermon!.scripture! + Constants.SCRIPTURE_URL_POSTFIX
+//                //                    self.networkUnavailable("Unable to open scripture at: \(urlString)")
+//                //                }
+//            })
+//            alert.addAction(action)
+//        }
+//        
+//        if let sermons = sermonsInSeries {
+//            var sermonsToDownload = 0
+//            var sermonsDownloading = 0
+//            var sermonsDownloaded = 0
+//            
+//            for sermon in sermons {
+//                switch sermon.audioDownload!.state {
+//                case .none:
+//                    sermonsToDownload++
+//                    break
+//                case .downloading:
+//                    sermonsDownloading++
+//                    break
+//                case .downloaded:
+//                    sermonsDownloaded++
+//                    break
+//                }
+//            }
+//            
+//            if (sermonsToDownload > 0) {
+//                var title:String?
+//                switch sermonsToDownload {
+//                case 1:
+//                    title = Constants.Download_Audio
+//                    break
+//                    
+//                default:
+//                    title = Constants.Download_All_Audio
+//                    break
+//                }
+//                action = UIAlertAction(title: title, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                    for sermon in sermons {
+//                        if (sermon.audioDownload?.state == .none) {
+//                            sermon.audioDownload?.download()
+//                        }
+//                    }
+//                    self.tableView.reloadData()
+//                    self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Middle)
+//
+////                    if (Reachability.isConnectedToNetwork()) {
+////                        //            println("mail!")
+////                        for sermon in sermons {
+////                            if (sermon.download.state == .none) {
+////                                sermon.downloadAudio()
+////                            }
+////                        }
+////                        self.tableView.reloadData()
+////                        self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Middle)
+////                    } else {
+////                        self.networkUnavailable("Unable to download audio.")
+////                    }
+//                })
+//                alert.addAction(action)
+//            }
+//            
+//            if (sermonsDownloading > 0) {
+//                action = UIAlertAction(title: Constants.Cancel_All_Downloads, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                    //            println("mail!")
+//                    for sermon in sermons {
+//                        if (sermon.audioDownload?.state == .downloading) {
+//                            sermon.audioDownload?.cancelDownload()
+//                        }
+//                    }
+//                    self.tableView.reloadData()
+//                    self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Middle)
+//                })
+//                alert.addAction(action)
+//            }
+//            
+//            if (sermonsDownloaded > 0) {
+//                action = UIAlertAction(title: Constants.Delete_All_Downloads, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                    //            println("mail!")
+//                    for sermon in sermons {
+//                        if (sermon.audioDownload?.state == .downloaded) {
+//                            sermon.audioDownload?.deleteDownload()
+//                        }
+//                    }
+//                    self.tableView.reloadData()
+//                    self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Middle)
+//                })
+//                alert.addAction(action)
+//            }
+//        }
+//        
+//        action = UIAlertAction(title: Constants.Email_Sermon, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//            //            print("mail!")
+//            self.mailSermon(self.selectedSermon)
+//        })
+//        alert.addAction(action)
+//        
+//        if (selectedSermon!.hasSeries()) {
+//            action = UIAlertAction(title: Constants.Email_Series, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                //            print("mail!")
+//                self.mailSermonSeries(self.sermonsInSeries)
+//            })
+//            alert.addAction(action)
+//        }
+//        
+//        if (splitViewController == nil) {
+//            action = UIAlertAction(title: Constants.Share_on_Facebook, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                self.facebook(self.selectedSermon)
+//            })
+//            alert.addAction(action)
+//            
+//            action = UIAlertAction(title: Constants.Share_on_Twitter, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//                self.twitter(self.selectedSermon)
+//            })
+//            alert.addAction(action)
+//        }
         
 //        action = UIAlertAction(title: "Message", style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
 ////            print("message!")
@@ -1220,16 +1608,16 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        })
 //        alert.addAction(action)
 
-        action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
-//            print("cancel!")
-        })
-        alert.addAction(action)
-        
-        //on iPad this is a popover
-        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
-        alert.popoverPresentationController?.barButtonItem = actionButton
-        
-        presentViewController(alert, animated: true, completion: nil)
+//        action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+////            print("cancel!")
+//        })
+//        alert.addAction(action)
+//        
+//        //on iPad this is a popover
+//        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
+//        alert.popoverPresentationController?.barButtonItem = actionButton
+//        
+//        presentViewController(alert, animated: true, completion: nil)
     }
     
     func zoomScreen()
@@ -1448,10 +1836,35 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        addSliderObserver()
         setupPlayPauseButton()
     }
+    
+    func updateView()
+    {
+        selectedSermon = Globals.selectedSermonDetail
         
+        tableView.reloadData()
+        scrollToSermon(selectedSermon, select: true, position: UITableViewScrollPosition.Top)
+        
+        updateUI()
+    }
+    
+    func clearView()
+    {
+        selectedSermon = nil
+        
+        tableView.reloadData()
+        
+        updateUI()
+    }
+    
     override func viewDidLoad() {
+        // Do any additional setup after loading the view.
         super.viewDidLoad()
-
+        
+        if (splitViewController != nil) {
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: "updateView", name: Constants.UPDATE_VIEW_NOTIFICATION, object: nil)
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: "clearView", name: Constants.CLEAR_VIEW_NOTIFICATION, object: nil)
+        }
+        
         navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem()
         navigationItem.leftItemsSupplementBackButton = true
         
@@ -1479,7 +1892,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         
         //Eliminates blank cells at end.
         tableView.tableFooterView = UIView()
-        
+        tableView.allowsSelection = true
+
         //Unreliable
 //        NSNotificationCenter.defaultCenter().addObserver(self, selector: "applicationWillEnterForeground:", name: UIApplicationWillEnterForegroundNotification, object: UIApplication.sharedApplication())
 //        NSNotificationCenter.defaultCenter().addObserver(self, selector: "applicationWillResignActive:", name: UIApplicationWillResignActiveNotification, object: UIApplication.sharedApplication())
@@ -1603,119 +2017,193 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     func downloading()
     {
-        //There is a big flaw in the use of .showing - it assumes only one of slides or notes is downloading when, for TPS/CBC,
-        //they both would be.  In that case we would need the timer to persist until the last one finishes, or have timers for each.
-        
         if (selectedSermon != nil) {
-            print("slides")
-            if let download = selectedSermon?.slidesDownload {
-//                print("totalBytesWritten: \(download.totalBytesWritten)")
-//                print("totalBytesExpectedToWrite: \(download.totalBytesExpectedToWrite)")
+            var download:Download?
+            var webView:WKWebView?
+            
+            switch selectedSermon!.showing! {
+            case Constants.SLIDES:
+                print("slides")
+                download = selectedSermon?.slidesDownload
+                webView = sermonSlidesWebView
+                break
                 
-                switch download.state {
-                case .downloading:
-                    if (selectedSermon?.showing == Constants.SLIDES) {
-                        progressIndicator.progress = download.totalBytesExpectedToWrite > 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
-                    }
-                    break
+            case Constants.NOTES:
+                print("notes")
+                download = selectedSermon?.notesDownload
+                webView = sermonNotesWebView
+                break
+                
+            default:
+                break
+            }
+            
+            if (download != nil) {
+                print("totalBytesWritten: \(download!.totalBytesWritten)")
+                print("totalBytesExpectedToWrite: \(download!.totalBytesExpectedToWrite)")
+                
+                switch download!.state {
+                case .none:
+                    print(".none")
+                    download?.task?.cancel()
                     
+                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        self.loadTimer?.invalidate()
+                        self.loadTimer = nil
+                        
+                        self.activityIndicator.stopAnimating()
+                        self.activityIndicator.hidden = true
+                        
+                        self.progressIndicator.hidden = true
+                        
+                        self.sermonNotesWebView?.hidden = true
+                        self.sermonSlidesWebView?.hidden = true
+                        Globals.mpPlayer?.view.hidden = true
+                        
+                        self.logo.hidden = false
+                        self.sermonNotesAndSlides.bringSubviewToFront(self.logo)
+                    })
+                    break
+                case .downloading:
+                    print(".downloading")
+                    progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
+                    break
                 case .downloaded:
+                    print(".downloaded")
                     if #available(iOS 9.0, *) {
                         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-                            self.sermonSlidesWebView?.loadFileURL(self.selectedSermon!.slidesInFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.slidesInFileSystemURL!)
-
+                            webView?.loadFileURL(download!.fileSystemURL!, allowingReadAccessToURL: download!.fileSystemURL!)
+                            
                             dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                if (self.selectedSermon?.showing == Constants.SLIDES) {
-                                    self.loadTimer?.invalidate()
-                                    self.loadTimer = nil
-                                    self.activityIndicator.stopAnimating()
-                                    self.activityIndicator.hidden = true
-                                    self.progressIndicator.hidden = true
-                                }
+                                self.loadTimer?.invalidate()
+                                self.loadTimer = nil
+                                
+                                self.activityIndicator.stopAnimating()
+                                self.activityIndicator.hidden = true
+                                
+                                self.progressIndicator.hidden = true
                             })
                         })
                     } else {
                         // Fallback on earlier versions
-                    }
-                    break
-                    
-                case .none:
-                    NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: selectedSermon)
-                    download.task?.cancel()
-                    
-                    if (selectedSermon?.showing == Constants.SLIDES) {
-                        loadTimer?.invalidate()
-                        loadTimer = nil
-                        
-                        activityIndicator.stopAnimating()
-                        activityIndicator.hidden = true
-                        progressIndicator.hidden = true
-                        
-                        sermonNotesWebView?.hidden = true
-                        sermonSlidesWebView?.hidden = true
-                        Globals.mpPlayer?.view.hidden = true
-                        
-                        logo.hidden = false
-                        sermonNotesAndSlides.bringSubviewToFront(self.logo)
                     }
                     break
                 }
             }
             
-            print("notes")
-            if let download = selectedSermon?.notesDownload {
-//                print("totalBytesWritten: \(download.totalBytesWritten)")
-//                print("totalBytesExpectedToWrite: \(download.totalBytesExpectedToWrite)")
-                
-                switch download.state {
-                case .downloading:
-                    if (selectedSermon?.showing == Constants.NOTES) {
-                        progressIndicator.progress = download.totalBytesExpectedToWrite > 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
-                    }
-                    break
-                    
-                case .downloaded:
-                    if #available(iOS 9.0, *) {
-                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-                            self.sermonNotesWebView?.loadFileURL(self.selectedSermon!.notesInFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.notesInFileSystemURL!)
-                            
-                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                if (self.selectedSermon?.showing == Constants.NOTES) {
-                                    self.loadTimer?.invalidate()
-                                    self.loadTimer = nil
-                                    self.activityIndicator.stopAnimating()
-                                    self.activityIndicator.hidden = true
-                                    self.progressIndicator.hidden = true
-                                }
-                            })
-                        })
-                    } else {
-                        // Fallback on earlier versions
-                    }
-                    break
-                    
-                case .none:
-                    NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: selectedSermon)
-                    download.task?.cancel()
-                    
-                    if (selectedSermon?.showing == Constants.NOTES) {
-                        loadTimer?.invalidate()
-                        loadTimer = nil
-                        
-                        activityIndicator.stopAnimating()
-                        activityIndicator.hidden = true
-                        progressIndicator.hidden = true
-                        
-                        sermonNotesWebView?.hidden = true
-                        sermonSlidesWebView?.hidden = true
-                        Globals.mpPlayer?.view.hidden = true
-                        
-                        logo.hidden = false
-                        sermonNotesAndSlides.bringSubviewToFront(self.logo)
-                    }
-                    break
-                }
-            }
+//            print("slides")
+//            if let download = selectedSermon?.slidesDownload {
+////                print("totalBytesWritten: \(download.totalBytesWritten)")
+////                print("totalBytesExpectedToWrite: \(download.totalBytesExpectedToWrite)")
+//                
+//                switch download.state {
+//                case .downloading:
+//                    if (selectedSermon?.showing == Constants.SLIDES) {
+//                        progressIndicator.progress = download.totalBytesExpectedToWrite > 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
+//                    }
+//                    break
+//                    
+//                case .downloaded:
+//                    if #available(iOS 9.0, *) {
+//                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
+//                            self.sermonSlidesWebView?.loadFileURL(self.selectedSermon!.slidesFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.slidesFileSystemURL!)
+//
+//                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+//                                if (self.selectedSermon?.showing == Constants.SLIDES) {
+//                                    self.loadTimer?.invalidate()
+//                                    self.loadTimer = nil
+//                                    
+//                                    self.activityIndicator.stopAnimating()
+//                                    self.activityIndicator.hidden = true
+//                                    
+//                                    self.progressIndicator.hidden = true
+//                                }
+//                            })
+//                        })
+//                    } else {
+//                        // Fallback on earlier versions
+//                    }
+//                    break
+//                    
+//                case .none:
+//                    NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: selectedSermon)
+//                    download.task?.cancel()
+//                    
+//                    if (selectedSermon?.showing == Constants.SLIDES) {
+//                        loadTimer?.invalidate()
+//                        loadTimer = nil
+//                        
+//                        activityIndicator.stopAnimating()
+//                        activityIndicator.hidden = true
+//                        progressIndicator.hidden = true
+//                        
+//                        sermonNotesWebView?.hidden = true
+//                        sermonSlidesWebView?.hidden = true
+//                        Globals.mpPlayer?.view.hidden = true
+//                        
+//                        logo.hidden = false
+//                        sermonNotesAndSlides.bringSubviewToFront(self.logo)
+//                    }
+//                    break
+//                }
+//            }
+//            
+//            print("notes")
+//            if let download = selectedSermon?.notesDownload {
+////                print("totalBytesWritten: \(download.totalBytesWritten)")
+////                print("totalBytesExpectedToWrite: \(download.totalBytesExpectedToWrite)")
+//                
+//                switch download.state {
+//                case .downloading:
+//                    if (selectedSermon?.showing == Constants.NOTES) {
+//                        progressIndicator.progress = download.totalBytesExpectedToWrite > 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
+//                    }
+//                    break
+//                    
+//                case .downloaded:
+//                    if #available(iOS 9.0, *) {
+//                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
+//                            self.sermonNotesWebView?.loadFileURL(self.selectedSermon!.notesFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.notesFileSystemURL!)
+//                            
+//                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+//                                if (self.selectedSermon?.showing == Constants.NOTES) {
+//                                    self.loadTimer?.invalidate()
+//                                    self.loadTimer = nil
+//                                    
+//                                    self.activityIndicator.stopAnimating()
+//                                    self.activityIndicator.hidden = true
+//                                    
+//                                    self.progressIndicator.hidden = true
+//                                }
+//                            })
+//                        })
+//                    } else {
+//                        // Fallback on earlier versions
+//                    }
+//                    break
+//                    
+//                case .none:
+//                    NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: selectedSermon)
+//                    download.task?.cancel()
+//                    
+//                    if (selectedSermon?.showing == Constants.NOTES) {
+//                        loadTimer?.invalidate()
+//                        loadTimer = nil
+//                        
+//                        activityIndicator.stopAnimating()
+//                        activityIndicator.hidden = true
+//                        progressIndicator.hidden = true
+//                        
+//                        sermonNotesWebView?.hidden = true
+//                        sermonSlidesWebView?.hidden = true
+//                        Globals.mpPlayer?.view.hidden = true
+//                        
+//                        logo.hidden = false
+//                        sermonNotesAndSlides.bringSubviewToFront(self.logo)
+//                    }
+//                    break
+//                }
+//            }
         } else {
             loadTimer?.invalidate()
             loadTimer = nil
@@ -1746,21 +2234,25 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
     func loading()
     {
-        switch selectedSermon!.showing! {
-        case Constants.SLIDES:
-            if (sermonSlidesWebView != nil) {
-                progressIndicator.progress = Float(sermonSlidesWebView!.estimatedProgress)
+        // Expected to be on the main thread
+        
+        if selectedSermon != nil {
+            switch selectedSermon!.showing! {
+            case Constants.SLIDES:
+                if (sermonSlidesWebView != nil) {
+                    progressIndicator.progress = Float(sermonSlidesWebView!.estimatedProgress)
+                }
+                break
+                
+            case Constants.NOTES:
+                if (sermonNotesWebView != nil) {
+                    progressIndicator.progress = Float(sermonNotesWebView!.estimatedProgress)
+                }
+                break
+                
+            default:
+                break
             }
-            break
-            
-        case Constants.NOTES:
-            if (sermonNotesWebView != nil) {
-                progressIndicator.progress = Float(sermonNotesWebView!.estimatedProgress)
-            }
-            break
-            
-        default:
-            break
         }
         
         if progressIndicator.progress == 1 {
@@ -1811,14 +2303,14 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                                 loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "downloading", userInfo: nil, repeats: true)
                             }
                             
-                            selectedSermon?.downloadNotes()
+                            selectedSermon?.notesDownload?.download()
                             //                        } else {
                             //                            self.networkUnavailable("Unable to open transcript at: \(notesURL)")
                             //                        }
                         } else {
-//                            print("\(selectedSermon!.notesInFileSystemURL!)")
+//                            print("\(selectedSermon!.notesFileSystemURL!)")
                             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-                                self.sermonNotesWebView?.loadFileURL(self.selectedSermon!.notesInFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.notesInFileSystemURL!)
+                                self.sermonNotesWebView?.loadFileURL(self.selectedSermon!.notesFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.notesFileSystemURL!)
                                 
                                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
                                     if (self.selectedSermon?.showing == Constants.NOTES) {
@@ -1917,13 +2409,13 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                                 loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "downloading", userInfo: nil, repeats: true)
                             }
                             
-                            selectedSermon?.downloadSlides()
+                            selectedSermon?.slidesDownload?.download()
                             //                        } else {
                             //                            self.networkUnavailable("Unable to open transcript at: \(slidesURL)")
                             //                        }
                         } else {
                             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-                                self.sermonSlidesWebView?.loadFileURL(self.selectedSermon!.slidesInFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.slidesInFileSystemURL!)
+                                self.sermonSlidesWebView?.loadFileURL(self.selectedSermon!.slidesFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.slidesFileSystemURL!)
                                 
                                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
                                     if (self.selectedSermon?.showing == Constants.NOTES) {
@@ -2004,7 +2496,30 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     //        print("notes hidden \(sermonNotes.hidden)")
     //        print("slides hidden \(sermonSlides.hidden)")
             
-            // Note: we aren't doing anything to check whether they can or should show what they claim to show!
+            // Check whether they can or should show what they claim to show!
+            
+            switch selectedSermon!.showing! {
+            case Constants.NOTES:
+                if !selectedSermon!.hasNotes() {
+                    selectedSermon!.showing = Constants.NONE
+                }
+                break
+                
+            case Constants.SLIDES:
+                if !selectedSermon!.hasSlides() {
+                    selectedSermon!.showing = Constants.NONE
+                }
+                break
+                
+            case Constants.VIDEO:
+                if !selectedSermon!.hasVideo() {
+                    selectedSermon!.showing = Constants.NONE
+                }
+                break
+                
+            default:
+                break
+            }
             
             switch selectedSermon!.showing! {
             case Constants.NOTES:
@@ -2522,7 +3037,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         //        print("viewWillAppear 1 sermonNotesAndSlides.bounds: \(sermonNotesAndSlides.bounds)")
         //        print("viewWillAppear 1 tableView.bounds: \(tableView.bounds)")
         
-        sermonsInSeries = sermonsInSermonSeries(selectedSermon)
+//        sermonsInSeries = sermonsInSermonSeries(selectedSermon)
         
         //Done in sliderTimer()
 //        if (!Globals.sermonLoaded && (Globals.sermonPlaying != nil) && (selectedSermon == Globals.sermonPlaying)) {
@@ -2564,13 +3079,12 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         setupSlider()
         setupNotesSlidesVideo()
         setupActionAndTagsButtons()
-        
-        tableView.allowsSelection = true
-        tableView.reloadData()
     }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
+
+//        tableView.reloadData()
 
         updateUI()
     }
@@ -2612,7 +3126,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
         setupSplitViewController()
         
-        scrollToSermon(selectedSermon,select:true,position:UITableViewScrollPosition.None)
+        scrollToSermon(selectedSermon,select:true,position:UITableViewScrollPosition.Top)
     }
     
     private func captureViewSplit()
@@ -2633,7 +3147,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     private func captureContentOffset(webView:WKWebView?)
     {
-        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) && (webView != nil) && (!webView!.loading) {
+        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) && (webView != nil) && (!webView!.loading) && (webView!.URL != nil) {
             if webView == sermonNotesWebView {
                 selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.x / sermonNotesWebView!.scrollView.contentSize.width)"
                 selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(sermonNotesWebView!.scrollView.contentOffset.y / sermonNotesWebView!.scrollView.contentSize.height)"
@@ -2649,7 +3163,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     {
         //        print("captureZoomScale: \(sermonSelected?.title)")
         
-        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) && (webView != nil) && (!webView!.loading) {
+        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) && (webView != nil) && (!webView!.loading) && (webView!.URL != nil) {
             if webView == sermonNotesWebView {
                 selectedSermon?.settings?[Constants.NOTES_ZOOM_SCALE] = "\(sermonNotesWebView!.scrollView.zoomScale)"
             }
@@ -2681,11 +3195,13 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         
 //        print("viewWillDisappear: \(sermonSelected?.title)")
 
-        captureViewSplit()
-        captureContentOffsetAndZoomScale()
+//        captureViewSplit()
+//        captureContentOffsetAndZoomScale()
         
         //        NSNotificationCenter.defaultCenter().removeObserver(self,name: UIApplicationWillResignActiveNotification, object: UIApplication.sharedApplication())
         //        NSNotificationCenter.defaultCenter().removeObserver(self,name: UIApplicationWillEnterForegroundNotification, object: UIApplication.sharedApplication())
+        //
+        //        NSNotificationCenter.defaultCenter().removeObserver(self)
     }
 
     override func didReceiveMemoryWarning() {
@@ -2758,6 +3274,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 switch identifier {
                 case Constants.SHOW_FULL_SCREEN_SEGUE_IDENTIFIER:
                     splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden
+                    setupWKContentOffsets()
                     wvc.selectedSermon = sender as? Sermon
                     wvc.showScripture = showScripture
                     break
@@ -3164,7 +3681,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         case UIEventSubtype.RemoteControlBeginSeekingBackward:
             print("RemoteControlBeginSeekingBackward")
             
-            Globals.seekingObserver = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: "seekingTimer", userInfo: nil, repeats: true)
+            Globals.seekingObserver = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "seekingTimer", userInfo: nil, repeats: true)
             
             Globals.mpPlayer?.beginSeekingBackward()
             //        updatePlayingInfoCenter()
@@ -3184,7 +3701,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         case UIEventSubtype.RemoteControlBeginSeekingForward:
             print("RemoteControlBeginSeekingForward")
             
-            Globals.seekingObserver = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: "seekingTimer", userInfo: nil, repeats: true)
+            Globals.seekingObserver = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "seekingTimer", userInfo: nil, repeats: true)
             
             Globals.mpPlayer?.beginSeekingForward()
             //        updatePlayingInfoCenter()
@@ -3247,7 +3764,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             playPauseButton.enabled = true
             slider.enabled = true
             
-            NSNotificationCenter.defaultCenter().removeObserver(self)
+            NSNotificationCenter.defaultCenter().removeObserver(self, name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
         }
         
         //For playing
@@ -3263,10 +3780,11 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 
             case .Playing:
                 print("MVC.mpPlayerLoadStateDidChange.Playing")
+                //Why do we need the following?
                 spinner.stopAnimating()
                 spinner.hidden = true
                 setupPlayingInfoCenter()
-                NSNotificationCenter.defaultCenter().removeObserver(self)
+                NSNotificationCenter.defaultCenter().removeObserver(self, name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
                 break
                 
             case .SeekingBackward:
@@ -3279,6 +3797,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 
             case .Stopped:
                 print("MVC.mpPlayerLoadStateDidChange.Stopped")
+                //Why do we need the following?
                 if !Globals.playerPaused {
                     Globals.mpPlayer?.play()
                 }
@@ -3347,8 +3866,11 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         captureContentOffsetAndZoomScale()
         
+        if (selectedSermon != sermonsInSeries![indexPath.row]) || (Globals.sermonHistory == nil) {
+            addToHistory(sermonsInSeries![indexPath.row])
+        }
         selectedSermon = sermonsInSeries![indexPath.row]
-        
+
         if (selectedSermon == Globals.sermonPlaying) && (Globals.mpPlayer?.contentURL == NSURL(string:Constants.LIVE_STREAM_URL)) {
             loadingFromLive = true
             
@@ -3644,38 +4166,55 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        print("Bounds: \(webView.bounds)")
 
         if (self.view != nil) {
-            activityIndicator.stopAnimating()
-            activityIndicator.hidden = true
-            
-            loadTimer?.invalidate()
-            loadTimer = nil
-            progressIndicator.hidden = true
-
             if (selectedSermon != nil) {
                 if (webView == sermonNotesWebView) {
                     print("sermonNotesWebView")
                     if (selectedSermon!.showingNotes()) {
-                        print("sermonNotesWebView:hidden=panning")
-                        webView.hidden = panning
+                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                            self.activityIndicator.stopAnimating()
+                            self.activityIndicator.hidden = true
+                            
+                            self.loadTimer?.invalidate()
+                            self.loadTimer = nil
+                            self.progressIndicator.hidden = true
+                            
+                            self.setupSTVControl()
+                            
+                            print("sermonNotesWebView:hidden=panning")
+                            webView.hidden = self.panning
+                        })
                     } else {
-                        print("sermonNotesWebView:hidden=true")
-                        webView.hidden = true
+                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                            print("sermonNotesWebView:hidden=true")
+                            webView.hidden = true
+                        })
                     }
                     setNotesContentOffsetAndZoomScale()
                 }
                 if (webView == sermonSlidesWebView) {
                     print("sermonSlidesWebView")
                     if (selectedSermon!.showingSlides()) {
-                        print("sermonSlidesWebView:hidden=panning")
-                        webView.hidden = panning
+                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                            self.activityIndicator.stopAnimating()
+                            self.activityIndicator.hidden = true
+                            
+                            self.loadTimer?.invalidate()
+                            self.loadTimer = nil
+                            self.progressIndicator.hidden = true
+                            
+                            self.setupSTVControl()
+                            
+                            print("sermonSlidesWebView:hidden=panning")
+                            webView.hidden = self.panning
+                        })
                     } else {
-                        print("sermonSlidesWebView:hidden=true")
-                        webView.hidden = true
+                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                            print("sermonSlidesWebView:hidden=true")
+                            webView.hidden = true
+                        })
                     }
-                    
                     setSlidesContentOffsetAndZoomScale()
                 }
-                setupSTVControl()
             }
         }
     }

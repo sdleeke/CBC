@@ -23,6 +23,7 @@ struct Globals {
     
     static var saveSettings = true
 
+    // So that the selected cell is scrolled to only on startup, not every time the master view controller appears.
     static var scrolledToSermonLastSelected = false
     
 //    static var loadedEnoughToDeepLink = false
@@ -99,10 +100,40 @@ struct Globals {
         }
     }
 
+    static var selectedSermon:Sermon? {
+        get {
+            var selectedSermon:Sermon?
+            
+            let defaults = NSUserDefaults.standardUserDefaults()
+            if let selectedSermonID = defaults.stringForKey(Constants.SELECTED_SERMON_KEY) {
+                selectedSermon = Globals.sermonRepository.index?[selectedSermonID]
+            }
+            defaults.synchronize()
+            
+            return selectedSermon
+        }
+    }
+    
+    static var selectedSermonDetail:Sermon? {
+        get {
+            var selectedSermon:Sermon?
+            
+            let defaults = NSUserDefaults.standardUserDefaults()
+            if let selectedSermonID = defaults.stringForKey(Constants.SELECTED_SERMON_DETAIL_KEY) {
+                selectedSermon = Globals.sermonRepository.index?[selectedSermonID]
+            }
+            defaults.synchronize()
+            
+            return selectedSermon
+        }
+    }
+    
     // These are hidden behind custom accessors in Sermon
     static var seriesViewSplits:[String:String]?
     static var sermonSettings:[String:[String:String]]?
-
+    
+    static var sermonHistory:[String]?
+    
     struct sermonRepository {
         static var list:[Sermon]? { //Not in any specific order
             didSet {

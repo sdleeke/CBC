@@ -506,21 +506,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         filename = identifier.substringFromIndex(Constants.DOWNLOAD_IDENTIFIER.endIndex)
         
         for sermon in Globals.sermonRepository.list! {
-            let download = sermon.downloads.filter({ (key:String, value:Download) -> Bool in
+            if let download = sermon.downloads.filter({ (key:String, value:Download) -> Bool in
                 //                print("handleEventsForBackgroundURLSession: \(filename) \(key)")
                 return value.task?.taskDescription == filename
-            }).first!.1
-            
-            download.session = NSURLSession(configuration: configuration, delegate: sermon, delegateQueue: nil)
-            download.completionHandler = completionHandler
+            }).first?.1 {
+                download.session = NSURLSession(configuration: configuration, delegate: sermon, delegateQueue: nil)
+                download.completionHandler = completionHandler
+                break
+            }
         }
-        //        if let downloadSermon = Globals.sermonRepository?.filter({ (sermon:Sermon) -> Bool in
-        //            return sermon.audio == filename
-        //        }).first {
-        //            downloadSermon.download.session = NSURLSession(configuration: configuration, delegate: downloadSermon, delegateQueue: nil)
-        //            downloadSermon.download.completionHandler = completionHandler
-        //            //Do we need to recreate the downloadTask for this session?
-        //        }
     }
 }
 

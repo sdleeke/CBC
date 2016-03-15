@@ -17,6 +17,7 @@
             <string>FontAwesome</string>
             <string>FontAwesome</string>
             <string>FontAwesome</string>
+            <string>FontAwesome</string>
         </mutableArray>
     </customFonts>
     <scenes>
@@ -79,13 +80,18 @@
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rYJ-KN-f8I" userLabel="Download">
-                                                    <rect key="frame" x="578" y="48" width="18" height="31"/>
+                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rYJ-KN-f8I" userLabel="Download">
+                                                    <rect key="frame" x="515" y="48" width="81" height="31"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="qtv-eH-18v"/>
                                                     </constraints>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="18"/>
-                                                    <state key="normal" title="Dwnld"/>
+                                                    <state key="normal" title="Download"/>
+                                                    <variation key="default">
+                                                        <mask key="constraints">
+                                                            <exclude reference="qtv-eH-18v"/>
+                                                        </mask>
+                                                    </variation>
                                                     <connections>
                                                         <action selector="downloadAction:" destination="a5x-WU-NNC" eventType="touchUpInside" id="Cj9-4S-ycY"/>
                                                     </connections>
@@ -93,12 +99,28 @@
                                                 <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="IgM-pT-w8s">
                                                     <rect key="frame" x="20" y="97" width="580" height="2"/>
                                                 </progressView>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eA8-mK-b7w">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eA8-mK-b7w">
                                                     <rect key="frame" x="567" y="79" width="29" height="12"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
+                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Jk6-5C-gJI">
+                                                    <rect key="frame" x="515" y="19" width="39" height="31"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="width" constant="18" id="MAp-mB-qmL"/>
+                                                    </constraints>
+                                                    <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="18"/>
+                                                    <state key="normal" title="Tags"/>
+                                                    <variation key="default">
+                                                        <mask key="constraints">
+                                                            <exclude reference="MAp-mB-qmL"/>
+                                                        </mask>
+                                                    </variation>
+                                                    <connections>
+                                                        <action selector="tagsAction:" destination="a5x-WU-NNC" eventType="touchUpInside" id="Mad-A2-LZ2"/>
+                                                    </connections>
+                                                </button>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstItem="eA8-mK-b7w" firstAttribute="trailing" secondItem="rYJ-KN-f8I" secondAttribute="trailing" id="3aX-Lw-AGh"/>
@@ -108,6 +130,7 @@
                                                 <constraint firstItem="IWS-RY-DB5" firstAttribute="leading" secondItem="A01-fJ-FMH" secondAttribute="leading" constant="20" symbolic="YES" id="9AD-Do-eL7"/>
                                                 <constraint firstItem="eA8-mK-b7w" firstAttribute="trailing" secondItem="rYJ-KN-f8I" secondAttribute="trailing" id="AaM-EC-gon"/>
                                                 <constraint firstAttribute="bottom" secondItem="IWS-RY-DB5" secondAttribute="bottom" constant="4" id="Ctc-RX-Tst"/>
+                                                <constraint firstItem="rYJ-KN-f8I" firstAttribute="top" secondItem="Jk6-5C-gJI" secondAttribute="bottom" constant="-2" id="GYw-WZ-HQp"/>
                                                 <constraint firstItem="eA8-mK-b7w" firstAttribute="leading" secondItem="rYJ-KN-f8I" secondAttribute="trailing" constant="8" symbolic="YES" id="H2K-np-Idp"/>
                                                 <constraint firstItem="rYJ-KN-f8I" firstAttribute="leading" secondItem="eA8-mK-b7w" secondAttribute="trailing" constant="8" symbolic="YES" id="Hbg-xv-Mn1"/>
                                                 <constraint firstAttribute="trailing" secondItem="eA8-mK-b7w" secondAttribute="trailing" constant="4" id="Hcs-Q6-lvT"/>
@@ -119,6 +142,7 @@
                                                 <constraint firstItem="eA8-mK-b7w" firstAttribute="trailing" secondItem="A01-fJ-FMH" secondAttribute="trailingMargin" id="VtK-Ad-4WJ"/>
                                                 <constraint firstAttribute="trailing" secondItem="Xkb-5P-JA1" secondAttribute="trailing" constant="4" id="Z5N-Cc-NIK"/>
                                                 <constraint firstItem="rYJ-KN-f8I" firstAttribute="baseline" secondItem="eA8-mK-b7w" secondAttribute="baseline" id="b3g-wO-p7M"/>
+                                                <constraint firstItem="Jk6-5C-gJI" firstAttribute="leading" secondItem="rYJ-KN-f8I" secondAttribute="leading" id="chM-1b-8dt"/>
                                                 <constraint firstAttribute="trailing" secondItem="IWS-RY-DB5" secondAttribute="trailing" constant="30" id="iEI-4v-DTY"/>
                                                 <constraint firstItem="IWS-RY-DB5" firstAttribute="top" secondItem="Xkb-5P-JA1" secondAttribute="bottom" constant="2" id="jL3-68-v7W"/>
                                                 <constraint firstItem="IgM-pT-w8s" firstAttribute="leading" secondItem="A01-fJ-FMH" secondAttribute="leading" constant="20" symbolic="YES" id="oVA-EB-5zP"/>
@@ -126,14 +150,14 @@
                                             </constraints>
                                             <variation key="default">
                                                 <mask key="constraints">
+                                                    <exclude reference="Hbg-xv-Mn1"/>
+                                                    <exclude reference="MrA-Yz-Ch1"/>
+                                                    <exclude reference="b3g-wO-p7M"/>
                                                     <exclude reference="3aX-Lw-AGh"/>
                                                     <exclude reference="6QE-v7-a8o"/>
                                                     <exclude reference="AaM-EC-gon"/>
                                                     <exclude reference="H2K-np-Idp"/>
                                                     <exclude reference="VtK-Ad-4WJ"/>
-                                                    <exclude reference="Hbg-xv-Mn1"/>
-                                                    <exclude reference="MrA-Yz-Ch1"/>
-                                                    <exclude reference="b3g-wO-p7M"/>
                                                 </mask>
                                             </variation>
                                         </tableViewCellContentView>
@@ -142,6 +166,7 @@
                                             <outlet property="downloadButton" destination="rYJ-KN-f8I" id="J5U-yS-RpS"/>
                                             <outlet property="downloadProgressBar" destination="IgM-pT-w8s" id="kcH-vz-Kew"/>
                                             <outlet property="icons" destination="eA8-mK-b7w" id="kXb-Xr-Flm"/>
+                                            <outlet property="tagsButton" destination="Jk6-5C-gJI" id="jOI-Pm-g1Z"/>
                                             <outlet property="title" destination="Xkb-5P-JA1" id="Z4E-2y-WVJ"/>
                                             <segue destination="oQN-d3-XYK" kind="showDetail" identifier="Show Sermon" id="lht-fN-efO"/>
                                         </connections>
@@ -200,6 +225,8 @@
                             <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES" left="YES" right="YES"/>
                         </segue>
                         <segue destination="790-lj-eYq" kind="showDetail" identifier="Show Scripture Index" id="c0Q-Al-DzY"/>
+                        <segue destination="c87-tQ-6Ls" kind="showDetail" id="2ZC-k1-XaW"/>
+                        <segue destination="pf8-KW-lh5" kind="showDetail" identifier="Show Live" id="4t4-wl-lLX"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0RI-sk-D50" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -290,7 +317,7 @@
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iq3-ZA-EGB" userLabel="Download">
+                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iq3-ZA-EGB" userLabel="Download">
                                                     <rect key="frame" x="554" y="48" width="18" height="31"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="Bqj-uH-acL"/>
@@ -301,7 +328,7 @@
                                                         <action selector="downloadAction:" destination="pos-sk-GNz" eventType="touchUpInside" id="sYz-WL-BSM"/>
                                                     </connections>
                                                 </button>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="L9x-Xt-BKK" userLabel="Icons">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="L9x-Xt-BKK" userLabel="Icons">
                                                     <rect key="frame" x="543" y="79" width="29" height="12"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
@@ -375,7 +402,7 @@
                                     <action selector="audioOrVideoSelection:" destination="H2E-ZS-FbW" eventType="valueChanged" id="wZK-xl-Nnc"/>
                                 </connections>
                             </segmentedControl>
-                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OPH-xi-iII" userLabel="Play Pause">
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OPH-xi-iII" userLabel="Play Pause">
                                 <rect key="frame" x="52" y="305" width="20" height="36"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="20" id="425-ex-yxw"/>
@@ -586,24 +613,15 @@ Email: cbcstaff@countrysidebible.org</string>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="twU-uu-JO2">
-                                <rect key="frame" x="499" y="325" width="81" height="30"/>
-                                <state key="normal" title="Live Stream"/>
-                                <connections>
-                                    <segue destination="NJo-7f-uFD" kind="show" identifier="Show Live" id="Riu-fj-D40"/>
-                                </connections>
-                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="JJ6-2U-DAt" firstAttribute="top" secondItem="aCa-aF-Otc" secondAttribute="bottom" constant="12" id="0sg-Fg-6WJ"/>
-                            <constraint firstItem="twU-uu-JO2" firstAttribute="trailing" secondItem="JJ6-2U-DAt" secondAttribute="trailing" id="23J-Dh-g9d"/>
                             <constraint firstItem="jfr-SI-XtV" firstAttribute="top" secondItem="x5z-m5-Ig7" secondAttribute="top" id="Bi4-4v-ysW"/>
                             <constraint firstItem="OOw-K7-N5K" firstAttribute="trailing" secondItem="oQh-5Y-6Pd" secondAttribute="trailingMargin" id="GRs-1N-n0o"/>
                             <constraint firstItem="aaG-AL-gpM" firstAttribute="top" secondItem="WUT-T2-LDF" secondAttribute="bottom" constant="12" id="ITC-SC-bGi"/>
                             <constraint firstAttribute="trailing" secondItem="S9H-8C-dY8" secondAttribute="trailing" constant="4" id="LuG-ra-rNv"/>
                             <constraint firstItem="OOw-K7-N5K" firstAttribute="top" secondItem="JJ6-2U-DAt" secondAttribute="bottom" constant="-4" id="OS1-ZZ-cmn"/>
-                            <constraint firstItem="twU-uu-JO2" firstAttribute="baseline" secondItem="JJ6-2U-DAt" secondAttribute="baseline" id="S1N-gs-Ibc"/>
                             <constraint firstItem="OOw-K7-N5K" firstAttribute="leading" secondItem="oQh-5Y-6Pd" secondAttribute="leadingMargin" constant="-6" id="TkB-FG-1IA"/>
                             <constraint firstItem="2vS-ZB-L7s" firstAttribute="leading" secondItem="aCa-aF-Otc" secondAttribute="trailing" constant="8" id="UoS-xd-8yc"/>
                             <constraint firstItem="aaG-AL-gpM" firstAttribute="trailing" secondItem="oQh-5Y-6Pd" secondAttribute="trailingMargin" id="VAm-YQ-O1f"/>
@@ -659,10 +677,10 @@ Email: cbcstaff@countrysidebible.org</string>
                         <viewControllerLayoutGuide type="bottom" id="gFB-fu-LKW"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="t0B-Id-nSB">
-                        <rect key="frame" x="0.0" y="64" width="600" height="1136"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="1200"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ndK-6H-sCB">
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ndK-6H-sCB">
                                 <rect key="frame" x="0.0" y="0.0" width="600" height="1136"/>
                                 <subviews>
                                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="tom_pennington" translatesAutoresizingMaskIntoConstraints="NO" id="GJp-uH-K13">
@@ -714,21 +732,6 @@ Before Texas, Tom served 16 years in various roles connected to Grace Community 
                                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="lDu-OQ-ZE8">
-                                        <rect key="frame" x="511" y="501" width="81" height="30"/>
-                                        <constraints>
-                                            <constraint firstAttribute="width" constant="81" id="DNF-0r-bBb"/>
-                                        </constraints>
-                                        <state key="normal" title="Live Stream"/>
-                                        <variation key="default">
-                                            <mask key="constraints">
-                                                <exclude reference="DNF-0r-bBb"/>
-                                            </mask>
-                                        </variation>
-                                        <connections>
-                                            <segue destination="NJo-7f-uFD" kind="show" identifier="Show Live" id="WjB-RU-Dp4"/>
-                                        </connections>
-                                    </button>
                                     <textView clipsSubviews="YES" contentMode="scaleToFill" verticalCompressionResistancePriority="749" bounces="NO" scrollEnabled="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gKJ-VV-6su">
                                         <rect key="frame" x="0.0" y="534" width="600" height="268"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -782,11 +785,9 @@ Email: cbcstaff@countrysidebible.org</string>
                                     <constraint firstItem="k4e-hy-Vam" firstAttribute="leading" secondItem="ndK-6H-sCB" secondAttribute="leadingMargin" id="6Kb-qC-f9u"/>
                                     <constraint firstAttribute="trailing" secondItem="k4e-hy-Vam" secondAttribute="trailing" constant="8" id="7DD-Ts-SsW"/>
                                     <constraint firstItem="k4e-hy-Vam" firstAttribute="top" secondItem="ndK-6H-sCB" secondAttribute="top" constant="8" id="C8R-1n-Vz3"/>
-                                    <constraint firstAttribute="trailing" secondItem="lDu-OQ-ZE8" secondAttribute="trailing" constant="8" id="EEG-sT-q2J"/>
                                     <constraint firstItem="k4e-hy-Vam" firstAttribute="top" secondItem="ndK-6H-sCB" secondAttribute="top" constant="8" id="Ez9-L6-Xvu"/>
                                     <constraint firstItem="k4e-hy-Vam" firstAttribute="top" secondItem="ndK-6H-sCB" secondAttribute="top" constant="8" id="F38-vC-BO3"/>
                                     <constraint firstAttribute="trailing" secondItem="k4e-hy-Vam" secondAttribute="trailing" constant="550" id="FAz-YB-PL7"/>
-                                    <constraint firstItem="k4e-hy-Vam" firstAttribute="trailing" secondItem="lDu-OQ-ZE8" secondAttribute="trailing" id="GYs-iO-WJj"/>
                                     <constraint firstItem="RKN-FK-6oB" firstAttribute="leading" secondItem="ndK-6H-sCB" secondAttribute="leading" constant="6" id="I41-bn-5yb"/>
                                     <constraint firstItem="k4e-hy-Vam" firstAttribute="leading" secondItem="ndK-6H-sCB" secondAttribute="leading" constant="550" id="Id7-YG-7n7"/>
                                     <constraint firstAttribute="bottom" secondItem="IVE-Ng-5eQ" secondAttribute="bottom" id="J69-Ez-dL6"/>
@@ -802,7 +803,6 @@ Email: cbcstaff@countrysidebible.org</string>
                                     <constraint firstItem="KR8-TT-I5m" firstAttribute="top" secondItem="4cB-kO-4Fh" secondAttribute="bottom" constant="8" symbolic="YES" id="Wod-hb-59T"/>
                                     <constraint firstItem="k4e-hy-Vam" firstAttribute="bottom" secondItem="ndK-6H-sCB" secondAttribute="bottomMargin" id="YM4-7v-hNx"/>
                                     <constraint firstItem="4cB-kO-4Fh" firstAttribute="centerX" secondItem="ndK-6H-sCB" secondAttribute="centerX" id="YlR-AN-ba8"/>
-                                    <constraint firstItem="lDu-OQ-ZE8" firstAttribute="leading" secondItem="KR8-TT-I5m" secondAttribute="trailing" constant="99" id="bZs-VA-bxA"/>
                                     <constraint firstItem="k4e-hy-Vam" firstAttribute="leading" secondItem="ndK-6H-sCB" secondAttribute="leading" constant="8" id="cIf-9g-yeg"/>
                                     <constraint firstItem="GJp-uH-K13" firstAttribute="top" secondItem="ndK-6H-sCB" secondAttribute="top" constant="20" symbolic="YES" id="cSt-iG-wRQ"/>
                                     <constraint firstItem="k4e-hy-Vam" firstAttribute="top" secondItem="ndK-6H-sCB" secondAttribute="top" constant="1107" id="dGE-P6-OeH"/>
@@ -817,7 +817,6 @@ Email: cbcstaff@countrysidebible.org</string>
                                     <constraint firstItem="gKJ-VV-6su" firstAttribute="top" secondItem="KR8-TT-I5m" secondAttribute="bottom" constant="8" symbolic="YES" id="tLE-3W-H0y"/>
                                     <constraint firstItem="RKN-FK-6oB" firstAttribute="top" secondItem="GJp-uH-K13" secondAttribute="bottom" constant="8" symbolic="YES" id="tVw-Op-amU"/>
                                     <constraint firstAttribute="trailing" secondItem="IVE-Ng-5eQ" secondAttribute="trailing" id="wGf-wq-XDv"/>
-                                    <constraint firstItem="lDu-OQ-ZE8" firstAttribute="baseline" secondItem="KR8-TT-I5m" secondAttribute="baseline" id="wL7-DT-UoO"/>
                                     <constraint firstItem="IVE-Ng-5eQ" firstAttribute="leading" secondItem="ndK-6H-sCB" secondAttribute="leading" id="wXo-uo-p4T"/>
                                     <constraint firstItem="RKN-FK-6oB" firstAttribute="centerX" secondItem="ndK-6H-sCB" secondAttribute="centerX" id="xgM-fd-Qst"/>
                                     <constraint firstItem="GJp-uH-K13" firstAttribute="centerX" secondItem="ndK-6H-sCB" secondAttribute="centerX" id="y4t-Pl-0vG"/>
@@ -836,7 +835,6 @@ Email: cbcstaff@countrysidebible.org</string>
                                         <exclude reference="pwU-YF-Vm9"/>
                                         <exclude reference="TFe-1u-Sbj"/>
                                         <exclude reference="fK4-KJ-KYe"/>
-                                        <exclude reference="bZs-VA-bxA"/>
                                         <exclude reference="1Jq-Qr-qOy"/>
                                         <exclude reference="5up-Fl-TEl"/>
                                         <exclude reference="6Kb-qC-f9u"/>
@@ -844,7 +842,6 @@ Email: cbcstaff@countrysidebible.org</string>
                                         <exclude reference="Ez9-L6-Xvu"/>
                                         <exclude reference="F38-vC-BO3"/>
                                         <exclude reference="FAz-YB-PL7"/>
-                                        <exclude reference="GYs-iO-WJj"/>
                                         <exclude reference="Id7-YG-7n7"/>
                                         <exclude reference="cIf-9g-yeg"/>
                                         <exclude reference="dGE-P6-OeH"/>
@@ -892,7 +889,6 @@ Email: cbcstaff@countrysidebible.org</string>
                     <size key="freeformSize" width="600" height="1200"/>
                     <connections>
                         <outlet property="actionButton" destination="n02-p7-Kag" id="Wd3-CT-IEk"/>
-                        <outlet property="liveStreamButton" destination="lDu-OQ-ZE8" id="Uia-SO-Hjv"/>
                         <outlet property="mapView" destination="IVE-Ng-5eQ" id="je9-3D-3WO"/>
                         <outlet property="scrollView" destination="ndK-6H-sCB" id="Hus-ch-31c"/>
                         <outlet property="versionLabel" destination="k4e-hy-Vam" id="KXG-I3-6s3"/>
@@ -911,15 +907,15 @@ Email: cbcstaff@countrysidebible.org</string>
                         <viewControllerLayoutGuide type="bottom" id="BnS-sI-BZ8"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="gRo-VW-4dm">
-                        <rect key="frame" x="0.0" y="64" width="600" height="692"/>
+                        <rect key="frame" x="0.0" y="64" width="600" height="536"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="z2d-eT-0hV" userLabel="Web View">
-                                <rect key="frame" x="0.0" y="0.0" width="600" height="642"/>
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="486"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             </view>
                             <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="Countryside's worship services are broadcast live on Sundays at 9:30 am, 11:05 am, and 6:00 pm." textAlignment="center" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jso-Nw-Fui">
-                                <rect key="frame" x="0.0" y="642" width="600" height="50"/>
+                                <rect key="frame" x="0.0" y="486" width="600" height="50"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="100" id="Qj2-ca-BfZ"/>
@@ -955,13 +951,14 @@ Email: cbcstaff@countrysidebible.org</string>
                         </variation>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
+                    <navigationItem key="navigationItem" title="Countryside Bible Church Live" id="S8U-Cv-Cw0"/>
                     <connections>
                         <outlet property="webView" destination="z2d-eT-0hV" id="bwE-eh-h2m"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="vrd-TD-kpA" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3666" y="-991"/>
+            <point key="canvasLocation" x="4478" y="-991"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="Oav-a5-rHl">
@@ -1138,7 +1135,7 @@ Email: cbcstaff@countrysidebible.org</string>
                         <viewControllerLayoutGuide type="bottom" id="ESs-wH-PUl"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="Ota-ja-wJK">
-                        <rect key="frame" x="0.0" y="0.0" width="225" height="335"/>
+                        <rect key="frame" x="0.0" y="0.0" width="225" height="365"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Auto Advance" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gnT-dw-7zS">
@@ -1173,7 +1170,7 @@ Email: cbcstaff@countrysidebible.org</string>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                             <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" verticalHuggingPriority="249" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" text="When on, documents are downloaded and stored on the device.  (iOS 9)" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="u50-19-12r">
-                                <rect key="frame" x="16" y="260" width="189" height="67"/>
+                                <rect key="frame" x="20" y="260" width="185" height="67"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
@@ -1185,17 +1182,36 @@ Email: cbcstaff@countrysidebible.org</string>
                                     <action selector="cacheAction:" destination="2PY-rw-Zwl" eventType="valueChanged" id="Wvg-H1-QjW"/>
                                 </connections>
                             </switch>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Cache Size" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3SF-aq-otG">
+                                <rect key="frame" x="28" y="245" width="54" height="12"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="10"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Audio Download Size" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pLU-YE-rdr">
+                                <rect key="frame" x="28" y="333" width="102" height="12"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="10"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstAttribute="trailing" secondItem="hlW-97-eSd" secondAttribute="trailing" constant="20" symbolic="YES" id="0Px-CG-HMk"/>
                             <constraint firstItem="hlW-97-eSd" firstAttribute="top" secondItem="y4M-HY-Dah" secondAttribute="bottom" constant="8" symbolic="YES" id="1xe-jV-yLt"/>
                             <constraint firstItem="gnT-dw-7zS" firstAttribute="centerY" secondItem="y4M-HY-Dah" secondAttribute="centerY" id="4B2-XT-gvn"/>
+                            <constraint firstItem="3SF-aq-otG" firstAttribute="top" secondItem="hlW-97-eSd" secondAttribute="bottom" constant="32" id="5YH-oX-eGh"/>
+                            <constraint firstItem="3SF-aq-otG" firstAttribute="leading" secondItem="5Gu-Cg-PFQ" secondAttribute="leading" id="5bF-4V-i62"/>
                             <constraint firstAttribute="leading" secondItem="u50-19-12r" secondAttribute="leading" constant="20" symbolic="YES" id="AAH-SM-Xzh"/>
+                            <constraint firstItem="3SF-aq-otG" firstAttribute="top" secondItem="5Gu-Cg-PFQ" secondAttribute="bottom" constant="-2" id="ABQ-La-Qzz"/>
                             <constraint firstItem="0Sn-mJ-Y8T" firstAttribute="leading" secondItem="5Gu-Cg-PFQ" secondAttribute="trailing" constant="8" symbolic="YES" id="Kxj-o7-yyZ"/>
                             <constraint firstItem="5Gu-Cg-PFQ" firstAttribute="leading" secondItem="Ota-ja-wJK" secondAttribute="leadingMargin" constant="12" id="M4T-Yy-GUa"/>
+                            <constraint firstItem="u50-19-12r" firstAttribute="leading" secondItem="Ota-ja-wJK" secondAttribute="leading" constant="20" symbolic="YES" id="MEq-1T-9fZ"/>
+                            <constraint firstItem="u50-19-12r" firstAttribute="leading" secondItem="Ota-ja-wJK" secondAttribute="leadingMargin" constant="-40" id="PgI-eY-hBe"/>
                             <constraint firstItem="hlW-97-eSd" firstAttribute="leading" secondItem="Ota-ja-wJK" secondAttribute="leading" constant="20" symbolic="YES" id="QwQ-ym-ULF"/>
+                            <constraint firstItem="pLU-YE-rdr" firstAttribute="leading" secondItem="3SF-aq-otG" secondAttribute="leading" id="RXd-C1-Ycc"/>
                             <constraint firstItem="gnT-dw-7zS" firstAttribute="top" secondItem="vkl-tM-Mix" secondAttribute="bottom" constant="8" symbolic="YES" id="UpT-nY-WGI"/>
+                            <constraint firstItem="pLU-YE-rdr" firstAttribute="top" secondItem="u50-19-12r" secondAttribute="bottom" constant="6" id="WBw-S6-0eK"/>
                             <constraint firstAttribute="trailing" secondItem="u50-19-12r" secondAttribute="trailing" constant="20" symbolic="YES" id="Z4e-mb-twn"/>
                             <constraint firstItem="y4M-HY-Dah" firstAttribute="top" secondItem="Xvv-bA-0Oh" secondAttribute="bottom" constant="8" symbolic="YES" id="biD-LD-oLc"/>
                             <constraint firstItem="ESs-wH-PUl" firstAttribute="top" secondItem="u50-19-12r" secondAttribute="bottom" constant="8" id="che-oH-elO"/>
@@ -1203,13 +1219,17 @@ Email: cbcstaff@countrysidebible.org</string>
                             <constraint firstItem="gnT-dw-7zS" firstAttribute="leading" secondItem="Ota-ja-wJK" secondAttribute="leadingMargin" constant="12" id="e99-8e-Q8E"/>
                             <constraint firstItem="gnT-dw-7zS" firstAttribute="centerY" secondItem="Ota-ja-wJK" secondAttribute="centerY" id="fif-hE-Uvk"/>
                             <constraint firstItem="Xvv-bA-0Oh" firstAttribute="centerX" secondItem="Ota-ja-wJK" secondAttribute="centerX" id="gSQ-vv-cyf"/>
+                            <constraint firstItem="ESs-wH-PUl" firstAttribute="top" secondItem="3SF-aq-otG" secondAttribute="bottom" constant="69" id="htN-co-oKb"/>
                             <constraint firstItem="u50-19-12r" firstAttribute="top" secondItem="0Sn-mJ-Y8T" secondAttribute="bottom" constant="8" symbolic="YES" id="huf-Ud-6Sq"/>
-                            <constraint firstAttribute="leadingMargin" secondItem="u50-19-12r" secondAttribute="leading" id="mq2-Yh-n6L"/>
+                            <constraint firstAttribute="bottom" secondItem="pLU-YE-rdr" secondAttribute="bottom" constant="20" symbolic="YES" id="hwe-Ur-jwq"/>
+                            <constraint firstAttribute="leading" secondItem="u50-19-12r" secondAttribute="leading" constant="20" symbolic="YES" id="mq2-Yh-n6L"/>
                             <constraint firstItem="0Sn-mJ-Y8T" firstAttribute="top" secondItem="hlW-97-eSd" secondAttribute="bottom" constant="8" symbolic="YES" id="od9-oC-kbF"/>
                             <constraint firstItem="Xvv-bA-0Oh" firstAttribute="top" secondItem="Ota-ja-wJK" secondAttribute="top" constant="12" id="tDo-Fb-KTa"/>
                             <constraint firstAttribute="bottom" secondItem="hlW-97-eSd" secondAttribute="bottom" constant="20" symbolic="YES" id="tyB-cK-0Gd"/>
+                            <constraint firstItem="0Sn-mJ-Y8T" firstAttribute="leading" secondItem="3SF-aq-otG" secondAttribute="trailing" constant="86" id="u7d-hu-ha0"/>
                             <constraint firstAttribute="trailing" secondItem="0Sn-mJ-Y8T" secondAttribute="trailing" constant="20" symbolic="YES" id="udG-3M-Mho"/>
                             <constraint firstAttribute="trailing" secondItem="y4M-HY-Dah" secondAttribute="trailing" constant="20" symbolic="YES" id="v1m-XJ-gyS"/>
+                            <constraint firstItem="pLU-YE-rdr" firstAttribute="leading" secondItem="hlW-97-eSd" secondAttribute="leading" id="wzD-cT-Khc"/>
                             <constraint firstItem="5Gu-Cg-PFQ" firstAttribute="centerY" secondItem="0Sn-mJ-Y8T" secondAttribute="centerY" id="zWT-bt-2qb"/>
                             <constraint firstItem="y4M-HY-Dah" firstAttribute="leading" secondItem="gnT-dw-7zS" secondAttribute="trailing" constant="8" symbolic="YES" id="zr2-74-ulw"/>
                         </constraints>
@@ -1220,17 +1240,26 @@ Email: cbcstaff@countrysidebible.org</string>
                                 <exclude reference="fif-hE-Uvk"/>
                                 <exclude reference="tyB-cK-0Gd"/>
                                 <exclude reference="zr2-74-ulw"/>
+                                <exclude reference="5YH-oX-eGh"/>
                                 <exclude reference="AAH-SM-Xzh"/>
+                                <exclude reference="PgI-eY-hBe"/>
+                                <exclude reference="mq2-Yh-n6L"/>
                                 <exclude reference="Kxj-o7-yyZ"/>
+                                <exclude reference="u7d-hu-ha0"/>
+                                <exclude reference="wzD-cT-Khc"/>
+                                <exclude reference="che-oH-elO"/>
+                                <exclude reference="htN-co-oKb"/>
                             </mask>
                         </variation>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
-                    <value key="contentSizeForViewInPopover" type="size" width="225" height="335"/>
+                    <value key="contentSizeForViewInPopover" type="size" width="225" height="365"/>
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
-                    <size key="freeformSize" width="225" height="335"/>
+                    <size key="freeformSize" width="225" height="365"/>
                     <connections>
+                        <outlet property="audioSizeLabel" destination="pLU-YE-rdr" id="7Vj-li-Fli"/>
                         <outlet property="autoAdvanceSwitch" destination="y4M-HY-Dah" id="1DZ-bV-8M1"/>
+                        <outlet property="cacheSizeLabel" destination="3SF-aq-otG" id="6LQ-mD-cGf"/>
                         <outlet property="cacheSwitch" destination="0Sn-mJ-Y8T" id="kOn-VC-Y2L"/>
                     </connections>
                 </viewController>
@@ -1328,7 +1357,7 @@ Email: cbcstaff@countrysidebible.org</string>
                                                         <rect key="frame" x="4" y="20" width="292" height="36"/>
                                                     </variation>
                                                 </label>
-                                                <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="h1S-d5-Gvp">
+                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="h1S-d5-Gvp">
                                                     <rect key="frame" x="515" y="48" width="81" height="31"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="6j5-hw-Z15"/>
@@ -1344,7 +1373,7 @@ Email: cbcstaff@countrysidebible.org</string>
                                                         <action selector="downloadAction:" destination="O5D-zW-cLl" eventType="touchUpInside" id="x1H-7M-Jzq"/>
                                                     </connections>
                                                 </button>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xii-Pk-dwa">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xii-Pk-dwa">
                                                     <rect key="frame" x="563" y="79" width="29" height="12"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
@@ -1463,6 +1492,24 @@ Email: cbcstaff@countrysidebible.org</string>
             </objects>
             <point key="canvasLocation" x="3666" y="-2866"/>
         </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="WnK-t9-Bzg">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="pf8-KW-lh5" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="OfT-c7-OZU">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="NJo-7f-uFD" kind="relationship" relationship="rootViewController" id="UY0-rl-qg1"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Wxn-sw-4Tq" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3666" y="-991"/>
+        </scene>
     </scenes>
     <resources>
         <image name="CBC_logo" width="279" height="72"/>
@@ -1470,7 +1517,7 @@ Email: cbcstaff@countrysidebible.org</string>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="lht-fN-efO"/>
+        <segue reference="2ZC-k1-XaW"/>
         <segue reference="xw0-9h-2Zi"/>
-        <segue reference="Riu-fj-D40"/>
     </inferredMetricsTieBreakers>
 </document>

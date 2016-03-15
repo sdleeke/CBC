@@ -345,6 +345,9 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             switch identifier {
             case "Show Index Sermon":
                 if let myCell = sender as? MyTableViewCell {
+                    if (selectedSermon != myCell.sermon) || (Globals.sermonHistory == nil) {
+                        addToHistory(myCell.sermon)
+                    }
                     selectedSermon = myCell.sermon //Globals.activeSermons![index]
                     
                     if selectedSermon != nil {

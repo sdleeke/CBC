@@ -1,12 +1,35 @@
 {
 "sermons": [
             {
+            "date":"3/6/2016",
+            "service":"PM",
+            "title":"Christ the Good Shepherd (Part 3)",
+            "series":"Christ the Good Shepherd",
+            "scripture":"John 10:19-30",
+            "speaker":"Dusty Burris",
+            "audio":"db160306pCD.mp3",
+            "video":"158669425.hd.mp4?s=d2097e725c4965b534f6af30c615f6a8f1504f8c"
+            },
+            
+            {
+            "date":"3/6/2016",
+            "service":"AM",
+            "title":"Found Righteous (Part 4)",
+            "series":"Found Righteous",
+            "scripture":"Romans 3:21-31",
+            "speaker":"Tom Pennington",
+            "audio":"tp160306aCD.mp3",
+            "video":"158669448.sd.mp4?s=0bf537eec9d53dad463a50c088efd578a3f1bbc2"
+            },
+            
+            {
             "date":"2/28/2016",
             "service":"PM",
             "title":"Revelation: Rejected or Received",
             "scripture":"Matthew 11:20-30",
             "speaker":"Jonathan Anderson",
-            "audio":"ja160228pCD.mp3"
+            "audio":"ja160228pCD.mp3",
+            "video":"158669427.sd.mp4?s=138d44cebefa469d058526c4e3f9bba28452bfe3"
             },
             
             {
@@ -16,7 +39,8 @@
             "series":"Found Righteous",
             "scripture":"Romans 3:21-31",
             "speaker":"Tom Pennington",
-            "audio":"tp160228aCD.mp3"
+            "audio":"tp160228aCD.mp3",
+            "video":"158669446.hd.mp4?s=20bd0f21ec100e7a6ec074f8e0d596739361eca5"
             },
             
             {
@@ -35,7 +59,8 @@
             "title":"The Secret to Joshua's Success",
             "scripture":"Joshua 1:1-9",
             "speaker":"Justin Turner",
-            "audio":"jt160214pCD.mp3"
+            "audio":"jt160214pCD.mp3",
+            "video":"158669430.hd.mp4?s=774ed5f5e74da1b1962034554736d0eee91ec21d"
             },
             
             {
@@ -45,7 +70,8 @@
             "series":"Found Righteous",
             "scripture":"Romans 3:21-31",
             "speaker":"Tom Pennington",
-            "audio":"tp160214aCD.mp3"
+            "audio":"tp160214aCD.mp3",
+            "video":"158669444.sd.mp4?s=4c236145af24c3ed3f9bb8cda950138bcfaa93ec"
             },
             
             {
@@ -55,7 +81,8 @@
             "scripture":"Selected Scriptures",
             "speaker":"Tom Pennington",
             "tags":"Baptism",
-            "audio":"tp160207pCD.mp3"
+            "audio":"tp160207pCD.mp3",
+            "video":"155337034.hd.mp4?s=3f7c332cf27c5f6ff9d98a0ecf0c6710a01f0235"
             },
             
             {
@@ -65,7 +92,9 @@
             "series":"Found Righteous",
             "scripture":"Romans 3:21-31",
             "speaker":"Tom Pennington",
-            "audio":"tp160207aCD.mp3"
+            "audio":"tp160207aCD.mp3",
+            "notes":"tx-un-tp160207a.pdf",
+            "video":"155337035.hd.mp4?s=8e72b4ac1b4d9803b0e95e2a25cf5cfaf5615047"
             },
             
             {
@@ -74,7 +103,8 @@
             "title":"Partners with God",
             "scripture":"2 Peter 1:4-7",
             "speaker":"Rocky Wyatt",
-            "audio":"rw160131pCD.mp3"
+            "audio":"rw160131pCD.mp3",
+            "video":"155337032.hd.mp4?s=1ef052b90704af160d374741b48bd3fca5a4afd0"
             },
             
             {
@@ -83,7 +113,8 @@
             "title":"When Jesus Doesn't Meet Your Expectations",
             "scripture":"Matthew 11:1-6",
             "speaker":"Jonathan Anderson",
-            "audio":"ja160131aCD.mp3"
+            "audio":"ja160131aCD.mp3",
+            "video":"155337031.hd.mp4?s=2671d047bcbadec12911e255c38a0b138c240044"
             },
             
             {
@@ -94,7 +125,8 @@
             "scripture":"Romans 3:19-20",
             "speaker":"Tom Pennington",
             "audio":"tp160124aCD.mp3",
-            "video":"153300955.hd.mp4?s=4cec9800ce5a88acf26ceaeacb8d2576efe7bb0e"
+            "video":"153300955.hd.mp4?s=4cec9800ce5a88acf26ceaeacb8d2576efe7bb0e",
+            "notes":"tx-un-tp160124a.pdf"
             },
             
             {
@@ -116,7 +148,8 @@
             "scripture":"Romans 3:19-20",
             "speaker":"Tom Pennington",
             "audio":"tp160117aCD.mp3",
-            "video":"153280454.hd.mp4?s=6b101092986c103f4e868a1420a28516c07f3565"
+            "video":"153280454.hd.mp4?s=6b101092986c103f4e868a1420a28516c07f3565",
+            "notes":"tx-un-tp160117a.pdf"
             },
             
             {
@@ -4935,8 +4968,7 @@
         "scripture":"Ephesians 4:25-5:2",
         "speaker":"Tom Pennington",
         "series":"Walking In Our Father's Footsteps",
-        "audio":"tp090705aCD.mp3",
-        "slides":"tp090705p.pdf"
+        "audio":"tp090705aCD.mp3"
 },
 
 {

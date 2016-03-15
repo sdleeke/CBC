@@ -15,15 +15,15 @@ struct Constants {
     static let JSON_ARRAY_KEY = "sermons"
     static let JSON_TYPE = "json"
     static let JSON_FILENAME_EXTENSION = ".json"
-    static let SERMONS_JSON_FILENAME = Constants.JSON_ARRAY_KEY + Constants.JSON_FILENAME_EXTENSION
+    static let SERMONS_JSON_FILENAME = JSON_ARRAY_KEY + JSON_FILENAME_EXTENSION
 
     static let ARCHIVE_FILENAME_EXTENSION = ".archive"
-    static let SERMONS_ARCHIVE = Constants.JSON_ARRAY_KEY + Constants.ARCHIVE_FILENAME_EXTENSION
+    static let SERMONS_ARCHIVE = JSON_ARRAY_KEY + ARCHIVE_FILENAME_EXTENSION
     
     static let DICT = "dict"
     
     static let CACHE_KEY = "cache"
-    static let CACHE_ARCHIVE = Constants.CACHE_KEY + Constants.ARCHIVE_FILENAME_EXTENSION
+    static let CACHE_ARCHIVE = CACHE_KEY + ARCHIVE_FILENAME_EXTENSION
 
     static let CACHE_SECTIONS = "sections"
     static let CACHE_INDEXES = "indexes"
@@ -42,7 +42,12 @@ struct Constants {
     static let CACHE_POLICY = NSURLRequestCachePolicy.ReloadRevalidatingCacheData
     static let CACHE_TIMEOUT = 1.0
     
-   static let SERMON_UPDATE_UI_NOTIFICATION = "SERMON UPDATE UI"
+    static let UPDATE_VIEW_NOTIFICATION = "UPDATE VIEW"
+    static let CLEAR_VIEW_NOTIFICATION = "CLEAR VIEW"
+
+    static let SERMON_UPDATE_UI_NOTIFICATION = "SERMON UPDATE UI"
+    
+    static let UPDATE_SERMON_LIST_NOTIFICATION = "UPDATE SERMON LIST"
     
     static let HEADER_HEIGHT = CGFloat(48)
     static let VIEW_TRANSITION_TIME = 0.75 // seconds
@@ -64,6 +69,7 @@ struct Constants {
     static let SHOW_FULL_SCREEN_SEGUE_IDENTIFIER = "Show Full Screen"
     
     static let Show_Live = "Show Live"
+    static let Live = "Live"
     
     static let NOTES_CONTENT_OFFSET_X_RATIO = "notesContentOffsetXRatio"
     static let NOTES_CONTENT_OFFSET_Y_RATIO = "notesContentOffsetYRatio"
@@ -80,24 +86,24 @@ struct Constants {
     
     static let Sermons = "Sermons"
     
-    static let CBC_LONG_TITLE = Constants.CBC_LONG + Constants.SINGLE_SPACE_STRING + Constants.Sermons
-    static let CBC_SHORT_TITLE = Constants.CBC_SHORT + Constants.SINGLE_SPACE_STRING + Constants.Sermons
+    static let CBC_LONG_TITLE = CBC_LONG + SINGLE_SPACE_STRING + Sermons
+    static let CBC_SHORT_TITLE = CBC_SHORT + SINGLE_SPACE_STRING + Sermons
     
-    static let EMAIL_SUBJECT = Constants.CBC_LONG
+    static let EMAIL_SUBJECT = CBC_LONG
     static let SERMON_EMAIL_SUBJECT = "Recommendation"
-    static let SERIES_EMAIL_SUBJECT = Constants.SERMON_EMAIL_SUBJECT
+    static let SERIES_EMAIL_SUBJECT = SERMON_EMAIL_SUBJECT
     
     static let CBC_EMAIL = "cbcstaff@countrysidebible.org"
     static let CBC_WEBSITE = "http://www.countrysidebible.org"
     static let CBC_STREET_ADDRESS = "250 Countryside Court"
     static let CBC_CITY_STATE_ZIPCODE_COUNTRY = "Southlake, TX 76092, USA"
     static let CBC_PHONE_NUMBER = "(817) 488-5381"
-    static let CBC_FULL_ADDRESS = Constants.CBC_STREET_ADDRESS + ", " + Constants.CBC_CITY_STATE_ZIPCODE_COUNTRY
+    static let CBC_FULL_ADDRESS = CBC_STREET_ADDRESS + ", " + CBC_CITY_STATE_ZIPCODE_COUNTRY
     
     static let CBC_TITLE_POSTFIX = " Sermons"
     
-    static let CBC_TITLE_SHORT = Constants.CBC_SHORT + Constants.CBC_TITLE_POSTFIX
-    static let CBC_TITLE_LONG = Constants.CBC_LONG + Constants.CBC_TITLE_POSTFIX
+    static let CBC_TITLE_SHORT = CBC_SHORT + CBC_TITLE_POSTFIX
+    static let CBC_TITLE_LONG = CBC_LONG + CBC_TITLE_POSTFIX
     
     static let Network_Error = "Network Error"
     static let Content_Failed_to_Load = "Content Failed to Load"
@@ -138,6 +144,8 @@ struct Constants {
     static let SINGLE_SPACE_STRING = " "
     static let SINGLE_UNDERSCORE_STRING = "_"
     
+    static let QUESTION_MARK = "?"
+
     static let FORWARD_SLASH = "/"
     
     static let TAGS_SEPARATOR = "|"
@@ -156,8 +164,8 @@ struct Constants {
     
     static let Options = "Options"
     
-    static let Sorting_Options =  Constants.Sorting + Constants.SINGLE_SPACE_STRING + Constants.Options
-    static let Grouping_Options = Constants.Grouping + Constants.SINGLE_SPACE_STRING + Constants.Options
+    static let Sorting_Options =  Sorting + SINGLE_SPACE_STRING + Options
+    static let Grouping_Options = Grouping + SINGLE_SPACE_STRING + Options
     
     static let DEFAULTS_VERSION_KEY = "Defaults Version"
     static let DEFAULTS_VERSION = "2.0"
@@ -226,17 +234,44 @@ struct Constants {
     static let FA_TAG = "\u{f02b}"
     static let FA_TAGS = "\u{f02c}"
     
-    static let Download_Audio = "Download Audio"
-    static let Download_All_Audio = "Download All Audio"
-    static let Cancel_All_Downloads = "Cancel All Downloads"
-    static let Delete_All_Downloads = "Delete All Downloads"
+    static let Actions = "Actions"
     
-    static let Cancel_Audio_Download = "Cancel Audio Download?"
-    static let Delete_Audio_Download = "Delete Downloaded Audio?"
+    static let Download = "Download"
+    static let Downloaded = Download + "ed"
+    static let Downloads = Download + "s"
+    
+    static let Audio = "Audio"
+    static let Video = "Video"
+    
+    static let Download_Audio = Download + SINGLE_SPACE_STRING + Audio
+    static let Download_Video = Download + SINGLE_SPACE_STRING + Video
 
-    static let FA_SLIDES_SEGMENT_TITLE = Constants.FA_SLIDES
-    static let FA_TRANSCRIPT_SEGMENT_TITLE = Constants.FA_TRANSCRIPT
-    static let FA_VIDEO_SEGMENT_TITLE = Constants.FA_VIDEO
+    static let Download_All = Download  + SINGLE_SPACE_STRING + All
+    
+    static let Download_All_Audio = Download_All + SINGLE_SPACE_STRING + Audio
+    static let Download_All_Video = Download_All + SINGLE_SPACE_STRING + Video
+    
+    static let Cancel_All = Cancel + SINGLE_SPACE_STRING + All
+    static let Delete_All = Delete + SINGLE_SPACE_STRING + All
+    
+    static let Cancel_All_Downloads = Cancel_All + SINGLE_SPACE_STRING + Downloads
+    static let Delete_All_Downloads = Delete_All + SINGLE_SPACE_STRING + Downloads
+    
+    static let Cancel_Audio_Download = Cancel + SINGLE_SPACE_STRING + Audio + SINGLE_SPACE_STRING + Download // + QUESTION_MARK
+    static let Delete_Audio_Download = Delete + SINGLE_SPACE_STRING + Audio + SINGLE_SPACE_STRING + Download // + QUESTION_MARK
+    
+    static let Cancel_Video_Download = Cancel + SINGLE_SPACE_STRING + Video + SINGLE_SPACE_STRING + Download // + QUESTION_MARK
+    static let Delete_Video_Download = Delete + SINGLE_SPACE_STRING + Video + SINGLE_SPACE_STRING + Download // + QUESTION_MARK
+    
+    static let Favorites = "Favorites"
+    static let Add_to_Favorites = "Add to Favorites"
+    static let Remove_From_Favorites = "Remove From Favorites"
+    static let Add_All_to_Favorites = "Add All to Favorites"
+    static let Remove_All_From_Favorites = "Remove All From Favorites"
+
+    static let FA_SLIDES_SEGMENT_TITLE = FA_SLIDES
+    static let FA_TRANSCRIPT_SEGMENT_TITLE = FA_TRANSCRIPT
+    static let FA_VIDEO_SEGMENT_TITLE = FA_VIDEO
     
     static let CHECK_FILE_SLEEP_INTERVAL = 0.01
     static let CHECK_FILE_MAX_ITERATIONS = 200
@@ -244,7 +279,8 @@ struct Constants {
     static let BASE_AUDIO_URL = "http://sitedata.countrysidebible.org/avmedia/se/"
     static let BASE_PDF_URL = "http://sitedata.countrysidebible.org/avmedia/dc/"
     static let BASE_VIDEO_URL_PREFIX = "https://player.vimeo.com/external/"
-    static let BASE_VIDEO_URL_POSTFIX = "&profile_id=113"
+    static let BASE_HD_VIDEO_URL_POSTFIX = "&profile_id=113"
+    static let BASE_SD_VIDEO_URL_POSTFIX = "&profile_id=165"
     
     static let BASE_DOWNLOAD_URL:String = "http://sitedata.countrysidebible.org/avmedia/se/download.php?file="
     
@@ -256,10 +292,10 @@ struct Constants {
     
     static let New = "New"
     static let All = "All"
-    static let Downloaded = "Downloaded"
     static let None = "None"
     static let Okay = "OK"
     static let Cancel = "Cancel"
+    static let Delete = "Delete"
     static let About = "About"
     static let Current_Selection = "Current Selection"
     static let Tags = "Tags"
@@ -271,6 +307,10 @@ struct Constants {
     
     static let Show_Settings = "Show Settings"
     static let Settings = "Settings"
+    
+    static let HISTORY = "HISTORY"
+    static let History = "History"
+    static let Clear_History = "Clear History"
     
     static let Scripture_Index = "Scripture Index"
     static let Show_Scripture_Index = "Show Scripture Index"
@@ -303,8 +343,8 @@ struct Constants {
     
     static let TMP_FILENAME_EXTENSION = ".tmp"
  
-    static let sortings = [Constants.CHRONOLOGICAL, Constants.REVERSE_CHRONOLOGICAL]
-    static let groupings = [Constants.YEAR, Constants.SERIES, Constants.BOOK, Constants.SPEAKER]
+    static let sortings = [CHRONOLOGICAL, REVERSE_CHRONOLOGICAL]
+    static let groupings = [YEAR, SERIES, BOOK, SPEAKER]
 
     static let Old_Testament = "Old Testament"
     static let New_Testament = "New Testament"
