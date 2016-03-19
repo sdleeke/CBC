@@ -161,7 +161,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         wkWebView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
         webView.addSubview(wkWebView!)
 
-//        webView.bringSubviewToFront(wkWebView!)
+        webView.bringSubviewToFront(wkWebView!)
         
         let centerX = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.CenterX, relatedBy: NSLayoutRelation.Equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.CenterX, multiplier: 1.0, constant: 0.0)
         wkWebView?.superview?.addConstraint(centerX)
