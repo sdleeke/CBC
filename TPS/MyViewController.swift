@@ -59,7 +59,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     var sermonsInSeries:[Sermon]?
 
-    var loadTimer:NSTimer?
+    var notesLoadTimer:NSTimer?
+    var slidesLoadTimer:NSTimer?
     
     @IBOutlet weak var progressIndicator: UIProgressView!
 
@@ -1137,6 +1138,16 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 mailSermonSeries(sermonsInSeries)
                 break
                 
+            case Constants.Check_for_Update:
+                if selectedSermon!.showingSlides() {
+                    selectedSermon!.slidesDownload?.deleteDownload()
+                }
+                if selectedSermon!.showingNotes() {
+                    selectedSermon!.notesDownload?.deleteDownload()
+                }
+                setupNotesSlidesVideo()
+                break
+                
             default:
                 break
             }
@@ -1227,6 +1238,12 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 }
                 
                 if (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) || (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) {
+                    if Globals.cacheDownloads {
+                        actionMenu.append(Constants.Check_for_Update)
+                    }
+                }
+                
+                if (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) || (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) {
                     actionMenu.append(Constants.Open_in_Browser)
                 }
                 
@@ -1257,24 +1274,50 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                         }
                     }
                     
-                    if (sermonsToDownload > 0) {
-                        switch sermonsToDownload {
-                        case 1:
+                    if (selectedSermon?.audioDownload != nil) {
+                        switch selectedSermon!.audioDownload!.state {
+                        case .none:
                             actionMenu.append(Constants.Download_Audio)
                             break
                             
-                        default:
-                            actionMenu.append(Constants.Download_All_Audio)
+                        case .downloading:
+                            actionMenu.append(Constants.Cancel_Audio_Download)
+                            break
+                            
+                        case .downloaded:
+                            actionMenu.append(Constants.Delete_Audio_Download)
                             break
                         }
                     }
                     
-                    if (sermonsDownloading > 0) {
-                        actionMenu.append(Constants.Cancel_All_Downloads)
+                    if (selectedSermon?.audioDownload?.state == .none) {
+                        if (sermonsToDownload > 1) {
+                            actionMenu.append(Constants.Download_All_Audio)
+                        }
+                    } else {
+                        if (sermonsToDownload > 0) {
+                            actionMenu.append(Constants.Download_All_Audio)
+                        }
                     }
                     
-                    if (sermonsDownloaded > 0) {
-                        actionMenu.append(Constants.Delete_All_Downloads)
+                    if (selectedSermon?.audioDownload?.state == .downloading) {
+                        if (sermonsDownloading > 1) {
+                            actionMenu.append(Constants.Cancel_All_Audio_Downloads)
+                        }
+                    } else {
+                        if (sermonsDownloading > 0) {
+                            actionMenu.append(Constants.Cancel_All_Audio_Downloads)
+                        }
+                    }
+                    
+                    if (selectedSermon?.audioDownload?.state == .downloaded) {
+                        if (sermonsDownloaded > 1) {
+                            actionMenu.append(Constants.Delete_All_Audio_Downloads)
+                        }
+                    } else {
+                        if (sermonsDownloaded > 0) {
+                            actionMenu.append(Constants.Delete_All_Audio_Downloads)
+                        }
                     }
                 }
                 
@@ -1860,6 +1903,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         // Do any additional setup after loading the view.
         super.viewDidLoad()
         
+        navigationController?.setToolbarHidden(true, animated: false)
+        
         if (splitViewController != nil) {
             NSNotificationCenter.defaultCenter().addObserver(self, selector: "updateView", name: Constants.UPDATE_VIEW_NOTIFICATION, object: nil)
             NSNotificationCenter.defaultCenter().addObserver(self, selector: "clearView", name: Constants.CLEAR_VIEW_NOTIFICATION, object: nil)
@@ -2015,29 +2060,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
     }
     
-    func downloading()
+    func downloadingNotes()
     {
         if (selectedSermon != nil) {
             var download:Download?
             var webView:WKWebView?
             
-            switch selectedSermon!.showing! {
-            case Constants.SLIDES:
-                print("slides")
-                download = selectedSermon?.slidesDownload
-                webView = sermonSlidesWebView
-                break
-                
-            case Constants.NOTES:
-                print("notes")
-                download = selectedSermon?.notesDownload
-                webView = sermonNotesWebView
-                break
-                
-            default:
-                break
-            }
-            
+            download = selectedSermon?.notesDownload
+            webView = sermonNotesWebView
+
             if (download != nil) {
                 print("totalBytesWritten: \(download!.totalBytesWritten)")
                 print("totalBytesExpectedToWrite: \(download!.totalBytesExpectedToWrite)")
@@ -2047,10 +2078,16 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     print(".none")
                     download?.task?.cancel()
                     
-                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                        self.loadTimer?.invalidate()
-                        self.loadTimer = nil
+                    self.notesLoadTimer?.invalidate()
+                    self.notesLoadTimer = nil
+                    
+                    switch self.selectedSermon!.showing! {
+                    case Constants.SLIDES:
+                        print("slides")
+                        break
                         
+                    case Constants.NOTES:
+                        print("notes")
                         self.activityIndicator.stopAnimating()
                         self.activityIndicator.hidden = true
                         
@@ -2058,16 +2095,38 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                         
                         self.sermonNotesWebView?.hidden = true
                         self.sermonSlidesWebView?.hidden = true
+                        
                         Globals.mpPlayer?.view.hidden = true
                         
                         self.logo.hidden = false
                         self.sermonNotesAndSlides.bringSubviewToFront(self.logo)
-                    })
+                        break
+                        
+                    default:
+                        break
+                    }
+
+//                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+//                    })
                     break
+                    
                 case .downloading:
                     print(".downloading")
-                    progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
+                    switch selectedSermon!.showing! {
+                    case Constants.SLIDES:
+                        print("slides")
+                        break
+                        
+                    case Constants.NOTES:
+                        print("notes")
+                        progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
+                        break
+                        
+                    default:
+                        break
+                    }
                     break
+                    
                 case .downloaded:
                     print(".downloaded")
                     if #available(iOS 9.0, *) {
@@ -2075,13 +2134,26 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                             webView?.loadFileURL(download!.fileSystemURL!, allowingReadAccessToURL: download!.fileSystemURL!)
                             
                             dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                self.loadTimer?.invalidate()
-                                self.loadTimer = nil
-                                
-                                self.activityIndicator.stopAnimating()
-                                self.activityIndicator.hidden = true
-                                
-                                self.progressIndicator.hidden = true
+                                switch self.selectedSermon!.showing! {
+                                case Constants.SLIDES:
+                                    print("slides")
+                                    break
+                                    
+                                case Constants.NOTES:
+                                    print("notes")
+//                                    self.activityIndicator.stopAnimating()
+//                                    self.activityIndicator.hidden = true
+                                    
+                                    self.progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
+//                                    self.progressIndicator.hidden = true
+                                    break
+                                    
+                                default:
+                                    break
+                                }
+
+                                self.notesLoadTimer?.invalidate()
+                                self.notesLoadTimer = nil
                             })
                         })
                     } else {
@@ -2090,149 +2162,146 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     break
                 }
             }
-            
-//            print("slides")
-//            if let download = selectedSermon?.slidesDownload {
-////                print("totalBytesWritten: \(download.totalBytesWritten)")
-////                print("totalBytesExpectedToWrite: \(download.totalBytesExpectedToWrite)")
-//                
-//                switch download.state {
-//                case .downloading:
-//                    if (selectedSermon?.showing == Constants.SLIDES) {
-//                        progressIndicator.progress = download.totalBytesExpectedToWrite > 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
-//                    }
-//                    break
-//                    
-//                case .downloaded:
-//                    if #available(iOS 9.0, *) {
-//                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                            self.sermonSlidesWebView?.loadFileURL(self.selectedSermon!.slidesFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.slidesFileSystemURL!)
-//
-//                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                                if (self.selectedSermon?.showing == Constants.SLIDES) {
-//                                    self.loadTimer?.invalidate()
-//                                    self.loadTimer = nil
-//                                    
-//                                    self.activityIndicator.stopAnimating()
-//                                    self.activityIndicator.hidden = true
-//                                    
-//                                    self.progressIndicator.hidden = true
-//                                }
-//                            })
-//                        })
-//                    } else {
-//                        // Fallback on earlier versions
-//                    }
-//                    break
-//                    
-//                case .none:
-//                    NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: selectedSermon)
-//                    download.task?.cancel()
-//                    
-//                    if (selectedSermon?.showing == Constants.SLIDES) {
-//                        loadTimer?.invalidate()
-//                        loadTimer = nil
-//                        
-//                        activityIndicator.stopAnimating()
-//                        activityIndicator.hidden = true
-//                        progressIndicator.hidden = true
-//                        
-//                        sermonNotesWebView?.hidden = true
-//                        sermonSlidesWebView?.hidden = true
-//                        Globals.mpPlayer?.view.hidden = true
-//                        
-//                        logo.hidden = false
-//                        sermonNotesAndSlides.bringSubviewToFront(self.logo)
-//                    }
-//                    break
-//                }
-//            }
-//            
-//            print("notes")
-//            if let download = selectedSermon?.notesDownload {
-////                print("totalBytesWritten: \(download.totalBytesWritten)")
-////                print("totalBytesExpectedToWrite: \(download.totalBytesExpectedToWrite)")
-//                
-//                switch download.state {
-//                case .downloading:
-//                    if (selectedSermon?.showing == Constants.NOTES) {
-//                        progressIndicator.progress = download.totalBytesExpectedToWrite > 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
-//                    }
-//                    break
-//                    
-//                case .downloaded:
-//                    if #available(iOS 9.0, *) {
-//                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                            self.sermonNotesWebView?.loadFileURL(self.selectedSermon!.notesFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.notesFileSystemURL!)
-//                            
-//                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                                if (self.selectedSermon?.showing == Constants.NOTES) {
-//                                    self.loadTimer?.invalidate()
-//                                    self.loadTimer = nil
-//                                    
-//                                    self.activityIndicator.stopAnimating()
-//                                    self.activityIndicator.hidden = true
-//                                    
-//                                    self.progressIndicator.hidden = true
-//                                }
-//                            })
-//                        })
-//                    } else {
-//                        // Fallback on earlier versions
-//                    }
-//                    break
-//                    
-//                case .none:
-//                    NSNotificationCenter.defaultCenter().postNotificationName(Constants.SERMON_UPDATE_UI_NOTIFICATION, object: selectedSermon)
-//                    download.task?.cancel()
-//                    
-//                    if (selectedSermon?.showing == Constants.NOTES) {
-//                        loadTimer?.invalidate()
-//                        loadTimer = nil
-//                        
-//                        activityIndicator.stopAnimating()
-//                        activityIndicator.hidden = true
-//                        progressIndicator.hidden = true
-//                        
-//                        sermonNotesWebView?.hidden = true
-//                        sermonSlidesWebView?.hidden = true
-//                        Globals.mpPlayer?.view.hidden = true
-//                        
-//                        logo.hidden = false
-//                        sermonNotesAndSlides.bringSubviewToFront(self.logo)
-//                    }
-//                    break
-//                }
-//            }
-        } else {
-            loadTimer?.invalidate()
-            loadTimer = nil
         }
-        
-        // This is all trying to catch download failures, but I'm afraid it is generating false positives.
-        //
-        //        if (download?.state != .downloading) && (download?.state != .downloaded) {
-        //            downloadFailed()
-        //
-        //            download?.task?.cancel()
-        //
-        //            loadTimer?.invalidate()
-        //            loadTimer = nil
-        //
-        //            activityIndicator.stopAnimating()
-        //            activityIndicator.hidden = true
-        //            progressIndicator.hidden = true
-        //
-        //            sermonNotesWebView?.hidden = true
-        //            sermonSlidesWebView?.hidden = true
-        //            Globals.mpPlayer?.view.hidden = true
-        //            
-        //            logo.hidden = false
-        //            sermonNotesAndSlides.bringSubviewToFront(self.logo)
-        //        }
     }
+    
+    func downloadingSlides()
+    {
+        if (selectedSermon != nil) {
+            var download:Download?
+            var webView:WKWebView?
+            
+            download = selectedSermon?.slidesDownload
+            webView = sermonSlidesWebView
 
-    func loading()
+            if (download != nil) {
+                print("totalBytesWritten: \(download!.totalBytesWritten)")
+                print("totalBytesExpectedToWrite: \(download!.totalBytesExpectedToWrite)")
+                
+                switch download!.state {
+                case .none:
+                    print(".none")
+                    download?.task?.cancel()
+
+                    self.slidesLoadTimer?.invalidate()
+                    self.slidesLoadTimer = nil
+
+                    switch self.selectedSermon!.showing! {
+                    case Constants.SLIDES:
+                        print("slides")
+                        self.activityIndicator.stopAnimating()
+                        self.activityIndicator.hidden = true
+                        
+                        self.progressIndicator.hidden = true
+                        
+                        self.sermonNotesWebView?.hidden = true
+                        self.sermonSlidesWebView?.hidden = true
+                        
+                        Globals.mpPlayer?.view.hidden = true
+                        
+                        self.logo.hidden = false
+                        self.sermonNotesAndSlides.bringSubviewToFront(self.logo)
+                        break
+                        
+                    case Constants.NOTES:
+                        print("notes")
+                        break
+                        
+                    default:
+                        break
+                    }
+
+//                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+//                    })
+                    break
+                    
+                case .downloading:
+                    print(".downloading")
+                    switch selectedSermon!.showing! {
+                    case Constants.SLIDES:
+                        print("slides")
+                        progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
+                        break
+                        
+                    case Constants.NOTES:
+                        print("notes")
+                        break
+                        
+                    default:
+                        break
+                    }
+                    break
+                    
+                case .downloaded:
+                    print(".downloaded")
+                    if #available(iOS 9.0, *) {
+                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
+                            webView?.loadFileURL(download!.fileSystemURL!, allowingReadAccessToURL: download!.fileSystemURL!)
+                            
+                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                                switch self.selectedSermon!.showing! {
+                                case Constants.SLIDES:
+                                    print("slides")
+
+//                                    self.activityIndicator.stopAnimating()
+//                                    self.activityIndicator.hidden = true
+                                    
+                                    self.progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
+//                                    self.progressIndicator.hidden = true
+                                    break
+                                    
+                                case Constants.NOTES:
+                                    print("notes")
+                                    break
+                                    
+                                default:
+                                    break
+                                }
+                                
+                                self.slidesLoadTimer?.invalidate()
+                                self.slidesLoadTimer = nil
+                            })
+                        })
+                    } else {
+                        // Fallback on earlier versions
+                    }
+                    break
+                }
+            }
+        }
+    }
+    
+    func loadingNotes()
+    {
+        // Expected to be on the main thread
+        
+        if selectedSermon != nil {
+            switch selectedSermon!.showing! {
+            case Constants.SLIDES:
+                break
+                
+            case Constants.NOTES:
+                if (sermonNotesWebView != nil) {
+                    progressIndicator.progress = Float(sermonNotesWebView!.estimatedProgress)
+                    
+                    if progressIndicator.progress == 1 {
+                        progressIndicator.hidden = true
+                    }
+                }
+                break
+                
+            default:
+                break
+            }
+        }
+
+        if (sermonNotesWebView != nil) && !sermonNotesWebView!.loading {
+            notesLoadTimer?.invalidate()
+            notesLoadTimer = nil
+        }
+    }
+    
+    func loadingSlides()
     {
         // Expected to be on the main thread
         
@@ -2241,13 +2310,14 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             case Constants.SLIDES:
                 if (sermonSlidesWebView != nil) {
                     progressIndicator.progress = Float(sermonSlidesWebView!.estimatedProgress)
+                    
+                    if progressIndicator.progress == 1 {
+                        progressIndicator.hidden = true
+                    }
                 }
                 break
                 
             case Constants.NOTES:
-                if (sermonNotesWebView != nil) {
-                    progressIndicator.progress = Float(sermonNotesWebView!.estimatedProgress)
-                }
                 break
                 
             default:
@@ -2255,10 +2325,9 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             }
         }
         
-        if progressIndicator.progress == 1 {
-            loadTimer?.invalidate()
-            loadTimer = nil
-            progressIndicator.hidden = true
+        if (sermonSlidesWebView != nil) && !sermonSlidesWebView!.loading {
+            slidesLoadTimer?.invalidate()
+            slidesLoadTimer = nil
         }
     }
     
@@ -2294,13 +2363,19 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     if NSUserDefaults.standardUserDefaults().boolForKey(Constants.CACHE_DOWNLOADS) {
                         if (selectedSermon?.notesDownload?.state != .downloaded){
                             //                        if (Reachability.isConnectedToNetwork()) {
-                            activityIndicator.hidden = false
-                            activityIndicator.startAnimating()
+                            if (self.selectedSermon?.showing == Constants.NOTES) {
+                                sermonNotesAndSlides.bringSubviewToFront(activityIndicator)
+                                sermonNotesAndSlides.bringSubviewToFront(progressIndicator)
+                                
+                                activityIndicator.hidden = false
+                                activityIndicator.startAnimating()
+                                
+                                progressIndicator.progress = selectedSermon!.notesDownload!.totalBytesExpectedToWrite != 0 ? Float(selectedSermon!.notesDownload!.totalBytesWritten) / Float(selectedSermon!.notesDownload!.totalBytesExpectedToWrite) : 0.0
+                                progressIndicator.hidden = false
+                            }
                             
-                            progressIndicator.progress = selectedSermon!.notesDownload!.totalBytesExpectedToWrite != 0 ? Float(selectedSermon!.notesDownload!.totalBytesWritten) / Float(selectedSermon!.notesDownload!.totalBytesExpectedToWrite) : 0.0
-                            progressIndicator.hidden = false
-                            if loadTimer == nil {
-                                loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "downloading", userInfo: nil, repeats: true)
+                            if notesLoadTimer == nil {
+                                notesLoadTimer = NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "downloadingNotes", userInfo: nil, repeats: true)
                             }
                             
                             selectedSermon?.notesDownload?.download()
@@ -2314,13 +2389,14 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                                 
                                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
                                     if (self.selectedSermon?.showing == Constants.NOTES) {
-                                        self.loadTimer?.invalidate()
-                                        self.loadTimer = nil
                                         self.activityIndicator.stopAnimating()
                                         self.activityIndicator.hidden = true
+                                        
                                         self.progressIndicator.progress = 0.0
                                         self.progressIndicator.hidden = true
                                     }
+                                    self.notesLoadTimer?.invalidate()
+                                    self.notesLoadTimer = nil
                                 })
                             })
                         }
@@ -2329,12 +2405,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                         
                         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
                             dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                self.activityIndicator.hidden = false
-                                self.activityIndicator.startAnimating()
+                                if (self.selectedSermon?.showing == Constants.NOTES) {
+                                    self.activityIndicator.hidden = false
+                                    self.activityIndicator.startAnimating()
+                                    
+                                    self.progressIndicator.hidden = false
+                                }
                                 
-                                self.progressIndicator.hidden = false
-                                if self.loadTimer == nil {
-                                    self.loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loading", userInfo: nil, repeats: true)
+                                if self.notesLoadTimer == nil {
+                                    self.notesLoadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loadingNotes", userInfo: nil, repeats: true)
                                 }
                             })
                             
@@ -2349,12 +2428,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     //                    if (Reachability.isConnectedToNetwork()) {
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
                         dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                            self.activityIndicator.hidden = false
-                            self.activityIndicator.startAnimating()
+                            if (self.selectedSermon?.showing == Constants.NOTES) {
+                                self.activityIndicator.hidden = false
+                                self.activityIndicator.startAnimating()
+                                
+                                self.progressIndicator.hidden = false
+                            }
                             
-                            self.progressIndicator.hidden = false
-                            if self.loadTimer == nil {
-                                self.loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loading", userInfo: nil, repeats: true)
+                            if self.notesLoadTimer == nil {
+                                self.notesLoadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loadingNotes", userInfo: nil, repeats: true)
                             }
                         })
                         
@@ -2400,13 +2482,19 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     if NSUserDefaults.standardUserDefaults().boolForKey(Constants.CACHE_DOWNLOADS) {
                         if (selectedSermon?.slidesDownload?.state != .downloaded){
                             //                        if (Reachability.isConnectedToNetwork()) {
-                            activityIndicator.hidden = false
-                            activityIndicator.startAnimating()
+                            if (self.selectedSermon?.showing == Constants.SLIDES) {
+                                sermonNotesAndSlides.bringSubviewToFront(activityIndicator)
+                                sermonNotesAndSlides.bringSubviewToFront(progressIndicator)
+                                
+                                activityIndicator.hidden = false
+                                activityIndicator.startAnimating()
+                                
+                                progressIndicator.progress = selectedSermon!.slidesDownload!.totalBytesExpectedToWrite != 0 ? Float(selectedSermon!.slidesDownload!.totalBytesWritten) / Float(selectedSermon!.slidesDownload!.totalBytesExpectedToWrite) : 0.0
+                                progressIndicator.hidden = false
+                            }
                             
-                            progressIndicator.progress = selectedSermon!.slidesDownload!.totalBytesExpectedToWrite != 0 ? Float(selectedSermon!.slidesDownload!.totalBytesWritten) / Float(selectedSermon!.slidesDownload!.totalBytesExpectedToWrite) : 0.0
-                            progressIndicator.hidden = false
-                            if loadTimer == nil {
-                                loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "downloading", userInfo: nil, repeats: true)
+                            if slidesLoadTimer == nil {
+                                slidesLoadTimer = NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "downloadingSlides", userInfo: nil, repeats: true)
                             }
                             
                             selectedSermon?.slidesDownload?.download()
@@ -2418,14 +2506,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                                 self.sermonSlidesWebView?.loadFileURL(self.selectedSermon!.slidesFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.slidesFileSystemURL!)
                                 
                                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                    if (self.selectedSermon?.showing == Constants.NOTES) {
-                                        self.loadTimer?.invalidate()
-                                        self.loadTimer = nil
+                                    if (self.selectedSermon?.showing == Constants.SLIDES) {
                                         self.activityIndicator.stopAnimating()
                                         self.activityIndicator.hidden = true
+                                        
                                         self.progressIndicator.progress = 0.0
                                         self.progressIndicator.hidden = true
                                     }
+                                    self.slidesLoadTimer?.invalidate()
+                                    self.slidesLoadTimer = nil
                                 })
                             })
                         }
@@ -2433,12 +2522,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                         //                    if (Reachability.isConnectedToNetwork()) {
                         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
                             dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                self.activityIndicator.hidden = false
-                                self.activityIndicator.startAnimating()
+                                if (self.selectedSermon?.showing == Constants.SLIDES) {
+                                    self.activityIndicator.hidden = false
+                                    self.activityIndicator.startAnimating()
                                 
-                                self.progressIndicator.hidden = false
-                                if self.loadTimer == nil {
-                                    self.loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loading", userInfo: nil, repeats: true)
+                                    self.progressIndicator.hidden = false
+                                }
+                                
+                                if self.slidesLoadTimer == nil {
+                                    self.slidesLoadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loadingSlides", userInfo: nil, repeats: true)
                                 }
                             })
                             
@@ -2453,12 +2545,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     //                    if (Reachability.isConnectedToNetwork()) {
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
                         dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                            self.activityIndicator.hidden = false
-                            self.activityIndicator.startAnimating()
+                            if (self.selectedSermon?.showing == Constants.SLIDES) {
+                                self.activityIndicator.hidden = false
+                                self.activityIndicator.startAnimating()
+                                
+                                self.progressIndicator.hidden = false
+                            }
                             
-                            self.progressIndicator.hidden = false
-                            if self.loadTimer == nil {
-                                self.loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loading", userInfo: nil, repeats: true)
+                            if self.slidesLoadTimer == nil {
+                                self.slidesLoadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loadingSlides", userInfo: nil, repeats: true)
                             }
                         })
                         
@@ -2528,7 +2623,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 logo.hidden = true
                 
 //                self.sermonNotesWebView?.hidden = false // This happens after they load.  But not if they come out of the cache I think.
-                selectedSermon!.showing = Constants.NOTES
+//                selectedSermon!.showing = Constants.NOTES
+                
                 sermonNotesAndSlides.bringSubviewToFront(sermonNotesWebView!)
                 break
                 
@@ -2538,7 +2634,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 logo.hidden = true
                 
 //                sermonSlidesWebView?.hidden = false // This happens after they load.  But not if they come out of the cache I think.
-                selectedSermon?.showing = Constants.SLIDES
+//                selectedSermon?.showing = Constants.SLIDES
+                
                 sermonNotesAndSlides.bringSubviewToFront(sermonSlidesWebView!)
                 break
                 
@@ -2627,7 +2724,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
         setupSTVControl()
     }
-    
     
     func scrollToSermon(sermon:Sermon?,select:Bool,position:UITableViewScrollPosition)
     {
@@ -4174,8 +4270,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                             self.activityIndicator.stopAnimating()
                             self.activityIndicator.hidden = true
                             
-                            self.loadTimer?.invalidate()
-                            self.loadTimer = nil
                             self.progressIndicator.hidden = true
                             
                             self.setupSTVControl()
@@ -4189,6 +4283,10 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                             webView.hidden = true
                         })
                     }
+                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        self.notesLoadTimer?.invalidate()
+                        self.notesLoadTimer = nil
+                    })
                     setNotesContentOffsetAndZoomScale()
                 }
                 if (webView == sermonSlidesWebView) {
@@ -4198,8 +4296,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                             self.activityIndicator.stopAnimating()
                             self.activityIndicator.hidden = true
                             
-                            self.loadTimer?.invalidate()
-                            self.loadTimer = nil
                             self.progressIndicator.hidden = true
                             
                             self.setupSTVControl()
@@ -4213,6 +4309,10 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                             webView.hidden = true
                         })
                     }
+                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        self.slidesLoadTimer?.invalidate()
+                        self.slidesLoadTimer = nil
+                    })
                     setSlidesContentOffsetAndZoomScale()
                 }
             }

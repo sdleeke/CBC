@@ -60,6 +60,26 @@ struct Globals {
         }
     }
     
+    static var autoAdvance:Bool {
+        get {
+        return NSUserDefaults.standardUserDefaults().boolForKey(Constants.AUTO_ADVANCE)
+        }
+        set {
+            NSUserDefaults.standardUserDefaults().setBool(newValue, forKey: Constants.AUTO_ADVANCE)
+            NSUserDefaults.standardUserDefaults().synchronize()
+        }
+    }
+    
+    static var cacheDownloads:Bool {
+        get {
+        return NSUserDefaults.standardUserDefaults().boolForKey(Constants.CACHE_DOWNLOADS)
+        }
+        set {
+            NSUserDefaults.standardUserDefaults().setBool(newValue, forKey: Constants.CACHE_DOWNLOADS)
+            NSUserDefaults.standardUserDefaults().synchronize()
+        }
+    }
+    
     static var refreshing:Bool = false
     static var loading:Bool = false
     

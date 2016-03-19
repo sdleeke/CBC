@@ -506,7 +506,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         filename = identifier.substringFromIndex(Constants.DOWNLOAD_IDENTIFIER.endIndex)
         
         for sermon in Globals.sermonRepository.list! {
-            if let download = sermon.downloads.filter({ (key:String, value:Download) -> Bool in
+            if let download = sermon.downloads?.filter({ (key:String, value:Download) -> Bool in
                 //                print("handleEventsForBackgroundURLSession: \(filename) \(key)")
                 return value.task?.taskDescription == filename
             }).first?.1 {

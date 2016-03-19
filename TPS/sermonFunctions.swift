@@ -164,8 +164,8 @@ func cacheSize(contents:String) -> Int64
     var totalFileSize:Int64 = 0
     
     for sermon in Globals.sermonRepository.list! {
-        if sermon.downloads[contents] != nil {
-            totalFileSize += sermon.downloads[contents]!.fileSize
+        if sermon.downloads?[contents]?.state == .downloaded {
+            totalFileSize += sermon.downloads![contents]!.fileSize
         }
     }
     
@@ -446,15 +446,17 @@ func cancelAllDownloads()
 {
     if (Globals.sermonRepository.list != nil) {
         for sermon in Globals.sermonRepository.list! {
-            for download in sermon.downloads.values {
-                if download.active {
-                    download.task?.cancel()
-                    download.task = nil
-                    
-                    download.totalBytesWritten = 0
-                    download.totalBytesExpectedToWrite = 0
-                    
-                    download.state = .none
+            if (sermon.downloads != nil) {
+                for download in sermon.downloads!.values {
+                    if download.active {
+                        download.task?.cancel()
+                        download.task = nil
+                        
+                        download.totalBytesWritten = 0
+                        download.totalBytesExpectedToWrite = 0
+                        
+                        download.state = .none
+                    }
                 }
             }
         }

@@ -239,13 +239,14 @@ struct Constants {
     static let Download = "Download"
     static let Downloaded = Download + "ed"
     static let Downloads = Download + "s"
+    static let Downloading = Download + "ing"
     
     static let Audio = "Audio"
     static let Video = "Video"
     
     static let Download_Audio = Download + SINGLE_SPACE_STRING + Audio
     static let Download_Video = Download + SINGLE_SPACE_STRING + Video
-
+    
     static let Download_All = Download  + SINGLE_SPACE_STRING + All
     
     static let Download_All_Audio = Download_All + SINGLE_SPACE_STRING + Audio
@@ -256,6 +257,9 @@ struct Constants {
     
     static let Cancel_All_Downloads = Cancel_All + SINGLE_SPACE_STRING + Downloads
     static let Delete_All_Downloads = Delete_All + SINGLE_SPACE_STRING + Downloads
+    
+    static let Cancel_All_Audio_Downloads = Cancel_All + SINGLE_SPACE_STRING + Audio + SINGLE_SPACE_STRING + Downloads
+    static let Delete_All_Audio_Downloads = Delete_All + SINGLE_SPACE_STRING + Audio + SINGLE_SPACE_STRING + Downloads
     
     static let Cancel_Audio_Download = Cancel + SINGLE_SPACE_STRING + Audio + SINGLE_SPACE_STRING + Download // + QUESTION_MARK
     static let Delete_Audio_Download = Delete + SINGLE_SPACE_STRING + Audio + SINGLE_SPACE_STRING + Download // + QUESTION_MARK
@@ -326,6 +330,8 @@ struct Constants {
     
     static let Email_Sermon = "E-mail Sermon"
     static let Email_Series = "E-mail Series"
+    
+    static let Check_for_Update = "Check for Update"
     
     static let Share_on_Facebook = "Share on Facebook"
     static let Share_on_Twitter = "Share on Twitter"

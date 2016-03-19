@@ -512,7 +512,7 @@ class Download {
                 let fileAttributes = try NSFileManager.defaultManager().attributesOfItemAtPath(fileSystemURL!.path!)
                 size = fileAttributes[NSFileSize] as! Int
             } catch _ {
-                print("failed to get file attributes")
+                print("failed to get file attributes for \(fileSystemURL!)")
             }
         }
         
@@ -603,7 +603,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         self.dict = dict
     }
     
-    lazy var downloads:[String:Download]! = {
+    lazy var downloads:[String:Download]? = {
         return [String:Download]()
     }()
     
@@ -614,7 +614,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         download.purpose = Constants.AUDIO
         download.url = self.audioURL
         download.fileSystemURL = self.audioFileSystemURL
-        self.downloads[Constants.AUDIO] = download
+        self.downloads?[Constants.AUDIO] = download
         return download
         }()
     
@@ -625,7 +625,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         download.purpose = Constants.VIDEO
         download.url = self.videoURL
         download.fileSystemURL = self.videoFileSystemURL
-        self.downloads[Constants.VIDEO] = download
+        self.downloads?[Constants.VIDEO] = download
         return download
         }()
     
@@ -636,7 +636,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         download.purpose = Constants.SLIDES
         download.url = self.slidesURL
         download.fileSystemURL = self.slidesFileSystemURL
-        self.downloads[Constants.SLIDES] = download
+        self.downloads?[Constants.SLIDES] = download
         return download
         }()
     
@@ -647,7 +647,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         download.purpose = Constants.NOTES
         download.url = self.notesURL
         download.fileSystemURL = self.notesFileSystemURL
-        self.downloads[Constants.NOTES] = download
+        self.downloads?[Constants.NOTES] = download
         return download
         }()
 
@@ -1527,17 +1527,18 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
 //        print("URLSession: \(session.description) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
         
 //        let filename = downloadTask.taskDescription!
-        
-        for key in downloads.keys {
-            if (downloads[key]?.task == downloadTask) {
-                if (downloads[key]?.state == .downloading) {
-//                    print("Downloading: \(filename) \(key)")
+        if downloads != nil {
+            for key in downloads!.keys {
+                if (downloads?[key]?.task == downloadTask) {
+                    if (downloads?[key]?.state == .downloading) {
+                        //                    print("Downloading: \(filename) \(key)")
+                        
+                        downloads?[key]?.totalBytesWritten = totalBytesWritten
+                        downloads?[key]?.totalBytesExpectedToWrite = totalBytesExpectedToWrite
+                    }
                     
-                    downloads[key]?.totalBytesWritten = totalBytesWritten
-                    downloads[key]?.totalBytesExpectedToWrite = totalBytesExpectedToWrite
+                    break
                 }
-                
-                break
             }
         }
         
@@ -1551,11 +1552,13 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         var download:Download?
         
-        for key in downloads.keys {
-            if (downloads[key]?.task == downloadTask) {
-                download = downloads[key]
-//                print("Finished Downloading: \(key)")
-                break
+        if downloads != nil {
+            for key in downloads!.keys {
+                if (downloads?[key]?.task == downloadTask) {
+                    download = downloads?[key]
+                    //                print("Finished Downloading: \(key)")
+                    break
+                }
             }
         }
         
@@ -1612,11 +1615,13 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
         var download:Download?
         
-        for key in downloads.keys {
-            if (downloads[key]?.session == session) {
-                download = downloads[key]
-                print("Session didComplete: \(key)")
-                break
+        if downloads != nil {
+            for key in downloads!.keys {
+                if (downloads?[key]?.session == session) {
+                    download = downloads?[key]
+                    print("Session didComplete: \(key)")
+                    break
+                }
             }
         }
         
@@ -1643,11 +1648,13 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     func URLSession(session: NSURLSession, didBecomeInvalidWithError error: NSError?) {
         var download:Download?
         
-        for key in downloads.keys {
-            if (downloads[key]?.session == session) {
-                download = downloads[key]
-                print("Session didBecomeInvalidWithError: \(key) \(error?.localizedDescription)")
-                break
+        if downloads != nil {
+            for key in downloads!.keys {
+                if (downloads?[key]?.session == session) {
+                    download = downloads?[key]
+                    print("Session didBecomeInvalidWithError: \(key) \(error?.localizedDescription)")
+                    break
+                }
             }
         }
         
@@ -1660,7 +1667,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         filename = session.configuration.identifier!.substringFromIndex(Constants.DOWNLOAD_IDENTIFIER.endIndex)
         
-        if let download = downloads.filter({ (key:String, value:Download) -> Bool in
+        if let download = downloads?.filter({ (key:String, value:Download) -> Bool in
             //                print("\(filename) \(key)")
             return value.task?.taskDescription == filename
         }).first?.1 {
