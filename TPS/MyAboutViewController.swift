@@ -10,7 +10,7 @@ import UIKit
 import MapKit
 import MessageUI
 
-class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDelegate, MFMailComposeViewControllerDelegate
+class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDelegate, PopoverTableViewControllerDelegate, MFMailComposeViewControllerDelegate
 {
     override func canBecomeFirstResponder() -> Bool {
         return true //splitViewController == nil
@@ -232,44 +232,118 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
     @IBAction func actions(sender: UIBarButtonItem) {
 //        print("action!")
         
-        // Put up an action sheet
+        //In case we have one already showing
+        dismissViewControllerAnimated(true, completion: nil)
         
-        let alert = UIAlertController(title: Constants.EMPTY_STRING,
-            message: Constants.EMPTY_STRING,
-            preferredStyle: UIAlertControllerStyle.ActionSheet)
-        
-        var action : UIAlertAction
-        
-        action = UIAlertAction(title: "E-mail CBC", style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-            self.email()
-        })
-        alert.addAction(action)
-        
-        action = UIAlertAction(title: "CBC website", style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-            self.openWebSite(Constants.CBC_WEBSITE)
-        })
-        alert.addAction(action)
-        
-        action = UIAlertAction(title: "CBC in Google Maps", style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-            self.openInGoogleMaps()
-        })
-        alert.addAction(action)
-        
-        action = UIAlertAction(title: "CBC in Apple Maps", style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-            self.openInAppleMaps()
-            })
-        alert.addAction(action)
-        
-        action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+        if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .Popover
+                //            popover?.preferredContentSize = CGSizeMake(300, 500)
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .Up
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+                
+                //                popover.navigationItem.title = "Actions"
+                
+                popover.navigationController?.navigationBarHidden = true
+                
+                popover.delegate = self
+                popover.purpose = .selectingAction
+                
+                var actionMenu = [String]()
+                
+                actionMenu.append(Constants.Email_CBC)
+                actionMenu.append(Constants.CBC_in_Apple_Maps)
+                actionMenu.append(Constants.CBC_in_Google_Maps)
+                
+                popover.strings = actionMenu
+                
+                popover.showIndex = false //(Globals.grouping == .series)
+                popover.showSectionHeaders = false
+                
+                presentViewController(navigationController, animated: true, completion: nil)
+            }
+        }
 
-            })
-        alert.addAction(action)
+        // Put up an action sheet
+//        
+//        let alert = UIAlertController(title: Constants.EMPTY_STRING,
+//            message: Constants.EMPTY_STRING,
+//            preferredStyle: UIAlertControllerStyle.ActionSheet)
+//        
+//        var action : UIAlertAction
+//        
+//        action = UIAlertAction(title: , style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//            self.email()
+//        })
+//        alert.addAction(action)
+//        
+//        action = UIAlertAction(title: "CBC website", style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//            self.openWebSite(Constants.CBC_WEBSITE)
+//        })
+//        alert.addAction(action)
+//        
+//        action = UIAlertAction(title: "CBC in Google Maps", style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//            self.openInGoogleMaps()
+//        })
+//        alert.addAction(action)
+//        
+//        action = UIAlertAction(title: "CBC in Apple Maps", style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+//            self.openInAppleMaps()
+//            })
+//        alert.addAction(action)
+//        
+//        action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+//
+//            })
+//        alert.addAction(action)
+//        
+//        //on iPad this is a popover
+//        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
+//        alert.popoverPresentationController?.barButtonItem = actionButton
+//        
+//        presentViewController(alert, animated: true, completion: nil)
+    }
+    
+    // Specifically for Plus size iPhones.
+    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.None
+    }
+    
+    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController) -> UIModalPresentationStyle {
+        return UIModalPresentationStyle.None
+    }
+    
+    func rowClickedAtIndex(index: Int, strings: [String], purpose:PopoverPurpose, sermon:Sermon?) {
+        dismissViewControllerAnimated(true, completion: nil)
         
-        //on iPad this is a popover
-        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
-        alert.popoverPresentationController?.barButtonItem = actionButton
-        
-        presentViewController(alert, animated: true, completion: nil)
+        switch purpose {
+        case .selectingAction:
+            switch strings[index] {
+
+            case Constants.Email_CBC:
+                email()
+                break
+                
+            case Constants.CBC_in_Apple_Maps:
+                openInAppleMaps()
+                break
+                
+            case Constants.CBC_in_Google_Maps:
+                openInGoogleMaps()
+                break
+                
+            default:
+                break
+            }
+            break
+            
+        default:
+            break
+        }
     }
     
     @IBOutlet weak var versionLabel: UILabel!

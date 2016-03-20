@@ -71,19 +71,28 @@ struct Constants {
     static let Show_Live = "Show Live"
     static let Live = "Live"
     
-    static let NOTES_CONTENT_OFFSET_X_RATIO = "notesContentOffsetXRatio"
-    static let NOTES_CONTENT_OFFSET_Y_RATIO = "notesContentOffsetYRatio"
+    static let CONTENT_OFFSET_X_RATIO = "ContentOffsetXRatio"
+    static let CONTENT_OFFSET_Y_RATIO = "ContentOffsetYRatio"
     
-    static let NOTES_ZOOM_SCALE = "notesZoomScale"
+    static let ZOOM_SCALE = "ZoomScale"
     
-    static let SLIDES_CONTENT_OFFSET_X_RATIO = "slidesContentOffsetXRatio"
-    static let SLIDES_CONTENT_OFFSET_Y_RATIO = "slidesContentOffsetYRatio"
-    
-    static let SLIDES_ZOOM_SCALE = "slidesZoomScale"
+//    static let NOTES_CONTENT_OFFSET_X_RATIO = "notesContentOffsetXRatio"
+//    static let NOTES_CONTENT_OFFSET_Y_RATIO = "notesContentOffsetYRatio"
+//    
+//    static let NOTES_ZOOM_SCALE = "notesZoomScale"
+//    
+//    static let SLIDES_CONTENT_OFFSET_X_RATIO = "slidesContentOffsetXRatio"
+//    static let SLIDES_CONTENT_OFFSET_Y_RATIO = "slidesContentOffsetYRatio"
+//    
+//    static let SLIDES_ZOOM_SCALE = "slidesZoomScale"
     
     static let CBC_SHORT = "CBC"
     static let CBC_LONG = "Countryside Bible Church"
     
+    static let Email_CBC = "E-mail " + CBC_SHORT
+    static let CBC_in_Apple_Maps = CBC_SHORT + " in Apple Maps"
+    static let CBC_in_Google_Maps = CBC_SHORT + " in Google Maps"
+
     static let Sermons = "Sermons"
     
     static let CBC_LONG_TITLE = CBC_LONG + SINGLE_SPACE_STRING + Sermons
@@ -187,12 +196,6 @@ struct Constants {
     
     static let Speaker = "Speaker"
     static let Series = "Series"
-    
-    static let CHRONOLOGICAL = "chronological"
-    static let Chronological = "Chronological"
-    
-    static let REVERSE_CHRONOLOGICAL = "reverse chronological"
-    static let Reverse_Chronological = "Reverse Chronological"
     
     static let MIN_SLIDER_WIDTH = CGFloat(60)
     static let MIN_STV_SEGMENT_WIDTH = CGFloat(20)
@@ -348,9 +351,20 @@ struct Constants {
     static let MP4_FILENAME_EXTENSION = ".mp4"
     
     static let TMP_FILENAME_EXTENSION = ".tmp"
- 
+
+    static let CHRONOLOGICAL = "chronological"
+    static let Chronological = "Chronological"
+    
+    static let REVERSE_CHRONOLOGICAL = "reverse chronological"
+    static let Reverse_Chronological = "Reverse Chronological"
+
+    static let Newest_to_Oldest = "Newest to Oldest"
+    static let Oldest_to_Newest = "Oldest to Newest"
+    
     static let sortings = [CHRONOLOGICAL, REVERSE_CHRONOLOGICAL]
+    static let Sortings = [Oldest_to_Newest, Newest_to_Oldest]
     static let groupings = [YEAR, SERIES, BOOK, SPEAKER]
+    static let Groupings = [Year, Series, Book, Speaker]
 
     static let Old_Testament = "Old Testament"
     static let New_Testament = "New Testament"

@@ -10,13 +10,6 @@ import UIKit
 import AVFoundation
 import MediaPlayer
 
-//extension UINavigationBar {
-//    public override func sizeThatFits(size: CGSize) -> CGSize {
-//        var newSize = CGSizeMake(UIScreen.mainScreen().bounds.width, 44)
-//        return newSize
-//    }
-//}
-
 enum PopoverPurpose {
     case selectingShow
 
@@ -378,7 +371,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             
         case .selectingGrouping:
             dismissViewControllerAnimated(true, completion: nil)
-            Globals.grouping = strings[index].lowercaseString
+            Globals.grouping = Constants.groupings[index]
             
             if (Globals.sermonsNeed.grouping) {
                 clearSermonsForDisplay()
@@ -410,7 +403,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             
         case .selectingSorting:
             dismissViewControllerAnimated(true, completion: nil)
-            Globals.sorting = strings[index].lowercaseString
+            Globals.sorting = Constants.sortings[index]
             
             if (Globals.sermonsNeed.sorting) {
                 clearSermonsForDisplay()
@@ -681,7 +674,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 popover.delegate = self
                 
                 popover.purpose = .selectingGrouping
-                popover.strings = [Constants.Year,Constants.Series,Constants.Book,Constants.Speaker]
+                popover.strings = Constants.Groupings
                 
                 popover.showIndex = false
                 popover.showSectionHeaders = false
@@ -716,7 +709,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 popover.delegate = self
                 
                 popover.purpose = .selectingSorting
-                popover.strings = [Constants.Chronological,Constants.Reverse_Chronological]
+                popover.strings = Constants.Sortings
                 
                 popover.showIndex = false
                 popover.showSectionHeaders = false

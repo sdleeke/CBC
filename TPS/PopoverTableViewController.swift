@@ -299,7 +299,7 @@ class PopoverTableViewController: UITableViewController {
             break
             
         case .selectingGrouping:
-            if (strings?[index].lowercaseString == Globals.grouping?.lowercaseString) {
+            if (Constants.groupings[index] == Globals.grouping) {
                 cell.accessoryType = UITableViewCellAccessoryType.Checkmark
             } else {
                 cell.accessoryType = UITableViewCellAccessoryType.None
@@ -307,7 +307,7 @@ class PopoverTableViewController: UITableViewController {
             break
             
         case .selectingSorting:
-            if (strings?[index].lowercaseString == Globals.sorting?.lowercaseString) {
+            if (Constants.sortings[index] == Globals.sorting) {
                 cell.accessoryType = UITableViewCellAccessoryType.Checkmark
             } else {
                 cell.accessoryType = UITableViewCellAccessoryType.None

@@ -1,6 +1,26 @@
 {
 "sermons": [
             {
+            "date":"3/13/2016",
+            "service":"PM",
+            "title":"Christ the Good Shepherd (Part 4)",
+            "series":"Christ the Good Shepherd",
+            "scripture":"John 10:31-42",
+            "speaker":"Dusty Burris",
+            "audio":"db160313pCD.mp3"
+            },
+            
+            {
+            "date":"3/13/2016",
+            "service":"AM",
+            "title":"Found Righteous (Part 5)",
+            "series":"Found Righteous",
+            "scripture":"Romans 3:21-31",
+            "speaker":"Tom Pennington",
+            "audio":"tp160313aCD.mp3"
+            },
+            
+            {
             "date":"3/6/2016",
             "service":"PM",
             "title":"Christ the Good Shepherd (Part 3)",
