@@ -358,10 +358,20 @@
                             <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" textAlignment="center" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4c2-R2-KTG">
                                 <rect key="frame" x="0.0" y="437" width="320" height="67"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="70" id="brV-dp-GoF">
+                                        <variation key="heightClass=compact" constant="50"/>
+                                    </constraint>
+                                </constraints>
                                 <string key="text">Countryside's worship services are broadcast live on Sundays at
 9:30 am, 11:05 am, and 6:00 pm.</string>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="brV-dp-GoF"/>
+                                    </mask>
+                                </variation>
                             </textView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -371,6 +381,7 @@
                             <constraint firstItem="4c2-R2-KTG" firstAttribute="top" secondItem="nCV-BS-j1l" secondAttribute="bottom" id="7pv-b5-cUi"/>
                             <constraint firstItem="4c2-R2-KTG" firstAttribute="centerX" secondItem="c2Z-FM-joi" secondAttribute="centerX" id="8gV-uB-QN5"/>
                             <constraint firstItem="nCV-BS-j1l" firstAttribute="leading" secondItem="c2Z-FM-joi" secondAttribute="leading" id="Aan-gV-Gxt"/>
+                            <constraint firstItem="nCV-BS-j1l" firstAttribute="top" secondItem="iDj-J4-PQ7" secondAttribute="bottom" id="E7M-Hz-ZKz"/>
                             <constraint firstItem="cOM-3y-U9L" firstAttribute="top" secondItem="nCV-BS-j1l" secondAttribute="bottom" constant="50" id="Edp-Jr-mbR"/>
                             <constraint firstAttribute="trailing" secondItem="4c2-R2-KTG" secondAttribute="trailing" id="Jkn-Wa-2y8"/>
                             <constraint firstItem="nCV-BS-j1l" firstAttribute="centerX" secondItem="c2Z-FM-joi" secondAttribute="centerX" id="NqA-R1-XQ7"/>
@@ -1293,13 +1304,13 @@ Email: cbcstaff@countrysidebible.org</string>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uvr-iK-0bZ">
                                 <rect key="frame" x="28" y="243" width="27" height="12"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="10"/>
-                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Audio Download Size" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Ia2-aI-Lg2">
                                 <rect key="frame" x="28" y="333" width="102" height="12"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="10"/>
-                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>

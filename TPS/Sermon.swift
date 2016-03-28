@@ -202,7 +202,7 @@ class SermonsListGroupSort {
                 groupedSermons[grouping!]?[string!]?.append(sermon)
             }
             
-            Globals.progress++
+            Globals.progress += 1
         }
         
         if (groupedSermons[grouping!] != nil) {
@@ -233,7 +233,7 @@ class SermonsListGroupSort {
                         break
                     }
                     
-                    Globals.progress++
+                    Globals.progress += 1
                 }
             }
         }
@@ -433,7 +433,7 @@ class SermonsListGroupSort {
                         tagNames?[sortTag!] = tag
                     }
                 }
-                Globals.progress++
+                Globals.progress += 1
             }
         } else {
             Globals.finished = 1
@@ -539,7 +539,9 @@ class Download {
             
             task?.resume()
             
-            UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+            })
         }
     }
     
@@ -603,9 +605,11 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         self.dict = dict
     }
     
-    lazy var downloads:[String:Download]? = {
-        return [String:Download]()
-    }()
+    var downloads = [String:Download]()
+    
+    //    lazy var downloads:[String:Download]? = {
+    //        return [String:Download]()
+    //    }()
     
     lazy var audioDownload:Download? = {
         [unowned self] in
@@ -614,7 +618,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         download.purpose = Constants.AUDIO
         download.url = self.audioURL
         download.fileSystemURL = self.audioFileSystemURL
-        self.downloads?[Constants.AUDIO] = download
+        self.downloads[Constants.AUDIO] = download
         return download
         }()
     
@@ -625,7 +629,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         download.purpose = Constants.VIDEO
         download.url = self.videoURL
         download.fileSystemURL = self.videoFileSystemURL
-        self.downloads?[Constants.VIDEO] = download
+        self.downloads[Constants.VIDEO] = download
         return download
         }()
     
@@ -636,7 +640,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         download.purpose = Constants.SLIDES
         download.url = self.slidesURL
         download.fileSystemURL = self.slidesFileSystemURL
-        self.downloads?[Constants.SLIDES] = download
+        self.downloads[Constants.SLIDES] = download
         return download
         }()
     
@@ -647,7 +651,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         download.purpose = Constants.NOTES
         download.url = self.notesURL
         download.fileSystemURL = self.notesFileSystemURL
-        self.downloads?[Constants.NOTES] = download
+        self.downloads[Constants.NOTES] = download
         return download
         }()
 
@@ -777,8 +781,15 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         }
         
         set {
-            dict![Constants.PLAYING] = newValue
-            settings?[Constants.PLAYING] = newValue
+            if newValue != dict![Constants.PLAYING] {
+                //Changing audio to video or vice versa resets the state and time.
+                if Globals.sermonPlaying == self {
+                    Globals.mpPlayerStateTime = nil //?.dateEntered = NSDate()
+                }
+                
+                dict![Constants.PLAYING] = newValue
+                settings?[Constants.PLAYING] = newValue
+            }
         }
     }
     
@@ -1414,6 +1425,39 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         }
     }()//Derived from date
     
+    var text : String? {
+        get {
+            var string:String?
+            
+            if hasDate() {
+                string = date
+            } else {
+                string = "No Date"
+            }
+            
+            if hasSpeaker() {
+                string = string! + " \(speaker!)"
+            }
+            
+            if hasTitle() {
+                if (title!.rangeOfString(", Part ") != nil) {
+                    let first = title!.substringToIndex((title!.rangeOfString(" (Part")?.endIndex)!)
+                    let second = title!.substringFromIndex((title!.rangeOfString(" (Part ")?.endIndex)!)
+                    let combined = first + "\u{00a0}" + second // replace the space with an unbreakable one
+                    string = string! + "\n\(combined)"
+                } else {
+                    string = string! + "\n\(title!)"
+                }
+            }
+            
+            if hasScripture() {
+                string = string! + "\n\(scripture!)"
+            }
+            
+            return string
+        }
+    }
+    
     override var description : String {
         //This requires that date, service, title, and speaker fields all be non-nil
         
@@ -1524,27 +1568,39 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     }
     
     func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-//        print("URLSession: \(session.description) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
+        print("URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:")
         
 //        let filename = downloadTask.taskDescription!
-        if downloads != nil {
-            for key in downloads!.keys {
-                if (downloads?[key]?.task == downloadTask) {
-                    if (downloads?[key]?.state == .downloading) {
-                        //                    print("Downloading: \(filename) \(key)")
-                        
-                        downloads?[key]?.totalBytesWritten = totalBytesWritten
-                        downloads?[key]?.totalBytesExpectedToWrite = totalBytesExpectedToWrite
-                    }
-                    
-                    break
-                }
+        
+        var download:Download?
+        
+        for key in downloads.keys {
+            if (downloads[key]?.task == downloadTask) {
+                download = downloads[key]
+                break
             }
         }
+
+        if (download != nil) {
+            if (download?.state == .downloading) {
+                download?.totalBytesWritten = totalBytesWritten
+                download?.totalBytesExpectedToWrite = totalBytesExpectedToWrite
+            } else {
+                print("ERROR NOT DOWNLOADING")
+            }
+            
+            if (downloadTask.taskDescription != download!.fileSystemURL!.lastPathComponent) {
+                print("downloadTask.taskDescription != fileSystemURL.lastPathComponent")
+            }
+            
+            print("filename: \(download!.fileSystemURL!.lastPathComponent!) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
+        } else {
+            print("ERROR NO DOWNLOAD")
+        }
         
-//        print("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
-        
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+        })
     }
     
     func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didFinishDownloadingToURL location: NSURL) {
@@ -1552,37 +1608,39 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         var download:Download?
         
-        if downloads != nil {
-            for key in downloads!.keys {
-                if (downloads?[key]?.task == downloadTask) {
-                    download = downloads?[key]
-                    //                print("Finished Downloading: \(key)")
-                    break
-                }
+        for key in downloads.keys {
+            if (downloads[key]?.task == downloadTask) {
+                download = downloads[key]
+                break
             }
         }
         
-        let filename = downloadTask.taskDescription!
-//        print("filename: \(filename) location: \(location)")
-        
-        let fileManager = NSFileManager.defaultManager()
-        
-        //Get documents directory URL
-        if let destinationURL = cachesURL()?.URLByAppendingPathComponent(filename) {
+        if (download != nil) {
+            print("purpose: \(download!.purpose!)")
+            print("filename: \(download!.fileSystemURL!.lastPathComponent!)")
+            print("bytes written: \(download!.totalBytesWritten)")
+            print("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
+
+            if (downloadTask.taskDescription != download!.fileSystemURL!.lastPathComponent) {
+                print("downloadTask.taskDescription != fileSystemURL.lastPathComponent")
+            }
+            
+            let fileManager = NSFileManager.defaultManager()
+            
             // Check if file exists
-            if (fileManager.fileExistsAtPath(destinationURL.path!)){
+            if (fileManager.fileExistsAtPath(download!.fileSystemURL!.path!)){
                 do {
-                    try fileManager.removeItemAtURL(destinationURL)
+                    try fileManager.removeItemAtURL(download!.fileSystemURL!)
                 } catch _ {
                     print("failed to remove duplicate download")
                 }
             }
             
-//            print("location: \(location) \n\ndestinationURL: \(destinationURL)\n\n")
+            //            print("location: \(location) \n\ndestinationURL: \(destinationURL)\n\n")
             
             do {
                 if (download?.state == .downloading) {
-                    try fileManager.copyItemAtURL(location, toURL: destinationURL)
+                    try fileManager.copyItemAtURL(location, toURL: download!.fileSystemURL!)
                     try fileManager.removeItemAtURL(location)
                     download?.state = .downloaded
                 }
@@ -1590,72 +1648,101 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                 print("failed to copy temp download file")
                 download?.state = .none
             }
+        } else {
+            print("NO DOWNLOAD FOUND!")
         }
         
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+        })
     }
     
-    func removeTempFiles()
+//    func removeTempFiles()
+//    {
+//        // Clean up temp directory for cancelled downloads
+//        let fileManager = NSFileManager.defaultManager()
+//        let path = NSTemporaryDirectory()
+//        do {
+//            let array = try fileManager.contentsOfDirectoryAtPath(path)
+//            
+//            for string in array {
+//                print("Deleting: \(string)")
+//                try fileManager.removeItemAtPath(path + string)
+//            }
+//        } catch _ {
+//            print("failed to remove temp file")
+//        }
+//    }
+    
+    func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?)
     {
-        // Clean up temp directory for cancelled downloads
-        let fileManager = NSFileManager.defaultManager()
-        let path = NSTemporaryDirectory()
-        do {
-            let array = try fileManager.contentsOfDirectoryAtPath(path)
-            
-            for string in array {
-                print("Deleting: \(string)")
-                try fileManager.removeItemAtPath(path + string)
-            }
-        } catch _ {
-            print("failed to remove temp file")
-        }
-    }
-    
-    func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
+        print("URLSession:task:didCompleteWithError:")
+        
         var download:Download?
         
-        if downloads != nil {
-            for key in downloads!.keys {
-                if (downloads?[key]?.session == session) {
-                    download = downloads?[key]
-                    print("Session didComplete: \(key)")
-                    break
-                }
+        for key in downloads.keys {
+            if (downloads[key]?.session == session) {
+                download = downloads[key]
+                break
             }
         }
         
-        print("Download error: \(error)")
-        
-        if (download?.totalBytesExpectedToWrite == 0) {
-            download?.state = .none
+        if (download != nil) {
+            print("purpose: \(download!.purpose!)")
+            print("filename: \(download!.fileSystemURL!.lastPathComponent!)")
+            print("bytes written: \(download!.totalBytesWritten)")
+            print("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
+            
+            if (error != nil) {
+                print("with error: \(error!.localizedDescription)")
+                download?.state = .none
+            }
         } else {
-//            print("Download succeeded for: \(session.description)")
-//            download?.state = .downloaded // <- This caused a very spurious error.  Let this state chagne happen in didFinishDownloadingToURL!
+            print("NO DOWNLOAD FOUND!")
         }
+
+        //        print("Download error: \(error)")
+        //
+        //        if (download?.totalBytesExpectedToWrite == 0) {
+        //            download?.state = .none
+        //        } else {
+        //            print("Download succeeded for: \(session.description)")
+        ////            download?.state = .downloaded // <- This caused a very spurious error.  Let this state chagne happen in didFinishDownloadingToURL!
+        //        }
         
         // This may delete temp files other than the one we just downloaded, so don't do it.
         //        removeTempFiles()
         
-        let filename = task.taskDescription
-        print("filename: \(filename!) error: \(error)")
-        
         session.invalidateAndCancel()
         
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+        })
     }
     
     func URLSession(session: NSURLSession, didBecomeInvalidWithError error: NSError?) {
+        print("URLSession:didBecomeInvalidWithError:")
+        
         var download:Download?
         
-        if downloads != nil {
-            for key in downloads!.keys {
-                if (downloads?[key]?.session == session) {
-                    download = downloads?[key]
-                    print("Session didBecomeInvalidWithError: \(key) \(error?.localizedDescription)")
-                    break
-                }
+        for key in downloads.keys {
+            if (downloads[key]?.session == session) {
+                download = downloads[key]
+                break
             }
+        }
+        
+        if (download != nil) {
+            print("purpose: \(download!.purpose!)")
+            print("filename: \(download!.fileSystemURL!.lastPathComponent!)")
+            print("bytes written: \(download!.totalBytesWritten)")
+            print("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
+            
+            if (error != nil) {
+                print("with error: \(error!.localizedDescription)")
+            }
+        } else {
+            print("NO DOWNLOAD FOUND!")
         }
         
         download?.session = nil
@@ -1667,23 +1754,22 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         filename = session.configuration.identifier!.substringFromIndex(Constants.DOWNLOAD_IDENTIFIER.endIndex)
         
-        if let download = downloads?.filter({ (key:String, value:Download) -> Bool in
+        if let download = downloads.filter({ (key:String, value:Download) -> Bool in
             //                print("\(filename) \(key)")
             return value.task?.taskDescription == filename
         }).first?.1 {
             download.completionHandler?()
         }
-
-//        Globals.sermonRepository.list?.filter({ (sermon:Sermon) -> Bool in
-//            return sermon.audio == filename
-//        }).first?.downloads.filter({ (key:String, value:Download) -> Bool in
-//            return value.session == session
-//        }).first?.1.completionHandler?()
     }
     
     func hasDate() -> Bool
     {
         return (date != nil) && (date != Constants.EMPTY_STRING)
+    }
+    
+    func hasTitle() -> Bool
+    {
+        return (title != nil) && (title != Constants.EMPTY_STRING)
     }
     
     func hasAudio() -> Bool

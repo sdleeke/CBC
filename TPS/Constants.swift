@@ -12,6 +12,19 @@ import UIKit
 struct Constants {
     static let JSON_URL_PREFIX = "https://s3.amazonaws.com/jd2-86d4fd0ec0a8fca71eef54e388261c5b-us/"
 
+    static let UPDATE_PLAY_PAUSE_NOTIFICATION = "UPDATE PLAY PAUSE"
+    
+    static let MIN_PLAY_TIME = 15.0
+    static let MIN_LOAD_TIME = 15.0
+    
+    static let PLAYER_TIMER_INTERVAL = 0.25
+    static let SLIDER_TIMER_INTERVAL = 0.25
+    static let DOWNLOADING_TIMER_INTERVAL = 0.2
+    static let LOADING_TIMER_INTERVAL = 0.2
+    static let PROGRESS_TIMER_INTERVAL = 0.1
+    static let WORKING_TIMER_INTERVAL = 0.1
+    static let SEEKING_TIMER_INTERVAL = 0.1
+    
     static let JSON_ARRAY_KEY = "sermons"
     static let JSON_TYPE = "json"
     static let JSON_FILENAME_EXTENSION = ".json"

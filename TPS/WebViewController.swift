@@ -82,9 +82,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     {
         //        print("scrollViewDidEndDragging")
         if !decelerate {
-            if let _ = scrollView.superview as? WKWebView {
-                captureContentOffsetAndZoomScale()
-            }
+            scrollViewDidEndDecelerating(scrollView)
         }
     }
     
@@ -188,19 +186,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         {
             var printURL:NSURL?
             
-            printURL = sermon?.downloads?[sermon!.showing!]?.url
-            
-//            switch sermon!.showing! {
-//            case Constants.NOTES:
-//                printURL = sermon!.notesURL
-//                break
-//            case Constants.SLIDES:
-//                printURL = sermon!.slidesURL
-//                break
-//                
-//            default:
-//                break
-//            }
+            printURL = sermon?.downloads[sermon!.showing!]?.url
             
             if (printURL != "") && UIPrintInteractionController.canPrintURL(printURL!) {
                 //                print("can print!")
@@ -241,107 +227,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         }
     }
     
-    func seekingTimer()
-    {
-        setupPlayingInfoCenter()
-    }
-    
-    override func remoteControlReceivedWithEvent(event: UIEvent?) {
-        print("remoteControlReceivedWithEvent")
-        
-        switch event!.subtype {
-        case UIEventSubtype.MotionShake:
-            print("RemoteControlShake")
-            break
-            
-        case UIEventSubtype.None:
-            print("RemoteControlNone")
-            break
-            
-        case UIEventSubtype.RemoteControlStop:
-            print("RemoteControlStop")
-            Globals.mpPlayer?.stop()
-            Globals.playerPaused = true
-            break
-            
-        case UIEventSubtype.RemoteControlPlay:
-            print("RemoteControlPlay")
-            Globals.mpPlayer?.play()
-            Globals.playerPaused = false
-            setupPlayingInfoCenter()
-            break
-            
-        case UIEventSubtype.RemoteControlPause:
-            print("RemoteControlPause")
-            Globals.mpPlayer?.pause()
-            Globals.playerPaused = true
-            updateCurrentTimeExact()
-            break
-            
-        case UIEventSubtype.RemoteControlTogglePlayPause:
-            print("RemoteControlTogglePlayPause")
-            if (Globals.playerPaused) {
-                Globals.mpPlayer?.play()
-            } else {
-                Globals.mpPlayer?.pause()
-                updateCurrentTimeExact()
-            }
-            Globals.playerPaused = !Globals.playerPaused
-            break
-            
-        case UIEventSubtype.RemoteControlPreviousTrack:
-            print("RemoteControlPreviousTrack")
-            break
-            
-        case UIEventSubtype.RemoteControlNextTrack:
-            print("RemoteControlNextTrack")
-            break
-            
-            //The lock screen time elapsed/remaining don't track well with seeking
-            //But at least this has them moving in the right direction.
-            
-        case UIEventSubtype.RemoteControlBeginSeekingBackward:
-            print("RemoteControlBeginSeekingBackward")
-            
-            Globals.seekingObserver = NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "seekingTimer", userInfo: nil, repeats: true)
-            
-            Globals.mpPlayer?.beginSeekingBackward()
-            //        updatePlayingInfoCenter()
-            setupPlayingInfoCenter()
-            break
-            
-        case UIEventSubtype.RemoteControlEndSeekingBackward:
-            print("RemoteControlEndSeekingBackward")
-            Globals.mpPlayer?.endSeeking()
-            Globals.seekingObserver?.invalidate()
-            Globals.seekingObserver = nil
-            updateCurrentTimeExact()
-            //        updatePlayingInfoCenter()
-            setupPlayingInfoCenter()
-            break
-            
-        case UIEventSubtype.RemoteControlBeginSeekingForward:
-            print("RemoteControlBeginSeekingForward")
-            
-            Globals.seekingObserver = NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "seekingTimer", userInfo: nil, repeats: true)
-            
-            Globals.mpPlayer?.beginSeekingForward()
-            //        updatePlayingInfoCenter()
-            setupPlayingInfoCenter()
-            break
-            
-        case UIEventSubtype.RemoteControlEndSeekingForward:
-            print("RemoteControlEndSeekingForward")
-            Globals.seekingObserver?.invalidate()
-            Globals.seekingObserver = nil
-            Globals.mpPlayer?.endSeeking()
-            updateCurrentTimeExact()
-            //        updatePlayingInfoCenter()
-            setupPlayingInfoCenter()
-            break
-        }
-    }
-    
     // Specifically for Plus size iPhones.
     func adaptivePresentationStyleForPresentationController(controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
     {
@@ -365,19 +250,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             case Constants.Open_in_Browser:
                 var url:NSURL?
 
-                url = selectedSermon?.downloads?[selectedSermon!.showing!]?.url
-                
-//                switch selectedSermon!.showing! {
-//                case Constants.NOTES:
-//                    url = selectedSermon!.notesURL
-//                    break
-//                case Constants.SLIDES:
-//                    url = selectedSermon!.slidesURL
-//                    break
-//                    
-//                default:
-//                    break
-//                }
+                url = selectedSermon?.downloads[selectedSermon!.showing!]?.url
                 
                 if  url != nil {
                     if (UIApplication.sharedApplication().canOpenURL(url!)) { // Reachability.isConnectedToNetwork() &&
@@ -389,15 +262,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 break
 
             case Constants.Check_for_Update:
-                selectedSermon?.downloads?[selectedSermon!.showing!]?.deleteDownload()
+                selectedSermon?.downloads[selectedSermon!.showing!]?.deleteDownload()
 
-//                if selectedSermon!.showingSlides() {
-//                    selectedSermon?.slidesDownload?.deleteDownload()
-//                }
-//                if selectedSermon!.showingNotes() {
-//                    selectedSermon?.notesDownload?.deleteDownload()
-//                }
-                
                 wkWebView?.hidden = true
                 wkWebView?.removeFromSuperview()
                 
@@ -464,85 +330,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         }
     }
     
-//    func actions()
-//    {
-//        //        print("action!")
-//        
-//        //In case we have one already showing
-//        dismissViewControllerAnimated(true, completion: nil)
-//        
-//        // Put up an action sheet
-//        
-//        let alert = UIAlertController(title: Constants.EMPTY_STRING,
-//            message: Constants.EMPTY_STRING,
-//            preferredStyle: UIAlertControllerStyle.ActionSheet)
-//        
-//        var action : UIAlertAction
-//        
-//        if (selectedSermon!.hasNotes() || selectedSermon!.hasSlides()) {
-//            action = UIAlertAction(title:Constants.Print, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                //            print("print!")
-//                self.printSermon(self.selectedSermon)
-////                if Reachability.isConnectedToNetwork() {
-////                    self.printSermon(self.selectedSermon)
-////                } else {
-////                    self.networkUnavailable("Unable to print.)")
-////                }
-//            })
-//            alert.addAction(action)
-//            
-//            action = UIAlertAction(title:Constants.Open_in_Browser, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//
-//                var url:NSURL?
-//                
-//                switch self.selectedSermon!.showing! {
-//                case Constants.NOTES:
-//                    url = self.selectedSermon!.notesURL
-//                    break
-//                    
-//                case Constants.SLIDES:
-//                    url = self.selectedSermon!.slidesURL
-//                    break
-//                    
-//                default:
-//                    break
-//                }
-//                
-//                if url != nil {
-//                    if UIApplication.sharedApplication().canOpenURL(url!) {
-//                        UIApplication.sharedApplication().openURL(url!)
-//                    } else {
-//                        self.networkUnavailable("Unable to open in browser: \(url)")
-//                    }
-////                    if Reachability.isConnectedToNetwork() {
-////                        if UIApplication.sharedApplication().canOpenURL(url) {
-////                            UIApplication.sharedApplication().openURL(url)
-////                        } else {
-////                            self.networkUnavailable("Unable to open in browser: \(urlString)")
-////                        }
-////                    } else {
-////                        self.networkUnavailable("Unable to open in browser: \(urlString)")
-////                    }
-//                }
-//            })
-//            alert.addAction(action)
-//
-//            action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
-//            })
-//            alert.addAction(action)
-//
-//            //on iPad this is a popover
-//            alert.modalPresentationStyle = UIModalPresentationStyle.Popover
-//            alert.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-//            
-//            presentViewController(alert, animated: true, completion: nil)
-//        }
-//    }
-    
     private func setupActionButton()
     {
         if (selectedSermon != nil) {
-            self.navigationItem.setRightBarButtonItem(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Action, target: self, action: "actions"), animated: true)
+            self.navigationItem.setRightBarButtonItem(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Action, target: self, action: #selector(WebViewController.actions)), animated: true)
         } else {
             self.navigationItem.rightBarButtonItem = nil
         }
@@ -611,23 +402,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             contentOffsetYRatioStr = selectedSermon?.settings?[selectedSermon!.showing! + Constants.CONTENT_OFFSET_Y_RATIO]
             zoomScaleStr = selectedSermon?.settings?[selectedSermon!.showing! + Constants.ZOOM_SCALE]
 
-//            switch selectedSermon!.showing! {
-//            case Constants.NOTES:
-//                contentOffsetXRatioStr = selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO]
-//                contentOffsetYRatioStr = selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO]
-//                zoomScaleStr = selectedSermon?.settings?[Constants.NOTES_ZOOM_SCALE]
-//                break
-//                
-//            case Constants.SLIDES:
-//                contentOffsetXRatioStr = selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO]
-//                contentOffsetYRatioStr = selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO]
-//                zoomScaleStr = selectedSermon?.settings?[Constants.SLIDES_ZOOM_SCALE]
-//                break
-//                
-//            default:
-//                break
-//            }
-            
             var zoomScale:CGFloat = 1.0
             
             var contentOffsetXRatio:CGFloat = 0.0
@@ -665,21 +439,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             contentOffsetXRatioStr = selectedSermon?.settings?[selectedSermon!.showing! + Constants.CONTENT_OFFSET_X_RATIO]
             contentOffsetYRatioStr = selectedSermon?.settings?[selectedSermon!.showing! + Constants.CONTENT_OFFSET_Y_RATIO]
 
-//            switch selectedSermon!.showing! {
-//            case Constants.NOTES:
-//                contentOffsetXRatioStr = selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO]
-//                contentOffsetYRatioStr = selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO]
-//                break
-//                
-//            case Constants.SLIDES:
-//                contentOffsetXRatioStr = selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO]
-//                contentOffsetYRatioStr = selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO]
-//                break
-//                
-//            default:
-//                break
-//            }
-            
             var contentOffsetXRatio:CGFloat = 0.0
             var contentOffsetYRatio:CGFloat = 0.0
             
@@ -717,31 +476,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             selectedSermon?.settings?[selectedSermon!.showing! + Constants.CONTENT_OFFSET_Y_RATIO] = "\(wkWebView!.scrollView.contentOffset.y / wkWebView!.scrollView.contentSize.height)"
             
             selectedSermon?.settings?[selectedSermon!.showing! + Constants.ZOOM_SCALE] = "\(wkWebView!.scrollView.zoomScale)"
-
-//            switch selectedSermon!.showing! {
-//            case Constants.NOTES:
-//                if (!wkWebView!.loading) {
-//                    selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(wkWebView!.scrollView.contentOffset.x / wkWebView!.scrollView.contentSize.width)"
-//                    
-//                    selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(wkWebView!.scrollView.contentOffset.y / wkWebView!.scrollView.contentSize.height)"
-//                    
-//                    selectedSermon?.settings?[Constants.NOTES_ZOOM_SCALE] = "\(wkWebView!.scrollView.zoomScale)"
-//                }
-//                break
-//                
-//            case Constants.SLIDES:
-//                if (!wkWebView!.loading) {
-//                    selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(wkWebView!.scrollView.contentOffset.x / wkWebView!.scrollView.contentSize.width)"
-//                    
-//                    selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(wkWebView!.scrollView.contentOffset.y / wkWebView!.scrollView.contentSize.height)"
-//                    
-//                    selectedSermon?.settings?[Constants.SLIDES_ZOOM_SCALE] = "\(wkWebView!.scrollView.zoomScale)"
-//                }
-//                break
-//                
-//            default:
-//                break
-//            }
         }
     }
     
@@ -776,6 +510,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     
     override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator)
     {
+        super.viewWillTransitionToSize(size, withTransitionCoordinator: coordinator)
+        
         if (self.view.window == nil) {
             return
         }
@@ -788,7 +524,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             
             print("Before animateAlongsideTransition: \(wkWebView?.scrollView.contentOffset)")
             
-            captureContentOffsetAndZoomScale()
+//            captureContentOffsetAndZoomScale()
             fallthrough
             
         case UIApplicationState.Background:
@@ -811,145 +547,16 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
 //        return UIStatusBarAnimation.Slide
 //    }
 
-//    func tap()
-//    {
-//        navigationController?.setNavigationBarHidden(!navigationController!.navigationBar.hidden, animated: splitViewController != nil)
-//    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem()
         navigationItem.leftItemsSupplementBackButton = true
         
-//        self.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: "tap"))
-
         navigationController?.setToolbarHidden(true, animated: true)
-
-//        setupWKWebView()
-//        setupActionButton()
         
         // Do any additional setup after loading the view.
     }
-    
-//    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-////        print("URLSession: \(session.description) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
-//        
-////        let filename = downloadTask.taskDescription!
-//        
-////        print("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
-//        
-//        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
-//    }
-//    
-//    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didFinishDownloadingToURL location: NSURL)
-//    {
-////        print("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
-//        
-//        let filename = downloadTask.taskDescription!
-//        
-////        print("filename: \(filename) location: \(location)")
-//        
-//        let fileManager = NSFileManager.defaultManager()
-//        
-//        //Get documents directory URL
-//        let destinationURL = cachesURL()?.URLByAppendingPathComponent(filename)
-//        // Check if file exist
-//        if (fileManager.fileExistsAtPath(destinationURL!.path!)){
-//            do {
-//                try fileManager.removeItemAtURL(destinationURL!)
-//            } catch _ {
-//                print("failed to remove old file")
-//            }
-//        }
-//        
-//        do {
-//            try fileManager.copyItemAtURL(location, toURL: destinationURL!)
-//            try fileManager.removeItemAtURL(location)
-//        } catch _ {
-//            print("failed to copy new file to Documents")
-//        }
-//        
-//        // URL call back does NOT run on the main queue
-//        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//            if (filename == self.selectedSermon?.notes) {
-//                if #available(iOS 9.0, *) {
-//                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                        self.wkWebView?.loadFileURL(destinationURL!, allowingReadAccessToURL: destinationURL!)
-//                        
-//                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                            
-//                        })
-//                    })
-//                } else {
-//                    // Fallback on earlier versions
-//                }
-//                //                let url = self.fileURLForWKWebView(filename)
-//                //                print("\(url)")
-//                //                self.sermonNotesWebView!.loadRequest(NSURLRequest(URL: url))
-//            }
-//            
-//            if (filename == self.selectedSermon?.slides) {
-//                if #available(iOS 9.0, *) {
-//                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                        self.wkWebView?.loadFileURL(destinationURL!, allowingReadAccessToURL: destinationURL!)
-//                        
-//                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                            
-//                        })
-//                    })
-//                } else {
-//                    // Fallback on earlier versions
-//                }
-//                //                let url = self.fileURLForWKWebView(filename)
-//                //                print("\(url)")
-//                //                self.sermonSlidesWebView!.loadRequest(NSURLRequest(URL: url))
-//            }
-//        })
-//        
-//    }
-//    
-//    func removeTempFiles()
-//    {
-//        // Clean up temp directory for cancelled downloads
-//        let fileManager = NSFileManager.defaultManager()
-//        let path = NSTemporaryDirectory()
-//        do {
-//            let array = try fileManager.contentsOfDirectoryAtPath(path)
-//            
-//            for string in array {
-//                print("Deleting: \(string)")
-//                try fileManager.removeItemAtPath(path + string)
-//            }
-//        } catch _ {
-//        }
-//    }
-//    
-//    func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
-//        if (error != nil) {
-//            print("Download failed for: \(session.description)")
-//        } else {
-//            print("Download succeeded for: \(session.description)")
-//        }
-//        
-//        //        removeTempFiles()
-//        
-//        let filename = task.taskDescription
-//        print("filename: \(filename!) error: \(error)")
-//        
-//        session.invalidateAndCancel()
-//        
-//        //        if let taskIndex = Globals.downloadTasks.indexOf(task as! NSURLSessionDownloadTask) {
-//        //            Globals.downloadTasks.removeAtIndex(taskIndex)
-//        //        }
-//        
-//        UIApplication.sharedApplication().networkActivityIndicatorVisible = false
-//    }
-//    
-//    func URLSession(session: NSURLSession, didBecomeInvalidWithError error: NSError?)
-//    {
-//        
-//    }
     
     func downloading()
     {
@@ -958,7 +565,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         //There is a big flaw in the use of .showing - it assumes only one of slides or notes is downloading when, for TPS/CBC,
         //they both would be.  In that case we would need the timer to persist until the last one finishes, or have one timers for each.
         
-        download = selectedSermon?.downloads?[selectedSermon!.showing!]
+        download = selectedSermon?.downloads[selectedSermon!.showing!]
 
 //        if (download != nil) {
 //            print("totalBytesWritten: \(download!.totalBytesWritten)")
@@ -1008,67 +615,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             }
             break
         }
-
-//        switch selectedSermon!.showing! {
-//        case Constants.SLIDES:
-//            print("slides")
-//            download = selectedSermon?.slidesDownload
-//            if (download?.state == .downloading) {
-//                progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
-//            }
-//            if (download?.state == .downloaded) {
-//                if #available(iOS 9.0, *) {
-//                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                        self.wkWebView?.loadFileURL(self.selectedSermon!.slidesFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.slidesFileSystemURL!)
-//                        
-//                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                            self.loadTimer?.invalidate()
-//                            self.loadTimer = nil
-//                            
-//                            self.activityIndicator.stopAnimating()
-//                            self.activityIndicator.hidden = true
-//                            
-//                            self.progressIndicator.progress = 0.0
-//                            self.progressIndicator.hidden = true
-//                        })
-//                    })
-//                } else {
-//                    // Fallback on earlier versions
-//                }
-//            }
-//            break
-//            
-//        case Constants.NOTES:
-//            print("notes")
-//            download = selectedSermon?.notesDownload
-//            if (download?.state == .downloading) {
-//                progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
-//            }
-//            if (download?.state == .downloaded) {
-//                if #available(iOS 9.0, *) {
-//                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                        self.wkWebView?.loadFileURL(self.selectedSermon!.notesFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.notesFileSystemURL!)
-//                        
-//                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                            self.loadTimer?.invalidate()
-//                            self.loadTimer = nil
-//                            
-//                            self.activityIndicator.stopAnimating()
-//                            self.activityIndicator.hidden = true
-//                            
-//                            self.progressIndicator.progress = 0.0
-//                            self.progressIndicator.hidden = true
-//                        })
-//                    })
-//                } else {
-//                    // Fallback on earlier versions
-//                }
-//            }
-//            break
-//            
-//        default:
-//            break
-//        }
         
         // This is all trying to catch download failures, but I'm afraid it is generating false positives.
         //        if ((download?.totalBytesWritten == 0) && (download?.totalBytesExpectedToWrite == 0)) {
@@ -1098,7 +644,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 self.progressIndicator.hidden = false
                 
                 if self.loadTimer == nil {
-                    self.loadTimer = NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "loading", userInfo: nil, repeats: true)
+                    self.loadTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.LOADING_TIMER_INTERVAL, target: self, selector: #selector(WebViewController.loading), userInfo: nil, repeats: true)
                 }
             })
 
@@ -1113,21 +659,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             if NSUserDefaults.standardUserDefaults().boolForKey(Constants.CACHE_DOWNLOADS) {
                 var destinationURL:NSURL?
                 
-                destinationURL = selectedSermon?.downloads?[selectedSermon!.showing!]?.fileSystemURL
+                destinationURL = selectedSermon?.downloads[selectedSermon!.showing!]?.fileSystemURL
 
-//                switch selectedSermon!.showing! {
-//                case Constants.NOTES:
-//                    destinationURL = selectedSermon!.notesFileSystemURL!
-//                    break
-//                    
-//                case Constants.SLIDES:
-//                    destinationURL = selectedSermon!.slidesFileSystemURL!
-//                    break
-//                    
-//                default:
-//                    break
-//                }
-                
                 if (NSFileManager.defaultManager().fileExistsAtPath(destinationURL!.path!)){
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
                         self.wkWebView?.loadFileURL(destinationURL!, allowingReadAccessToURL: destinationURL!)
@@ -1147,68 +680,22 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                     activityIndicator.hidden = false
                     activityIndicator.startAnimating()
                     
-                    let download = selectedSermon!.downloads![selectedSermon!.showing!]
+                    let download = selectedSermon!.downloads[selectedSermon!.showing!]
                     
                     progressIndicator.progress = download!.totalBytesExpectedToWrite != 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
                     progressIndicator.hidden = false
                     
                     if loadTimer == nil {
-                        loadTimer = NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "downloading", userInfo: nil, repeats: true)
+                        loadTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.DOWNLOADING_TIMER_INTERVAL, target: self, selector: #selector(WebViewController.downloading), userInfo: nil, repeats: true)
                     }
 
                     download?.download()
-                    
-//                    switch selectedSermon!.showing! {
-//                    case Constants.NOTES:
-//                        activityIndicator.hidden = false
-//                        activityIndicator.startAnimating()
-//                        
-//                        progressIndicator.progress = selectedSermon!.notesDownload!.totalBytesExpectedToWrite != 0 ? Float(selectedSermon!.notesDownload!.totalBytesWritten) / Float(selectedSermon!.notesDownload!.totalBytesExpectedToWrite) : 0.0
-//                        progressIndicator.hidden = false
-//                        
-//                        if loadTimer == nil {
-//                            loadTimer = NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "downloading", userInfo: nil, repeats: true)
-//                        }
-//                        
-//                        selectedSermon?.notesDownload?.download()
-//                        break
-//                        
-//                    case Constants.SLIDES:
-//                        activityIndicator.hidden = false
-//                        activityIndicator.startAnimating()
-//                        
-//                        progressIndicator.progress = selectedSermon!.slidesDownload!.totalBytesExpectedToWrite != 0 ? Float(selectedSermon!.slidesDownload!.totalBytesWritten) / Float(selectedSermon!.slidesDownload!.totalBytesExpectedToWrite) : 0.0
-//                        progressIndicator.hidden = false
-//                        
-//                        if loadTimer == nil {
-//                            loadTimer = NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "downloading", userInfo: nil, repeats: true)
-//                        }
-//                        
-//                        selectedSermon?.slidesDownload?.download()
-//                        break
-//                        
-//                    default:
-//                        break
-//                    }
                 }
             } else {
                 var url:NSURL?
                 
-                url = selectedSermon?.downloads?[selectedSermon!.showing!]?.url
+                url = selectedSermon?.downloads[selectedSermon!.showing!]?.url
 
-//                switch selectedSermon!.showing! {
-//                case Constants.NOTES:
-//                    url = selectedSermon!.notesURL
-//                    break
-//                    
-//                case Constants.SLIDES:
-//                    url = selectedSermon!.slidesURL
-//                    break
-//                    
-//                default:
-//                    break
-//                }
-                
                 dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
                     dispatch_async(dispatch_get_main_queue(), { () -> Void in
                         self.webView.bringSubviewToFront(self.activityIndicator)
@@ -1220,7 +707,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                         self.progressIndicator.hidden = false
                         
                         if self.loadTimer == nil {
-                            self.loadTimer = NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "loading", userInfo: nil, repeats: true)
+                            self.loadTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.LOADING_TIMER_INTERVAL, target: self, selector: #selector(WebViewController.loading), userInfo: nil, repeats: true)
                         }
                     })
                     
@@ -1231,21 +718,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         } else {
             var url:NSURL?
             
-            url = selectedSermon?.downloads?[selectedSermon!.showing!]?.url
+            url = selectedSermon?.downloads[selectedSermon!.showing!]?.url
 
-//            switch selectedSermon!.showing! {
-//            case Constants.NOTES:
-//                url = selectedSermon!.notesURL
-//                break
-//                
-//            case Constants.SLIDES:
-//                url = selectedSermon!.slidesURL
-//                break
-//                
-//            default:
-//                break
-//            }
-            
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
                     self.webView.bringSubviewToFront(self.activityIndicator)
@@ -1257,7 +731,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                     self.progressIndicator.hidden = false
                     
                     if self.loadTimer == nil {
-                        self.loadTimer = NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "loading", userInfo: nil, repeats: true)
+                        self.loadTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.LOADING_TIMER_INTERVAL, target: self, selector: #selector(WebViewController.loading), userInfo: nil, repeats: true)
                     }
                 })
                 
@@ -1274,8 +748,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         
         setupActionButton()
 
-//        webView.bringSubviewToFront(activityIndicator)
-
         setupWKWebView()
 
         webView.bringSubviewToFront(activityIndicator)
@@ -1288,164 +760,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         } else {
             loadDocument()
         }
-//        super.viewWillAppear(animated)
-//        
-//        navigationItem.title = selectedSermon!.title!
-//
-//        view.bringSubviewToFront(activityIndicator)
-//        activityIndicator.hidden = false
-//        activityIndicator.startAnimating()
-//        
-//        wkWebView?.hidden = true
-//        
-//        progressIndicator.hidden = true
-//
-//        if showScripture {
-//            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                let request = NSURLRequest(URL: self.url!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
-//                self.wkWebView?.loadRequest(request)
-//                
-//                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                    //                    self.activityIndicator.stopAnimating()
-//                    //                    self.activityIndicator.hidden = true
-//                    
-//                    //                            self.progressIndicator.progress = 0.0
-//                    //                            self.progressIndicator.hidden = true
-//                    //
-//                    //                            self.loadTimer?.invalidate()
-//                    //                            self.loadTimer = nil
-//                })
-//            })
-//            return
-//        }
-//        
-//        if #available(iOS 9.0, *) {
-//            if NSUserDefaults.standardUserDefaults().boolForKey(Constants.CACHE_DOWNLOADS) {
-//                var destinationURL:NSURL?
-//                
-//                switch selectedSermon!.showing! {
-//                case Constants.NOTES:
-//                    destinationURL = selectedSermon!.notesFileSystemURL!
-//                    break
-//                case Constants.SLIDES:
-//                    destinationURL = selectedSermon!.slidesFileSystemURL!
-//                    break
-//                    
-//                default:
-//                    break
-//                }
-//                
-//                if (NSFileManager.defaultManager().fileExistsAtPath(destinationURL!.path!)){
-//                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                        self.wkWebView?.loadFileURL(destinationURL!, allowingReadAccessToURL: destinationURL!)
-//
-//                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                            self.activityIndicator.stopAnimating()
-//                            self.activityIndicator.hidden = true
-//                            
-//                            self.progressIndicator.progress = 0.0
-//                            self.progressIndicator.hidden = true
-//                            
-//                            self.loadTimer?.invalidate()
-//                            self.loadTimer = nil
-//                        })
-//                    })
-//                } else {
-//                    switch selectedSermon!.showing! {
-//                    case Constants.NOTES:
-//                        activityIndicator.hidden = false
-//                        activityIndicator.startAnimating()
-//                        
-//                        progressIndicator.progress = selectedSermon!.notesDownload!.totalBytesExpectedToWrite != 0 ? Float(selectedSermon!.notesDownload!.totalBytesWritten) / Float(selectedSermon!.notesDownload!.totalBytesExpectedToWrite) : 0.0
-//                        progressIndicator.hidden = false
-//                        if loadTimer == nil {
-//                            loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "downloading", userInfo: nil, repeats: true)
-//                        }
-//                        selectedSermon!.notesDownload?.download()
-//                        break
-//                        
-//                    case Constants.SLIDES:
-//                        activityIndicator.hidden = false
-//                        activityIndicator.startAnimating()
-//                        
-//                        progressIndicator.progress = selectedSermon!.slidesDownload!.totalBytesExpectedToWrite != 0 ? Float(selectedSermon!.slidesDownload!.totalBytesWritten) / Float(selectedSermon!.slidesDownload!.totalBytesExpectedToWrite) : 0.0
-//                        progressIndicator.hidden = false
-//                        if loadTimer == nil {
-//                            loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "downloading", userInfo: nil, repeats: true)
-//                        }
-//                        selectedSermon!.slidesDownload?.download()
-//                        break
-//                        
-//                    default:
-//                        break
-//                    }
-//                }
-//            } else {
-//                var url:NSURL?
-//                
-//                switch selectedSermon!.showing! {
-//                case Constants.NOTES:
-//                    url = selectedSermon!.notesURL
-//                    break
-//                case Constants.SLIDES:
-//                    url = selectedSermon!.slidesURL
-//                    break
-//                    
-//                default:
-//                    break
-//                }
-//                
-//                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                        self.view.bringSubviewToFront(self.activityIndicator)
-//
-//                        self.activityIndicator.hidden = false
-//                        self.activityIndicator.startAnimating()
-//                        
-//                        self.progressIndicator.progress = 0.0
-//                        self.progressIndicator.hidden = false
-//                        if self.loadTimer == nil {
-//                            self.loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loading", userInfo: nil, repeats: true)
-//                        }
-//                    })
-//                    
-//                    let request = NSURLRequest(URL: url!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
-//                    self.wkWebView?.loadRequest(request) // NSURLRequest(URL: NSURL(string: stringURL!)!)
-//                })
-//            }
-//        } else {
-//            var url:NSURL?
-//            
-//            switch selectedSermon!.showing! {
-//            case Constants.NOTES:
-//                url = selectedSermon!.notesURL
-//                break
-//            case Constants.SLIDES:
-//                url = selectedSermon!.slidesURL
-//                break
-//                
-//            default:
-//                break
-//            }
-//            
-//            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                    self.view.bringSubviewToFront(self.activityIndicator)
-//                    
-//                    self.activityIndicator.hidden = false
-//                    self.activityIndicator.startAnimating()
-//                    
-//                    self.progressIndicator.progress = 0.0
-//                    self.progressIndicator.hidden = false
-//                    if self.loadTimer == nil {
-//                        self.loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loading", userInfo: nil, repeats: true)
-//                    }
-//                })
-//                
-//                let request = NSURLRequest(URL: url!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
-//                self.wkWebView?.loadRequest(request) // NSURLRequest(URL: NSURL(string: stringURL!)!)
-//            })
-//        }
     }
 
     override func viewDidAppear(animated: Bool) {

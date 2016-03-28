@@ -18,7 +18,7 @@ class MyTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate 
     {
         if (sermon != nil) {
             if (sermon!.audioDownload?.state == .downloading) && (downloadObserver == nil) {
-                downloadObserver = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "updateUI", userInfo: nil, repeats: true)
+                downloadObserver = NSTimer.scheduledTimerWithTimeInterval(Constants.DOWNLOADING_TIMER_INTERVAL, target: self, selector: #selector(MyTableViewCell.updateUI), userInfo: nil, repeats: true)
             }
 
             if (sermon!.audioDownload?.state == .downloaded) && (downloadObserver != nil) {
@@ -52,8 +52,13 @@ class MyTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate 
     
     var sermon:Sermon? {
         didSet {
-            NSNotificationCenter.defaultCenter().removeObserver(self, name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: oldValue)
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: "updateUI", name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: sermon)
+            if (oldValue != nil) {
+                NSNotificationCenter.defaultCenter().removeObserver(self, name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: oldValue)
+            }
+            
+            if (sermon != nil) {
+                NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MyTableViewCell.updateUI), name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: sermon)
+            }
 
             updateUI()
         }
@@ -116,79 +121,8 @@ class MyTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate 
                     }
                 }
 
-//                vc?.dismissViewControllerAnimated(true, completion: nil)
-//                
-//                let alert = UIAlertController(title: Constants.Actions, //Constants.Downloads
-//                    message: Constants.EMPTY_STRING,
-//                    preferredStyle: UIAlertControllerStyle.ActionSheet)
-//                
-//                var action : UIAlertAction
-//                
-//                if sermon!.hasAudio() {
-//                    switch sermon!.audioDownload!.state {
-//                    case .none:
-//                        action = UIAlertAction(title: Constants.Download_Audio, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                            self.sermon?.audioDownload?.download()
-//                        })
-//                        alert.addAction(action)
-//                        break
-//                        
-//                    case .downloading:
-//                        action = UIAlertAction(title: Constants.Cancel_Audio_Download, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                            self.sermon?.audioDownload?.cancelOrDeleteDownload()
-//                        })
-//                        alert.addAction(action)
-//                        break
-//                    case .downloaded:
-//                        action = UIAlertAction(title: Constants.Delete_Audio_Download, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                            self.sermon?.audioDownload?.deleteDownload()
-//                        })
-//                        alert.addAction(action)
-//                        break
-//                    }
-//                }
-
-                //Video simply takes too long and too much space
-//                if sermon!.hasVideo() {
-//                    switch sermon!.videoDownload!.state {
-//                    case .none:
-//                        action = UIAlertAction(title: Constants.Download_Video, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                            self.downloadVideo()
-//                        })
-//                        alert.addAction(action)
-//                        break
-//                        
-//                    case .downloading:
-//                        action = UIAlertAction(title: Constants.Cancel_Video_Download, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                            self.cancelVideoDownload()
-//                        })
-//                        alert.addAction(action)
-//                        break
-//                    case .downloaded:
-//                        action = UIAlertAction(title: Constants.Delete_Video_Download, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                            self.deleteVideoDownload()
-//                        })
-//                        alert.addAction(action)
-//                        break
-//                    }
-//                }
-                
-//                action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
-//                    
-//                })
-//                alert.addAction(action)
-//                
-//                alert.modalPresentationStyle = UIModalPresentationStyle.Popover
-//                alert.popoverPresentationController?.sourceView = self
-//                alert.popoverPresentationController?.sourceRect = downloadButton.frame
-//                
-//                vc?.presentViewController(alert, animated: true, completion: nil)
-
                 updateUI()
             }
-//        } else {
-//            self.networkUnavailable("Unable to download audio.")
-//        }
     }
     
     // Specifically for Plus size iPhones.
@@ -233,36 +167,6 @@ class MyTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate 
                         vc?.presentViewController(navigationController, animated: true, completion: nil)
                     }
                 }
-                //                let alert = UIAlertController(title: "Show Sermons Tagged With",
-                //                    message: Constants.EMPTY_STRING,
-                //                    preferredStyle: UIAlertControllerStyle.ActionSheet)
-                //
-                //                var action : UIAlertAction
-                //
-                //                let tags = Array(sermon!.tagsSet!).sort() { stringWithoutPrefixes($0) < stringWithoutPrefixes($1) }
-                //
-                //                for tag in tags {
-                //                    action = UIAlertAction(title: tag, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-                //                        Globals.sermonTagsSelected = tag
-                //                        Globals.showing = Constants.TAGGED
-                //                        self.tvc?.updateList()
-                //                    })
-                //
-                //                    alert.addAction(action)
-                //
-                //                    action.enabled = Globals.sermonTagsSelected != tag
-                //                }
-                //
-                //                action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
-                //
-                //                })
-                //                alert.addAction(action)
-                //
-                //                alert.modalPresentationStyle = UIModalPresentationStyle.Popover
-                //                alert.popoverPresentationController?.sourceView = self
-                //                alert.popoverPresentationController?.sourceRect = tagsButton.frame
-                //                
-                //                UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
             }
         }
     }
@@ -298,7 +202,6 @@ class MyTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate 
                 if (sermon?.tagsSet?.count > 1) {
                     tagsButton.setTitle(Constants.FA_TAGS, forState: UIControlState.Normal)
                 } else {
-//                    tagsButton.hidden = sermon?.tagsSet?.first == Globals.sermonTagsSelected
                     tagsButton.setTitle(Constants.FA_TAG, forState: UIControlState.Normal)
                 }
             } else {
@@ -353,10 +256,6 @@ class MyTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate 
         if (sermon!.hasAudio()) {
             tsva = tsva + Constants.SINGLE_SPACE_STRING + Constants.FA_AUDIO
         }
-        
-//        let attributes = [NSFontAttributeName : UIFont(name: Constants.FontAwesome, size: Constants.FA_ICONS_FONT_SIZE)!]
-//
-//        icons.attributedText = NSMutableAttributedString(string: tsva,attributes: attributes)
   
         icons.text = tsva
     }
@@ -386,62 +285,6 @@ class MyTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate 
             }
         }
     }
-    
-//    func deleteAudioDownload()
-//    {
-//        sermon?.audioDownload?.deleteDownload()
-//    }
-//    
-//    func downloadAudio()
-//    {
-//        sermon?.audioDownload?.download()
-//    }
-    
-//    func cancelAudioDownload()
-//    {
-//        // It may complete downloading before the user clicks okay.
-//        
-//        switch sermon!.audioDownload!.state {
-//        case .downloading:
-//            sermon?.cancelAudioDownload()
-//            break
-//            
-//        case .downloaded:
-//            sermon?.deleteAudioDownload()
-//            break
-//            
-//        default:
-//            break
-//        }
-//    }
-    
-//    func deleteVideoDownload()
-//    {
-//        sermon?.deleteVideoDownload()
-//    }
-    
-//    func downloadVideo()
-//    {
-//        sermon?.downloadVideo()
-//    }
-    
-//    func cancelVideoDownload()
-//    {
-//        // It may complete downloading before the user clicks okay.
-//        
-//        switch sermon!.videoDownload!.state {
-//        case .downloading:
-//            sermon?.cancelVideoDownload()
-//            break
-//            
-//        case .downloaded:
-//            sermon?.deleteVideoDownload()
-//            break
-//            
-//        default:
-//            break
-//        }
-//    }
     
     @IBOutlet weak var downloadProgressBar: UIProgressView!
     

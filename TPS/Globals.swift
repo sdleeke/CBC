@@ -17,6 +17,155 @@ import MediaPlayer
 //    var tag:String?
 //}
 
+enum PlayerState {
+    case none
+    
+    case paused
+    case playing
+    case stopped
+    
+    case seekingForward
+    case seekingBackward
+}
+
+class PlayerStateTime {
+    var sermon:Sermon?
+    
+    var state:PlayerState = .none {
+        didSet {
+            if (state != oldValue) {
+                dateEntered = NSDate()
+            }
+        }
+    }
+    
+    var dateEntered:NSDate?
+    var timeElapsed:NSTimeInterval {
+        get {
+            return NSDate().timeIntervalSinceDate(dateEntered!)
+        }
+    }
+    
+    init()
+    {
+        dateEntered = NSDate()
+    }
+}
+
+//class Player {
+//    var stateTime:PlayerStateTime?
+//    
+//    var loaded:Bool = false
+//    
+//    var paused:Bool = true {
+//        didSet {
+//            if (paused != oldValue) || (Globals.sermonPlaying != stateTime?.sermon) || (stateTime?.sermon == nil) {
+//                stateTime = PlayerStateTime()
+//                
+//                stateTime?.sermon = Globals.sermonPlaying
+//                
+//                if paused {
+//                    stateTime?.state = .paused
+//                } else {
+//                    stateTime?.state = .playing
+//                }
+//            }
+//        }
+//    }
+//
+//    var playerObserver:NSTimer?
+//
+//    var mpPlayer:MPMoviePlayerController?
+//    
+////    init()
+////    {
+////        stateTime = PlayerStateTime()
+////    }
+//    
+//    func mpPlayerLoadStateDidChange(notification:NSNotification)
+//    {
+//        let player = notification.object as! MPMoviePlayerController
+//        
+//        let loadstate:UInt8 = UInt8(player.loadState.rawValue)
+//        
+//        let playable = (loadstate & UInt8(MPMovieLoadState.Playable.rawValue)) > 0
+//        let playthrough = (loadstate & UInt8(MPMovieLoadState.PlaythroughOK.rawValue)) > 0
+//        
+//        //        print("\(loadstate)")
+//        //        print("\(playable)")
+//        //        print("\(playthrough)")
+//        
+//        if (playable || playthrough) && !loaded && (Globals.sermonPlaying != nil) {
+//            //            print("\(Globals.sermonPlaying!.currentTime!)")
+//            //            print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
+//            
+//            // The comparison below is Int because I'm concerned Float leaves room for small differences.  We'll see.
+//            if Globals.sermonPlaying!.hasCurrentTime() {
+//                if (Int(Float(Globals.sermonPlaying!.currentTime!)!) == Int(mpPlayer!.duration)) { // !loadingFromLive &&
+//                    Globals.sermonPlaying?.currentTime = Constants.ZERO
+//                }
+//            } else {
+//                Globals.sermonPlaying?.currentTime = Constants.ZERO
+//            }
+//            
+//            mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!)
+//            
+//            updateCurrentTimeExact()
+//            setupPlayingInfoCenter()
+//            
+////            spinner.stopAnimating()
+//            loaded = true
+//            
+////            if !loadingFromLive {
+//                mpPlayer?.play()
+////            }
+//            
+////            playPauseButton.enabled = true
+////            slider.enabled = true
+//            
+//            NSNotificationCenter.defaultCenter().removeObserver(self, name: MPMoviePlayerLoadStateDidChangeNotification, object: mpPlayer)
+//        }
+//        
+//        //For playing
+//        if (mpPlayer != nil) {
+//            switch mpPlayer!.playbackState {
+//            case .Interrupted:
+//                print("MVC.mpPlayerLoadStateDidChange.Interrupted")
+//                break
+//                
+//            case .Paused:
+//                print("MVC.mpPlayerLoadStateDidChange.Paused")
+//                break
+//                
+//            case .Playing:
+//                print("MVC.mpPlayerLoadStateDidChange.Playing")
+//                //Why do we need the following?
+////                spinner.stopAnimating()
+////                spinner.hidden = true
+//                setupPlayingInfoCenter()
+//                NSNotificationCenter.defaultCenter().removeObserver(self, name: MPMoviePlayerLoadStateDidChangeNotification, object: mpPlayer)
+//                break
+//                
+//            case .SeekingBackward:
+//                print("MVC.mpPlayerLoadStateDidChange.SeekingBackward")
+//                break
+//                
+//            case .SeekingForward:
+//                print("MVC.mpPlayerLoadStateDidChange.SeekingForward")
+//                break
+//                
+//            case .Stopped:
+//                print("MVC.mpPlayerLoadStateDidChange.Stopped")
+//                //Why do we need the following?
+//                if !Globals.player!.paused {
+//                    mpPlayer?.play()
+//                }
+//                break
+//            }
+//        }
+//    }
+//}
+
 struct Globals {
     static var finished = 0
     static var progress = 0
@@ -82,6 +231,7 @@ struct Globals {
     
     static var refreshing:Bool = false
     static var loading:Bool = false
+//    static var loadingFromLive = false
     
     static var searchActive:Bool = false
     static var searchText:String?
@@ -91,17 +241,31 @@ struct Globals {
     static var gotoPlayingPaused:Bool = false
     static var showingAbout:Bool = false
     
+//    static var player:Player?
+    
     static var mpPlayer:MPMoviePlayerController?
+    static var mpPlayerStateTime : PlayerStateTime?
     
     static var playerPaused:Bool = true {
         didSet {
-            print("playerPaused")
+            if (playerPaused != oldValue) || (sermonPlaying != mpPlayerStateTime?.sermon) || (mpPlayerStateTime?.sermon == nil) {
+                mpPlayerStateTime = PlayerStateTime()
+                mpPlayerStateTime?.sermon = sermonPlaying
+                
+                if playerPaused {
+                    mpPlayerStateTime?.state = .paused
+                } else {
+                    mpPlayerStateTime?.state = .playing
+                }
+            }
         }
     }
-    
+
+    static var playOnLoad:Bool = false
     static var sermonLoaded:Bool = false
     
-    static var sliderObserver: NSTimer?
+//    static var sliderObserver: NSTimer?
+    static var playerObserver: NSTimer?
     static var seekingObserver: NSTimer?
     
 //    static var playObserver: NSTimer?

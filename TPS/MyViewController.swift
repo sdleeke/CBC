@@ -14,18 +14,37 @@ import MediaPlayer
 import Social
 
 class Document {
+    var sermon:Sermon?
+    
     var purpose:String?
     
-    var download:Download?
+    var download:Download? {
+        get {
+            var download:Download?
+            
+            switch purpose! {
+            case Constants.NOTES:
+                download = sermon?.notesDownload
+                
+            case Constants.SLIDES:
+                download = sermon?.slidesDownload
+                
+            default:
+                break
+            }
+            
+            return download
+        }
+    }
     
     var wkWebView:WKWebView?
     
     var loadTimer:NSTimer?
     
-    init(purpose:String,download:Download?)
+    init(purpose:String,sermon:Sermon?)
     {
         self.purpose = purpose
-        self.download = download
+        self.sermon = sermon
     }
 }
 
@@ -33,17 +52,26 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
     var panning = false
     
+    var sliderObserver:NSTimer?
+    
     var showScripture = false
     
-    var loadingFromLive = false
-    
-    var documents = [String:Document]()
+    var documents = [String:[String:Document]]()
     
     var notesDocument:Document? {
         didSet {
             oldValue?.wkWebView?.removeFromSuperview()
             oldValue?.wkWebView?.scrollView.delegate = nil
-            documents[notesDocument!.purpose!] = notesDocument
+            
+            if (selectedSermon != nil) {
+                if (documents[selectedSermon!.id] == nil) {
+                    documents[selectedSermon!.id] = [String:Document]()
+                }
+                
+                if (notesDocument != nil) {
+                    documents[selectedSermon!.id]![notesDocument!.purpose!] = notesDocument
+                }
+            }
         }
     }
     
@@ -51,7 +79,16 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         didSet {
             oldValue?.wkWebView?.removeFromSuperview()
             oldValue?.wkWebView?.scrollView.delegate = nil
-            documents[slidesDocument!.purpose!] = slidesDocument
+            
+            if (selectedSermon != nil) {
+                if (documents[selectedSermon!.id] == nil) {
+                    documents[selectedSermon!.id] = [String:Document]()
+                }
+                
+                if (slidesDocument != nil) {
+                    documents[selectedSermon!.id]?[slidesDocument!.purpose!] = slidesDocument
+                }
+            }
         }
     }
     
@@ -74,12 +111,28 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     var selectedSermon:Sermon? {
         didSet {
+            if oldValue != nil {
+                NSNotificationCenter.defaultCenter().removeObserver(self, name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: oldValue)
+            }
+            
+            notesDocument = nil // CRITICAL because it removes the scrollView.delegate from the last one (if any)
+            slidesDocument = nil // CRITICAL because it removes the scrollView.delegate from the last one (if any)
+            
             if (selectedSermon != nil) {
                 if (selectedSermon!.hasNotes()) {
-                    notesDocument = Document(purpose: Constants.NOTES, download: selectedSermon?.notesDownload)
+                    notesDocument = documents[selectedSermon!.id]?[Constants.NOTES]
+                    
+                    if (notesDocument == nil) {
+                        notesDocument = Document(purpose: Constants.NOTES, sermon: selectedSermon)
+                    }
                 }
+                
                 if (selectedSermon!.hasSlides()) {
-                    slidesDocument = Document(purpose: Constants.SLIDES, download: selectedSermon?.slidesDownload)
+                    slidesDocument = documents[selectedSermon!.id]?[Constants.SLIDES]
+                    
+                    if (slidesDocument == nil) {
+                        slidesDocument = Document(purpose: Constants.SLIDES, sermon: selectedSermon)
+                    }
                 }
 
                 sermonsInSeries = selectedSermon?.sermonsInSeries // sermonsInSermonSeries(selectedSermon)
@@ -88,25 +141,22 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 defaults.setObject(selectedSermon!.id,forKey: Constants.SELECTED_SERMON_DETAIL_KEY)
                 defaults.synchronize()
                 
-                NSNotificationCenter.defaultCenter().removeObserver(self, name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: oldValue)
-                NSNotificationCenter.defaultCenter().addObserver(self, selector: "setupActionAndTagsButtons", name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: selectedSermon)
+                NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MyViewController.setupActionAndTagsButtons), name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: selectedSermon)
             } else {
                 // We always select, never deselect, so this should not be done.  If we set this to nil it is for some other reason, like clearing the UI.
                 //                defaults.removeObjectForKey(Constants.SELECTED_SERMON_DETAIL_KEY)
                 sermonsInSeries = nil
+                for key in documents.keys {
+                    documents[key] = nil
+                }
             }
         }
     }
     
     var sermonsInSeries:[Sermon]?
 
-    var notesLoadTimer:NSTimer?
-    var slidesLoadTimer:NSTimer?
-    
     @IBOutlet weak var progressIndicator: UIProgressView!
 
-//    var popover : PopoverTableViewController?
-    
     @IBOutlet weak var splitView: SplitView!
 
     @IBOutlet weak var audioOrVideoControl: UISegmentedControl!
@@ -143,7 +193,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 }
                 
                 // We need to do this whether the sermon was playing or not
-                captureContentOffsetAndZoomScale()
+//                captureContentOffsetAndZoomScale()
+                
                 selectedSermon?.playing = Constants.AUDIO // Must come before setupNoteAndSlides()
                 setupNotesSlidesVideo() // Calls setupSTVControl()
                 break
@@ -176,7 +227,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 }
                 
                 // We need to do this whether the sermon was playing or not
-                captureContentOffsetAndZoomScale()
+//                captureContentOffsetAndZoomScale()
+                
                 selectedSermon?.playing = Constants.VIDEO // Must come before setupNoteAndSlides()
                 setupNotesSlidesVideo() // Calls setupSTVControl()
                 break
@@ -198,15 +250,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     @IBOutlet weak var playPauseButton: UIButton!
     @IBOutlet weak var spinner: UIActivityIndicatorView!
     
-//    @IBOutlet weak var flipButton: UIButton!
-//    @IBOutlet weak var flipButtonWidthConstraint: NSLayoutConstraint!
-    
-//    @IBAction func flipNotesAndSlides(sender: UIButton)
-//    {
-////        print("flipNotesAndSlides")
-//        tap(self)
-//    }
-    
     @IBOutlet weak var stvControl: UISegmentedControl!
     @IBOutlet weak var stvWidthConstraint: NSLayoutConstraint!
     @IBAction func stvAction(sender: UISegmentedControl)
@@ -217,19 +260,11 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         
         switch selectedSermon!.showing! {
         case Constants.SLIDES:
-//            if sermonSlidesWebView!.hidden {
-//                return
-//            }
-//            view = slidesDocument?.wkWebView // sermonSlidesWebView
-            view = documents[selectedSermon!.showing!]?.wkWebView
+            view = documents[selectedSermon!.id]?[selectedSermon!.showing!]?.wkWebView
             break
             
         case Constants.NOTES:
-//            if sermonNotesWebView!.hidden {
-//                return
-//            }
-//            view = notesDocument?.wkWebView // sermonNotesWebView
-            view = documents[selectedSermon!.showing!]?.wkWebView
+            view = documents[selectedSermon!.id]?[selectedSermon!.showing!]?.wkWebView
             break
             
         case Constants.VIDEO:
@@ -241,7 +276,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             
         }
         
-        captureContentOffsetAndZoomScale()
+//        captureContentOffsetAndZoomScale()
 
         let transitionOptions = UIViewAnimationOptions.TransitionFlipFromLeft
         
@@ -251,15 +286,13 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
         switch sender.titleForSegmentAtIndex(sender.selectedSegmentIndex)! {
         case Constants.FA_SLIDES_SEGMENT_TITLE:
-//            toView = slidesDocument?.wkWebView
             purpose = Constants.SLIDES
-            toView = documents[purpose!]?.wkWebView
+            toView = documents[selectedSermon!.id]?[purpose!]?.wkWebView
             break
 
         case Constants.FA_TRANSCRIPT_SEGMENT_TITLE:
-//            toView = notesDocument?.wkWebView
             purpose = Constants.NOTES
-            toView = documents[purpose!]?.wkWebView
+            toView = documents[selectedSermon!.id]?[purpose!]?.wkWebView
             break
         
         case Constants.FA_VIDEO_SEGMENT_TITLE:
@@ -273,16 +306,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
         if (toView != nil) {
             UIView.transitionWithView(self.sermonNotesAndSlides, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {
-                
                 if (toView != nil) {
                     toView?.hidden = false
                     self.sermonNotesAndSlides.bringSubviewToFront(toView!)
+                    self.selectedSermon!.showing = purpose
                 } else {
-                    view?.hidden = true
                     self.logo?.hidden = false
                     self.sermonNotesAndSlides.bringSubviewToFront(self.logo!)
+                    self.selectedSermon!.showing = Constants.NONE
                 }
-                self.selectedSermon!.showing = purpose
                 
                 }, completion: { finished in
                     view?.hidden = true
@@ -308,17 +340,17 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             if (selectedSermon!.hasNotes()) {
                 stvControl.insertSegmentWithTitle(Constants.FA_TRANSCRIPT_SEGMENT_TITLE, atIndex: index, animated: false)
                 notesIndex = index
-                index++
+                index += 1
             }
             if (selectedSermon!.hasSlides()) {
                 stvControl.insertSegmentWithTitle(Constants.FA_SLIDES_SEGMENT_TITLE, atIndex: index, animated: false)
                 slidesIndex = index
-                index++
+                index += 1
             }
             if (selectedSermon!.hasVideo() && (Globals.sermonPlaying == selectedSermon) && (selectedSermon?.playing == Constants.VIDEO)) {
                 stvControl.insertSegmentWithTitle(Constants.FA_VIDEO_SEGMENT_TITLE, atIndex: index, animated: false)
                 videoIndex = index
-                index++
+                index += 1
             }
             
             stvWidthConstraint.constant = Constants.MIN_STV_SEGMENT_WIDTH * CGFloat(index)
@@ -363,74 +395,68 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
     @IBAction func playPause(sender: UIButton) {
         if (Globals.mpPlayer != nil) && (Globals.sermonPlaying != nil) && (Globals.sermonPlaying == selectedSermon) {
-            switch Globals.mpPlayer!.playbackState {
-            case .SeekingBackward:
-                print("playPause.SeekingBackward")
-                fallthrough
+            switch Globals.mpPlayerStateTime!.state {
+            case .none:
+//                print("none")
+                break
                 
-            case .SeekingForward:
-                print("playPause.SeekingForward")
-                fallthrough
-                
-            case .Playing:
-                print("playPause.Playing")
-                
-//                removePlayObserver()
-                
-                Globals.mpPlayer?.pause()
+            case .playing:
+//                print("playing")
                 Globals.playerPaused = true
+                Globals.mpPlayer?.pause()
                 updateCurrentTimeExact()
                 setupPlayPauseButton()
                 break
                 
-            case .Stopped:
-                print("playPause.Stopped")
-                fallthrough
-                
-            case .Interrupted:
-                print("playPause.Interrupted")
-                fallthrough
-                
-            case .Paused:
-                print("playPause.Paused")
-
+            case .paused:
+//                print("paused")
                 let loadstate:UInt8 = UInt8(Globals.mpPlayer!.loadState.rawValue)
-                let loadvalue:UInt8 = UInt8(MPMovieLoadState.Playable.rawValue)
                 
-                let playable = ((loadstate & loadvalue) == loadvalue)
-
-//                print("\(loadstate)")
-//                print("\(loadvalue)")
+                let playable = (loadstate & UInt8(MPMovieLoadState.Playable.rawValue)) > 0
+                let playthrough = (loadstate & UInt8(MPMovieLoadState.PlaythroughOK.rawValue)) > 0
                 
-                if (playable) {
-                    print("playPause.MPMovieLoadState.Playable")
+//                if playable && debug {
+//                    print("playTimer.MPMovieLoadState.Playable")
+//                }
+//
+//                if playthrough && debug {
+//                    print("playTimer.MPMovieLoadState.Playthrough")
+//                }
+//
+                
+                if (playable || playthrough) {
+//                    print("playPause.MPMovieLoadState.Playable or Playthrough OK")
                     Globals.playerPaused = false
                     
                     if (Globals.mpPlayer?.contentURL == selectedSermon?.playingURL) {
-                        //                    print("\(selectedSermon!.currentTime!)")
-                        //                    print("\(NSTimeInterval(Float(selectedSermon!.currentTime!)!))")
-                        
                         if selectedSermon!.hasCurrentTime() {
                             //Make the comparision an Int to avoid missing minor differences
                             if (Globals.mpPlayer!.duration >= 0) && (Int(Float(Globals.mpPlayer!.duration)) == Int(Float(selectedSermon!.currentTime!)!)) {
-                                Globals.sermonPlaying?.currentTime = Constants.ZERO
+                                Globals.sermonPlaying!.currentTime = Constants.ZERO
                                 Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(0)
                             }
                             if (Globals.mpPlayer!.currentPlaybackTime >= 0) && (Int(Globals.mpPlayer!.currentPlaybackTime) != Int(Float(selectedSermon!.currentTime!)!)) {
+                                // This happens on the first play after load and the correction below is requried.
+                                
                                 print("currentPlayBackTime: \(Globals.mpPlayer!.currentPlaybackTime) != currentTime: \(selectedSermon!.currentTime!)")
+                                
+                                Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!)
+
+                                // This should show that it has been corrected.  Otherwise the video (I've not seen it happen on audio) starts 1-3 seconds earlier than expected.
+                                print("currentPlayBackTime: \(Globals.mpPlayer!.currentPlaybackTime) currentTime: \(selectedSermon!.currentTime!)")
                             }
                         } else {
-                            Globals.sermonPlaying?.currentTime = Constants.ZERO
+                            Globals.sermonPlaying!.currentTime = Constants.ZERO
                             Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(0)
                         }
                         
                         if (Globals.mpPlayer?.currentPlaybackTime == 0) {
                             print("Globals.mpPlayer?.currentPlaybackTime == 0!")
                         }
-
+                        
                         spinner.stopAnimating()
                         spinner.hidden = true
-
+                        
                         Globals.mpPlayer?.play()
                         
                         setupPlayingInfoCenter()
@@ -439,16 +465,29 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                         playNewSermon(selectedSermon)
                     }
                 } else {
-                    print("playPause.MPMovieLoadState.Playthrough NOT OK")
-                    if (Globals.playerPaused) {
-                        playNewSermon(selectedSermon)
-                    } else {
-                        Globals.playerPaused = true
-                        spinner.stopAnimating()
-                        spinner.hidden = true
-                        setupPlayPauseButton()
-                    }
+//                    print("playPause.MPMovieLoadState.Playable or Playthrough NOT OK")
+                    playNewSermon(selectedSermon)
                 }
+                break
+                
+            case .stopped:
+//                print("stopped")
+                break
+                
+            case .seekingForward:
+//                print("seekingForward")
+                Globals.playerPaused = true
+                Globals.mpPlayer?.pause()
+                updateCurrentTimeExact()
+                setupPlayPauseButton()
+                break
+                
+            case .seekingBackward:
+//                print("seekingBackward")
+                Globals.playerPaused = true
+                Globals.mpPlayer?.pause()
+                updateCurrentTimeExact()
+                setupPlayPauseButton()
                 break
             }
         } else {
@@ -474,10 +513,11 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     private func shouldShowLogo() -> Bool
     {
-        var result = false
+        var result = (selectedSermon == nil)
 
-        if (selectedSermon?.showing != nil) && (documents[selectedSermon!.showing!] != nil) {
-            result = ((documents[selectedSermon!.showing!]?.wkWebView == nil) || (documents[selectedSermon!.showing!]!.wkWebView!.hidden == true)) && progressIndicator.hidden
+        if (selectedSermon != nil) && (selectedSermon!.showing != nil) && (documents[selectedSermon!.id] != nil) && (documents[selectedSermon!.id]![selectedSermon!.showing!] != nil) {
+            let wkWebView = documents[selectedSermon!.id]![selectedSermon!.showing!]!.wkWebView
+            result = ((wkWebView == nil) || (wkWebView!.hidden == true)) && progressIndicator.hidden
         } else {
             if (selectedSermon?.showing == Constants.VIDEO) {
                 result = false
@@ -487,51 +527,73 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             }
         }
 
-//        if selectedSermon != nil {
-//            switch selectedSermon!.showing! {
-//            case Constants.VIDEO:
-//                result = false
-//                break
-//                
-//            case Constants.NOTES:
-//                result = ((notesDocument?.wkWebView == nil) || (notesDocument!.wkWebView!.hidden == true)) && progressIndicator.hidden
-//                break
-//                
-//            case Constants.SLIDES:
-//                result = ((slidesDocument?.wkWebView == nil) || (slidesDocument!.wkWebView!.hidden == true)) && progressIndicator.hidden
-//                break
-//                
-//            case Constants.NONE:
-//                result = true
-//                break
-//                
-//            default:
-//                result = false
-//                break
-//            }
-//        } else {
-//            result = true
-//        }
+        if (selectedSermon != nil) && (documents[selectedSermon!.id] != nil) {
+            var nilCount = 0
+            var hiddenCount = 0
+            
+            for key in documents[selectedSermon!.id]!.keys {
+                let wkWebView = documents[selectedSermon!.id]![key]!.wkWebView
+                if (wkWebView == nil) {
+                    nilCount += 1
+                }
+                if (wkWebView != nil) && (wkWebView!.hidden == true) {
+                    hiddenCount += 1
+                }
+            }
+            
+            if (nilCount == documents[selectedSermon!.id]!.keys.count) {
+                result = true
+            } else {
+                if (hiddenCount > 0) {
+                    result = progressIndicator.hidden
+                }
+            }
+        }
 
-//        if (sermonNotesWebView == nil) && (sermonSlidesWebView == nil) {
-//            return true
-//        }
-//        
-//        if  {
-//            return progressIndicator.hidden
-//        }
-//        
-//        if (sermonSlidesWebView == nil) && ((sermonNotesWebView != nil) && (sermonNotesWebView!.hidden == true)) {
-//            return progressIndicator.hidden
-//        }
-//        
-//        if ((sermonNotesWebView != nil) && (sermonNotesWebView!.hidden == true)) && ((sermonSlidesWebView != nil) && (sermonSlidesWebView!.hidden == true)) {
-//            return progressIndicator.hidden
-//        }
-        
-//        print(result)
         return result
     }
+
+    //        if selectedSermon != nil {
+    //            switch selectedSermon!.showing! {
+    //            case Constants.VIDEO:
+    //                result = false
+    //                break
+    //
+    //            case Constants.NOTES:
+    //                result = ((sermonNotesWebView == nil) || (sermonNotesWebView!.hidden == true)) && progressIndicator.hidden
+    //                break
+    //
+    //            case Constants.SLIDES:
+    //                result = ((sermonSlidesWebView == nil) || (sermonSlidesWebView!.hidden == true)) && progressIndicator.hidden
+    //                break
+    //
+    //            case Constants.NONE:
+    //                result = true
+    //                break
+    //
+    //            default:
+    //                result = false
+    //                break
+    //            }
+    //        } else {
+    //            result = true
+    //        }
+    //
+    //        if (sermonNotesWebView == nil) && (sermonSlidesWebView == nil) {
+    //            return true
+    //        }
+    //
+    //        if (sermonNotesWebView == nil) && ((sermonSlidesWebView != nil) && (sermonSlidesWebView!.hidden == true)) {
+    //            return progressIndicator.hidden
+    //        }
+    //
+    //        if (sermonSlidesWebView == nil) && ((sermonNotesWebView != nil) && (sermonNotesWebView!.hidden == true)) {
+    //            return progressIndicator.hidden
+    //        }
+    //
+    //        if ((sermonNotesWebView != nil) && (sermonNotesWebView!.hidden == true)) && ((sermonSlidesWebView != nil) && (sermonSlidesWebView!.hidden == true)) {
+    //            return progressIndicator.hidden
+    //        }
     
     private func setSermonNotesAndSlidesConstraint(change:CGFloat)
     {
@@ -559,53 +621,25 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     @IBAction func pan(gesture: UIPanGestureRecognizer) {
         switch gesture.state {
         case .Began:
+            for key in documents[selectedSermon!.id]!.keys {
+                let wkWebView = documents[selectedSermon!.id]![key]?.wkWebView
+                
+                wkWebView?.hidden = true
+                wkWebView?.scrollView.delegate = nil
+            }
+
             panning = true
-            
-            documents[selectedSermon!.showing!]?.wkWebView?.hidden = true
-            documents[selectedSermon!.showing!]?.wkWebView?.scrollView.delegate = nil
-            
-//            switch selectedSermon!.showing! {
-//            case Constants.NOTES:
-//                notesDocument?.wkWebView?.hidden = true
-//                notesDocument?.wkWebView?.scrollView.delegate = nil
-//                break
-//                
-//            case Constants.SLIDES:
-//                slidesDocument?.wkWebView?.hidden = true
-//                slidesDocument?.wkWebView?.scrollView.delegate = nil
-//                break
-//                
-//            case Constants.VIDEO:
-//                break
-//                
-//            default:
-//                break
-//            }
             break
             
         case .Ended:
             captureViewSplit()
 
-            documents[selectedSermon!.showing!]?.wkWebView?.hidden = (documents[selectedSermon!.showing!]?.wkWebView?.URL == nil)
-            documents[selectedSermon!.showing!]?.wkWebView?.scrollView.delegate = self
-
-//            switch selectedSermon!.showing! {
-//            case Constants.NOTES:
-//                notesDocument?.wkWebView?.hidden = (notesDocument?.wkWebView?.URL == nil)
-//                notesDocument?.wkWebView?.scrollView.delegate = self
-//                break
-//                
-//            case Constants.SLIDES:
-//                slidesDocument?.wkWebView?.hidden = (slidesDocument?.wkWebView?.URL == nil)
-//                slidesDocument?.wkWebView?.scrollView.delegate = self
-//                break
-//                
-//            case Constants.VIDEO:
-//                break
-//                
-//            default:
-//                break
-//            }
+            for key in documents[selectedSermon!.id]!.keys {
+                let wkWebView = documents[selectedSermon!.id]![key]?.wkWebView
+                
+                wkWebView?.hidden = (wkWebView?.URL == nil)
+                wkWebView?.scrollView.delegate = self
+            }
 
             panning = false
             break
@@ -619,18 +653,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 self.view.setNeedsLayout()
                 self.view.layoutSubviews()
             }
-//            print("move by \(change)")
-
-            
-            //Not sure if we don't need this here as the view split should be visibly changing as the user makes this pan gesture.
-            //Tried it with and without this and got crashes either way that I couldn't diagnose.  
-            //One crash include reference to something pdf so perhaps the crashes are coming from the WKWebView trying to resize.
-            
-//            self.view.layoutIfNeeded() 
-            
-//            print("sermonNotesAndSlides.bounds: \(sermonNotesAndSlides.bounds)")
-//            print("tableView.bounds: \(tableView.bounds)")
-
             break
             
         default:
@@ -648,12 +670,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     @IBOutlet weak var logo: UIImageView!
     
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
-    
-//    var notesTap:UITapGestureRecognizer?
-//    var slidesTap:UITapGestureRecognizer?
-    
-//    var sermonNotesWebView: WKWebView?
-//    var sermonSlidesWebView: WKWebView?
     
     @IBOutlet weak var tableView: UITableView!
     
@@ -702,9 +718,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     @IBAction func sliderValueChanging(sender: UISlider) {
         setTimesToSlider()
     }
-    
-//    var sliderObserver: NSTimer?
-//    var playObserver: NSTimer?
     
     var actionButton:UIBarButtonItem?
     var tagsButton:UIBarButtonItem?
@@ -795,13 +808,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         
         return bodyString
     }
-    
-//    func sortSermonsInSeries()
-//    {
-//        sermonsInSeries = sortSermonsByYear(sermonsInSeries, sorting: Globals.sorting)
-//        tableView.reloadData()
-//        scrollToSermon(selectedSermon, select: true, position:UITableViewScrollPosition.None)
-//    }
     
     func setupSermonSeriesBodyHTML(sermonsInSeries:[Sermon]?) -> String? {
         var bodyString:String?
@@ -1243,7 +1249,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     
                     for sermon in sermonsInSeries! {
                         if (sermon.hasFavoritesTag()) {
-                            favoriteSermons++
+                            favoriteSermons += 1
                         }
                     }
                     switch favoriteSermons {
@@ -1309,13 +1315,13 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     for sermon in sermons {
                         switch sermon.audioDownload!.state {
                         case .none:
-                            sermonsToDownload++
+                            sermonsToDownload += 1
                             break
                         case .downloading:
-                            sermonsDownloading++
+                            sermonsDownloading += 1
                             break
                         case .downloaded:
-                            sermonsDownloaded++
+                            sermonsDownloaded += 1
                             break
                         }
                     }
@@ -1380,333 +1386,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 presentViewController(navigationController, animated: true, completion: nil)
             }
         }
-        //        print("action!")
-        
-//        //In case we have one already showing
-//        dismissViewControllerAnimated(true, completion: nil)
-
-        // Put up an action sheet
-
-//        let alert = UIAlertController(title: Constants.EMPTY_STRING,
-//            message: Constants.EMPTY_STRING,
-//            preferredStyle: UIAlertControllerStyle.ActionSheet)
-//        
-//        var action : UIAlertAction
-        
-//        if (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) || (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) {
-//            action = UIAlertAction(title: Constants.Print, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                //            print("print!")
-//                self.printSermon(self.selectedSermon)
-//                //                    if (Reachability.isConnectedToNetwork()) {
-//                //                        self.printSermon(self.selectedSermon)
-//                //                    } else {
-//                //                        self.networkUnavailable("Unable to print.")
-//                //                    }
-//            })
-//            alert.addAction(action)
-//        }
-
-//        var title:String?
-//        
-//        if selectedSermon!.hasFavoritesTag() {
-//            title = Constants.Remove_From_Favorites
-//        } else {
-//            title = Constants.Add_to_Favorites
-//        }
-//        
-//        action = UIAlertAction(title:title, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//            switch title! {
-//            case Constants.Add_to_Favorites:
-//                self.selectedSermon?.addTag(Constants.Favorites)
-//                break
-//            case Constants.Remove_From_Favorites:
-//                self.selectedSermon?.removeTag(Constants.Favorites)
-//                break
-//            default:
-//                break
-//            }
-//        })
-//        alert.addAction(action)
-//
-//        if sermonsInSeries?.count > 1 {
-//            var favoriteSermons = 0
-//            
-//            for sermon in sermonsInSeries! {
-//                if (sermon.hasFavoritesTag()) {
-//                    favoriteSermons++
-//                }
-//            }
-//            switch favoriteSermons {
-//            case 0:
-//                action = UIAlertAction(title:Constants.Add_All_to_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                    for sermon in self.sermonsInSeries! {
-//                        sermon.addTag(Constants.Favorites)
-//                    }
-//                })
-//                alert.addAction(action)
-//                break
-//                
-//            case 1:
-//                if !selectedSermon!.hasFavoritesTag() {
-//                    action = UIAlertAction(title:Constants.Remove_All_From_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                        for sermon in self.sermonsInSeries! {
-//                            sermon.removeTag(Constants.Favorites)
-//                        }
-//                    })
-//                    alert.addAction(action)
-//                }
-//                
-//                action = UIAlertAction(title:Constants.Add_All_to_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                    for sermon in self.sermonsInSeries! {
-//                        sermon.addTag(Constants.Favorites)
-//                    }
-//                })
-//                alert.addAction(action)
-//                break
-//                
-//            case sermonsInSeries!.count - 1:
-//                if selectedSermon!.hasFavoritesTag() {
-//                    action = UIAlertAction(title:Constants.Add_All_to_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                        for sermon in self.sermonsInSeries! {
-//                            sermon.addTag(Constants.Favorites)
-//                        }
-//                    })
-//                    alert.addAction(action)
-//                }
-//                
-//                action = UIAlertAction(title:Constants.Remove_All_From_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                    for sermon in self.sermonsInSeries! {
-//                        sermon.removeTag(Constants.Favorites)
-//                    }
-//                })
-//                alert.addAction(action)
-//                break
-//                
-//            case sermonsInSeries!.count:
-//                action = UIAlertAction(title:Constants.Remove_All_From_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                    for sermon in self.sermonsInSeries! {
-//                        sermon.removeTag(Constants.Favorites)
-//                    }
-//                })
-//                alert.addAction(action)
-//                break
-//                
-//            default:
-//                action = UIAlertAction(title:Constants.Add_All_to_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                    for sermon in self.sermonsInSeries! {
-//                        sermon.addTag(Constants.Favorites)
-//                    }
-//                })
-//                alert.addAction(action)
-//                action = UIAlertAction(title:Constants.Remove_All_From_Favorites, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                    for sermon in self.sermonsInSeries! {
-//                        sermon.removeTag(Constants.Favorites)
-//                    }
-//                })
-//                alert.addAction(action)
-//                break
-//            }
-//        }
-//        
-//        if (selectedSermon!.hasVideo() && selectedSermon!.playingVideo() && selectedSermon!.showingVideo()) {
-//                action = UIAlertAction(title: Constants.Full_Screen, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                    self.zoomScreen()
-//                })
-//            alert.addAction(action)
-//        }
-//        
-//        if (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) || (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) {
-//            action = UIAlertAction(title: Constants.Full_Screen, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                self.showScripture = false
-//                self.performSegueWithIdentifier(Constants.SHOW_FULL_SCREEN_SEGUE_IDENTIFIER, sender: self.selectedSermon)
-//            })
-//            alert.addAction(action)
-//        }
-//    
-//        if (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) || (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) {
-//            action = UIAlertAction(title: Constants.Open_in_Browser, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                //            print("mail!")
-//                
-//                var url:NSURL?
-//                
-//                switch self.selectedSermon!.showing! {
-//                case Constants.NOTES:
-//                    url = self.selectedSermon!.notesURL
-//                    break
-//                case Constants.SLIDES:
-//                    url = self.selectedSermon!.slidesURL
-//                    break
-//                    
-//                default:
-//                    break
-//                }
-//
-//                if  url != nil {
-//                    if (UIApplication.sharedApplication().canOpenURL(url!)) { // Reachability.isConnectedToNetwork() &&
-//                        UIApplication.sharedApplication().openURL(url!)
-//                    } else {
-//                        self.networkUnavailable("Unable to open transcript in browser at: \(url)")
-//                    }
-//                }
-//            })
-//            alert.addAction(action)
-//        }
-//        
-//        if (selectedSermon!.hasScripture() && (selectedSermon?.scripture != Constants.Selected_Scriptures)) {
-//            action = UIAlertAction(title: Constants.Scripture_Full_Screen, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                //            print("mail!")
-//                self.showScripture = true
-//                self.performSegueWithIdentifier(Constants.SHOW_FULL_SCREEN_SEGUE_IDENTIFIER, sender: self.selectedSermon)
-//                //                if (Reachability.isConnectedToNetwork()) {
-//                //                    self.openSermonScripture(self.selectedSermon)
-//                //                } else {
-//                //                    let urlString = Constants.SCRIPTURE_URL_PREFIX + self.selectedSermon!.scripture! + Constants.SCRIPTURE_URL_POSTFIX
-//                //                    self.networkUnavailable("Unable to open scripture at: \(urlString)")
-//                //                }
-//            })
-//            alert.addAction(action)
-//        }
-//        
-//        if (selectedSermon!.hasScripture() && (selectedSermon?.scripture != Constants.Selected_Scriptures)) {
-//            action = UIAlertAction(title: Constants.Scripture_in_Browser, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                //            print("mail!")
-//                self.openSermonScripture(self.selectedSermon)
-//                //                if (Reachability.isConnectedToNetwork()) {
-//                //                    self.openSermonScripture(self.selectedSermon)
-//                //                } else {
-//                //                    let urlString = Constants.SCRIPTURE_URL_PREFIX + self.selectedSermon!.scripture! + Constants.SCRIPTURE_URL_POSTFIX
-//                //                    self.networkUnavailable("Unable to open scripture at: \(urlString)")
-//                //                }
-//            })
-//            alert.addAction(action)
-//        }
-//        
-//        if let sermons = sermonsInSeries {
-//            var sermonsToDownload = 0
-//            var sermonsDownloading = 0
-//            var sermonsDownloaded = 0
-//            
-//            for sermon in sermons {
-//                switch sermon.audioDownload!.state {
-//                case .none:
-//                    sermonsToDownload++
-//                    break
-//                case .downloading:
-//                    sermonsDownloading++
-//                    break
-//                case .downloaded:
-//                    sermonsDownloaded++
-//                    break
-//                }
-//            }
-//            
-//            if (sermonsToDownload > 0) {
-//                var title:String?
-//                switch sermonsToDownload {
-//                case 1:
-//                    title = Constants.Download_Audio
-//                    break
-//                    
-//                default:
-//                    title = Constants.Download_All_Audio
-//                    break
-//                }
-//                action = UIAlertAction(title: title, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                    for sermon in sermons {
-//                        if (sermon.audioDownload?.state == .none) {
-//                            sermon.audioDownload?.download()
-//                        }
-//                    }
-//                    self.tableView.reloadData()
-//                    self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Middle)
-//
-////                    if (Reachability.isConnectedToNetwork()) {
-////                        //            println("mail!")
-////                        for sermon in sermons {
-////                            if (sermon.download.state == .none) {
-////                                sermon.downloadAudio()
-////                            }
-////                        }
-////                        self.tableView.reloadData()
-////                        self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Middle)
-////                    } else {
-////                        self.networkUnavailable("Unable to download audio.")
-////                    }
-//                })
-//                alert.addAction(action)
-//            }
-//            
-//            if (sermonsDownloading > 0) {
-//                action = UIAlertAction(title: Constants.Cancel_All_Downloads, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                    //            println("mail!")
-//                    for sermon in sermons {
-//                        if (sermon.audioDownload?.state == .downloading) {
-//                            sermon.audioDownload?.cancelDownload()
-//                        }
-//                    }
-//                    self.tableView.reloadData()
-//                    self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Middle)
-//                })
-//                alert.addAction(action)
-//            }
-//            
-//            if (sermonsDownloaded > 0) {
-//                action = UIAlertAction(title: Constants.Delete_All_Downloads, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                    //            println("mail!")
-//                    for sermon in sermons {
-//                        if (sermon.audioDownload?.state == .downloaded) {
-//                            sermon.audioDownload?.deleteDownload()
-//                        }
-//                    }
-//                    self.tableView.reloadData()
-//                    self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Middle)
-//                })
-//                alert.addAction(action)
-//            }
-//        }
-//        
-//        action = UIAlertAction(title: Constants.Email_Sermon, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//            //            print("mail!")
-//            self.mailSermon(self.selectedSermon)
-//        })
-//        alert.addAction(action)
-//        
-//        if (selectedSermon!.hasSeries()) {
-//            action = UIAlertAction(title: Constants.Email_Series, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                //            print("mail!")
-//                self.mailSermonSeries(self.sermonsInSeries)
-//            })
-//            alert.addAction(action)
-//        }
-//        
-//        if (splitViewController == nil) {
-//            action = UIAlertAction(title: Constants.Share_on_Facebook, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                self.facebook(self.selectedSermon)
-//            })
-//            alert.addAction(action)
-//            
-//            action = UIAlertAction(title: Constants.Share_on_Twitter, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-//                self.twitter(self.selectedSermon)
-//            })
-//            alert.addAction(action)
-//        }
-        
-//        action = UIAlertAction(title: "Message", style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
-////            print("message!")
-//            self.message(self.sermonSelected)
-//        })
-//        alert.addAction(action)
-
-//        action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
-////            print("cancel!")
-//        })
-//        alert.addAction(action)
-//        
-//        //on iPad this is a popover
-//        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
-//        alert.popoverPresentationController?.barButtonItem = actionButton
-//        
-//        presentViewController(alert, animated: true, completion: nil)
     }
     
     func zoomScreen()
@@ -1715,13 +1394,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         //Thank you StackOverflow!
 
         Globals.mpPlayer?.setFullscreen(!Globals.mpPlayer!.fullscreen, animated: true)
-        
-        if (!Globals.mpPlayer!.fullscreen) {
-            Globals.mpPlayer?.controlStyle = MPMovieControlStyle.Embedded // Fullscreen
-        } else {
-            setupPlayPauseButton()
-            Globals.mpPlayer?.controlStyle = MPMovieControlStyle.None
-        }
     }
     
     private func setupPlayerView(view:UIView?)
@@ -1732,7 +1404,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             
             view?.gestureRecognizers = nil
             
-            let tap = UITapGestureRecognizer(target: self, action: "zoomScreen")
+            let tap = UITapGestureRecognizer(target: self, action: #selector(MyViewController.zoomScreen))
             tap.numberOfTapsRequired = 2
             view?.addGestureRecognizer(tap)
             
@@ -1748,42 +1420,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             let centerY = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.CenterY, relatedBy: NSLayoutRelation.Equal, toItem: view!.superview, attribute: NSLayoutAttribute.CenterY, multiplier: 1.0, constant: 0.0)
             sermonNotesAndSlides.addConstraint(centerY)
             
-            let widthX = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.Width, relatedBy: NSLayoutRelation.Equal, toItem: view!.superview, attribute: NSLayoutAttribute.Width, multiplier: 1.0, constant: 0.0)
-            sermonNotesAndSlides.addConstraint(widthX)
+            let width = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.Width, relatedBy: NSLayoutRelation.Equal, toItem: view!.superview, attribute: NSLayoutAttribute.Width, multiplier: 1.0, constant: 0.0)
+            sermonNotesAndSlides.addConstraint(width)
             
-            let widthY = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.Height, relatedBy: NSLayoutRelation.Equal, toItem: view!.superview, attribute: NSLayoutAttribute.Height, multiplier: 1.0, constant: 0.0)
-            sermonNotesAndSlides.addConstraint(widthY)
+            let height = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.Height, relatedBy: NSLayoutRelation.Equal, toItem: view!.superview, attribute: NSLayoutAttribute.Height, multiplier: 1.0, constant: 0.0)
+            sermonNotesAndSlides.addConstraint(height)
             
             sermonNotesAndSlides.setNeedsLayout()
         }
     }
-    
-//    private func setupMPPlayerView()
-//    {
-//        if (Globals.mpPlayer != nil) {
-//            Globals.mpPlayer!.view.hidden = true
-//            Globals.mpPlayer?.view.removeFromSuperview()
-//            
-//            let tap = UITapGestureRecognizer(target: self, action: "zoomScreen")
-//            tap.numberOfTapsRequired = 2
-//            Globals.mpPlayer!.view.addGestureRecognizer(tap)
-//
-//            Globals.mpPlayer?.view.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
-//            sermonNotesAndSlides.addSubview(Globals.mpPlayer!.view!)
-//            
-//            let centerX = NSLayoutConstraint(item: Globals.mpPlayer!.view!, attribute: NSLayoutAttribute.CenterX, relatedBy: NSLayoutRelation.Equal, toItem: Globals.mpPlayer!.view!.superview, attribute: NSLayoutAttribute.CenterX, multiplier: 1.0, constant: 0.0)
-//            sermonNotesAndSlides?.addConstraint(centerX)
-//            
-//            let centerY = NSLayoutConstraint(item: Globals.mpPlayer!.view!, attribute: NSLayoutAttribute.CenterY, relatedBy: NSLayoutRelation.Equal, toItem: Globals.mpPlayer!.view!.superview, attribute: NSLayoutAttribute.CenterY, multiplier: 1.0, constant: 0.0)
-//            sermonNotesAndSlides?.addConstraint(centerY)
-//            
-//            let widthX = NSLayoutConstraint(item: Globals.mpPlayer!.view!, attribute: NSLayoutAttribute.Width, relatedBy: NSLayoutRelation.Equal, toItem: Globals.mpPlayer!.view!.superview, attribute: NSLayoutAttribute.Width, multiplier: 1.0, constant: 0.0)
-//            sermonNotesAndSlides?.addConstraint(widthX)
-//            
-//            let widthY = NSLayoutConstraint(item: Globals.mpPlayer!.view!, attribute: NSLayoutAttribute.Height, relatedBy: NSLayoutRelation.Equal, toItem: Globals.mpPlayer!.view!.superview, attribute: NSLayoutAttribute.Height, multiplier: 1.0, constant: 0.0)
-//            sermonNotesAndSlides?.addConstraint(widthY)
-//        }
-//    }
     
     private func setupWKWebView(wkWebView:WKWebView?)
     {
@@ -1818,57 +1463,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
     }
     
-//    private func setupWKWebViews()
-//    {
-//        sermonNotesWebView = WKWebView(frame: sermonNotesAndSlides.bounds)
-//        sermonNotesWebView?.multipleTouchEnabled = true
-//        
-////        print("\(sermonNotesAndSlides.frame)")
-////        sermonNotesWebView?.UIDelegate = self
-//        
-//        sermonNotesWebView?.scrollView.delegate = self
-//        sermonNotesWebView?.navigationDelegate = self
-//        sermonNotesWebView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
-//        sermonNotesAndSlides.addSubview(sermonNotesWebView!)
-//        
-//        sermonSlidesWebView = WKWebView(frame: sermonNotesAndSlides.bounds)
-//        sermonSlidesWebView?.multipleTouchEnabled = true
-//        
-////        print("\(sermonNotesAndSlides.frame)")
-////        sermonSlidesWebView?.UIDelegate = self
-//
-//        sermonSlidesWebView?.scrollView.delegate = self
-//        sermonSlidesWebView?.navigationDelegate = self
-//        sermonSlidesWebView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
-//        sermonNotesAndSlides.addSubview(sermonSlidesWebView!)
-//        
-//        let centerXNotes = NSLayoutConstraint(item: sermonNotesWebView!, attribute: NSLayoutAttribute.CenterX, relatedBy: NSLayoutRelation.Equal, toItem: sermonNotesWebView!.superview, attribute: NSLayoutAttribute.CenterX, multiplier: 1.0, constant: 0.0)
-//        sermonNotesAndSlides.addConstraint(centerXNotes)
-//        
-//        let centerYNotes = NSLayoutConstraint(item: sermonNotesWebView!, attribute: NSLayoutAttribute.CenterY, relatedBy: NSLayoutRelation.Equal, toItem: sermonNotesWebView!.superview, attribute: NSLayoutAttribute.CenterY, multiplier: 1.0, constant: 0.0)
-//        sermonNotesAndSlides.addConstraint(centerYNotes)
-//        
-//        let widthXNotes = NSLayoutConstraint(item: sermonNotesWebView!, attribute: NSLayoutAttribute.Width, relatedBy: NSLayoutRelation.Equal, toItem: sermonNotesWebView!.superview, attribute: NSLayoutAttribute.Width, multiplier: 1.0, constant: 0.0)
-//        sermonNotesAndSlides.addConstraint(widthXNotes)
-//        
-//        let widthYNotes = NSLayoutConstraint(item: sermonNotesWebView!, attribute: NSLayoutAttribute.Height, relatedBy: NSLayoutRelation.Equal, toItem: sermonNotesWebView!.superview, attribute: NSLayoutAttribute.Height, multiplier: 1.0, constant: 0.0)
-//        sermonNotesAndSlides.addConstraint(widthYNotes)
-//        
-//        let centerXSlides = NSLayoutConstraint(item: sermonSlidesWebView!, attribute: NSLayoutAttribute.CenterX, relatedBy: NSLayoutRelation.Equal, toItem: sermonSlidesWebView!.superview, attribute: NSLayoutAttribute.CenterX, multiplier: 1.0, constant: 0.0)
-//        sermonNotesAndSlides.addConstraint(centerXSlides)
-//        
-//        let centerYSlides = NSLayoutConstraint(item: sermonSlidesWebView!, attribute: NSLayoutAttribute.CenterY, relatedBy: NSLayoutRelation.Equal, toItem: sermonSlidesWebView!.superview, attribute: NSLayoutAttribute.CenterY, multiplier: 1.0, constant: 0.0)
-//        sermonNotesAndSlides.addConstraint(centerYSlides)
-//        
-//        let widthXSlides = NSLayoutConstraint(item: sermonSlidesWebView!, attribute: NSLayoutAttribute.Width, relatedBy: NSLayoutRelation.Equal, toItem: sermonSlidesWebView!.superview, attribute: NSLayoutAttribute.Width, multiplier: 1.0, constant: 0.0)
-//        sermonNotesAndSlides.addConstraint(widthXSlides)
-//        
-//        let widthYSlides = NSLayoutConstraint(item: sermonSlidesWebView!, attribute: NSLayoutAttribute.Height, relatedBy: NSLayoutRelation.Equal, toItem: sermonSlidesWebView!.superview, attribute: NSLayoutAttribute.Height, multiplier: 1.0, constant: 0.0)
-//        sermonNotesAndSlides.addConstraint(widthYSlides)
-//        
-//        sermonNotesAndSlides.setNeedsLayout()
-//    }
-    
     func scrollViewDidZoom(scrollView: UIScrollView) {
 //        print("scrollViewDidZoom")
     }
@@ -1897,33 +1491,8 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     {
         //        print("scrollViewDidEndDragging")
         if !decelerate {
-            if let view = scrollView.superview as? WKWebView {
-                captureContentOffset(view)
-            }
+            scrollViewDidEndDecelerating(scrollView)
         }
-    }
-    
-    func applicationWillResignActive(notification:NSNotification)
-    {
-        setupPlayingInfoCenter()
-//        removePlayObserver()
-//        removeSliderObserver()
-    }
-    
-    func applicationWillEnterForeground(notification:NSNotification)
-    {
-        if (Globals.mpPlayer?.currentPlaybackRate == 0) {
-            //It is paused, possibly not by us, but by the system
-            //But how do we know it hasn't simply finished playing?
-            updateCurrentTimeExact()
-            Globals.playerPaused = true
-        } else {
-            Globals.playerPaused = false
-        }
-        
-//        addPlayObserver()
-//        addSliderObserver()
-        setupPlayPauseButton()
     }
     
     func updateView()
@@ -1949,36 +1518,35 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         // Do any additional setup after loading the view.
         super.viewDidLoad()
         
+        addAccessoryEvents()
+        
         navigationController?.setToolbarHidden(true, animated: false)
         
         if (splitViewController != nil) {
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: "updateView", name: Constants.UPDATE_VIEW_NOTIFICATION, object: nil)
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: "clearView", name: Constants.CLEAR_VIEW_NOTIFICATION, object: nil)
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MyViewController.updateView), name: Constants.UPDATE_VIEW_NOTIFICATION, object: nil)
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MyViewController.clearView), name: Constants.CLEAR_VIEW_NOTIFICATION, object: nil)
         }
+
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MyViewController.setupPlayPauseButton), name: Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
         
         navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem()
         navigationItem.leftItemsSupplementBackButton = true
         
-        let tap = UITapGestureRecognizer(target: self, action: "resetConstraint")
+        let tap = UITapGestureRecognizer(target: self, action: #selector(MyViewController.resetConstraint))
         tap.numberOfTapsRequired = 2
         splitView?.addGestureRecognizer(tap)
         
         splitView.splitViewController = splitViewController
 
-        // NO - must be in viewWillAppear() or fullscreen video will crash app when it returns to normal
-//        updateUI()
-        
 //        print("\(Globals.mpPlayer?.contentURL)")
 //        print("\(Constants.LIVE_STREAM_URL)")
         if (selectedSermon == Globals.sermonPlaying) && (Globals.mpPlayer?.contentURL == NSURL(string:Constants.LIVE_STREAM_URL)) {
-            loadingFromLive = true
-            
             Globals.mpPlayer?.stop()
             Globals.mpPlayer = nil
             
-            setupPlayer(selectedSermon)
+            Globals.playOnLoad = false
             
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: "mpPlayerLoadStateDidChange:", name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
+            setupPlayer(selectedSermon)
         }
         
         //Eliminates blank cells at end.
@@ -1995,71 +1563,12 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         
         if(Globals.sermonLoaded) {
             spinner.stopAnimating()
-        } else {
-//            if (Globals.sermonPlaying != nil) && (Globals.sermonPlaying == selectedSermon) {
-//                spinner.startAnimating()
-//            }
         }
 
         if (selectedSermon == nil) {
             //Will only happen on an iPad
             selectedSermon = Globals.selectedSermonDetail
-//            let defaults = NSUserDefaults.standardUserDefaults()
-//            if let selectedSermonKey = defaults.stringForKey(Constants.SELECTED_SERMON_DETAIL_KEY) {
-//                selectedSermon = Globals.sermonRepository.list?.filter({ (sermon:Sermon) -> Bool in
-//                    return sermon.id == selectedSermonKey
-//                }).first
-//            }
-//
-//            if (selectedSermonKey != nil) {
-//                if let sermons = Globals.sermonRepository {
-//                    for sermon in sermons {
-//                        if (sermon.keyBase == selectedSermonKey!) {
-//                            selectedSermon = sermon
-//                            break
-//                        }
-//                    }
-//                }
-//            }
-//        } else {
-//            let defaults = NSUserDefaults.standardUserDefaults()
-//            defaults.setObject(selectedSermon!.keyBase,forKey: Constants.SELECTED_SERMON_DETAIL_KEY)
-//            defaults.synchronize()
         }
-        
-        //We can't set the currentPlaybackTime until the player is ready
-        //We need to wait on the state change observer.
-
-        if (Globals.sermonPlaying == selectedSermon) && (Globals.mpPlayer != nil) {
-            switch Globals.mpPlayer!.playbackState {
-            case .Playing:
-                print("viewDidLoad.Playing")
-                break
-                
-            case .SeekingBackward:
-                print("viewDidLoad.SeekingBackward")
-                break
-                
-            case .SeekingForward:
-                print("viewDidLoad.SeekingForward")
-                break
-                
-            case .Stopped:
-                print("viewDidLoad.Stopped")
-                break
-                
-            case .Interrupted:
-                print("viewDidLoad.Interrupted")
-                break
-                
-            case .Paused:
-                print("viewDidLoad.Paused")
-                break
-            }
-        }
-        
-        // Do any additional setup after loading the view.
-//        setupWKWebViews()
     }
 
     private func setupDefaultNotesAndSlides()
@@ -2073,12 +1582,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             Globals.mpPlayer?.view.hidden = true
             
             if (!hasSlides && !hasNotes) {
-                //  Really need to loop over the documents and hide their web views.
-                for document in documents.values {
-                    document.wkWebView?.hidden = true
-                }
-//                notesDocument?.wkWebView?.hidden = true
-//                slidesDocument?.wkWebView?.hidden = true
+                hideAllDocuments()
                 
                 logo.hidden = false
                 selectedSermon!.showing = Constants.NONE
@@ -2087,59 +1591,29 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             if (hasSlides && !hasNotes) {
                 logo.hidden = true
                 
-//                sermonSlidesWebView!.hidden = false // This happens after they load.  But not if they come out of the cache I think.
-                
                 selectedSermon!.showing = Constants.SLIDES
 
-                //  Really need to loop over the other documents and hide their web views.
-                for document in documents.values {
-                    if document.purpose != selectedSermon?.showing {
-                        document.wkWebView?.hidden = true
-                    }
-                }
-//                notesDocument?.wkWebView?.hidden = true
-                
-                sermonNotesAndSlides.bringSubviewToFront(documents[selectedSermon!.showing!]!.wkWebView!)
+                hideOtherDocuments()
 
-//                sermonNotesAndSlides.bringSubviewToFront(slidesDocument!.wkWebView!)
+                sermonNotesAndSlides.bringSubviewToFront(documents[selectedSermon!.id]![selectedSermon!.showing!]!.wkWebView!)
             } else
             if (!hasSlides && hasNotes) {
                 logo.hidden = true
                 
-//                sermonNotesWebView!.hidden = false // This happens after they load.  But not if they come out of the cache I think.
-                
                 selectedSermon!.showing = Constants.NOTES
 
-                //  Really need to loop over the other documents and hide their web views.
-                for document in documents.values {
-                    if document.purpose != selectedSermon?.showing {
-                        document.wkWebView?.hidden = true
-                    }
-                }
-//                slidesDocument?.wkWebView?.hidden = true
+                hideOtherDocuments()
                 
-                sermonNotesAndSlides.bringSubviewToFront(documents[selectedSermon!.showing!]!.wkWebView!)
-                
-//                sermonNotesAndSlides.bringSubviewToFront(notesDocument!.wkWebView!)
+                sermonNotesAndSlides.bringSubviewToFront(documents[selectedSermon!.id]![selectedSermon!.showing!]!.wkWebView!)
             } else
             if (hasSlides && hasNotes) {
                 logo.hidden = true
                 
-//                sermonSlidesWebView!.hidden = false // This happens after they load. But not if they come out of the cache I think.
-                
                 selectedSermon!.showing = Constants.SLIDES //This is an arbitrary choice
 
-                //  Really need to loop over the other documents and hide their web views.
-                for document in documents.values {
-                    if document.purpose != selectedSermon?.showing {
-                        document.wkWebView?.hidden = true
-                    }
-                }
-//                notesDocument?.wkWebView?.hidden = true
+                hideOtherDocuments()
                 
-                sermonNotesAndSlides.bringSubviewToFront(documents[selectedSermon!.showing!]!.wkWebView!)
-                
-//              sermonNotesAndSlides.bringSubviewToFront(slidesDocument!.wkWebView!)
+                sermonNotesAndSlides.bringSubviewToFront(documents[selectedSermon!.id]![selectedSermon!.showing!]!.wkWebView!)
             }
         }
     }
@@ -2161,7 +1635,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     document?.loadTimer?.invalidate()
                     document?.loadTimer = nil
                     
-                    if selectedSermon?.showing == document?.purpose {
+                    if (selectedSermon == document?.sermon) && (selectedSermon?.showing == document?.purpose) {
                         self.activityIndicator.stopAnimating()
                         self.activityIndicator.hidden = true
                         
@@ -2178,7 +1652,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     
                 case .downloading:
                     print(".downloading")
-                    if selectedSermon?.showing == document?.purpose {
+                    if (selectedSermon == document?.sermon) && (selectedSermon?.showing == document?.purpose) {
                         progressIndicator.progress = document!.download!.totalBytesExpectedToWrite > 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
                     }
                     break
@@ -2190,7 +1664,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                             document?.wkWebView?.loadFileURL(document!.download!.fileSystemURL!, allowingReadAccessToURL: document!.download!.fileSystemURL!)
                             
                             dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                if self.selectedSermon?.showing == document?.purpose {
+                                if (self.selectedSermon == document?.sermon) && (self.selectedSermon?.showing == document?.purpose) {
                                     self.progressIndicator.progress = document!.download!.totalBytesExpectedToWrite > 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
                                 }
                                 
@@ -2212,7 +1686,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         // Expected to be on the main thread
         let document = timer?.userInfo as? Document
         
-        if self.selectedSermon?.showing == document?.purpose {
+        if (selectedSermon == document?.sermon) && (selectedSermon?.showing == document?.purpose) {
             if (document?.wkWebView != nil) {
                 progressIndicator.progress = Float(document!.wkWebView!.estimatedProgress)
                 
@@ -2228,279 +1702,10 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
     }
     
-//    func downloadingNotes()
-//    {
-//        if (selectedSermon != nil) {
-//            var download:Download?
-//            var webView:WKWebView?
-//            
-//            download = selectedSermon?.notesDownload
-//            webView = sermonNotesWebView
-//            
-//            if (download != nil) {
-//                print("totalBytesWritten: \(download!.totalBytesWritten)")
-//                print("totalBytesExpectedToWrite: \(download!.totalBytesExpectedToWrite)")
-//                
-//                switch download!.state {
-//                case .none:
-//                    print(".none")
-//                    download?.task?.cancel()
-//                    
-//                    self.notesLoadTimer?.invalidate()
-//                    self.notesLoadTimer = nil
-//                    
-//                    switch self.selectedSermon!.showing! {
-//                    case Constants.SLIDES:
-//                        print("slides")
-//                        break
-//                        
-//                    case Constants.NOTES:
-//                        print("notes")
-//                        self.activityIndicator.stopAnimating()
-//                        self.activityIndicator.hidden = true
-//                        
-//                        self.progressIndicator.hidden = true
-//                        
-//                        self.sermonNotesWebView?.hidden = true
-//                        self.sermonSlidesWebView?.hidden = true
-//                        
-//                        Globals.mpPlayer?.view.hidden = true
-//                        
-//                        self.logo.hidden = false
-//                        self.sermonNotesAndSlides.bringSubviewToFront(self.logo)
-//                        break
-//                        
-//                    default:
-//                        break
-//                    }
-//                    
-//                    //                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                    //                    })
-//                    break
-//                    
-//                case .downloading:
-//                    print(".downloading")
-//                    switch selectedSermon!.showing! {
-//                    case Constants.SLIDES:
-//                        print("slides")
-//                        break
-//                        
-//                    case Constants.NOTES:
-//                        print("notes")
-//                        progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
-//                        break
-//                        
-//                    default:
-//                        break
-//                    }
-//                    break
-//                    
-//                case .downloaded:
-//                    print(".downloaded")
-//                    if #available(iOS 9.0, *) {
-//                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                            webView?.loadFileURL(download!.fileSystemURL!, allowingReadAccessToURL: download!.fileSystemURL!)
-//                            
-//                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                                switch self.selectedSermon!.showing! {
-//                                case Constants.SLIDES:
-//                                    print("slides")
-//                                    break
-//                                    
-//                                case Constants.NOTES:
-//                                    print("notes")
-//                                    //                                    self.activityIndicator.stopAnimating()
-//                                    //                                    self.activityIndicator.hidden = true
-//                                    
-//                                    self.progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
-//                                    //                                    self.progressIndicator.hidden = true
-//                                    break
-//                                    
-//                                default:
-//                                    break
-//                                }
-//                                
-//                                self.notesLoadTimer?.invalidate()
-//                                self.notesLoadTimer = nil
-//                            })
-//                        })
-//                    } else {
-//                        // Fallback on earlier versions
-//                    }
-//                    break
-//                }
-//            }
-//        }
-//    }
-//    
-//    func downloadingSlides()
-//    {
-//        if (selectedSermon != nil) {
-//            var download:Download?
-//            var webView:WKWebView?
-//            
-//            download = selectedSermon?.slidesDownload
-//            webView = sermonSlidesWebView
-//
-//            if (download != nil) {
-//                print("totalBytesWritten: \(download!.totalBytesWritten)")
-//                print("totalBytesExpectedToWrite: \(download!.totalBytesExpectedToWrite)")
-//                
-//                switch download!.state {
-//                case .none:
-//                    print(".none")
-//                    download?.task?.cancel()
-//
-//                    self.slidesLoadTimer?.invalidate()
-//                    self.slidesLoadTimer = nil
-//
-//                    switch self.selectedSermon!.showing! {
-//                    case Constants.SLIDES:
-//                        print("slides")
-//                        self.activityIndicator.stopAnimating()
-//                        self.activityIndicator.hidden = true
-//                        
-//                        self.progressIndicator.hidden = true
-//                        
-//                        self.sermonNotesWebView?.hidden = true
-//                        self.sermonSlidesWebView?.hidden = true
-//                        
-//                        Globals.mpPlayer?.view.hidden = true
-//                        
-//                        self.logo.hidden = false
-//                        self.sermonNotesAndSlides.bringSubviewToFront(self.logo)
-//                        break
-//                        
-//                    case Constants.NOTES:
-//                        print("notes")
-//                        break
-//                        
-//                    default:
-//                        break
-//                    }
-//
-////                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
-////                    })
-//                    break
-//                    
-//                case .downloading:
-//                    print(".downloading")
-//                    switch selectedSermon!.showing! {
-//                    case Constants.SLIDES:
-//                        print("slides")
-//                        progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
-//                        break
-//                        
-//                    case Constants.NOTES:
-//                        print("notes")
-//                        break
-//                        
-//                    default:
-//                        break
-//                    }
-//                    break
-//                    
-//                case .downloaded:
-//                    print(".downloaded")
-//                    if #available(iOS 9.0, *) {
-//                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                            webView?.loadFileURL(download!.fileSystemURL!, allowingReadAccessToURL: download!.fileSystemURL!)
-//                            
-//                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                                switch self.selectedSermon!.showing! {
-//                                case Constants.SLIDES:
-//                                    print("slides")
-//
-////                                    self.activityIndicator.stopAnimating()
-////                                    self.activityIndicator.hidden = true
-//                                    
-//                                    self.progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
-////                                    self.progressIndicator.hidden = true
-//                                    break
-//                                    
-//                                case Constants.NOTES:
-//                                    print("notes")
-//                                    break
-//                                    
-//                                default:
-//                                    break
-//                                }
-//                                
-//                                self.slidesLoadTimer?.invalidate()
-//                                self.slidesLoadTimer = nil
-//                            })
-//                        })
-//                    } else {
-//                        // Fallback on earlier versions
-//                    }
-//                    break
-//                }
-//            }
-//        }
-//    }
-//    
-//    func loadingNotes()
-//    {
-//        // Expected to be on the main thread
-//        
-//        if selectedSermon != nil {
-//            switch selectedSermon!.showing! {
-//            case Constants.SLIDES:
-//                break
-//                
-//            case Constants.NOTES:
-//                if (sermonNotesWebView != nil) {
-//                    progressIndicator.progress = Float(sermonNotesWebView!.estimatedProgress)
-//                    
-//                    if progressIndicator.progress == 1 {
-//                        progressIndicator.hidden = true
-//                    }
-//                }
-//                break
-//                
-//            default:
-//                break
-//            }
-//        }
-//        
-//        if (sermonNotesWebView != nil) && !sermonNotesWebView!.loading {
-//            notesLoadTimer?.invalidate()
-//            notesLoadTimer = nil
-//        }
-//    }
-//    
-//    func loadingSlides()
-//    {
-//        // Expected to be on the main thread
-//        
-//        if selectedSermon != nil {
-//            switch selectedSermon!.showing! {
-//            case Constants.SLIDES:
-//                if (sermonSlidesWebView != nil) {
-//                    progressIndicator.progress = Float(sermonSlidesWebView!.estimatedProgress)
-//                    
-//                    if progressIndicator.progress == 1 {
-//                        progressIndicator.hidden = true
-//                    }
-//                }
-//                break
-//                
-//            case Constants.NOTES:
-//                break
-//                
-//            default:
-//                break
-//            }
-//        }
-//        
-//        if (sermonSlidesWebView != nil) && !sermonSlidesWebView!.loading {
-//            slidesLoadTimer?.invalidate()
-//            slidesLoadTimer = nil
-//        }
-//    }
-    
     private func setupDocument(document:Document?)
     {
+//        print("setupDocument")
+        
         document?.wkWebView?.removeFromSuperview()
         document?.wkWebView = WKWebView(frame: sermonNotesAndSlides.bounds)
         setupWKWebView(document?.wkWebView)
@@ -2511,7 +1716,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         if #available(iOS 9.0, *) {
             if NSUserDefaults.standardUserDefaults().boolForKey(Constants.CACHE_DOWNLOADS) {
                 if (document?.download?.state != .downloaded){
-                    if (self.selectedSermon?.showing == document?.purpose) {
+                    if (selectedSermon == document?.sermon) && (selectedSermon?.showing == document?.purpose) {
                         sermonNotesAndSlides.bringSubviewToFront(activityIndicator)
                         sermonNotesAndSlides.bringSubviewToFront(progressIndicator)
                         
@@ -2523,7 +1728,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     }
                     
                     if document?.loadTimer == nil {
-                        document?.loadTimer = NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "downloading:", userInfo: document, repeats: true)
+                        document?.loadTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.DOWNLOADING_TIMER_INTERVAL, target: self, selector: #selector(MyViewController.downloading(_:)), userInfo: document, repeats: true)
                     }
                     
                     document?.download?.download()
@@ -2532,7 +1737,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                         document?.wkWebView?.loadFileURL(document!.download!.fileSystemURL!, allowingReadAccessToURL: document!.download!.fileSystemURL!)
                         
                         dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                            if (self.selectedSermon?.showing == document?.purpose) {
+                            if (self.selectedSermon == document?.sermon) && (self.selectedSermon?.showing == document?.purpose) {
                                 self.activityIndicator.stopAnimating()
                                 self.activityIndicator.hidden = true
                                 
@@ -2547,7 +1752,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             } else {
                 dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
                     dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                        if (self.selectedSermon?.showing == document?.purpose) {
+                        if (self.selectedSermon == document?.sermon) && (self.selectedSermon?.showing == document?.purpose) {
                             self.activityIndicator.hidden = false
                             self.activityIndicator.startAnimating()
                             
@@ -2555,7 +1760,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                         }
                         
                         if document?.loadTimer == nil {
-                            document?.loadTimer = NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "loading:", userInfo: document, repeats: true)
+                            document?.loadTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.LOADING_TIMER_INTERVAL, target: self, selector: #selector(MyViewController.loading(_:)), userInfo: document, repeats: true)
                         }
                     })
                     
@@ -2566,7 +1771,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         } else {
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    if (self.selectedSermon?.showing == document?.purpose) {
+                    if (self.selectedSermon == document?.sermon) && (self.selectedSermon?.showing == document?.purpose) {
                         self.activityIndicator.hidden = false
                         self.activityIndicator.startAnimating()
                         
@@ -2574,7 +1779,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     }
                     
                     if document?.loadTimer == nil {
-                        document?.loadTimer = NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "loading:", userInfo: document, repeats: true)
+                        document?.loadTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.LOADING_TIMER_INTERVAL, target: self, selector: #selector(MyViewController.loading(_:)), userInfo: document, repeats: true)
                     }
                 })
                 
@@ -2584,11 +1789,32 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
     }
     
+    private func hideOtherDocuments()
+    {
+        if (selectedSermon != nil) {
+            if (documents[selectedSermon!.id] != nil) {
+                for document in documents[selectedSermon!.id]!.values {
+                    if document.purpose != selectedSermon!.showing {
+                        document.wkWebView?.hidden = true
+                    }
+                }
+            }
+        }
+    }
+    
+    private func hideAllDocuments()
+    {
+        if (selectedSermon != nil) {
+            if (documents[selectedSermon!.id] != nil) {
+                for document in documents[selectedSermon!.id]!.values {
+                    document.wkWebView?.hidden = true
+                }
+            }
+        }
+    }
+    
     private func setupNotesSlidesVideo()
     {
-//        sermonNotesWebView = nil
-//        sermonSlidesWebView = nil
-        
         activityIndicator.hidden = true
 
         progressIndicator.hidden = true
@@ -2607,247 +1833,12 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             } else {
                 notesDocument?.wkWebView?.hidden = true
             }
-//            if (selectedSermon!.hasNotes()) {
-//                sermonNotesWebView?.removeFromSuperview()
-//                sermonNotesWebView = WKWebView(frame: sermonNotesAndSlides.bounds)
-//                setupWKWebView(sermonNotesWebView)
-//                
-//                sermonNotesWebView?.hidden = true
-//                sermonNotesWebView?.stopLoading()
-//                
-//                if #available(iOS 9.0, *) {
-//                    if NSUserDefaults.standardUserDefaults().boolForKey(Constants.CACHE_DOWNLOADS) {
-//                        if (selectedSermon?.notesDownload?.state != .downloaded){
-//                            //                        if (Reachability.isConnectedToNetwork()) {
-//                            if (self.selectedSermon?.showing == Constants.NOTES) {
-//                                sermonNotesAndSlides.bringSubviewToFront(activityIndicator)
-//                                sermonNotesAndSlides.bringSubviewToFront(progressIndicator)
-//                                
-//                                activityIndicator.hidden = false
-//                                activityIndicator.startAnimating()
-//                                
-//                                progressIndicator.progress = selectedSermon!.notesDownload!.totalBytesExpectedToWrite != 0 ? Float(selectedSermon!.notesDownload!.totalBytesWritten) / Float(selectedSermon!.notesDownload!.totalBytesExpectedToWrite) : 0.0
-//                                progressIndicator.hidden = false
-//                            }
-//                            
-//                            if notesLoadTimer == nil {
-//                                notesLoadTimer = NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "downloadingNotes", userInfo: nil, repeats: true)
-//                            }
-//                            
-//                            selectedSermon?.notesDownload?.download()
-//                            //                        } else {
-//                            //                            self.networkUnavailable("Unable to open transcript at: \(notesURL)")
-//                            //                        }
-//                        } else {
-////                            print("\(selectedSermon!.notesFileSystemURL!)")
-//                            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                                self.sermonNotesWebView?.loadFileURL(self.selectedSermon!.notesFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.notesFileSystemURL!)
-//                                
-//                                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                                    if (self.selectedSermon?.showing == Constants.NOTES) {
-//                                        self.activityIndicator.stopAnimating()
-//                                        self.activityIndicator.hidden = true
-//                                        
-//                                        self.progressIndicator.progress = 0.0
-//                                        self.progressIndicator.hidden = true
-//                                    }
-//                                    self.notesLoadTimer?.invalidate()
-//                                    self.notesLoadTimer = nil
-//                                })
-//                            })
-//                        }
-//                    } else {
-//                        //                    if (Reachability.isConnectedToNetwork()) {
-//                        
-//                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                                if (self.selectedSermon?.showing == Constants.NOTES) {
-//                                    self.activityIndicator.hidden = false
-//                                    self.activityIndicator.startAnimating()
-//                                    
-//                                    self.progressIndicator.hidden = false
-//                                }
-//                                
-//                                if self.notesLoadTimer == nil {
-//                                    self.notesLoadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loadingNotes", userInfo: nil, repeats: true)
-//                                }
-//                            })
-//                            
-//                            let request = NSURLRequest(URL: self.selectedSermon!.notesURL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
-//                            self.sermonNotesWebView!.loadRequest(request)
-//                        })
-//                        //                    } else {
-//                        //                        self.networkUnavailable("Unable to open transcript at: \(notesURL)")
-//                        //                    }
-//                    }
-//                } else {
-//                    //                    if (Reachability.isConnectedToNetwork()) {
-//                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                            if (self.selectedSermon?.showing == Constants.NOTES) {
-//                                self.activityIndicator.hidden = false
-//                                self.activityIndicator.startAnimating()
-//                                
-//                                self.progressIndicator.hidden = false
-//                            }
-//                            
-//                            if self.notesLoadTimer == nil {
-//                                self.notesLoadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loadingNotes", userInfo: nil, repeats: true)
-//                            }
-//                        })
-//                        
-//                        let request = NSURLRequest(URL: self.selectedSermon!.notesURL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
-//                        self.sermonNotesWebView!.loadRequest(request)
-//                    })
-//                    //                    } else {
-//                    //                        self.networkUnavailable("Unable to open transcript at: \(notesURL)")
-//                    //                    }
-//                }
-//                
-////                if (Reachability.isConnectedToNetwork()) {
-////                    sermonNotesWebView!.hidden = true // Will be made visible when the URL finishes loading
-////
-////                    activityIndicator.hidden = false
-////                    activityIndicator.startAnimating()
-////
-////                    progressIndicator.hidden = false
-////                    if loadTimer == nil {
-////                        loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loading", userInfo: nil, repeats: true)
-////                    }
-////                    
-////                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-////                        self.sermonNotesWebView!.stopLoading()
-////                        let request = NSURLRequest(URL: NSURL(string: notesURL)!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
-////                        self.sermonNotesWebView!.loadRequest(request)
-////                    })
-////                } else {
-////                    networkUnavailable("Unable to open sermon transcript: \(notesURL)")
-////                }
-//            } else {
-//                sermonNotesWebView?.hidden = true
-//            }
             
             if (selectedSermon!.hasSlides()) {
                 setupDocument(slidesDocument)
             } else {
                 slidesDocument?.wkWebView?.hidden = true
             }
-//                sermonSlidesWebView?.removeFromSuperview()
-//                sermonSlidesWebView = WKWebView(frame: sermonNotesAndSlides.bounds)
-//                setupWKWebView(sermonSlidesWebView)
-//                
-//                sermonSlidesWebView?.hidden = true
-//                sermonSlidesWebView?.stopLoading()
-//                
-//                if #available(iOS 9.0, *) {
-//                    if NSUserDefaults.standardUserDefaults().boolForKey(Constants.CACHE_DOWNLOADS) {
-//                        if (selectedSermon?.slidesDownload?.state != .downloaded){
-//                            //                        if (Reachability.isConnectedToNetwork()) {
-//                            if (self.selectedSermon?.showing == Constants.SLIDES) {
-//                                sermonNotesAndSlides.bringSubviewToFront(activityIndicator)
-//                                sermonNotesAndSlides.bringSubviewToFront(progressIndicator)
-//                                
-//                                activityIndicator.hidden = false
-//                                activityIndicator.startAnimating()
-//                                
-//                                progressIndicator.progress = selectedSermon!.slidesDownload!.totalBytesExpectedToWrite != 0 ? Float(selectedSermon!.slidesDownload!.totalBytesWritten) / Float(selectedSermon!.slidesDownload!.totalBytesExpectedToWrite) : 0.0
-//                                progressIndicator.hidden = false
-//                            }
-//                            
-//                            if slidesLoadTimer == nil {
-//                                slidesLoadTimer = NSTimer.scheduledTimerWithTimeInterval(0.2, target: self, selector: "downloadingSlides", userInfo: nil, repeats: true)
-//                            }
-//                            
-//                            selectedSermon?.slidesDownload?.download()
-//                            //                        } else {
-//                            //                            self.networkUnavailable("Unable to open transcript at: \(slidesURL)")
-//                            //                        }
-//                        } else {
-//                            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                                self.sermonSlidesWebView?.loadFileURL(self.selectedSermon!.slidesFileSystemURL!, allowingReadAccessToURL: self.selectedSermon!.slidesFileSystemURL!)
-//                                
-//                                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                                    if (self.selectedSermon?.showing == Constants.SLIDES) {
-//                                        self.activityIndicator.stopAnimating()
-//                                        self.activityIndicator.hidden = true
-//                                        
-//                                        self.progressIndicator.progress = 0.0
-//                                        self.progressIndicator.hidden = true
-//                                    }
-//                                    self.slidesLoadTimer?.invalidate()
-//                                    self.slidesLoadTimer = nil
-//                                })
-//                            })
-//                        }
-//                    } else {
-//                        //                    if (Reachability.isConnectedToNetwork()) {
-//                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                                if (self.selectedSermon?.showing == Constants.SLIDES) {
-//                                    self.activityIndicator.hidden = false
-//                                    self.activityIndicator.startAnimating()
-//                                
-//                                    self.progressIndicator.hidden = false
-//                                }
-//                                
-//                                if self.slidesLoadTimer == nil {
-//                                    self.slidesLoadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loadingSlides", userInfo: nil, repeats: true)
-//                                }
-//                            })
-//                            
-//                            let request = NSURLRequest(URL: self.selectedSermon!.slidesURL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
-//                            self.sermonSlidesWebView!.loadRequest(request)
-//                        })
-//                        //                    } else {
-//                        //                        self.networkUnavailable("Unable to open transcript at: \(slidesURL)")
-//                        //                    }
-//                    }
-//                } else {
-//                    //                    if (Reachability.isConnectedToNetwork()) {
-//                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                            if (self.selectedSermon?.showing == Constants.SLIDES) {
-//                                self.activityIndicator.hidden = false
-//                                self.activityIndicator.startAnimating()
-//                                
-//                                self.progressIndicator.hidden = false
-//                            }
-//                            
-//                            if self.slidesLoadTimer == nil {
-//                                self.slidesLoadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loadingSlides", userInfo: nil, repeats: true)
-//                            }
-//                        })
-//                        
-//                        let request = NSURLRequest(URL: self.selectedSermon!.slidesURL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
-//                        self.sermonSlidesWebView!.loadRequest(request)
-//                    })
-//                    //                    } else {
-//                    //                        self.networkUnavailable("Unable to open transcript at: \(slidesURL)")
-//                    //                    }
-//                }
-
-//                if (Reachability.isConnectedToNetwork()) {
-//                    sermonSlidesWebView!.hidden = true // Will be made visible when the URL finishes loading
-//                    
-//                    activityIndicator.hidden = false
-//                    activityIndicator.startAnimating()
-//                    
-//                    progressIndicator.hidden = false
-//                    if loadTimer == nil {
-//                        loadTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "loading", userInfo: nil, repeats: true)
-//                    }
-//                    
-//                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//                        self.sermonSlidesWebView!.stopLoading()
-//                        let request = NSURLRequest(URL: NSURL(string: slidesURL)!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
-//                        self.sermonSlidesWebView!.loadRequest(request)
-//                    })
-//                } else {
-//                    networkUnavailable("Unable to open sermon slides: \(slidesURL)")
-//                }
-//            } else {
-//                slidesDocument?.wkWebView?.hidden = true
-//            }
             
     //        print("notes hidden \(sermonNotes.hidden)")
     //        print("slides hidden \(sermonSlides.hidden)")
@@ -2882,36 +1873,18 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 Globals.mpPlayer?.view.hidden = true
                 logo.hidden = true
                 
-//                self.sermonNotesWebView?.hidden = false // This happens after they load.  But not if they come out of the cache I think.
-//                selectedSermon!.showing = Constants.NOTES
+                hideOtherDocuments()
                 
-                //  Really need to loop over the other documents and hide their web views.
-                for document in documents.values {
-                    if document.purpose != selectedSermon?.showing {
-                        document.wkWebView?.hidden = true
-                    }
-                }
-//                slidesDocument?.wkWebView?.hidden = true
-                
-                sermonNotesAndSlides.bringSubviewToFront(documents[selectedSermon!.showing!]!.wkWebView!)
+                sermonNotesAndSlides.bringSubviewToFront(documents[selectedSermon!.id]![selectedSermon!.showing!]!.wkWebView!)
                 break
                 
             case Constants.SLIDES:
                 Globals.mpPlayer?.view.hidden = true
                 logo.hidden = true
                 
-//                sermonSlidesWebView?.hidden = false // This happens after they load.  But not if they come out of the cache I think.
-//                selectedSermon?.showing = Constants.SLIDES
+                hideOtherDocuments()
                 
-                //  Really need to loop over the other documents and hide their web views.
-                for document in documents.values {
-                    if document.purpose != selectedSermon?.showing {
-                        document.wkWebView?.hidden = true
-                    }
-                }
-//                notesDocument?.wkWebView?.hidden = true
-
-                sermonNotesAndSlides.bringSubviewToFront(documents[selectedSermon!.showing!]!.wkWebView!)
+                sermonNotesAndSlides.bringSubviewToFront(documents[selectedSermon!.id]![selectedSermon!.showing!]!.wkWebView!)
                 break
                 
             case Constants.VIDEO:
@@ -2924,12 +1897,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
                 case Constants.VIDEO:
                     if (Globals.sermonPlaying != nil) && (Globals.sermonPlaying == selectedSermon) {
-                        //  Really need to loop over the documents and hide their web views.
-                        for document in documents.values {
-                            document.wkWebView?.hidden = true
-                        }
-//                        notesDocument?.wkWebView?.hidden = true
-//                        slidesDocument?.wkWebView?.hidden = true
+                        hideAllDocuments()
 
                         logo.hidden = true
                         
@@ -2955,12 +1923,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 activityIndicator.stopAnimating()
                 activityIndicator.hidden = true
                 
-                //  Really need to loop over the documents and hide their web views.
-                for document in documents.values {
-                    document.wkWebView?.hidden = true
-                }
-//                self.notesDocument?.wkWebView?.hidden = true
-//                self.slidesDocument?.wkWebView?.hidden = true
+                hideAllDocuments()
                 
                 switch selectedSermon!.playing! {
                 case Constants.AUDIO:
@@ -2997,18 +1960,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         } else {
             splitView.hidden = true
             
-            //  Really need to loop over the documents and hide their web views.
-            for document in documents.values {
-                document.wkWebView?.hidden = true
-            }
-//            notesDocument?.wkWebView?.hidden = true
-//            slidesDocument?.wkWebView?.hidden = true
+            hideAllDocuments()
 
             Globals.mpPlayer?.view.hidden = true
             
             logo.hidden = !shouldShowLogo() // && roomForLogo()
             
-            sermonNotesAndSlides.bringSubviewToFront(logo)
+            if (!logo.hidden) {
+                sermonNotesAndSlides.bringSubviewToFront(self.logo)
+            }
         }
 
         setupSTVControl()
@@ -3125,14 +2085,14 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         if (selectedSermon != nil) {
             var barButtons = [UIBarButtonItem]()
             
-            actionButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Action, target: self, action: "actions")
+            actionButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Action, target: self, action: #selector(MyViewController.actions))
             barButtons.append(actionButton!)
         
             if (selectedSermon!.hasTags()) {
                 if (selectedSermon?.tagsSet?.count > 1) {
-                    tagsButton = UIBarButtonItem(title: Constants.FA_TAGS, style: UIBarButtonItemStyle.Plain, target: self, action: "tags:")
+                    tagsButton = UIBarButtonItem(title: Constants.FA_TAGS, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(MyViewController.tags(_:)))
                 } else {
-                    tagsButton = UIBarButtonItem(title: Constants.FA_TAG, style: UIBarButtonItemStyle.Plain, target: self, action: "tags:")
+                    tagsButton = UIBarButtonItem(title: Constants.FA_TAG, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(MyViewController.tags(_:)))
                 }
                 
                 tagsButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FontAwesome, size: Constants.FA_TAGS_FONT_SIZE)!], forState: UIControlState.Normal)
@@ -3155,89 +2115,51 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     
     func setupWKContentOffsets() {
         if (selectedSermon != nil) {
-            for document in documents.values {
-                if document.wkWebView != nil {
-                    var contentOffsetXRatio:Float = 0.0
-                    var contentOffsetYRatio:Float = 0.0
-                    
-                    //        print("\(sermonNotesWebView!.scrollView.contentSize)")
-                    //        print("\(sermonSlidesWebView!.scrollView.contentSize)")
-                    
-                    if let ratio = selectedSermon!.settings?[document.purpose! + Constants.CONTENT_OFFSET_X_RATIO] {
-                        contentOffsetXRatio = Float(ratio)!
+            if (documents[selectedSermon!.id] != nil) {
+                for document in documents[selectedSermon!.id]!.values {
+                    if document.wkWebView != nil {
+                        var contentOffsetXRatio:Float = 0.0
+                        var contentOffsetYRatio:Float = 0.0
+                        
+                        //        print("\(sermonNotesWebView!.scrollView.contentSize)")
+                        //        print("\(sermonSlidesWebView!.scrollView.contentSize)")
+                        
+                        if let ratio = selectedSermon!.settings?[document.purpose! + Constants.CONTENT_OFFSET_X_RATIO] {
+                            contentOffsetXRatio = Float(ratio)!
+                        }
+                        
+                        if let ratio = selectedSermon!.settings?[document.purpose! + Constants.CONTENT_OFFSET_Y_RATIO] {
+                            contentOffsetYRatio = Float(ratio)!
+                        }
+                        
+                        let contentOffset = CGPointMake(
+                            CGFloat(contentOffsetXRatio) * document.wkWebView!.scrollView.contentSize.width,
+                            CGFloat(contentOffsetYRatio) * document.wkWebView!.scrollView.contentSize.height)
+                        
+                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                            document.wkWebView!.scrollView.setContentOffset(contentOffset, animated: false)
+                        })
                     }
-                    
-                    if let ratio = selectedSermon!.settings?[document.purpose! + Constants.CONTENT_OFFSET_Y_RATIO] {
-                        contentOffsetYRatio = Float(ratio)!
-                    }
-                    
-                    let contentOffset = CGPointMake(
-                        CGFloat(contentOffsetXRatio) * document.wkWebView!.scrollView.contentSize.width,
-                        CGFloat(contentOffsetYRatio) * document.wkWebView!.scrollView.contentSize.height)
-                    
-                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                        document.wkWebView!.scrollView.setContentOffset(contentOffset, animated: false)
-                    })
                 }
             }
-//            if (notesDocument?.wkWebView != nil) {
-//                var notesContentOffsetXRatio:Float = 0.0
-//                var notesContentOffsetYRatio:Float = 0.0
-//                
-//                //        print("\(sermonNotesWebView!.scrollView.contentSize)")
-//                //        print("\(sermonSlidesWebView!.scrollView.contentSize)")
-//                
-//                if let ratio = selectedSermon!.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] {
-//                    notesContentOffsetXRatio = Float(ratio)!
-//                }
-//                
-//                if let ratio = selectedSermon!.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] {
-//                    notesContentOffsetYRatio = Float(ratio)!
-//                }
-//                
-//                let notesContentOffset = CGPointMake(
-//                    CGFloat(notesContentOffsetXRatio) * notesDocument!.wkWebView!.scrollView.contentSize.width,
-//                    CGFloat(notesContentOffsetYRatio) * notesDocument!.wkWebView!.scrollView.contentSize.height)
-//                
-//                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                    self.notesDocument!.wkWebView!.scrollView.setContentOffset(notesContentOffset, animated: false)
-//                })
-//            }
-//            
-//            if (slidesDocument?.wkWebView != nil) {
-//                var slidesContentOffsetXRatio:Float = 0.0
-//                var slidesContentOffsetYRatio:Float = 0.0
-//                
-//                if let ratio = selectedSermon!.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] {
-//                    slidesContentOffsetXRatio = Float(ratio)!
-//                }
-//                
-//                if let ratio = selectedSermon!.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] {
-//                    slidesContentOffsetYRatio = Float(ratio)!
-//                }
-//                
-//                let slidesContentOffset = CGPointMake(
-//                    CGFloat(slidesContentOffsetXRatio) * slidesDocument!.wkWebView!.scrollView.contentSize.width,
-//                    CGFloat(slidesContentOffsetYRatio) * slidesDocument!.wkWebView!.scrollView.contentSize.height)
-//                
-//                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                    self.slidesDocument!.wkWebView!.scrollView.setContentOffset(slidesContentOffset, animated: false)
-//                })
-//            }
         }
     }
     
     override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator)
     {
+        super.viewWillTransitionToSize(size, withTransitionCoordinator: coordinator)
+        
         if (self.view.window == nil) {
             return
         }
         
         setupSplitViewController()
         
-        captureContentOffsetAndZoomScale()
+//        captureContentOffsetAndZoomScale()
         
         coordinator.animateAlongsideTransition({ (UIViewControllerTransitionCoordinatorContext) -> Void in
+
+            self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Top)
             
             }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
                 self.setupWKContentOffsets()
@@ -3446,29 +2368,12 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         //        print("viewWillAppear 1 sermonNotesAndSlides.bounds: \(sermonNotesAndSlides.bounds)")
         //        print("viewWillAppear 1 tableView.bounds: \(tableView.bounds)")
         
-//        sermonsInSeries = sermonsInSermonSeries(selectedSermon)
-        
-        //Done in sliderTimer()
-//        if (!Globals.sermonLoaded && (Globals.sermonPlaying != nil) && (selectedSermon == Globals.sermonPlaying)) {
-//            spinner.startAnimating()
-//        }
-
         // This next line is for the case when video is playing and the video has been zoomed to full screen and that makes the embedded controls visible
         // allowing the user to control playback, pausing or stopping, and then unzooming makes the play pause button vislble and it has to be
         // updated according to the player state, which may have changed.
         if (Globals.mpPlayer?.contentURL != NSURL(string:Constants.LIVE_STREAM_URL)) {
             Globals.playerPaused = (Globals.mpPlayer?.playbackState == .Paused) || (Globals.mpPlayer?.playbackState == .Stopped)
         }
-        
-        //Done in sliderTimer()
-//        if (Globals.sermonLoaded || (selectedSermon != Globals.sermonPlaying)) {
-//            // Redundant - also done in viewDidLoad
-//            spinner.stopAnimating()
-//            spinner.hidden = true
-//        } else {
-//            //            //This is really misplaced since we're dependent upon the AppDelegate to address loading the default sermon and setting the currentPlayTime.
-//            //            NSNotificationCenter.defaultCenter().addObserver(self, selector: "mpPlayerLoadStateDidChange:", name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
-//        }
         
         if (selectedSermon != nil) && (Globals.mpPlayer == nil) {
             setupPlayerAtEnd(selectedSermon)
@@ -3554,25 +2459,28 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
     }
     
+    private func captureContentOffset(document:Document)
+    {
+        selectedSermon?.settings?[document.purpose! + Constants.CONTENT_OFFSET_X_RATIO] = "\(document.wkWebView!.scrollView.contentOffset.x / document.wkWebView!.scrollView.contentSize.width)"
+        selectedSermon?.settings?[document.purpose! + Constants.CONTENT_OFFSET_Y_RATIO] = "\(document.wkWebView!.scrollView.contentOffset.y / document.wkWebView!.scrollView.contentSize.height)"
+    }
+    
     private func captureContentOffset(webView:WKWebView?)
     {
         if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) && (webView != nil) && (!webView!.loading) && (webView!.URL != nil) {
-            for document in documents.values {
-                if webView == document.wkWebView {
-                    selectedSermon?.settings?[document.purpose! + Constants.CONTENT_OFFSET_X_RATIO] = "\(document.wkWebView!.scrollView.contentOffset.x / document.wkWebView!.scrollView.contentSize.width)"
-                    selectedSermon?.settings?[document.purpose! + Constants.CONTENT_OFFSET_Y_RATIO] = "\(document.wkWebView!.scrollView.contentOffset.y / document.wkWebView!.scrollView.contentSize.height)"
+            if (documents[selectedSermon!.id] != nil) {
+                for document in documents[selectedSermon!.id]!.values {
+                    if webView == document.wkWebView {
+                        captureContentOffset(document)
+                    }
                 }
             }
-            
-//            if webView == notesDocument?.wkWebView {
-//                selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] = "\(notesDocument!.wkWebView!.scrollView.contentOffset.x / notesDocument!.wkWebView!.scrollView.contentSize.width)"
-//                selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] = "\(notesDocument!.wkWebView!.scrollView.contentOffset.y / notesDocument!.wkWebView!.scrollView.contentSize.height)"
-//            }
-//            if webView == slidesDocument?.wkWebView {
-//                selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] = "\(slidesDocument!.wkWebView!.scrollView.contentOffset.x / slidesDocument!.wkWebView!.scrollView.contentSize.width)"
-//                selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] = "\(slidesDocument!.wkWebView!.scrollView.contentOffset.y / slidesDocument!.wkWebView!.scrollView.contentSize.height)"
-//            }
         }
+    }
+    
+    private func captureZoomScale(document:Document)
+    {
+        selectedSermon?.settings?[document.purpose! + Constants.ZOOM_SCALE] = "\(document.wkWebView!.scrollView.zoomScale)"
     }
     
     private func captureZoomScale(webView:WKWebView?)
@@ -3580,58 +2488,52 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         //        print("captureZoomScale: \(sermonSelected?.title)")
         
         if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) && (webView != nil) && (!webView!.loading) && (webView!.URL != nil) {
-            for document in documents.values {
-                if webView == document.wkWebView {
-                    selectedSermon?.settings?[document.purpose! + Constants.ZOOM_SCALE] = "\(document.wkWebView!.scrollView.zoomScale)"
+            if (documents[selectedSermon!.id] != nil) {
+                for document in documents[selectedSermon!.id]!.values {
+                    if webView == document.wkWebView {
+                        captureZoomScale(document)
+                    }
                 }
             }
-//            if webView == notesDocument?.wkWebView {
-//                selectedSermon?.settings?[Constants.NOTES_ZOOM_SCALE] = "\(notesDocument!.wkWebView!.scrollView.zoomScale)"
-//            }
-//            if webView == slidesDocument?.wkWebView {
-//                selectedSermon?.settings?[Constants.SLIDES_ZOOM_SCALE] = "\(slidesDocument!.wkWebView!.scrollView.zoomScale)"
-//            }
         }
     }
     
-    func captureContentOffsetAndZoomScale()
-    {
-        for document in documents.values {
-            captureContentOffset(document.wkWebView)
-            captureZoomScale(document.wkWebView)
-        }
-
-//        captureContentOffset(notesDocument?.wkWebView)
-//        captureZoomScale(notesDocument?.wkWebView)
-//        
-//        captureContentOffset(slidesDocument?.wkWebView)
-//        captureZoomScale(slidesDocument?.wkWebView)
-    }
+//    func captureContentOffsetAndZoomScale()
+//    {
+////        if (documents[selectedSermon!.id] != nil) {
+////            for document in documents[selectedSermon!.id]!.values {
+////                captureContentOffset(document)
+////                captureZoomScale(document)
+////            }
+////        }
+//
+////        captureContentOffset(notesDocument?.wkWebView)
+////        captureZoomScale(notesDocument?.wkWebView)
+////        
+////        captureContentOffset(slidesDocument?.wkWebView)
+////        captureZoomScale(slidesDocument?.wkWebView)
+//    }
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
+        
         navigationItem.rightBarButtonItem = nil
         
-//        notesDocument?.wkWebView?.stopLoading()
-//        slidesDocument?.wkWebView?.stopLoading()
-        
-        // Remove these two lines and this view will crash the app.
-        for document in documents.values {
-            document.wkWebView?.stopLoading()
-            document.wkWebView?.scrollView.delegate = nil
+        // The scrollView delegate MUST be set to nil or the app will crash.
+        if (selectedSermon != nil) && (documents[selectedSermon!.id] != nil) {
+            for document in documents[selectedSermon!.id]!.values {
+                document.wkWebView?.stopLoading()
+                document.wkWebView?.scrollView.delegate = nil
+                
+                if (document.sermon == selectedSermon) && (document.purpose == selectedSermon?.showing) && (document.wkWebView != nil) && document.wkWebView!.scrollView.decelerating {
+                    captureContentOffset(document)
+                }
+            }
         }
-//        notesDocument?.wkWebView?.scrollView.delegate = nil
-//        slidesDocument?.wkWebView?.scrollView.delegate = nil
-        
-//        print("viewWillDisappear: \(sermonSelected?.title)")
 
-//        captureViewSplit()
-//        captureContentOffsetAndZoomScale()
+        NSNotificationCenter.defaultCenter().removeObserver(self)
         
-        //        NSNotificationCenter.defaultCenter().removeObserver(self,name: UIApplicationWillResignActiveNotification, object: UIApplication.sharedApplication())
-        //        NSNotificationCenter.defaultCenter().removeObserver(self,name: UIApplicationWillEnterForegroundNotification, object: UIApplication.sharedApplication())
-        //
-        //        NSNotificationCenter.defaultCenter().removeObserver(self)
+        sliderObserver?.invalidate()
     }
 
     override func didReceiveMemoryWarning() {
@@ -3640,44 +2542,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         // Dispose of any resources that can be recreated.
         NSURLCache.sharedURLCache().removeAllCachedResponses()
     }
-    
-//    func tap(sender: MyViewController) {
-////        print("tap")
-//        
-//        if (Globals.sermonPlaying == selectedSermon) && (selectedSermon?.playing == Constants.VIDEO) {
-////            for constraint in Globals.mpPlayer!.view.constraints {
-////                constraint.active = false
-////            }
-////            Globals.mpPlayer?.setFullscreen(true, animated: true)
-//        } else {
-//            // set a transition style
-//            let transitionOptions = UIViewAnimationOptions.TransitionFlipFromLeft
-//            
-//            UIView.transitionWithView(self.sermonNotesAndSlides, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {
-//                
-//                switch self.selectedSermon!.showing! {
-//                case Constants.NOTES:
-//                    self.sermonSlidesWebView?.hidden = false
-//                    self.sermonNotesAndSlides.bringSubviewToFront(self.sermonSlidesWebView!)
-//                    self.selectedSermon!.showing = Constants.SLIDES
-//                    break
-//                    
-//                case Constants.SLIDES:
-//                    self.sermonNotesWebView?.hidden = false
-//                    self.sermonNotesAndSlides.bringSubviewToFront(self.sermonNotesWebView!)
-//                    self.selectedSermon!.showing = Constants.NOTES
-//                    break
-//                    
-//                default:
-//                    self.sermonNotesAndSlides.bringSubviewToFront(self.logo)
-//                    break
-//                }
-//                
-//                }, completion: { finished in
-//                    
-//            })
-//        }
-//    }
     
     /*
     // MARK: - Navigation
@@ -3851,94 +2715,141 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
     func sliderTimer()
     {
-        if (Globals.mpPlayer?.contentURL != NSURL(string:Constants.LIVE_STREAM_URL)) {
-            if (Globals.mpPlayer!.fullscreen) {
-                Globals.mpPlayer?.controlStyle = MPMovieControlStyle.Embedded
-            } else {
-                Globals.mpPlayer?.controlStyle = MPMovieControlStyle.None
+        if (selectedSermon != nil) && (selectedSermon == Globals.sermonPlaying) {
+            let loadstate:UInt8 = UInt8(Globals.mpPlayer!.loadState.rawValue)
+            
+            let playable = (loadstate & UInt8(MPMovieLoadState.Playable.rawValue)) > 0
+            let playthrough = (loadstate & UInt8(MPMovieLoadState.PlaythroughOK.rawValue)) > 0
+            
+//            if playable {
+//                print("sliderTimer.MPMovieLoadState.Playable")
+//            }
+//            
+//            if playthrough {
+//                print("sliderTimer.MPMovieLoadState.Playthrough")
+//            }
+            
+            playPauseButton.enabled = Globals.sermonLoaded
+            slider.enabled = Globals.sermonLoaded
+            
+            if (!Globals.sermonLoaded) {
+                if (!spinner.isAnimating()) {
+                    spinner.hidden = false
+                    spinner.startAnimating()
+                }
             }
             
-            if (selectedSermon == Globals.sermonPlaying) {
-                playPauseButton.enabled = Globals.sermonLoaded
-                slider.enabled = Globals.sermonLoaded
+            switch Globals.mpPlayerStateTime!.state {
+            case .none:
+//                print("none")
+                break
                 
-                if (!Globals.sermonLoaded) {
-                    if (!spinner.isAnimating()) {
-                        spinner.hidden = false
-                        spinner.startAnimating()
-                    }
-                } else {
-                    if (Globals.mpPlayer?.playbackState != .SeekingForward) && (Globals.mpPlayer?.playbackState != .SeekingBackward) {
-                        setSliderAndTimesToAudio()
-                        if spinner.isAnimating() {
-                            spinner.stopAnimating()
-                            spinner.hidden = true
-                        }
-                    } else {
+            case .playing:
+//                print("playing")
+                switch Globals.mpPlayer!.playbackState {
+                case .SeekingBackward:
+//                    print("sliderTimer.playing.SeekingBackward")
+                    break
+                    
+                case .SeekingForward:
+//                    print("sliderTimer.playing.SeekingForward")
+                    break
+                    
+                default:
+                    setSliderAndTimesToAudio()
+                    
+                    if !(playable || playthrough) { // Globals.mpPlayer?.currentPlaybackRate == 0
+//                        print("sliderTimer.Playthrough or Playing NOT OK")
                         if !spinner.isAnimating() {
                             spinner.hidden = false
                             spinner.startAnimating()
                         }
                     }
-                }
-            }
-            
-            if (Globals.mpPlayer?.currentPlaybackRate > 0) {
-                updateUserDefaultsCurrentTimeWhilePlaying()
-            }
-            
-            if (Globals.mpPlayer != nil) {
-                switch Globals.mpPlayer!.playbackState {
-                case .Interrupted:
-                    print("sliderTimer.Interrupted")
+                    if (playable || playthrough) {
+//                        print("sliderTimer.Playthrough or Playing OK")
+                        if spinner.isAnimating() {
+                            spinner.stopAnimating()
+                            spinner.hidden = true
+                        }
+                    }
                     break
-                    
-                case .Paused:
+                }
+                break
+                
+            case .paused:
+//                print("paused")
+                
+                if Globals.sermonLoaded {
+                    setSliderAndTimesToAudio()
+                    if spinner.isAnimating() {
+                        spinner.stopAnimating()
+                        spinner.hidden = true
+                    }
+                }
+                break
+                
+            case .stopped:
+//                print("stopped")
+                break
+                
+            case .seekingForward:
+//                print("seekingForward")
+                if !spinner.isAnimating() {
+                    spinner.hidden = false
+                    spinner.startAnimating()
+                }
+                setSliderAndTimesToAudio()
+                break
+                
+            case .seekingBackward:
+//                print("seekingBackward")
+                if !spinner.isAnimating() {
+                    spinner.hidden = false
+                    spinner.startAnimating()
+                }
+                setSliderAndTimesToAudio()
+                break
+            }
+            
+//            if (Globals.mpPlayer != nil) {
+//                switch Globals.mpPlayer!.playbackState {
+//                case .Interrupted:
+//                    print("sliderTimer.Interrupted")
+//                    break
+//                    
+//                case .Paused:
 //                    print("sliderTimer.Paused")
-//                    if (!Globals.playerPaused) {
-//                        Globals.mpPlayer?.play()
-//                        Globals.playerPaused = true
-//                        setupPlayPauseButton()
-//                    }
-                    break
-                    
-                case .Playing:
+//                    break
+//                    
+//                case .Playing:
 //                    print("sliderTimer.Playing")
-//                    if (Globals.playerPaused) {
-//                        Globals.mpPlayer?.pause()
-//                        Globals.playerPaused = false
-//                        setupPlayPauseButton()
-//                    }
-                    break
-                    
-                case .SeekingBackward:
-                    print("sliderTimer.SeekingBackward")
-                    break
-                    
-                case .SeekingForward:
-                    print("sliderTimer.SeekingForward")
-                    break
-                    
-                case .Stopped:
+//                    break
+//                    
+//                case .SeekingBackward:
+//                    print("sliderTimer.SeekingBackward")
+//                    break
+//                    
+//                case .SeekingForward:
+//                    print("sliderTimer.SeekingForward")
+//                    break
+//                    
+//                case .Stopped:
 //                    print("sliderTimer.Stopped")
-                    break
-                }
-            }
+//                    break
+//                }
+//            }
             
             //        print("Duration: \(Globals.mpPlayer!.duration) CurrentPlaybackTime: \(Globals.mpPlayer!.currentPlaybackTime)")
-            //        print("CurrentTime: \(Globals.sermonPlaying?.currentTime)")
             
             if (Globals.mpPlayer!.duration > 0) && (Globals.mpPlayer!.currentPlaybackTime > 0) &&
-                (slider.value > 0.9999) {
-                    // The comparison below is Int because I'm concerned Float leaves room for small differences.  We'll see.
-                    //            (Int(Globals.mpPlayer!.currentPlaybackTime) == Int(Globals.mpPlayer!.duration)) {
-                    //            print("sliderTimer currentPlaybackTime == duration")
-                    
+                (Int(Float(Globals.mpPlayer!.currentPlaybackTime)) == Int(Float(Globals.mpPlayer!.duration))) { //  (slider.value > 0.9999)
                     Globals.mpPlayer?.pause()
                     Globals.playerPaused = true
                     setupPlayPauseButton()
                     
-                    Globals.sermonPlaying?.currentTime = Globals.mpPlayer!.duration.description
+                    if (Globals.sermonPlaying?.currentTime != Globals.mpPlayer!.duration.description) {
+                        Globals.sermonPlaying?.currentTime = Globals.mpPlayer!.duration.description
+                    }
                     
                     if (NSUserDefaults.standardUserDefaults().boolForKey(Constants.AUTO_ADVANCE)) {
                         advanceSermon()
@@ -3976,17 +2887,24 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
     }
     
+    func removeSliderObserver() {
+        if (sliderObserver != nil) {
+            sliderObserver!.invalidate()
+            sliderObserver = nil
+        }
+    }
+
     func addSliderObserver()
     {
 //        print("addSliderObserver in")
 
-        if (Globals.sliderObserver != nil) {
-            Globals.sliderObserver?.invalidate()
-            Globals.sliderObserver = nil
+        if (sliderObserver != nil) {
+            sliderObserver?.invalidate()
+            sliderObserver = nil
         }
 
         if (Globals.mpPlayer != nil) {
-            Globals.sliderObserver = NSTimer.scheduledTimerWithTimeInterval(0.5, target: self, selector: "sliderTimer", userInfo: nil, repeats: true)
+            sliderObserver = NSTimer.scheduledTimerWithTimeInterval(Constants.SLIDER_TIMER_INTERVAL, target: self, selector: #selector(MyViewController.sliderTimer), userInfo: nil, repeats: true)
         } else {
             // This will happen when there is no sermonPlaying, e.g. when a clean install is done and the app is put into the background and then brought back to the forground
             print("Globals.player == nil in sliderObserver")
@@ -3996,23 +2914,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        print("addSliderObserver out")
     }
     
-//    func addPlayObserver()
-//    {
-//        if (Globals.playObserver != nil) {
-//            Globals.playObserver?.invalidate()
-//            Globals.playObserver = nil
-//        }
-//
-//        if (Globals.mpPlayer != nil) {
-//            //Update for MPPlayer
-//            Globals.playObserver = NSTimer.scheduledTimerWithTimeInterval(Constants.PLAY_OBSERVER_TIME_INTERVAL, target: self, selector: "playTimer", userInfo: nil, repeats: true)
-//        } else {
-//            // This will happen when there is no sermonPlaying, e.g. when a clean install is done and the app is put into the background and then brought back to the forground
-//            print("Globals.player == nil in playObserver")
-//            // Should we setup the player all over again?
-//        }
-//    }
-
     private func networkUnavailable(message:String?)
     {
         if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) { // && (self.view.window != nil) 
@@ -4049,232 +2950,32 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
     }
     
-    func seekingTimer()
-    {
-        setupPlayingInfoCenter()
-    }
-    
-    override func remoteControlReceivedWithEvent(event: UIEvent?) {
-        print("remoteControlReceivedWithEvent")
-        
-        switch event!.subtype {
-        case UIEventSubtype.MotionShake:
-            print("RemoteControlShake")
-            break
-            
-        case UIEventSubtype.None:
-            print("RemoteControlNone")
-            break
-            
-        case UIEventSubtype.RemoteControlStop:
-            print("RemoteControlStop")
-            Globals.mpPlayer?.stop()
-            Globals.playerPaused = true
-            break
-            
-        case UIEventSubtype.RemoteControlPlay:
-            print("RemoteControlPlay")
-            Globals.mpPlayer?.play()
-            Globals.playerPaused = false
-            setupPlayingInfoCenter()
-            break
-            
-        case UIEventSubtype.RemoteControlPause:
-            print("RemoteControlPause")
-            Globals.mpPlayer?.pause()
-            Globals.playerPaused = true
-            updateCurrentTimeExact()
-            break
-            
-        case UIEventSubtype.RemoteControlTogglePlayPause:
-            print("RemoteControlTogglePlayPause")
-            if (Globals.playerPaused) {
-                Globals.mpPlayer?.play()
-            } else {
-                Globals.mpPlayer?.pause()
-                updateCurrentTimeExact()
-            }
-            Globals.playerPaused = !Globals.playerPaused
-            break
-            
-        case UIEventSubtype.RemoteControlPreviousTrack:
-            print("RemoteControlPreviousTrack")
-            break
-            
-        case UIEventSubtype.RemoteControlNextTrack:
-            print("RemoteControlNextTrack")
-            break
-            
-            //The lock screen time elapsed/remaining don't track well with seeking
-            //But at least this has them moving in the right direction.
-            
-        case UIEventSubtype.RemoteControlBeginSeekingBackward:
-            print("RemoteControlBeginSeekingBackward")
-            
-            Globals.seekingObserver = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "seekingTimer", userInfo: nil, repeats: true)
-            
-            Globals.mpPlayer?.beginSeekingBackward()
-            //        updatePlayingInfoCenter()
-            setupPlayingInfoCenter()
-            break
-            
-        case UIEventSubtype.RemoteControlEndSeekingBackward:
-            print("RemoteControlEndSeekingBackward")
-            Globals.mpPlayer?.endSeeking()
-            Globals.seekingObserver?.invalidate()
-            Globals.seekingObserver = nil
-            updateCurrentTimeExact()
-            //        updatePlayingInfoCenter()
-            setupPlayingInfoCenter()
-            break
-            
-        case UIEventSubtype.RemoteControlBeginSeekingForward:
-            print("RemoteControlBeginSeekingForward")
-            
-            Globals.seekingObserver = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "seekingTimer", userInfo: nil, repeats: true)
-            
-            Globals.mpPlayer?.beginSeekingForward()
-            //        updatePlayingInfoCenter()
-            setupPlayingInfoCenter()
-            break
-            
-        case UIEventSubtype.RemoteControlEndSeekingForward:
-            print("RemoteControlEndSeekingForward")
-            Globals.seekingObserver?.invalidate()
-            Globals.seekingObserver = nil
-            Globals.mpPlayer?.endSeeking()
-            updateCurrentTimeExact()
-            //        updatePlayingInfoCenter()
-            setupPlayingInfoCenter()
-            break
-        }
-
-        setupPlayPauseButton()
-    }
-
-    
-    func mpPlayerLoadStateDidChange(notification:NSNotification)
-    {
-        let player = notification.object as! MPMoviePlayerController
-        
-        let loadstate:UInt8 = UInt8(player.loadState.rawValue)
-
-        let playable = (loadstate & UInt8(MPMovieLoadState.Playable.rawValue)) > 0
-        let playthrough = (loadstate & UInt8(MPMovieLoadState.PlaythroughOK.rawValue)) > 0
-
-//        print("\(loadstate)")
-//        print("\(playable)")
-//        print("\(playthrough)")
-        
-        if (playable || playthrough) &&  !Globals.sermonLoaded && (Globals.sermonPlaying != nil) {
-//            print("\(Globals.sermonPlaying!.currentTime!)")
-//            print("\(NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!))")
-            
-            // The comparison below is Int because I'm concerned Float leaves room for small differences.  We'll see.
-            if Globals.sermonPlaying!.hasCurrentTime() {
-                if !loadingFromLive && (Int(Float(Globals.sermonPlaying!.currentTime!)!) == Int(Globals.mpPlayer!.duration)) {
-                    Globals.sermonPlaying?.currentTime = Constants.ZERO
-                }
-            } else {
-                Globals.sermonPlaying?.currentTime = Constants.ZERO
-            }
-
-            Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!)
-
-            updateCurrentTimeExact()
-            setupPlayingInfoCenter()
-            
-            spinner.stopAnimating()
-            Globals.sermonLoaded = true
-            
-            if !loadingFromLive {
-                Globals.mpPlayer?.play()
-            }
-            
-            playPauseButton.enabled = true
-            slider.enabled = true
-            
-            NSNotificationCenter.defaultCenter().removeObserver(self, name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
-        }
-        
-        //For playing
-        if (Globals.mpPlayer != nil) {
-            switch Globals.mpPlayer!.playbackState {
-            case .Interrupted:
-                print("MVC.mpPlayerLoadStateDidChange.Interrupted")
-                break
-                
-            case .Paused:
-                print("MVC.mpPlayerLoadStateDidChange.Paused")
-                break
-                
-            case .Playing:
-                print("MVC.mpPlayerLoadStateDidChange.Playing")
-                //Why do we need the following?
-                spinner.stopAnimating()
-                spinner.hidden = true
-                setupPlayingInfoCenter()
-                NSNotificationCenter.defaultCenter().removeObserver(self, name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
-                break
-                
-            case .SeekingBackward:
-                print("MVC.mpPlayerLoadStateDidChange.SeekingBackward")
-                break
-                
-            case .SeekingForward:
-                print("MVC.mpPlayerLoadStateDidChange.SeekingForward")
-                break
-                
-            case .Stopped:
-                print("MVC.mpPlayerLoadStateDidChange.Stopped")
-                //Why do we need the following?
-                if !Globals.playerPaused {
-                    Globals.mpPlayer?.play()
-                }
-                break
-            }
-        }
-    }
-    
     private func playNewSermon(sermon:Sermon?) {
         Globals.mpPlayer?.stop()
         
         Globals.mpPlayer?.view.removeFromSuperview()
         
-        captureContentOffsetAndZoomScale()
+//        captureContentOffsetAndZoomScale()
         
         if (sermon != nil) && (sermon!.hasVideo() || sermon!.hasAudio()) {
             Globals.sermonPlaying = sermon
             Globals.playerPaused = false
             
-            Globals.mpPlayer?.stop()
-            
             removeSliderObserver()
             
             //This guarantees a fresh start.
-            Globals.mpPlayer = MPMoviePlayerController(contentURL: sermon?.playingURL)
-            
-//            print("\(Globals.mpPlayer?.contentURL)")
-            
-            setupPlayerView(Globals.mpPlayer?.view)
+            setupPlayer(sermon)
             
             if (sermon!.hasVideo() && (sermon!.playing == Constants.VIDEO)) {
+                setupPlayerView(Globals.mpPlayer?.view)
+                
                 if (view.window != nil) {
                     Globals.mpPlayer!.view.hidden = false
                     sermonNotesAndSlides.bringSubviewToFront(Globals.mpPlayer!.view!)
                 }
+                
                 sermon!.showing = Constants.VIDEO
             }
-            
-            Globals.mpPlayer?.shouldAutoplay = false
-            Globals.mpPlayer?.controlStyle = MPMovieControlStyle.None
-            Globals.mpPlayer?.prepareToPlay()
-
-            // This stops the spinner spinning once the audio starts
-            Globals.sermonLoaded = false
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: "mpPlayerLoadStateDidChange:", name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
-            
-            setupPlayingInfoCenter()
 
             addSliderObserver()
             
@@ -4294,7 +2995,15 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        captureContentOffsetAndZoomScale()
+//        captureContentOffsetAndZoomScale()
+        
+        if (selectedSermon != nil) &&  (documents[selectedSermon!.id] != nil) {
+            for document in documents[selectedSermon!.id]!.values {
+                if (document.sermon == selectedSermon) && (document.purpose == selectedSermon?.showing) && (document.wkWebView != nil) && document.wkWebView!.scrollView.decelerating {
+                    captureContentOffset(document)
+                }
+            }
+        }
         
         if (selectedSermon != sermonsInSeries![indexPath.row]) || (Globals.sermonHistory == nil) {
             addToHistory(sermonsInSeries![indexPath.row])
@@ -4302,16 +3011,16 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         selectedSermon = sermonsInSeries![indexPath.row]
 
         if (selectedSermon == Globals.sermonPlaying) && (Globals.mpPlayer?.contentURL == NSURL(string:Constants.LIVE_STREAM_URL)) {
-            loadingFromLive = true
-            
             Globals.mpPlayer?.stop()
             Globals.mpPlayer = nil
             
+            Globals.playOnLoad = false
+            
             setupPlayer(selectedSermon)
             
-            setupPlayerView(Globals.mpPlayer?.view)
-            
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: "mpPlayerLoadStateDidChange:", name: MPMoviePlayerLoadStateDidChangeNotification, object: Globals.mpPlayer)
+            if (selectedSermon!.hasVideo() && (selectedSermon!.playing == Constants.VIDEO)) {
+                setupPlayerView(Globals.mpPlayer?.view)
+            }
         }
 
         setupAudioOrVideo()
@@ -4355,32 +3064,18 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //            stvControl.hidden = true
             
             webView.hidden = true
-            //            sermonNotesWebView?.hidden = true
-            //            sermonSlidesWebView?.hidden = true
-            //            Globals.mpPlayer?.view.hidden = true
+//            Globals.mpPlayer?.view.hidden = true
 
-            for document in documents.values {
-                if (webView == document.wkWebView) {
-                    document.wkWebView = nil
-                    if (selectedSermon?.showing == document.purpose) {
-                        networkUnavailable(withError.localizedDescription)
+            if (documents[selectedSermon!.id] != nil) {
+                for document in documents[selectedSermon!.id]!.values {
+                    if (webView == document.wkWebView) {
+                        document.wkWebView = nil
+                        if (selectedSermon == document.sermon) && (selectedSermon?.showing == document.purpose) {
+                            networkUnavailable(withError.localizedDescription)
+                        }
                     }
                 }
             }
-            
-//            if (webView == notesDocument?.wkWebView) {
-//                notesDocument?.wkWebView = nil
-//                if (selectedSermon?.showing == Constants.NOTES) {
-//                    networkUnavailable(withError.localizedDescription)
-//                }
-//            }
-//            
-//            if (webView == slidesDocument?.wkWebView) {
-//                slidesDocument?.wkWebView = nil
-//                if (selectedSermon?.showing == Constants.SLIDES) {
-//                    networkUnavailable(withError.localizedDescription)
-//                }
-//            }
 
             logo.hidden = !shouldShowLogo() // && roomForLogo()
             
@@ -4404,32 +3099,18 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //            stvControl.hidden = true
             
             webView.hidden = true
-            //            sermonNotesWebView?.hidden = true
-            //            sermonSlidesWebView?.hidden = true
-            //            Globals.mpPlayer?.view.hidden = true
+//            Globals.mpPlayer?.view.hidden = true
             
-            for document in documents.values {
-                if (webView == document.wkWebView) {
-                    document.wkWebView = nil
-                    if (selectedSermon?.showing == document.purpose) {
-                        networkUnavailable(withError.localizedDescription)
+            if (selectedSermon != nil) && (documents[selectedSermon!.id] != nil) {
+                for document in documents[selectedSermon!.id]!.values {
+                    if (webView == document.wkWebView) {
+                        document.wkWebView = nil
+                        if (selectedSermon == document.sermon) && (selectedSermon?.showing == document.purpose) {
+                            networkUnavailable(withError.localizedDescription)
+                        }
                     }
                 }
             }
-            
-//            if (webView == notesDocument?.wkWebView) {
-//                notesDocument?.wkWebView = nil
-//                if (selectedSermon?.showing == Constants.NOTES) {
-//                    networkUnavailable(withError.localizedDescription)
-//                }
-//            }
-//            
-//            if (webView == slidesDocument?.wkWebView) {
-//                slidesDocument?.wkWebView = nil
-//                if (selectedSermon?.showing == Constants.SLIDES) {
-//                    networkUnavailable(withError.localizedDescription)
-//                }
-//            }
 
             logo.hidden = !shouldShowLogo() // && roomForLogo()
             
@@ -4447,41 +3128,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     func wkSetZoomScaleThenContentOffset(wkWebView: WKWebView, scale:CGFloat, offset:CGPoint) {
 //        print("scale: \(scale)")
 //        print("offset: \(offset)")
-//        
-//        print("zoomScale: \(wkWebView.scrollView.zoomScale)")
-//        print("contentScaleFactor: \(wkWebView.scrollView.contentScaleFactor)")
-//        
-//        print("contentOffset: \(wkWebView.scrollView.contentOffset)")
-//        
-//        print("contentInset: \(wkWebView.scrollView.contentInset)")
-//        print("contentSize: \(wkWebView.scrollView.contentSize)")
-//        
-//        print("minimumZoomScale: \(wkWebView.scrollView.minimumZoomScale)")
-//        print("maximumZoomScale: \(wkWebView.scrollView.maximumZoomScale)")
-
-//        var newScale = scale
-//        
-//        if newScale > wkWebView.scrollView.maximumZoomScale {
-//            newScale = wkWebView.scrollView.maximumZoomScale
-//        }
-//        
-//        if newScale < wkWebView.scrollView.minimumZoomScale {
-//            newScale = wkWebView.scrollView.minimumZoomScale
-//        }
-//        
-//        var newOffset = offset
-//        
-//        if newOffset.y > wkWebView.scrollView.contentSize.height {
-//            newOffset.y = wkWebView.scrollView.contentSize.height
-//        }
-//        
-//        if newOffset.x > wkWebView.scrollView.contentSize.width {
-//            newOffset.x = wkWebView.scrollView.contentSize.width
-//        }
-        
-
-//        print("zoomScale after: \(wkWebView.scrollView.zoomScale)")
-//        print("contentScaleFactor after: \(wkWebView.scrollView.contentScaleFactor)")
 
         dispatch_async(dispatch_get_main_queue(), { () -> Void in
             // The effects of the next two calls are strongly order dependent.
@@ -4495,25 +3141,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
 //        print("contentOffset after: \(wkWebView.scrollView.contentOffset)")
     }
-    
-//    func notesContentOffset() -> CGPoint?
-//    {
-//        var notesContentOffsetXRatio:Float = 0.0
-//        var notesContentOffsetYRatio:Float = 0.0
-//        
-//        if let ratio = selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_X_RATIO] {
-//            notesContentOffsetXRatio = Float(ratio)!
-//        }
-//        
-//        if let ratio = selectedSermon?.settings?[Constants.NOTES_CONTENT_OFFSET_Y_RATIO] {
-//            notesContentOffsetYRatio = Float(ratio)!
-//        }
-//        
-//        let notesContentOffset = CGPointMake(  CGFloat(notesContentOffsetXRatio) * notesDocument!.wkWebView!.scrollView.contentSize.width,
-//            CGFloat(notesContentOffsetYRatio) * notesDocument!.wkWebView!.scrollView.contentSize.height)
-//        
-//        return notesContentOffset
-//    }
     
     func setDocumentContentOffsetAndZoomScale(document:Document?)
     {
@@ -4554,60 +3181,6 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         wkSetZoomScaleThenContentOffset(document!.wkWebView!, scale: zoomScale, offset: contentOffset)
     }
     
-//    func slidesContentOffset() -> CGPoint?
-//    {
-//        var slidesContentOffsetXRatio:Float = 0.0
-//        var slidesContentOffsetYRatio:Float = 0.0
-//        
-//        if let ratio = selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] {
-//            slidesContentOffsetXRatio = Float(ratio)!
-//        }
-//        
-//        if let ratio = selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] {
-//            slidesContentOffsetYRatio = Float(ratio)!
-//        }
-//        
-//        let slidesContentOffset = CGPointMake(  CGFloat(slidesContentOffsetXRatio) * slidesDocument!.wkWebView!.scrollView.contentSize.width,
-//            CGFloat(slidesContentOffsetYRatio) * slidesDocument!.wkWebView!.scrollView.contentSize.height)
-//        
-//        return slidesContentOffset
-//    }
-//    
-//    func setSlidesContentOffsetAndZoomScale()
-//    {
-////        print("setSlidesContentOffsetAndZoomScale Loading: \(sermonSlidesWebView!.loading)")
-//
-//        var slidesZoomScale:CGFloat = 1.0
-//        
-//        var slidesContentOffsetXRatio:Float = 0.0
-//        var slidesContentOffsetYRatio:Float = 0.0
-//        
-//        if let ratio = selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_X_RATIO] {
-////            print("X ratio string: \(ratio)")
-//            slidesContentOffsetXRatio = Float(ratio)!
-//        } else {
-////            print("No slides X ratio")
-//        }
-//        
-//        if let ratio = selectedSermon?.settings?[Constants.SLIDES_CONTENT_OFFSET_Y_RATIO] {
-////            print("Y ratio string: \(ratio)")
-//            slidesContentOffsetYRatio = Float(ratio)!
-//        } else {
-////            print("No slides Y ratio")
-//        }
-//        
-//        if let zoomScale = selectedSermon?.settings?[Constants.SLIDES_ZOOM_SCALE] {
-//            slidesZoomScale = CGFloat(Float(zoomScale)!)
-//        } else {
-////            print("No slides zoomScale")
-//        }
-//        
-//        let slidesContentOffset = CGPointMake(  CGFloat(slidesContentOffsetXRatio) * slidesDocument!.wkWebView!.scrollView.contentSize.width * slidesZoomScale,
-//                                                CGFloat(slidesContentOffsetYRatio) * slidesDocument!.wkWebView!.scrollView.contentSize.height * slidesZoomScale)
-//        
-//        wkSetZoomScaleThenContentOffset(slidesDocument!.wkWebView!, scale: slidesZoomScale, offset: slidesContentOffset)
-//    }
-    
     func webView(webView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
 //        print("wkWebViewDidFinishNavigation Loading:\(webView.loading)")
         
@@ -4616,86 +3189,36 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 
         if (self.view != nil) {
             if (selectedSermon != nil) {
-                for document in documents.values {
-                    if (webView == document.wkWebView) {
-//                        print("sermonNotesWebView")
-                        if (selectedSermon!.showing == document.purpose) {
+                if (documents[selectedSermon!.id] != nil) {
+                    for document in documents[selectedSermon!.id]!.values {
+                        if (webView == document.wkWebView) {
+    //                        print("sermonNotesWebView")
+                            if (selectedSermon == document.sermon) && (selectedSermon?.showing == document.purpose) {
+                                dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                                    self.activityIndicator.stopAnimating()
+                                    self.activityIndicator.hidden = true
+                                    
+                                    self.progressIndicator.hidden = true
+                                    
+                                    self.setupSTVControl()
+                                    
+//                                    print("webView:hidden=panning")
+                                    webView.hidden = self.panning
+                                })
+                            } else {
+                                dispatch_async(dispatch_get_main_queue(), { () -> Void in
+//                                    print("webView:hidden=true")
+                                    webView.hidden = true
+                                })
+                            }
                             dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                self.activityIndicator.stopAnimating()
-                                self.activityIndicator.hidden = true
-                                
-                                self.progressIndicator.hidden = true
-                                
-                                self.setupSTVControl()
-                                
-                                print("webView:hidden=panning")
-                                webView.hidden = self.panning
+                                document.loadTimer?.invalidate()
+                                document.loadTimer = nil
                             })
-                        } else {
-                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                print("webView:hidden=true")
-                                webView.hidden = true
-                            })
+                            setDocumentContentOffsetAndZoomScale(document)
                         }
-                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                            document.loadTimer?.invalidate()
-                            document.loadTimer = nil
-                        })
-                        setDocumentContentOffsetAndZoomScale(document)
                     }
                 }
-//                if (webView == notesDocument?.wkWebView) {
-//                    print("sermonNotesWebView")
-//                    if (selectedSermon!.showingNotes()) {
-//                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                            self.activityIndicator.stopAnimating()
-//                            self.activityIndicator.hidden = true
-//                            
-//                            self.progressIndicator.hidden = true
-//                            
-//                            self.setupSTVControl()
-//                            
-//                            print("sermonNotesWebView:hidden=panning")
-//                            webView.hidden = self.panning
-//                        })
-//                    } else {
-//                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                            print("sermonNotesWebView:hidden=true")
-//                            webView.hidden = true
-//                        })
-//                    }
-//                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                        self.notesLoadTimer?.invalidate()
-//                        self.notesLoadTimer = nil
-//                    })
-//                    setNotesContentOffsetAndZoomScale()
-//                }
-//                if (webView == slidesDocument?.wkWebView) {
-//                    print("sermonSlidesWebView")
-//                    if (selectedSermon!.showingSlides()) {
-//                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                            self.activityIndicator.stopAnimating()
-//                            self.activityIndicator.hidden = true
-//                            
-//                            self.progressIndicator.hidden = true
-//                            
-//                            self.setupSTVControl()
-//                            
-//                            print("slidesDocument?.wkWebView:hidden=panning")
-//                            webView.hidden = self.panning
-//                        })
-//                    } else {
-//                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                            print("slidesDocument?.wkWebView:hidden=true")
-//                            webView.hidden = true
-//                        })
-//                    }
-//                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                        self.slidesLoadTimer?.invalidate()
-//                        self.slidesLoadTimer = nil
-//                    })
-//                    setSlidesContentOffsetAndZoomScale()
-//                }
             }
         }
     }

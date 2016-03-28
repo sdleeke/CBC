@@ -1,13 +1,36 @@
 {
 "sermons": [
             {
+            "date":"3/20/2016",
+            "service":"PM",
+            "title":"A Bold Proposal (Part 2)",
+            "series":"A Bold Proposal",
+            "scripture":"Ruth 3:1-18",
+            "speaker":"Tom Pennington",
+            "audio":"tp160320pCD.mp3",
+            "video":"159948325.hd.mp4?s=7ca60897b0eeae6afe5865f95323f36d1e3721ce"
+            },
+            
+            {
+            "date":"3/20/2016",
+            "service":"AM",
+            "title":"Found Righteous (Part 6)",
+            "series":"Found Righteous",
+            "scripture":"Romans 3:21-31",
+            "speaker":"Tom Pennington",
+            "audio":"tp160320aCD.mp3",
+            "video":"159948324.sd.mp4?s=40b6af4b1aa6044de5df77abe3f7acb6c4ea7c4c"
+            },
+            
+            {
             "date":"3/13/2016",
             "service":"PM",
             "title":"Christ the Good Shepherd (Part 4)",
             "series":"Christ the Good Shepherd",
             "scripture":"John 10:31-42",
             "speaker":"Dusty Burris",
-            "audio":"db160313pCD.mp3"
+            "audio":"db160313pCD.mp3",
+            "video":"159948320.hd.mp4?s=daf09fa6ce477507d928cd923bd09084c5255bba"
             },
             
             {
@@ -17,7 +40,8 @@
             "series":"Found Righteous",
             "scripture":"Romans 3:21-31",
             "speaker":"Tom Pennington",
-            "audio":"tp160313aCD.mp3"
+            "audio":"tp160313aCD.mp3",
+            "video":"159948321.hd.mp4?s=cdf3ec8f095361f2a9314c48c96358b601d597a7"
             },
             
             {
@@ -313,7 +337,8 @@
             {
             "date":"11/08/2015",
             "service":"PM",
-            "title":"A Bold Proposal",
+            "title":"A Bold Proposal (Part 1)",
+            "series":"A Bold Proposal",
             "scripture":"Ruth 3:1-18",
             "speaker":"Tom Pennington",
             "audio":"tp151108pCD.mp3"

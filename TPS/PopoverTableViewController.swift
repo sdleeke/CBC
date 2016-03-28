@@ -44,8 +44,13 @@ class PopoverTableViewController: UITableViewController {
 
         //This makes accurate scrolling to sections impossible but since we don't use scrollToRowAtIndexPath with
         //the popover, this makes multi-line rows possible.
-        tableView.estimatedRowHeight = tableView.rowHeight
-        tableView.rowHeight = UITableViewAutomaticDimension
+
+        if purpose != .selectingHistory {
+            tableView.estimatedRowHeight = tableView.rowHeight
+            tableView.rowHeight = UITableViewAutomaticDimension
+        } else {
+            tableView.rowHeight = 100
+        }
 
         tableView.allowsSelection = allowsSelection
         tableView.allowsMultipleSelection = allowsMultipleSelection
@@ -88,9 +93,16 @@ class PopoverTableViewController: UITableViewController {
             if width < 200 {
                 width = 200
             }
-            var height = 50 * CGFloat(strings!.count) //35 tableView.rowHeight was -1 which I don't understand
-            if height < 150 {
-                height = 150
+            
+            var height:CGFloat = 0
+            
+            if purpose != .selectingHistory {
+                height = 45 * CGFloat(strings!.count) //35 tableView.rowHeight was -1 which I don't understand
+                if height < 150 {
+                    height = 150
+                }
+            } else {
+                height = 100 * CGFloat(strings!.count)
             }
             
             if showSectionHeaders {
@@ -99,7 +111,7 @@ class PopoverTableViewController: UITableViewController {
             
             self.preferredContentSize = CGSizeMake(width, height)
 
-            if (showIndex) {
+            if showIndex {
                 let a = "A"
                 
                 section.titles = Array(Set(strings!.map({ (string:String) -> String in
@@ -117,7 +129,7 @@ class PopoverTableViewController: UITableViewController {
                             if (counter == 0) {
                                 indexes.append(index)
                             }
-                            counter++
+                            counter += 1
                         }
                     }
                     
@@ -224,7 +236,7 @@ class PopoverTableViewController: UITableViewController {
     }
     
     override func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if (showIndex && showSectionHeaders) {
+        if (showSectionHeaders) { // showIndex && 
             return self.section.titles != nil ? self.section.titles![section] : nil
         } else {
             return nil
