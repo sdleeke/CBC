@@ -10,12 +10,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "TPS/MyTableViewController.swift"
-            timestampString = "480616846.821358"
+            timestampString = "481296319.559673"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2006"
-            endingLineNumber = "2006"
-            landmarkName = "prepareForSegue(_:sender:)"
+            startingLineNumber = "2022"
+            endingLineNumber = "2022"
+            landmarkName = "tableView(_:cellForRowAtIndexPath:)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -54,15 +54,15 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "TPS/sermonFunctions.swift"
-            timestampString = "480700930.896572"
+            timestampString = "481296319.559673"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "556"
-            endingLineNumber = "556"
+            startingLineNumber = "606"
+            endingLineNumber = "606"
             landmarkName = "livePlayingInfoCenter()"
             landmarkType = "7">
          </BreakpointContent>

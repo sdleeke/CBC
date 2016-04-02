@@ -1171,16 +1171,24 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             var success = false
             var newSermons:[Sermon]?
 
-            if let sermons = sermonsFromArchive() {
+//            if let sermons = sermonsFromArchive() {
+//                newSermons = sermons
+//                success = true
+//            } else if let sermons = sermonsFromSermonDicts(loadSermonDicts()) {
+//                newSermons = sermons
+//                sermonsToArchive(sermons)
+//                success = true
+//            }
+        
+            if let sermons = sermonsFromSermonDicts(loadSermonDicts()) {
                 newSermons = sermons
-                success = true
-            } else if let sermons = sermonsFromSermonDicts(loadSermonDicts()) {
-                newSermons = sermons
-                sermonsToArchive(sermons)
                 success = true
             }
-            
+
             if (!success) {
+                // REVERT TO KNOWN GOOD JSON
+                removeJSONFromFileSystemDirectory() // This will cause JSON to be loaded from the BUNDLE next time.
+                
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
                     self.setupTitle()
                     
@@ -1336,11 +1344,15 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         
         var success = false
         
+        print("countOfBytesExpectedToReceive: \(downloadTask.countOfBytesExpectedToReceive)")
+        
+        print("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
+        
         let filename = downloadTask.taskDescription!
         
-//        print("filename: \(filename) location: \(location)")
+        print("filename: \(filename) location: \(location)")
         
-        if (downloadTask.countOfBytesExpectedToReceive > 0) {
+        if (downloadTask.countOfBytesReceived > 0) {
             let fileManager = NSFileManager.defaultManager()
             
             //Get documents directory URL
@@ -1361,7 +1373,11 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 } catch _ {
                     print("failed to copy new json file to Documents")
                 }
+            } else {
+                print("failed to get destinationURL")
             }
+        } else {
+            print("downloadTask.countOfBytesReceived not > 0")
         }
         
         if success {
@@ -1645,20 +1661,21 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
             if let index = sermons!.indexOf(sermon!) {
                 switch Globals.grouping! {
                 case Constants.YEAR:
-                    let calendar = NSCalendar.currentCalendar()
-                    let components = calendar.components(.Year, fromDate: sermons![index].fullDate!)
-                    
-                    switch Globals.sorting! {
-                    case Constants.REVERSE_CHRONOLOGICAL:
-                        section = Globals.active!.sectionTitles!.sort({ $1 < $0 }).indexOf("\(components.year)")!
-                        break
-                    case Constants.CHRONOLOGICAL:
-                        section = Globals.active!.sectionTitles!.sort({ $0 < $1 }).indexOf("\(components.year)")!
-                        break
-                        
-                    default:
-                        break
-                    }
+//                    let calendar = NSCalendar.currentCalendar()
+//                    let components = calendar.components(.Year, fromDate: sermons![index].fullDate!)
+//                    
+//                    switch Globals.sorting! {
+//                    case Constants.REVERSE_CHRONOLOGICAL:
+//                        section = Globals.active!.sectionTitles!.sort({ $1 < $0 }).indexOf("\(components.year)")!
+//                        break
+//                    case Constants.CHRONOLOGICAL:
+//                        section = Globals.active!.sectionTitles!.sort({ $0 < $1 }).indexOf("\(components.year)")!
+//                        break
+//                        
+//                    default:
+//                        break
+//                    }
+                    section = Globals.active!.sectionTitles!.indexOf(sermon!.yearSection!)!
                     break
                     
                 case Constants.SERIES:

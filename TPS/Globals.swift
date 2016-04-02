@@ -325,7 +325,11 @@ struct Globals {
                     index = [String:Sermon]()
                     
                     for sermon in list! {
-                        index![sermon.id!] = sermon
+                        if index![sermon.id!] == nil {
+                            index![sermon.id!] = sermon
+                        } else {
+                            print("DUPLICATE SERMON ID: \(sermon)")
+                        }
                     }
                     
                     scriptureIndex = nil

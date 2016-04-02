@@ -43,103 +43,103 @@ class SermonsListGroupSort {
         }
     }
     
-    func archiveList() -> [String]?
-    {
-        return list?.map({ (sermon:Sermon) -> String in
-            return "\(Globals.sermonRepository.list!.indexOf(sermon)!)"
-        })
-    }
-    
-    func unarchiveList(sermons:[String]?)
-    {
-        list = sermons?.map({ (index:String) -> Sermon in
-            return Globals.sermonRepository.list![Int(index)!]
-        })
-    }
-    
-    func archiveGroupSort() -> [String:[String:[String:[String]]]]?
-    {
-        var dict = [String:[String:[String:[String]]]]()
-        
-        for groupKey in groupSort!.keys {
-            dict[groupKey] = [String:[String:[String]]]()
-            for groupNameKey in groupSort![groupKey]!.keys {
-                dict[groupKey]![groupNameKey] = [String:[String]]()
-                for sortKey in groupSort![groupKey]![groupNameKey]!.keys {
-                    dict[groupKey]![groupNameKey]![sortKey] = groupSort![groupKey]![groupNameKey]![sortKey]?.map({ (sermon:Sermon) -> String in
-                        return sermon.id!
-                    })
-                }
-            }
-            
-        }
-        return dict
-    }
-    
-    func unarchiveGroupSort(gs:[String:[String:[String:[String]]]]?)
-    {
-        groupSort = [String:[String:[String:[Sermon]]]]()
-        
-        for groupKey in gs!.keys {
-            groupSort?[groupKey] = [String:[String:[Sermon]]]()
-            for groupNameKey in gs![groupKey]!.keys {
-                groupSort?[groupKey]![groupNameKey] = [String:[Sermon]]()
-                for sortKey in gs![groupKey]![groupNameKey]!.keys {
-                    groupSort?[groupKey]![groupNameKey]![sortKey] = gs![groupKey]![groupNameKey]![sortKey]?.filter({ (index:String) -> Bool in
-                        return Globals.sermonRepository.index![index] != nil
-                    }).map({ (index:String) -> Sermon in
-                        return Globals.sermonRepository.index![index]!
-                    })
-                }
-            }
-        }
-    }
-    
-    func archiveGroupNames() -> [String:[String:String]]?
-    {
-        return groupNames
-    }
-    
-    func unarchiveGroupNames(gn:[String:[String:String]]?)
-    {
-        groupNames = gn
-    }
-    
-    func archiveTagSermons() -> [String:[String]]?
-    {
-        var dict = [String:[String]]()
-        
-        for key in tagSermons!.keys {
-            dict[key] = tagSermons?[key]?.map({ (sermon:Sermon) -> String in
-                return sermon.id!
-            })
-        }
-        
-        return dict
-    }
-    
-    func unarchiveTagSermons(ts:[String:[String]]?)
-    {
-        tagSermons = [String:[Sermon]]()
-        
-        for key in ts!.keys {
-            tagSermons?[key] = ts?[key]?.filter({ (index:String) -> Bool in
-                return Globals.sermonRepository.index![index] != nil
-            }).map({ (index:String) -> Sermon in
-                return Globals.sermonRepository.index![index]!
-            })
-        }
-    }
-    
-    func archiveTagNames() -> [String:String]?
-    {
-        return tagNames
-    }
-    
-    func unarchiveTagNames(tn:[String:String]?)
-    {
-        tagNames = tn
-    }
+//    func archiveList() -> [String]?
+//    {
+//        return list?.map({ (sermon:Sermon) -> String in
+//            return "\(Globals.sermonRepository.list!.indexOf(sermon)!)"
+//        })
+//    }
+//    
+//    func unarchiveList(sermons:[String]?)
+//    {
+//        list = sermons?.map({ (index:String) -> Sermon in
+//            return Globals.sermonRepository.list![Int(index)!]
+//        })
+//    }
+//    
+//    func archiveGroupSort() -> [String:[String:[String:[String]]]]?
+//    {
+//        var dict = [String:[String:[String:[String]]]]()
+//        
+//        for groupKey in groupSort!.keys {
+//            dict[groupKey] = [String:[String:[String]]]()
+//            for groupNameKey in groupSort![groupKey]!.keys {
+//                dict[groupKey]![groupNameKey] = [String:[String]]()
+//                for sortKey in groupSort![groupKey]![groupNameKey]!.keys {
+//                    dict[groupKey]![groupNameKey]![sortKey] = groupSort![groupKey]![groupNameKey]![sortKey]?.map({ (sermon:Sermon) -> String in
+//                        return sermon.id!
+//                    })
+//                }
+//            }
+//            
+//        }
+//        return dict
+//    }
+//    
+//    func unarchiveGroupSort(gs:[String:[String:[String:[String]]]]?)
+//    {
+//        groupSort = [String:[String:[String:[Sermon]]]]()
+//        
+//        for groupKey in gs!.keys {
+//            groupSort?[groupKey] = [String:[String:[Sermon]]]()
+//            for groupNameKey in gs![groupKey]!.keys {
+//                groupSort?[groupKey]![groupNameKey] = [String:[Sermon]]()
+//                for sortKey in gs![groupKey]![groupNameKey]!.keys {
+//                    groupSort?[groupKey]![groupNameKey]![sortKey] = gs![groupKey]![groupNameKey]![sortKey]?.filter({ (index:String) -> Bool in
+//                        return Globals.sermonRepository.index![index] != nil
+//                    }).map({ (index:String) -> Sermon in
+//                        return Globals.sermonRepository.index![index]!
+//                    })
+//                }
+//            }
+//        }
+//    }
+//    
+//    func archiveGroupNames() -> [String:[String:String]]?
+//    {
+//        return groupNames
+//    }
+//    
+//    func unarchiveGroupNames(gn:[String:[String:String]]?)
+//    {
+//        groupNames = gn
+//    }
+//    
+//    func archiveTagSermons() -> [String:[String]]?
+//    {
+//        var dict = [String:[String]]()
+//        
+//        for key in tagSermons!.keys {
+//            dict[key] = tagSermons?[key]?.map({ (sermon:Sermon) -> String in
+//                return sermon.id!
+//            })
+//        }
+//        
+//        return dict
+//    }
+//    
+//    func unarchiveTagSermons(ts:[String:[String]]?)
+//    {
+//        tagSermons = [String:[Sermon]]()
+//        
+//        for key in ts!.keys {
+//            tagSermons?[key] = ts?[key]?.filter({ (index:String) -> Bool in
+//                return Globals.sermonRepository.index![index] != nil
+//            }).map({ (index:String) -> Sermon in
+//                return Globals.sermonRepository.index![index]!
+//            })
+//        }
+//    }
+//    
+//    func archiveTagNames() -> [String:String]?
+//    {
+//        return tagNames
+//    }
+//    
+//    func unarchiveTagNames(tn:[String:String]?)
+//    {
+//        tagNames = tn
+//    }
     
     var sermons:[Sermon]? {
         get {
@@ -714,26 +714,6 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         return sermons
     }
 
-    var showingPDFURL:NSURL? {
-        get {
-            var url:NSURL?
-            
-            switch showing! {
-            case Constants.NOTES:
-                url = notesURL
-                break
-            case Constants.SLIDES:
-                url = slidesURL
-                break
-                
-            default:
-                break
-            }
-            
-            return url
-        }
-    }
-    
     var playingURL:NSURL? {
         get {
             var url:NSURL?
@@ -822,13 +802,34 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             settings?[Constants.SHOWING] = newValue
         }
     }
-
+    
+    var download:Download? {
+        get {
+            if showing != nil {
+                return downloads[showing!]
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    var url:NSURL? {
+        get {
+            return download?.url
+        }
+    }
+    
+    var fileSystemURL:NSURL? {
+        get {
+            return download?.fileSystemURL
+        }
+    }
+    
     func hasCurrentTime() -> Bool
     {
         return (currentTime != nil) && (currentTime != "nan")
     }
     
-    // this supports settings values that are saved in defaults between sessions
     var currentTime:String? {
         get {
             if let current_time = settings?[Constants.CURRENT_TIME+playing!] {
@@ -844,21 +845,6 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             settings?[Constants.CURRENT_TIME+playing!] = newValue
         }
     }
-    
-    // These are read-only
-//    var keyBase:String! {
-//        get {
-////            if (title == nil) {
-////                print("\(title)")
-////            }
-////            if (date == nil) {
-////                print("\(date)")
-////            }
-//////            print("\(title! + date!)")
-////            return title! + date!
-//            return id!
-//        }
-//    }
     
     var seriesID:String! {
         get {
@@ -877,6 +863,11 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             }
             return nil
         }
+    }
+    
+    var yearSection:String!
+    {
+        return yearString
     }
     
     var yearString:String! {
@@ -1199,15 +1190,15 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     var videoURL:NSURL? {
         get {
             if video != nil {
-                var videoURL = Constants.BASE_VIDEO_URL_PREFIX + video!
+                let videoURL = Constants.BASE_VIDEO_URL_PREFIX + video!
                 
-                if video!.rangeOfString(".sd.") != nil {
-                    videoURL = videoURL + Constants.BASE_SD_VIDEO_URL_POSTFIX
-                } else
-                
-                if video!.rangeOfString(".hd.") != nil {
-                    videoURL = videoURL + Constants.BASE_HD_VIDEO_URL_POSTFIX
-                }
+//                if video!.rangeOfString(".sd.") != nil {
+//                    videoURL = videoURL + Constants.BASE_SD_VIDEO_URL_POSTFIX
+//                } else
+//                
+//                if video!.rangeOfString(".hd.") != nil {
+//                    videoURL = videoURL + Constants.BASE_HD_VIDEO_URL_POSTFIX
+//                }
 
                 return NSURL(string: videoURL)
             } else {

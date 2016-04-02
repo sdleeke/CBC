@@ -30,21 +30,21 @@ struct Constants {
     static let JSON_FILENAME_EXTENSION = ".json"
     static let SERMONS_JSON_FILENAME = JSON_ARRAY_KEY + JSON_FILENAME_EXTENSION
 
-    static let ARCHIVE_FILENAME_EXTENSION = ".archive"
-    static let SERMONS_ARCHIVE = JSON_ARRAY_KEY + ARCHIVE_FILENAME_EXTENSION
+//    static let ARCHIVE_FILENAME_EXTENSION = ".archive"
+//    static let SERMONS_ARCHIVE = JSON_ARRAY_KEY + ARCHIVE_FILENAME_EXTENSION
     
     static let DICT = "dict"
     
-    static let CACHE_KEY = "cache"
-    static let CACHE_ARCHIVE = CACHE_KEY + ARCHIVE_FILENAME_EXTENSION
+//    static let CACHE_KEY = "cache"
+//    static let CACHE_ARCHIVE = CACHE_KEY + ARCHIVE_FILENAME_EXTENSION
 
-    static let CACHE_SECTIONS = "sections"
-    static let CACHE_INDEXES = "indexes"
-    static let CACHE_COUNTS = "counts"
-    static let CACHE_SERMON_INDEXES = "sermonIndexes"
-
-    static let CACHE_ENTRY_IN_PROCESS = "inProcess"
-    static let CACHE_ENTRY_COMPLETE = "complete"
+//    static let CACHE_SECTIONS = "sections"
+//    static let CACHE_INDEXES = "indexes"
+//    static let CACHE_COUNTS = "counts"
+//    static let CACHE_SERMON_INDEXES = "sermonIndexes"
+//
+//    static let CACHE_ENTRY_IN_PROCESS = "inProcess"
+//    static let CACHE_ENTRY_COMPLETE = "complete"
     
     static let LIVE_STREAM_URL = "http://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
     
@@ -145,7 +145,7 @@ struct Constants {
     
     static let SCRIPTURE = "scripture"
     
-    static let Scripture_Full_Screen = "Scripture Full Screen"
+//    static let Scripture_Full_Screen = "Scripture Full Screen"
     static let Scripture_in_Browser = "Scripture in Browser"
     
     static let SERIES = "series"
@@ -299,8 +299,8 @@ struct Constants {
     static let BASE_AUDIO_URL = "http://sitedata.countrysidebible.org/avmedia/se/"
     static let BASE_PDF_URL = "http://sitedata.countrysidebible.org/avmedia/dc/"
     static let BASE_VIDEO_URL_PREFIX = "https://player.vimeo.com/external/"
-    static let BASE_HD_VIDEO_URL_POSTFIX = "&profile_id=113"
-    static let BASE_SD_VIDEO_URL_POSTFIX = "&profile_id=165"
+//    static let BASE_HD_VIDEO_URL_POSTFIX = "&profile_id=113"
+//    static let BASE_SD_VIDEO_URL_POSTFIX = "&profile_id=165"
     
     static let BASE_DOWNLOAD_URL:String = "http://sitedata.countrysidebible.org/avmedia/se/download.php?file="
     

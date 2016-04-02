@@ -1,6 +1,16 @@
 {
 "sermons": [
             {
+            "date":"3/27/2016",
+            "service":"AM",
+            "title":"Jesus Will Cost You Everything!",
+            "scripture":"Mark 8:34-38",
+            "speaker":"Tom Pennington",
+            "audio":"tp160327aCD.mp3",
+            "video":"161201045.hd.mp4?s=0118f2bca71c7b20ae14b5f334982af8b12934a0&profile_id=174"
+            },
+            
+            {
             "date":"3/20/2016",
             "service":"PM",
             "title":"A Bold Proposal (Part 2)",
@@ -8,7 +18,7 @@
             "scripture":"Ruth 3:1-18",
             "speaker":"Tom Pennington",
             "audio":"tp160320pCD.mp3",
-            "video":"159948325.hd.mp4?s=7ca60897b0eeae6afe5865f95323f36d1e3721ce"
+            "video":"159948325.hd.mp4?s=7ca60897b0eeae6afe5865f95323f36d1e3721ce&profile_id=113"
             },
             
             {
@@ -19,7 +29,7 @@
             "scripture":"Romans 3:21-31",
             "speaker":"Tom Pennington",
             "audio":"tp160320aCD.mp3",
-            "video":"159948324.sd.mp4?s=40b6af4b1aa6044de5df77abe3f7acb6c4ea7c4c"
+            "video":"159948324.sd.mp4?s=40b6af4b1aa6044de5df77abe3f7acb6c4ea7c4c&profile_id=165"
             },
             
             {
@@ -30,7 +40,7 @@
             "scripture":"John 10:31-42",
             "speaker":"Dusty Burris",
             "audio":"db160313pCD.mp3",
-            "video":"159948320.hd.mp4?s=daf09fa6ce477507d928cd923bd09084c5255bba"
+            "video":"159948320.hd.mp4?s=daf09fa6ce477507d928cd923bd09084c5255bba&profile_id=113"
             },
             
             {
@@ -41,7 +51,7 @@
             "scripture":"Romans 3:21-31",
             "speaker":"Tom Pennington",
             "audio":"tp160313aCD.mp3",
-            "video":"159948321.hd.mp4?s=cdf3ec8f095361f2a9314c48c96358b601d597a7"
+            "video":"159948321.hd.mp4?s=cdf3ec8f095361f2a9314c48c96358b601d597a7&profile_id=113"
             },
             
             {
@@ -52,7 +62,7 @@
             "scripture":"John 10:19-30",
             "speaker":"Dusty Burris",
             "audio":"db160306pCD.mp3",
-            "video":"158669425.hd.mp4?s=d2097e725c4965b534f6af30c615f6a8f1504f8c"
+            "video":"158669425.hd.mp4?s=d2097e725c4965b534f6af30c615f6a8f1504f8c&profile_id=113"
             },
             
             {
@@ -63,7 +73,7 @@
             "scripture":"Romans 3:21-31",
             "speaker":"Tom Pennington",
             "audio":"tp160306aCD.mp3",
-            "video":"158669448.sd.mp4?s=0bf537eec9d53dad463a50c088efd578a3f1bbc2"
+            "video":"158669448.sd.mp4?s=0bf537eec9d53dad463a50c088efd578a3f1bbc2&profile_id=165"
             },
             
             {
@@ -73,7 +83,7 @@
             "scripture":"Matthew 11:20-30",
             "speaker":"Jonathan Anderson",
             "audio":"ja160228pCD.mp3",
-            "video":"158669427.sd.mp4?s=138d44cebefa469d058526c4e3f9bba28452bfe3"
+            "video":"158669427.sd.mp4?s=138d44cebefa469d058526c4e3f9bba28452bfe3&profile_id=165"
             },
             
             {
@@ -104,7 +114,7 @@
             "scripture":"Joshua 1:1-9",
             "speaker":"Justin Turner",
             "audio":"jt160214pCD.mp3",
-            "video":"158669430.hd.mp4?s=774ed5f5e74da1b1962034554736d0eee91ec21d"
+            "video":"158669430.hd.mp4?s=774ed5f5e74da1b1962034554736d0eee91ec21d&profile_id=113"
             },
             
             {
@@ -115,7 +125,7 @@
             "scripture":"Romans 3:21-31",
             "speaker":"Tom Pennington",
             "audio":"tp160214aCD.mp3",
-            "video":"158669444.sd.mp4?s=4c236145af24c3ed3f9bb8cda950138bcfaa93ec"
+            "video":"158669444.sd.mp4?s=4c236145af24c3ed3f9bb8cda950138bcfaa93ec&profile_id=165"
             },
             
             {
@@ -126,7 +136,7 @@
             "speaker":"Tom Pennington",
             "tags":"Baptism",
             "audio":"tp160207pCD.mp3",
-            "video":"155337034.hd.mp4?s=3f7c332cf27c5f6ff9d98a0ecf0c6710a01f0235"
+            "video":"155337034.hd.mp4?s=3f7c332cf27c5f6ff9d98a0ecf0c6710a01f0235&profile_id=113"
             },
             
             {
@@ -138,7 +148,7 @@
             "speaker":"Tom Pennington",
             "audio":"tp160207aCD.mp3",
             "notes":"tx-un-tp160207a.pdf",
-            "video":"155337035.hd.mp4?s=8e72b4ac1b4d9803b0e95e2a25cf5cfaf5615047"
+            "video":"155337035.hd.mp4?s=8e72b4ac1b4d9803b0e95e2a25cf5cfaf5615047&profile_id=113"
             },
             
             {
@@ -148,7 +158,7 @@
             "scripture":"2 Peter 1:4-7",
             "speaker":"Rocky Wyatt",
             "audio":"rw160131pCD.mp3",
-            "video":"155337032.hd.mp4?s=1ef052b90704af160d374741b48bd3fca5a4afd0"
+            "video":"155337032.hd.mp4?s=1ef052b90704af160d374741b48bd3fca5a4afd0&profile_id=113"
             },
             
             {
@@ -158,7 +168,7 @@
             "scripture":"Matthew 11:1-6",
             "speaker":"Jonathan Anderson",
             "audio":"ja160131aCD.mp3",
-            "video":"155337031.hd.mp4?s=2671d047bcbadec12911e255c38a0b138c240044"
+            "video":"155337031.hd.mp4?s=2671d047bcbadec12911e255c38a0b138c240044&profile_id=113"
             },
             
             {
@@ -169,7 +179,7 @@
             "scripture":"Romans 3:19-20",
             "speaker":"Tom Pennington",
             "audio":"tp160124aCD.mp3",
-            "video":"153300955.hd.mp4?s=4cec9800ce5a88acf26ceaeacb8d2576efe7bb0e",
+            "video":"153300955.hd.mp4?s=4cec9800ce5a88acf26ceaeacb8d2576efe7bb0e&profile_id=113",
             "notes":"tx-un-tp160124a.pdf"
             },
             
@@ -181,7 +191,7 @@
             "speaker":"Tom Pennington",
             "tags":"Q & A",
             "audio":"tp160117pCD.mp3",
-            "video":"153281759.hd.mp4?s=7d646b8c5f4114a3b90246d6083fceb211caf413"
+            "video":"153281759.hd.mp4?s=7d646b8c5f4114a3b90246d6083fceb211caf413&profile_id=113"
             },
             
             {
@@ -192,7 +202,7 @@
             "scripture":"Romans 3:19-20",
             "speaker":"Tom Pennington",
             "audio":"tp160117aCD.mp3",
-            "video":"153280454.hd.mp4?s=6b101092986c103f4e868a1420a28516c07f3565",
+            "video":"153280454.hd.mp4?s=6b101092986c103f4e868a1420a28516c07f3565&profile_id=113",
             "notes":"tx-un-tp160117a.pdf"
             },
             
@@ -203,7 +213,7 @@
             "scripture":"Matthew 2",
             "speaker":"Jonathan Anderson",
             "audio":"ja160110pCD.mp3",
-            "video":"151686282.hd.mp4?s=95c7f3fca902137584c2de3682b139b74b237c0f"
+            "video":"151686282.hd.mp4?s=95c7f3fca902137584c2de3682b139b74b237c0f&profile_id=113"
             },
             
             {
@@ -213,7 +223,7 @@
             "scripture":"2 Peter 1:1-3",
             "speaker":"Rocky Wyatt",
             "audio":"rw160110aCD.mp3",
-            "video":"151686359.hd.mp4?s=642528766aa8746199f5fad8aeb491b652976b37"
+            "video":"151686359.hd.mp4?s=642528766aa8746199f5fad8aeb491b652976b37&profile_id=113"
             },
             
             {
@@ -223,7 +233,7 @@
             "scripture":"Philippians 4:4-7",
             "speaker":"Terry Enns",
             "audio":"gs160103pCD.mp3",
-            "video":"150937309.hd.mp4?s=122a15e79aa8a24d58f140dbdcfe21049e0d4715"
+            "video":"150937309.hd.mp4?s=122a15e79aa8a24d58f140dbdcfe21049e0d4715&profile_id=113"
             },
             
             {
@@ -233,7 +243,7 @@
             "scripture":"John 3:1-8",
             "speaker":"Dr. Steve Lawson",
             "audio":"gs160103aCD.mp3",
-            "video":"150937297.hd.mp4?s=ccffdecfcbe578254d34ac8e85ddd639610ed0bf"
+            "video":"150937297.hd.mp4?s=ccffdecfcbe578254d34ac8e85ddd639610ed0bf&profile_id=113"
             },
             
             {
@@ -504,7 +514,7 @@
             "speaker":"Tom Pennington",
             "series": "I Object!",
             "audio":"tp150809aCD.mp3",
-            "video":"135908266.hd.mp4?s=3d74ce0a2811d4972fbb8e261b6b8f3a",
+            "video":"135908266.hd.mp4?s=3d74ce0a2811d4972fbb8e261b6b8f3a&profile_id=113",
             "slides":"tp150809a.pdf",
             "notes":"tx-un-tp150809a.pdf"
             },
@@ -607,7 +617,7 @@
         "audio":"tp150628aCD.mp3",
         "notes":"tx-un-tp150628a.pdf",
         "slides":"tp150628a.pdf",
-	"video":"144500068.hd.mp4?s=14e8e1181db9147718ec6e9b5e5f235918a66dde"
+	"video":"144500068.hd.mp4?s=14e8e1181db9147718ec6e9b5e5f235918a66dde&profile_id=113"
 },
 
 {
@@ -618,7 +628,7 @@
         "speaker":"Tom Pennington",
         "series": "Under Yahweh’s Wings",
         "audio":"tp150621pCD.mp3",
-	"video":"144500058.hd.mp4?s=55abed4e59c587953c145537d9e94aae2d1227c7"
+	"video":"144500058.hd.mp4?s=55abed4e59c587953c145537d9e94aae2d1227c7&profile_id=113"
 },
 
 {
@@ -630,7 +640,7 @@
         "audio":"tp150621aCD.mp3",
         "notes":"tx-un-tp150621a.pdf",
         "slides":"tp150621a.pdf",
-	"video":"144500043.hd.mp4?s=80828e012d61aaee28dcf95674c80b501effb570"
+	"video":"144500043.hd.mp4?s=80828e012d61aaee28dcf95674c80b501effb570&profile_id=113"
 },
 
 {
@@ -642,7 +652,7 @@
         "audio":"tp150524aCD.mp3",
         "notes":"tx-un-tp150524a.pdf",
         "slides":"tp150524a.pdf",
-	"video":"144131613.hd.mp4?s=63a28a4eff8a9a69aa71c62df65d7e69"
+	"video":"144131613.hd.mp4?s=63a28a4eff8a9a69aa71c62df65d7e69&profile_id=113"
 },
 
 {
@@ -654,7 +664,7 @@
         "audio":"tp150517aCD.mp3",
         "notes":"tx-un-tp150517a.pdf",
         "slides":"tp150517a.pdf",
-	"video":"144131716.hd.mp4?s=77f4c560807d3583ab42822b74b40d6b"
+	"video":"144131716.hd.mp4?s=77f4c560807d3583ab42822b74b40d6b&profile_id=113"
 },
 
 {
@@ -667,7 +677,7 @@
         "audio":"tp150510aCD.mp3",
         "notes":"tx-un-tp150510a.pdf",
         "slides":"tp150510a.pdf",
-	"video":"144129393.hd.mp4?s=eb642319f13166d0467c8fa1cea64be0"
+	"video":"144129393.hd.mp4?s=eb642319f13166d0467c8fa1cea64be0&profile_id=113"
 },
 
 {
@@ -678,7 +688,7 @@
         "speaker":"Tom Pennington",
         "series": "The Journey Home",
         "audio":"tp150503pCD.mp3",
-        "video":"144126948.hd.mp4?s=0ada96d3442746f896ba88f3c2fca8c7"
+        "video":"144126948.hd.mp4?s=0ada96d3442746f896ba88f3c2fca8c7&profile_id=113"
 },
 
 {
@@ -691,7 +701,7 @@
         "audio":"tp150503aCD.mp3",
         "notes":"tx-un-tp150503a.pdf",
         "slides":"tp150503a.pdf",
-        "video":"144126832.hd.mp4?s=d52bee06d42b1a307cbc26a79b30b69b"
+        "video":"144126832.hd.mp4?s=d52bee06d42b1a307cbc26a79b30b69b&profile_id=113"
 },
 
 {
@@ -702,7 +712,7 @@
         "speaker":"Tom Pennington",
         "series": "The Journey Home",
         "audio":"tp150426pCD.mp3",
-        "video":"140314191.hd.mp4?s=7cb70c197a7602d80880d17e2aa15d66"
+        "video":"140314191.hd.mp4?s=7cb70c197a7602d80880d17e2aa15d66&profile_id=113"
 },
 
 {
@@ -712,7 +722,7 @@
         "scripture":"Romans 2:11",
         "speaker":"Tom Pennington",
         "audio":"tp150426aCD.mp3",
-        "video":"140314084.hd.mp4?s=ed2a9a866cc687867b65b2fc6e7fedb3",
+        "video":"140314084.hd.mp4?s=ed2a9a866cc687867b65b2fc6e7fedb3&profile_id=113",
         "notes":"tx-un-tp150426a.pdf",
         "slides":"tp150426a.pdf"
 },
@@ -725,7 +735,7 @@
         "speaker":"Tom Pennington",
         "series": "Getting What We Deserve",
         "audio":"tp150419aCD.mp3",
-        "video":"140314134.hd.mp4?s=9407174953a5ec082bc1f84dddf4027b",
+        "video":"140314134.hd.mp4?s=9407174953a5ec082bc1f84dddf4027b&profile_id=113",
         "notes":"tx-un-tp150419a.pdf",
         "slides":"tp150419a.pdf"
 },
@@ -738,7 +748,7 @@
         "speaker":"Tom Pennington",
         "series": "Getting What We Deserve",
         "audio":"tp150412aCD.mp3",
-        "video":"140314432.hd.mp4?s=5bd8890eeda3be976e38d93207a90161",
+        "video":"140314432.hd.mp4?s=5bd8890eeda3be976e38d93207a90161&profile_id=113",
         "notes":"tx-un-tp150412a.pdf",
         "slides":"tp150412a.pdf"
 },
@@ -750,7 +760,7 @@
         "scripture":"Luke 19:1-10",
         "speaker":"Tom Pennington",
         "audio":"tp150405aCD.mp3",
-        "video":"124420082.hd.mp4?s=1e7dbf999d277d7a2d4362f45aeb8883",
+        "video":"124420082.hd.mp4?s=1e7dbf999d277d7a2d4362f45aeb8883&profile_id=113",
         "slides":"tp150405a.pdf"
 },
 
@@ -761,7 +771,7 @@
         "scripture":"John 19:25-27",
         "speaker":"Tom Pennington",
         "audio":"tp150329aCD.mp3",
-        "video":"124420082.hd.mp4?s=1e7dbf999d277d7a2d4362f45aeb8883",
+        "video":"124420082.hd.mp4?s=1e7dbf999d277d7a2d4362f45aeb8883&profile_id=113",
         "notes":"tx-un-tp150329a.pdf",
         "slides":"tp150329a.pdf"
 },
@@ -773,7 +783,7 @@
         "scripture":"Ruth 1:1-5",
         "speaker":"Tom Pennington",
         "audio":"tp150322pCD.mp3",
-        "video":"139656225.hd.mp4?s=bce92faeaaceb840aa6fac9b9702d81e"
+        "video":"139656225.hd.mp4?s=bce92faeaaceb840aa6fac9b9702d81e&profile_id=113"
 },
 
 {
@@ -784,7 +794,7 @@
         "speaker":"Tom Pennington",
         "series": "Misinterpreting Common Grace",
         "audio":"tp150322aCD.mp3",
-        "video":"139655913.hd.mp4?s=016af7a93cd82aff57b96d20142c98eb",
+        "video":"139655913.hd.mp4?s=016af7a93cd82aff57b96d20142c98eb&profile_id=113",
         "notes":"tx-un-tp150322a.pdf",
         "slides":"tp150322a.pdf"
 },
@@ -797,7 +807,7 @@
         "speaker":"Tom Pennington",
         "series": "Misinterpreting Common Grace",
         "audio":"tp150315aCD.mp3",
-        "video":"140314357.hd.mp4?s=2e9d1b52a11bf1e9607fa5aff9c8a945",
+        "video":"140314357.hd.mp4?s=2e9d1b52a11bf1e9607fa5aff9c8a945&profile_id=113",
         "notes":"tx-un-tp150315a.pdf",
         "slides":"tp150315a.pdf"
 },
@@ -810,7 +820,7 @@
         "speaker":"Tom Pennington",
         "series": "No Excuse, No Escape",
         "audio":"tp150308aCD.mp3",
-        "video":"139655609.hd.mp4?s=f9a575c0a60b3c685c4eb08e8c546bb6",
+        "video":"139655609.hd.mp4?s=f9a575c0a60b3c685c4eb08e8c546bb6&profile_id=113",
         "notes":"tx-un-tp150308a.pdf",
         "slides":"tp150308a.pdf"
 },
@@ -823,7 +833,7 @@
         "speaker":"Tom Pennington",
         "series": "No Excuse, No Escape",
         "audio":"tp150301aCD.mp3",
-        "video":"139654763.hd.mp4?s=1275e3ce83f03674b67ab42271b80f3a",
+        "video":"139654763.hd.mp4?s=1275e3ce83f03674b67ab42271b80f3a&profile_id=113",
         "notes":"tx-un-tp150301a.pdf",
         "slides":"tp150301a.pdf"
 },
@@ -836,7 +846,7 @@
         "speaker":"Tom Pennington",
         "tags": "Baptism",
         "audio":"tp150215pCD.mp3",
-        "video":"135973877.hd.mp4?s=cf5aa4962f34e82b838d08601af0e84f"
+        "video":"135973877.hd.mp4?s=cf5aa4962f34e82b838d08601af0e84f&profile_id=113"
 },
 
 {
@@ -847,7 +857,7 @@
         "speaker":"Tom Pennington",
         "series": "Abandoned to a Depraved Mind",
         "audio":"tp150215aCD.mp3",
-        "video":"135974226.hd.mp4?s=8aadadd6349feabd7dea1c0665d0cc63",
+        "video":"135974226.hd.mp4?s=8aadadd6349feabd7dea1c0665d0cc63&profile_id=113",
         "notes":"tx-un-tp150215a.pdf",
         "slides":"tp150215a.pdf"
 },
@@ -860,7 +870,7 @@
         "speaker":"Tom Pennington",
         "series": "Abandoned to a Depraved Mind",
         "audio":"tp150208aCD.mp3",
-        "video":"135900145.hd.mp4?s=efadc10229eff12ba0da989f41f90ef8",
+        "video":"135900145.hd.mp4?s=efadc10229eff12ba0da989f41f90ef8&profile_id=113",
         "notes":"tx-un-tp150208a.pdf",
         "slides":"tp150208a.pdf"
 },
@@ -872,7 +882,7 @@
         "scripture":"Romans 1:26-27",
         "speaker":"Tom Pennington",
         "audio":"tp150201aCD.mp3",
-        "video":"135897359.hd.mp4?s=c442fefb6d01f328a6ebcb2c0097ea68",
+        "video":"135897359.hd.mp4?s=c442fefb6d01f328a6ebcb2c0097ea68&profile_id=113",
         "notes":"tx-un-tp150201a.pdf",
         "slides":"tp150201a.pdf"
 },
@@ -884,7 +894,7 @@
         "scripture":"Romans 1:24-25",
         "speaker":"Tom Pennington",
         "audio":"tp150125aCD.mp3",
-        "video":"135897359.hd.mp4?s=c442fefb6d01f328a6ebcb2c0097ea68",
+        "video":"135897359.hd.mp4?s=c442fefb6d01f328a6ebcb2c0097ea68&profile_id=113",
         "notes":"tx-un-tp150125a.pdf",
         "slides":"tp150125a.pdf"
 },
@@ -897,7 +907,7 @@
         "speaker":"Tom Pennington",
         "tags": "Psalm 23",
         "audio":"tp150118pCD.mp3",
-        "video":"123099093.hd.mp4?s=5dc317fdc6cddcfcd7f04ac43e0bf122",
+        "video":"123099093.hd.mp4?s=5dc317fdc6cddcfcd7f04ac43e0bf122&profile_id=113",
         "notes":"tx-un-tp150118p.pdf"
 },
 
@@ -907,7 +917,7 @@
         "scripture":"Matthew 18:15-20",
         "speaker":"Tom Pennington",
         "audio":"tp150118aCD.mp3",
-        "video":"122571850.hd.mp4?s=71b528e78204b67976f8d8f5fa8544ef",
+        "video":"122571850.hd.mp4?s=71b528e78204b67976f8d8f5fa8544ef&profile_id=113",
         "slides":"tp150118a.pdf"
 },
 
@@ -918,7 +928,7 @@
         "scripture":"Romans 1:24-32",
         "speaker":"Tom Pennington",
         "audio":"tp150111aCD.mp3",
-        "video":"122571848.hd.mp4?s=99fa5eab2da4ae38b3e3f9f509f73e7f",
+        "video":"122571848.hd.mp4?s=99fa5eab2da4ae38b3e3f9f509f73e7f&profile_id=113",
         "notes":"tx-un-tp150111a.pdf",
         "slides":"tp150111a.pdf"
 },
@@ -9833,7 +9843,7 @@
 	"scripture":"1 Peter 5:1-4",
 	"id":"rw150809p",
 	"title":"Shepherding the Flock",
-	"video":"135908218.hd.mp4?s=9eb8057a80840e7f0ee4d0e6f4295556",
+	"video":"135908218.hd.mp4?s=9eb8057a80840e7f0ee4d0e6f4295556&profile_id=113",
 	"audio":"rw150809pCD.mp3"
 },
 
@@ -9845,7 +9855,7 @@
 	"id":"rw150628p",
 	"title":"Test Time",
 	"audio":"rw150628pCD.mp3",
-	"video":"144500077.hd.mp4?s=e730d4370d88136300d5de3736d413175d9c0a72"
+	"video":"144500077.hd.mp4?s=e730d4370d88136300d5de3736d413175d9c0a72&profile_id=113"
 },
 
 {
@@ -9856,7 +9866,7 @@
 	"id":"rw150607a",
 	"title":"Are You Ready?",
 	"audio":"rw150607aCD.mp3",
-	"video":"144500082.hd.mp4?s=cf42dbb3f10a7ba9bcbca3c4f817f2cac6bfbdb8",
+	"video":"144500082.hd.mp4?s=cf42dbb3f10a7ba9bcbca3c4f817f2cac6bfbdb8&profile_id=113",
 },
 
 {
@@ -9866,7 +9876,7 @@
 	"scripture":"1 Peter 4:7-9",
 	"id":"rw150419p",
 	"title":"Living in Anticipation",
-	"video":"140314085.hd.mp4?s=daa98e7f4eb966c5e1e9f5cff25f99cc",
+	"video":"140314085.hd.mp4?s=daa98e7f4eb966c5e1e9f5cff25f99cc&profile_id=113",
 	"audio":"rw150419pCD.mp3"
 },
 
@@ -9877,7 +9887,7 @@
 	"scripture":"1 Peter 4:1-6",
 	"id":"rw150208p",
 	"title":"Personal Suffering-A Path to Sin or Sanctification",
-	"video":"135901743.hd.mp4?s=8608f1f30ea92c8582cfbd42e2d613d9",
+	"video":"135901743.hd.mp4?s=8608f1f30ea92c8582cfbd42e2d613d9&profile_id=113",
 	"audio":"rw150208pCD.mp3"
 },
 
@@ -10525,7 +10535,7 @@
 	"speaker":"Dusty Burris",
 	"scripture":"Judges 13-14",
 	"id":"db150329p",
-	"video":"124422954.hd.mp4?s=84b2956530eff540cae7338932f901a6",
+	"video":"124422954.hd.mp4?s=84b2956530eff540cae7338932f901a6&profile_id=113",
 	"audio":"db150329pCD.mp3"
 },
 
@@ -10736,7 +10746,7 @@
 	"title":"Introducing the Book of Judges",
 	"speaker":"Justin Turner",
 	"scripture":"Judges 1-3",
-	"video":"139655341.hd.mp4?s=a65d8063cf5183b019deebf6a23afa48",
+	"video":"139655341.hd.mp4?s=a65d8063cf5183b019deebf6a23afa48&profile_id=113",
 	"audio":"jt150301pCD.mp3"
 },
 
@@ -10947,7 +10957,7 @@
 	"speaker":"Jonathan Anderson",
 	"scripture":"2 Corinthians 1:11",
 	"audio":"ja150607pCD.mp3",
-	"video":"144509912.hd.mp4?s=5f479e1e7d14ce12aa37919ddd0e840eb651b70c"
+	"video":"144509912.hd.mp4?s=5f479e1e7d14ce12aa37919ddd0e840eb651b70c&profile_id=113"
 },
 
 {
@@ -10956,7 +10966,7 @@
 	"title":"Amazing Grace: God's Deliverance through Gideon",
 	"speaker":"Jonathan Anderson",
 	"scripture":"Judges 6-8",
-	"video":"140315527.hd.mp4?s=770df4dbd066c4bd01b17da72025a25e",
+	"video":"140315527.hd.mp4?s=770df4dbd066c4bd01b17da72025a25e&profile_id=113",
 	"audio":"ja150315pCD.mp3"
 },
 
@@ -10966,7 +10976,7 @@
 	"title":"The Battle for Biblical Change",
 	"speaker":"Jonathan Anderson",
 	"scripture":"Colossians 3:5-8",
-	"video":"135893326.hd.mp4?s=ebc5322d6a826c6cbbd979c9f2abca1c",
+	"video":"135893326.hd.mp4?s=ebc5322d6a826c6cbbd979c9f2abca1c&profile_id=113",
 	"audio":"ja150201pCD.mp3"
 },
 

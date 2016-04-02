@@ -37,8 +37,6 @@ class LiveViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-        addAccessoryEvents()
-        
 //        print("\(Globals.mpPlayer?.contentURL)")
 //        print("\(NSURL(string:Constants.LIVE_STREAM_URL))")
         

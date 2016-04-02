@@ -397,8 +397,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
             if (playable || playthrough) {
 //                print("mpPlayerLoadStateDidChange.MPMovieLoadState.Playable or Playthrough OK")
                 if !Globals.sermonLoaded {
+                    print("mpPlayerLoadStateDidChange with sermonPlaying NOT LOADED and playable || playthrough!")
+
                     if (Globals.sermonPlaying != nil) && Globals.sermonPlaying!.hasCurrentTime() {
                         if (Int(Float(Globals.sermonPlaying!.currentTime!)!) == Int(Float(Globals.mpPlayer!.duration))) { // !Globals.loadingFromLive && 
+                            print("mpPlayerLoadStateDidChange Globals.sermonPlaying!.currentTime reset to 0!")
                             Globals.sermonPlaying!.currentTime = Constants.ZERO
                         } else {
                             
@@ -408,6 +411,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
                             Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!)
                         }
                     } else {
+                        print("mpPlayerLoadStateDidChange selectedSermon has NO currentTime!")
                         Globals.sermonPlaying?.currentTime = Constants.ZERO
                         Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(0)
                     }
@@ -428,6 +432,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
                         Globals.playOnLoad = true
 //                        Globals.playerPaused = true
                     }
+                } else {
+                    print("mpPlayerLoadStateDidChange with sermonPlaying LOADED and playable || playthrough!")
                 }
             }
             
@@ -669,6 +675,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         NSURLCache.setSharedURLCache(cache)
         
         startAudio()
+        
+        addAccessoryEvents()
         
         UIApplication.sharedApplication().beginReceivingRemoteControlEvents()
         

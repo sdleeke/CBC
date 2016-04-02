@@ -613,6 +613,7 @@
 				1798C75E1CA93CC800CED4A5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -63,24 +63,24 @@ func cachesURL() -> NSURL?
     return fileManager.URLsForDirectory(.CachesDirectory, inDomains: .UserDomainMask).first
 }
 
-func removeTempFiles()
-{
-    // Clean up temp directory for cancelled downloads
-    let fileManager = NSFileManager.defaultManager()
-    let path = NSTemporaryDirectory()
-    do {
-        let array = try fileManager.contentsOfDirectoryAtPath(path)
-        
-        for name in array {
-            if (name.rangeOfString(Constants.TMP_FILENAME_EXTENSION)?.endIndex == name.endIndex) {
-                print("Deleting: \(name)")
-                try fileManager.removeItemAtPath(path + name)
-            }
-        }
-    } catch _ {
-        print("failed to remove temp files")
-    }
-}
+//func removeTempFiles()
+//{
+//    // Clean up temp directory for cancelled downloads
+//    let fileManager = NSFileManager.defaultManager()
+//    let path = NSTemporaryDirectory()
+//    do {
+//        let array = try fileManager.contentsOfDirectoryAtPath(path)
+//        
+//        for name in array {
+//            if (name.rangeOfString(Constants.TMP_FILENAME_EXTENSION)?.endIndex == name.endIndex) {
+//                print("Deleting: \(name)")
+//                try fileManager.removeItemAtPath(path + name)
+//            }
+//        }
+//    } catch _ {
+//        print("failed to remove temp files")
+//    }
+//}
 
 func totalCacheSize() -> Int64
 {
@@ -99,6 +99,44 @@ func cacheSize(contents:String) -> Int64
     
     return totalFileSize
 }
+
+//func promoteTempJSON()
+//{
+//    let fileManager = NSFileManager.defaultManager()
+//    
+//    let sourceURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME + Constants.TMP_FILENAME_EXTENSION)
+//    let destinationURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME)
+//    let oldURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME + ".old")
+//    
+//    // Check if file exists
+//    if (fileManager.fileExistsAtPath(oldURL!.path!)){
+//        do {
+//            try fileManager.removeItemAtURL(oldURL!)
+//        } catch _ {
+//            print("failed to remove old json file")
+//        }
+//    }
+//    
+//    do {
+//        try fileManager.moveItemAtURL(destinationURL!, toURL: oldURL!)
+//        
+//        do {
+//            try fileManager.moveItemAtURL(sourceURL!, toURL: destinationURL!)
+//            //        try fileManager.copyItemAtURL(sourceURL!, toURL: destinationURL!)
+//            //        try fileManager.removeItemAtURL(sourceURL!)
+//        } catch _ {
+//            print("failed to promote new json file from tmp to final")
+//            
+//            do {
+//                try fileManager.moveItemAtURL(oldURL!, toURL: destinationURL!)
+//            } catch _ {
+//                print("failed to move json file back from old to current")
+//            }
+//        }
+//    } catch _ {
+//        print("failed to move current json file to old")
+//    }
+//}
 
 func jsonDataFromURL() -> JSON
 {
@@ -142,7 +180,19 @@ func jsonDataFromBundle() -> JSON
     return nil
 }
 
-func jsonToDocumentsDirectory()
+
+func removeJSONFromFileSystemDirectory()
+{
+    if let jsonFileSystemURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
+        do {
+            try NSFileManager.defaultManager().removeItemAtPath(jsonFileSystemURL.path!)
+        } catch _ {
+            print("failed to copy sermons.json")
+        }
+    }
+}
+
+func jsonToFileSystemDirectory()
 {
     let fileManager = NSFileManager.defaultManager()
     
@@ -209,7 +259,7 @@ func jsonToDocumentsDirectory()
 
 func jsonDataFromDocumentsDirectory() -> JSON
 {
-    jsonToDocumentsDirectory()
+    jsonToFileSystemDirectory()
     
     if let jsonURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
         if let data = NSData(contentsOfURL: jsonURL) {
@@ -227,118 +277,118 @@ func jsonDataFromDocumentsDirectory() -> JSON
     return nil
 }
 
-func sermonsFromArchive() -> [Sermon]?
-{
-    // JSON is newer than Archive, reutrn nil.  That will force the archive to be rebuilt from the JSON.
-    
-    let fileManager = NSFileManager.defaultManager()
-    
-    let archiveFileSystemURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_ARCHIVE)
-    let archiveExistsInFileSystem = fileManager.fileExistsAtPath(archiveFileSystemURL!.path!)
-    
-    if !archiveExistsInFileSystem {
-        return nil
-    }
-    
-    let jsonFileSystemURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME)
-    let jsonExistsInFileSystem = fileManager.fileExistsAtPath(jsonFileSystemURL!.path!)
-    
-    if (!jsonExistsInFileSystem) {
-        // This should not happen since JSON should have been copied before the first archive was created.
-        // Since we don't understand this state, return nil
-        return nil
-    }
-    
-    let jsonInBundlePath = NSBundle.mainBundle().pathForResource(Constants.JSON_ARRAY_KEY, ofType: Constants.JSON_TYPE)
-    let jsonExistsInBundle = fileManager.fileExistsAtPath(jsonInBundlePath!)
-    
-    if (jsonExistsInFileSystem && jsonExistsInBundle) {
-        // Need to see if jsonInBundle is newer
-        
-        do {
-            let jsonInBundleAttributes = try fileManager.attributesOfItemAtPath(jsonInBundlePath!)
-            let jsonInFileSystemAttributes = try fileManager.attributesOfItemAtPath(jsonFileSystemURL!.path!)
-            
-            let jsonInBundleModDate = jsonInBundleAttributes[NSFileModificationDate] as! NSDate
-            let jsonInDocumentsModDate = jsonInFileSystemAttributes[NSFileModificationDate] as! NSDate
-            
-//            print("jsonInBundleModDate: \(jsonInBundleModDate)")
-//            print("jsonInDocumentsModDate: \(jsonInDocumentsModDate)")
-            
-            if (jsonInDocumentsModDate.isOlderThan(jsonInBundleModDate)) {
-                //The JSON in the Bundle is newer, we need to use it instead of the archive
-                print("JSON in Documents is older than JSON in Bundle")
-                return nil
-            }
-            
-            if (jsonInDocumentsModDate.isEqualTo(jsonInBundleModDate)) {
-                //This is normal since JSON in Documents is copied from JSON in Bundle.  Do nothing.
-                print("JSON in Bundle and in Documents are the same date")
-            }
-            
-            if (jsonInDocumentsModDate.isNewerThan(jsonInBundleModDate)) {
-                //The JSON in Documents is newer, we need to see if it is newer than the archive.
-                print("JSON in Documents is newer than JSON in Bundle")
-            }
-        } catch _ {
-            print("failed to get json file attributes")
-        }
-    }
-    
-    if (archiveExistsInFileSystem && jsonExistsInFileSystem) {
-        do {
-            let jsonInDocumentsAttributes = try fileManager.attributesOfItemAtPath(jsonFileSystemURL!.path!)
-            let archiveInDocumentsAttributes = try fileManager.attributesOfItemAtPath(archiveFileSystemURL!.path!)
-            
-            let jsonInDocumentsModDate = jsonInDocumentsAttributes[NSFileModificationDate] as! NSDate
-            let archiveInDocumentsModDate = archiveInDocumentsAttributes[NSFileModificationDate] as! NSDate
-            
-//            print("archiveInDocumentsModDate: \(archiveInDocumentsModDate)")
-            
-            if (jsonInDocumentsModDate.isNewerThan(archiveInDocumentsModDate)) {
-                //Do nothing, the json in Documents is newer, i.e. it was downloaded after the archive was created.
-                print("JSON in Documents is newer than Archive in Documents")
-                return nil
-            }
-            
-            if (archiveInDocumentsModDate.isEqualTo(jsonInDocumentsModDate)) {
-                //Should never happen since archive is created from JSON
-                print("JSON in Documents is the same date as Archive in Documents")
-                return nil
-            }
-            
-            if (archiveInDocumentsModDate.isNewerThan(jsonInDocumentsModDate)) {
-                print("Archive in Documents is newer than JSON in Documents")
-                
-                let data = NSData(contentsOfURL: NSURL(fileURLWithPath: archiveFileSystemURL!.path!))
-                if (data != nil) {
-                    let sermons = NSKeyedUnarchiver.unarchiveObjectWithData(data!) as? [Sermon]
-                    if sermons != nil {
-                        return sermons
-                    } else {
-                        print("could not get sermons from archive.")
-                    }
-                } else {
-                    print("could not get data from archive.")
-                }
-            }
-        } catch _ {
-            print("failed to get json file attributes")
-        }
-    }
-    
-    return nil
-}
-
-func sermonsToArchive(sermons:[Sermon]?)
-{
-    if (sermons != nil) {
-        if let archive = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_ARCHIVE) {
-            NSKeyedArchiver.archivedDataWithRootObject(sermons!).writeToURL(archive, atomically: true)
-            print("Finished saving the sermon archive.")
-        }
-    }
-}
+//func sermonsFromArchive() -> [Sermon]?
+//{
+//    // JSON is newer than Archive, reutrn nil.  That will force the archive to be rebuilt from the JSON.
+//    
+//    let fileManager = NSFileManager.defaultManager()
+//    
+//    let archiveFileSystemURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_ARCHIVE)
+//    let archiveExistsInFileSystem = fileManager.fileExistsAtPath(archiveFileSystemURL!.path!)
+//    
+//    if !archiveExistsInFileSystem {
+//        return nil
+//    }
+//    
+//    let jsonFileSystemURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME)
+//    let jsonExistsInFileSystem = fileManager.fileExistsAtPath(jsonFileSystemURL!.path!)
+//    
+//    if (!jsonExistsInFileSystem) {
+//        // This should not happen since JSON should have been copied before the first archive was created.
+//        // Since we don't understand this state, return nil
+//        return nil
+//    }
+//    
+//    let jsonInBundlePath = NSBundle.mainBundle().pathForResource(Constants.JSON_ARRAY_KEY, ofType: Constants.JSON_TYPE)
+//    let jsonExistsInBundle = fileManager.fileExistsAtPath(jsonInBundlePath!)
+//    
+//    if (jsonExistsInFileSystem && jsonExistsInBundle) {
+//        // Need to see if jsonInBundle is newer
+//        
+//        do {
+//            let jsonInBundleAttributes = try fileManager.attributesOfItemAtPath(jsonInBundlePath!)
+//            let jsonInFileSystemAttributes = try fileManager.attributesOfItemAtPath(jsonFileSystemURL!.path!)
+//            
+//            let jsonInBundleModDate = jsonInBundleAttributes[NSFileModificationDate] as! NSDate
+//            let jsonInDocumentsModDate = jsonInFileSystemAttributes[NSFileModificationDate] as! NSDate
+//            
+////            print("jsonInBundleModDate: \(jsonInBundleModDate)")
+////            print("jsonInDocumentsModDate: \(jsonInDocumentsModDate)")
+//            
+//            if (jsonInDocumentsModDate.isOlderThan(jsonInBundleModDate)) {
+//                //The JSON in the Bundle is newer, we need to use it instead of the archive
+//                print("JSON in Documents is older than JSON in Bundle")
+//                return nil
+//            }
+//            
+//            if (jsonInDocumentsModDate.isEqualTo(jsonInBundleModDate)) {
+//                //This is normal since JSON in Documents is copied from JSON in Bundle.  Do nothing.
+//                print("JSON in Bundle and in Documents are the same date")
+//            }
+//            
+//            if (jsonInDocumentsModDate.isNewerThan(jsonInBundleModDate)) {
+//                //The JSON in Documents is newer, we need to see if it is newer than the archive.
+//                print("JSON in Documents is newer than JSON in Bundle")
+//            }
+//        } catch _ {
+//            print("failed to get json file attributes")
+//        }
+//    }
+//    
+//    if (archiveExistsInFileSystem && jsonExistsInFileSystem) {
+//        do {
+//            let jsonInDocumentsAttributes = try fileManager.attributesOfItemAtPath(jsonFileSystemURL!.path!)
+//            let archiveInDocumentsAttributes = try fileManager.attributesOfItemAtPath(archiveFileSystemURL!.path!)
+//            
+//            let jsonInDocumentsModDate = jsonInDocumentsAttributes[NSFileModificationDate] as! NSDate
+//            let archiveInDocumentsModDate = archiveInDocumentsAttributes[NSFileModificationDate] as! NSDate
+//            
+////            print("archiveInDocumentsModDate: \(archiveInDocumentsModDate)")
+//            
+//            if (jsonInDocumentsModDate.isNewerThan(archiveInDocumentsModDate)) {
+//                //Do nothing, the json in Documents is newer, i.e. it was downloaded after the archive was created.
+//                print("JSON in Documents is newer than Archive in Documents")
+//                return nil
+//            }
+//            
+//            if (archiveInDocumentsModDate.isEqualTo(jsonInDocumentsModDate)) {
+//                //Should never happen since archive is created from JSON
+//                print("JSON in Documents is the same date as Archive in Documents")
+//                return nil
+//            }
+//            
+//            if (archiveInDocumentsModDate.isNewerThan(jsonInDocumentsModDate)) {
+//                print("Archive in Documents is newer than JSON in Documents")
+//                
+//                let data = NSData(contentsOfURL: NSURL(fileURLWithPath: archiveFileSystemURL!.path!))
+//                if (data != nil) {
+//                    let sermons = NSKeyedUnarchiver.unarchiveObjectWithData(data!) as? [Sermon]
+//                    if sermons != nil {
+//                        return sermons
+//                    } else {
+//                        print("could not get sermons from archive.")
+//                    }
+//                } else {
+//                    print("could not get data from archive.")
+//                }
+//            }
+//        } catch _ {
+//            print("failed to get json file attributes")
+//        }
+//    }
+//    
+//    return nil
+//}
+//
+//func sermonsToArchive(sermons:[Sermon]?)
+//{
+//    if (sermons != nil) {
+//        if let archive = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_ARCHIVE) {
+//            NSKeyedArchiver.archivedDataWithRootObject(sermons!).writeToURL(archive, atomically: true)
+//            print("Finished saving the sermon archive.")
+//        }
+//    }
+//}
 
 func loadSermonDicts() -> [[String:String]]?
 {
