@@ -13,8 +13,7 @@ class MySettingsViewController: UIViewController {
     @IBOutlet weak var autoAdvanceSwitch: UISwitch!
     
     @IBAction func autoAdvanceAction(sender: UISwitch) {
-        NSUserDefaults.standardUserDefaults().setBool(sender.on, forKey: Constants.AUTO_ADVANCE)
-        NSUserDefaults.standardUserDefaults().synchronize()
+        Globals.autoAdvance = sender.on
     }
     
     @IBOutlet weak var audioSizeLabel: UILabel!
@@ -22,8 +21,7 @@ class MySettingsViewController: UIViewController {
     @IBOutlet weak var cacheSwitch: UISwitch!
     
     @IBAction func cacheAction(sender: UISwitch) {
-        NSUserDefaults.standardUserDefaults().setBool(sender.on, forKey: Constants.CACHE_DOWNLOADS)
-        NSUserDefaults.standardUserDefaults().synchronize()
+        Globals.cacheDownloads = sender.on
         
         if !sender.on {
             NSURLCache.sharedURLCache().removeAllCachedResponses()
@@ -47,8 +45,8 @@ class MySettingsViewController: UIViewController {
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
-        autoAdvanceSwitch.on = NSUserDefaults.standardUserDefaults().boolForKey(Constants.AUTO_ADVANCE)
-        cacheSwitch.on = NSUserDefaults.standardUserDefaults().boolForKey(Constants.CACHE_DOWNLOADS)
+        autoAdvanceSwitch.on = Globals.autoAdvance
+        cacheSwitch.on = Globals.cacheDownloads
     }
     
     func updateCacheSize()
