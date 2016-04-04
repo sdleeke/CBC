@@ -556,17 +556,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
 //                            print("playTimer.Playthrough or Playing OK")
                         }
                     } else {
-                        if Globals.sermonPlaying?.playing == Constants.VIDEO {
-                            Globals.mpPlayer?.pause()
-                            
+                        if (Globals.mpPlayer?.playbackState == .Paused) {
                             updateCurrentTimeExact()
-
                             Globals.playerPaused = true
-
+                            
                             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                                 NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
                             })
                         }
+//                        if Globals.sermonPlaying?.playing == Constants.VIDEO {
+//                            Globals.mpPlayer?.pause()
+//                            
+//                            updateCurrentTimeExact()
+//
+//                            Globals.playerPaused = true
+//
+//                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+//                                NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
+//                            })
+//                        }
                     }
                     break
                 }

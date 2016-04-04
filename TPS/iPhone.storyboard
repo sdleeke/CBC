@@ -348,15 +348,15 @@
                         <viewControllerLayoutGuide type="bottom" id="cOM-3y-U9L"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="c2Z-FM-joi">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="64" width="600" height="536"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="nCV-BS-j1l">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="437"/>
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="486"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             </view>
                             <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" textAlignment="center" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4c2-R2-KTG">
-                                <rect key="frame" x="0.0" y="437" width="320" height="67"/>
+                                <rect key="frame" x="0.0" y="486" width="600" height="50"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="70" id="brV-dp-GoF">
@@ -405,15 +405,13 @@
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationItem key="navigationItem" title="CBC Live" id="RtM-V6-am9"/>
-                    <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>
                     <connections>
-                        <outlet property="view" destination="nCV-BS-j1l" id="73j-a9-0GM"/>
                         <outlet property="webView" destination="nCV-BS-j1l" id="Tb0-w3-7LK"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="PwX-Z7-Yg7" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3914" y="1806"/>
+            <point key="canvasLocation" x="1464" y="1726"/>
         </scene>
         <!--About-->
         <scene sceneID="URY-BH-Jcn">
@@ -984,7 +982,7 @@ Email: cbcstaff@countrysidebible.org</string>
                         <segue destination="lwY-VQ-aAG" kind="popoverPresentation" identifier="Show Settings" popoverAnchorBarButtonItem="mag-xm-dO5" id="O6r-KI-fGh">
                             <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES" left="YES" right="YES"/>
                         </segue>
-                        <segue destination="wSx-wu-IOd" kind="show" identifier="Show Live" id="F5X-ZL-qXM"/>
+                        <segue destination="SFZ-lA-c8M" kind="show" identifier="Show Live" id="pe2-rN-Cqc"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="fau-gO-Lwo" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1389,24 +1387,6 @@ Email: cbcstaff@countrysidebible.org</string>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="xqW-gO-C9d" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-122" y="1582"/>
-        </scene>
-        <!--Navigation Controller-->
-        <scene sceneID="6Rm-Q9-NON">
-            <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="wSx-wu-IOd" sceneMemberID="viewController">
-                    <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="BtE-b9-U6c">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="SFZ-lA-c8M" kind="relationship" relationship="rootViewController" id="1v9-5d-w9A"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="Vc6-BP-mue" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="3102" y="1806"/>
         </scene>
     </scenes>
     <resources>

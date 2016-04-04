@@ -738,7 +738,7 @@ Before Texas, Tom served 16 years in various roles connected to Grace Community 
                                             <constraint firstAttribute="height" constant="227" id="fFg-36-iIJ"/>
                                             <constraint firstAttribute="height" constant="60" id="mJt-j4-Mvj"/>
                                         </constraints>
-                                        <string key="text">Countryside Bible Church is conveniently located approximately 10 miles west of DFW airport on HWY 114 at the White Chapel Blvd exit.
+                                        <mutableString key="text">Countryside Bible Church is conveniently located approximately 10 miles west of DFW airport on HWY 114 at the White Chapel Blvd exit.
 
 Address:
 250 Countryside Ct.
@@ -748,7 +748,7 @@ Phone: (817) 488-5381
  
 Fax: (817) 421-6623 fax
  
-Email: cbcstaff@countrysidebible.org</string>
+Email: cbcstaff@countrysidebible.org</mutableString>
                                         <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                         <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                         <dataDetectorType key="dataDetectorTypes" phoneNumber="YES" link="YES" address="YES"/>

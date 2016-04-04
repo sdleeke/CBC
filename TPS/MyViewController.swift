@@ -11,8 +11,6 @@ import AVFoundation
 import MessageUI
 import WebKit
 import MediaPlayer
-import Social
-
 
 class Document {
     var sermon:Sermon?
@@ -175,6 +173,10 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 //                defaults.removeObjectForKey(Constants.SELECTED_SERMON_DETAIL_KEY)
                 sermonsInSeries = nil
                 for key in documents.keys {
+                    for document in documents[key]!.values {
+                        document.wkWebView?.removeFromSuperview()
+                        document.wkWebView?.scrollView.delegate = nil
+                    }
                     documents[key] = nil
                 }
             }
@@ -954,99 +956,99 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
     }
     
-    func twitter(sermon:Sermon?)
-    {
-        assert(sermon != nil, "can't tweet about a nil sermon")
-
-        if SLComposeViewController.isAvailableForServiceType(SLServiceTypeTwitter) {
-            var bodyString = String()
-            
-            bodyString = "Great sermon: \"\(sermon!.title!)\" by \(sermon!.speaker!).  " + Constants.BASE_AUDIO_URL + sermon!.audio!
-            
-            let twitterSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeTwitter)
-            twitterSheet.setInitialText(bodyString)
-            //                let str = Constants.BASE_AUDIO_URL + sermon!.audio!
-            //                print("\(str)")
-            //                twitterSheet.addURL(NSURL(string:str))
-            self.presentViewController(twitterSheet, animated: true, completion: nil)
-        } else {
-            let alert = UIAlertController(title: "Accounts", message: "Please login to a Twitter account to share.", preferredStyle: UIAlertControllerStyle.Alert)
-            alert.addAction(UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: nil))
-            self.presentViewController(alert, animated: true, completion: nil)
-        }
-
-//        if Reachability.isConnectedToNetwork() {
-//            if SLComposeViewController.isAvailableForServiceType(SLServiceTypeTwitter) {
-//                var bodyString = String()
-//                
-//                bodyString = "Great sermon: \"\(sermon!.title!)\" by \(sermon!.speaker!).  " + Constants.BASE_AUDIO_URL + sermon!.audio!
-//                
-//                let twitterSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeTwitter)
-//                twitterSheet.setInitialText(bodyString)
-////                let str = Constants.BASE_AUDIO_URL + sermon!.audio!
-////                print("\(str)")
-////                twitterSheet.addURL(NSURL(string:str))
-//                self.presentViewController(twitterSheet, animated: true, completion: nil)
-//            } else {
-//                let alert = UIAlertController(title: "Accounts", message: "Please login to a Twitter account to share.", preferredStyle: UIAlertControllerStyle.Alert)
-//                alert.addAction(UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: nil))
-//                self.presentViewController(alert, animated: true, completion: nil)
-//            }
-//        } else {
-//            networkUnavailable("Unable to reach the internet to tweet.")
-//        }
-    }
-    
-    func facebook(sermon:Sermon?)
-    {
-        assert(sermon != nil, "can't post about a nil sermon")
-
-        if SLComposeViewController.isAvailableForServiceType(SLServiceTypeFacebook){
-            var bodyString = String()
-            
-            bodyString = "Great sermon: \"\(sermon!.title!)\" by \(sermon!.speaker!).  " + Constants.BASE_AUDIO_URL + sermon!.audio!
-            
-            //So the user can paste the initialText into the post dialog/view
-            //This is because of the known bug that when the latest FB app is installed it prevents prefilling the post.
-            UIPasteboard.generalPasteboard().string = bodyString
-            
-            let facebookSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeFacebook)
-            facebookSheet.setInitialText(bodyString)
-            //                let str = Constants.BASE_AUDIO_URL + sermon!.audio!
-            //                print("\(str)")
-            //                facebookSheet.addURL(NSURL(string: str))
-            self.presentViewController(facebookSheet, animated: true, completion: nil)
-        } else {
-            let alert = UIAlertController(title: "Accounts", message: "Please login to a Facebook account to share.", preferredStyle: UIAlertControllerStyle.Alert)
-            alert.addAction(UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: nil))
-            self.presentViewController(alert, animated: true, completion: nil)
-        }
-
-//        if Reachability.isConnectedToNetwork() {
-//            if SLComposeViewController.isAvailableForServiceType(SLServiceTypeFacebook){
-//                var bodyString = String()
-//                
-//                bodyString = "Great sermon: \"\(sermon!.title!)\" by \(sermon!.speaker!).  " + Constants.BASE_AUDIO_URL + sermon!.audio!
+//    func twitter(sermon:Sermon?)
+//    {
+//        assert(sermon != nil, "can't tweet about a nil sermon")
 //
-//                //So the user can paste the initialText into the post dialog/view
-//                //This is because of the known bug that when the latest FB app is installed it prevents prefilling the post.
-//                UIPasteboard.generalPasteboard().string = bodyString
-//
-//                let facebookSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeFacebook)
-//                facebookSheet.setInitialText(bodyString)
-////                let str = Constants.BASE_AUDIO_URL + sermon!.audio!
-////                print("\(str)")
-////                facebookSheet.addURL(NSURL(string: str))
-//                self.presentViewController(facebookSheet, animated: true, completion: nil)
-//            } else {
-//                let alert = UIAlertController(title: "Accounts", message: "Please login to a Facebook account to share.", preferredStyle: UIAlertControllerStyle.Alert)
-//                alert.addAction(UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: nil))
-//                self.presentViewController(alert, animated: true, completion: nil)
-//            }
+//        if SLComposeViewController.isAvailableForServiceType(SLServiceTypeTwitter) {
+//            var bodyString = String()
+//            
+//            bodyString = "Great sermon: \"\(sermon!.title!)\" by \(sermon!.speaker!).  " + Constants.BASE_AUDIO_URL + sermon!.audio!
+//            
+//            let twitterSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeTwitter)
+//            twitterSheet.setInitialText(bodyString)
+//            //                let str = Constants.BASE_AUDIO_URL + sermon!.audio!
+//            //                print("\(str)")
+//            //                twitterSheet.addURL(NSURL(string:str))
+//            self.presentViewController(twitterSheet, animated: true, completion: nil)
 //        } else {
-//            networkUnavailable("Unable to reach the internet to post to Facebook.")
+//            let alert = UIAlertController(title: "Accounts", message: "Please login to a Twitter account to share.", preferredStyle: UIAlertControllerStyle.Alert)
+//            alert.addAction(UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: nil))
+//            self.presentViewController(alert, animated: true, completion: nil)
 //        }
-    }
+//
+////        if Reachability.isConnectedToNetwork() {
+////            if SLComposeViewController.isAvailableForServiceType(SLServiceTypeTwitter) {
+////                var bodyString = String()
+////                
+////                bodyString = "Great sermon: \"\(sermon!.title!)\" by \(sermon!.speaker!).  " + Constants.BASE_AUDIO_URL + sermon!.audio!
+////                
+////                let twitterSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeTwitter)
+////                twitterSheet.setInitialText(bodyString)
+//////                let str = Constants.BASE_AUDIO_URL + sermon!.audio!
+//////                print("\(str)")
+//////                twitterSheet.addURL(NSURL(string:str))
+////                self.presentViewController(twitterSheet, animated: true, completion: nil)
+////            } else {
+////                let alert = UIAlertController(title: "Accounts", message: "Please login to a Twitter account to share.", preferredStyle: UIAlertControllerStyle.Alert)
+////                alert.addAction(UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: nil))
+////                self.presentViewController(alert, animated: true, completion: nil)
+////            }
+////        } else {
+////            networkUnavailable("Unable to reach the internet to tweet.")
+////        }
+//    }
+//    
+//    func facebook(sermon:Sermon?)
+//    {
+//        assert(sermon != nil, "can't post about a nil sermon")
+//
+//        if SLComposeViewController.isAvailableForServiceType(SLServiceTypeFacebook){
+//            var bodyString = String()
+//            
+//            bodyString = "Great sermon: \"\(sermon!.title!)\" by \(sermon!.speaker!).  " + Constants.BASE_AUDIO_URL + sermon!.audio!
+//            
+//            //So the user can paste the initialText into the post dialog/view
+//            //This is because of the known bug that when the latest FB app is installed it prevents prefilling the post.
+//            UIPasteboard.generalPasteboard().string = bodyString
+//            
+//            let facebookSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeFacebook)
+//            facebookSheet.setInitialText(bodyString)
+//            //                let str = Constants.BASE_AUDIO_URL + sermon!.audio!
+//            //                print("\(str)")
+//            //                facebookSheet.addURL(NSURL(string: str))
+//            self.presentViewController(facebookSheet, animated: true, completion: nil)
+//        } else {
+//            let alert = UIAlertController(title: "Accounts", message: "Please login to a Facebook account to share.", preferredStyle: UIAlertControllerStyle.Alert)
+//            alert.addAction(UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: nil))
+//            self.presentViewController(alert, animated: true, completion: nil)
+//        }
+//
+////        if Reachability.isConnectedToNetwork() {
+////            if SLComposeViewController.isAvailableForServiceType(SLServiceTypeFacebook){
+////                var bodyString = String()
+////                
+////                bodyString = "Great sermon: \"\(sermon!.title!)\" by \(sermon!.speaker!).  " + Constants.BASE_AUDIO_URL + sermon!.audio!
+////
+////                //So the user can paste the initialText into the post dialog/view
+////                //This is because of the known bug that when the latest FB app is installed it prevents prefilling the post.
+////                UIPasteboard.generalPasteboard().string = bodyString
+////
+////                let facebookSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeFacebook)
+////                facebookSheet.setInitialText(bodyString)
+//////                let str = Constants.BASE_AUDIO_URL + sermon!.audio!
+//////                print("\(str)")
+//////                facebookSheet.addURL(NSURL(string: str))
+////                self.presentViewController(facebookSheet, animated: true, completion: nil)
+////            } else {
+////                let alert = UIAlertController(title: "Accounts", message: "Please login to a Facebook account to share.", preferredStyle: UIAlertControllerStyle.Alert)
+////                alert.addAction(UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: nil))
+////                self.presentViewController(alert, animated: true, completion: nil)
+////            }
+////        } else {
+////            networkUnavailable("Unable to reach the internet to post to Facebook.")
+////        }
+//    }
     
     func rowClickedAtIndex(index: Int, strings: [String], purpose:PopoverPurpose, sermon:Sermon?) {
         dismissViewControllerAnimated(true, completion: nil)
@@ -1682,7 +1684,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         document?.wkWebView?.stopLoading()
         
         if #available(iOS 9.0, *) {
-            if NSUserDefaults.standardUserDefaults().boolForKey(Constants.CACHE_DOWNLOADS) {
+            if Globals.cacheDownloads {
                 if (document?.download?.state != .downloaded){
                     if document!.visible(selectedSermon) {
                         sermonNotesAndSlides.bringSubviewToFront(activityIndicator)
@@ -2469,10 +2471,10 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         
         navigationItem.rightBarButtonItem = nil
         
-        // The scrollView delegate MUST be set to nil or the app will crash.
-        if (selectedSermon != nil) && (documents[selectedSermon!.id] != nil) {
-            for document in documents[selectedSermon!.id]!.values {
-                document.wkWebView?.stopLoading()
+        // Remove these lines and this view will crash the app.
+        for key in documents.keys {
+            for document in documents[key]!.values {
+                document.wkWebView?.removeFromSuperview()
                 document.wkWebView?.scrollView.delegate = nil
                 
                 if document.visible(selectedSermon) && (document.wkWebView != nil) && document.wkWebView!.scrollView.decelerating {

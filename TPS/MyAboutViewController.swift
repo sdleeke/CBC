@@ -279,27 +279,4 @@ class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDe
             presentViewController(alert, animated: true, completion: nil)
         }
     }
-    
-    // MARK: - Navigation
-
-    override func shouldPerformSegueWithIdentifier(identifier: String, sender: AnyObject?) -> Bool
-    {
-        if (identifier == Constants.Show_Live) {
-//            if !Reachability.isConnectedToNetwork() {
-//                networkUnavailable("Unable to connect to the internet.")
-//                return false
-//            }
-        }
-        
-        return true
-    }
-    
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-        if (segue.identifier == Constants.Show_Live) {
-            
-        }
-    }
 }

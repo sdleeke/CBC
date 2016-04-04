@@ -180,7 +180,6 @@ func jsonDataFromBundle() -> JSON
     return nil
 }
 
-
 func removeJSONFromFileSystemDirectory()
 {
     if let jsonFileSystemURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME) {

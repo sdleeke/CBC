@@ -449,13 +449,13 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             let contentOffset = CGPointMake(CGFloat(contentOffsetXRatio * wkWebView!.scrollView.contentSize.width), //
                                             CGFloat(contentOffsetYRatio * wkWebView!.scrollView.contentSize.height)) //
             
-            print("About to setContentOffset with: \(contentOffset)")
+//            print("About to setContentOffset with: \(contentOffset)")
             
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 wkWebView?.scrollView.setContentOffset(contentOffset,animated: false)
             })
             
-            print("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
+//            print("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
         }
     }
     
@@ -512,27 +512,32 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             return
         }
         
-        print("Size: \(size)")
+//        print("Size: \(size)")
+
+        setupSplitViewController()
         
-        switch UIApplication.sharedApplication().applicationState {
-        case UIApplicationState.Active:
-            setupSplitViewController()
-            
-            print("Before animateAlongsideTransition: \(wkWebView?.scrollView.contentOffset)")
-            
-//            captureContentOffsetAndZoomScale()
-            fallthrough
-            
-        case UIApplicationState.Background:
-            coordinator.animateAlongsideTransition({ (UIViewControllerTransitionCoordinatorContext) -> Void in
-                }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-                    self.setupWKContentOffset(self.wkWebView)
-            }
-            break
-            
-        default:
-            break
+        coordinator.animateAlongsideTransition({ (UIViewControllerTransitionCoordinatorContext) -> Void in
+        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
+            self.setupWKContentOffset(self.wkWebView)
         }
+        
+//        switch UIApplication.sharedApplication().applicationState {
+//        case UIApplicationState.Active:
+//            setupSplitViewController()
+//            
+//            print("Before animateAlongsideTransition: \(wkWebView?.scrollView.contentOffset)")
+//            fallthrough
+//            
+//        case UIApplicationState.Background:
+//            coordinator.animateAlongsideTransition({ (UIViewControllerTransitionCoordinatorContext) -> Void in
+//                }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
+//                    self.setupWKContentOffset(self.wkWebView)
+//            }
+//            break
+//            
+//        default:
+//            break
+//        }
     }
     
     override func prefersStatusBarHidden() -> Bool {
@@ -557,9 +562,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     func downloading()
     {
         var download:Download?
-        
-        //There is a big flaw in the use of .showing - it assumes only one of slides or notes is downloading when, for TPS/CBC,
-        //they both would be.  In that case we would need the timer to persist until the last one finishes, or have one timers for each.
         
         download = selectedSermon?.download
 
@@ -652,7 +654,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     func loadDocument()
     {
         if #available(iOS 9.0, *) {
-            if NSUserDefaults.standardUserDefaults().boolForKey(Constants.CACHE_DOWNLOADS) {
+            if Globals.cacheDownloads {
                 var destinationURL:NSURL?
                 
                 destinationURL = selectedSermon?.fileSystemURL
@@ -774,8 +776,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         
         //Remove the next line and the app will crash
         wkWebView?.scrollView.delegate = nil
-        
-//        captureContentOffsetAndZoomScale()
         
         loadTimer?.invalidate()
     }

@@ -40,11 +40,6 @@ class LiveViewController: UIViewController {
 //        print("\(Globals.mpPlayer?.contentURL)")
 //        print("\(NSURL(string:Constants.LIVE_STREAM_URL))")
         
-        if (Globals.mpPlayer?.contentURL != NSURL(string:Constants.LIVE_STREAM_URL)) {
-            Globals.mpPlayer?.stop()
-            Globals.playerPaused = true
-        }
-        
         setupLivePlayerView()
         
         self.navigationItem.setRightBarButtonItem(UIBarButtonItem(title: "Full Screen", style: UIBarButtonItemStyle.Plain, target: self, action: #selector(LiveViewController.fullScreen)),animated: true)
@@ -79,12 +74,15 @@ class LiveViewController: UIViewController {
     private func setupLivePlayerView()
     {
         if (Globals.mpPlayer?.contentURL != NSURL(string:Constants.LIVE_STREAM_URL)) {
+            Globals.mpPlayer?.stop()
+            Globals.playerPaused = true
+
             Globals.mpPlayer = MPMoviePlayerController(contentURL: NSURL(string: Constants.LIVE_STREAM_URL)!)
             Globals.mpPlayer?.prepareToPlay()
         }
         
         if (Globals.mpPlayer != nil) {
-            Globals.mpPlayer!.setFullscreen(false, animated: false)
+//            Globals.mpPlayer!.setFullscreen(false, animated: false)
 
             let view = Globals.mpPlayer!.view
 
@@ -99,9 +97,9 @@ class LiveViewController: UIViewController {
             
             view.frame = webView.bounds
             
-            view.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
-            
             webView.addSubview(view)
+            
+            view.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
             
 //            let top = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.Top, multiplier: 1.0, constant: 0.0)
 //            webView.addConstraint(top)
