@@ -1,6 +1,25 @@
 {
 "sermons": [
             {
+            "date":"4/3/2016",
+            "service":"PM",
+            "title":"Divine Power in the Life of the Christian",
+            "scripture":"2 Peter 1:8-11",
+            "speaker":"Rocky Wyatt",
+            "audio":"rw160403pCD.mp3"
+            },
+            
+            {
+            "date":"4/3/2016",
+            "service":"AM",
+            "title":"The Implications of Justification (Part 1)",
+            "series":"The Implications of Justification",
+            "scripture":"Romans 3:27-31",
+            "speaker":"Tom Pennington",
+            "audio":"tp160403aCD.mp3"
+            },
+            
+            {
             "date":"3/27/2016",
             "service":"AM",
             "title":"Jesus Will Cost You Everything!",

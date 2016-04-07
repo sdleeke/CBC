@@ -1,5 +1,5 @@
 //
-//  MyTableViewCell.swift
+//  MediaTableViewCell.swift
 //  TWU
 //
 //  Created by Steve Leeke on 8/1/15.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class MyTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate {
+class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate {
 
     var downloadObserver:NSTimer?
 
@@ -18,7 +18,7 @@ class MyTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate 
     {
         if (sermon != nil) {
             if (sermon!.audioDownload?.state == .downloading) && (downloadObserver == nil) {
-                downloadObserver = NSTimer.scheduledTimerWithTimeInterval(Constants.DOWNLOADING_TIMER_INTERVAL, target: self, selector: #selector(MyTableViewCell.updateUI), userInfo: nil, repeats: true)
+                downloadObserver = NSTimer.scheduledTimerWithTimeInterval(Constants.DOWNLOADING_TIMER_INTERVAL, target: self, selector: #selector(MediaTableViewCell.updateUI), userInfo: nil, repeats: true)
             }
 
             if (sermon!.audioDownload?.state == .downloaded) && (downloadObserver != nil) {
@@ -57,7 +57,7 @@ class MyTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate 
             }
             
             if (sermon != nil) {
-                NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MyTableViewCell.updateUI), name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: sermon)
+                NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MediaTableViewCell.updateUI), name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: sermon)
             }
 
             updateUI()
@@ -154,7 +154,7 @@ class MyTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate 
                         popover.navigationItem.title = "Show Sermons Tagged With"
                         //                        popover.preferredContentSize = CGSizeMake(300, 500)
                         
-                        popover.delegate = self.vc as? MyTableViewController
+                        popover.delegate = self.vc as? MediaTableViewController
                         popover.purpose = .selectingTags
                         
                         popover.strings = sermon!.tagsArray

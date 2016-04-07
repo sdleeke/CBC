@@ -1,5 +1,5 @@
 //
-//  MyViewController.swift
+//  MediaViewController.swift
 //  TWU
 //
 //  Created by Steve Leeke on 7/31/15.
@@ -52,7 +52,7 @@ class Document {
     }
 }
 
-class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, WKUIDelegate, WKNavigationDelegate, UIScrollViewDelegate, UIPopoverPresentationControllerDelegate, PopoverTableViewControllerDelegate {
+class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, WKUIDelegate, WKNavigationDelegate, UIScrollViewDelegate, UIPopoverPresentationControllerDelegate, PopoverTableViewControllerDelegate {
 
     var panning = false
     
@@ -167,7 +167,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                 defaults.setObject(selectedSermon!.id,forKey: Constants.SELECTED_SERMON_DETAIL_KEY)
                 defaults.synchronize()
                 
-                NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MyViewController.setupActionAndTagsButtons), name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: selectedSermon)
+                NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MediaViewController.setupActionAndTagsButtons), name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: selectedSermon)
             } else {
                 // We always select, never deselect, so this should not be done.  If we set this to nil it is for some other reason, like clearing the UI.
                 //                defaults.removeObjectForKey(Constants.SELECTED_SERMON_DETAIL_KEY)
@@ -1376,7 +1376,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             
             view?.gestureRecognizers = nil
             
-            let tap = UITapGestureRecognizer(target: self, action: #selector(MyViewController.zoomScreen))
+            let tap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.zoomScreen))
             tap.numberOfTapsRequired = 2
             view?.addGestureRecognizer(tap)
             
@@ -1493,16 +1493,16 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         navigationController?.setToolbarHidden(true, animated: false)
         
         if (splitViewController != nil) {
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MyViewController.updateView), name: Constants.UPDATE_VIEW_NOTIFICATION, object: nil)
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MyViewController.clearView), name: Constants.CLEAR_VIEW_NOTIFICATION, object: nil)
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MediaViewController.updateView), name: Constants.UPDATE_VIEW_NOTIFICATION, object: nil)
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MediaViewController.clearView), name: Constants.CLEAR_VIEW_NOTIFICATION, object: nil)
         }
 
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MyViewController.setupPlayPauseButton), name: Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MediaViewController.setupPlayPauseButton), name: Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
         
         navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem()
         navigationItem.leftItemsSupplementBackButton = true
         
-        let tap = UITapGestureRecognizer(target: self, action: #selector(MyViewController.resetConstraint))
+        let tap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.resetConstraint))
         tap.numberOfTapsRequired = 2
         splitView?.addGestureRecognizer(tap)
         
@@ -1531,7 +1531,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //        tableView.estimatedRowHeight = tableView.rowHeight
 //        tableView.rowHeight = UITableViewAutomaticDimension
         
-        if(Globals.sermonLoaded) {
+        if(Globals.playerLoaded) {
             spinner.stopAnimating()
         }
 
@@ -1698,7 +1698,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     }
                     
                     if document?.loadTimer == nil {
-                        document?.loadTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.DOWNLOADING_TIMER_INTERVAL, target: self, selector: #selector(MyViewController.downloading(_:)), userInfo: document, repeats: true)
+                        document?.loadTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.DOWNLOADING_TIMER_INTERVAL, target: self, selector: #selector(MediaViewController.downloading(_:)), userInfo: document, repeats: true)
                     }
                     
                     document?.download?.download()
@@ -1730,7 +1730,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                         }
                         
                         if document?.loadTimer == nil {
-                            document?.loadTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.LOADING_TIMER_INTERVAL, target: self, selector: #selector(MyViewController.loading(_:)), userInfo: document, repeats: true)
+                            document?.loadTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.LOADING_TIMER_INTERVAL, target: self, selector: #selector(MediaViewController.loading(_:)), userInfo: document, repeats: true)
                         }
                     })
                     
@@ -1749,7 +1749,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
                     }
                     
                     if document?.loadTimer == nil {
-                        document?.loadTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.LOADING_TIMER_INTERVAL, target: self, selector: #selector(MyViewController.loading(_:)), userInfo: document, repeats: true)
+                        document?.loadTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.LOADING_TIMER_INTERVAL, target: self, selector: #selector(MediaViewController.loading(_:)), userInfo: document, repeats: true)
                     }
                 })
                 
@@ -1982,7 +1982,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     {
         if selectedSermon != nil {
             if (selectedSermon == Globals.sermonPlaying) {
-                playPauseButton.enabled = Globals.sermonLoaded
+                playPauseButton.enabled = Globals.playerLoaded
                 
                 if (Globals.playerPaused) {
                     playPauseButton.setTitle(Constants.FA_PLAY, forState: UIControlState.Normal)
@@ -2055,14 +2055,14 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         if (selectedSermon != nil) {
             var barButtons = [UIBarButtonItem]()
             
-            actionButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Action, target: self, action: #selector(MyViewController.actions))
+            actionButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Action, target: self, action: #selector(MediaViewController.actions))
             barButtons.append(actionButton!)
         
             if (selectedSermon!.hasTags()) {
                 if (selectedSermon?.tagsSet?.count > 1) {
-                    tagsButton = UIBarButtonItem(title: Constants.FA_TAGS, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(MyViewController.tags(_:)))
+                    tagsButton = UIBarButtonItem(title: Constants.FA_TAGS, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(MediaViewController.tags(_:)))
                 } else {
-                    tagsButton = UIBarButtonItem(title: Constants.FA_TAG, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(MyViewController.tags(_:)))
+                    tagsButton = UIBarButtonItem(title: Constants.FA_TAG, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(MediaViewController.tags(_:)))
                 }
                 
                 tagsButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FontAwesome, size: Constants.FA_TAGS_FONT_SIZE)!], forState: UIControlState.Normal)
@@ -2546,7 +2546,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     /*
     */
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier(Constants.SERMONS_IN_SERIES_CELL_IDENTIFIER, forIndexPath: indexPath) as! MyTableViewCell
+        let cell = tableView.dequeueReusableCellWithIdentifier(Constants.SERMONS_IN_SERIES_CELL_IDENTIFIER, forIndexPath: indexPath) as! MediaTableViewCell
     
         cell.sermon = sermonsInSeries?[indexPath.row]
         
@@ -2644,7 +2644,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             spinner.hidden = true
         }
         
-        slider.enabled = Globals.sermonLoaded
+        slider.enabled = Globals.playerLoaded
         
         if (Globals.mpPlayer != nil) && (Globals.sermonPlaying != nil) {
             if (Globals.sermonPlaying == selectedSermon) {
@@ -2681,10 +2681,10 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
 //                print("sliderTimer.MPMovieLoadState.Playthrough")
 //            }
             
-            playPauseButton.enabled = Globals.sermonLoaded
-            slider.enabled = Globals.sermonLoaded
+            playPauseButton.enabled = Globals.playerLoaded || Globals.playerLoadFailed
+            slider.enabled = Globals.playerLoaded
             
-            if (!Globals.sermonLoaded) {
+            if (!Globals.playerLoaded) {
                 if (!spinner.isAnimating()) {
                     spinner.hidden = false
                     spinner.startAnimating()
@@ -2731,8 +2731,11 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
             case .paused:
 //                print("paused")
                 
-                if Globals.sermonLoaded {
+                if Globals.playerLoaded {
                     setSliderAndTimesToAudio()
+                }
+                
+                if Globals.playerLoaded || Globals.playerLoadFailed {
                     if spinner.isAnimating() {
                         spinner.stopAnimating()
                         spinner.hidden = true
@@ -2848,7 +2851,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
         }
 
         if (Globals.mpPlayer != nil) {
-            sliderObserver = NSTimer.scheduledTimerWithTimeInterval(Constants.SLIDER_TIMER_INTERVAL, target: self, selector: #selector(MyViewController.sliderTimer), userInfo: nil, repeats: true)
+            sliderObserver = NSTimer.scheduledTimerWithTimeInterval(Constants.SLIDER_TIMER_INTERVAL, target: self, selector: #selector(MediaViewController.sliderTimer), userInfo: nil, repeats: true)
         } else {
             // This will happen when there is no sermonPlaying, e.g. when a clean install is done and the app is put into the background and then brought back to the forground
             print("Globals.player == nil in sliderObserver")
@@ -2931,7 +2934,7 @@ class MyViewController: UIViewController, MFMailComposeViewControllerDelegate, M
     }
     
     func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
-//        if let cell = tableView.cellForRowAtIndexPath(indexPath) as? MyTableViewCell {
+//        if let cell = tableView.cellForRowAtIndexPath(indexPath) as? MediaTableViewCell {
 //
 //        }
     }

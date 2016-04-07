@@ -7,16 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1712CD701C77449B005E09D6 /* MySettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1712CD6F1C77449B005E09D6 /* MySettingsViewController.swift */; };
+		1712CD701C77449B005E09D6 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1712CD6F1C77449B005E09D6 /* SettingsViewController.swift */; };
 		171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171A6ED41BF2172100E3323C /* WebViewController.swift */; };
 		174EEE6D1B74C0DD004F6942 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 174EEE6C1B74C0DD004F6942 /* Images.xcassets */; };
 		174EEE7C1B74C0DE004F6942 /* TPSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE7B1B74C0DE004F6942 /* TPSTests.swift */; };
-		174EEE8D1B74C11E004F6942 /* MyTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE861B74C11E004F6942 /* MyTableViewController.swift */; };
+		174EEE8D1B74C11E004F6942 /* MediaTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE861B74C11E004F6942 /* MediaTableViewController.swift */; };
 		174EEE8E1B74C11E004F6942 /* iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 174EEE871B74C11E004F6942 /* iPad.storyboard */; };
 		174EEE8F1B74C11E004F6942 /* iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 174EEE881B74C11E004F6942 /* iPhone.storyboard */; };
-		174EEE901B74C11E004F6942 /* MyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE891B74C11E004F6942 /* MyViewController.swift */; };
-		174EEE911B74C11E004F6942 /* MyAboutViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE8A1B74C11E004F6942 /* MyAboutViewController.swift */; };
-		174EEE921B74C11E004F6942 /* MyTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE8B1B74C11E004F6942 /* MyTableViewCell.swift */; };
+		174EEE901B74C11E004F6942 /* MediaViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE891B74C11E004F6942 /* MediaViewController.swift */; };
+		174EEE911B74C11E004F6942 /* AboutViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE8A1B74C11E004F6942 /* AboutViewController.swift */; };
+		174EEE921B74C11E004F6942 /* MediaTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE8B1B74C11E004F6942 /* MediaTableViewCell.swift */; };
 		174EEE941B74C145004F6942 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE931B74C145004F6942 /* AppDelegate.swift */; };
 		174EEE961B74C1B1004F6942 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 174EEE951B74C1B1004F6942 /* LaunchScreen.xib */; };
 		17579DE01B84706500F1424F /* PopoverTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17579DDF1B84706500F1424F /* PopoverTableViewController.swift */; };
@@ -54,19 +54,19 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		1712CD6F1C77449B005E09D6 /* MySettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MySettingsViewController.swift; sourceTree = "<group>"; };
+		1712CD6F1C77449B005E09D6 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		171A6ED41BF2172100E3323C /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
 		174EEE601B74C0DD004F6942 /* TPS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TPS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		174EEE6C1B74C0DD004F6942 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		174EEE751B74C0DE004F6942 /* TPSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TPSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		174EEE7A1B74C0DE004F6942 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		174EEE7B1B74C0DE004F6942 /* TPSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TPSTests.swift; sourceTree = "<group>"; };
-		174EEE861B74C11E004F6942 /* MyTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = MyTableViewController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		174EEE861B74C11E004F6942 /* MediaTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = MediaTableViewController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		174EEE871B74C11E004F6942 /* iPad.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = iPad.storyboard; sourceTree = "<group>"; };
 		174EEE881B74C11E004F6942 /* iPhone.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = iPhone.storyboard; sourceTree = "<group>"; };
-		174EEE891B74C11E004F6942 /* MyViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = MyViewController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
-		174EEE8A1B74C11E004F6942 /* MyAboutViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = MyAboutViewController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
-		174EEE8B1B74C11E004F6942 /* MyTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyTableViewCell.swift; sourceTree = "<group>"; };
+		174EEE891B74C11E004F6942 /* MediaViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = MediaViewController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		174EEE8A1B74C11E004F6942 /* AboutViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = AboutViewController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		174EEE8B1B74C11E004F6942 /* MediaTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaTableViewCell.swift; sourceTree = "<group>"; };
 		174EEE931B74C145004F6942 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = AppDelegate.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		174EEE951B74C1B1004F6942 /* LaunchScreen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = LaunchScreen.xib; sourceTree = "<group>"; };
 		174EEE971B74C1E8004F6942 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -148,17 +148,17 @@
 				177FBA941C5CF36400AFBB50 /* OBSlider.swift */,
 				176BD8CD1BBF6CCA00991D19 /* sermons.json */,
 				17E75EC91B835FC600AE8ED5 /* sermonFunctions.swift */,
-				174EEE8B1B74C11E004F6942 /* MyTableViewCell.swift */,
-				174EEE861B74C11E004F6942 /* MyTableViewController.swift */,
+				174EEE8B1B74C11E004F6942 /* MediaTableViewCell.swift */,
+				174EEE861B74C11E004F6942 /* MediaTableViewController.swift */,
 				17579DDF1B84706500F1424F /* PopoverTableViewController.swift */,
 				174EEE871B74C11E004F6942 /* iPad.storyboard */,
 				174EEE881B74C11E004F6942 /* iPhone.storyboard */,
 				17E893531BA83FCE00D5D2FB /* SplitView.swift */,
-				174EEE891B74C11E004F6942 /* MyViewController.swift */,
+				174EEE891B74C11E004F6942 /* MediaViewController.swift */,
 				17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */,
 				171A6ED41BF2172100E3323C /* WebViewController.swift */,
-				174EEE8A1B74C11E004F6942 /* MyAboutViewController.swift */,
-				1712CD6F1C77449B005E09D6 /* MySettingsViewController.swift */,
+				174EEE8A1B74C11E004F6942 /* AboutViewController.swift */,
+				1712CD6F1C77449B005E09D6 /* SettingsViewController.swift */,
 				1798C74F1CA93BF600CED4A5 /* LiveViewController.swift */,
 				174EEE6C1B74C0DD004F6942 /* Images.xcassets */,
 				174EEE951B74C1B1004F6942 /* LaunchScreen.xib */,
@@ -352,15 +352,15 @@
 				174EEE941B74C145004F6942 /* AppDelegate.swift in Sources */,
 				17BBEDD71BBF631F0070BF89 /* SwiftyJSON.swift in Sources */,
 				1798C74E1CA93BC900CED4A5 /* Globals.swift in Sources */,
-				174EEE901B74C11E004F6942 /* MyViewController.swift in Sources */,
+				174EEE901B74C11E004F6942 /* MediaViewController.swift in Sources */,
 				1798C7501CA93BF600CED4A5 /* LiveViewController.swift in Sources */,
 				17E893541BA83FCE00D5D2FB /* SplitView.swift in Sources */,
-				1712CD701C77449B005E09D6 /* MySettingsViewController.swift in Sources */,
-				174EEE911B74C11E004F6942 /* MyAboutViewController.swift in Sources */,
-				174EEE8D1B74C11E004F6942 /* MyTableViewController.swift in Sources */,
+				1712CD701C77449B005E09D6 /* SettingsViewController.swift in Sources */,
+				174EEE911B74C11E004F6942 /* AboutViewController.swift in Sources */,
+				174EEE8D1B74C11E004F6942 /* MediaTableViewController.swift in Sources */,
 				175EDA261BAC80F600942E6D /* Reachability.swift in Sources */,
 				17D4641C1C8E135800519C98 /* ScriptureIndexViewController.swift in Sources */,
-				174EEE921B74C11E004F6942 /* MyTableViewCell.swift in Sources */,
+				174EEE921B74C11E004F6942 /* MediaTableViewCell.swift in Sources */,
 				177FBA951C5CF36400AFBB50 /* OBSlider.swift in Sources */,
 				171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */,
 				17763BE51BEA32C700BB5556 /* Sermon.swift in Sources */,

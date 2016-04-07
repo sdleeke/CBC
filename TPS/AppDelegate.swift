@@ -20,7 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
 
     func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool
     {
-        // This should be rationalized with the code in MyTableViewController to have one function (somewhere) so we aren't duplicating it.
+        // This should be rationalized with the code in MediaTableViewController to have one function (somewhere) so we aren't duplicating it.
 
 //        let host = url.host
 //        let scheme = url.scheme
@@ -130,7 +130,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         //to distinguish them.
         //
         //If we want to go the explicit definition path rather than implicit, then we'll have to rework all of this code (in both places, here
-        //and in MyTableViewController, to pull the series, book, or sermon from the query string.
+        //and in MediaTableViewController, to pull the series, book, or sermon from the query string.
         //
         //One reason the single path component model is better is that it means that only one (assuming order of search breaks any ties) will ever
         //be found.  With explicit definition we could have all three and then have to make a decision about what that means.  They might or might not
@@ -291,18 +291,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
             Globals.sermonsNeed.groupsSetup = true
             sortAndGroupSermons()
 
-            var tvc:MyTableViewController?
+            var tvc:MediaTableViewController?
             
             //iPad
             if let rvc = self.window?.rootViewController as? UISplitViewController {
                 //            println("rvc = UISplitViewController")
                 if let nvc = rvc.viewControllers[0] as? UINavigationController {
                     //                println("nvc = UINavigationController")
-                    tvc = nvc.topViewController as? MyTableViewController
+                    tvc = nvc.topViewController as? MediaTableViewController
                 }
                 if let nvc = rvc.viewControllers[1] as? UINavigationController {
                     //                println("nvc = UINavigationController")
-                    if let myvc = nvc.topViewController as? MyViewController {
+                    if let myvc = nvc.topViewController as? MediaViewController {
                         if (sorting != nil) {
                             //Sort the sermonsInSeries
                             myvc.sortSermonsInSeries()
@@ -314,18 +314,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
             //iPhone
             if let nvc = self.window?.rootViewController as? UINavigationController {
                 //            println("rvc = UINavigationController")
-                if let _ = nvc.topViewController as? MyViewController {
-//                    print("myvc = MyViewController")
+                if let _ = nvc.topViewController as? MediaViewController {
+//                    print("myvc = MediaViewController")
                     nvc.popToRootViewControllerAnimated(true)
                 }
-                tvc = nvc.topViewController as? MyTableViewController
+                tvc = nvc.topViewController as? MediaTableViewController
             }
             
             if (tvc != nil) {
                 // All of the scrolling below becomes a problem in portrait on an iPad as the master view controller TVC may not be visible
                 // AND when it is made visible it is setup to first scroll to current selection.
                 
-                //                println("tvc = MyTableViewController")
+                //                println("tvc = MediaTableViewController")
                 
                 //            tvc.performSegueWithIdentifier("Show Sermon", sender: tvc)
                 
@@ -396,7 +396,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
             
             if (playable || playthrough) {
 //                print("mpPlayerLoadStateDidChange.MPMovieLoadState.Playable or Playthrough OK")
-                if !Globals.sermonLoaded {
+                if !Globals.playerLoaded {
                     print("mpPlayerLoadStateDidChange with sermonPlaying NOT LOADED and playable || playthrough!")
 
                     if (Globals.sermonPlaying != nil) && Globals.sermonPlaying!.hasCurrentTime() {
@@ -418,7 +418,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
                     
                     setupPlayingInfoCenter()
                     
-                    Globals.sermonLoaded = true
+                    Globals.playerLoaded = true
                     
                     if (Globals.playOnLoad) {
                         Globals.playerPaused = false
@@ -430,7 +430,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
                         })
                     } else {
                         Globals.playOnLoad = true
-//                        Globals.playerPaused = true
                     }
                 } else {
                     print("mpPlayerLoadStateDidChange with sermonPlaying LOADED and playable || playthrough!")
@@ -515,55 +514,63 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
                     break
                     
                 case .SeekingForward:
-//                    print("playTimer.playing.SeekingForward")
+                    //                    print("playTimer.playing.SeekingForward")
                     Globals.mpPlayerStateTime!.state = .seekingForward
                     break
                     
-                default:
-                    if (UIApplication.sharedApplication().applicationState != UIApplicationState.Background) {
-                        if (Globals.mpPlayer!.duration > 0) && (Globals.mpPlayer!.currentPlaybackTime > 0) &&
-                            (Int(Float(Globals.mpPlayer!.currentPlaybackTime)) == Int(Float(Globals.mpPlayer!.duration))) {
-                                Globals.mpPlayer?.pause()
-                                Globals.playerPaused = true
-                                
-                                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                    NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-                                })
-                                
-                                if (Globals.sermonPlaying?.currentTime != Globals.mpPlayer!.duration.description) {
-                                    Globals.sermonPlaying?.currentTime = Globals.mpPlayer!.duration.description
-                                }
-                        } else {
-                            Globals.mpPlayer?.play()
-                        }
+                case .Paused:
+                    //                    print("playTimer.playing.Paused")
+                    if (UIApplication.sharedApplication().applicationState == UIApplicationState.Background) {
+                        updateCurrentTimeExact()
+                        Globals.playerPaused = true
                         
-                        if !(playable || playthrough) { // Globals.mpPlayer?.currentPlaybackRate == 0
-//                            print("playTimer.Playthrough or Playing NOT OK")
-                            if (Globals.mpPlayerStateTime!.timeElapsed > Constants.MIN_PLAY_TIME) {
-                                Globals.sermonLoaded = true
-                                Globals.playerPaused = true
-                                Globals.mpPlayer?.pause()
-                                
-                                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                    NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-                                })
-                                
-                                let errorAlert = UIAlertView(title: "Unable to Play Content", message: "Please check your network connection and try to play it again.", delegate: self, cancelButtonTitle: "OK")
-                                errorAlert.show()
-                            }
-                        }
-                        if (playable || playthrough) {
-//                            print("playTimer.Playthrough or Playing OK")
+                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                            NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
+                        })
+                    } else {
+                        Globals.mpPlayer?.play()
+                    }
+                    break
+                    
+                default:
+                    if !(playable || playthrough) { // Globals.mpPlayer?.currentPlaybackRate == 0
+//                        print("playTimer.Playthrough or Playing NOT OK")
+                        if (Globals.mpPlayerStateTime!.timeElapsed > Constants.MIN_PLAY_TIME) {
+//                            Globals.sermonLoaded = false
+                            Globals.playerPaused = true
+                            Globals.mpPlayer?.pause()
+                            
+                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                                NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
+                            })
+                            
+                            let errorAlert = UIAlertView(title: "Unable to Play Content", message: "Please check your network connection and try to play it again.", delegate: self, cancelButtonTitle: "OK")
+                            errorAlert.show()
+                        } else {
+                            // Wait so the player can keep trying.
                         }
                     } else {
-                        if (Globals.mpPlayer?.playbackState == .Paused) {
-                            updateCurrentTimeExact()
+//                        print("playTimer.Playthrough or Playing OK")
+                        if (Globals.mpPlayer!.duration > 0) && (Globals.mpPlayer!.currentPlaybackTime > 0) &&
+                            (Int(Float(Globals.mpPlayer!.currentPlaybackTime)) == Int(Float(Globals.mpPlayer!.duration))) {
+                            Globals.mpPlayer?.pause()
                             Globals.playerPaused = true
                             
                             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                                 NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
                             })
+                            
+                            if (Globals.sermonPlaying?.currentTime != Globals.mpPlayer!.duration.description) {
+                                Globals.sermonPlaying?.currentTime = Globals.mpPlayer!.duration.description
+                            }
+                        } else {
+                            Globals.mpPlayer?.play()
                         }
+                    }
+//                        if (playable || playthrough) {
+//                            print("playTimer.Playthrough or Playing OK")
+//                        }
+//                    } else {
 //                        if Globals.sermonPlaying?.playing == Constants.VIDEO {
 //                            Globals.mpPlayer?.pause()
 //                            
@@ -575,7 +582,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
 //                                NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
 //                            })
 //                        }
-                    }
+//                    }
                     break
                 }
                 break
@@ -583,9 +590,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
             case .paused:
 //                print("paused")
                 
-                if !Globals.sermonLoaded {
+                if !Globals.playerLoaded && !Globals.playerLoadFailed {
                     if (Globals.mpPlayerStateTime!.timeElapsed > Constants.MIN_LOAD_TIME) {
-                        Globals.sermonLoaded = true
+                        Globals.playerLoadFailed = true
                         
                         if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
                             let errorAlert = UIAlertView(title: "Unable to Load Content", message: "Please check your network connection and try to play it again.", delegate: self, cancelButtonTitle: "OK")

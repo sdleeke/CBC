@@ -482,14 +482,14 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         if let identifier = segue.identifier {
             switch identifier {
             case "Show Index Sermon":
-                if let myCell = sender as? MyTableViewCell {
+                if let myCell = sender as? MediaTableViewCell {
                     if (selectedSermon != myCell.sermon) || (Globals.sermonHistory == nil) {
                         addToHistory(myCell.sermon)
                     }
                     selectedSermon = myCell.sermon //Globals.activeSermons![index]
                     
                     if selectedSermon != nil {
-                        if let destination = dvc as? MyViewController {
+                        if let destination = dvc as? MediaViewController {
                             destination.selectedSermon = selectedSermon
                         }
                     }
@@ -518,7 +518,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     /*
     */
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("SermonSeries", forIndexPath: indexPath) as! MyTableViewCell
+        let cell = tableView.dequeueReusableCellWithIdentifier("SermonSeries", forIndexPath: indexPath) as! MediaTableViewCell
         
         cell.sermon = sermons?[indexPath.row]
         

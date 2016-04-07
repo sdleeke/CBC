@@ -1,5 +1,5 @@
 //
-//  MyTableViewController.swift
+//  MediaTableViewController.swift
 //  TWU
 //
 //  Created by Steve Leeke on 7/28/15.
@@ -29,7 +29,7 @@ enum PopoverPurpose {
     case editingTags
 }
 
-class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearchBarDelegate, UISearchControllerDelegate, UIPopoverPresentationControllerDelegate, PopoverTableViewControllerDelegate, NSURLSessionDownloadDelegate {
+class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISearchBarDelegate, UISearchControllerDelegate, UIPopoverPresentationControllerDelegate, PopoverTableViewControllerDelegate, NSURLSessionDownloadDelegate {
 
     override func canBecomeFirstResponder() -> Bool {
         return true //splitViewController == nil
@@ -107,7 +107,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     
                     if (self.splitViewController != nil) {
                         if let nvc = self.splitViewController!.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
-                            if let myvc = nvc.topViewController as? MyViewController {
+                            if let myvc = nvc.topViewController as? MediaViewController {
                                 if (myvc.selectedSermon != nil) {
                                     if (myvc.selectedSermon?.title != Globals.sermonPlaying?.title) || (myvc.selectedSermon?.date != Globals.sermonPlaying?.date) {
                                         // The sermonPlaying is not the one showing
@@ -394,7 +394,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                     Globals.finished = 0
                     
                     dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                        self.progressTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.PROGRESS_TIMER_INTERVAL, target: self, selector: #selector(MyTableViewController.updateProgress), userInfo: nil, repeats: true)
+                        self.progressTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.PROGRESS_TIMER_INTERVAL, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
                     })
                     
                     setupSermonsForDisplay()
@@ -434,7 +434,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                         //                            if (self.splitViewController != nil) {
                         //                                //iPad only
                         //                                if let nvc = self.splitViewController!.viewControllers[self.splitViewController!.viewControllers.count - 1] as? UINavigationController {
-                        //                                    if let myvc = nvc.visibleViewController as? MyViewController {
+                        //                                    if let myvc = nvc.visibleViewController as? MediaViewController {
                         //                                        myvc.sortSermonsInSeries()
                         //                                    }
                         //                                }
@@ -789,9 +789,9 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     
     private func setupSortingAndGroupingOptions()
     {
-        let sortingButton = UIBarButtonItem(title: Constants.Sorting, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(MyTableViewController.sorting(_:)))
-        let groupingButton = UIBarButtonItem(title: Constants.Grouping, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(MyTableViewController.grouping(_:)))
-        let indexButton = UIBarButtonItem(title: Constants.Index, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(MyTableViewController.index(_:)))
+        let sortingButton = UIBarButtonItem(title: Constants.Sorting, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(MediaTableViewController.sorting(_:)))
+        let groupingButton = UIBarButtonItem(title: Constants.Grouping, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(MediaTableViewController.grouping(_:)))
+        let indexButton = UIBarButtonItem(title: Constants.Index, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(MediaTableViewController.index(_:)))
 
         let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.FlexibleSpace, target: nil, action: nil)
 
@@ -1009,18 +1009,18 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         Globals.sermonsNeed.groupsSetup = true
         sortAndGroupSermons()
         
-        var tvc:MyTableViewController?
+        var tvc:MediaTableViewController?
         
         //iPad
         if (splitViewController != nil) {
             //            print("rvc = UISplitViewController")
             if let nvc = splitViewController!.viewControllers[0] as? UINavigationController {
                 //                print("nvc = UINavigationController")
-                tvc = nvc.topViewController as? MyTableViewController
+                tvc = nvc.topViewController as? MediaTableViewController
             }
             if let nvc = splitViewController!.viewControllers[1] as? UINavigationController {
                 //                print("nvc = UINavigationController")
-                if let myvc = nvc.topViewController as? MyViewController {
+                if let myvc = nvc.topViewController as? MediaViewController {
                     if (sorting != nil) {
                         //Sort the sermonsInSeries
                         myvc.sortSermonsInSeries()
@@ -1032,19 +1032,19 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         //iPhone
         if let nvc = navigationController {
             //            print("rvc = UINavigationController")
-            if let _ = nvc.topViewController as? MyViewController {
-                //                    print("myvc = MyViewController")
+            if let _ = nvc.topViewController as? MediaViewController {
+                //                    print("myvc = MediaViewController")
                 nvc.popToRootViewControllerAnimated(true)
                 
             }
-            tvc = nvc.topViewController as? MyTableViewController
+            tvc = nvc.topViewController as? MediaTableViewController
         }
         
         if (tvc != nil) {
             // All of the scrolling below becomes a problem in portrait on an iPad as the master view controller TVC may not be visible
             // AND when it is made visible it is setup to first scroll to current selection.
             
-            //                print("tvc = MyTableViewController")
+            //                print("tvc = MediaTableViewController")
             
             //            tvc.performSegueWithIdentifier("Show Sermon", sender: tvc)
             
@@ -1159,7 +1159,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         Globals.progress = 0
         Globals.finished = 0
         
-        progressTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.PROGRESS_TIMER_INTERVAL, target: self, selector: #selector(MyTableViewController.updateProgress), userInfo: nil, repeats: true)
+        progressTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.PROGRESS_TIMER_INTERVAL, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
         
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
             Globals.loading = true
@@ -1523,10 +1523,10 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MyTableViewController.updateList), name: Constants.UPDATE_SERMON_LIST_NOTIFICATION, object: Globals.sermons.hiddenTagged)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MediaTableViewController.updateList), name: Constants.UPDATE_SERMON_LIST_NOTIFICATION, object: Globals.sermons.hiddenTagged)
 
         refreshControl = UIRefreshControl()
-        refreshControl!.addTarget(self, action: #selector(MyTableViewController.handleRefresh(_:)), forControlEvents: UIControlEvents.ValueChanged)
+        refreshControl!.addTarget(self, action: #selector(MediaTableViewController.handleRefresh(_:)), forControlEvents: UIControlEvents.ValueChanged)
 
         if Globals.sermonRepository.list == nil {
             //            disableBarButtons()
@@ -1872,7 +1872,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 // we may want to reselect from the master list to go to that sermon in the series since it is no longer
                 // selected in the detail list.
 
-//                if let myCell = sender as? MyTableViewCell {
+//                if let myCell = sender as? MediaTableViewCell {
 //                    show = (splitViewController == nil) || ((splitViewController != nil) && (splitViewController!.viewControllers.count == 1)) || (myCell.sermon != selectedSermon)
 //                }
                 break
@@ -1898,7 +1898,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         if let identifier = segue.identifier {
             switch identifier {
             case Constants.Show_Settings:
-                if let svc = dvc as? MySettingsViewController {
+                if let svc = dvc as? SettingsViewController {
                     svc.modalPresentationStyle = .Popover
                     svc.popoverPresentationController?.delegate = self
                 }
@@ -1927,18 +1927,18 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
                 if (Globals.gotoPlayingPaused) {
                     Globals.gotoPlayingPaused = !Globals.gotoPlayingPaused
 
-                    if let destination = dvc as? MyViewController {
+                    if let destination = dvc as? MediaViewController {
                         destination.selectedSermon = Globals.sermonPlaying
                     }
                 } else {
-                    if let myCell = sender as? MyTableViewCell {
+                    if let myCell = sender as? MediaTableViewCell {
                         if (selectedSermon != myCell.sermon) || (Globals.sermonHistory == nil) {
                             addToHistory(myCell.sermon)
                         }
                         selectedSermon = myCell.sermon //Globals.activeSermons![index]
 
                         if selectedSermon != nil {
-                            if let destination = dvc as? MyViewController {
+                            if let destination = dvc as? MediaViewController {
                                 destination.selectedSermon = selectedSermon
                             }
                         }
@@ -2010,8 +2010,8 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
         return Globals.display.sectionCounts != nil ? Globals.display.sectionCounts![section] : 0
     }
 
-    func tableView(TableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> MyTableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier(Constants.SERMONS_CELL_IDENTIFIER, forIndexPath: indexPath) as! MyTableViewCell
+    func tableView(TableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> MediaTableViewCell {
+        let cell = tableView.dequeueReusableCellWithIdentifier(Constants.SERMONS_CELL_IDENTIFIER, forIndexPath: indexPath) as! MediaTableViewCell
     
         // Configure the cell
         if let section = Globals.display.sectionIndexes?[indexPath.section] {
@@ -2030,7 +2030,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     func tableView(TableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
 //        print("didSelect")
 
-        if let cell: MyTableViewCell = tableView.cellForRowAtIndexPath(indexPath) as? MyTableViewCell {
+        if let cell: MediaTableViewCell = tableView.cellForRowAtIndexPath(indexPath) as? MediaTableViewCell {
             selectedSermon = cell.sermon
         } else {
             
@@ -2040,7 +2040,7 @@ class MyTableViewController: UIViewController, UISearchResultsUpdating, UISearch
     func tableView(TableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
 //        print("didDeselect")
 
-//        if let cell: MyTableViewCell = tableView.cellForRowAtIndexPath(indexPath) as? MyTableViewCell {
+//        if let cell: MediaTableViewCell = tableView.cellForRowAtIndexPath(indexPath) as? MediaTableViewCell {
 //
 //        } else {
 //            

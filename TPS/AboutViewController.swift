@@ -1,5 +1,5 @@
 //
-//  MyAboutViewController.swift
+//  AboutViewController.swift
 //  TWU
 //
 //  Created by Steve Leeke on 8/6/15.
@@ -10,7 +10,7 @@ import UIKit
 import MapKit
 import MessageUI
 
-class MyAboutViewController: UIViewController, UIPopoverPresentationControllerDelegate, PopoverTableViewControllerDelegate, MFMailComposeViewControllerDelegate
+class AboutViewController: UIViewController, UIPopoverPresentationControllerDelegate, PopoverTableViewControllerDelegate, MFMailComposeViewControllerDelegate
 {
     override func canBecomeFirstResponder() -> Bool {
         return true //splitViewController == nil
