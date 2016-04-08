@@ -321,14 +321,14 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                 if (selectedChapter > 0) {
                     if (selectedVerse > 0) {
                         sermons = nil // Need to add this
-//                        sermons = Globals.sermonRepository.scriptureIndex!.byChapter[selectedTestament!]?[selectedBook!]?[selectedChapter]?[selectedVerse]
+//                        sermons = globals.sermonRepository.scriptureIndex!.byChapter[selectedTestament!]?[selectedBook!]?[selectedChapter]?[selectedVerse]
                         if sermons != nil {
                             numberOfSermons.text = "\(sermons!.count) from verse \(selectedVerse) in chapter \(selectedChapter) of the book of \(selectedBook!) in the \(selectedTestament!)"
                         } else {
                             numberOfSermons.text = "0 from verse \(selectedVerse) in chapter \(selectedChapter) of the book of \(selectedBook!) in the \(selectedTestament!)"
                         }
                     } else {
-                        sermons = Globals.sermonRepository.scriptureIndex!.byChapter[selectedTestament!]?[selectedBook!]?[selectedChapter]
+                        sermons = globals.sermonRepository.scriptureIndex!.byChapter[selectedTestament!]?[selectedBook!]?[selectedChapter]
                         if sermons != nil {
                             numberOfSermons.text = "\(sermons!.count) from chapter \(selectedChapter) of the book of \(selectedBook!) in the \(selectedTestament!)"
                         } else {
@@ -336,7 +336,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                         }
                     }
                 } else {
-                    sermons = Globals.sermonRepository.scriptureIndex!.byBook[selectedTestament!]?[selectedBook!]
+                    sermons = globals.sermonRepository.scriptureIndex!.byBook[selectedTestament!]?[selectedBook!]
                     if sermons != nil {
                         numberOfSermons.text = "\(sermons!.count) from the book of \(selectedBook!) in the \(selectedTestament!)"
                     } else {
@@ -344,7 +344,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     }
                 }
             } else {
-                sermons = Globals.sermonRepository.scriptureIndex!.byTestament[selectedTestament!]
+                sermons = globals.sermonRepository.scriptureIndex!.byTestament[selectedTestament!]
                 if sermons != nil {
                     numberOfSermons.text = "\(sermons!.count) from the \(selectedTestament!)"
                 } else {
@@ -483,10 +483,10 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             switch identifier {
             case "Show Index Sermon":
                 if let myCell = sender as? MediaTableViewCell {
-                    if (selectedSermon != myCell.sermon) || (Globals.sermonHistory == nil) {
-                        addToHistory(myCell.sermon)
+                    if (selectedSermon != myCell.sermon) || (globals.history == nil) {
+                        globals.addToHistory(myCell.sermon)
                     }
-                    selectedSermon = myCell.sermon //Globals.activeSermons![index]
+                    selectedSermon = myCell.sermon //globals.activeSermons![index]
                     
                     if selectedSermon != nil {
                         if let destination = dvc as? MediaViewController {
@@ -579,8 +579,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         tableView.tableFooterView = UIView()
         
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
-            if (Globals.sermonRepository.scriptureIndex == nil) {
-                Globals.sermonRepository.scriptureIndex = ScriptureIndex()
+            if (globals.sermonRepository.scriptureIndex == nil) {
+                globals.sermonRepository.scriptureIndex = ScriptureIndex()
                 
                 self.progress = 0
                 self.finished = 0
@@ -591,8 +591,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     self.timer = NSTimer.scheduledTimerWithTimeInterval(Constants.WORKING_TIMER_INTERVAL, target: self, selector: #selector(ScriptureIndexViewController.working), userInfo: nil, repeats: true)
                 })
                 
-                self.finished += Float(Globals.sermonRepository.list!.count)
-                for sermon in Globals.sermonRepository.list! {
+                self.finished += Float(globals.sermonRepository.list!.count)
+                for sermon in globals.sermonRepository.list! {
                     //                    if (sermon.scripture?.rangeOfString(" and ") != nil) {
                     //                        print(sermon.scripture!)
                     //                        print("STOP")
@@ -606,19 +606,19 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                         self.finished += Float(sermon.books!.count)
                         for book in books {
                             //                            print("\(sermon)")
-                            if Globals.sermonRepository.scriptureIndex!.byTestament[testament(book)] == nil {
-                                Globals.sermonRepository.scriptureIndex!.byTestament[testament(book)] = [sermon]
+                            if globals.sermonRepository.scriptureIndex!.byTestament[testament(book)] == nil {
+                                globals.sermonRepository.scriptureIndex!.byTestament[testament(book)] = [sermon]
                             } else {
-                                Globals.sermonRepository.scriptureIndex!.byTestament[testament(book)]?.append(sermon)
+                                globals.sermonRepository.scriptureIndex!.byTestament[testament(book)]?.append(sermon)
                             }
                             
-                            if Globals.sermonRepository.scriptureIndex!.byBook[testament(book)] == nil {
-                                Globals.sermonRepository.scriptureIndex!.byBook[testament(book)] = [String:[Sermon]]()
+                            if globals.sermonRepository.scriptureIndex!.byBook[testament(book)] == nil {
+                                globals.sermonRepository.scriptureIndex!.byBook[testament(book)] = [String:[Sermon]]()
                             }
-                            if Globals.sermonRepository.scriptureIndex!.byBook[testament(book)]?[book] == nil {
-                                Globals.sermonRepository.scriptureIndex!.byBook[testament(book)]?[book] = [sermon]
+                            if globals.sermonRepository.scriptureIndex!.byBook[testament(book)]?[book] == nil {
+                                globals.sermonRepository.scriptureIndex!.byBook[testament(book)]?[book] = [sermon]
                             } else {
-                                Globals.sermonRepository.scriptureIndex!.byBook[testament(book)]?[book]?.append(sermon)
+                                globals.sermonRepository.scriptureIndex!.byBook[testament(book)]?[book]?.append(sermon)
                             }
                             
                             let chapters = sermon.chapters(book)
@@ -630,16 +630,16 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                                 //                                    print("\(sermon.chapters(book))")
                                 //                                    print("STOP")
                                 //                                }
-                                if Globals.sermonRepository.scriptureIndex!.byChapter[testament(book)] == nil {
-                                    Globals.sermonRepository.scriptureIndex!.byChapter[testament(book)] = [String:[Int:[Sermon]]]()
+                                if globals.sermonRepository.scriptureIndex!.byChapter[testament(book)] == nil {
+                                    globals.sermonRepository.scriptureIndex!.byChapter[testament(book)] = [String:[Int:[Sermon]]]()
                                 }
-                                if Globals.sermonRepository.scriptureIndex!.byChapter[testament(book)]?[book] == nil {
-                                    Globals.sermonRepository.scriptureIndex!.byChapter[testament(book)]?[book] = [Int:[Sermon]]()
+                                if globals.sermonRepository.scriptureIndex!.byChapter[testament(book)]?[book] == nil {
+                                    globals.sermonRepository.scriptureIndex!.byChapter[testament(book)]?[book] = [Int:[Sermon]]()
                                 }
-                                if Globals.sermonRepository.scriptureIndex!.byChapter[testament(book)]?[book]?[chapter] == nil {
-                                    Globals.sermonRepository.scriptureIndex!.byChapter[testament(book)]?[book]?[chapter] = [sermon]
+                                if globals.sermonRepository.scriptureIndex!.byChapter[testament(book)]?[book]?[chapter] == nil {
+                                    globals.sermonRepository.scriptureIndex!.byChapter[testament(book)]?[book]?[chapter] = [sermon]
                                 } else {
-                                    Globals.sermonRepository.scriptureIndex!.byChapter[testament(book)]?[book]?[chapter]?.append(sermon)
+                                    globals.sermonRepository.scriptureIndex!.byChapter[testament(book)]?[book]?[chapter]?.append(sermon)
                                 }
                                 
                                 self.progress += 1
@@ -653,20 +653,20 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                 }
                 
                 // Sort
-                self.finished += Float(Globals.sermonRepository.scriptureIndex!.byTestament.keys.count)
-                for testament in Globals.sermonRepository.scriptureIndex!.byTestament.keys {
-                    Globals.sermonRepository.scriptureIndex!.byTestament[testament] = sortSermonsChronologically(Globals.sermonRepository.scriptureIndex!.byTestament[testament])
+                self.finished += Float(globals.sermonRepository.scriptureIndex!.byTestament.keys.count)
+                for testament in globals.sermonRepository.scriptureIndex!.byTestament.keys {
+                    globals.sermonRepository.scriptureIndex!.byTestament[testament] = sortSermonsChronologically(globals.sermonRepository.scriptureIndex!.byTestament[testament])
                     
-                    if Globals.sermonRepository.scriptureIndex!.byBook[testament] != nil {
-                        self.finished += Float(Globals.sermonRepository.scriptureIndex!.byBook[testament]!.keys.count)
-                        for book in Globals.sermonRepository.scriptureIndex!.byBook[testament]!.keys {
-                            Globals.sermonRepository.scriptureIndex!.byBook[testament]![book] = sortSermonsChronologically(Globals.sermonRepository.scriptureIndex!.byBook[testament]![book])
+                    if globals.sermonRepository.scriptureIndex!.byBook[testament] != nil {
+                        self.finished += Float(globals.sermonRepository.scriptureIndex!.byBook[testament]!.keys.count)
+                        for book in globals.sermonRepository.scriptureIndex!.byBook[testament]!.keys {
+                            globals.sermonRepository.scriptureIndex!.byBook[testament]![book] = sortSermonsChronologically(globals.sermonRepository.scriptureIndex!.byBook[testament]![book])
                             
-                            if Globals.sermonRepository.scriptureIndex!.byChapter[testament] != nil {
-                                if Globals.sermonRepository.scriptureIndex!.byChapter[testament]![book] != nil {
-                                    self.finished += Float(Globals.sermonRepository.scriptureIndex!.byChapter[testament]![book]!.keys.count)
-                                    for chapter in Globals.sermonRepository.scriptureIndex!.byChapter[testament]![book]!.keys {
-                                        Globals.sermonRepository.scriptureIndex!.byChapter[testament]![book]![chapter] = sortSermonsChronologically(Globals.sermonRepository.scriptureIndex!.byChapter[testament]![book]![chapter])
+                            if globals.sermonRepository.scriptureIndex!.byChapter[testament] != nil {
+                                if globals.sermonRepository.scriptureIndex!.byChapter[testament]![book] != nil {
+                                    self.finished += Float(globals.sermonRepository.scriptureIndex!.byChapter[testament]![book]!.keys.count)
+                                    for chapter in globals.sermonRepository.scriptureIndex!.byChapter[testament]![book]!.keys {
+                                        globals.sermonRepository.scriptureIndex!.byChapter[testament]![book]![chapter] = sortSermonsChronologically(globals.sermonRepository.scriptureIndex!.byChapter[testament]![book]![chapter])
                                         self.progress += 1
                                     }
                                 }
@@ -708,7 +708,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                 
                 self.updateDirectionLabel()
                 
-                self.sermons = Globals.sermonRepository.scriptureIndex!.byTestament[self.selectedTestament!]
+                self.sermons = globals.sermonRepository.scriptureIndex!.byTestament[self.selectedTestament!]
                 self.numberOfSermons.text = "\(self.sermons!.count) from the \(self.selectedTestament!)"
                 
                 self.tableView.hidden = false

@@ -13,7 +13,7 @@ class SettingsViewController: UIViewController {
     @IBOutlet weak var autoAdvanceSwitch: UISwitch!
     
     @IBAction func autoAdvanceAction(sender: UISwitch) {
-        Globals.autoAdvance = sender.on
+        globals.autoAdvance = sender.on
     }
     
     @IBOutlet weak var audioSizeLabel: UILabel!
@@ -21,12 +21,12 @@ class SettingsViewController: UIViewController {
     @IBOutlet weak var cacheSwitch: UISwitch!
     
     @IBAction func cacheAction(sender: UISwitch) {
-        Globals.cacheDownloads = sender.on
+        globals.cacheDownloads = sender.on
         
         if !sender.on {
             NSURLCache.sharedURLCache().removeAllCachedResponses()
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
-                for sermon in Globals.sermonRepository.list! {
+                for sermon in globals.sermonRepository.list! {
                     sermon.notesDownload?.deleteDownload()
                     sermon.slidesDownload?.deleteDownload()
                 }
@@ -45,14 +45,14 @@ class SettingsViewController: UIViewController {
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
-        autoAdvanceSwitch.on = Globals.autoAdvance
-        cacheSwitch.on = Globals.cacheDownloads
+        autoAdvanceSwitch.on = globals.autoAdvance
+        cacheSwitch.on = globals.cacheDownloads
     }
     
     func updateCacheSize()
     {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
-            let sizeOfCache = cacheSize(Constants.SLIDES) + cacheSize(Constants.NOTES)
+            let sizeOfCache = globals.cacheSize(Constants.SLIDES) + globals.cacheSize(Constants.NOTES)
             
             var size:Float = Float(sizeOfCache)
             
@@ -96,7 +96,7 @@ class SettingsViewController: UIViewController {
     func updateAudioSize()
     {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
-            let sizeOfAudio = cacheSize(Constants.AUDIO)
+            let sizeOfAudio = globals.cacheSize(Constants.AUDIO)
             
             var size:Float = Float(sizeOfAudio)
             

@@ -31,7 +31,7 @@
 		1798C7581CA93CC700CED4A5 /* TPSUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C7571CA93CC700CED4A5 /* TPSUITests.swift */; };
 		17BBEDD71BBF631F0070BF89 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17BBEDD61BBF631F0070BF89 /* SwiftyJSON.swift */; };
 		17D4641C1C8E135800519C98 /* ScriptureIndexViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */; };
-		17E75ECA1B835FC600AE8ED5 /* sermonFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E75EC91B835FC600AE8ED5 /* sermonFunctions.swift */; };
+		17E75ECA1B835FC600AE8ED5 /* functions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E75EC91B835FC600AE8ED5 /* functions.swift */; };
 		17E893541BA83FCE00D5D2FB /* SplitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E893531BA83FCE00D5D2FB /* SplitView.swift */; };
 		17F2E5BC1BE0F5C300FD146A /* fontawesome-webfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 17D9AA061BE0EDF700ED5090 /* fontawesome-webfont.ttf */; };
 /* End PBXBuildFile section */
@@ -85,7 +85,7 @@
 		17BBEDD61BBF631F0070BF89 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
 		17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScriptureIndexViewController.swift; sourceTree = "<group>"; };
 		17D9AA061BE0EDF700ED5090 /* fontawesome-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "fontawesome-webfont.ttf"; sourceTree = "<group>"; };
-		17E75EC91B835FC600AE8ED5 /* sermonFunctions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = sermonFunctions.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		17E75EC91B835FC600AE8ED5 /* functions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = functions.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		17E893531BA83FCE00D5D2FB /* SplitView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SplitView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -147,7 +147,7 @@
 				17BBEDD61BBF631F0070BF89 /* SwiftyJSON.swift */,
 				177FBA941C5CF36400AFBB50 /* OBSlider.swift */,
 				176BD8CD1BBF6CCA00991D19 /* sermons.json */,
-				17E75EC91B835FC600AE8ED5 /* sermonFunctions.swift */,
+				17E75EC91B835FC600AE8ED5 /* functions.swift */,
 				174EEE8B1B74C11E004F6942 /* MediaTableViewCell.swift */,
 				174EEE861B74C11E004F6942 /* MediaTableViewController.swift */,
 				17579DDF1B84706500F1424F /* PopoverTableViewController.swift */,
@@ -346,7 +346,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				17E75ECA1B835FC600AE8ED5 /* sermonFunctions.swift in Sources */,
+				17E75ECA1B835FC600AE8ED5 /* functions.swift in Sources */,
 				17763BE31BEA329400BB5556 /* Constants.swift in Sources */,
 				17579DE01B84706500F1424F /* PopoverTableViewController.swift in Sources */,
 				174EEE941B74C145004F6942 /* AppDelegate.swift in Sources */,

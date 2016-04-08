@@ -46,14 +46,14 @@ class SermonsListGroupSort {
 //    func archiveList() -> [String]?
 //    {
 //        return list?.map({ (sermon:Sermon) -> String in
-//            return "\(Globals.sermonRepository.list!.indexOf(sermon)!)"
+//            return "\(globals.sermonRepository.list!.indexOf(sermon)!)"
 //        })
 //    }
 //    
 //    func unarchiveList(sermons:[String]?)
 //    {
 //        list = sermons?.map({ (index:String) -> Sermon in
-//            return Globals.sermonRepository.list![Int(index)!]
+//            return globals.sermonRepository.list![Int(index)!]
 //        })
 //    }
 //    
@@ -86,9 +86,9 @@ class SermonsListGroupSort {
 //                groupSort?[groupKey]![groupNameKey] = [String:[Sermon]]()
 //                for sortKey in gs![groupKey]![groupNameKey]!.keys {
 //                    groupSort?[groupKey]![groupNameKey]![sortKey] = gs![groupKey]![groupNameKey]![sortKey]?.filter({ (index:String) -> Bool in
-//                        return Globals.sermonRepository.index![index] != nil
+//                        return globals.sermonRepository.index![index] != nil
 //                    }).map({ (index:String) -> Sermon in
-//                        return Globals.sermonRepository.index![index]!
+//                        return globals.sermonRepository.index![index]!
 //                    })
 //                }
 //            }
@@ -124,9 +124,9 @@ class SermonsListGroupSort {
 //        
 //        for key in ts!.keys {
 //            tagSermons?[key] = ts?[key]?.filter({ (index:String) -> Bool in
-//                return Globals.sermonRepository.index![index] != nil
+//                return globals.sermonRepository.index![index] != nil
 //            }).map({ (index:String) -> Sermon in
-//                return Globals.sermonRepository.index![index]!
+//                return globals.sermonRepository.index![index]!
 //            })
 //        }
 //    }
@@ -143,7 +143,7 @@ class SermonsListGroupSort {
     
     var sermons:[Sermon]? {
         get {
-            return sermons(grouping: Globals.grouping,sorting: Globals.sorting)
+            return sermons(grouping: globals.grouping,sorting: globals.sorting)
         }
     }
     
@@ -158,7 +158,7 @@ class SermonsListGroupSort {
         
         var groupedSermons = [String:[String:[Sermon]]]()
         
-        Globals.finished += list!.count
+        globals.finished += list!.count
         
         for sermon in list! {
             switch grouping! {
@@ -202,11 +202,11 @@ class SermonsListGroupSort {
                 groupedSermons[grouping!]?[string!]?.append(sermon)
             }
             
-            Globals.progress += 1
+            globals.progress += 1
         }
         
         if (groupedSermons[grouping!] != nil) {
-            Globals.finished += groupedSermons[grouping!]!.keys.count
+            globals.finished += groupedSermons[grouping!]!.keys.count
         }
         
         if (groupSort?[grouping!] == nil) {
@@ -233,7 +233,7 @@ class SermonsListGroupSort {
                         break
                     }
                     
-                    Globals.progress += 1
+                    globals.progress += 1
                 }
             }
         }
@@ -292,7 +292,7 @@ class SermonsListGroupSort {
     
     var sectionTitles:[String]? {
         get {
-            return sectionTitles(grouping: Globals.grouping,sorting: Globals.sorting)
+            return sectionTitles(grouping: globals.grouping,sorting: globals.sorting)
         }
     }
     
@@ -328,7 +328,7 @@ class SermonsListGroupSort {
     
     var sectionCounts:[Int]? {
         get {
-            return sectionCounts(grouping: Globals.grouping,sorting: Globals.sorting)
+            return sectionCounts(grouping: globals.grouping,sorting: globals.sorting)
         }
     }
     
@@ -364,7 +364,7 @@ class SermonsListGroupSort {
     
     var sectionIndexes:[Int]? {
         get {
-            return sectionIndexes(grouping: Globals.grouping,sorting: Globals.sorting)
+            return sectionIndexes(grouping: globals.grouping,sorting: globals.sorting)
         }
     }
     
@@ -407,8 +407,8 @@ class SermonsListGroupSort {
     init(sermons:[Sermon]?)
     {
         if (sermons != nil) {
-            Globals.finished = 0
-            Globals.progress = 0
+            globals.finished = 0
+            globals.progress = 0
             
             list = sermons
             
@@ -417,9 +417,9 @@ class SermonsListGroupSort {
             tagSermons = [String:[Sermon]]()
             tagNames = [String:String]()
             
-            sortGroup(Globals.grouping)
+            sortGroup(globals.grouping)
 
-            Globals.finished += list!.count
+            globals.finished += list!.count
             
             for sermon in list! {
                 if let tags =  sermon.tagsSet {
@@ -433,11 +433,11 @@ class SermonsListGroupSort {
                         tagNames?[sortTag!] = tag
                     }
                 }
-                Globals.progress += 1
+                globals.progress += 1
             }
         } else {
-            Globals.finished = 1
-            Globals.progress = 1
+            globals.finished = 1
+            globals.progress = 1
         }
     }
 }
@@ -689,13 +689,13 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     var sermonsInSeries:[Sermon]? {
         get {
             if (hasSeries()) {
-                if (Globals.sermons.all?.groupSort?[Constants.SERIES]?[seriesSort!]?[Constants.CHRONOLOGICAL] == nil) {
-                    let seriesSermons = Globals.sermonRepository.list?.filter({ (testSermon:Sermon) -> Bool in
+                if (globals.sermons.all?.groupSort?[Constants.SERIES]?[seriesSort!]?[Constants.CHRONOLOGICAL] == nil) {
+                    let seriesSermons = globals.sermonRepository.list?.filter({ (testSermon:Sermon) -> Bool in
                         return hasSeries() ? (testSermon.series == series) : (testSermon.id == id)
                     })
                     return sortSermonsByYear(seriesSermons, sorting: Constants.CHRONOLOGICAL)
                 } else {
-                    return Globals.sermons.all?.groupSort?[Constants.SERIES]?[seriesSort!]?[Constants.CHRONOLOGICAL]
+                    return globals.sermons.all?.groupSort?[Constants.SERIES]?[seriesSort!]?[Constants.CHRONOLOGICAL]
                 }
             } else {
                 return [self]
@@ -708,7 +708,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         var sermons:[Sermon]?
         
         if (tagsSet != nil) && tagsSet!.contains(tag) {
-            sermons = Globals.sermons.all?.tagSermons?[tag]
+            sermons = globals.sermons.all?.tagSermons?[tag]
         }
         
         return sermons
@@ -743,7 +743,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     
     var isPlaying:Bool {
         get {
-            return Globals.mpPlayer?.contentURL == playingURL
+            return globals.player.mpPlayer?.contentURL == playingURL
         }
     }
     
@@ -763,8 +763,8 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         set {
             if newValue != dict![Constants.PLAYING] {
                 //Changing audio to video or vice versa resets the state and time.
-                if Globals.sermonPlaying == self {
-                    Globals.mpPlayerStateTime = nil //?.dateEntered = NSDate()
+                if globals.player.playing == self {
+                    globals.player.stateTime = nil //?.dateEntered = NSDate()
                 }
                 
                 dict![Constants.PLAYING] = newValue
@@ -979,7 +979,15 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     }
     
     var series:String? {
+//        get {
+//            return dict![Constants.SERIES]
+//        }
         get {
+            if (title?.rangeOfString(Constants.SERIES_INDICATOR_SINGULAR, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil) != nil) {
+                let seriesString = title!.substringToIndex((title?.rangeOfString(Constants.SERIES_INDICATOR_SINGULAR, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)!.startIndex)!)
+                dict![Constants.SERIES] = seriesString
+            }
+
             return dict![Constants.SERIES]
         }
     }
@@ -1027,21 +1035,21 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                 settings?[Constants.TAGS] = settings![Constants.TAGS]! + Constants.TAGS_SEPARATOR + tag
             }
             
-            if Globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!] != nil {
-                if Globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!]!.indexOf(self) == nil {
-                    Globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!]!.append(self)
-                    Globals.sermons.all!.tagNames![stringWithoutPrefixes(tag)!] = tag
+            if globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!] != nil {
+                if globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!]!.indexOf(self) == nil {
+                    globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!]!.append(self)
+                    globals.sermons.all!.tagNames![stringWithoutPrefixes(tag)!] = tag
                 }
             } else {
-                Globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!] = [self]
-                Globals.sermons.all!.tagNames![stringWithoutPrefixes(tag)!] = tag
+                globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!] = [self]
+                globals.sermons.all!.tagNames![stringWithoutPrefixes(tag)!] = tag
             }
             
-            if (Globals.sermonTagsSelected == tag) {
-                Globals.sermons.hiddenTagged = SermonsListGroupSort(sermons: Globals.sermons.all?.tagSermons?[stringWithoutPrefixes(Globals.sermonTagsSelected!)!])
+            if (globals.sermonTagsSelected == tag) {
+                globals.sermons.tagged = SermonsListGroupSort(sermons: globals.sermons.all?.tagSermons?[stringWithoutPrefixes(globals.sermonTagsSelected!)!])
                 
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_SERMON_LIST_NOTIFICATION, object: Globals.sermons.hiddenTagged)
+                    NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_SERMON_LIST_NOTIFICATION, object: globals.sermons.tagged)
                 })
             }
             
@@ -1059,15 +1067,15 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                 tags?.removeAtIndex(tags!.indexOf(tag)!)
                 settings?[Constants.TAGS] = tagsArrayToTagsString(tags)
 
-                if let index = Globals.sermons.all?.tagSermons?[stringWithoutPrefixes(tag)!]?.indexOf(self) {
-                    Globals.sermons.all?.tagSermons?[stringWithoutPrefixes(tag)!]?.removeAtIndex(index)
+                if let index = globals.sermons.all?.tagSermons?[stringWithoutPrefixes(tag)!]?.indexOf(self) {
+                    globals.sermons.all?.tagSermons?[stringWithoutPrefixes(tag)!]?.removeAtIndex(index)
                 }
                 
-                if (Globals.sermonTagsSelected == tag) {
-                    Globals.sermons.hiddenTagged = SermonsListGroupSort(sermons: Globals.sermons.all?.tagSermons?[stringWithoutPrefixes(Globals.sermonTagsSelected!)!])
+                if (globals.sermonTagsSelected == tag) {
+                    globals.sermons.tagged = SermonsListGroupSort(sermons: globals.sermons.all?.tagSermons?[stringWithoutPrefixes(globals.sermonTagsSelected!)!])
                     
                     dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                        NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_SERMON_LIST_NOTIFICATION, object: Globals.sermons.hiddenTagged)
+                        NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_SERMON_LIST_NOTIFICATION, object: globals.sermons.tagged)
                     })
                 }
                 
@@ -1485,22 +1493,22 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         subscript(key:String) -> String? {
             get {
-                return Globals.sermonSettings?[sermon!.id]?[key]
+                return globals.settings?[sermon!.id]?[key]
             }
             set {
                 if (sermon != nil) {
-                    if (Globals.sermonSettings == nil) {
-                        Globals.sermonSettings = [String:[String:String]]()
+                    if (globals.settings == nil) {
+                        globals.settings = [String:[String:String]]()
                     }
-                    if (Globals.sermonSettings?[sermon!.id] == nil) {
-                        Globals.sermonSettings?[sermon!.id] = [String:String]()
+                    if (globals.settings?[sermon!.id] == nil) {
+                        globals.settings?[sermon!.id] = [String:String]()
                     }
-                    if (Globals.sermonSettings?[sermon!.id]?[key] != newValue) {
+                    if (globals.settings?[sermon!.id]?[key] != newValue) {
 //                        print("\(sermon)")
-                        Globals.sermonSettings?[sermon!.id]?[key] = newValue
+                        globals.settings?[sermon!.id]?[key] = newValue
                         
                         // For a high volume of activity this can be very expensive.
-                        saveSermonSettingsBackground()
+                        globals.saveSettingsBackground()
                     }
                 } else {
                     print("sermon == nil in Settings!")
@@ -1525,18 +1533,18 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         
         subscript(key:String) -> String? {
             get {
-                return Globals.seriesViewSplits?[sermon!.seriesID]
+                return globals.viewSplits?[sermon!.seriesID]
             }
             set {
                 if (sermon != nil) {
-                    if (Globals.seriesViewSplits == nil) {
-                        Globals.seriesViewSplits = [String:String]()
+                    if (globals.viewSplits == nil) {
+                        globals.viewSplits = [String:String]()
                     }
-                    if (Globals.seriesViewSplits?[sermon!.seriesID] != newValue) {
-                        Globals.seriesViewSplits?[sermon!.seriesID] = newValue
+                    if (globals.viewSplits?[sermon!.seriesID] != newValue) {
+                        globals.viewSplits?[sermon!.seriesID] = newValue
                         
                         // For a high volume of activity this can be very expensive.
-                        saveSermonSettingsBackground()
+                        globals.saveSettingsBackground()
                     }
                 } else {
                     print("sermon == nil in Settings!")

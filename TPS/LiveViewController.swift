@@ -17,27 +17,21 @@ class LiveViewController: UIViewController {
     }
     
     override func motionEnded(motion: UIEventSubtype, withEvent event: UIEvent?) {
-        if (splitViewController == nil) && (motion == .MotionShake) {
-            if (Globals.playerPaused) {
-                Globals.mpPlayer?.play()
-            } else {
-                Globals.mpPlayer?.pause()
-                updateCurrentTimeExact()
-            }
-            Globals.playerPaused = !Globals.playerPaused
+        if (splitViewController == nil) {
+            globals.motionEnded(motion,event: event)
         }
     }
     
     func fullScreen()
     {
-        Globals.mpPlayer?.setFullscreen(!Globals.mpPlayer!.fullscreen, animated: true)
+        globals.player.mpPlayer?.setFullscreen(!globals.player.mpPlayer!.fullscreen, animated: true)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-//        print("\(Globals.mpPlayer?.contentURL)")
+//        print("\(globals.player.mpPlayer?.contentURL)")
 //        print("\(NSURL(string:Constants.LIVE_STREAM_URL))")
         
         setupLivePlayerView()
@@ -47,7 +41,7 @@ class LiveViewController: UIViewController {
 
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-//        Globals.mpPlayer?.controlStyle = MPMovieControlStyle.Embedded
+//        globals.player.mpPlayer?.controlStyle = MPMovieControlStyle.Embedded
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -68,23 +62,23 @@ class LiveViewController: UIViewController {
 
     func zoomScreen()
     {
-        Globals.mpPlayer?.setFullscreen(true, animated: true)
+        globals.player.mpPlayer?.setFullscreen(true, animated: true)
     }
     
     private func setupLivePlayerView()
     {
-        if (Globals.mpPlayer?.contentURL != NSURL(string:Constants.LIVE_STREAM_URL)) {
-            Globals.mpPlayer?.stop()
-            Globals.playerPaused = true
+        if (globals.player.mpPlayer?.contentURL != NSURL(string:Constants.LIVE_STREAM_URL)) {
+            globals.player.mpPlayer?.stop()
+            globals.player.paused = true
 
-            Globals.mpPlayer = MPMoviePlayerController(contentURL: NSURL(string: Constants.LIVE_STREAM_URL)!)
-            Globals.mpPlayer?.prepareToPlay()
+            globals.player.mpPlayer = MPMoviePlayerController(contentURL: NSURL(string: Constants.LIVE_STREAM_URL)!)
+            globals.player.mpPlayer?.prepareToPlay()
         }
         
-        if (Globals.mpPlayer != nil) {
-//            Globals.mpPlayer!.setFullscreen(false, animated: false)
+        if (globals.player.mpPlayer != nil) {
+//            globals.player.mpPlayer!.setFullscreen(false, animated: false)
 
-            let view = Globals.mpPlayer!.view
+            let view = globals.player.mpPlayer!.view
 
             view.hidden = true
             view.removeFromSuperview()
@@ -131,7 +125,7 @@ class LiveViewController: UIViewController {
 
             view.hidden = false
 
-            Globals.mpPlayer!.play()
+            globals.player.mpPlayer!.play()
         }
     }
 }

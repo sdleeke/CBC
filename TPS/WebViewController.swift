@@ -44,14 +44,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     }
     
     override func motionEnded(motion: UIEventSubtype, withEvent event: UIEvent?) {
-        if (splitViewController == nil) && (motion == .MotionShake) {
-            if (Globals.playerPaused) {
-                Globals.mpPlayer?.play()
-            } else {
-                Globals.mpPlayer?.pause()
-                updateCurrentTimeExact()
-            }
-            Globals.playerPaused = !Globals.playerPaused
+        if (splitViewController == nil) {
+            globals.motionEnded(motion,event: event)
         }
     }
     
@@ -311,14 +305,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                     actionMenu.append(Constants.Print)
                     actionMenu.append(Constants.Open_in_Browser)
                     
-                    if Globals.cacheDownloads { //  && !showScripture
+                    if globals.cacheDownloads { //  && !showScripture
                         actionMenu.append(Constants.Check_for_Update)
                     }
                 }
                 
                 popover.strings = actionMenu
                 
-                popover.showIndex = false //(Globals.grouping == .series)
+                popover.showIndex = false //(globals.grouping == .series)
                 popover.showSectionHeaders = false
                 
                 presentViewController(navigationController, animated: true, completion: nil)
@@ -478,7 +472,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     func setupSplitViewController()
     {
         if (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
-            if (Globals.sermons.all == nil) {
+            if (globals.sermons.all == nil) {
                 splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
             } else {
                 if (splitViewController != nil) {
@@ -654,7 +648,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     func loadDocument()
     {
         if #available(iOS 9.0, *) {
-            if Globals.cacheDownloads {
+            if globals.cacheDownloads {
                 var destinationURL:NSURL?
                 
                 destinationURL = selectedSermon?.fileSystemURL

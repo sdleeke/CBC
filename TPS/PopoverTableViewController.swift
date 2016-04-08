@@ -164,13 +164,13 @@ class PopoverTableViewController: UITableViewController {
 
         // The code below scrolls to the currently selected tag (if there is one), but that makes getting to All at the top of the list harder.
         // And since the currently selectd tag (if there is one) is shown in the search bar prompt text, I don't think this is needed.
-//        if (purpose == .selectingTags) && (Globals.sermonTagsSelected != nil) && (Globals.sermonTagsSelected != Constants.All) {
-//            if (strings != nil) && (Globals.sermonTagsSelected != nil) {
+//        if (purpose == .selectingTags) && (globals.sermonTagsSelected != nil) && (globals.sermonTagsSelected != Constants.All) {
+//            if (strings != nil) && (globals.sermonTagsSelected != nil) {
 //                if (showSectionHeaders) {
-//                    let sectionNumber = section.titles!.indexOf(Globals.sermonTagsSelected!.substringToIndex("A".endIndex))
+//                    let sectionNumber = section.titles!.indexOf(globals.sermonTagsSelected!.substringToIndex("A".endIndex))
 //                    var row = section.indexes![sectionNumber!]
 //                    for increment in 0..<section.counts![sectionNumber!] {
-//                        if Globals.sermonTagsSelected == strings?[row+increment] {
+//                        if globals.sermonTagsSelected == strings?[row+increment] {
 //                            row = increment
 //                            break
 //                        }
@@ -178,7 +178,7 @@ class PopoverTableViewController: UITableViewController {
 //                    let indexPath = NSIndexPath(forRow: row, inSection: sectionNumber!)
 //                    tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: UITableViewScrollPosition.None, animated: true)
 //                } else {
-//                    if let row = strings!.indexOf(Globals.sermonTagsSelected!) {
+//                    if let row = strings!.indexOf(globals.sermonTagsSelected!) {
 //                        let indexPath = NSIndexPath(forRow: row, inSection: 0)
 //                        tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: UITableViewScrollPosition.None, animated: true)
 //                    }
@@ -281,12 +281,12 @@ class PopoverTableViewController: UITableViewController {
             break
             
         case .selectingTags:
-            //            print("strings: \(strings[indexPath.row]) sermontTag: \(Globals.sermonTag)")
+            //            print("strings: \(strings[indexPath.row]) sermontTag: \(globals.sermonTag)")
             let string = strings![index]
             
-            switch Globals.showing! {
+            switch globals.showing! {
             case Constants.TAGGED:
-                if (tagsArrayFromTagsString(Globals.sermonTagsSelected)!.indexOf(string) != nil) {
+                if (tagsArrayFromTagsString(globals.sermonTagsSelected)!.indexOf(string) != nil) {
                     cell.accessoryType = UITableViewCellAccessoryType.Checkmark
                 } else {
                     cell.accessoryType = UITableViewCellAccessoryType.None
@@ -294,7 +294,7 @@ class PopoverTableViewController: UITableViewController {
                 break
             
             case Constants.ALL:
-                if ((Globals.sermonTagsSelected == nil) && (strings![index] == Constants.All)) {
+                if ((globals.sermonTagsSelected == nil) && (strings![index] == Constants.All)) {
                     cell.accessoryType = UITableViewCellAccessoryType.Checkmark
                 } else {
                     cell.accessoryType = UITableViewCellAccessoryType.None
@@ -311,7 +311,7 @@ class PopoverTableViewController: UITableViewController {
             break
             
         case .selectingGrouping:
-            if (Constants.groupings[index] == Globals.grouping) {
+            if (Constants.groupings[index] == globals.grouping) {
                 cell.accessoryType = UITableViewCellAccessoryType.Checkmark
             } else {
                 cell.accessoryType = UITableViewCellAccessoryType.None
@@ -319,7 +319,7 @@ class PopoverTableViewController: UITableViewController {
             break
             
         case .selectingSorting:
-            if (Constants.sortings[index] == Globals.sorting) {
+            if (Constants.sortings[index] == globals.sorting) {
                 cell.accessoryType = UITableViewCellAccessoryType.Checkmark
             } else {
                 cell.accessoryType = UITableViewCellAccessoryType.None

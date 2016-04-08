@@ -12,45 +12,6 @@ import AVKit
 
 //typealias GroupTuple = (indexes: [Int]?, counts: [Int]?)
 
-func addToHistory(sermon:Sermon?)
-{
-    if (sermon != nil) {
-        let entry = "\(NSDate())" + Constants.TAGS_SEPARATOR + "\(sermon!.id)"
-        
-        if Globals.sermonHistory == nil {
-            Globals.sermonHistory = [entry]
-        } else {
-            Globals.sermonHistory?.append(entry)
-        }
-        
-//        print(Globals.sermonHistory)
-        
-        let defaults = NSUserDefaults.standardUserDefaults()
-        defaults.setObject(Globals.sermonHistory, forKey: Constants.HISTORY)
-        defaults.synchronize()
-    } else {
-        print("Sermon NIL!")
-    }
-}
-
-func startAudio()
-{
-    let audioSession: AVAudioSession  = AVAudioSession.sharedInstance()
-    
-    do {
-        try audioSession.setCategory(AVAudioSessionCategoryPlayback)
-    } catch _ {
-        print("failed to setCategory(AVAudioSessionCategoryPlayback)")
-    }
-    
-    do {
-        //        audioSession.setCategory(AVAudioSessionCategoryPlayback, withOptions: AVAudioSessionCategoryOptions.MixWithOthers, error:nil)
-        try audioSession.setActive(true)
-    } catch _ {
-        print("failed to audioSession.setActive(true)")
-    }
-}
-
 func documentsURL() -> NSURL?
 {
     let fileManager = NSFileManager.defaultManager()
@@ -81,24 +42,6 @@ func cachesURL() -> NSURL?
 //        print("failed to remove temp files")
 //    }
 //}
-
-func totalCacheSize() -> Int64
-{
-    return cacheSize(Constants.AUDIO) + cacheSize(Constants.VIDEO) + cacheSize(Constants.NOTES) + cacheSize(Constants.SLIDES)
-}
-
-func cacheSize(contents:String) -> Int64
-{
-    var totalFileSize:Int64 = 0
-    
-    for sermon in Globals.sermonRepository.list! {
-        if sermon.downloads[contents]?.state == .downloaded {
-            totalFileSize += sermon.downloads[contents]!.fileSize
-        }
-    }
-    
-    return totalFileSize
-}
 
 //func promoteTempJSON()
 //{
@@ -419,251 +362,6 @@ func loadSermonDicts() -> [[String:String]]?
     return nil
 }
 
-func cancelAllDownloads()
-{
-    if (Globals.sermonRepository.list != nil) {
-        for sermon in Globals.sermonRepository.list! {
-            for download in sermon.downloads.values {
-                if download.active {
-                    download.task?.cancel()
-                    download.task = nil
-                    
-                    download.totalBytesWritten = 0
-                    download.totalBytesExpectedToWrite = 0
-                    
-                    download.state = .none
-                }
-            }
-        }
-    }
-}
-
-func loadDefaults()
-{
-    loadSermonSettings()
-    
-    let defaults = NSUserDefaults.standardUserDefaults()
-
-    if let defaultsVersion = defaults.stringForKey(Constants.DEFAULTS_VERSION_KEY) {
-        if (defaultsVersion == Constants.DEFAULTS_VERSION) {
-            if let sorting = defaults.stringForKey(Constants.SORTING) {
-                Globals.sorting = sorting
-            } else {
-                Globals.sorting = Constants.REVERSE_CHRONOLOGICAL
-            }
-            
-            if let grouping = defaults.stringForKey(Constants.GROUPING) {
-                Globals.grouping = grouping
-            } else {
-                Globals.grouping = Constants.YEAR
-            }
-            
-            Globals.sermonTagsSelected = defaults.stringForKey(Constants.COLLECTION)
-            
-            if (Globals.sermonTagsSelected == Constants.New) {
-                Globals.sermonTagsSelected = nil
-            }
-            
-            if (Globals.sermonTagsSelected != nil) {
-                switch Globals.sermonTagsSelected! {
-                case Constants.All:
-                    Globals.sermonTagsSelected = nil
-                    Globals.showing = Constants.ALL
-                    break
-                    
-                default:
-                    Globals.showing = Constants.TAGGED
-                    break
-                }
-            } else {
-                Globals.showing = Constants.ALL
-            }
-            
-            var indexOfSermon:Int?
-            
-            if let dict = defaults.dictionaryForKey(Constants.SERMON_PLAYING) {
-                indexOfSermon = Globals.sermonRepository.list?.indexOf({ (sermon:Sermon) -> Bool in
-                    return (sermon.title == (dict[Constants.TITLE] as! String)) &&
-                        (sermon.date == (dict[Constants.DATE] as! String)) &&
-                        (sermon.service == (dict[Constants.SERVICE] as! String)) &&
-                        (sermon.speaker == (dict[Constants.SPEAKER] as! String))
-                })
-            }
-            
-            if (indexOfSermon != nil) {
-                Globals.sermonPlaying = Globals.sermonRepository.list?[indexOfSermon!]
-            }
-            
-            if let historyArray = defaults.arrayForKey(Constants.HISTORY) {
-                //        print("\(settingsDictionary)")
-                Globals.sermonHistory = historyArray as? [String]
-            }
-        } else {
-            //This is where we should map the old version on to the new one and preserve the user's information.
-            defaults.setObject(Constants.DEFAULTS_VERSION, forKey: Constants.DEFAULTS_VERSION_KEY)
-            defaults.synchronize()
-        }
-    } else {
-        //This is where we should map the old version (if there is one) on to the new one and preserve the user's information.
-        defaults.setObject(Constants.DEFAULTS_VERSION, forKey: Constants.DEFAULTS_VERSION_KEY)
-        defaults.synchronize()
-    }
-}
-
-func updateCurrentTimeWhilePlaying()
-{
-    assert(Globals.mpPlayer != nil,"Globals.mpPlayer should not be nil if we're trying to update the currentTime in userDefaults")
-
-    var timeNow:Float = 0.0
-    
-    if (Globals.mpPlayer != nil) {
-        if (Globals.mpPlayer?.playbackState == .Playing) {
-            if (Globals.mpPlayer!.currentPlaybackTime > 0) && (Globals.mpPlayer!.currentPlaybackTime <= Globals.mpPlayer!.duration) {
-                timeNow = Float(Globals.mpPlayer!.currentPlaybackTime)
-            }
-        }
-    }
-
-    if ((timeNow > 0) && (Int(timeNow) % 10) == 0) {
-        Globals.sermonPlaying?.currentTime = Globals.mpPlayer!.currentPlaybackTime.description
-    }
-}
-
-func networkUnavailable(message:String?)
-{
-    if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
-        UIApplication.sharedApplication().keyWindow?.rootViewController?.dismissViewControllerAnimated(true, completion: nil)
-        
-        let alert = UIAlertController(title:Constants.Network_Error,
-            message: message,
-            preferredStyle: UIAlertControllerStyle.Alert)
-        
-        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
-            
-        })
-        alert.addAction(action)
-        
-//        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
-        
-        UIApplication.sharedApplication().keyWindow?.rootViewController?.presentViewController(alert, animated: true, completion: nil)
-    }
-}
-
-func setupPlayer(sermon:Sermon?)
-{
-    if (sermon != nil) {
-        Globals.playerLoaded = false
-        Globals.playerLoadFailed = false
-
-        Globals.mpPlayer = MPMoviePlayerController(contentURL: sermon?.playingURL)
-        
-        Globals.mpPlayer?.shouldAutoplay = false
-        Globals.mpPlayer?.controlStyle = MPMovieControlStyle.None
-        Globals.mpPlayer?.prepareToPlay()
-        
-        setupPlayingInfoCenter()
-        
-        Globals.mpPlayerStateTime = nil
-        
-        Globals.playerPaused = true
-    }
-}
-
-func setupPlayerAtEnd(sermon:Sermon?)
-{
-    setupPlayer(sermon)
-
-    if (Globals.mpPlayer != nil) {
-        Globals.mpPlayer?.currentPlaybackTime = Globals.mpPlayer!.duration
-        Globals.mpPlayer?.pause()
-        sermon?.currentTime = Float(Globals.mpPlayer!.duration).description
-    }
-}
-
-func updateCurrentTimeExact()
-{
-    if (Globals.mpPlayer?.contentURL != nil) && (Globals.mpPlayer?.contentURL != NSURL(string:Constants.LIVE_STREAM_URL)) {
-        updateCurrentTimeExact(Globals.mpPlayer!.currentPlaybackTime)
-    }
-}
-
-func updateCurrentTimeExact(seekToTime:NSTimeInterval)
-{
-    if (seekToTime == 0) {
-        print("seekToTime == 0")
-    }
-
-//    print(seekToTime)
-//    print(seekToTime.description)
-
-    if (seekToTime >= 0) {
-        Globals.sermonPlaying?.currentTime = seekToTime.description
-    }
-}
-
-func livePlayingInfoCenter()
-{
-    var sermonInfo = [String:AnyObject]()
-    
-    sermonInfo.updateValue("Live Broadcast",forKey: MPMediaItemPropertyTitle)
-    
-    sermonInfo.updateValue("Countryside Bible Church",forKey: MPMediaItemPropertyArtist)
-
-    sermonInfo.updateValue("Live Broadcast",forKey: MPMediaItemPropertyAlbumTitle)
-
-    sermonInfo.updateValue("Countryside Bible Church",forKey: MPMediaItemPropertyAlbumArtist)
-
-    sermonInfo.updateValue(MPMediaItemArtwork(image: UIImage(named:Constants.COVER_ART_IMAGE)!),forKey: MPMediaItemPropertyArtwork)
-    
-    MPNowPlayingInfoCenter.defaultCenter().nowPlayingInfo = sermonInfo
-}
-
-func setupPlayingInfoCenter()
-{
-    if Globals.mpPlayer?.contentURL != NSURL(string: Constants.LIVE_STREAM_URL) {
-        if (Globals.sermonPlaying != nil) {
-            var sermonInfo = [String:AnyObject]()
-            
-            sermonInfo.updateValue(Globals.sermonPlaying!.title!,                                               forKey: MPMediaItemPropertyTitle)
-            
-            if (Globals.sermonPlaying!.speaker != nil) {
-                sermonInfo.updateValue(Globals.sermonPlaying!.speaker!,                                             forKey: MPMediaItemPropertyArtist)
-            }
-            
-            sermonInfo.updateValue(MPMediaItemArtwork(image: UIImage(named:Constants.COVER_ART_IMAGE)!),                   forKey: MPMediaItemPropertyArtwork)
-            
-            if (Globals.sermonPlaying!.hasSeries()) {
-                sermonInfo.updateValue(Globals.sermonPlaying!.series!,                                          forKey: MPMediaItemPropertyAlbumTitle)
-                
-                if (Globals.sermonPlaying!.speaker != nil) {
-                    sermonInfo.updateValue(Globals.sermonPlaying!.speaker!,                                         forKey: MPMediaItemPropertyAlbumArtist)
-                }
-                
-                if let sermonsInSeries = Globals.sermonRepository.list?.filter({ (sermon:Sermon) -> Bool in
-                    return (sermon.hasSeries()) && (sermon.series == Globals.sermonPlaying!.series)
-                }).sort({ $0.title < $1.title }) {
-                    //                print("\(sermonsInSeries.indexOf(Globals.sermonPlaying!))")
-                    //                print("\(Globals.sermonPlaying!)")
-                    //                print("\(sermonsInSeries)")
-                    sermonInfo.updateValue(sermonsInSeries.indexOf(Globals.sermonPlaying!)!,                        forKey: MPMediaItemPropertyAlbumTrackNumber)
-                    sermonInfo.updateValue(sermonsInSeries.count,                                                   forKey: MPMediaItemPropertyAlbumTrackCount)
-                }
-            }
-            
-            if (Globals.mpPlayer != nil) {
-                sermonInfo.updateValue(NSNumber(double: Globals.mpPlayer!.duration),                                forKey: MPMediaItemPropertyPlaybackDuration)
-                sermonInfo.updateValue(NSNumber(double: Globals.mpPlayer!.currentPlaybackTime),                     forKey: MPNowPlayingInfoPropertyElapsedPlaybackTime)
-                
-                sermonInfo.updateValue(NSNumber(float:Globals.mpPlayer!.currentPlaybackRate),                       forKey: MPNowPlayingInfoPropertyPlaybackRate)
-            }
-            
-            //    print("\(sermonInfo.count)")
-            
-            MPNowPlayingInfoCenter.defaultCenter().nowPlayingInfo = sermonInfo
-        }
-    }
-}
-
 extension NSDate
 {
     convenience
@@ -711,56 +409,6 @@ extension NSDate
     }
 }
 
-func saveSermonSettingsBackground()
-{
-//    print("saveSermonSettingsBackground")
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0)) { () -> Void in
-        saveSermonSettings()
-    }
-}
-
-func saveSermonSettings()
-{
-    if Globals.saveSettings {
-        print("saveSermonSettings")
-        let defaults = NSUserDefaults.standardUserDefaults()
-        //    print("\(Globals.sermonSettings)")
-        defaults.setObject(Globals.sermonSettings,forKey: Constants.SERMON_SETTINGS_KEY)
-        //    print("\(Globals.seriesViewSplits)")
-        defaults.setObject(Globals.seriesViewSplits, forKey: Constants.SERIES_VIEW_SPLITS_KEY)
-        defaults.synchronize()
-    }
-}
-
-func loadSermonSettings()
-{
-    let defaults = NSUserDefaults.standardUserDefaults()
-    
-    if let sermonSettingsVersion = defaults.stringForKey(Constants.SERMON_SETTINGS_VERSION_KEY) {
-        if sermonSettingsVersion == Constants.SERMON_SETTINGS_VERSION {
-            if let settingsDictionary = defaults.dictionaryForKey(Constants.SERMON_SETTINGS_KEY) {
-        //        print("\(settingsDictionary)")
-                Globals.sermonSettings = settingsDictionary as? [String:[String:String]]
-            }
-            
-            if let viewSplitsDictionary = defaults.dictionaryForKey(Constants.SERIES_VIEW_SPLITS_KEY) {
-        //        print("\(viewSplitsDictionary)")
-                Globals.seriesViewSplits = viewSplitsDictionary as? [String:String]
-            }
-        } else {
-            //This is where we should map the old version on to the new one and preserve the user's information.
-            defaults.setObject(Constants.SERMON_SETTINGS_VERSION, forKey: Constants.SERMON_SETTINGS_VERSION_KEY)
-            defaults.synchronize()
-        }
-    } else {
-        //This is where we should map the old version (if there is one) on to the new one and preserve the user's information.
-        defaults.setObject(Constants.SERMON_SETTINGS_VERSION, forKey: Constants.SERMON_SETTINGS_VERSION_KEY)
-        defaults.synchronize()
-    }
-
-//    print("\(Globals.sermonSettings)")
-}
-
 func stringWithoutPrefixes(fromString:String?) -> String?
 {
     var sortString = fromString
@@ -781,26 +429,6 @@ func stringWithoutPrefixes(fromString:String?) -> String?
 
     return sortString
 }
-
-
-func clearSermonsForDisplay()
-{
-    Globals.display.sermons = nil
-    Globals.display.sectionTitles = nil
-    Globals.display.sectionIndexes = nil
-    Globals.display.sectionCounts = nil
-}
-
-
-func setupSermonsForDisplay()
-{
-    Globals.display.sermons = Globals.active?.sermons
-    
-    Globals.display.sectionTitles = Globals.active?.sectionTitles
-    Globals.display.sectionIndexes = Globals.active?.sectionIndexes
-    Globals.display.sectionCounts = Globals.active?.sectionCounts
-}
-
 
 func sortSermons(sermons:[Sermon]?, sorting:String?, grouping:String?) -> [Sermon]?
 {
@@ -1096,13 +724,13 @@ func sermonsInSermonSeries(sermon:Sermon?) -> [Sermon]?
     
     if (sermon != nil) {
         if (sermon!.hasSeries()) {
-            if (Globals.sermons.all?.groupSort?[Constants.SERIES]?[sermon!.seriesSort!]?[Constants.CHRONOLOGICAL] == nil) {
-                let seriesSermons = Globals.sermonRepository.list?.filter({ (testSermon:Sermon) -> Bool in
+            if (globals.sermons.all?.groupSort?[Constants.SERIES]?[sermon!.seriesSort!]?[Constants.CHRONOLOGICAL] == nil) {
+                let seriesSermons = globals.sermonRepository.list?.filter({ (testSermon:Sermon) -> Bool in
                     return sermon!.hasSeries() ? (testSermon.series == sermon!.series) : (testSermon.id == sermon!.id)
                 })
                 sermonsInSeries = sortSermonsByYear(seriesSermons, sorting: Constants.CHRONOLOGICAL)
             } else {
-                sermonsInSeries = Globals.sermons.all?.groupSort?[Constants.SERIES]?[sermon!.seriesSort!]?[Constants.CHRONOLOGICAL]
+                sermonsInSeries = globals.sermons.all?.groupSort?[Constants.SERIES]?[sermon!.seriesSort!]?[Constants.CHRONOLOGICAL]
             }
         } else {
             sermonsInSeries = [sermon!]
@@ -1439,7 +1067,7 @@ func testSermonsPDFs(testExisting testExisting:Bool, testMissing:Bool, showTesti
     if (testExisting) {
         print("Testing the availability of sermon transcripts and slides that we DO have in the sermonDicts - start")
         
-        if let sermons = Globals.sermonRepository.list {
+        if let sermons = globals.sermonRepository.list {
             for sermon in sermons {
                 if (showTesting) {
                     print("Testing: \(counter) \(sermon.title!)")
@@ -1474,7 +1102,7 @@ func testSermonsPDFs(testExisting testExisting:Bool, testMissing:Bool, showTesti
         print("Testing the availability of sermon transcripts and slides that we DO NOT have in the sermonDicts - start")
         
         counter = 1
-        if let sermons = Globals.sermonRepository.list {
+        if let sermons = globals.sermonRepository.list {
             for sermon in sermons {
                 if (showTesting) {
                     print("Testing: \(counter) \(sermon.title!)")
@@ -1526,7 +1154,7 @@ func testSermonsTagsAndSeries()
 {
     print("Testing for sermon series and tags the same - start")
     
-    if let sermons = Globals.sermonRepository.list {
+    if let sermons = globals.sermonRepository.list {
         for sermon in sermons {
             if (sermon.hasSeries()) && (sermon.hasTags()) {
                 if (sermon.series == sermon.tags) {
@@ -1543,7 +1171,7 @@ func testSermonsForAudio()
 {
     print("Testing for audio - start")
     
-    for sermon in Globals.sermonRepository.list! {
+    for sermon in globals.sermonRepository.list! {
         if (!sermon.hasAudio()) {
             print("Audio missing in: \(sermon.title!)")
         } else {
@@ -1558,7 +1186,7 @@ func testSermonsForSpeaker()
 {
     print("Testing for speaker - start")
     
-    for sermon in Globals.sermonRepository.list! {
+    for sermon in globals.sermonRepository.list! {
         if (!sermon.hasSpeaker()) {
             print("Speaker missing in: \(sermon.title!)")
         }
@@ -1571,7 +1199,7 @@ func testSermonsForSeries()
 {
     print("Testing for sermons with \"(Part \" in the title but no series - start")
     
-    for sermon in Globals.sermonRepository.list! {
+    for sermon in globals.sermonRepository.list! {
         if (sermon.title?.rangeOfString("(Part ", options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil) != nil) && sermon.hasSeries() {
             print("Series missing in: \(sermon.title!)")
         }
@@ -1584,7 +1212,7 @@ func testSermonsBooksAndSeries()
 {
     print("Testing for sermon series and book the same - start")
 
-    for sermon in Globals.sermonRepository.list! {
+    for sermon in globals.sermonRepository.list! {
         if (sermon.hasSeries()) && (sermon.hasBook()) {
             if (sermon.series == sermon.book) {
                 print("Series and Book the same in: \(sermon.title!) Series:\(sermon.series!) Book:\(sermon.book!)")
@@ -1691,105 +1319,5 @@ func sermonsFromSermonDicts(sermonDicts:[[String:String]]?) -> [Sermon]?
     return nil
 }
 
-func addAccessoryEvents()
-{
-    MPRemoteCommandCenter.sharedCommandCenter().pauseCommand.enabled = true
-    MPRemoteCommandCenter.sharedCommandCenter().pauseCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-        print("RemoteControlPause")
-        Globals.mpPlayer?.pause()
-        Globals.playerPaused = true
-        updateCurrentTimeExact()
-        setupPlayingInfoCenter()
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-            NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-        })
-        return MPRemoteCommandHandlerStatus.Success
-    }
-    
-    MPRemoteCommandCenter.sharedCommandCenter().stopCommand.enabled = true
-    MPRemoteCommandCenter.sharedCommandCenter().stopCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-        print("RemoteControlStop")
-        updateCurrentTimeExact()
-        Globals.mpPlayer?.stop()
-        Globals.playerPaused = true
-        setupPlayingInfoCenter()
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-            NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-        })
-        return MPRemoteCommandHandlerStatus.Success
-    }
-    
-    MPRemoteCommandCenter.sharedCommandCenter().playCommand.enabled = true
-    MPRemoteCommandCenter.sharedCommandCenter().playCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-        print("RemoteControlPlay")
-        Globals.mpPlayer?.play()
-        Globals.playerPaused = false
-        setupPlayingInfoCenter()
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-            NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-        })
-        return MPRemoteCommandHandlerStatus.Success
-    }
-    
-    MPRemoteCommandCenter.sharedCommandCenter().togglePlayPauseCommand.enabled = true
-    MPRemoteCommandCenter.sharedCommandCenter().togglePlayPauseCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-        print("RemoteControlTogglePlayPause")
-        if (Globals.playerPaused) {
-            Globals.mpPlayer?.play()
-        } else {
-            Globals.mpPlayer?.pause()
-            updateCurrentTimeExact()
-        }
-        Globals.playerPaused = !Globals.playerPaused
-        setupPlayingInfoCenter()
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-            NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-        })
-        return MPRemoteCommandHandlerStatus.Success
-    }
-    
-//    MPRemoteCommandCenter.sharedCommandCenter().seekBackwardCommand.enabled = true
-//    MPRemoteCommandCenter.sharedCommandCenter().seekBackwardCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-//        //        Globals.mpPlayer?.beginSeekingBackward()
-//        return MPRemoteCommandHandlerStatus.Success
-//    }
-//    
-//    MPRemoteCommandCenter.sharedCommandCenter().seekForwardCommand.enabled = true
-//    MPRemoteCommandCenter.sharedCommandCenter().seekForwardCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-//        //        Globals.mpPlayer?.beginSeekingForward()
-//        return MPRemoteCommandHandlerStatus.Success
-//    }
-    
-    MPRemoteCommandCenter.sharedCommandCenter().skipBackwardCommand.enabled = true
-    MPRemoteCommandCenter.sharedCommandCenter().skipBackwardCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-        print("RemoteControlSkipBackward")
-        Globals.mpPlayer?.currentPlaybackTime -= NSTimeInterval(15)
-        updateCurrentTimeExact()
-        setupPlayingInfoCenter()
-        return MPRemoteCommandHandlerStatus.Success
-    }
-    
-    MPRemoteCommandCenter.sharedCommandCenter().skipForwardCommand.enabled = true
-    MPRemoteCommandCenter.sharedCommandCenter().skipForwardCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-        print("RemoteControlSkipForward")
-        Globals.mpPlayer?.currentPlaybackTime += NSTimeInterval(15)
-        updateCurrentTimeExact()
-        setupPlayingInfoCenter()
-        return MPRemoteCommandHandlerStatus.Success
-    }
-    
-    MPRemoteCommandCenter.sharedCommandCenter().seekForwardCommand.enabled = false
-    MPRemoteCommandCenter.sharedCommandCenter().seekBackwardCommand.enabled = false
-    
-    MPRemoteCommandCenter.sharedCommandCenter().previousTrackCommand.enabled = false
-    MPRemoteCommandCenter.sharedCommandCenter().nextTrackCommand.enabled = false
-    
-    MPRemoteCommandCenter.sharedCommandCenter().changePlaybackRateCommand.enabled = false
-    
-    MPRemoteCommandCenter.sharedCommandCenter().ratingCommand.enabled = false
-    MPRemoteCommandCenter.sharedCommandCenter().likeCommand.enabled = false
-    MPRemoteCommandCenter.sharedCommandCenter().dislikeCommand.enabled = false
-    MPRemoteCommandCenter.sharedCommandCenter().bookmarkCommand.enabled = false
-}
 
 

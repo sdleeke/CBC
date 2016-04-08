@@ -12,8 +12,18 @@ import AudioToolbox
 import MediaPlayer
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { //, NSURLSessionDownloadDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, UISplitViewControllerDelegate {
 
+    func splitViewController(splitViewController: UISplitViewController, collapseSecondaryViewController secondaryViewController:UIViewController, ontoPrimaryViewController primaryViewController:UIViewController) -> Bool {
+        guard let secondaryAsNavController = secondaryViewController as? UINavigationController else { return false }
+        guard let topAsDetailController = secondaryAsNavController.topViewController as? MediaViewController else { return false }
+        if topAsDetailController.selectedSermon == nil {
+            // Return true to indicate that we have handled the collapse by doing nothing; the secondary controller will be discarded.
+            return true
+        }
+        return false
+    }
+    
     var window: UIWindow?
     
     /* Not ready for release
@@ -150,13 +160,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
             path = url.pathComponents![1] as String
         }
         
-        if (!Globals.loadedEnoughToDeepLink) {
-            Globals.deepLinkWaiting = true
-            Globals.deepLink.path = path
-            Globals.deepLink.searchString = searchString
-            Globals.deepLink.sorting = sorting
-            Globals.deepLink.grouping = grouping
-            Globals.deepLink.tag = sermonTag
+        if (!globals.loadedEnoughToDeepLink) {
+            globals.deepLinkWaiting = true
+            globals.deepLink.path = path
+            globals.deepLink.searchString = searchString
+            globals.deepLink.sorting = sorting
+            globals.deepLink.grouping = grouping
+            globals.deepLink.tag = sermonTag
         } else {
             var sermonSelected:Sermon?
 
@@ -172,7 +182,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
 //                println("path: \(path)")
                 
                 // Is it a series?
-                if let sermonSeries = seriesSectionsFromSermons(Globals.sermons) {
+                if let sermonSeries = seriesSectionsFromSermons(globals.sermons) {
                     for sermonSeries in sermonSeries {
 //                        println("sermonSeries: \(sermonSeries)")
                         if (sermonSeries == path!.stringByReplacingOccurrencesOfString(Constants.SINGLE_UNDERSCORE_STRING, withString: Constants.SINGLE_SPACE_STRING, options: NSStringCompareOptions.LiteralSearch, range: nil)) {
@@ -183,11 +193,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
                     }
                     
                     if (seriesSelected != nil) {
-                        var sermonsInSelectedSeries = sermonsInSermonSeries(Globals.sermons,series: seriesSelected!)
+                        var sermonsInSelectedSeries = sermonsInSermonSeries(globals.sermons,series: seriesSelected!)
 
                         if (sermonsInSelectedSeries?.count > 0) {
-                            if let firstSermonIndex = Globals.sermons!.indexOf(sermonsInSelectedSeries![0]) {
-                                firstSermonInSeries = Globals.sermons![firstSermonIndex]
+                            if let firstSermonIndex = globals.sermons!.indexOf(sermonsInSelectedSeries![0]) {
+                                firstSermonInSeries = globals.sermons![firstSermonIndex]
                                 //                            println("firstSermon: \(firstSermon)")
                             }
                         }
@@ -196,7 +206,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
                 
                 if (seriesSelected == nil) {
                     // Is it a sermon?
-                    for sermon in Globals.sermons! {
+                    for sermon in globals.sermons! {
                         if (sermon.title == path!.stringByReplacingOccurrencesOfString(Constants.SINGLE_UNDERSCORE_STRING, withString: Constants.SINGLE_SPACE_STRING, options: NSStringCompareOptions.LiteralSearch, range: nil)) {
                             //Found it
                             sermonSelected = sermon
@@ -208,7 +218,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
 
                 if (seriesSelected == nil) && (sermonSelected == nil) {
                         // Is it a book?
-                    if let sermonBooks = bookSectionsFromSermons(Globals.sermons) {
+                    if let sermonBooks = bookSectionsFromSermons(globals.sermons) {
                         for sermonBook in sermonBooks {
                             //                        println("sermonBook: \(sermonBook)")
                             if (sermonBook == path!.stringByReplacingOccurrencesOfString(Constants.SINGLE_UNDERSCORE_STRING, withString: Constants.SINGLE_SPACE_STRING, options: NSStringCompareOptions.LiteralSearch, range: nil)) {
@@ -219,11 +229,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
                         }
                         
                         if (bookSelected != nil) {
-                            var sermonsInSelectedBook = sermonsInBook(Globals.sermons,book: bookSelected!)
+                            var sermonsInSelectedBook = sermonsInBook(globals.sermons,book: bookSelected!)
                             
                             if (sermonsInSelectedBook?.count > 0) {
-                                if let firstSermonIndex = Globals.sermons!.indexOf(sermonsInSelectedBook![0]) {
-                                    firstSermonInBook = Globals.sermons![firstSermonIndex]
+                                if let firstSermonIndex = globals.sermons!.indexOf(sermonsInSelectedBook![0]) {
+                                    firstSermonInBook = globals.sermons![firstSermonIndex]
                                     //                            println("firstSermon: \(firstSermon)")
                                 }
                             }
@@ -233,42 +243,42 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
             }
             
             if (sorting != nil) {
-                Globals.sorting = sorting!
+                globals.sorting = sorting!
             }
             if (grouping != nil) {
-                Globals.grouping = grouping!
+                globals.grouping = grouping!
             }
             
             if (sermonTag != nil) {
                 var taggedSermons = [Sermon]()
                 
                 if (sermonTag != Constants.ALL) {
-                    Globals.sermonTagsSelected = sermonTag!.stringByReplacingOccurrencesOfString(Constants.SINGLE_UNDERSCORE_STRING, withString: Constants.SINGLE_SPACE_STRING, options: NSStringCompareOptions.LiteralSearch, range: nil)
-//                    println("\(Globals.sermonTagsSelected)")
-                    Globals.showing = Constants.TAGGED
+                    globals.sermonTagsSelected = sermonTag!.stringByReplacingOccurrencesOfString(Constants.SINGLE_UNDERSCORE_STRING, withString: Constants.SINGLE_SPACE_STRING, options: NSStringCompareOptions.LiteralSearch, range: nil)
+//                    println("\(globals.sermonTagsSelected)")
+                    globals.showing = Constants.TAGGED
                     
-                    for sermon in Globals.sermons! {
-                        if (sermon.tags?.rangeOfString(Globals.sermonTagsSelected!) != nil) {
+                    for sermon in globals.sermons! {
+                        if (sermon.tags?.rangeOfString(globals.sermonTagsSelected!) != nil) {
                             taggedSermons.append(sermon)
                         }
                     }
                     
-                    Globals.taggedSermons = taggedSermons.count > 0 ? taggedSermons : nil
+                    globals.taggedSermons = taggedSermons.count > 0 ? taggedSermons : nil
                 } else {
-                    Globals.showing = Constants.ALL
-                    Globals.sermonTagsSelected = nil
+                    globals.showing = Constants.ALL
+                    globals.sermonTagsSelected = nil
                 }
             }
             
-            //In case Globals.searchActive is true at the start we need to cancel it.
-            Globals.searchActive = false
-            Globals.searchSermons = nil
+            //In case globals.searchActive is true at the start we need to cancel it.
+            globals.searchActive = false
+            globals.searchSermons = nil
             
             if (searchString != nil) {
-                Globals.searchActive = true
-                Globals.searchSermons = nil
+                globals.searchActive = true
+                globals.searchSermons = nil
                 
-                if let sermons = Globals.sermonsToSearch {
+                if let sermons = globals.sermonsToSearch {
                     var searchSermons = [Sermon]()
                     
                     for sermon in sermons {
@@ -284,11 +294,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
                         }
                     }
                     
-                    Globals.searchSermons = searchSermons.count > 0 ? searchSermons : nil
+                    globals.searchSermons = searchSermons.count > 0 ? searchSermons : nil
                 }
             }
             
-            Globals.sermonsNeed.groupsSetup = true
+            globals.sermonsNeed.groupsSetup = true
             sortAndGroupSermons()
 
             var tvc:MediaTableViewController?
@@ -331,8 +341,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
                 
                 tvc!.tableView.reloadData()
                 
-                if (Globals.sermonTagsSelected != nil) {
-                    tvc!.searchBar.placeholder = Globals.sermonTagsSelected!
+                if (globals.sermonTagsSelected != nil) {
+                    tvc!.searchBar.placeholder = globals.sermonTagsSelected!
                     
                     //Show the search bar
                     tvc!.tableView.scrollRectToVisible(CGRectMake(0, 0, 1, 1), animated: true)
@@ -374,330 +384,49 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
     
     func mpPlayerLoadStateDidChange()
     {
-        if (Globals.mpPlayer?.contentURL != NSURL(string: Constants.LIVE_STREAM_URL)) {
-//            print("mpPlayerLoadStateDidChange")
-            
-            let loadstate:UInt8 = UInt8(Globals.mpPlayer!.loadState.rawValue)
-            
-            let playable = (loadstate & UInt8(MPMovieLoadState.Playable.rawValue)) > 0
-            let playthrough = (loadstate & UInt8(MPMovieLoadState.PlaythroughOK.rawValue)) > 0
-            
-//            if playable {
-//                print("mpPlayerLoadStateDidChange.MPMovieLoadState.Playable")
-//            }
-//            
-//            if playthrough {
-//                print("mpPlayerLoadStateDidChange.MPMovieLoadState.Playthrough")
-//            }
-            
-            //        print("\(loadstate)")
-            //        print("\(playable)")
-            //        print("\(playthrough)")
-            
-            if (playable || playthrough) {
-//                print("mpPlayerLoadStateDidChange.MPMovieLoadState.Playable or Playthrough OK")
-                if !Globals.playerLoaded {
-                    print("mpPlayerLoadStateDidChange with sermonPlaying NOT LOADED and playable || playthrough!")
-
-                    if (Globals.sermonPlaying != nil) && Globals.sermonPlaying!.hasCurrentTime() {
-                        if (Int(Float(Globals.sermonPlaying!.currentTime!)!) == Int(Float(Globals.mpPlayer!.duration))) { // !Globals.loadingFromLive && 
-                            print("mpPlayerLoadStateDidChange Globals.sermonPlaying!.currentTime reset to 0!")
-                            Globals.sermonPlaying!.currentTime = Constants.ZERO
-                        } else {
-                            
-//                            print(Globals.sermonPlaying!.currentTime!)
-//                            print(Float(Globals.sermonPlaying!.currentTime!)!)
-                            
-                            Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(Float(Globals.sermonPlaying!.currentTime!)!)
-                        }
-                    } else {
-                        print("mpPlayerLoadStateDidChange selectedSermon has NO currentTime!")
-                        Globals.sermonPlaying?.currentTime = Constants.ZERO
-                        Globals.mpPlayer?.currentPlaybackTime = NSTimeInterval(0)
-                    }
-                    
-                    setupPlayingInfoCenter()
-                    
-                    Globals.playerLoaded = true
-                    
-                    if (Globals.playOnLoad) {
-                        Globals.playerPaused = false
-                        
-                        Globals.mpPlayer?.play()
-                        
-                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                            NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-                        })
-                    } else {
-                        Globals.playOnLoad = true
-                    }
-                } else {
-                    print("mpPlayerLoadStateDidChange with sermonPlaying LOADED and playable || playthrough!")
-                }
-            }
-            
-            if !(playable || playthrough) && (Globals.mpPlayerStateTime?.state == .playing) && (Globals.mpPlayerStateTime?.timeElapsed > Constants.MIN_PLAY_TIME) {
-//                print("mpPlayerLoadStateDidChange.MPMovieLoadState.Playable or Playthrough NOT OK")
-                Globals.playerPaused = true
-                Globals.mpPlayer?.pause()
-                
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-                })
-            }
-            
-//            switch Globals.mpPlayer!.playbackState {
-//            case .Playing:
-//                print("mpPlayerLoadStateDidChange.Playing")
-//                break
-//                
-//            case .SeekingBackward:
-//                print("mpPlayerLoadStateDidChange.SeekingBackward")
-//                break
-//                
-//            case .SeekingForward:
-//                print("mpPlayerLoadStateDidChange.SeekingForward")
-//                break
-//                
-//            case .Stopped:
-//                print("mpPlayerLoadStateDidChange.Stopped")
-//                break
-//                
-//            case .Interrupted:
-//                print("mpPlayerLoadStateDidChange.Interrupted")
-//                break
-//                
-//            case .Paused:
-//                print("mpPlayerLoadStateDidChange.Paused")
-//                break
-//            }
-        }
+        globals.mpPlayerLoadStateDidChange()
     }
     
     func playerTimer()
     {
-        if (Globals.mpPlayer != nil) && (Globals.mpPlayer?.contentURL != NSURL(string: Constants.LIVE_STREAM_URL)) {
-            let loadstate:UInt8 = UInt8(Globals.mpPlayer!.loadState.rawValue)
-            
-            let playable = (loadstate & UInt8(MPMovieLoadState.Playable.rawValue)) > 0
-            let playthrough = (loadstate & UInt8(MPMovieLoadState.PlaythroughOK.rawValue)) > 0
-            
-//            if playable && debug {
-//                print("playTimer.MPMovieLoadState.Playable")
-//            }
-//            
-//            if playthrough && debug {
-//                print("playTimer.MPMovieLoadState.Playthrough")
-//            }
-            
-            if (Globals.mpPlayer!.fullscreen) {
-                Globals.mpPlayer?.controlStyle = MPMovieControlStyle.Embedded // Fullscreen
-            } else {
-                Globals.mpPlayer?.controlStyle = MPMovieControlStyle.None
-            }
-            
-            if (Globals.mpPlayer?.currentPlaybackRate > 0) {
-                updateCurrentTimeWhilePlaying()
-            }
-            
-            switch Globals.mpPlayerStateTime!.state {
-            case .none:
-//                print("none")
-                break
-                
-            case .playing:
-//                print("playing")
-                switch Globals.mpPlayer!.playbackState {
-                case .SeekingBackward:
-//                    print("playTimer.playing.SeekingBackward")
-                    Globals.mpPlayerStateTime!.state = .seekingBackward
-                    break
-                    
-                case .SeekingForward:
-                    //                    print("playTimer.playing.SeekingForward")
-                    Globals.mpPlayerStateTime!.state = .seekingForward
-                    break
-                    
-                case .Paused:
-                    //                    print("playTimer.playing.Paused")
-                    if (UIApplication.sharedApplication().applicationState == UIApplicationState.Background) {
-                        updateCurrentTimeExact()
-                        Globals.playerPaused = true
-                        
-                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                            NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-                        })
-                    } else {
-                        Globals.mpPlayer?.play()
-                    }
-                    break
-                    
-                default:
-                    if !(playable || playthrough) { // Globals.mpPlayer?.currentPlaybackRate == 0
-//                        print("playTimer.Playthrough or Playing NOT OK")
-                        if (Globals.mpPlayerStateTime!.timeElapsed > Constants.MIN_PLAY_TIME) {
-//                            Globals.sermonLoaded = false
-                            Globals.playerPaused = true
-                            Globals.mpPlayer?.pause()
-                            
-                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-                            })
-                            
-                            let errorAlert = UIAlertView(title: "Unable to Play Content", message: "Please check your network connection and try to play it again.", delegate: self, cancelButtonTitle: "OK")
-                            errorAlert.show()
-                        } else {
-                            // Wait so the player can keep trying.
-                        }
-                    } else {
-//                        print("playTimer.Playthrough or Playing OK")
-                        if (Globals.mpPlayer!.duration > 0) && (Globals.mpPlayer!.currentPlaybackTime > 0) &&
-                            (Int(Float(Globals.mpPlayer!.currentPlaybackTime)) == Int(Float(Globals.mpPlayer!.duration))) {
-                            Globals.mpPlayer?.pause()
-                            Globals.playerPaused = true
-                            
-                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-                            })
-                            
-                            if (Globals.sermonPlaying?.currentTime != Globals.mpPlayer!.duration.description) {
-                                Globals.sermonPlaying?.currentTime = Globals.mpPlayer!.duration.description
-                            }
-                        } else {
-                            Globals.mpPlayer?.play()
-                        }
-                    }
-//                        if (playable || playthrough) {
-//                            print("playTimer.Playthrough or Playing OK")
-//                        }
-//                    } else {
-//                        if Globals.sermonPlaying?.playing == Constants.VIDEO {
-//                            Globals.mpPlayer?.pause()
-//                            
-//                            updateCurrentTimeExact()
-//
-//                            Globals.playerPaused = true
-//
-//                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                                NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-//                            })
-//                        }
-//                    }
-                    break
-                }
-                break
-                
-            case .paused:
-//                print("paused")
-                
-                if !Globals.playerLoaded && !Globals.playerLoadFailed {
-                    if (Globals.mpPlayerStateTime!.timeElapsed > Constants.MIN_LOAD_TIME) {
-                        Globals.playerLoadFailed = true
-                        
-                        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
-                            let errorAlert = UIAlertView(title: "Unable to Load Content", message: "Please check your network connection and try to play it again.", delegate: self, cancelButtonTitle: "OK")
-                            errorAlert.show()
-                        }
-                    }
-                }
-                
-                switch Globals.mpPlayer!.playbackState {
-                case .Paused:
-//                    print("playTimer.paused.Paused")
-                    break
-                    
-                default:
-                    Globals.mpPlayer?.pause()
-                    break
-                }
-                break
-                
-            case .stopped:
-//                print("stopped")
-                break
-                
-            case .seekingForward:
-//                print("seekingForward")
-                switch Globals.mpPlayer!.playbackState {
-                case .Playing:
-//                    print("playTimer.seekingForward.Playing")
-                    Globals.mpPlayerStateTime!.state = .playing
-                    break
-                    
-                case .Paused:
-//                    print("playTimer.seekingForward.Paused")
-                    Globals.mpPlayerStateTime!.state = .playing
-                    break
-                    
-                default:
-                    break
-                }
-                break
-                
-            case .seekingBackward:
-//                print("seekingBackward")
-                switch Globals.mpPlayer!.playbackState {
-                case .Playing:
-//                    print("playTimer.seekingBackward.Playing")
-                    Globals.mpPlayerStateTime!.state = .playing
-                    break
-                    
-                case .Paused:
-//                    print("playTimer.seekingBackward.Paused")
-                    Globals.mpPlayerStateTime!.state = .playing
-                    break
-                    
-                default:
-                    break
-                }
-                break
-            }
-            
-            if (Globals.mpPlayer != nil) {
-                switch Globals.mpPlayer!.playbackState {
-                case .Interrupted:
-//                    print("playTimer.Interrupted")
-                    break
-                    
-                case .Paused:
-//                    print("playTimer.Paused")
-                    break
-                    
-                case .Playing:
-//                    print("playTimer.Playing")
-                    break
-                    
-                case .SeekingBackward:
-//                    print("playTimer.SeekingBackward")
-                    break
-                    
-                case .SeekingForward:
-//                    print("playTimer.SeekingForward")
-                    break
-                    
-                case .Stopped:
-//                    print("playTimer.Stopped")
-                    break
-                }
-            }
+        globals.playerTimer()
+    }
+    
+    func startAudio()
+    {
+        let audioSession: AVAudioSession  = AVAudioSession.sharedInstance()
+        
+        do {
+            try audioSession.setCategory(AVAudioSessionCategoryPlayback)
+        } catch _ {
+            print("failed to setCategory(AVAudioSessionCategoryPlayback)")
+        }
+        
+        do {
+            //        audioSession.setCategory(AVAudioSessionCategoryPlayback, withOptions: AVAudioSessionCategoryOptions.MixWithOthers, error:nil)
+            try audioSession.setActive(true)
+        } catch _ {
+            print("failed to audioSession.setActive(true)")
         }
     }
     
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
         
+        globals = Globals()
+        
         let cache = NSURLCache(memoryCapacity: 10 * 1024 * 1024, diskCapacity: 100 * 1024 * 1024, diskPath: nil)
         NSURLCache.setSharedURLCache(cache)
         
         startAudio()
         
-        addAccessoryEvents()
+        globals.addAccessoryEvents()
         
         UIApplication.sharedApplication().beginReceivingRemoteControlEvents()
         
-        Globals.playerObserver = NSTimer.scheduledTimerWithTimeInterval(Constants.PLAYER_TIMER_INTERVAL, target: self, selector: #selector(AppDelegate.playerTimer), userInfo: nil, repeats: true)
+        globals.player.observer = NSTimer.scheduledTimerWithTimeInterval(Constants.PLAYER_TIMER_INTERVAL, target: self, selector: #selector(AppDelegate.playerTimer), userInfo: nil, repeats: true)
         
-        NSNotificationCenter.defaultCenter().addObserver(UIApplication.sharedApplication().delegate!, selector: #selector(AppDelegate.mpPlayerLoadStateDidChange), name: MPMoviePlayerLoadStateDidChangeNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AppDelegate.mpPlayerLoadStateDidChange), name: MPMoviePlayerLoadStateDidChangeNotification, object: nil)
 
         return true
     }
@@ -718,13 +447,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
 //        print("applicationWillEnterForeground")
 
-        setupPlayingInfoCenter()
+        globals.setupPlayingInfoCenter()
 
-        if (Globals.mpPlayer?.currentPlaybackRate == 0) {
-            updateCurrentTimeExact()
-            Globals.playerPaused = true
+        if (globals.player.mpPlayer?.currentPlaybackRate == 0) {
+            //It is paused, possibly not by us, but by the system
+            if (globals.player.loaded) {
+                globals.updateCurrentTimeExact()
+            }
+            globals.player.paused = true
         } else {
-            Globals.playerPaused = false
+            globals.player.paused = false
         }
         
         dispatch_async(dispatch_get_main_queue(), { () -> Void in
@@ -757,7 +489,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate { 
         
         filename = identifier.substringFromIndex(Constants.DOWNLOAD_IDENTIFIER.endIndex)
         
-        for sermon in Globals.sermonRepository.list! {
+        for sermon in globals.sermonRepository.list! {
             if let download = sermon.downloads.filter({ (key:String, value:Download) -> Bool in
                 //                print("handleEventsForBackgroundURLSession: \(filename) \(key)")
                 return value.task?.taskDescription == filename

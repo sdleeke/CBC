@@ -17,14 +17,8 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     }
     
     override func motionEnded(motion: UIEventSubtype, withEvent event: UIEvent?) {
-        if (splitViewController == nil) && (motion == .MotionShake) {
-            if (Globals.playerPaused) {
-                Globals.mpPlayer?.play()
-            } else {
-                Globals.mpPlayer?.pause()
-                updateCurrentTimeExact()
-            }
-            Globals.playerPaused = !Globals.playerPaused
+        if (splitViewController == nil) {
+            globals.motionEnded(motion,event: event)
         }
     }
     
@@ -145,7 +139,7 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
                 
                 popover.strings = actionMenu
                 
-                popover.showIndex = false //(Globals.grouping == .series)
+                popover.showIndex = false //(globals.grouping == .series)
                 popover.showSectionHeaders = false
                 
                 presentViewController(navigationController, animated: true, completion: nil)

@@ -34,17 +34,8 @@ struct Constants {
 //    static let SERMONS_ARCHIVE = JSON_ARRAY_KEY + ARCHIVE_FILENAME_EXTENSION
     
     static let DICT = "dict"
-    
-//    static let CACHE_KEY = "cache"
-//    static let CACHE_ARCHIVE = CACHE_KEY + ARCHIVE_FILENAME_EXTENSION
 
-//    static let CACHE_SECTIONS = "sections"
-//    static let CACHE_INDEXES = "indexes"
-//    static let CACHE_COUNTS = "counts"
-//    static let CACHE_SERMON_INDEXES = "sermonIndexes"
-//
-//    static let CACHE_ENTRY_IN_PROCESS = "inProcess"
-//    static let CACHE_ENTRY_COMPLETE = "complete"
+    static let SERIES_INDICATOR_SINGULAR = " (Part "
     
     static let LIVE_STREAM_URL = "http://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
     
@@ -88,16 +79,6 @@ struct Constants {
     static let CONTENT_OFFSET_Y_RATIO = "ContentOffsetYRatio"
     
     static let ZOOM_SCALE = "ZoomScale"
-    
-//    static let NOTES_CONTENT_OFFSET_X_RATIO = "notesContentOffsetXRatio"
-//    static let NOTES_CONTENT_OFFSET_Y_RATIO = "notesContentOffsetYRatio"
-//    
-//    static let NOTES_ZOOM_SCALE = "notesZoomScale"
-//    
-//    static let SLIDES_CONTENT_OFFSET_X_RATIO = "slidesContentOffsetXRatio"
-//    static let SLIDES_CONTENT_OFFSET_Y_RATIO = "slidesContentOffsetYRatio"
-//    
-//    static let SLIDES_ZOOM_SCALE = "slidesZoomScale"
     
     static let CBC_SHORT = "CBC"
     static let CBC_LONG = "Countryside Bible Church"
