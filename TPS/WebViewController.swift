@@ -50,15 +50,22 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     }
     
     func scrollViewDidZoom(scrollView: UIScrollView) {
-        //        print("scrollViewDidZoom")
-    }
-    
-    func scrollViewDidScroll(scrollView: UIScrollView) {
-        //        print("scrollViewDidScroll")
+//        print("scrollViewDidZoom")
     }
     
     func scrollViewDidEndZooming(scrollView: UIScrollView, withView view: UIView?, atScale scale: CGFloat) {
 //        print("scrollViewDidEndZooming")
+        if let _ = scrollView.superview as? WKWebView {
+            captureContentOffsetAndZoomScale()
+        }
+    }
+    
+    func scrollViewDidScroll(scrollView: UIScrollView) {
+//        print("scrollViewDidScroll")
+    }
+    
+    func scrollViewDidEndScrollingAnimation(scrollView: UIScrollView) {
+//        print("scrollViewDidEndScrollingAnimation")
         if let _ = scrollView.superview as? WKWebView {
             captureContentOffsetAndZoomScale()
         }
@@ -74,7 +81,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     
     func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool)
     {
-        //        print("scrollViewDidEndDragging")
+//        print("scrollViewDidEndDragging")
         if !decelerate {
             scrollViewDidEndDecelerating(scrollView)
         }

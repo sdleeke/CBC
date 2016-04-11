@@ -5580,6 +5580,7 @@
         "date":"10/26/2008",
         "service":"AM",
         "title":"Hard Call: When the Bible is Silent (Part 4)",
+        "tags":"Hard Call",
         "scripture":"Romans 14:1-15:13",
         "speaker":"Tom Pennington",
         "series":"When the Bible is Silent",
@@ -5622,6 +5623,7 @@
         "date":"10/12/2008",
         "service":"AM",
         "title":"Hard Call: When the Bible is Silent (Part 3)",
+        "tags":"Hard Call",
         "scripture":"Romans 14:1-15:13",
         "speaker":"Tom Pennington",
         "series":"When the Bible is Silent",
@@ -5644,6 +5646,7 @@
         "date":"10/05/2008",
         "service":"AM",
         "title":"Hard Call: When the Bible is Silent (Part 2)",
+        "tags":"Hard Call",
         "scripture":"Romans 14:1-15:13",
         "speaker":"Tom Pennington",
         "series":"When the Bible is Silent",
@@ -5664,6 +5667,7 @@
         "date":"09/28/2008",
         "service":"AM",
         "title":"Hard Call: When the Bible is Silent (Part 1)",
+        "tags":"Hard Call",
         "scripture":"Romans 14:1-15:13",
         "speaker":"Tom Pennington",
         "series":"When the Bible is Silent",
@@ -5686,6 +5690,7 @@
         "date":"09/21/2008",
         "service":"AM",
         "title":"The Court of Conscience",
+        "tags":"Hard Call",
         "scripture":"Romans 2:14-15",
         "speaker":"Tom Pennington",
         "audio":"tp080921aCD.mp3"
@@ -6741,7 +6746,7 @@
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"The Role of Music in Worship",
-        "tags":"We Were Made to Worship",
+        "tags":"We Were Made to Worship|The Heart of Worship",
         "audio":"tp070617aCD.mp3"
 },
 
@@ -6764,7 +6769,7 @@
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"The Role of Music in Worship",
-        "tags":"We Were Made to Worship",
+        "tags":"We Were Made to Worship|The Heart of Worship",
         "audio":"tp070610aCD.mp3"
 },
 
@@ -6786,7 +6791,7 @@
         "title":"The Word: the Key Element of Worship",
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
-        "tags":"We Were Made to Worship",
+        "tags":"We Were Made to Worship|The Heart of Worship",
         "audio":"tp070603aCD.mp3"
 },
 
@@ -6797,7 +6802,7 @@
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"The Heart of Worship",
-        "tags":"We Were Made to Worship",
+        "tags":"We Were Made to Worship|The Heart of Worship",
         "audio":"tp070527aCD.mp3"
 },
 
@@ -6820,7 +6825,7 @@
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"The Heart of Worship",
-        "tags":"We Were Made to Worship",
+        "tags":"We Were Made to Worship|The Heart of Worship",
         "audio":"tp070506aCD.mp3"
 },
 
@@ -6843,7 +6848,7 @@
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"The Heart of Worship",
-        "tags":"We Were Made to Worship",
+        "tags":"We Were Made to Worship|The Heart of Worship",
         "audio":"tp070429aCD.mp3"
 },
 
@@ -6866,7 +6871,7 @@
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"The Heart of Worship",
-        "tags":"We Were Made to Worship",
+        "tags":"We Were Made to Worship|The Heart of Worship",
         "audio":"tp070422aCD.mp3"
 },
 
@@ -6889,7 +6894,7 @@
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"The Heart of Worship",
-        "tags":"We Were Made to Worship",
+        "tags":"We Were Made to Worship|The Heart of Worship",
         "audio":"tp070415aCD.mp3"
 },
 
@@ -6933,7 +6938,7 @@
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"The Heart of Worship",
-        "tags":"We Were Made to Worship",
+        "tags":"We Were Made to Worship|The Heart of Worship",
         "audio":"tp070401aCD.mp3"
 },
 
@@ -6955,7 +6960,7 @@
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"The Heart of Worship",
-        "tags":"We Were Made to Worship",
+        "tags":"We Were Made to Worship|The Heart of Worship",
         "audio":"tp070325aCD.mp3"
 },
 
@@ -6977,7 +6982,7 @@
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"The Heart of Worship",
-        "tags":"We Were Made to Worship",
+        "tags":"We Were Made to Worship|The Heart of Worship",
         "audio":"tp070318aCD.mp3"
 },
 
@@ -7007,7 +7012,7 @@
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"Tear Down Every Idol",
-        "tags":"We Were Made to Worship",
+        "tags":"We Were Made to Worship|The Heart of Worship",
         "audio":"tp070218aCD.mp3"
 },
 
@@ -7030,7 +7035,7 @@
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"Tear Down Every Idol",
-        "tags":"We Were Made to Worship",
+        "tags":"We Were Made to Worship|The Heart of Worship",
         "audio":"tp070204aCD.mp3"
 },
 
@@ -7053,7 +7058,7 @@
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"Tear Down Every Idol",
-        "tags":"We Were Made to Worship",
+        "tags":"We Were Made to Worship|The Heart of Worship",
         "audio":"tp070128aCD.mp3"
 },
 
@@ -7064,7 +7069,7 @@
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"Tear Down Every Idol",
-        "tags":"We Were Made to Worship",
+        "tags":"We Were Made to Worship|The Heart of Worship",
         "audio":"tp070121aCD.mp3"
 },
 
@@ -7722,7 +7727,7 @@
         "title":"Lead Us Not Into Temptation",
         "scripture":"Matthew 6:13",
         "speaker":"Tom Pennington",
-        "tags":"Pray In This Way|The Lord's Prayer",
+        "tags":"Pray In This Way|The Lord's Prayer|Lord, Teach Us to Pray",
         "audio":"tp060312a.mp3"
 },
 
@@ -7744,7 +7749,7 @@
         "title":"Forgive Us Our Debts",
         "scripture":"Matthew 6:12",
         "speaker":"Tom Pennington",
-        "tags":"Pray In This Way|The Lord's Prayer",
+        "tags":"Pray In This Way|The Lord's Prayer|Lord, Teach Us to Pray",
         "audio":"tp060305a.mp3"
 },
 
@@ -7766,7 +7771,7 @@
         "title":"Give Us Our Daily Bread",
         "scripture":"Matthew 6:11",
         "speaker":"Tom Pennington",
-        "tags":"Pray In This Way|The Lord's Prayer",
+        "tags":"Pray In This Way|The Lord's Prayer|Lord, Teach Us to Pray",
         "audio":"tp060226a.mp3"
 },
 
@@ -7786,7 +7791,7 @@
         "title":"Your Will Be Done",
         "scripture":"Matthew 6:10",
         "speaker":"Tom Pennington",
-        "tags":"Pray In This Way|The Lord's Prayer",
+        "tags":"Pray In This Way|The Lord's Prayer|Lord, Teach Us to Pray",
         "audio":"tp060219a.mp3"
 },
 
@@ -7808,7 +7813,7 @@
         "title":"Your Kingdom Come",
         "scripture":"Matthew 6:10",
         "speaker":"Tom Pennington",
-        "tags":"Pray In This Way|The Lord's Prayer",
+        "tags":"Pray In This Way|The Lord's Prayer|Lord, Teach Us to Pray",
         "audio":"tp060212a.mp3"
 },
 
@@ -7829,7 +7834,7 @@
         "title":"Hallowed Be Your Name",
         "scripture":"Matthew 6:9",
         "speaker":"Tom Pennington",
-        "tags":"Pray In This Way|The Lord's Prayer",
+        "tags":"Pray In This Way|The Lord's Prayer|Lord, Teach Us to Pray",
         "audio":"tp060129a.mp3"
 },
 
@@ -7840,7 +7845,7 @@
         "scripture":"Matthew 6:5-15",
         "speaker":"Tom Pennington",
         "series":"Lord, Teach us to Pray",
-        "tags":"The Lord's Prayer",
+        "tags":"The Lord's Prayer|Lord, Teach Us To Pray",
         "audio":"tp060122a.mp3"
 },
 
@@ -7862,7 +7867,7 @@
         "scripture":"Matthew 6:5-15",
         "speaker":"Tom Pennington",
         "series":"Lord, Teach us to Pray",
-        "tags":"The Lord's Prayer",
+        "tags":"The Lord's Prayer|Lord, Teach Us To Pray",
         "audio":"tp060115a.mp3"
 },
 
@@ -7884,7 +7889,7 @@
         "scripture":"Matthew 6:5-15",
         "speaker":"Tom Pennington",
         "series":"Lord, Teach us to Pray",
-        "tags":"The Lord's Prayer",
+        "tags":"The Lord's Prayer|Lord, Teach Us To Pray",
         "audio":"tp060108a.mp3"
 },
 
@@ -7895,7 +7900,7 @@
         "scripture":"Matthew 6:5-15",
         "speaker":"Tom Pennington",
         "series":"Lord, Teach us to Pray",
-        "tags":"The Lord's Prayer",
+        "tags":"The Lord's Prayer|Lord, Teach Us To Pray",
         "audio":"tp060101a.mp3"
 },
 
@@ -8686,6 +8691,7 @@
         "date":"01/02/2005",
         "service":"PM",
         "title":"The First Testament of Jesus Christ (Part 3)",
+        "tags":"The First Testament of Jesus Christ",
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"The First Testament of Jesus Christ",
@@ -8706,6 +8712,7 @@
         "date":"12/26/2004",
         "service":"PM",
         "title":"The First Testament of Jesus Christ (Part 2)",
+        "tags":"The First Testament of Jesus Christ",
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"The First Testament of Jesus Christ",
@@ -8716,6 +8723,7 @@
         "date":"12/26/2004",
         "service":"AM",
         "title":"What If God Were One of Us?",
+        "tags":"The First Testament of Jesus Christ",
         "scripture":"John 1:14",
         "speaker":"Tom Pennington",
         "audio":"tp041226aCD.mp3"
@@ -8725,6 +8733,7 @@
         "date":"12/19/2004",
         "service":"AM",
         "title":"The First Testament of Jesus Christ (Part 1)",
+        "tags":"The First Testament of Jesus Christ",
         "scripture":"Selected Scriptures",
         "speaker":"Tom Pennington",
         "series":"The First Testament of Jesus Christ",
@@ -9125,7 +9134,7 @@
         "title":"God at Work: The Divine Role in Sanctification",
         "scripture":"Philippians 2:13",
         "speaker":"Tom Pennington",
-        "tags":"Sanctification",
+        "tags":"Sanctification|Men at Work: Every Believer's Part in Sanctification",
         "audio":"tp040711aCD.mp3"
 },
 
@@ -9145,7 +9154,7 @@
         "scripture":"Philippians 2:12-13",
         "speaker":"Tom Pennington",
         "series":"Men at Work: Every Believer's Role in Sanctification",
-        "tags":"Sanctification",
+        "tags":"Sanctification|Men at Work: Every Believer's Part in Sanctification",
         "audio":"tp040704aCD.mp3"
 },
 
@@ -9165,7 +9174,7 @@
         "scripture":"Philippians 2:12-13",
         "speaker":"Tom Pennington",
         "series":"Men at Work: Every Believer's Role in Sanctification",
-        "tags":"Sanctification",
+        "tags":"Sanctification|Men at Work: Every Believer's Part in Sanctification",
         "audio":"tp040613aCD.mp3"
 },
 
@@ -9187,7 +9196,7 @@
         "scripture":"Philippians 2:12-13",
         "speaker":"Tom Pennington",
         "series":"Men at Work: Every Believer's Role in Sanctification",
-        "tags":"Sanctification",
+        "tags":"Sanctification|Men at Work: Every Believer's Part in Sanctification",
         "audio":"tp040530aCD.mp3"
 },
 
@@ -9208,7 +9217,7 @@
         "scripture":"Philippians 2:12-13",
         "speaker":"Tom Pennington",
         "series":"Men at Work: Every Believer's Role in Sanctification",
-        "tags":"Sanctification",
+        "tags":"Sanctification|Men at Work: Every Believer's Part in Sanctification",
         "audio":"tp040516aCD.mp3"
 },
 

@@ -46,20 +46,19 @@
                         <rect key="frame" x="0.0" y="64" width="600" height="536"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <searchBar contentMode="redraw" showsSearchResultsButton="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Hkg-p6-JKj">
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="44"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <outlet property="delegate" destination="aFI-YW-IUs" id="JYV-bl-aPp"/>
+                                </connections>
+                            </searchBar>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="VIx-eq-98g">
-                                <rect key="frame" x="0.0" y="0.0" width="600" height="536"/>
+                                <rect key="frame" x="0.0" y="44" width="600" height="492"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <searchBar key="tableHeaderView" contentMode="redraw" showsSearchResultsButton="YES" id="Hkg-p6-JKj">
-                                    <rect key="frame" x="0.0" y="0.0" width="600" height="44"/>
-                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                    <textInputTraits key="textInputTraits"/>
-                                    <connections>
-                                        <outlet property="delegate" destination="aFI-YW-IUs" id="JYV-bl-aPp"/>
-                                    </connections>
-                                </searchBar>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="Sermons" id="a5x-WU-NNC" customClass="MediaTableViewCell" customModule="TPS" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="66" width="600" height="100"/>
+                                        <rect key="frame" x="0.0" y="22" width="600" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="a5x-WU-NNC" id="A01-fJ-FMH">
                                             <rect key="frame" x="0.0" y="0.0" width="600" height="99"/>
@@ -74,7 +73,7 @@
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="Detail" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="IWS-RY-DB5">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="Detail" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="IWS-RY-DB5">
                                                     <rect key="frame" x="20" y="26" width="550" height="69"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
@@ -195,15 +194,24 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="VIx-eq-98g" firstAttribute="leading" secondItem="NpF-M6-DhB" secondAttribute="leading" id="1zm-Sq-101"/>
+                            <constraint firstAttribute="trailing" secondItem="Hkg-p6-JKj" secondAttribute="trailing" id="9pV-CC-oEK"/>
                             <constraint firstItem="UJe-f8-3w6" firstAttribute="centerY" secondItem="NpF-M6-DhB" secondAttribute="centerY" id="B0L-fN-aZT"/>
+                            <constraint firstItem="Hkg-p6-JKj" firstAttribute="leading" secondItem="NpF-M6-DhB" secondAttribute="leading" id="ELq-tW-ru0"/>
                             <constraint firstItem="VIx-eq-98g" firstAttribute="top" secondItem="TA6-b3-HPP" secondAttribute="bottom" id="Gmd-mz-JWI"/>
                             <constraint firstItem="JeO-c3-71m" firstAttribute="centerX" secondItem="UJe-f8-3w6" secondAttribute="centerX" id="KbV-gK-5LN"/>
                             <constraint firstAttribute="trailing" secondItem="VIx-eq-98g" secondAttribute="trailing" id="KxI-ow-z9l"/>
                             <constraint firstItem="KAY-ks-SIC" firstAttribute="top" secondItem="VIx-eq-98g" secondAttribute="bottom" id="PhN-wb-2kh"/>
                             <constraint firstItem="JeO-c3-71m" firstAttribute="centerY" secondItem="UJe-f8-3w6" secondAttribute="centerY" id="aa8-gz-0cf"/>
+                            <constraint firstItem="VIx-eq-98g" firstAttribute="top" secondItem="Hkg-p6-JKj" secondAttribute="bottom" id="dyu-Xx-L7Z"/>
+                            <constraint firstItem="Hkg-p6-JKj" firstAttribute="top" secondItem="TA6-b3-HPP" secondAttribute="bottom" id="frj-Pq-xxB"/>
                             <constraint firstItem="UJe-f8-3w6" firstAttribute="centerX" secondItem="NpF-M6-DhB" secondAttribute="centerX" id="mbj-e0-qKg"/>
                             <constraint firstItem="JeO-c3-71m" firstAttribute="width" secondItem="NpF-M6-DhB" secondAttribute="width" multiplier="0.75" id="q24-xA-Fsh"/>
                         </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="Gmd-mz-JWI"/>
+                            </mask>
+                        </variation>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" title="CBC Sermons" id="Fko-qU-qXf">
@@ -310,7 +318,7 @@
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="Detail" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4uZ-39-i9r">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="Detail" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4uZ-39-i9r">
                                                     <rect key="frame" x="20" y="34" width="526" height="61"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>

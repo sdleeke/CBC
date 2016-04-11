@@ -9,14 +9,6 @@
 import Foundation
 import MediaPlayer
 
-//struct DeepLink {
-//    var path:String?
-//    var sorting:String?
-//    var grouping:String?
-//    var searchString:String?
-//    var tag:String?
-//}
-
 enum PlayerState {
     case none
     
@@ -49,6 +41,41 @@ class PlayerStateTime {
     init()
     {
         dateEntered = NSDate()
+    }
+    
+    func log()
+    {
+        var stateName:String?
+        
+        switch state {
+        case .none:
+            stateName = "none"
+            break
+            
+        case .paused:
+            stateName = "paused"
+            break
+            
+        case .playing:
+            stateName = "playing"
+            break
+            
+        case .seekingForward:
+            stateName = "seekingForward"
+            break
+            
+        case .seekingBackward:
+            stateName = "seekingBackward"
+            break
+            
+        case .stopped:
+            stateName = "stopped"
+            break
+        }
+        
+        if stateName != nil {
+            print(stateName!)
+        }
     }
 }
 
@@ -93,7 +120,48 @@ struct Player {
             defaults.synchronize()
         }
     }
+    
+    func logMPPlayerState()
+    {
+        if (mpPlayer != nil) {
+            var stateName:String?
+            
+            switch mpPlayer!.playbackState {
+            case .Interrupted:
+                stateName = "Interrupted"
+                break
 
+            case .Paused:
+                stateName = "Paused"
+                break
+                
+            case .Playing:
+                stateName = "Playing"
+                break
+                
+            case .SeekingForward:
+                stateName = "SeekingForward"
+                break
+                
+            case .SeekingBackward:
+                stateName = "SeekingBackward"
+                break
+                
+            case .Stopped:
+                stateName = "Stopped"
+                break
+            }
+            
+            if (stateName != nil) {
+                print(stateName!)
+            }
+        }
+    }
+    
+    func logPlayerState()
+    {
+        stateTime?.log()
+    }
 }
 
 struct SermonsNeed {
@@ -155,10 +223,6 @@ class Globals {
 
     // So that the selected cell is scrolled to only on startup, not every time the master view controller appears.
     var scrolledToSermonLastSelected = false
-    
-//    var loadedEnoughToDeepLink = false
-//    var deepLinkWaiting = false
-//    var deepLink = DeepLink()
     
     var grouping:String? = Constants.YEAR {
         didSet {
@@ -387,9 +451,11 @@ class Globals {
     
     func saveSettingsBackground()
     {
-        //    print("saveSettingsBackground")
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0)) { () -> Void in
-            self.saveSettings()
+        if allowSaveSettings {
+            print("saveSettingsBackground")
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0)) { () -> Void in
+                self.saveSettings()
+            }
         }
     }
     
@@ -399,9 +465,9 @@ class Globals {
             print("saveSettings")
             let defaults = NSUserDefaults.standardUserDefaults()
             //    print("\(settings)")
-            defaults.setObject(settings,forKey: Constants.SERMON_SETTINGS_KEY)
+            defaults.setObject(settings,forKey: Constants.SETTINGS_KEY)
             //    print("\(seriesViewSplits)")
-            defaults.setObject(viewSplits, forKey: Constants.SERIES_VIEW_SPLITS_KEY)
+            defaults.setObject(viewSplits, forKey: Constants.VIEW_SPLITS_KEY)
             defaults.synchronize()
         }
     }
@@ -410,68 +476,28 @@ class Globals {
     {
         let defaults = NSUserDefaults.standardUserDefaults()
         
-        if let settingsVersion = defaults.stringForKey(Constants.SERMON_SETTINGS_VERSION_KEY) {
-            if settingsVersion == Constants.SERMON_SETTINGS_VERSION {
-                if let settingsDictionary = defaults.dictionaryForKey(Constants.SERMON_SETTINGS_KEY) {
+        if let settingsVersion = defaults.stringForKey(Constants.SETTINGS_VERSION_KEY) {
+            if settingsVersion == Constants.SETTINGS_VERSION {
+                if let settingsDictionary = defaults.dictionaryForKey(Constants.SETTINGS_KEY) {
                     //        print("\(settingsDictionary)")
                     settings = settingsDictionary as? [String:[String:String]]
                 }
                 
-                if let viewSplitsDictionary = defaults.dictionaryForKey(Constants.SERIES_VIEW_SPLITS_KEY) {
+                if let viewSplitsDictionary = defaults.dictionaryForKey(Constants.VIEW_SPLITS_KEY) {
                     //        print("\(viewSplitsDictionary)")
                     viewSplits = viewSplitsDictionary as? [String:String]
                 }
-            } else {
-                //This is where we should map the old version on to the new one and preserve the user's information.
-                defaults.setObject(Constants.SERMON_SETTINGS_VERSION, forKey: Constants.SERMON_SETTINGS_VERSION_KEY)
-                defaults.synchronize()
-            }
-        } else {
-            //This is where we should map the old version (if there is one) on to the new one and preserve the user's information.
-            defaults.setObject(Constants.SERMON_SETTINGS_VERSION, forKey: Constants.SERMON_SETTINGS_VERSION_KEY)
-            defaults.synchronize()
-        }
-        
-        //    print("\(settings)")
-    }
-    
-    func cancelAllDownloads()
-    {
-        if (sermonRepository.list != nil) {
-            for sermon in sermonRepository.list! {
-                for download in sermon.downloads.values {
-                    if download.active {
-                        download.task?.cancel()
-                        download.task = nil
-                        
-                        download.totalBytesWritten = 0
-                        download.totalBytesExpectedToWrite = 0
-                        
-                        download.state = .none
-                    }
-                }
-            }
-        }
-    }
-    
-    func loadDefaults()
-    {
-        loadSettings()
-        
-        let defaults = NSUserDefaults.standardUserDefaults()
-        
-        if let defaultsVersion = defaults.stringForKey(Constants.DEFAULTS_VERSION_KEY) {
-            if (defaultsVersion == Constants.DEFAULTS_VERSION) {
-                if let sorting = defaults.stringForKey(Constants.SORTING) {
-                    self.sorting = sorting
+
+                if let sortingString = defaults.stringForKey(Constants.SORTING) {
+                    sorting = sortingString
                 } else {
-                    self.sorting = Constants.REVERSE_CHRONOLOGICAL
+                    sorting = Constants.REVERSE_CHRONOLOGICAL
                 }
                 
-                if let grouping = defaults.stringForKey(Constants.GROUPING) {
-                    self.grouping = grouping
+                if let groupingString = defaults.stringForKey(Constants.GROUPING) {
+                    grouping = groupingString
                 } else {
-                    self.grouping = Constants.YEAR
+                    grouping = Constants.YEAR
                 }
                 
                 sermonTagsSelected = defaults.stringForKey(Constants.COLLECTION)
@@ -516,13 +542,42 @@ class Globals {
                 }
             } else {
                 //This is where we should map the old version on to the new one and preserve the user's information.
-                defaults.setObject(Constants.DEFAULTS_VERSION, forKey: Constants.DEFAULTS_VERSION_KEY)
+                defaults.setObject(Constants.SETTINGS_VERSION, forKey: Constants.SETTINGS_VERSION_KEY)
                 defaults.synchronize()
             }
         } else {
             //This is where we should map the old version (if there is one) on to the new one and preserve the user's information.
-            defaults.setObject(Constants.DEFAULTS_VERSION, forKey: Constants.DEFAULTS_VERSION_KEY)
+            defaults.setObject(Constants.SETTINGS_VERSION, forKey: Constants.SETTINGS_VERSION_KEY)
             defaults.synchronize()
+        }
+        
+        if settings == nil {
+            settings = [String:[String:String]]()
+        }
+        
+        if viewSplits == nil {
+            viewSplits = [String:String]()
+        }
+        
+        //    print("\(settings)")
+    }
+    
+    func cancelAllDownloads()
+    {
+        if (sermonRepository.list != nil) {
+            for sermon in sermonRepository.list! {
+                for download in sermon.downloads.values {
+                    if download.active {
+                        download.task?.cancel()
+                        download.task = nil
+                        
+                        download.totalBytesWritten = 0
+                        download.totalBytesExpectedToWrite = 0
+                        
+                        download.state = .none
+                    }
+                }
+            }
         }
     }
     
@@ -541,7 +596,9 @@ class Globals {
         }
         
         if ((timeNow > 0) && (Int(timeNow) % 10) == 0) {
-            player.playing?.currentTime = player.mpPlayer!.currentPlaybackTime.description
+            if Int(Float(player.playing!.currentTime!)!) != Int(player.mpPlayer!.currentPlaybackTime) {
+                player.playing?.currentTime = player.mpPlayer!.currentPlaybackTime.description
+            }
         }
     }
     
@@ -848,41 +905,39 @@ class Globals {
                 updateCurrentTimeWhilePlaying()
             }
             
+//            player.logPlayerState()
+//            player.logMPPlayerState()
+            
             switch player.stateTime!.state {
             case .none:
-                //                print("none")
                 break
                 
             case .playing:
-                //                print("playing")
                 switch player.mpPlayer!.playbackState {
                 case .SeekingBackward:
-                    //                    print("playTimer.playing.SeekingBackward")
                     player.stateTime!.state = .seekingBackward
                     break
                     
                 case .SeekingForward:
-                    //                    print("playTimer.playing.SeekingForward")
                     player.stateTime!.state = .seekingForward
                     break
                     
                 case .Paused:
-                    //                    print("playTimer.playing.Paused")
-                    if (UIApplication.sharedApplication().applicationState == UIApplicationState.Background) {
-                        updateCurrentTimeExact()
-                        player.paused = true
-                        
-                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                            NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-                        })
+                    updateCurrentTimeExact()
+                    player.paused = true
+                    
+                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
+                    })
+//                    if (UIApplication.sharedApplication().applicationState == UIApplicationState.Background) {
 //                    } else {
 //                        player.mpPlayer?.play()
-                    }
+//                    }
                     break
                     
                 default:
                     if !(playable || playthrough) { // player.mpPlayer?.currentPlaybackRate == 0
-                        //                        print("playTimer.Playthrough or Playing NOT OK")
+//                        print("playTimer.Playthrough or Playing NOT OK")
                         if (player.stateTime!.timeElapsed > Constants.MIN_PLAY_TIME) {
                             //                            sermonLoaded = false
                             player.paused = true
@@ -898,7 +953,7 @@ class Globals {
                             // Wait so the player can keep trying.
                         }
                     } else {
-                        //                        print("playTimer.Playthrough or Playing OK")
+//                        print("playTimer.Playthrough or Playing OK")
                         if (player.mpPlayer!.duration > 0) && (player.mpPlayer!.currentPlaybackTime > 0) &&
                             (Int(Float(player.mpPlayer!.currentPlaybackTime)) == Int(Float(player.mpPlayer!.duration))) {
                             player.mpPlayer?.pause()
@@ -920,8 +975,6 @@ class Globals {
                 break
                 
             case .paused:
-                //                print("paused")
-                
                 if !player.loaded && !player.loadFailed {
                     if (player.stateTime!.timeElapsed > Constants.MIN_LOAD_TIME) {
                         player.loadFailed = true
@@ -934,8 +987,11 @@ class Globals {
                 }
                 
                 switch player.mpPlayer!.playbackState {
+                case .Playing:
+                    player.paused = false
+                    break
+                    
                 case .Paused:
-                    //                    print("playTimer.paused.Paused")
                     break
                     
                 default:
@@ -945,19 +1001,15 @@ class Globals {
                 break
                 
             case .stopped:
-                //                print("stopped")
                 break
                 
             case .seekingForward:
-                //                print("seekingForward")
                 switch player.mpPlayer!.playbackState {
                 case .Playing:
-                    //                    print("playTimer.seekingForward.Playing")
                     player.stateTime!.state = .playing
                     break
                     
                 case .Paused:
-                    //                    print("playTimer.seekingForward.Paused")
                     player.stateTime!.state = .playing
                     break
                     
@@ -967,15 +1019,12 @@ class Globals {
                 break
                 
             case .seekingBackward:
-                //                print("seekingBackward")
                 switch player.mpPlayer!.playbackState {
                 case .Playing:
-                    //                    print("playTimer.seekingBackward.Playing")
                     player.stateTime!.state = .playing
                     break
                     
                 case .Paused:
-                    //                    print("playTimer.seekingBackward.Paused")
                     player.stateTime!.state = .playing
                     break
                     
@@ -1039,14 +1088,18 @@ class Globals {
         MPRemoteCommandCenter.sharedCommandCenter().pauseCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
             print("RemoteControlPause")
             if (self.player.playing != nil) {
-                self.player.mpPlayer?.pause()
-                self.player.paused = true
-                self.updateCurrentTimeExact()
-                self.setupPlayingInfoCenter()
-                
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-                })
+                if self.player.loaded {
+                    self.player.mpPlayer?.pause()
+                    self.player.paused = true
+                    self.updateCurrentTimeExact()
+                    self.setupPlayingInfoCenter()
+                    
+                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
+                    })
+                } else {
+                    // Shouldn't be able to happen.
+                }
             }
             return MPRemoteCommandHandlerStatus.Success
         }
@@ -1055,7 +1108,9 @@ class Globals {
         MPRemoteCommandCenter.sharedCommandCenter().stopCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
             print("RemoteControlStop")
             if (self.player.playing != nil) {
-                self.updateCurrentTimeExact()
+                if self.player.loaded {
+                    self.updateCurrentTimeExact()
+                }
                 
                 self.player.mpPlayer?.stop()
                 self.player.paused = true
@@ -1073,14 +1128,18 @@ class Globals {
         MPRemoteCommandCenter.sharedCommandCenter().playCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
             print("RemoteControlPlay")
             if (self.player.playing != nil) {
-                self.player.mpPlayer?.play()
-                self.player.paused = false
-                
-                self.setupPlayingInfoCenter()
-                
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-                })
+                if self.player.loaded {
+                    self.player.mpPlayer?.play()
+                    self.player.paused = false
+                    
+                    self.setupPlayingInfoCenter()
+                    
+                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
+                    })
+                } else {
+                    // Need to play new sermon which may take a new notification.
+                }
             }
             return MPRemoteCommandHandlerStatus.Success
         }
@@ -1089,17 +1148,21 @@ class Globals {
         MPRemoteCommandCenter.sharedCommandCenter().togglePlayPauseCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
             print("RemoteControlTogglePlayPause")
             if (self.player.playing != nil) {
-                if (self.player.paused) {
-                    self.player.mpPlayer?.play()
+                if self.player.loaded {
+                    if (self.player.paused) {
+                        self.player.mpPlayer?.play()
+                    } else {
+                        self.player.mpPlayer?.pause()
+                        self.updateCurrentTimeExact()
+                    }
+                    self.player.paused = !self.player.paused
+                    self.setupPlayingInfoCenter()
+                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
+                    })
                 } else {
-                    self.player.mpPlayer?.pause()
-                    self.updateCurrentTimeExact()
+                    // Need to play new sermon which may take a new notification.
                 }
-                self.player.paused = !self.player.paused
-                self.setupPlayingInfoCenter()
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
-                })
             }
             return MPRemoteCommandHandlerStatus.Success
         }
@@ -1119,7 +1182,7 @@ class Globals {
         MPRemoteCommandCenter.sharedCommandCenter().skipBackwardCommand.enabled = true
         MPRemoteCommandCenter.sharedCommandCenter().skipBackwardCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
             print("RemoteControlSkipBackward")
-            if (self.player.playing != nil) {
+            if (self.player.playing != nil) && self.player.loaded {
                 self.player.mpPlayer?.currentPlaybackTime -= NSTimeInterval(15)
                 self.updateCurrentTimeExact()
                 self.setupPlayingInfoCenter()
@@ -1130,7 +1193,7 @@ class Globals {
         MPRemoteCommandCenter.sharedCommandCenter().skipForwardCommand.enabled = true
         MPRemoteCommandCenter.sharedCommandCenter().skipForwardCommand.addTargetWithHandler { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
             print("RemoteControlSkipForward")
-            if (self.player.playing != nil) {
+            if (self.player.playing != nil) && self.player.loaded {
                 self.player.mpPlayer?.currentPlaybackTime += NSTimeInterval(15)
                 self.updateCurrentTimeExact()
                 self.setupPlayingInfoCenter()

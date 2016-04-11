@@ -95,7 +95,7 @@
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="Detail" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="un9-Im-JBj">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="Detail" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="un9-Im-JBj">
                                                     <rect key="frame" x="20" y="26" width="542" height="69"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
@@ -814,20 +814,19 @@ Email: cbcstaff@countrysidebible.org</string>
                         <rect key="frame" x="0.0" y="64" width="600" height="536"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <searchBar contentMode="redraw" showsSearchResultsButton="YES" translatesAutoresizingMaskIntoConstraints="NO" id="PI1-KK-22F">
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="44"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <outlet property="delegate" destination="4xA-dz-LhV" id="ooG-Bd-kYm"/>
+                                </connections>
+                            </searchBar>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="HBU-GK-goT">
-                                <rect key="frame" x="0.0" y="0.0" width="600" height="536"/>
+                                <rect key="frame" x="0.0" y="44" width="600" height="492"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <searchBar key="tableHeaderView" contentMode="redraw" showsSearchResultsButton="YES" id="PI1-KK-22F">
-                                    <rect key="frame" x="0.0" y="0.0" width="600" height="44"/>
-                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                                    <textInputTraits key="textInputTraits"/>
-                                    <connections>
-                                        <outlet property="delegate" destination="4xA-dz-LhV" id="ooG-Bd-kYm"/>
-                                    </connections>
-                                </searchBar>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="Sermons" id="BCh-qb-pAm" customClass="MediaTableViewCell" customModule="TPS" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="66" width="600" height="100"/>
+                                        <rect key="frame" x="0.0" y="22" width="600" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="BCh-qb-pAm" id="Q1F-vE-uwG">
                                             <rect key="frame" x="0.0" y="0.0" width="600" height="99"/>
@@ -842,7 +841,7 @@ Email: cbcstaff@countrysidebible.org</string>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Detail" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Yvd-8R-ABD">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Detail" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Yvd-8R-ABD">
                                                     <rect key="frame" x="20" y="26" width="550" height="69"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
@@ -954,14 +953,23 @@ Email: cbcstaff@countrysidebible.org</string>
                         <constraints>
                             <constraint firstItem="QaS-gl-tEL" firstAttribute="centerX" secondItem="VzS-WY-Fmg" secondAttribute="centerX" id="4al-nR-1qf"/>
                             <constraint firstItem="Urs-8r-5e2" firstAttribute="top" secondItem="HBU-GK-goT" secondAttribute="bottom" id="5Hi-yX-7gn"/>
+                            <constraint firstItem="PI1-KK-22F" firstAttribute="leading" secondItem="96A-nP-rUw" secondAttribute="leading" id="5ju-WB-cGn"/>
                             <constraint firstItem="HBU-GK-goT" firstAttribute="leading" secondItem="96A-nP-rUw" secondAttribute="leading" id="8IA-b7-wgq"/>
+                            <constraint firstAttribute="trailing" secondItem="PI1-KK-22F" secondAttribute="trailing" id="9rL-DQ-V6w"/>
                             <constraint firstItem="VzS-WY-Fmg" firstAttribute="centerX" secondItem="96A-nP-rUw" secondAttribute="centerX" id="Iis-vC-Wbx"/>
                             <constraint firstItem="VzS-WY-Fmg" firstAttribute="centerY" secondItem="96A-nP-rUw" secondAttribute="centerY" id="Lng-I6-90e"/>
                             <constraint firstItem="HBU-GK-goT" firstAttribute="top" secondItem="8Sa-SM-X3v" secondAttribute="bottom" id="djw-wm-DmN"/>
+                            <constraint firstItem="HBU-GK-goT" firstAttribute="top" secondItem="PI1-KK-22F" secondAttribute="bottom" id="gO9-5g-WBe"/>
                             <constraint firstItem="QaS-gl-tEL" firstAttribute="width" secondItem="96A-nP-rUw" secondAttribute="width" multiplier="0.75" id="n2k-Sb-bv4"/>
                             <constraint firstItem="QaS-gl-tEL" firstAttribute="centerY" secondItem="VzS-WY-Fmg" secondAttribute="centerY" id="pOS-LE-K9q"/>
                             <constraint firstAttribute="trailing" secondItem="HBU-GK-goT" secondAttribute="trailing" id="xUM-7Y-tBR"/>
+                            <constraint firstItem="PI1-KK-22F" firstAttribute="top" secondItem="8Sa-SM-X3v" secondAttribute="bottom" id="yn6-IS-54z"/>
                         </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="djw-wm-DmN"/>
+                            </mask>
+                        </variation>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" title="CBC Sermons" id="maB-7j-LXs">

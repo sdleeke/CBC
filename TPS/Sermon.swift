@@ -1035,18 +1035,20 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
                 settings?[Constants.TAGS] = settings![Constants.TAGS]! + Constants.TAGS_SEPARATOR + tag
             }
             
-            if globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!] != nil {
-                if globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!]!.indexOf(self) == nil {
-                    globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!]!.append(self)
-                    globals.sermons.all!.tagNames![stringWithoutPrefixes(tag)!] = tag
+            let sortTag = stringWithoutPrefixes(tag)
+            
+            if globals.sermons.all!.tagSermons![sortTag!] != nil {
+                if globals.sermons.all!.tagSermons![sortTag!]!.indexOf(self) == nil {
+                    globals.sermons.all!.tagSermons![sortTag!]!.append(self)
+                    globals.sermons.all!.tagNames![sortTag!] = tag
                 }
             } else {
-                globals.sermons.all!.tagSermons![stringWithoutPrefixes(tag)!] = [self]
-                globals.sermons.all!.tagNames![stringWithoutPrefixes(tag)!] = tag
+                globals.sermons.all!.tagSermons![sortTag!] = [self]
+                globals.sermons.all!.tagNames![sortTag!] = tag
             }
             
             if (globals.sermonTagsSelected == tag) {
-                globals.sermons.tagged = SermonsListGroupSort(sermons: globals.sermons.all?.tagSermons?[stringWithoutPrefixes(globals.sermonTagsSelected!)!])
+                globals.sermons.tagged = SermonsListGroupSort(sermons: globals.sermons.all?.tagSermons?[sortTag!])
                 
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
                     NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_SERMON_LIST_NOTIFICATION, object: globals.sermons.tagged)
@@ -1066,13 +1068,15 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             if tags?.indexOf(tag) != nil {
                 tags?.removeAtIndex(tags!.indexOf(tag)!)
                 settings?[Constants.TAGS] = tagsArrayToTagsString(tags)
-
-                if let index = globals.sermons.all?.tagSermons?[stringWithoutPrefixes(tag)!]?.indexOf(self) {
-                    globals.sermons.all?.tagSermons?[stringWithoutPrefixes(tag)!]?.removeAtIndex(index)
+                
+                let sortTag = stringWithoutPrefixes(tag)
+                
+                if let index = globals.sermons.all?.tagSermons?[sortTag!]?.indexOf(self) {
+                    globals.sermons.all?.tagSermons?[sortTag!]?.removeAtIndex(index)
                 }
                 
                 if (globals.sermonTagsSelected == tag) {
-                    globals.sermons.tagged = SermonsListGroupSort(sermons: globals.sermons.all?.tagSermons?[stringWithoutPrefixes(globals.sermonTagsSelected!)!])
+                    globals.sermons.tagged = SermonsListGroupSort(sermons: globals.sermons.all?.tagSermons?[sortTag!])
                     
                     dispatch_async(dispatch_get_main_queue(), { () -> Void in
                         NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_SERMON_LIST_NOTIFICATION, object: globals.sermons.tagged)
@@ -1497,18 +1501,19 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             }
             set {
                 if (sermon != nil) {
-                    if (globals.settings == nil) {
-                        globals.settings = [String:[String:String]]()
-                    }
-                    if (globals.settings?[sermon!.id] == nil) {
-                        globals.settings?[sermon!.id] = [String:String]()
-                    }
-                    if (globals.settings?[sermon!.id]?[key] != newValue) {
-//                        print("\(sermon)")
-                        globals.settings?[sermon!.id]?[key] = newValue
-                        
-                        // For a high volume of activity this can be very expensive.
-                        globals.saveSettingsBackground()
+                    if (globals.settings != nil) {
+                        if (globals.settings?[sermon!.id] == nil) {
+                            globals.settings?[sermon!.id] = [String:String]()
+                        }
+                        if (globals.settings?[sermon!.id]?[key] != newValue) {
+                            //                        print("\(sermon)")
+                            globals.settings?[sermon!.id]?[key] = newValue
+                            
+                            // For a high volume of activity this can be very expensive.
+                            globals.saveSettingsBackground()
+                        }
+                    } else {
+                        print("globals.settings == nil in Settings!")
                     }
                 } else {
                     print("sermon == nil in Settings!")
@@ -1537,17 +1542,18 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             }
             set {
                 if (sermon != nil) {
-                    if (globals.viewSplits == nil) {
-                        globals.viewSplits = [String:String]()
-                    }
-                    if (globals.viewSplits?[sermon!.seriesID] != newValue) {
-                        globals.viewSplits?[sermon!.seriesID] = newValue
-                        
-                        // For a high volume of activity this can be very expensive.
-                        globals.saveSettingsBackground()
+                    if (globals.viewSplits != nil) {
+                        if (globals.viewSplits?[sermon!.seriesID] != newValue) {
+                            globals.viewSplits?[sermon!.seriesID] = newValue
+                            
+                            // For a high volume of activity this can be very expensive.
+                            globals.saveSettingsBackground()
+                        }
+                    } else {
+                        print("globals.viewSplits == nil in SeriesSettings!")
                     }
                 } else {
-                    print("sermon == nil in Settings!")
+                    print("sermon == nil in SeriesSettings!")
                 }
             }
         }

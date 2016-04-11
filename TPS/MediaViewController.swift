@@ -1436,15 +1436,22 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //        print("scrollViewDidZoom")
     }
     
-    func scrollViewDidScroll(scrollView: UIScrollView) {
-//        print("scrollViewDidScroll")
-    }
-    
     func scrollViewDidEndZooming(scrollView: UIScrollView, withView view: UIView?, atScale scale: CGFloat) {
 //        print("scrollViewDidEndZooming")
         if let view = scrollView.superview as? WKWebView {
             captureContentOffset(view)
             captureZoomScale(view)
+        }
+    }
+    
+    func scrollViewDidScroll(scrollView: UIScrollView) {
+//        print("scrollViewDidScroll")
+    }
+    
+    func scrollViewDidEndScrollingAnimation(scrollView: UIScrollView) {
+//        print("scrollViewDidEndScrollingAnimation")
+        if let view = scrollView.superview as? WKWebView {
+            captureContentOffset(view)
         }
     }
     
@@ -1458,7 +1465,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool)
     {
-        //        print("scrollViewDidEndDragging")
+//        print("scrollViewDidEndDragging")
         if !decelerate {
             scrollViewDidEndDecelerating(scrollView)
         }
@@ -1488,13 +1495,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         super.viewDidLoad()
         
         navigationController?.setToolbarHidden(true, animated: false)
-        
-        if (splitViewController != nil) {
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MediaViewController.updateView), name: Constants.UPDATE_VIEW_NOTIFICATION, object: nil)
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MediaViewController.clearView), name: Constants.CLEAR_VIEW_NOTIFICATION, object: nil)
-        }
-
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MediaViewController.setupPlayPauseButton), name: Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
         
         navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem()
         navigationItem.leftItemsSupplementBackButton = true
@@ -2364,6 +2364,13 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
 
+        if (splitViewController != nil) {
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MediaViewController.updateView), name: Constants.UPDATE_VIEW_NOTIFICATION, object: nil)
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MediaViewController.clearView), name: Constants.CLEAR_VIEW_NOTIFICATION, object: nil)
+        }
+        
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MediaViewController.setupPlayPauseButton), name: Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
+
 //        tableView.reloadData()
 
         updateUI()
@@ -2751,7 +2758,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     spinner.hidden = false
                     spinner.startAnimating()
                 }
-                setSliderAndTimesToAudio()
                 break
                 
             case .seekingBackward:
@@ -2760,7 +2766,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     spinner.hidden = false
                     spinner.startAnimating()
                 }
-                setSliderAndTimesToAudio()
                 break
             }
             

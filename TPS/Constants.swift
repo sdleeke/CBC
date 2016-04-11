@@ -15,10 +15,10 @@ struct Constants {
     static let UPDATE_PLAY_PAUSE_NOTIFICATION = "UPDATE PLAY PAUSE"
     
     static let MIN_PLAY_TIME = 15.0
-    static let MIN_LOAD_TIME = 15.0
+    static let MIN_LOAD_TIME = 30.0
     
-    static let PLAYER_TIMER_INTERVAL = 0.25
-    static let SLIDER_TIMER_INTERVAL = 0.25
+    static let SLIDER_TIMER_INTERVAL = 0.5
+    static let PLAYER_TIMER_INTERVAL = 0.2
     static let DOWNLOADING_TIMER_INTERVAL = 0.2
     static let LOADING_TIMER_INTERVAL = 0.2
     static let PROGRESS_TIMER_INTERVAL = 0.1
@@ -30,9 +30,6 @@ struct Constants {
     static let JSON_FILENAME_EXTENSION = ".json"
     static let SERMONS_JSON_FILENAME = JSON_ARRAY_KEY + JSON_FILENAME_EXTENSION
 
-//    static let ARCHIVE_FILENAME_EXTENSION = ".archive"
-//    static let SERMONS_ARCHIVE = JSON_ARRAY_KEY + ARCHIVE_FILENAME_EXTENSION
-    
     static let DICT = "dict"
 
     static let SERIES_INDICATOR_SINGULAR = " (Part "
@@ -40,6 +37,13 @@ struct Constants {
     static let LIVE_STREAM_URL = "http://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
     
     static let REACHABILITY_TEST_URL = "http://www.countrysidebible.org/"
+    
+    static let Downloading_Sermons = "Downloading Sermons"
+    static let Loading_Sermons = "Loading Sermons"
+    static let Synthesizing_Tags = "Synthesizing Tags"
+    static let Loading_Settings = "Loading Settings"
+    static let Sorting_and_Grouping = "Sorting and Grouping"
+    static let Setting_up_Player = "Setting up Player"
     
     static let COVER_ART_IMAGE = "cover170x170"
     
@@ -165,19 +169,18 @@ struct Constants {
     static let Grouping = "Grouping"
     static let Index = "Index"
     
+    static let Group_Sermons_By = "Group Sermons By"
+    
     static let Options = "Options"
     
     static let Sorting_Options =  Sorting + SINGLE_SPACE_STRING + Options
     static let Grouping_Options = Grouping + SINGLE_SPACE_STRING + Options
     
-    static let DEFAULTS_VERSION_KEY = "Defaults Version"
-    static let DEFAULTS_VERSION = "2.0"
+    static let SETTINGS_VERSION_KEY = "Settings Version"
+    static let SETTINGS_VERSION = "2.0"
     
-    static let SERMON_SETTINGS_VERSION_KEY = "Sermon Settings Version"
-    static let SERMON_SETTINGS_VERSION = "2.0"
-    
-    static let SERMON_SETTINGS_KEY = "Sermon Settings"
-    static let SERIES_VIEW_SPLITS_KEY = "Series View Splits"
+    static let SETTINGS_KEY = "Settings"
+    static let VIEW_SPLITS_KEY = "View Splits"
     
     static let SELECTED_SERMON_KEY = "selectedSermonKey"
     static let SELECTED_SERMON_DETAIL_KEY = "selectedSermonDetailKey"
@@ -280,8 +283,6 @@ struct Constants {
     static let BASE_AUDIO_URL = "http://sitedata.countrysidebible.org/avmedia/se/"
     static let BASE_PDF_URL = "http://sitedata.countrysidebible.org/avmedia/dc/"
     static let BASE_VIDEO_URL_PREFIX = "https://player.vimeo.com/external/"
-//    static let BASE_HD_VIDEO_URL_POSTFIX = "&profile_id=113"
-//    static let BASE_SD_VIDEO_URL_POSTFIX = "&profile_id=165"
     
     static let BASE_DOWNLOAD_URL:String = "http://sitedata.countrysidebible.org/avmedia/se/download.php?file="
     

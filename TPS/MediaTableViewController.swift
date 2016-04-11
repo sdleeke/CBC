@@ -672,7 +672,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 navigationController.popoverPresentationController?.barButtonItem = button
                 
-                popover.navigationItem.title = "Index"
+                popover.navigationItem.title = Constants.Index
                 
                 popover.delegate = self
                 
@@ -715,7 +715,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 navigationController.popoverPresentationController?.barButtonItem = button
                 
-                popover.navigationItem.title = "Group Sermons By"
+                popover.navigationItem.title = Constants.Group_Sermons_By
                 
                 popover.delegate = self
                 
@@ -852,251 +852,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         didDismissSearch()
     }
     
-    /* Not ready for release
-
-    func deepLink()
-    {
-        // This should be rationalized with the code in AppDelegate to have one function (somewhere) so we aren't duplicating it.
-        
-        globals.deepLinkWaiting = false
-
-        let path = globals.deepLink.path
-        let searchString = globals.deepLink.searchString
-        let sorting = globals.deepLink.sorting
-        let grouping = globals.deepLink.grouping
-        let sermonTag = globals.deepLink.tag
-
-        globals.deepLink.path = nil
-        globals.deepLink.searchString = nil
-        globals.deepLink.sorting = nil
-        globals.deepLink.grouping = nil
-        globals.deepLink.tag = nil
-
-        var sermonSelected:Sermon?
-
-        var seriesSelected:String?
-        var firstSermonInSeries:Sermon?
-        
-        var bookSelected:String?
-        var firstSermonInBook:Sermon?
-        
-//        var seriesIndexPath = NSIndexPath()
-        
-        if (path != nil) {
-            //                print("path: \(path)")
-            
-            // Is it a series?
-            if let sermonSeries = seriesSectionsFromSermons(globals.sermons) {
-                for sermonSeries in sermonSeries {
-                    //                        print("sermonSeries: \(sermonSeries)")
-                    if (sermonSeries == path!.stringByReplacingOccurrencesOfString(Constants.SINGLE_UNDERSCORE_STRING, withString: Constants.SINGLE_SPACE_STRING, options: NSStringCompareOptions.LiteralSearch, range: nil)) {
-                        //It is a series
-                        seriesSelected = sermonSeries
-                        break
-                    }
-                }
-                
-                if (seriesSelected != nil) {
-                    var sermonsInSelectedSeries = sermonsInSermonSeries(globals.sermons,series: seriesSelected!)
-                    
-                    if (sermonsInSelectedSeries?.count > 0) {
-                        if let firstSermonIndex = globals.sermons!.indexOf(sermonsInSelectedSeries![0]) {
-                            firstSermonInSeries = globals.sermons![firstSermonIndex]
-                            //                            print("firstSermon: \(firstSermon)")
-                        }
-                    }
-                }
-            }
-            
-            if (seriesSelected == nil) {
-                // Is it a sermon?
-                for sermon in globals.sermons! {
-                    if (sermon.title == path!.stringByReplacingOccurrencesOfString(Constants.SINGLE_UNDERSCORE_STRING, withString: Constants.SINGLE_SPACE_STRING, options: NSStringCompareOptions.LiteralSearch, range: nil)) {
-                        //Found it
-                        sermonSelected = sermon
-                        break
-                    }
-                }
-                //                        print("\(sermonSelected)")
-            }
-            
-            if (seriesSelected == nil) && (sermonSelected == nil) {
-                // Is it a book?
-                if let sermonBooks = bookSectionsFromSermons(globals.sermons) {
-                    for sermonBook in sermonBooks {
-                        //                        print("sermonBook: \(sermonBook)")
-                        if (sermonBook == path!.stringByReplacingOccurrencesOfString(Constants.SINGLE_UNDERSCORE_STRING, withString: Constants.SINGLE_SPACE_STRING, options: NSStringCompareOptions.LiteralSearch, range: nil)) {
-                            //It is a series
-                            bookSelected = sermonBook
-                            break
-                        }
-                    }
-                    
-                    if (bookSelected != nil) {
-                        var sermonsInSelectedBook = sermonsInBook(globals.sermons,book: bookSelected!)
-                        
-                        if (sermonsInSelectedBook?.count > 0) {
-                            if let firstSermonIndex = globals.sermons!.indexOf(sermonsInSelectedBook![0]) {
-                                firstSermonInBook = globals.sermons![firstSermonIndex]
-                                //                            print("firstSermon: \(firstSermon)")
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        if (sorting != nil) {
-            globals.sorting = sorting!
-        }
-        if (grouping != nil) {
-            globals.grouping = grouping!
-        }
-        
-        if (sermonTag != nil) {
-            if (sermonTag != Constants.ALL) {
-                globals.sermonTagsSelected = sermonTag!.stringByReplacingOccurrencesOfString(Constants.SINGLE_UNDERSCORE_STRING, withString: Constants.SINGLE_SPACE_STRING, options: NSStringCompareOptions.LiteralSearch, range: nil)
-                print("\(globals.sermonTagsSelected)")
-                globals.showing = Constants.TAGGED
-                
-                if let sermons = globals.sermons {
-                    var taggedSermons = [Sermon]()
-                    
-                    for sermon in sermons {
-                        if (sermon.tags?.rangeOfString(globals.sermonTagsSelected!) != nil) {
-                            taggedSermons.append(sermon)
-                        }
-                    }
-                    
-                    globals.taggedSermons = taggedSermons.count > 0 ? taggedSermons : nil
-                }
-            } else {
-                globals.showing = Constants.ALL
-                globals.sermonTagsSelected = nil
-            }
-        }
-        
-        //In case globals.searchActive is true at the start we need to cancel it.
-        globals.searchActive = false
-        globals.searchSermons = nil
-        
-        if (searchString != nil) {
-            globals.searchActive = true
-            globals.searchSermons = nil
-            
-            if let sermons = globals.sermonsToSearch {
-                var searchSermons = [Sermon]()
-                
-                for sermon in sermons {
-                    if (
-                        ((sermon.title?.rangeOfString(searchString!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
-                            ((sermon.date?.rangeOfString(searchString!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
-                            ((sermon.series?.rangeOfString(searchString!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
-                            ((sermon.scripture?.rangeOfString(searchString!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
-                            ((sermon.tags?.rangeOfString(searchString!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil)
-                        )
-                    {
-                        searchSermons.append(sermon)
-                    }
-                }
-                
-                globals.searchSermons = searchSermons.count > 0 ? searchSermons : nil
-            }
-        }
-        
-        globals.sermonsNeed.groupsSetup = true
-        sortAndGroupSermons()
-        
-        var tvc:MediaTableViewController?
-        
-        //iPad
-        if (splitViewController != nil) {
-            //            print("rvc = UISplitViewController")
-            if let nvc = splitViewController!.viewControllers[0] as? UINavigationController {
-                //                print("nvc = UINavigationController")
-                tvc = nvc.topViewController as? MediaTableViewController
-            }
-            if let nvc = splitViewController!.viewControllers[1] as? UINavigationController {
-                //                print("nvc = UINavigationController")
-                if let myvc = nvc.topViewController as? MediaViewController {
-                    if (sorting != nil) {
-                        //Sort the sermonsInSeries
-                        myvc.sortSermonsInSeries()
-                    }
-                }
-            }
-        }
-        
-        //iPhone
-        if let nvc = navigationController {
-            //            print("rvc = UINavigationController")
-            if let _ = nvc.topViewController as? MediaViewController {
-                //                    print("myvc = MediaViewController")
-                nvc.popToRootViewControllerAnimated(true)
-                
-            }
-            tvc = nvc.topViewController as? MediaTableViewController
-        }
-        
-        if (tvc != nil) {
-            // All of the scrolling below becomes a problem in portrait on an iPad as the master view controller TVC may not be visible
-            // AND when it is made visible it is setup to first scroll to current selection.
-            
-            //                print("tvc = MediaTableViewController")
-            
-            //            tvc.performSegueWithIdentifier("Show Sermon", sender: tvc)
-            
-            tvc!.tableView.reloadData()
-            
-            if (globals.sermonTagsSelected != nil) {
-                tvc!.searchBar.placeholder = globals.sermonTagsSelected!
-                
-                //Show the search bar
-                tvc!.tableView.scrollRectToVisible(CGRectMake(0, 0, 1, 1), animated: true)
-            } else {
-                tvc!.searchBar.placeholder = nil
-            }
-            
-            if (searchString != nil) {
-                tvc!.searchBar.text = searchString!
-//                tvc!.searchBar.becomeFirstResponder()
-                tvc!.searchBar.showsCancelButton = true
-                
-                //Show the search bar
-                tvc!.tableView.scrollRectToVisible(CGRectMake(0, 0, 1, 1), animated: true)
-            } else {
-                tvc!.searchBar.text = nil
-//                tvc!.searchBar.resignFirstResponder()
-                tvc!.searchBar.showsCancelButton = false
-            }
-            
-            //It should never occur that more than one of the following conditionals are true
-            
-            //The calls below are made twice because only calling them once left the scroll in the Middle.
-            //Remember, these only occur when the app is being launched in response to a URL.  If the app is
-            //already launched this function is replaced by one in the AppDelegate.
-            
-            //I have no idea why calling these twice makes the difference.
-            
-            if (firstSermonInSeries != nil) {
-                tvc?.selectOrScrollToSermon(firstSermonInSeries, select: true, scroll: true, position: UITableViewScrollPosition.Top)
-                tvc?.selectOrScrollToSermon(firstSermonInSeries, select: true, scroll: true, position: UITableViewScrollPosition.Top)
-            }
-            
-            if (firstSermonInBook != nil) {
-                tvc?.selectOrScrollToSermon(firstSermonInBook, select: true, scroll: true, position: UITableViewScrollPosition.Top)
-                tvc?.selectOrScrollToSermon(firstSermonInBook, select: true, scroll: true, position: UITableViewScrollPosition.Top)
-            }
-            
-            if (sermonSelected != nil) {
-                tvc?.selectOrScrollToSermon(sermonSelected, select: true, scroll: true, position: UITableViewScrollPosition.Top)
-                tvc?.selectOrScrollToSermon(sermonSelected, select: true, scroll: true, position: UITableViewScrollPosition.Top)
-            }
-        }
-    }
-    
-    */
-    
     func setupViews()
     {
         setupSearchBar()
@@ -1163,7 +918,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             globals.loading = true
 
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                self.navigationItem.title = "Loading Sermons"
+                self.navigationItem.title = Constants.Loading_Sermons
             })
             
             var success = false
@@ -1265,15 +1020,15 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //            
 //            //We can test whether the PDF's we have, and the ones we don't have, can be downloaded (since we can programmatically create the missing PDF filenames).
 //            testSermonsPDFs(testExisting: false, testMissing: true, showTesting: false)
-//            
+//
 //            //Test whether the audio starts to download
 //            //If we can download at all, we assume we can download it all, which allows us to test all sermons to see if they can be downloaded/played.
 //            testSermonsAudioFiles()
 
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                self.navigationItem.title = "Loading Defaults"
+                self.navigationItem.title = Constants.Loading_Settings
             })
-            globals.loadDefaults()
+            globals.loadSettings()
             
             for sermon in globals.sermonRepository.list! {
                 sermon.removeTag(Constants.New)
@@ -1297,7 +1052,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             }
             
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                self.navigationItem.title = "Sorting and Grouping"
+                self.navigationItem.title = Constants.Sorting_and_Grouping
             })
             
             globals.sermons.all = SermonsListGroupSort(sermons: globals.sermonRepository.list)
@@ -1305,7 +1060,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             globals.setupDisplay()
             
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                self.navigationItem.title = "Setting up Player"
+                self.navigationItem.title = Constants.Setting_up_Player
                 if (globals.player.playing != nil) {
                     globals.player.playOnLoad = false
                     globals.setupPlayer(globals.player.playing)
@@ -1461,7 +1216,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func downloadJSON()
     {
-        navigationItem.title = "Downloading Sermons"
+        navigationItem.title = Constants.Downloading_Sermons
         
         let jsonURL = "\(Constants.JSON_URL_PREFIX)\(Constants.CBC_SHORT.lowercaseString).\(Constants.SERMONS_JSON_FILENAME)"
         let downloadRequest = NSMutableURLRequest(URL: NSURL(string: jsonURL)!)
@@ -1516,7 +1271,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     func updateList()
     {
         globals.setupDisplay()
-        
         tableView.reloadData()
     }
     
@@ -1806,23 +1560,17 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
         
-//        globals.loadedEnoughToDeepLink = true
-//        
-//        if (globals.deepLinkWaiting) {
-//            deepLink()
-//        } else {
-            //Do we want to do this?  If someone has selected something farther down the list to view, not play, when they come back
-            //the list will scroll to whatever is playing or paused.
-            
-            //This has to be in viewDidAppear().  Putting it in viewWillAppear() does not allow the rows at the bottom of the list
-            //to be scrolled to correctly with this call.  Presumably this is because of the toolbar or something else that is still
-            //getting setup in viewWillAppear.
-            
-            if (!globals.scrolledToSermonLastSelected) {
-                selectOrScrollToSermon(selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.Middle)
-                globals.scrolledToSermonLastSelected = true
-            }
-//        }
+        //Do we want to do this?  If someone has selected something farther down the list to view, not play, when they come back
+        //the list will scroll to whatever is playing or paused.
+        
+        //This has to be in viewDidAppear().  Putting it in viewWillAppear() does not allow the rows at the bottom of the list
+        //to be scrolled to correctly with this call.  Presumably this is because of the toolbar or something else that is still
+        //getting setup in viewWillAppear.
+        
+        if (!globals.scrolledToSermonLastSelected) {
+            selectOrScrollToSermon(selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.Middle)
+            globals.scrolledToSermonLastSelected = true
+        }
     }
     
     override func viewWillDisappear(animated: Bool) {
