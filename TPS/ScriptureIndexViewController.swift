@@ -481,7 +481,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         
         if let identifier = segue.identifier {
             switch identifier {
-            case "Show Index Sermon":
+            case Constants.SHOW_INDEX_SERMON_SEGUE:
                 if let myCell = sender as? MediaTableViewCell {
                     if (selectedSermon != myCell.sermon) || (globals.history == nil) {
                         globals.addToHistory(myCell.sermon)

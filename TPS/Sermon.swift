@@ -453,7 +453,7 @@ class Download {
     
     var purpose:String?
     
-    var url:NSURL?
+    var downloadURL:NSURL?
     var fileSystemURL:NSURL? {
         didSet {
             state = isDownloaded() ? .downloaded : .none
@@ -524,7 +524,7 @@ class Download {
         if (state == .none) {
             state = .downloading
             
-            let downloadRequest = NSMutableURLRequest(URL: url!)
+            let downloadRequest = NSMutableURLRequest(URL: downloadURL!)
             
             // This allows the downloading to continue even if the app goes into the background or terminates.
             let configuration = NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier(Constants.DOWNLOAD_IDENTIFIER + fileSystemURL!.lastPathComponent!)
@@ -601,6 +601,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
 
     init(dict:[String:String]?)
     {
+        super.init()
 //        print("\(dict)")
         self.dict = dict
     }
@@ -611,12 +612,40 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
     //        return [String:Download]()
     //    }()
     
+    func download(purpose:String?) -> Download?
+    {
+        var download:Download?
+        
+        switch purpose! {
+        case Constants.NOTES:
+            download = notesDownload
+            break
+            
+        case Constants.SLIDES:
+            download = slidesDownload
+            break
+            
+        case Constants.VIDEO:
+            download = videoDownload
+            break
+            
+        case Constants.AUDIO:
+            download = audioDownload
+            break
+            
+        default:
+            break
+        }
+        
+        return download
+    }
+    
     lazy var audioDownload:Download? = {
         [unowned self] in
         var download = Download()
         download.sermon = self
         download.purpose = Constants.AUDIO
-        download.url = self.audioURL
+        download.downloadURL = self.audioURL
         download.fileSystemURL = self.audioFileSystemURL
         self.downloads[Constants.AUDIO] = download
         return download
@@ -627,7 +656,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         var download = Download()
         download.sermon = self
         download.purpose = Constants.VIDEO
-        download.url = self.videoURL
+        download.downloadURL = self.videoURL
         download.fileSystemURL = self.videoFileSystemURL
         self.downloads[Constants.VIDEO] = download
         return download
@@ -638,7 +667,7 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         var download = Download()
         download.sermon = self
         download.purpose = Constants.SLIDES
-        download.url = self.slidesURL
+        download.downloadURL = self.slidesURL
         download.fileSystemURL = self.slidesFileSystemURL
         self.downloads[Constants.SLIDES] = download
         return download
@@ -649,28 +678,28 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         var download = Download()
         download.sermon = self
         download.purpose = Constants.NOTES
-        download.url = self.notesURL
+        download.downloadURL = self.notesURL
         download.fileSystemURL = self.notesFileSystemURL
         self.downloads[Constants.NOTES] = download
         return download
         }()
 
-    required convenience init?(coder decoder: NSCoder)
-    {
-        guard
-            
-            let dict = decoder.decodeObjectForKey(Constants.DICT) as? [String:String]
-            
-            else {
-                return nil
-            }
-        
-        self.init(dict: dict)
-    }
-    
-    func encodeWithCoder(coder: NSCoder) {
-        coder.encodeObject(self.dict, forKey: Constants.DICT)
-    }
+//    required convenience init?(coder decoder: NSCoder)
+//    {
+//        guard
+//            
+//            let dict = decoder.decodeObjectForKey(Constants.DICT) as? [String:String]
+//            
+//            else {
+//                return nil
+//            }
+//        
+//        self.init(dict: dict)
+//    }
+//    
+//    func encodeWithCoder(coder: NSCoder) {
+//        coder.encodeObject(self.dict, forKey: Constants.DICT)
+//    }
     
     var id:String! {
         get {
@@ -813,9 +842,9 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
         }
     }
     
-    var url:NSURL? {
+    var downloadURL:NSURL? {
         get {
-            return download?.url
+            return download?.downloadURL
         }
     }
     
@@ -1661,23 +1690,6 @@ class Sermon : NSObject, NSURLSessionDownloadDelegate {
             UIApplication.sharedApplication().networkActivityIndicatorVisible = false
         })
     }
-    
-//    func removeTempFiles()
-//    {
-//        // Clean up temp directory for cancelled downloads
-//        let fileManager = NSFileManager.defaultManager()
-//        let path = NSTemporaryDirectory()
-//        do {
-//            let array = try fileManager.contentsOfDirectoryAtPath(path)
-//            
-//            for string in array {
-//                print("Deleting: \(string)")
-//                try fileManager.removeItemAtPath(path + string)
-//            }
-//        } catch _ {
-//            print("failed to remove temp file")
-//        }
-//    }
     
     func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?)
     {

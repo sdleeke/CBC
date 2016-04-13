@@ -911,7 +911,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     {
         if (UIPrintInteractionController.isPrintingAvailable() && (sermon != nil))
         {
-            let printURL = sermon?.url
+            let printURL = sermon?.downloadURL
             
             if (printURL != nil) && UIPrintInteractionController.canPrintURL(printURL!) {
 //                print("can print!")
@@ -1108,16 +1108,16 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 if document != nil {
 //                if (selectedSermon!.hasSlides() && selectedSermon!.showingSlides()) || (selectedSermon!.hasNotes() && selectedSermon!.showingNotes()) {
 //                    showScripture = false
-                    performSegueWithIdentifier(Constants.SHOW_FULL_SCREEN_SEGUE_IDENTIFIER, sender: selectedSermon)
+                    performSegueWithIdentifier(Constants.SHOW_FULL_SCREEN_SEGUE, sender: selectedSermon)
                 }
                 break
                 
             case Constants.Open_in_Browser:
-                if selectedSermon?.url != nil {
-                    if (UIApplication.sharedApplication().canOpenURL(selectedSermon!.url!)) { // Reachability.isConnectedToNetwork() &&
-                        UIApplication.sharedApplication().openURL(selectedSermon!.url!)
+                if selectedSermon?.downloadURL != nil {
+                    if (UIApplication.sharedApplication().canOpenURL(selectedSermon!.downloadURL!)) { // Reachability.isConnectedToNetwork() &&
+                        UIApplication.sharedApplication().openURL(selectedSermon!.downloadURL!)
                     } else {
-                        networkUnavailable("Unable to open transcript in browser at: \(selectedSermon?.url)")
+                        networkUnavailable("Unable to open transcript in browser at: \(selectedSermon?.downloadURL)")
                     }
                 }
                 break
@@ -1476,8 +1476,14 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         selectedSermon = globals.selectedSermonDetail
         
         tableView.reloadData()
-        scrollToSermon(selectedSermon, select: true, position: UITableViewScrollPosition.Top)
-        
+
+        //Without this background/main dispatching there isn't time to scroll correctly after a reload.
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Top)
+            })
+        })
+
         updateUI()
     }
     
@@ -1732,7 +1738,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                         }
                     })
                     
-                    let request = NSURLRequest(URL: document!.download!.url!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
+                    let request = NSURLRequest(URL: document!.download!.downloadURL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
                     document?.wkWebView?.loadRequest(request)
                 })
             }
@@ -1751,7 +1757,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     }
                 })
                 
-                let request = NSURLRequest(URL: document!.download!.url!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
+                let request = NSURLRequest(URL: document!.download!.downloadURL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
                 document?.wkWebView?.loadRequest(request)
             })
         }
@@ -2413,7 +2419,12 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 
         setupSplitViewController()
         
-        scrollToSermon(selectedSermon,select:true,position:UITableViewScrollPosition.Top)
+        //Without this background/main dispatching there isn't time to scroll correctly after a reload.
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Top)
+            })
+        })
     }
     
     private func captureViewSplit()
@@ -2523,7 +2534,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         if let wvc = destination as? WebViewController {
             if let identifier = segue.identifier {
                 switch identifier {
-                case Constants.SHOW_FULL_SCREEN_SEGUE_IDENTIFIER:
+                case Constants.SHOW_FULL_SCREEN_SEGUE:
                     splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden
                     setupWKContentOffsets()
                     wvc.selectedSermon = sender as? Sermon

@@ -761,13 +761,15 @@ class Globals {
         return cacheSize(Constants.AUDIO) + cacheSize(Constants.VIDEO) + cacheSize(Constants.NOTES) + cacheSize(Constants.SLIDES)
     }
     
-    func cacheSize(contents:String) -> Int64
+    func cacheSize(purpose:String) -> Int64
     {
         var totalFileSize:Int64 = 0
         
         for sermon in sermonRepository.list! {
-            if sermon.downloads[contents]?.state == .downloaded {
-                totalFileSize += sermon.downloads[contents]!.fileSize
+            if let download = sermon.download(purpose) {
+                if download.isDownloaded() {
+                    totalFileSize += download.fileSize
+                }
             }
         }
         

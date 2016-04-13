@@ -74,9 +74,6 @@ struct Constants {
     static let SERMONS_CELL_IDENTIFIER = "Sermons"
     static let SERMONS_IN_SERIES_CELL_IDENTIFIER = "SermonSeries"
     
-    static let SHOW_FULL_SCREEN_SEGUE_IDENTIFIER = "Show Full Screen"
-    
-    static let Show_Live = "Show Live"
     static let Live = "Live"
     
     static let CONTENT_OFFSET_X_RATIO = "ContentOffsetXRatio"
@@ -169,7 +166,8 @@ struct Constants {
     static let Grouping = "Grouping"
     static let Index = "Index"
     
-    static let Group_Sermons_By = "Group Sermons By"
+    static let Sorting_Options_Title = "Sort By"
+    static let Grouping_Options_Title = "Group By"
     
     static let Options = "Options"
     
@@ -307,7 +305,6 @@ struct Constants {
     static let Sermon_Playing = "Sermon Playing"
     static let Sermon_Paused = "Sermon Paused"
     
-    static let Show_Settings = "Show Settings"
     static let Settings = "Settings"
     
     static let HISTORY = "HISTORY"
@@ -315,11 +312,15 @@ struct Constants {
     static let Clear_History = "Clear History"
     
     static let Scripture_Index = "Scripture Index"
-    static let Show_Scripture_Index = "Show Scripture Index"
     
-    static let Show_Sermon = "Show Sermon"
-    static let Show_About = "Show About"
-    static let Show_About2 = "Show About2"
+    static let SHOW_LIVE_SEGUE = "Show Live"
+    static let SHOW_ABOUT_SEGUE = "Show About"
+    static let SHOW_ABOUT2_SEGUE = "Show About2"
+    static let SHOW_SERMON_SEGUE = "Show Sermon"
+    static let SHOW_SETTINGS_SEGUE = "Show Settings"
+    static let SHOW_FULL_SCREEN_SEGUE = "Show Full Screen"
+    static let SHOW_INDEX_SERMON_SEGUE = "Show Index Sermon"
+    static let SHOW_SCRIPTURE_INDEX_SEGUE = "Show Scripture Index"
     
     static let Print = "Print"
     

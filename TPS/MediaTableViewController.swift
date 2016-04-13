@@ -488,11 +488,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
             case Constants.Sermon_Paused:
                 globals.gotoPlayingPaused = true
-                performSegueWithIdentifier(Constants.Show_Sermon, sender: self)
+                performSegueWithIdentifier(Constants.SHOW_SERMON_SEGUE, sender: self)
                 break
                 
             case Constants.Scripture_Index:
-                performSegueWithIdentifier(Constants.Show_Scripture_Index, sender: nil)
+                performSegueWithIdentifier(Constants.SHOW_SCRIPTURE_INDEX_SEGUE, sender: nil)
                 break
                 
             case Constants.History:
@@ -594,11 +594,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             case Constants.Live:
-                performSegueWithIdentifier(Constants.Show_Live, sender: nil)
+                performSegueWithIdentifier(Constants.SHOW_LIVE_SEGUE, sender: nil)
                 break
                 
             case Constants.Settings:
-                performSegueWithIdentifier(Constants.Show_Settings, sender: nil)
+                performSegueWithIdentifier(Constants.SHOW_SETTINGS_SEGUE, sender: nil)
                 break
                 
             default:
@@ -715,7 +715,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 navigationController.popoverPresentationController?.barButtonItem = button
                 
-                popover.navigationItem.title = Constants.Group_Sermons_By
+                popover.navigationItem.title = Constants.Grouping_Options_Title
                 
                 popover.delegate = self
                 
@@ -750,7 +750,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 navigationController.popoverPresentationController?.barButtonItem = button
                 
-                popover.navigationItem.title = "Sermon Sorting"
+                popover.navigationItem.title = Constants.Sorting_Options_Title
                 
                 popover.delegate = self
                 
@@ -1554,7 +1554,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func about()
     {
-        performSegueWithIdentifier(Constants.Show_About2, sender: self)
+        performSegueWithIdentifier(Constants.SHOW_ABOUT2_SEGUE, sender: self)
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -1610,10 +1610,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     //    print("Playing: \(globals.player.playing?.title)")
         
         switch identifier {
-            case Constants.Show_About:
+            case Constants.SHOW_ABOUT_SEGUE:
                 break
 
-            case Constants.Show_Sermon:
+            case Constants.SHOW_SERMON_SEGUE:
                 // We might check and see if the cell sermon is in a series and if not don't segue if we've
                 // already done so, but I think we'll just let it go.
                 // Mainly because if it is in series and we've selected another sermon in the series
@@ -1645,27 +1645,27 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         if let identifier = segue.identifier {
             switch identifier {
-            case Constants.Show_Settings:
+            case Constants.SHOW_SETTINGS_SEGUE:
                 if let svc = dvc as? SettingsViewController {
                     svc.modalPresentationStyle = .Popover
                     svc.popoverPresentationController?.delegate = self
                 }
                 break
                 
-            case Constants.Show_Live:
+            case Constants.SHOW_LIVE_SEGUE:
                 globals.setupLivePlayingInfoCenter()
                 break
                 
-            case Constants.Show_Scripture_Index:
+            case Constants.SHOW_SCRIPTURE_INDEX_SEGUE:
                 break
                 
-            case Constants.Show_About:
+            case Constants.SHOW_ABOUT_SEGUE:
                 fallthrough
-            case Constants.Show_About2:
+            case Constants.SHOW_ABOUT2_SEGUE:
                 globals.showingAbout = true
                 break
                 
-            case Constants.Show_Sermon:
+            case Constants.SHOW_SERMON_SEGUE:
                 if globals.player.mpPlayer?.contentURL == NSURL(string:Constants.LIVE_STREAM_URL) {
                     globals.player.stateTime = nil
                     globals.player.playOnLoad = false

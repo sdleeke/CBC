@@ -187,7 +187,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         {
             var printURL:NSURL?
             
-            printURL = sermon?.url
+            printURL = sermon?.downloadURL
             
             if (printURL != "") && UIPrintInteractionController.canPrintURL(printURL!) {
                 //                print("can print!")
@@ -249,11 +249,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 break
                 
             case Constants.Open_in_Browser:
-                if selectedSermon?.url != nil {
-                    if (UIApplication.sharedApplication().canOpenURL(selectedSermon!.url!)) { // Reachability.isConnectedToNetwork() &&
-                        UIApplication.sharedApplication().openURL(selectedSermon!.url!)
+                if selectedSermon?.downloadURL != nil {
+                    if (UIApplication.sharedApplication().canOpenURL(selectedSermon!.downloadURL!)) { // Reachability.isConnectedToNetwork() &&
+                        UIApplication.sharedApplication().openURL(selectedSermon!.downloadURL!)
                     } else {
-                        networkUnavailable("Unable to open in browser at: \(selectedSermon!.url!)")
+                        networkUnavailable("Unable to open in browser at: \(selectedSermon!.downloadURL!)")
                     }
                 }
                 break
@@ -693,7 +693,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             } else {
                 var url:NSURL?
                 
-                url = selectedSermon?.url
+                url = selectedSermon?.downloadURL
 
                 dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
                     dispatch_async(dispatch_get_main_queue(), { () -> Void in
@@ -717,7 +717,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         } else {
             var url:NSURL?
             
-            url = selectedSermon?.url
+            url = selectedSermon?.downloadURL
 
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in

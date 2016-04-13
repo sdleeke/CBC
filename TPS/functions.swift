@@ -24,6 +24,46 @@ func cachesURL() -> NSURL?
     return fileManager.URLsForDirectory(.CachesDirectory, inDomains: .UserDomainMask).first
 }
 
+func filesOfTypeInCache(fileType:String) -> [String]?
+{
+    var files = [String]()
+    
+    let fileManager = NSFileManager.defaultManager()
+    let path = cachesURL()?.path
+    do {
+        let array = try fileManager.contentsOfDirectoryAtPath(path!)
+        
+        for string in array {
+            if string.rangeOfString(fileType) != nil {
+                if fileType == string.substringFromIndex(string.rangeOfString(fileType)!.startIndex) {
+                    files.append(string)
+                }
+            }
+        }
+    } catch _ {
+        print("failed to get files in caches directory")
+    }
+    
+    return files.count > 0 ? files : nil
+}
+
+//    func removeTempFiles()
+//    {
+//        // Clean up temp directory for cancelled downloads
+//        let fileManager = NSFileManager.defaultManager()
+//        let path = NSTemporaryDirectory()
+//        do {
+//            let array = try fileManager.contentsOfDirectoryAtPath(path)
+//
+//            for string in array {
+//                print("Deleting: \(string)")
+//                try fileManager.removeItemAtPath(path + string)
+//            }
+//        } catch _ {
+//            print("failed to remove temp file")
+//        }
+//    }
+
 //func removeTempFiles()
 //{
 //    // Clean up temp directory for cancelled downloads
