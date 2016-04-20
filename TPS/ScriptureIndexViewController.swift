@@ -407,7 +407,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             break
             
         case 1: // Book
-            if (selectedTestament != nil) {
+            if (selectedTestament != nil) && bookSwitch.on {
                 switch selectedTestament! {
                 case Constants.Old_Testament:
                     selectedBook = Constants.OLD_TESTAMENT_BOOKS[row]
@@ -440,7 +440,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             break
             
         case 2: // Chapter
-            if (selectedTestament != nil) && (selectedBook != nil) {
+            if (selectedTestament != nil) && (selectedBook != nil) && bookSwitch.on && chapterSwitch.on {
                 selectedChapter = row + 1
                 
                 selectedVerse = 0
@@ -454,7 +454,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             break
             
         case 3: // Verse
-            if (selectedTestament != nil) && (selectedBook != nil) && (selectedChapter > 0) {
+            if (selectedTestament != nil) && (selectedBook != nil) && (selectedChapter > 0) && bookSwitch.on && chapterSwitch.on {
                 selectedVerse = row + 1
                 
                 pickerView.reloadAllComponents()

@@ -74,12 +74,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "TPS/MediaViewController.swift"
-            timestampString = "482160284.376826"
+            timestampString = "482762397.810641"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1987"
-            endingLineNumber = "1987"
-            landmarkName = "setupPlayPauseButton()"
+            startingLineNumber = "1995"
+            endingLineNumber = "1995"
+            landmarkName = "scrollToSermon(_:select:position:)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -90,11 +90,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "TPS/MediaViewController.swift"
-            timestampString = "482160284.376826"
+            timestampString = "482762397.810641"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2502"
-            endingLineNumber = "2502"
+            startingLineNumber = "2510"
+            endingLineNumber = "2510"
             landmarkName = "viewWillDisappear(_:)"
             landmarkType = "5">
          </BreakpointContent>
@@ -170,11 +170,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "TPS/MediaViewController.swift"
-            timestampString = "482160284.376826"
+            timestampString = "482762397.810641"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1692"
-            endingLineNumber = "1692"
+            startingLineNumber = "1700"
+            endingLineNumber = "1700"
             landmarkName = "setupDocument(_:)"
             landmarkType = "5">
          </BreakpointContent>
@@ -186,11 +186,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "TPS/MediaViewController.swift"
-            timestampString = "482160284.376826"
+            timestampString = "482762397.810641"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1691"
-            endingLineNumber = "1691"
+            startingLineNumber = "1699"
+            endingLineNumber = "1699"
             landmarkName = "setupDocument(_:)"
             landmarkType = "5">
          </BreakpointContent>
@@ -202,11 +202,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "TPS/MediaViewController.swift"
-            timestampString = "482160284.376826"
+            timestampString = "482762397.810641"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1710"
-            endingLineNumber = "1710"
+            startingLineNumber = "1718"
+            endingLineNumber = "1718"
             landmarkName = "setupDocument(_:)"
             landmarkType = "5">
             <Locations>
@@ -250,11 +250,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "TPS/MediaViewController.swift"
-            timestampString = "482160284.376826"
+            timestampString = "482762397.810641"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1727"
-            endingLineNumber = "1727"
+            startingLineNumber = "1735"
+            endingLineNumber = "1735"
             landmarkName = "setupDocument(_:)"
             landmarkType = "5">
             <Locations>
@@ -298,11 +298,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "TPS/MediaViewController.swift"
-            timestampString = "482160284.376826"
+            timestampString = "482762397.810641"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1693"
-            endingLineNumber = "1693"
+            startingLineNumber = "1701"
+            endingLineNumber = "1701"
             landmarkName = "setupDocument(_:)"
             landmarkType = "5">
          </BreakpointContent>

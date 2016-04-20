@@ -1,12 +1,51 @@
 {
 "sermons": [
             {
+            "date":"4/17/2016",
+            "service":"PM",
+            "title":"A Commitment to Serve the Lord",
+            "scripture":"Joshua 25",
+            "speaker":"Justin Turner",
+            "audio":"jt160417pCD.mp3"
+            },
+            
+            {
+            "date":"4/17/2016",
+            "service":"AM",
+            "title":"Do You Love Me?",
+            "scripture":"John 21:15-17",
+            "speaker":"Tom Pennington",
+            "audio":"tp160417aCD.mp3"
+            },
+            
+            {
+            "date":"4/10/2016",
+            "service":"PM",
+            "title":"The Redeemer",
+            "scripture":"Ruth 4:1-22",
+            "speaker":"Tom Pennington",
+            "audio":"tp160410pCD.mp3"
+            },
+            
+            {
+            "date":"4/10/2016",
+            "service":"AM",
+            "title":"The Implications of Justification (Part 2)",
+            "series":"The Implications of Justification",
+            "scripture":"Romans 3:27-31",
+            "speaker":"Tom Pennington",
+            "audio":"tp160410aCD.mp3",
+            "video":"162592510.hd.mp4?s=e8a1df13b6c5fc7909553c8d6c9ae1e998eb64ca&profile_id=174"
+            },
+            
+            {
             "date":"4/3/2016",
             "service":"PM",
             "title":"Divine Power in the Life of the Christian",
             "scripture":"2 Peter 1:8-11",
             "speaker":"Rocky Wyatt",
-            "audio":"rw160403pCD.mp3"
+            "audio":"rw160403pCD.mp3",
+            "video":"162592508.hd.mp4?s=e76f815eba433e07e6a1d87d976adba8317a5bd1&profile_id=174"
             },
             
             {
@@ -16,7 +55,8 @@
             "series":"The Implications of Justification",
             "scripture":"Romans 3:27-31",
             "speaker":"Tom Pennington",
-            "audio":"tp160403aCD.mp3"
+            "audio":"tp160403aCD.mp3",
+            "video":"162592509.hd.mp4?s=100857a0a4cee55ad5c95c5af59fdaaf8e9efb02&profile_id=174"
             },
             
             {

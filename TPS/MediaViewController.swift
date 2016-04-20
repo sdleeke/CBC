@@ -36,7 +36,13 @@ class Document {
         }
     }
     
-    var wkWebView:WKWebView?
+    var wkWebView:WKWebView? {
+        didSet {
+            if (wkWebView == nil) {
+                oldValue?.scrollView.delegate = nil
+            }
+        }
+    }
     
     var loadTimer:NSTimer?
     
@@ -286,7 +292,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             
         }
         
-        let transitionOptions = UIViewAnimationOptions.TransitionFlipFromLeft
+//        let transitionOptions = UIViewAnimationOptions.TransitionFlipFromLeft
         
         var toView:UIView?
         
@@ -315,16 +321,29 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         if (toView == nil) {
             toView = logo
         }
-        
-        UIView.transitionWithView(self.sermonNotesAndSlides, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {
+
+        if let view = toView as? WKWebView {
+            view.hidden = view.loading
+        } else {
             toView?.hidden = false
-            self.sermonNotesAndSlides.bringSubviewToFront(toView!)
-            self.selectedSermon!.showing = purpose
-        }, completion: { finished in
-            if (fromView != toView) {
-                fromView?.hidden = true
-            }
-        })
+        }
+
+        self.sermonNotesAndSlides.bringSubviewToFront(toView!)
+        self.selectedSermon!.showing = purpose
+
+        if (fromView != toView) {
+            fromView?.hidden = true
+        }
+    
+//        UIView.transitionWithView(self.sermonNotesAndSlides, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {
+//            toView?.hidden = false
+//            self.sermonNotesAndSlides.bringSubviewToFront(toView!)
+//            self.selectedSermon!.showing = purpose
+//        }, completion: { finished in
+//            if (fromView != toView) {
+//                fromView?.hidden = true
+//            }
+//        })
     }
     
     func setupSTVControl()
@@ -3018,9 +3037,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //        }
 
         webView.hidden = true
-        if (documents[selectedSermon!.id] != nil) {
+        if (selectedSermon != nil) && (documents[selectedSermon!.id] != nil) {
             for document in documents[selectedSermon!.id]!.values {
                 if (webView == document.wkWebView) {
+                    document.wkWebView?.scrollView.delegate = nil
                     document.wkWebView = nil
                     if document.visible(selectedSermon) {
                         activityIndicator.stopAnimating()
@@ -3056,6 +3076,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             if (selectedSermon != nil) && (documents[selectedSermon!.id] != nil) {
                 for document in documents[selectedSermon!.id]!.values {
                     if (webView == document.wkWebView) {
+                        document.wkWebView?.scrollView.delegate = nil
                         document.wkWebView = nil
                         if document.visible(selectedSermon) {
                             activityIndicator.stopAnimating()

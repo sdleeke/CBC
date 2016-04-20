@@ -378,7 +378,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             if (globals.sermonsNeed.grouping) {
                 globals.clearDisplay()
-                
                 tableView.reloadData()
                 
                 listActivityIndicator.hidden = false
@@ -395,6 +394,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     })
                     
                     globals.setupDisplay()
+                    
+                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        self.progressTimer?.invalidate()
+                        self.progressTimer = nil
+                        self.progressIndicator.hidden = true
+                    })
                     
                     dispatch_async(dispatch_get_main_queue(), { () -> Void in
                         self.tableView.reloadData()
@@ -1774,6 +1779,14 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     }
 
     // MARK: UITableViewDelegate
+    
+    func tableView(tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        if let header = view as? UITableViewHeaderFooterView {
+            header.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+            header.textLabel?.textColor = UIColor.blackColor()
+            header.alpha = 0.85
+        }
+    }
     
     func tableView(TableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
 //        print("didSelect")
