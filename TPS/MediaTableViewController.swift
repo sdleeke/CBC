@@ -312,7 +312,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         })
                         
                         if (globals.searchActive) {
-                            self.updateSearchResults()
+                            self.updateSearchResults(globals.searchText)
                         }
                         
                         dispatch_async(dispatch_get_main_queue(), { () -> Void in
@@ -826,7 +826,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     func searchBarSearchButtonClicked(searchBar: UISearchBar) {
 //        print("searchBarSearchButtonClicked:")
         searchBar.resignFirstResponder()
-        updateSearchResults()
+        globals.searchText = searchBar.text
+        updateSearchResults(globals.searchText)
     }
     
     func searchBarShouldBeginEditing(searchBar: UISearchBar) -> Bool
@@ -851,9 +852,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     func searchBarCancelButtonClicked(searchBar: UISearchBar) {
 //        print("searchBarCancelButtonClicked:")
         searchBar.showsCancelButton = false
-        globals.searchActive = false
         searchBar.resignFirstResponder()
         searchBar.text = nil
+        
+        globals.searchActive = false
+        globals.searchText = nil
+        
         didDismissSearch()
     }
     
@@ -1060,8 +1064,15 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 self.navigationItem.title = Constants.Sorting_and_Grouping
             })
             
-            globals.sermons.all = SermonsListGroupSort(sermons: globals.sermonRepository.list)
+            if (globals.sermons.all == nil) {
+                globals.sermons.all = SermonsListGroupSort(sermons: globals.sermonRepository.list)
+            }
 
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                self.searchBar.text = globals.searchText
+                self.updateSearchResults(globals.searchText)
+            })
+            
             globals.setupDisplay()
             
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
@@ -1357,19 +1368,17 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func updateSearchResultsForSearchController(searchController: UISearchController)
     {
-        updateSearchResults()
+        updateSearchResults(globals.searchText)
     }
     
-    func updateSearchResults()
+    func updateSearchResults(searchText:String?)
     {
         dispatch_async(dispatch_get_main_queue(), { () -> Void in
             self.listActivityIndicator.hidden = false
             self.listActivityIndicator.startAnimating()
         })
         
-        globals.searchText = self.searchBar.text
-        
-        if let searchText = self.searchBar.text {
+        if searchText != nil {
             globals.clearDisplay()
 
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
@@ -1380,12 +1389,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
                 if (searchText != Constants.EMPTY_STRING) {
                     let searchSermons = globals.sermonsToSearch?.filter({ (sermon:Sermon) -> Bool in
-                        return ((sermon.title?.rangeOfString(searchText, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
-                            ((sermon.date?.rangeOfString(searchText, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
-                            ((sermon.speaker?.rangeOfString(searchText, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
-                            ((sermon.series?.rangeOfString(searchText, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
-                            ((sermon.scripture?.rangeOfString(searchText, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
-                            ((sermon.tags?.rangeOfString(searchText, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil)
+                        return ((sermon.title?.rangeOfString(searchText!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
+                            ((sermon.date?.rangeOfString(searchText!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
+                            ((sermon.speaker?.rangeOfString(searchText!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
+                            ((sermon.series?.rangeOfString(searchText!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
+                            ((sermon.scripture?.rangeOfString(searchText!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
+                            ((sermon.tags?.rangeOfString(searchText!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil)
                         })
                     
                     globals.sermons.search = SermonsListGroupSort(sermons: searchSermons)

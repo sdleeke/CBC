@@ -278,10 +278,23 @@ class Globals {
     var loading:Bool = false
     
     var searchActive:Bool = false
-    var searchText:String?
+    var searchText:String? {
+        didSet {
+            if (searchText != oldValue) {
+                if (searchText != nil) && (searchText != Constants.EMPTY_STRING) {
+                    NSUserDefaults.standardUserDefaults().setObject(searchText, forKey: Constants.SEARCH_TEXT)
+                    NSUserDefaults.standardUserDefaults().synchronize()
+                } else {
+                    sermons.search = nil
+                    NSUserDefaults.standardUserDefaults().removeObjectForKey(Constants.SEARCH_TEXT)
+                    NSUserDefaults.standardUserDefaults().synchronize()
+                }
+            }
+        }
+    }
     
     var showing:String? = Constants.ALL
-    
+
     var gotoPlayingPaused:Bool = false
     var showingAbout:Bool = false
 
@@ -330,6 +343,7 @@ class Globals {
             if (sermonTagsSelected != nil) {
                 if (sermonTagsSelected != oldValue) || (sermons.tagged == nil) {
                     if sermons.all == nil {
+                        //This is filtering, i.e. searching all sermons => s/b in background
                         sermons.tagged = SermonsListGroupSort(sermons: sermonsWithTag(sermonRepository.list, tag: sermonTagsSelected))
                     } else {
                         sermons.tagged = SermonsListGroupSort(sermons: sermons.all?.tagSermons?[stringWithoutPrefixes(sermonTagsSelected!)!])
@@ -359,9 +373,9 @@ class Globals {
                 break
                 
             case Constants.ALL:
-                if self.sermons.all == nil {
-                    self.sermons.all = SermonsListGroupSort(sermons: sermonRepository.list)
-                }
+//                if self.sermons.all == nil {
+//                    self.sermons.all = SermonsListGroupSort(sermons: sermonRepository.list)
+//                }
                 sermons = self.sermons.all?.list
                 break
                 
@@ -520,7 +534,10 @@ class Globals {
                 } else {
                     showing = Constants.ALL
                 }
-                
+
+                searchText = defaults.stringForKey(Constants.SEARCH_TEXT)
+                globals.searchActive = searchText != nil
+
                 var indexOfSermon:Int?
                 
                 if let dict = defaults.dictionaryForKey(Constants.SERMON_PLAYING) {

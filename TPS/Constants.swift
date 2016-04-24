@@ -68,6 +68,8 @@ struct Constants {
     static let AUTO_ADVANCE = "AUTO_ADVANCE"
     static let CACHE_DOWNLOADS = "CACHE DOWNLOADS"
     
+    static let SEARCH_TEXT = "SEARCH TEXT"
+    
     static let POPOVER_CELL_IDENTIFIER = "PopoverCell"
     static let POPOVER_TABLEVIEW_IDENTIFIER = "PopoverTableView"
     

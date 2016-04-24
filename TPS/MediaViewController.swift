@@ -1499,7 +1499,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Top)
+                self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.None)
             })
         })
 
@@ -1991,9 +1991,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //                var point = CGPointZero //tableView.bounds.origin
 //                point.y += tableView.rowHeight * CGFloat(indexPath.row)
 //                tableView.setContentOffset(point, animated: true)
-                tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: position, animated: true)
+                tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: position, animated: false)
             } else {
-                tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: position, animated: true)
+                tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: position, animated: false)
             }
         } else {
             //No sermon to scroll to.
@@ -2150,7 +2150,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         
         coordinator.animateAlongsideTransition({ (UIViewControllerTransitionCoordinatorContext) -> Void in
 
-            self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Top)
+            self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.None)
             
             }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
                 self.setupWKContentOffsets()
@@ -2441,7 +2441,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.Top)
+                self.scrollToSermon(self.selectedSermon, select: true, position: UITableViewScrollPosition.None)
             })
         })
     }
@@ -2851,7 +2851,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                         if (self.view.window != nil) && (sermons?.indexOf(nextSermon) != nil) {
                             selectedSermon = nextSermon
                             updateUI()
-                            scrollToSermon(nextSermon, select: true, position: UITableViewScrollPosition.Top)
+                            scrollToSermon(nextSermon, select: true, position: UITableViewScrollPosition.None)
                         }
                         //            print("\(selectedSermon)")
                         playNewSermon(nextSermon)
@@ -2931,6 +2931,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     }
     
     private func playNewSermon(sermon:Sermon?) {
+        globals.updateCurrentTimeExact()
         globals.player.mpPlayer?.stop()
         
         globals.player.mpPlayer?.view.removeFromSuperview()
