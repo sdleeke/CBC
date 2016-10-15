@@ -1,12 +1,331 @@
 {
 "sermons": [
             {
+            "date":"8/7/2016",
+            "service":"AM",
+            "title":"Christians Love the Church",
+            "scripture":"Selected Scriptures",
+            "tags":"Hold Fast",
+            "speaker":"Tom Pennington",
+            "audio":"tp160807aCD.mp3"
+            },
+            
+            {
+            "date":"8/7/2016",
+            "service":"PM",
+            "title":"Healing a Nobleman's Son",
+            "tags":"The Words and Works of Jesus",
+            "scripture":"Galatians 6:7-10",
+            "speaker":"Jonathan Anderson",
+            "audio":"ja160807pCD.mp3",
+            "video":"178022065.hd.mp4?s=54109b3dcb05eec417c811bc415a491e224611e8&profile_id=174"
+            },
+            
+            {
+            "date":"7/31/2016",
+            "service":"PM",
+            "title":"Understanding God's Unchanging Principle",
+            "scripture":"Galatians 6:7-10",
+            "speaker":"Mark Jeffries",
+            "audio":"gs160731pCD.mp3"
+            },
+            
+            {
+            "date":"7/31/2016",
+            "service":"AM",
+            "title":"What the Bible Is and Does",
+            "scripture":"2 Timothy 3:14-17",
+            "speaker":"Dr. Ligon Duncan",
+            "audio":"gs160731aCD.mp3",
+            "video":"177089385.hd.mp4?s=149ae5fd7ec53678a06b4da7257214162548a6e0&profile_id=174"
+            },
+            
+            {
+            "date":"7/24/2016",
+            "service":"PM",
+            "title":"Water to Wine",
+            "scripture":"John 2:1-11",
+            "tags":"The Words and Works of Jesus",
+            "speaker":"Brandon Caron",
+            "audio":"bc160724pCD.mp3",
+            "video":"176314527.hd.mp4?s=ed6893aa7737643f532529d8eaa592fcc833beca&profile_id=174"
+            },
+            
+            {
+            "date":"7/24/2016",
+            "service":"AM",
+            "title":"Expositional Preaching Is the Biblical Pattern",
+            "scripture":"Selected Scriptures",
+            "tags":"Hold Fast",
+            "speaker":"Tom Pennington",
+            "audio":"tp160724aCD.mp3",
+            "video":"176314509.hd.mp4?s=f68a00b8f916b9a1842f98784f6dbcae8905f25e&profile_id=174"
+            },
+            
+            {
+            "date":"7/17/2016",
+            "service":"AM",
+            "title":"The Bible Is Without Error",
+            "scripture":"Matthew 5:18",
+            "tags":"Hold Fast",
+            "speaker":"Tom Pennington",
+            "audio":"tp160717aCD.mp3",
+            "video":"175563481.hd.mp4?s=1111db85d0303a82d38f8d1e49b18396a35932fd&profile_id=174"
+            },
+            
+            {
+            "date":"7/10/2016",
+            "service":"PM",
+            "title":"Baptism Service",
+            "scripture":"Selected Scriptures",
+            "tags":"Baptism",
+            "speaker":"Tom Pennington",
+            "audio":"tp160710pCD.mp3",
+            "video":"174103548.hd.mp4?s=eff112a3a8f369ace0a54ddaec117d08fed2e5a7&profile_id=174"
+            },
+            
+            {
+            "date":"7/10/2016",
+            "service":"AM",
+            "title":"We Must Pursue Holiness",
+            "scripture":"Ephesians 4:17-24",
+            "tags":"Hold Fast",
+            "speaker":"Tom Pennington",
+            "audio":"tp160710aCD.mp3",
+            "video":"174103544.hd.mp4?s=fdc1b627a3b2b94f22f7b3e40b03b430c8aa811b&profile_id=174"
+            },
+            
+            {
+            "date":"7/03/2016",
+            "service":"PM",
+            "title":"The Called and the Chosen",
+            "scripture":"Matthew 22:1-14",
+            "tags":"The Words and Works of Jesus",
+            "speaker":"Dusty Burris",
+            "audio":"db160703pCD.mp3",
+            "video":"173078122.hd.mp4?s=e35559d01cac05a96b829a098e6c8cb9a44eb7e7&profile_id=174"
+            },
+            
+            {
+            "date":"7/03/2016",
+            "service":"AM",
+            "title":"The Gospel Produces Four Responses",
+            "scripture":"Matthew 13:1-23",
+            "tags":"Hold Fast",
+            "speaker":"Tom Pennington",
+            "audio":"tp160703aCD.mp3",
+            "video":"173078227.hd.mp4?s=1d85e3cfccc82559c3c6f36c5e80f8068aff1973&profile_id=174"
+            },
+            
+            {
+            "date":"6/26/2016",
+            "service":"PM",
+            "title":"A Generous God",
+            "scripture":"Matthew 20:1-16",
+            "tags":"The Words and Works of Jesus",
+            "speaker":"Jonathan Anderson",
+            "audio":"ja160626pCD.mp3",
+            "video":"172025073.hd.mp4?s=4dc5e48d057965cc2f63f16a37fc31040461c824&profile_id=174"
+            },
+            
+            {
+            "date":"6/26/2016",
+            "service":"AM",
+            "title":"We Have Been Justified",
+            "scripture":"Isaiah 53:11",
+            "tags":"Hold Fast",
+            "speaker":"Tom Pennington",
+            "audio":"tp160626aCD.mp3",
+            "video":"172025055.hd.mp4?s=679069c85735b9e3b9891a3f986dadbd6fcd3a99&profile_id=174"
+            },
+            
+            {
+            "date":"6/19/2016",
+            "service":"PM",
+            "title":"The Kingdom Belongs to the Humble",
+            "scripture":"Luke 18:9-17",
+            "tags":"The Words and Works of Jesus",
+            "speaker":"Dusty Burris",
+            "audio":"db160619pCD.mp3",
+            "video":"171636835.hd.mp4?s=422da15f9994e9b13d703756e28308c73675b713&profile_id=174"
+            },
+            
+            {
+            "date":"6/19/2016",
+            "service":"AM",
+            "title":"Jesus is Lord",
+            "scripture":"Selected Scriptures",
+            "tags":"Hold Fast",
+            "speaker":"Tom Pennington",
+            "audio":"tp160619aCD.mp3",
+            "video":"171636845.hd.mp4?s=00e68a09d61851e9bcf11d5eff1b66c9823e2fd1&profile_id=174"
+            },
+            
+            {
+            "date":"6/12/2016",
+            "service":"PM",
+            "title":"Don't Lose Heart",
+            "scripture":"Luke 18:1-8",
+            "tags":"The Words and Works of Jesus",
+            "speaker":"Jonathan Anderson",
+            "audio":"ja160612pCD.mp3",
+            "video":"171636855.hd.mp4?s=22eea97d04bfb3c16fc7ffab7991d82e585496d2&profile_id=174"
+            },
+            
+            {
+            "date":"6/12/2016",
+            "service":"AM",
+            "title":"We Are In Christ",
+            "scripture":"Selected Scriptures",
+            "tags":"Hold Fast",
+            "speaker":"Tom Pennington",
+            "audio":"tp160612aCD.mp3",
+            "video":"171636861.hd.mp4?s=32598c06d30136ca0b3d5ffffaa6f8c4cad3d114&profile_id=174"
+            },
+            
+            {
+            "date":"6/5/2016",
+            "service":"PM",
+            "title":"Finances, Friends, and the Future",
+            "scripture":"Luke 16:1-3",
+            "tags":"The Words and Works of Jesus",
+            "speaker":"Jonathan Anderson",
+            "audio":"ja160605pCD.mp3",
+            "video":"169373497.hd.mp4?s=ede6117c3848dc954061de2274777c6f6dd736ed&profile_id=174"
+            },
+            
+            {
+            "date":"6/5/2016",
+            "service":"AM",
+            "title":"God Is Sovereign in Salvation",
+            "scripture":"Selected Scriptures",
+            "tags":"Hold Fast",
+            "speaker":"Tom Pennington",
+            "audio":"tp160605aCD.mp3",
+            "video":"169373286.hd.mp4?s=97d71320b79babc1acaa0b95ea771cd16f5ee7fe&profile_id=174"
+            },
+            
+            {
+            "date":"5/29/2016",
+            "service":"PM",
+            "title":"The Invaluable Christ",
+            "scripture":"Matthew 13:44-46",
+            "tags":"The Words and Works of Jesus",
+            "speaker":"Dusty Burris",
+            "audio":"db160529pCD.mp3",
+            "video":"168944688.hd.mp4?s=4e7aaac62735101eaf77ffd3440308ff33494f70&profile_id=174"
+            },
+            
+            {
+            "date":"5/29/2016",
+            "service":"AM",
+            "title":"God Is Sovereign",
+            "scripture":"Selected Scriptures",
+            "tags":"Hold Fast",
+            "speaker":"Tom Pennington",
+            "audio":"tp160529aCD.mp3",
+            "slides":"tp160529a.pdf",
+            "video":"168944677.hd.mp4?s=6df0ba82e8c2307f05f7163ea874b4fc42b6cf7a&profile_id=174"
+            },
+            
+            {
+            "date":"5/22/2016",
+            "service":"AM",
+            "title":"The Bible Has One Message",
+            "scripture":"John 17",
+            "tags":"Hold Fast",
+            "speaker":"Tom Pennington",
+            "audio":"tp160522aCD.mp3",
+            "slides":"tp160522a.pdf",
+            "video":"167771677.hd.mp4?s=3cbe354920a4804ac98e6a25144aa747df5ec2a5&profile_id=174"
+            },
+            
+            {
+            "date":"5/15/2016",
+            "service":"AM",
+            "title":"God Alone Is Great!",
+            "scripture":"Isaiah 40:12-26",
+            "tags":"Hold Fast",
+            "speaker":"Tom Pennington",
+            "audio":"tp160515aCD.mp3",
+            "slides":"tp160515a.pdf",
+            "video":"166961203.hd.mp4?s=02b717763c1348e5b6a4c796bcfdb2912857a718&profile_id=174"
+            },
+            
+            {
+            "date":"5/8/2016",
+            "service":"PM",
+            "title":"Another Reminder",
+            "scripture":"2 Peter 1:12-15",
+            "speaker":"Rocky Wyatt",
+            "audio":"rw160508pCD.mp3",
+            "video":"165916317.hd.mp4?s=7cb91cf81e3464a066af5c50d0588b7cd53c94f0&profile_id=174"
+            },
+            
+            {
+            "date":"5/8/2016",
+            "service":"AM",
+            "title":"Scripture is Enough",
+            "scripture":"Psalm 1",
+            "tags":"Hold Fast",
+            "speaker":"Tom Pennington",
+            "audio":"tp160508aCD.mp3",
+            "slides":"tp160508a.pdf",
+            "video":"165916316.hd.mp4?s=b1501d66585b9a7aadd4d4fdc3bed08b4d243d70&profile_id=174"
+            },
+            
+            {
+            "date":"5/1/2016",
+            "service":"PM",
+            "title":"The Redeemer (Part 2)",
+            "series":"The Redeemer",
+            "scripture":"Ruth 4:1-22",
+            "speaker":"Tom Pennington",
+            "audio":"tp160501pCD.mp3",
+            "video":"165053862.hd.mp4?s=c6ed4b4ae02a34a262aaac95df07ed0da6efae34&profile_id=174"
+            },
+            
+            {
+            "date":"5/1/2016",
+            "service":"AM",
+            "title":"The Implications of Justification (Part 3)",
+            "series":"The Implications of Justification",
+            "scripture":"Romans 3:27-31",
+            "speaker":"Tom Pennington",
+            "audio":"tp160501aCD.mp3",
+            "slides":"tp160501a.pdf",
+            "notes":"tx-un-tp160501a.pdf",
+            "video":"165053826.hd.mp4?s=7aa6ba6659e467555edcc5d218c7c7d0f450b496&profile_id=174"
+            },
+            
+            {
+            "date":"4/24/2016",
+            "service":"PM",
+            "title":"The God-Centered Life & Ministry of Martin Lloyd-Jones",
+            "scripture":"Selected Scriptures",
+            "speaker":"Steve Lawson",
+            "audio":"gs160424pCD.mp3",
+            "video":"164567642.hd.mp4?s=bcccf9a1ec7b9f6d6e0930460b9680b39217acd7&profile_id=174"
+            },
+            
+            {
+            "date":"4/24/2016",
+            "service":"AM",
+            "title":"Six Marks of Effective Evangelism",
+            "scripture":"Acts 2:14-40",
+            "speaker":"Steve Lawson",
+            "audio":"gs160424aCD.mp3",
+            "video":"164567641.hd.mp4?s=c805d1b1352c7ced39baedd4d5eae5222d5b9933&profile_id=174"
+            },
+            
+            {
             "date":"4/17/2016",
             "service":"PM",
             "title":"A Commitment to Serve the Lord",
             "scripture":"Joshua 25",
             "speaker":"Justin Turner",
-            "audio":"jt160417pCD.mp3"
+            "audio":"jt160417pCD.mp3",
+            "video":"163791762.hd.mp4?s=8e0b5948e61e0b498c6b71c2d3d4477343818b9a&profile_id=174"
             },
             
             {
@@ -15,16 +334,20 @@
             "title":"Do You Love Me?",
             "scripture":"John 21:15-17",
             "speaker":"Tom Pennington",
-            "audio":"tp160417aCD.mp3"
+            "audio":"tp160417aCD.mp3",
+            "slides":"tp160417a.pdf",
+            "video":"163791763.hd.mp4?s=3a0392e985aaafbd1108ac2ae893fbba6e8f58a4&profile_id=174"
             },
             
             {
             "date":"4/10/2016",
             "service":"PM",
-            "title":"The Redeemer",
+            "title":"The Redeemer (Part 1)",
+            "series":"The Redeemer",
             "scripture":"Ruth 4:1-22",
             "speaker":"Tom Pennington",
-            "audio":"tp160410pCD.mp3"
+            "audio":"tp160410pCD.mp3",
+            "video":"162592512.hd.mp4?s=2662a2b7ce03ae2023d276f2dca53b1b4f3ac71f&profile_id=174"
             },
             
             {
@@ -35,6 +358,8 @@
             "scripture":"Romans 3:27-31",
             "speaker":"Tom Pennington",
             "audio":"tp160410aCD.mp3",
+            "notes":"tx-un-tp160410a.pdf",
+            "slides":"tp160410a.pdf",
             "video":"162592510.hd.mp4?s=e8a1df13b6c5fc7909553c8d6c9ae1e998eb64ca&profile_id=174"
             },
             
@@ -56,6 +381,8 @@
             "scripture":"Romans 3:27-31",
             "speaker":"Tom Pennington",
             "audio":"tp160403aCD.mp3",
+            "notes":"tx-un-tp160403a.pdf",
+            "slides":"tp160403a.pdf",
             "video":"162592509.hd.mp4?s=100857a0a4cee55ad5c95c5af59fdaaf8e9efb02&profile_id=174"
             },
             
@@ -66,6 +393,7 @@
             "scripture":"Mark 8:34-38",
             "speaker":"Tom Pennington",
             "audio":"tp160327aCD.mp3",
+            "slides":"tp160327a.pdf",
             "video":"161201045.hd.mp4?s=0118f2bca71c7b20ae14b5f334982af8b12934a0&profile_id=174"
             },
             
@@ -88,6 +416,7 @@
             "scripture":"Romans 3:21-31",
             "speaker":"Tom Pennington",
             "audio":"tp160320aCD.mp3",
+            "slides":"tp160320a.pdf",
             "video":"159948324.sd.mp4?s=40b6af4b1aa6044de5df77abe3f7acb6c4ea7c4c&profile_id=165"
             },
             
@@ -110,6 +439,7 @@
             "scripture":"Romans 3:21-31",
             "speaker":"Tom Pennington",
             "audio":"tp160313aCD.mp3",
+            "slides":"tp160313a.pdf",
             "video":"159948321.hd.mp4?s=cdf3ec8f095361f2a9314c48c96358b601d597a7&profile_id=113"
             },
             
@@ -132,7 +462,9 @@
             "scripture":"Romans 3:21-31",
             "speaker":"Tom Pennington",
             "audio":"tp160306aCD.mp3",
-            "video":"158669448.sd.mp4?s=0bf537eec9d53dad463a50c088efd578a3f1bbc2&profile_id=165"
+            "video":"158669448.sd.mp4?s=0bf537eec9d53dad463a50c088efd578a3f1bbc2&profile_id=165",
+            "notes":"tx-un-tp160306a.pdf",
+            "slides":"tp160306a.pdf"
             },
             
             {
@@ -153,7 +485,8 @@
             "scripture":"Romans 3:21-31",
             "speaker":"Tom Pennington",
             "audio":"tp160228aCD.mp3",
-            "video":"158669446.hd.mp4?s=20bd0f21ec100e7a6ec074f8e0d596739361eca5"
+            "video":"158669446.hd.mp4?s=20bd0f21ec100e7a6ec074f8e0d596739361eca5",
+            "notes":"tx-un-tp160228a.pdf"
             },
             
             {
@@ -184,7 +517,9 @@
             "scripture":"Romans 3:21-31",
             "speaker":"Tom Pennington",
             "audio":"tp160214aCD.mp3",
-            "video":"158669444.sd.mp4?s=4c236145af24c3ed3f9bb8cda950138bcfaa93ec&profile_id=165"
+            "slides":"tp160214a.pdf",
+            "video":"158669444.sd.mp4?s=4c236145af24c3ed3f9bb8cda950138bcfaa93ec&profile_id=165",
+            "notes":"tx-un-tp160214a.pdf"
             },
             
             {
@@ -207,6 +542,7 @@
             "speaker":"Tom Pennington",
             "audio":"tp160207aCD.mp3",
             "notes":"tx-un-tp160207a.pdf",
+            "slides":"tp160207a.pdf",
             "video":"155337035.hd.mp4?s=8e72b4ac1b4d9803b0e95e2a25cf5cfaf5615047&profile_id=113"
             },
             
@@ -261,6 +597,7 @@
             "scripture":"Romans 3:19-20",
             "speaker":"Tom Pennington",
             "audio":"tp160117aCD.mp3",
+            "slides":"tp160117a.pdf",
             "video":"153280454.hd.mp4?s=6b101092986c103f4e868a1420a28516c07f3565&profile_id=113",
             "notes":"tx-un-tp160117a.pdf"
             },
@@ -313,6 +650,7 @@
             "scripture":"Mark 3:20-35",
             "speaker":"Tom Pennington",
             "audio":"tp151227aCD.mp3",
+            "slides":"tp151227a.pdf",
             "notes":"tx-un-tp151227a.pdf"
             },
             
@@ -324,6 +662,7 @@
             "scripture":"Mark 3:20-35",
             "speaker":"Tom Pennington",
             "audio":"tp151220aCD.mp3",
+            "slides":"tp151220a.pdf",
             "notes":"tx-un-tp151220a.pdf"
             },
             
@@ -334,7 +673,8 @@
             "series":"Trilemma: Liar, Lunatic, or Lord",
             "scripture":"Mark 3:20-35",
             "speaker":"Tom Pennington",
-            "audio":"tp151213aCD.mp3"
+            "audio":"tp151213aCD.mp3",
+            "slides":"tp151213a.pdf"
             },
             
             {
@@ -353,7 +693,8 @@
             "series":"Trilemma: Liar, Lunatic, or Lord",
             "scripture":"Mark 3:20-35",
             "speaker":"Tom Pennington",
-            "audio":"tp151206aCD.mp3"
+            "audio":"tp151206aCD.mp3",
+            "slides":"tp151206a.pdf"
             },
             
             {
@@ -380,7 +721,8 @@
             "title":"The Heart of Thanksgiving",
             "scripture":"Psalm 100",
             "speaker":"Tom Pennington",
-            "audio":"tp151122aCD.mp3"
+            "audio":"tp151122aCD.mp3",
+            "slides":"tp151122a.pdf"
             },
             
             {
@@ -400,7 +742,8 @@
             "series":"Not Even One!",
             "scripture":"Romans 3:9-20",
             "speaker":"Tom Pennington",
-            "audio":"tp151115aCD.mp3"
+            "audio":"tp151115aCD.mp3",
+            "slides":"tp151115a.pdf"
             },
             
             {
@@ -421,7 +764,8 @@
             "scripture":"Romans 3:9-20",
             "speaker":"Tom Pennington",
             "audio":"tp151108aCD.mp3",
-            "notes":"tx-un-tp151108a.pdf"
+            "notes":"tx-un-tp151108a.pdf",
+            "slides":"tp151108a.pdf"
             },
             
             {
@@ -442,7 +786,8 @@
             "speaker":"Tom Pennington",
             "series": "Not Even One!",
             "audio":"tp151101aCD.mp3",
-            "notes":"tx-un-tp151101a.pdf"
+            "notes":"tx-un-tp151101a.pdf",
+            "slides":"tp151101a.pdf"
             },
             
             {
@@ -451,7 +796,8 @@
             "title":"The Manifesto of the Reformation",
             "scripture":"Romans 3:9-20",
             "speaker":"Tom Pennington",
-            "audio":"tp151025aCD.mp3"
+            "audio":"tp151025aCD.mp3",
+            "slides":"tp151025a.pdf"
             },
             
             {
@@ -470,7 +816,8 @@
             "title":"Predestined to Adoption",
             "scripture":"Ephesians 1:4-6",
             "speaker":"Tom Pennington",
-            "audio":"tp151018aCD.mp3"
+            "audio":"tp151018aCD.mp3",
+            "slides":"tp151018a.pdf"
             },
             
             {
@@ -481,7 +828,8 @@
             "speaker":"Tom Pennington",
             "series": "Not Even One!",
             "audio":"tp151011aCD.mp3",
-            "notes":"tx-un-tp151011a.pdf"
+            "notes":"tx-un-tp151011a.pdf",
+            "slides":"tp151011a.pdf"
             },
             
             {
@@ -492,7 +840,8 @@
             "speaker":"Tom Pennington",
             "series": "Not Even One!",
             "audio":"tp151004aCD.mp3",
-            "notes":"tx-un-tp151004a.pdf"
+            "notes":"tx-un-tp151004a.pdf",
+            "slides":"tp151004a.pdf"
             },
             
             {
@@ -501,7 +850,8 @@
             "title":"How to Parent Your Children",
             "scripture":"Ephesians 6:4",
             "speaker":"Tom Pennington",
-            "audio":"tp150927aCD.mp3"
+            "audio":"tp150927aCD.mp3",
+            "slides":"tp150927a.pdf"
             },
             
             {
@@ -510,7 +860,8 @@
             "title":"How to Obey Your Parents",
             "scripture":"Ephesians 6:1-3",
             "speaker":"Tom Pennington",
-            "audio":"tp150920aCD.mp3"
+            "audio":"tp150920aCD.mp3",
+            "slides":"tp150920a.pdf"
             },
             
             {
@@ -1754,7 +2105,8 @@
         "series":"The Guarantee of Answered Prayer",
         "tags":"The Sermon on the Mount",
         "audio":"tp131006aCD.mp3",
-        "slides":"tp131006a.pdf"
+        "slides":"tp131006a.pdf",
+        "notes":"tx-un-tp131006a.pdf"
 },
 
 {
@@ -4076,7 +4428,8 @@
         "speaker":"Tom Pennington",
         "tags":"The Memoirs of Peter",
         "audio":"tp100926pCD.mp3",
-        "slides":"tp100926p.pdf"
+        "slides":"tp100926p.pdf",
+        "notes":"tx-un-tp100926p.pdf"
 },
 
 {
@@ -5104,6 +5457,7 @@
         "scripture":"Ephesians 4:20-24",
         "speaker":"Tom Pennington",
         "series":"Real Change from the Inside Out",
+        "notes":"tx-un-tp090628a.pdf",
         "audio":"tp090628aCD.mp3"
 },
 
@@ -6311,7 +6665,8 @@
         "scripture":"Ephesians 2:1-10",
         "speaker":"Tom Pennington",
         "series":"This is Your Life",
-        "audio":"tp080106aCD.mp3"
+        "audio":"tp080106aCD.mp3",
+        "notes":"tx-un-tp080106a.pdf"
 },
 
 {

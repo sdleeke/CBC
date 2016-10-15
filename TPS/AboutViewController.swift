@@ -12,11 +12,11 @@ import MessageUI
 
 class AboutViewController: UIViewController, UIPopoverPresentationControllerDelegate, PopoverTableViewControllerDelegate, MFMailComposeViewControllerDelegate
 {
-    override func canBecomeFirstResponder() -> Bool {
+    override var canBecomeFirstResponder : Bool {
         return true //splitViewController == nil
     }
     
-    override func motionEnded(motion: UIEventSubtype, withEvent event: UIEvent?) {
+    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?) {
         if (splitViewController == nil) {
             globals.motionEnded(motion,event: event)
         }
@@ -28,17 +28,17 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     
     var item:MKMapItem?
     
-    private func showSendMailErrorAlert() {
+    fileprivate func showSendMailErrorAlert() {
         let sendMailErrorAlert = UIAlertView(title: "Could Not Send Email", message: "Your device could not send e-mail.  Please check your e-mail configuration and try again.", delegate: self, cancelButtonTitle:Constants.Okay)
         sendMailErrorAlert.show()
     }
     
     // MARK: MFMailComposeViewControllerDelegate Method
-    func mailComposeController(controller: MFMailComposeViewController, didFinishWithResult result: MFMailComposeResult, error: NSError?) {
-        controller.dismissViewControllerAnimated(true, completion: nil)
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+        controller.dismiss(animated: true, completion: nil)
     }
     
-    private func email()
+    fileprivate func email()
     {
         let bodyString = String()
         
@@ -53,80 +53,80 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
         mailComposeViewController.setMessageBody(bodyString, isHTML: true)
         
         if MFMailComposeViewController.canSendMail() {
-            presentViewController(mailComposeViewController, animated: true, completion: nil)
+            present(mailComposeViewController, animated: true, completion: nil)
         } else {
             showSendMailErrorAlert()
         }
     }
     
-    private func openWebSite(urlString:String)
+    fileprivate func openWebSite(_ urlString:String)
     {
-        if let url = NSURL(string:urlString) {
-            if (UIApplication.sharedApplication().canOpenURL(url)) { // Reachability.isConnectedToNetwork() &&
-                UIApplication.sharedApplication().openURL(url)
+        if let url = URL(string:urlString) {
+            if (UIApplication.shared.canOpenURL(url)) { // Reachability.isConnectedToNetwork() &&
+                UIApplication.shared.openURL(url)
             } else {
                 let alert = UIAlertController(title: Constants.Network_Error,
                     message: "Unable to open web site: \(urlString)",
-                    preferredStyle: UIAlertControllerStyle.Alert)
+                    preferredStyle: UIAlertControllerStyle.alert)
                 
-                let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+                let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
                     
                 })
                 alert.addAction(action)
 
-                presentViewController(alert, animated: true, completion: nil)
+                present(alert, animated: true, completion: nil)
             }
         }
     }
     
-    private func openInGoogleMaps()
+    fileprivate func openInGoogleMaps()
     {
-        let urlAddress = Constants.CBC_FULL_ADDRESS.stringByReplacingOccurrencesOfString(" ", withString: "+", options: NSStringCompareOptions.LiteralSearch, range: nil)
+        let urlAddress = Constants.CBC_FULL_ADDRESS.replacingOccurrences(of: " ", with: "+", options: NSString.CompareOptions.literal, range: nil)
         
-        if (UIApplication.sharedApplication().canOpenURL(NSURL(string:"comgooglemaps://")!)) { // Reachability.isConnectedToNetwork() &&
+        if (UIApplication.shared.canOpenURL(URL(string:"comgooglemaps://")!)) { // Reachability.isConnectedToNetwork() &&
             let querystring = "comgooglemaps://?q="+urlAddress
-            UIApplication.sharedApplication().openURL(NSURL(string:querystring)!)
+            UIApplication.shared.openURL(URL(string:querystring)!)
         } else {
             let alert = UIAlertController(title: "Google Maps is not available",
                 message: Constants.EMPTY_STRING,
-                preferredStyle: UIAlertControllerStyle.Alert)
+                preferredStyle: UIAlertControllerStyle.alert)
             
-            let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+            let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
                 
             })
             alert.addAction(action)
             
-            presentViewController(alert, animated: true, completion: nil)
+            present(alert, animated: true, completion: nil)
         }
     }
     
-    private func openInAppleMaps()
+    fileprivate func openInAppleMaps()
     {
         item?.name = Constants.CBC_LONG
-        item?.openInMapsWithLaunchOptions(nil)
+        item?.openInMaps(launchOptions: nil)
     }
     
     @IBOutlet weak var actionButton: UIBarButtonItem!
     
-    @IBAction func actions(sender: UIBarButtonItem) {
-//        print("action!")
+    @IBAction func actions(_ sender: UIBarButtonItem) {
+//        NSLog("action!")
         
         //In case we have one already showing
-        dismissViewControllerAnimated(true, completion: nil)
+        dismiss(animated: true, completion: nil)
         
-        if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
             if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .Popover
+                navigationController.modalPresentationStyle = .popover
                 //            popover?.preferredContentSize = CGSizeMake(300, 500)
                 
-                navigationController.popoverPresentationController?.permittedArrowDirections = .Up
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
                 navigationController.popoverPresentationController?.delegate = self
                 
                 navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
                 
                 //                popover.navigationItem.title = "Actions"
                 
-                popover.navigationController?.navigationBarHidden = true
+                popover.navigationController?.isNavigationBarHidden = true
                 
                 popover.delegate = self
                 popover.purpose = .selectingAction
@@ -142,23 +142,23 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
                 popover.showIndex = false //(globals.grouping == .series)
                 popover.showSectionHeaders = false
                 
-                presentViewController(navigationController, animated: true, completion: nil)
+                present(navigationController, animated: true, completion: nil)
             }
         }
     }
     
     // Specifically for Plus size iPhones.
-    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
     {
-        return UIModalPresentationStyle.None
+        return UIModalPresentationStyle.none
     }
     
-    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.None
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+        return UIModalPresentationStyle.none
     }
     
-    func rowClickedAtIndex(index: Int, strings: [String], purpose:PopoverPurpose, sermon:Sermon?) {
-        dismissViewControllerAnimated(true, completion: nil)
+    func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, sermon:Sermon?) {
+        dismiss(animated: true, completion: nil)
         
         switch purpose {
         case .selectingAction:
@@ -187,9 +187,9 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     }
     
     @IBOutlet weak var versionLabel: UILabel!
-    private func setVersion()
+    fileprivate func setVersion()
     {
-        if let dict = NSBundle.mainBundle().infoDictionary {
+        if let dict = Bundle.main.infoDictionary {
             if let appVersion = dict["CFBundleShortVersionString"] as? String {
                 if let buildNumber = dict["CFBundleVersion"] as? String {
                     versionLabel.text = appVersion + "." + buildNumber
@@ -203,13 +203,13 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem()
+        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
         navigationItem.leftItemsSupplementBackButton = true
         
         // Do any additional setup after loading the view.  E.g.
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setVersion()
         
@@ -223,9 +223,9 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
                 pointAnnotation.title = Constants.CBC_LONG
                 
                 self.mapView?.addAnnotation(pointAnnotation)
-                self.mapView?.setCenterCoordinate(coordinates, animated: false)
+                self.mapView?.setCenter(coordinates, animated: false)
                 self.mapView?.selectAnnotation(pointAnnotation, animated: false)
-                self.mapView?.zoomEnabled = true
+                self.mapView?.isZoomEnabled = true
                 
                 let mkPlacemark = MKPlacemark(coordinate: coordinates, addressDictionary: nil)
                 self.item = MKMapItem(placemark: mkPlacemark)
@@ -237,7 +237,7 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
         })
     }
     
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         scrollView.flashScrollIndicators()
@@ -246,31 +246,31 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        NSURLCache.sharedURLCache().removeAllCachedResponses()
+        URLCache.shared.removeAllCachedResponses()
     }
     
-    override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator)
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
     {
-        super.viewWillTransitionToSize(size, withTransitionCoordinator: coordinator)
+        super.viewWillTransition(to: size, with: coordinator)
         
         if (self.view.window == nil) {
             return
         }
     }
 
-    private func networkUnavailable(message:String?)
+    fileprivate func networkUnavailable(_ message:String?)
     {
-        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) { //  && (self.view.window != nil)
+        if (UIApplication.shared.applicationState == UIApplicationState.active) { //  && (self.view.window != nil)
             let alert = UIAlertController(title:Constants.Network_Error,
                 message: message,
-                preferredStyle: UIAlertControllerStyle.Alert)
+                preferredStyle: UIAlertControllerStyle.alert)
             
-            let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+            let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
                 
             })
             alert.addAction(action)
             
-            presentViewController(alert, animated: true, completion: nil)
+            present(alert, animated: true, completion: nil)
         }
     }
 }

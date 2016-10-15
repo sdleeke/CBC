@@ -9,39 +9,68 @@
 import Foundation
 import MediaPlayer
 import AVKit
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
+
+fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l >= r
+  default:
+    return !(lhs < rhs)
+  }
+}
+
+fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l > r
+  default:
+    return rhs < lhs
+  }
+}
+
 
 //typealias GroupTuple = (indexes: [Int]?, counts: [Int]?)
 
-func documentsURL() -> NSURL?
+func documentsURL() -> URL?
 {
-    let fileManager = NSFileManager.defaultManager()
-    return fileManager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask).first
+    let fileManager = FileManager.default
+    return fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
 }
 
-func cachesURL() -> NSURL?
+func cachesURL() -> URL?
 {
-    let fileManager = NSFileManager.defaultManager()
-    return fileManager.URLsForDirectory(.CachesDirectory, inDomains: .UserDomainMask).first
+    let fileManager = FileManager.default
+    return fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first
 }
 
-func filesOfTypeInCache(fileType:String) -> [String]?
+func filesOfTypeInCache(_ fileType:String) -> [String]?
 {
     var files = [String]()
     
-    let fileManager = NSFileManager.defaultManager()
+    let fileManager = FileManager.default
     let path = cachesURL()?.path
     do {
-        let array = try fileManager.contentsOfDirectoryAtPath(path!)
+        let array = try fileManager.contentsOfDirectory(atPath: path!)
         
         for string in array {
-            if string.rangeOfString(fileType) != nil {
-                if fileType == string.substringFromIndex(string.rangeOfString(fileType)!.startIndex) {
+            if string.range(of: fileType) != nil {
+                if fileType == string.substring(from: string.range(of: fileType)!.lowerBound) {
                     files.append(string)
                 }
             }
         }
     } catch _ {
-        print("failed to get files in caches directory")
+        NSLog("failed to get files in caches directory")
     }
     
     return files.count > 0 ? files : nil
@@ -56,11 +85,11 @@ func filesOfTypeInCache(fileType:String) -> [String]?
 //            let array = try fileManager.contentsOfDirectoryAtPath(path)
 //
 //            for string in array {
-//                print("Deleting: \(string)")
+//                NSLog("Deleting: \(string)")
 //                try fileManager.removeItemAtPath(path + string)
 //            }
 //        } catch _ {
-//            print("failed to remove temp file")
+//            NSLog("failed to remove temp file")
 //        }
 //    }
 
@@ -74,12 +103,12 @@ func filesOfTypeInCache(fileType:String) -> [String]?
 //        
 //        for name in array {
 //            if (name.rangeOfString(Constants.TMP_FILENAME_EXTENSION)?.endIndex == name.endIndex) {
-//                print("Deleting: \(name)")
+//                NSLog("Deleting: \(name)")
 //                try fileManager.removeItemAtPath(path + name)
 //            }
 //        }
 //    } catch _ {
-//        print("failed to remove temp files")
+//        NSLog("failed to remove temp files")
 //    }
 //}
 
@@ -96,7 +125,7 @@ func filesOfTypeInCache(fileType:String) -> [String]?
 //        do {
 //            try fileManager.removeItemAtURL(oldURL!)
 //        } catch _ {
-//            print("failed to remove old json file")
+//            NSLog("failed to remove old json file")
 //        }
 //    }
 //    
@@ -108,132 +137,132 @@ func filesOfTypeInCache(fileType:String) -> [String]?
 //            //        try fileManager.copyItemAtURL(sourceURL!, toURL: destinationURL!)
 //            //        try fileManager.removeItemAtURL(sourceURL!)
 //        } catch _ {
-//            print("failed to promote new json file from tmp to final")
+//            NSLog("failed to promote new json file from tmp to final")
 //            
 //            do {
 //                try fileManager.moveItemAtURL(oldURL!, toURL: destinationURL!)
 //            } catch _ {
-//                print("failed to move json file back from old to current")
+//                NSLog("failed to move json file back from old to current")
 //            }
 //        }
 //    } catch _ {
-//        print("failed to move current json file to old")
+//        NSLog("failed to move current json file to old")
 //    }
 //}
 
-func jsonDataFromURL() -> JSON
-{
-    if let url = NSURL(string: Constants.JSON_URL_PREFIX + Constants.CBC_SHORT.lowercaseString + "." + Constants.SERMONS_JSON_FILENAME) {
-        do {
-            let data = try NSData(contentsOfURL: url, options: NSDataReadingOptions.DataReadingMappedIfSafe)
-            let json = JSON(data: data)
-            if json != JSON.null {
-                return json
-            } else {
-                print("could not get json from file, make sure that file contains valid json.")
-            }
-        } catch let error as NSError {
-            print(error.localizedDescription)
-        }
-    } else {
-        print("Invalid filename/path.")
-    }
-    
-    return nil
-}
+//func jsonDataFromURL() -> JSON
+//{
+//    if let url = NSURL(string: Constants.JSON_URL_PREFIX + Constants.CBC_SHORT.lowercaseString + "." + Constants.SERMONS_JSON_FILENAME) {
+//        do {
+//            let data = try NSData(contentsOfURL: url, options: NSDataReadingOptions.DataReadingMappedIfSafe)
+//            let json = JSON(data: data)
+//            if json != JSON.null {
+//                return json
+//            } else {
+//                NSLog("could not get json from file, make sure that file contains valid json.")
+//            }
+//        } catch let error as NSError {
+//            NSLog(error.localizedDescription)
+//        }
+//    } else {
+//        NSLog("Invalid filename/path.")
+//    }
+//    
+//    return nil
+//}
 
-func jsonDataFromBundle() -> JSON
-{
-    if let path = NSBundle.mainBundle().pathForResource(Constants.JSON_ARRAY_KEY, ofType: Constants.JSON_TYPE) {
-        do {
-            let data = try NSData(contentsOfURL: NSURL(fileURLWithPath: path), options: NSDataReadingOptions.DataReadingMappedIfSafe)
-            let json = JSON(data: data)
-            if json != JSON.null {
-                return json
-            } else {
-                print("could not get json from file, make sure that file contains valid json.")
-            }
-        } catch let error as NSError {
-            print(error.localizedDescription)
-        }
-    } else {
-        print("Invalid filename/path.")
-    }
-
-    return nil
-}
+//func jsonDataFromBundle(key:String) -> JSON // Constants.JSON_SERMONS_ARRAY_KEY
+//{
+//    if let path = Bundle.main.path(forResource: key, ofType: Constants.JSON_TYPE) {
+//        do {
+//            let data = try Data(contentsOf: URL(fileURLWithPath: path), options: NSData.ReadingOptions.mappedIfSafe)
+//            let json = JSON(data: data)
+//            if json != JSON.null {
+//                return json
+//            } else {
+//                NSLog("could not get json from file, make sure that file contains valid json.")
+//            }
+//        } catch let error as NSError {
+//            NSLog(error.localizedDescription)
+//        }
+//    } else {
+//        NSLog("Invalid filename/path.")
+//    }
+//
+//    return nil
+//}
 
 func removeJSONFromFileSystemDirectory()
 {
-    if let jsonFileSystemURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
+    if let jsonFileSystemURL = cachesURL()?.appendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
         do {
-            try NSFileManager.defaultManager().removeItemAtPath(jsonFileSystemURL.path!)
+            try FileManager.default.removeItem(atPath: jsonFileSystemURL.path)
         } catch _ {
-            print("failed to copy sermons.json")
+            NSLog("failed to copy sermons.json")
         }
     }
 }
 
-func jsonToFileSystemDirectory()
+func jsonToFileSystemDirectory(key:String) // Constants.JSON_SERMONS_ARRAY_KEY
 {
-    let fileManager = NSFileManager.defaultManager()
+    let fileManager = FileManager.default
     
-    let jsonBundlePath = NSBundle.mainBundle().pathForResource(Constants.JSON_ARRAY_KEY, ofType: Constants.JSON_TYPE)
+    let jsonBundlePath = Bundle.main.path(forResource: key, ofType: Constants.JSON_TYPE)
     
-    if let jsonFileURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
+    if let jsonFileURL = cachesURL()?.appendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
         // Check if file exist
-        if (!fileManager.fileExistsAtPath(jsonFileURL.path!)){
+        if (!fileManager.fileExists(atPath: jsonFileURL.path)){
             if (jsonBundlePath != nil) {
                 do {
                     // Copy File From Bundle To Documents Directory
-                    try fileManager.copyItemAtPath(jsonBundlePath!,toPath: jsonFileURL.path!)
+                    try fileManager.copyItem(atPath: jsonBundlePath!,toPath: jsonFileURL.path)
                 } catch _ {
-                    print("failed to copy sermons.json")
+                    NSLog("failed to copy sermons.json")
                 }
             }
         } else {
             //    fileManager.removeItemAtPath(destination)
             // Which is newer, the bundle file or the file in the Documents folder?
             do {
-                let jsonBundleAttributes = try fileManager.attributesOfItemAtPath(jsonBundlePath!)
+                let jsonBundleAttributes = try fileManager.attributesOfItem(atPath: jsonBundlePath!)
                 
-                let jsonDocumentsAttributes = try fileManager.attributesOfItemAtPath(jsonFileURL.path!)
+                let jsonDocumentsAttributes = try fileManager.attributesOfItem(atPath: jsonFileURL.path)
                 
-                let jsonBundleModDate = jsonBundleAttributes[NSFileModificationDate] as! NSDate
-                let jsonDocumentsModDate = jsonDocumentsAttributes[NSFileModificationDate] as! NSDate
+                let jsonBundleModDate = jsonBundleAttributes[FileAttributeKey.modificationDate] as! Date
+                let jsonDocumentsModDate = jsonDocumentsAttributes[FileAttributeKey.modificationDate] as! Date
                 
                 if (jsonDocumentsModDate.isNewerThan(jsonBundleModDate)) {
                     //Do nothing, the json in Documents is newer, i.e. it was downloaded after the install.
-                    print("JSON in Documents is newer than JSON in bundle")
+                    NSLog("JSON in Documents is newer than JSON in bundle")
                 }
                 
                 if (jsonDocumentsModDate.isEqualTo(jsonBundleModDate)) {
-                    print("JSON in Documents is the same date as JSON in bundle")
-                    let jsonBundleFileSize = jsonBundleAttributes[NSFileSize] as! Int
-                    let jsonDocumentsFileSize = jsonDocumentsAttributes[NSFileSize] as! Int
+                    NSLog("JSON in Documents is the same date as JSON in bundle")
+                    let jsonBundleFileSize = jsonBundleAttributes[FileAttributeKey.size] as! Int
+                    let jsonDocumentsFileSize = jsonDocumentsAttributes[FileAttributeKey.size] as! Int
                     
                     if (jsonBundleFileSize != jsonDocumentsFileSize) {
-                        print("Same dates different file sizes")
+                        NSLog("Same dates different file sizes")
                         //We have a problem.
                     } else {
-                        print("Same dates same file sizes")
+                        NSLog("Same dates same file sizes")
                         //Do nothing, they are the same.
                     }
                 }
                 
                 if (jsonBundleModDate.isNewerThan(jsonDocumentsModDate)) {
-                    print("JSON in bundle is newer than JSON in Documents")
+                    NSLog("JSON in bundle is newer than JSON in Documents")
                     //copy the bundle into Documents directory
                     do {
                         // Copy File From Bundle To Documents Directory
-                        try fileManager.removeItemAtPath(jsonFileURL.path!)
-                        try fileManager.copyItemAtPath(jsonBundlePath!,toPath: jsonFileURL.path!)
+                        try fileManager.removeItem(atPath: jsonFileURL.path)
+                        try fileManager.copyItem(atPath: jsonBundlePath!,toPath: jsonFileURL.path)
                     } catch _ {
-                        print("failed to copy sermons.json")
+                        NSLog("failed to copy sermons.json")
                     }
                 }
             } catch _ {
-                print("failed to get json file attributes")
+                NSLog("failed to get json file attributes")
             }
         }
     }
@@ -241,18 +270,36 @@ func jsonToFileSystemDirectory()
 
 func jsonDataFromDocumentsDirectory() -> JSON
 {
-    jsonToFileSystemDirectory()
+    jsonToFileSystemDirectory(key:Constants.JSON_SERMONS_ARRAY_KEY)
     
-    if let jsonURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
-        if let data = NSData(contentsOfURL: jsonURL) {
+    if let jsonURL = cachesURL()?.appendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
+        if let data = try? Data(contentsOf: jsonURL) {
             let json = JSON(data: data)
             if json != JSON.null {
                 return json
             } else {
-                print("could not get json from data, make sure the file contains valid json.")
+                NSLog("could not get json from data, make sure the file contains valid json.")
             }
         } else {
-            print("could not get data from the json file.")
+            NSLog("could not get data from the json file.")
+        }
+    }
+    
+    return nil
+}
+
+func jsonDataFromCachesDirectory() -> JSON
+{
+    if let jsonURL = cachesURL()?.appendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
+        if let data = try? Data(contentsOf: jsonURL) {
+            let json = JSON(data: data)
+            if json != JSON.null {
+                return json
+            } else {
+                NSLog("could not get json from data, make sure the file contains valid json.")
+            }
+        } else {
+            NSLog("could not get data from the json file.")
         }
     }
     
@@ -294,26 +341,26 @@ func jsonDataFromDocumentsDirectory() -> JSON
 //            let jsonInBundleModDate = jsonInBundleAttributes[NSFileModificationDate] as! NSDate
 //            let jsonInDocumentsModDate = jsonInFileSystemAttributes[NSFileModificationDate] as! NSDate
 //            
-////            print("jsonInBundleModDate: \(jsonInBundleModDate)")
-////            print("jsonInDocumentsModDate: \(jsonInDocumentsModDate)")
+////            NSLog("jsonInBundleModDate: \(jsonInBundleModDate)")
+////            NSLog("jsonInDocumentsModDate: \(jsonInDocumentsModDate)")
 //            
 //            if (jsonInDocumentsModDate.isOlderThan(jsonInBundleModDate)) {
 //                //The JSON in the Bundle is newer, we need to use it instead of the archive
-//                print("JSON in Documents is older than JSON in Bundle")
+//                NSLog("JSON in Documents is older than JSON in Bundle")
 //                return nil
 //            }
 //            
 //            if (jsonInDocumentsModDate.isEqualTo(jsonInBundleModDate)) {
 //                //This is normal since JSON in Documents is copied from JSON in Bundle.  Do nothing.
-//                print("JSON in Bundle and in Documents are the same date")
+//                NSLog("JSON in Bundle and in Documents are the same date")
 //            }
 //            
 //            if (jsonInDocumentsModDate.isNewerThan(jsonInBundleModDate)) {
 //                //The JSON in Documents is newer, we need to see if it is newer than the archive.
-//                print("JSON in Documents is newer than JSON in Bundle")
+//                NSLog("JSON in Documents is newer than JSON in Bundle")
 //            }
 //        } catch _ {
-//            print("failed to get json file attributes")
+//            NSLog("failed to get json file attributes")
 //        }
 //    }
 //    
@@ -325,22 +372,22 @@ func jsonDataFromDocumentsDirectory() -> JSON
 //            let jsonInDocumentsModDate = jsonInDocumentsAttributes[NSFileModificationDate] as! NSDate
 //            let archiveInDocumentsModDate = archiveInDocumentsAttributes[NSFileModificationDate] as! NSDate
 //            
-////            print("archiveInDocumentsModDate: \(archiveInDocumentsModDate)")
+////            NSLog("archiveInDocumentsModDate: \(archiveInDocumentsModDate)")
 //            
 //            if (jsonInDocumentsModDate.isNewerThan(archiveInDocumentsModDate)) {
 //                //Do nothing, the json in Documents is newer, i.e. it was downloaded after the archive was created.
-//                print("JSON in Documents is newer than Archive in Documents")
+//                NSLog("JSON in Documents is newer than Archive in Documents")
 //                return nil
 //            }
 //            
 //            if (archiveInDocumentsModDate.isEqualTo(jsonInDocumentsModDate)) {
 //                //Should never happen since archive is created from JSON
-//                print("JSON in Documents is the same date as Archive in Documents")
+//                NSLog("JSON in Documents is the same date as Archive in Documents")
 //                return nil
 //            }
 //            
 //            if (archiveInDocumentsModDate.isNewerThan(jsonInDocumentsModDate)) {
-//                print("Archive in Documents is newer than JSON in Documents")
+//                NSLog("Archive in Documents is newer than JSON in Documents")
 //                
 //                let data = NSData(contentsOfURL: NSURL(fileURLWithPath: archiveFileSystemURL!.path!))
 //                if (data != nil) {
@@ -348,14 +395,14 @@ func jsonDataFromDocumentsDirectory() -> JSON
 //                    if sermons != nil {
 //                        return sermons
 //                    } else {
-//                        print("could not get sermons from archive.")
+//                        NSLog("could not get sermons from archive.")
 //                    }
 //                } else {
-//                    print("could not get data from archive.")
+//                    NSLog("could not get data from archive.")
 //                }
 //            }
 //        } catch _ {
-//            print("failed to get json file attributes")
+//            NSLog("failed to get json file attributes")
 //        }
 //    }
 //    
@@ -367,127 +414,113 @@ func jsonDataFromDocumentsDirectory() -> JSON
 //    if (sermons != nil) {
 //        if let archive = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_ARCHIVE) {
 //            NSKeyedArchiver.archivedDataWithRootObject(sermons!).writeToURL(archive, atomically: true)
-//            print("Finished saving the sermon archive.")
+//            NSLog("Finished saving the sermon archive.")
 //        }
 //    }
 //}
 
-func loadSermonDicts() -> [[String:String]]?
+extension Date
 {
-    var sermonDicts = [[String:String]]()
-    
-    let json = jsonDataFromDocumentsDirectory()
-    
-    if json != JSON.null {
-        //                print("json:\(json)")
-        
-        let sermons = json[Constants.JSON_ARRAY_KEY]
-        
-        for i in 0..<sermons.count {
-            
-            var dict = [String:String]()
-            
-            for (key,value) in sermons[i] {
-                dict["\(key)"] = "\(value)"
-            }
-            
-            sermonDicts.append(dict)
-        }
-        
-        return sermonDicts.count > 0 ? sermonDicts : nil
-    } else {
-        print("could not get json from file, make sure that file contains valid json.")
-    }
-    
-    return nil
-}
-
-extension NSDate
-{
-    convenience
     init(dateString:String) {
-        let dateStringFormatter = NSDateFormatter()
-        dateStringFormatter.dateFormat = "MM/dd/yyyy"
-        dateStringFormatter.locale = NSLocale(localeIdentifier: "en_US_POSIX")
-        let d = dateStringFormatter.dateFromString(dateString)!
-        self.init(timeInterval:0, sinceDate:d)
+        let dateStringFormatter = DateFormatter()
+        dateStringFormatter.dateFormat = "yyyy-MM-dd"
+        dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+        let d = dateStringFormatter.date(from: dateString)!
+        self = Date(timeInterval:0, since:d)
     }
     
-    func isNewerThan(dateToCompare : NSDate) -> Bool
+    func isNewerThan(_ dateToCompare : Date) -> Bool
     {
-        return (self.compare(dateToCompare) == NSComparisonResult.OrderedDescending) && (self.compare(dateToCompare) != NSComparisonResult.OrderedSame)
+        return (self.compare(dateToCompare) == ComparisonResult.orderedDescending) && (self.compare(dateToCompare) != ComparisonResult.orderedSame)
     }
     
     
-    func isOlderThan(dateToCompare : NSDate) -> Bool
+    func isOlderThan(_ dateToCompare : Date) -> Bool
     {
-        return (self.compare(dateToCompare) == NSComparisonResult.OrderedAscending) && (self.compare(dateToCompare) != NSComparisonResult.OrderedSame)
+        return (self.compare(dateToCompare) == ComparisonResult.orderedAscending) && (self.compare(dateToCompare) != ComparisonResult.orderedSame)
     }
     
 
-    func isEqualTo(dateToCompare : NSDate) -> Bool
+    func isEqualTo(_ dateToCompare : Date) -> Bool
     {
-        return self.compare(dateToCompare) == NSComparisonResult.OrderedSame
+        return self.compare(dateToCompare) == ComparisonResult.orderedSame
     }
 
-    func addDays(daysToAdd : Int) -> NSDate
+    func addDays(_ daysToAdd : Int) -> Date
     {
-        let secondsInDays : NSTimeInterval = Double(daysToAdd) * 60 * 60 * 24
-        let dateWithDaysAdded : NSDate = self.dateByAddingTimeInterval(secondsInDays)
+        let secondsInDays : TimeInterval = Double(daysToAdd) * 60 * 60 * 24
+        let dateWithDaysAdded : Date = self.addingTimeInterval(secondsInDays)
         
         //Return Result
         return dateWithDaysAdded
     }
     
-    func addHours(hoursToAdd : Int) -> NSDate
+    func addHours(_ hoursToAdd : Int) -> Date
     {
-        let secondsInHours : NSTimeInterval = Double(hoursToAdd) * 60 * 60
-        let dateWithHoursAdded : NSDate = self.dateByAddingTimeInterval(secondsInHours)
+        let secondsInHours : TimeInterval = Double(hoursToAdd) * 60 * 60
+        let dateWithHoursAdded : Date = self.addingTimeInterval(secondsInHours)
         
         //Return Result
         return dateWithHoursAdded
     }
 }
 
-func stringWithoutPrefixes(fromString:String?) -> String?
+func stringWithoutPrefixes(_ fromString:String?) -> String?
 {
-    var sortString = fromString
-
     let quote:String = "\""
-    let prefixes = ["A ","An ","And ","The "]
     
-    if (fromString?.endIndex >= quote.endIndex) && (fromString?.substringToIndex(quote.endIndex) == quote) {
-        sortString = fromString!.substringFromIndex(quote.endIndex)
+    if let range = fromString?.range(of: "A is ") {
+        if range.lowerBound == "a".startIndex {
+            return fromString
+        }
     }
     
+//    if let range = fromString?.range(of: "And the ") {
+//        if range.lowerBound == "a".startIndex {
+//            return fromString
+//        }
+//    }
+    
+    let sourceString = fromString?.replacingOccurrences(of: quote, with: "").replacingOccurrences(of: "...", with: "")
+//    print(sourceString)
+    
+    let prefixes = ["A ","An ","The "] // "And ",
+    
+//    if (fromString?.endIndex >= quote.endIndex) && (fromString?.substring(to: quote.endIndex) == quote) {
+//        sortString = sourceString!.substring(from: quote.endIndex)
+//    }
+
+    var sortString = sourceString
+    
     for prefix in prefixes {
-        if (fromString?.endIndex >= prefix.endIndex) && (fromString?.substringToIndex(prefix.endIndex) == prefix) {
-            sortString = fromString!.substringFromIndex(prefix.endIndex)
+        if (sourceString?.endIndex >= prefix.endIndex) && (sourceString?.substring(to: prefix.endIndex) == prefix) {
+            sortString = sourceString!.substring(from: prefix.endIndex)
             break
         }
     }
 
+//    print(sortString)
     return sortString
 }
 
-func sortSermons(sermons:[Sermon]?, sorting:String?, grouping:String?) -> [Sermon]?
+func sortSermons(_ sermons:[Sermon]?, sorting:String?, grouping:String?) -> [Sermon]?
 {
     var result:[Sermon]?
     
     switch grouping! {
-    case Constants.YEAR:
+    case Grouping.YEAR:
         result = sortSermonsByYear(sermons,sorting: sorting)
         break
         
-    case Constants.SERIES:
+    case Grouping.TITLE:
         result = sortSermonsBySeries(sermons,sorting: sorting)
         break
         
-    case Constants.BOOK:
+    case Grouping.BOOK:
         result = sortSermonsByBook(sermons,sorting: sorting)
         break
         
-    case Constants.SPEAKER:
+    case Grouping.SPEAKER:
         result = sortSermonsBySpeaker(sermons,sorting: sorting)
         break
         
@@ -500,26 +533,26 @@ func sortSermons(sermons:[Sermon]?, sorting:String?, grouping:String?) -> [Sermo
 }
 
 
-func sermonSections(sermons:[Sermon]?,sorting:String?,grouping:String?) -> [String]?
+func sermonSections(_ sermons:[Sermon]?,sorting:String?,grouping:String?) -> [String]?
 {
     var strings:[String]?
     
     switch grouping! {
-    case Constants.YEAR:
+    case Grouping.YEAR:
         strings = yearsFromSermons(sermons, sorting: sorting)?.map() { (year) in
             return "\(year)"
         }
         break
         
-    case Constants.SERIES:
-        strings = seriesSectionsFromSermons(sermons)
+    case Grouping.TITLE:
+        strings = seriesSectionsFromSermons(sermons,withTitles: true)
         break
         
-    case Constants.BOOK:
+    case Grouping.BOOK:
         strings = bookSectionsFromSermons(sermons)
         break
         
-    case Constants.SPEAKER:
+    case Grouping.SPEAKER:
         strings = speakerSectionsFromSermons(sermons)
         break
         
@@ -532,7 +565,7 @@ func sermonSections(sermons:[Sermon]?,sorting:String?,grouping:String?) -> [Stri
 }
 
 
-func yearsFromSermons(sermons:[Sermon]?, sorting: String?) -> [Int]?
+func yearsFromSermons(_ sermons:[Sermon]?, sorting: String?) -> [Int]?
 {
     return sermons != nil ?
         Array(
@@ -541,12 +574,12 @@ func yearsFromSermons(sermons:[Sermon]?, sorting: String?) -> [Int]?
                     assert(sermon.fullDate != nil) // We're assuming this gets ALL sermons.
                     return sermon.fullDate != nil
                 }).map({ (sermon:Sermon) -> Int in
-                    let calendar = NSCalendar.currentCalendar()
-                    let components = calendar.components(.Year, fromDate: sermon.fullDate!)
-                    return components.year
+                    let calendar = Calendar.current
+                    let components = (calendar as NSCalendar).components(.year, from: sermon.fullDate! as Date)
+                    return components.year!
                 })
             )
-            ).sort({ (first:Int, second:Int) -> Bool in
+            ).sorted(by: { (first:Int, second:Int) -> Bool in
                 switch sorting! {
                 case Constants.CHRONOLOGICAL:
                     return first < second
@@ -564,7 +597,7 @@ func yearsFromSermons(sermons:[Sermon]?, sorting: String?) -> [Int]?
 }
 
 
-func testament(book:String) -> String
+func testament(_ book:String) -> String
 {
     if (Constants.OLD_TESTAMENT_BOOKS.contains(book)) {
         return Constants.Old_Testament
@@ -576,14 +609,16 @@ func testament(book:String) -> String
     return ""
 }
 
-func chaptersFromScripture(scripture:String?) -> [Int]
+func chaptersFromScripture(_ scripture:String?) -> [Int]
 {
+    // This can only comprehend a range of chapters or a range of verses from a single book.
+    
     var chapters = [Int]()
     
     var colonCount = 0
     
     if (scripture != nil) {
-        let string = scripture?.stringByReplacingOccurrencesOfString(Constants.SINGLE_SPACE_STRING, withString: Constants.EMPTY_STRING)
+        let string = scripture?.replacingOccurrences(of: Constants.SINGLE_SPACE_STRING, with: Constants.EMPTY_STRING)
         
         //        if (string!.rangeOfString(Constants.SINGLE_SPACE_STRING) != nil) {
         //            string = string?.substringFromIndex(string!.rangeOfString(Constants.SINGLE_SPACE_STRING)!.endIndex)
@@ -595,14 +630,18 @@ func chaptersFromScripture(scripture:String?) -> [Int]
             return []
         }
         
-        //        print("\(string!)")
+        //        NSLog("\(string!)")
         
-        let colon = string!.rangeOfString(":")
-        let hyphen = string!.rangeOfString("-")
-        let comma = string!.rangeOfString(",")
+        let colon = string!.range(of: ":")
+        let hyphen = string!.range(of: "-")
+        let comma = string!.range(of: ",")
+        
+//        print(scripture,string)
         
         if (colon == nil) && (hyphen == nil) &&  (comma == nil) {
-            chapters = [Int(string!)!]
+            if (Int(string!) != nil) {
+                chapters = [Int(string!)!]
+            }
         } else {
             var chars = ""
             
@@ -613,19 +652,28 @@ func chaptersFromScripture(scripture:String?) -> [Int]
             var startChapter = 0
             var endChapter = 0
             
+            var breakOut = false
+            
             for character in string!.characters {
+                if breakOut {
+                    break
+                }
                 switch character {
                 case ":":
                     if !seenColon {
                         seenColon = true
-                        if (startChapter == 0) {
-                            startChapter = Int(chars)!
-                        } else {
-                            endChapter = Int(chars)!
+                        if (Int(chars) != nil) {
+                            if (startChapter == 0) {
+                                startChapter = Int(chars)!
+                            } else {
+                                endChapter = Int(chars)!
+                            }
                         }
                     } else {
                         if (seenHyphen) {
-                            endChapter = Int(chars)!
+                            if (Int(chars) != nil) {
+                                endChapter = Int(chars)!
+                            }
                         } else {
                             //Error
                         }
@@ -638,20 +686,28 @@ func chaptersFromScripture(scripture:String?) -> [Int]
                     fallthrough
                 case "-":
                     seenHyphen = true
-                    if !seenColon {
+                    if colonCount == 0 {
                         // This is a chapter not a verse
                         if (startChapter == 0) {
-                            startChapter = Int(chars)!
+                            if Int(chars) != nil {
+                                startChapter = Int(chars)!
+                            }
                         }
                     }
                     chars = ""
+                    break
+                    
+                case "(":
+                    breakOut = true
                     break
                     
                 case ",":
                     seenComma = true
                     if !seenColon {
                         // This is a chapter not a verse
-                        chapters.append(Int(chars)!)
+                        if (Int(chars) != nil) {
+                            chapters.append(Int(chars)!)
+                        }
                         chars = ""
                     } else {
                         // Could be chapter or a verse
@@ -665,29 +721,42 @@ func chaptersFromScripture(scripture:String?) -> [Int]
                     break
                 }
             }
-            if (colonCount == 1) {
-                chapters.append(startChapter)
+            if (startChapter != 0) {
+                if (endChapter == 0) {
+                    if (colonCount == 0) {
+                        if (Int(chars) != nil) {
+                            endChapter = Int(chars)!
+                        }
+                        chars = ""
+                    }
+                }
+                if (endChapter != 0) {
+                    for chapter in startChapter...endChapter {
+                        chapters.append(chapter)
+                    }
+                } else {
+                    chapters.append(startChapter)
+                }
             }
-            if (startChapter != 0) && (endChapter == 0) && (colonCount == 0) {
-                endChapter = Int(chars)!
-                chars = ""
-            }
-            if (startChapter != 0) && (endChapter != 0) {
-                for chapter in startChapter...endChapter {
-                    chapters.append(chapter)
+            if seenComma {
+                if Int(chars) != nil {
+                    if !seenColon {
+                        // This is a chapter not a verse
+                        chapters.append(Int(chars)!)
+                    }
                 }
             }
             
             //            if (colon != nil) {
             //                let stringToColon = string?.substringToIndex(colon!.startIndex)
             //
-            //                print("stringToColon: \(stringToColon)")
+            //                NSLog("stringToColon: \(stringToColon)")
             //
             //                chapters = [Int(stringToColon!)!]
             //
             //                let stringFromColon = string?.substringFromIndex(colon!.endIndex)
             //
-            //                print("stringFromColon: \(stringFromColon)")
+            //                NSLog("stringFromColon: \(stringFromColon)")
             //            } else {
             //                if (hyphen != nil) {
             //                    let stringToHyphen = string?.substringToIndex(hyphen!.startIndex)
@@ -699,8 +768,8 @@ func chaptersFromScripture(scripture:String?) -> [Int]
             //                    for index in startingChapter...endingChapter {
             //                        chapters.append(index)
             //                    }
-            //                    //                            print("\(chapters)")
-            //                    //                            print("\(chapters)")
+            //                    //                            NSLog("\(chapters)")
+            //                    //                            NSLog("\(chapters)")
             //                }
             //                if (comma != nil) {
             //                    let stringToComma = string?.substringToIndex(comma!.startIndex)
@@ -710,26 +779,26 @@ func chaptersFromScripture(scripture:String?) -> [Int]
             //                    let stringFromComma = string?.substringFromIndex(comma!.endIndex)
             //                    let endingChapter = Int(stringFromComma!)!
             //                    chapters.append(endingChapter)
-            //                    //                            print("\(chapters)")
-            //                    //                            print("\(chapters)")
+            //                    //                            NSLog("\(chapters)")
+            //                    //                            NSLog("\(chapters)")
             //                }
             //            }
         }
     }
     
 //    if (colonCount > 1) || (chapters.count > 1) {
-//        print("\(scripture)")
-//        print("\(chapters)")
-////        print("ERROR")
+//        NSLog("\(scripture)")
+//        NSLog("\(chapters)")
+////        NSLog("ERROR")
 //    }
     
-    //    print("\(scripture)")
-    //    print("\(chapters)")
+//    NSLog("\(scripture)")
+//    NSLog("\(chapters)")
     
     return chapters
 }
 
-func booksFromScripture(scripture:String?) -> [String]
+func booksFromScripture(_ scripture:String?) -> [String]
 {
     var books = [String]()
     
@@ -737,40 +806,84 @@ func booksFromScripture(scripture:String?) -> [String]
         var string:String?
         
         string = scripture
+//        print(string)
+        
+        var otBooks = [String]()
         
         for book in Constants.OLD_TESTAMENT_BOOKS {
-            if string?.rangeOfString(book) != nil {
-                books.append(book)
-                string = string!.substringToIndex(string!.rangeOfString(book)!.startIndex) + " " + string!.substringFromIndex(string!.rangeOfString(book)!.endIndex)
+            if string?.range(of: book) != nil {
+                otBooks.append(book)
+                string = string!.substring(to: string!.range(of: book)!.lowerBound) + " " + string!.substring(from: string!.range(of: book)!.upperBound)
             }
         }
         
-        string = scripture
+//        string = scripture
         
-        for book in Constants.NEW_TESTAMENT_BOOKS.reverse() {
-            if string?.rangeOfString(book) != nil {
+        for book in Constants.NEW_TESTAMENT_BOOKS.reversed() {
+            if string?.range(of: book) != nil {
                 books.append(book)
-                string = string!.substringToIndex(string!.rangeOfString(book)!.startIndex) + " " + string!.substringFromIndex(string!.rangeOfString(book)!.endIndex)
+                string = string!.substring(to: string!.range(of: book)!.lowerBound) + " " + string!.substring(from: string!.range(of: book)!.upperBound)
+            }
+        }
+        
+        let ntBooks = books.reversed()
+
+        books = otBooks
+        books.append(contentsOf: ntBooks)
+        
+        string = string?.replacingOccurrences(of: " ", with: "")
+
+//        print(string)
+        if string == "-" {
+            if books.count == 2 {
+                let first = books[0]
+                let last = books[1]
+                
+//                print(first)
+//                print(last)
+                
+                books = [String]()
+                
+                if Constants.OLD_TESTAMENT_BOOKS.contains(first) && Constants.OLD_TESTAMENT_BOOKS.contains(last) {
+                    if let firstIndex = Constants.OLD_TESTAMENT_BOOKS.index(of: first) {
+                        if let lastIndex = Constants.OLD_TESTAMENT_BOOKS.index(of: last) {
+                            for index in firstIndex...lastIndex {
+                                books.append(Constants.OLD_TESTAMENT_BOOKS[index])
+                            }
+                        }
+                    }
+                }
+                
+                if Constants.NEW_TESTAMENT_BOOKS.contains(first) && Constants.NEW_TESTAMENT_BOOKS.contains(last) {
+                    if let firstIndex = Constants.NEW_TESTAMENT_BOOKS.index(of: first) {
+                        if let lastIndex = Constants.NEW_TESTAMENT_BOOKS.index(of: last) {
+                            for index in firstIndex...lastIndex {
+                                books.append(Constants.NEW_TESTAMENT_BOOKS[index])
+                            }
+                        }
+                    }
+                }
             }
         }
     }
     
+//    print(books)
     return books
 }
 
-func sermonsInSermonSeries(sermon:Sermon?) -> [Sermon]?
+func sermonsInSermonSeries(_ sermon:Sermon?) -> [Sermon]?
 {
     var sermonsInSeries:[Sermon]?
     
     if (sermon != nil) {
-        if (sermon!.hasSeries()) {
-            if (globals.sermons.all?.groupSort?[Constants.SERIES]?[sermon!.seriesSort!]?[Constants.CHRONOLOGICAL] == nil) {
+        if (sermon!.hasSeries) {
+            if (globals.sermons.all?.groupSort?[Grouping.TITLE]?[sermon!.seriesSort!]?[Constants.CHRONOLOGICAL] == nil) {
                 let seriesSermons = globals.sermonRepository.list?.filter({ (testSermon:Sermon) -> Bool in
-                    return sermon!.hasSeries() ? (testSermon.series == sermon!.series) : (testSermon.id == sermon!.id)
+                    return sermon!.hasSeries ? (testSermon.series == sermon!.series) : (testSermon.id == sermon!.id)
                 })
                 sermonsInSeries = sortSermonsByYear(seriesSermons, sorting: Constants.CHRONOLOGICAL)
             } else {
-                sermonsInSeries = globals.sermons.all?.groupSort?[Constants.SERIES]?[sermon!.seriesSort!]?[Constants.CHRONOLOGICAL]
+                sermonsInSeries = globals.sermons.all?.groupSort?[Grouping.TITLE]?[sermon!.seriesSort!]?[Constants.CHRONOLOGICAL]
             }
         } else {
             sermonsInSeries = [sermon!]
@@ -780,11 +893,11 @@ func sermonsInSermonSeries(sermon:Sermon?) -> [Sermon]?
     return sermonsInSeries
 }
 
-func sermonsInBook(sermons:[Sermon]?,book:String?) -> [Sermon]?
+func sermonsInBook(_ sermons:[Sermon]?,book:String?) -> [Sermon]?
 {
     return sermons?.filter({ (sermon:Sermon) -> Bool in
         return sermon.book == book
-    }).sort({ (first:Sermon, second:Sermon) -> Bool in
+    }).sorted(by: { (first:Sermon, second:Sermon) -> Bool in
         if (first.fullDate!.isEqualTo(second.fullDate!)) {
             return first.service < second.service
         } else {
@@ -793,17 +906,17 @@ func sermonsInBook(sermons:[Sermon]?,book:String?) -> [Sermon]?
     })
 }
 
-func booksFromSermons(sermons:[Sermon]?) -> [String]?
+func booksFromSermons(_ sermons:[Sermon]?) -> [String]?
 {
     return sermons != nil ?
         Array(
             Set(sermons!.filter({ (sermon:Sermon) -> Bool in
-                return sermon.hasBook()
+                return sermon.hasBook
             }).map({ (sermon:Sermon) -> String in
                 return sermon.book!
             })
             )
-            ).sort({ (first:String, second:String) -> Bool in
+            ).sorted(by: { (first:String, second:String) -> Bool in
                 var result = false
                 if (bookNumberInBible(first) != nil) && (bookNumberInBible(second) != nil) {
                     result = bookNumberInBible(first) < bookNumberInBible(second)
@@ -822,15 +935,15 @@ func booksFromSermons(sermons:[Sermon]?) -> [String]?
         : nil
 }
 
-func bookSectionsFromSermons(sermons:[Sermon]?) -> [String]?
+func bookSectionsFromSermons(_ sermons:[Sermon]?) -> [String]?
 {
     return sermons != nil ?
         Array(
             Set(sermons!.map({ (sermon:Sermon) -> String in
-                return sermon.hasBook() ? sermon.book! : sermon.scripture != nil ? sermon.scripture! : Constants.None
+                return sermon.hasBook ? sermon.book! : sermon.scripture != nil ? sermon.scripture! : Constants.None
             })
             )
-            ).sort({ (first:String, second:String) -> Bool in
+            ).sorted(by: { (first:String, second:String) -> Bool in
                 var result = false
                 if (bookNumberInBible(first) != nil) && (bookNumberInBible(second) != nil) {
                     result = bookNumberInBible(first) < bookNumberInBible(second)
@@ -849,24 +962,24 @@ func bookSectionsFromSermons(sermons:[Sermon]?) -> [String]?
         : nil
 }
 
-func seriesFromSermons(sermons:[Sermon]?) -> [String]?
+func seriesFromSermons(_ sermons:[Sermon]?) -> [String]?
 {
     return sermons != nil ?
         Array(
             Set(
                 sermons!.filter({ (sermon:Sermon) -> Bool in
-                    return sermon.hasSeries()
+                    return sermon.hasSeries
                 }).map({ (sermon:Sermon) -> String in
                     return sermon.series!
                 })
             )
-            ).sort({ (first:String, second:String) -> Bool in
+            ).sorted(by: { (first:String, second:String) -> Bool in
                 return stringWithoutPrefixes(first) < stringWithoutPrefixes(second)
             })
         : nil
 }
 
-func seriesSectionsFromSermons(sermons:[Sermon]?) -> [String]?
+func seriesSectionsFromSermons(_ sermons:[Sermon]?) -> [String]?
 {
     return sermons != nil ?
         Array(
@@ -875,62 +988,61 @@ func seriesSectionsFromSermons(sermons:[Sermon]?) -> [String]?
                     return sermon.seriesSection!
                 })
             )
-            ).sort({ (first:String, second:String) -> Bool in
+            ).sorted(by: { (first:String, second:String) -> Bool in
                 return stringWithoutPrefixes(first) < stringWithoutPrefixes(second)
             })
         : nil
 }
 
-func seriesSectionsFromSermons(sermons:[Sermon]?,withTitles:Bool) -> [String]?
+func seriesSectionsFromSermons(_ sermons:[Sermon]?,withTitles:Bool) -> [String]?
 {
     return sermons != nil ?
         Array(
             Set(
                 sermons!.map({ (sermon:Sermon) -> String in
-                    if (sermon.hasSeries()) {
+                    if (sermon.hasSeries) {
                         return sermon.series!
                     } else {
                         return withTitles ? sermon.title! : Constants.Individual_Sermons
                     }
                 })
             )
-            ).sort({ (first:String, second:String) -> Bool in
+            ).sorted(by: { (first:String, second:String) -> Bool in
                 return stringWithoutPrefixes(first) < stringWithoutPrefixes(second)
             })
         : nil
 }
 
-
-func bookNumberInBible(book:String?) -> Int?
+func bookNumberInBible(_ book:String?) -> Int?
 {
     if (book != nil) {
-        if let index = Constants.OLD_TESTAMENT_BOOKS.indexOf(book!) {
+        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!) {
             return index
         }
         
-        if let index = Constants.NEW_TESTAMENT_BOOKS.indexOf(book!) {
+        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!) {
             return Constants.OLD_TESTAMENT_BOOKS.count + index
         }
         
-        return Constants.OLD_TESTAMENT_BOOKS.count + Constants.NEW_TESTAMENT_BOOKS.count + 1 // Not in the Bible.  E.g. Selected Scriptures
+        return Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE // Not in the Bible.  E.g. Selected Scriptures
     } else {
         return nil
     }
 }
 
 
-func lastNameFromName(name:String?) -> String?
+func lastNameFromName(_ name:String?) -> String?
 {
     if var lastname = name {
-        while (lastname.rangeOfString(Constants.SINGLE_SPACE_STRING) != nil) {
-            lastname = lastname.substringFromIndex(lastname.rangeOfString(Constants.SINGLE_SPACE_STRING)!.endIndex)
+        while (lastname.range(of: Constants.SINGLE_SPACE_STRING) != nil) {
+            lastname = lastname.substring(from: lastname.range(of: Constants.SINGLE_SPACE_STRING)!.upperBound)
         }
         return lastname
     }
     return nil
 }
 
-func speakerSectionsFromSermons(sermons:[Sermon]?) -> [String]?
+func speakerSectionsFromSermons(_ sermons:[Sermon]?) -> [String]?
 {
     return sermons != nil ?
         Array(
@@ -938,51 +1050,59 @@ func speakerSectionsFromSermons(sermons:[Sermon]?) -> [String]?
                 return sermon.speakerSection!
             })
             )
-            ).sort({ (first:String, second:String) -> Bool in
+            ).sorted(by: { (first:String, second:String) -> Bool in
                 return lastNameFromName(first) < lastNameFromName(second)
             })
         : nil
 }
 
-func speakersFromSermons(sermons:[Sermon]?) -> [String]?
+func speakersFromSermons(_ sermons:[Sermon]?) -> [String]?
 {
     return sermons != nil ?
         Array(
             Set(sermons!.filter({ (sermon:Sermon) -> Bool in
-                return sermon.hasSpeaker()
+                return sermon.hasSpeaker
             }).map({ (sermon:Sermon) -> String in
                 return sermon.speaker!
             })
             )
-            ).sort({ (first:String, second:String) -> Bool in
+            ).sorted(by: { (first:String, second:String) -> Bool in
                 return lastNameFromName(first) < lastNameFromName(second)
             })
         : nil
 }
 
-func sortSermonsChronologically(sermons:[Sermon]?) -> [Sermon]?
+func sortSermonsChronologically(_ sermons:[Sermon]?) -> [Sermon]?
 {
-    return sermons?.sort() {
+    return sermons?.sorted() {
         if ($0.fullDate!.isEqualTo($1.fullDate!)) {
-            return $0.service < $1.service
+            if ($0.service == $1.service) {
+                return $0.part < $1.part
+            } else {
+                 return $0.service < $1.service
+            }
         } else {
             return $0.fullDate!.isOlderThan($1.fullDate!)
         }
     }
 }
 
-func sortSermonsReverseChronologically(sermons:[Sermon]?) -> [Sermon]?
+func sortSermonsReverseChronologically(_ sermons:[Sermon]?) -> [Sermon]?
 {
-    return sermons?.sort() {
+    return sermons?.sorted() {
         if ($0.fullDate!.isEqualTo($1.fullDate!)) {
-            return $0.service > $1.service
+            if ($0.service == $1.service) {
+                return $0.part > $1.part
+            } else {
+                return $0.service > $1.service
+            }
         } else {
             return $0.fullDate!.isNewerThan($1.fullDate!)
         }
     }
 }
 
-func sortSermonsByYear(sermons:[Sermon]?,sorting:String?) -> [Sermon]?
+func sortSermonsByYear(_ sermons:[Sermon]?,sorting:String?) -> [Sermon]?
 {
     var sortedSermons:[Sermon]?
 
@@ -1002,7 +1122,7 @@ func sortSermonsByYear(sermons:[Sermon]?,sorting:String?) -> [Sermon]?
     return sortedSermons
 }
 
-func compareSermonDates(first first:Sermon, second:Sermon, sorting:String?) -> Bool
+func compareSermonDates(first:Sermon, second:Sermon, sorting:String?) -> Bool
 {
     var result = false
 
@@ -1030,9 +1150,9 @@ func compareSermonDates(first first:Sermon, second:Sermon, sorting:String?) -> B
     return result
 }
 
-func sortSermonsBySeries(sermons:[Sermon]?,sorting:String?) -> [Sermon]?
+func sortSermonsBySeries(_ sermons:[Sermon]?,sorting:String?) -> [Sermon]?
 {
-    return sermons?.sort() {
+    return sermons?.sorted() {
         var result = false
         
         let first = $0
@@ -1048,9 +1168,9 @@ func sortSermonsBySeries(sermons:[Sermon]?,sorting:String?) -> [Sermon]?
     }
 }
 
-func sortSermonsBySpeaker(sermons:[Sermon]?,sorting: String?) -> [Sermon]?
+func sortSermonsBySpeaker(_ sermons:[Sermon]?,sorting: String?) -> [Sermon]?
 {
-    return sermons?.sort() {
+    return sermons?.sorted() {
         var result = false
         
         let first = $0
@@ -1066,9 +1186,9 @@ func sortSermonsBySpeaker(sermons:[Sermon]?,sorting: String?) -> [Sermon]?
     }
 }
 
-func sortSermonsByBook(sermons:[Sermon]?, sorting:String?) -> [Sermon]?
+func sortSermonsByBook(_ sermons:[Sermon]?, sorting:String?) -> [Sermon]?
 {
-    return sermons?.sort() {
+    return sermons?.sorted() {
         let first = bookNumberInBible($0.book)
         let second = bookNumberInBible($1.book)
         
@@ -1100,32 +1220,32 @@ func sortSermonsByBook(sermons:[Sermon]?, sorting:String?) -> [Sermon]?
 }
 
 
-func testSermonsPDFs(testExisting testExisting:Bool, testMissing:Bool, showTesting:Bool)
+func testSermonsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
 {
     var counter = 1
 
     if (testExisting) {
-        print("Testing the availability of sermon transcripts and slides that we DO have in the sermonDicts - start")
+        NSLog("Testing the availability of sermon transcripts and slides that we DO have in the sermonDicts - start")
         
         if let sermons = globals.sermonRepository.list {
             for sermon in sermons {
                 if (showTesting) {
-                    print("Testing: \(counter) \(sermon.title!)")
+                    NSLog("Testing: \(counter) \(sermon.title!)")
                 } else {
-                    print(".", terminator: Constants.EMPTY_STRING)
+//                    NSLog(".", terminator: Constants.EMPTY_STRING)
                 }
                 
                 if (sermon.notes != nil) {
-                    if (NSData(contentsOfURL: sermon.notesURL!) == nil) {
-                        print("Transcript DOES NOT exist for: \(sermon.title!) PDF: \(sermon.notes!)")
+                    if ((try? Data(contentsOf: sermon.notesURL! as URL)) == nil) {
+                        NSLog("Transcript DOES NOT exist for: \(sermon.title!) PDF: \(sermon.notes!)")
                     } else {
                         
                     }
                 }
                 
                 if (sermon.slides != nil) {
-                    if (NSData(contentsOfURL: sermon.slidesURL!) == nil) {
-                        print("Slides DO NOT exist for: \(sermon.title!) PDF: \(sermon.slides!)")
+                    if ((try? Data(contentsOf: sermon.slidesURL! as URL)) == nil) {
+                        NSLog("Slides DO NOT exist for: \(sermon.title!) PDF: \(sermon.slides!)")
                     } else {
                         
                     }
@@ -1135,47 +1255,35 @@ func testSermonsPDFs(testExisting testExisting:Bool, testMissing:Bool, showTesti
             }
         }
         
-        print("\nTesting the availability of sermon transcripts and slides that we DO have in the sermonDicts - end")
+        NSLog("\nTesting the availability of sermon transcripts and slides that we DO have in the sermonDicts - end")
     }
 
     if (testMissing) {
-        print("Testing the availability of sermon transcripts and slides that we DO NOT have in the sermonDicts - start")
+        NSLog("Testing the availability of sermon transcripts and slides that we DO NOT have in the sermonDicts - start")
         
         counter = 1
         if let sermons = globals.sermonRepository.list {
             for sermon in sermons {
                 if (showTesting) {
-                    print("Testing: \(counter) \(sermon.title!)")
+                    NSLog("Testing: \(counter) \(sermon.title!)")
                 } else {
-                    print(".", terminator: Constants.EMPTY_STRING)
+//                    NSLog(".", terminator: Constants.EMPTY_STRING)
                 }
                 
                 if (sermon.audio == nil) {
-                    print("No Audio file for: \(sermon.title) can't test for PDF's")
+                    NSLog("No Audio file for: \(sermon.title) can't test for PDF's")
                 } else {
                     if (sermon.notes == nil) {
-                        let testString = "tp150705a"
-                        let testNotes = Constants.TRANSCRIPT_PREFIX + sermon.audio!.substringToIndex(testString.endIndex) + Constants.PDF_FILE_EXTENSION
-                        //                print("Notes file s/b: \(testNotes)")
-                        let notesURL = Constants.BASE_PDF_URL + testNotes
-                        //                print("<a href=\"\(notesURL)\" target=\"_blank\">\(sermon.title!) Notes</a><br/>")
-                        
-                        if (NSData(contentsOfURL: NSURL(string: notesURL)!) != nil) {
-                            print("Transcript DOES exist for: \(sermon.title!) PDF: \(testNotes)")
+                        if ((try? Data(contentsOf: sermon.notesURL!)) != nil) {
+                            NSLog("Transcript DOES exist for: \(sermon.title!) ID:\(sermon.id)")
                         } else {
                             
                         }
                     }
                     
                     if (sermon.slides == nil) {
-                        let testString = "tp150705a"
-                        let testSlides = sermon.audio!.substringToIndex(testString.endIndex) + Constants.PDF_FILE_EXTENSION
-                        //                print("Slides file s/b: \(testSlides)")
-                        let slidesURL = Constants.BASE_PDF_URL + testSlides
-                        //                print("<a href=\"\(slidesURL)\" target=\"_blank\">\(sermon.title!) Slides</a><br/>")
-                        
-                        if (NSData(contentsOfURL: NSURL(string: slidesURL)!) != nil) {
-                            print("Slides DO exist for: \(sermon.title!) PDF: \(testSlides)")
+                        if ((try? Data(contentsOf: sermon.slidesURL!)) != nil) {
+                            NSLog("Slides DO exist for: \(sermon.title!) ID: \(sermon.id)")
                         } else {
                             
                         }
@@ -1186,93 +1294,93 @@ func testSermonsPDFs(testExisting testExisting:Bool, testMissing:Bool, showTesti
             }
         }
         
-        print("\nTesting the availability of sermon transcripts and slides that we DO NOT have in the sermonDicts - end")
+        NSLog("\nTesting the availability of sermon transcripts and slides that we DO NOT have in the sermonDicts - end")
     }
 }
 
 func testSermonsTagsAndSeries()
 {
-    print("Testing for sermon series and tags the same - start")
+    NSLog("Testing for sermon series and tags the same - start")
     
     if let sermons = globals.sermonRepository.list {
         for sermon in sermons {
-            if (sermon.hasSeries()) && (sermon.hasTags()) {
+            if (sermon.hasSeries) && (sermon.hasTags) {
                 if (sermon.series == sermon.tags) {
-                    print("Series and Tags the same in: \(sermon.title!) Series:\(sermon.series!) Tags:\(sermon.tags!)")
+                    NSLog("Series and Tags the same in: \(sermon.title!) Series:\(sermon.series!) Tags:\(sermon.tags!)")
                 }
             }
         }
     }
     
-    print("Testing for sermon series and tags the same - end")
+    NSLog("Testing for sermon series and tags the same - end")
 }
 
 func testSermonsForAudio()
 {
-    print("Testing for audio - start")
+    NSLog("Testing for audio - start")
     
     for sermon in globals.sermonRepository.list! {
-        if (!sermon.hasAudio()) {
-            print("Audio missing in: \(sermon.title!)")
+        if (!sermon.hasAudio) {
+            NSLog("Audio missing in: \(sermon.title!)")
         } else {
 
         }
     }
     
-    print("Testing for audio - end")
+    NSLog("Testing for audio - end")
 }
 
 func testSermonsForSpeaker()
 {
-    print("Testing for speaker - start")
+    NSLog("Testing for speaker - start")
     
     for sermon in globals.sermonRepository.list! {
-        if (!sermon.hasSpeaker()) {
-            print("Speaker missing in: \(sermon.title!)")
+        if (!sermon.hasSpeaker) {
+            NSLog("Speaker missing in: \(sermon.title!)")
         }
     }
     
-    print("Testing for speaker - end")
+    NSLog("Testing for speaker - end")
 }
 
 func testSermonsForSeries()
 {
-    print("Testing for sermons with \"(Part \" in the title but no series - start")
+    NSLog("Testing for sermons with \"(Part \" in the title but no series - start")
     
     for sermon in globals.sermonRepository.list! {
-        if (sermon.title?.rangeOfString("(Part ", options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil) != nil) && sermon.hasSeries() {
-            print("Series missing in: \(sermon.title!)")
+        if (sermon.title?.range(of: "(Part ", options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil) && sermon.hasSeries {
+            NSLog("Series missing in: \(sermon.title!)")
         }
     }
     
-    print("Testing for sermons with \"(Part \" in the title but no series - end")
+    NSLog("Testing for sermons with \"(Part \" in the title but no series - end")
 }
 
 func testSermonsBooksAndSeries()
 {
-    print("Testing for sermon series and book the same - start")
+    NSLog("Testing for sermon series and book the same - start")
 
     for sermon in globals.sermonRepository.list! {
-        if (sermon.hasSeries()) && (sermon.hasBook()) {
+        if (sermon.hasSeries) && (sermon.hasBook) {
             if (sermon.series == sermon.book) {
-                print("Series and Book the same in: \(sermon.title!) Series:\(sermon.series!) Book:\(sermon.book!)")
+                NSLog("Series and Book the same in: \(sermon.title!) Series:\(sermon.series!) Book:\(sermon.book!)")
             }
         }
     }
 
-    print("Testing for sermon series and book the same - end")
+    NSLog("Testing for sermon series and book the same - end")
 }
 
-func tagsSetFromTagsString(tagsString:String?) -> Set<String>?
+func tagsSetFromTagsString(_ tagsString:String?) -> Set<String>?
 {
     var tags = tagsString
     var tag:String
     var setOfTags = Set<String>()
     
-    while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
-        tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
+    while (tags?.range(of: Constants.TAGS_SEPARATOR) != nil) {
+        tag = tags!.substring(to: tags!.range(of: Constants.TAGS_SEPARATOR)!.lowerBound)
         setOfTags.insert(tag)
-        tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
+        tags = tags!.substring(from: tags!.range(of: Constants.TAGS_SEPARATOR)!.upperBound)
     }
     
     if (tags != nil) {
@@ -1282,7 +1390,7 @@ func tagsSetFromTagsString(tagsString:String?) -> Set<String>?
     return setOfTags.count > 0 ? setOfTags : nil
 }
 
-func tagsArrayToTagsString(tagsArray:[String]?) -> String?
+func tagsArrayToTagsString(_ tagsArray:[String]?) -> String?
 {
     if tagsArray != nil {
         var tagString:String?
@@ -1301,7 +1409,7 @@ func tagsArrayToTagsString(tagsArray:[String]?) -> String?
     }
 }
 
-func tagsArrayFromTagsString(tagsString:String?) -> [String]?
+func tagsArrayFromTagsString(_ tagsString:String?) -> [String]?
 {
     var arrayOfTags:[String]?
     
@@ -1312,7 +1420,7 @@ func tagsArrayFromTagsString(tagsString:String?) -> [String]?
     return arrayOfTags
 }
 
-func sermonsWithTag(sermons:[Sermon]?,tag:String?) -> [Sermon]?
+func sermonsWithTag(_ sermons:[Sermon]?,tag:String?) -> [Sermon]?
 {
     return tag != nil ?
         sermons?.filter({ (sermon:Sermon) -> Bool in
@@ -1324,36 +1432,25 @@ func sermonsWithTag(sermons:[Sermon]?,tag:String?) -> [Sermon]?
         }) : nil
 }
 
-func tagsFromSermons(sermons:[Sermon]?) -> [String]?
+func tagsFromSermons(_ sermons:[Sermon]?) -> [String]?
 {
     if sermons != nil {
         var tagsSet = Set<String>()
 
         for sermon in sermons! {
             if let tags = sermon.tagsSet {
-                tagsSet.unionInPlace(tags)
+                tagsSet.formUnion(tags)
             }
         }
         
-        var tagsArray = Array(tagsSet).sort({ stringWithoutPrefixes($0) < stringWithoutPrefixes($1) })
+        var tagsArray = Array(tagsSet).sorted(by: { stringWithoutPrefixes($0) < stringWithoutPrefixes($1) })
 
         tagsArray.append(Constants.All)
         
-    //    print("Tag Set: \(tagsSet)")
-    //    print("Tag Array: \(tagsArray)")
+    //    NSLog("Tag Set: \(tagsSet)")
+    //    NSLog("Tag Array: \(tagsArray)")
         
         return tagsArray.count > 0 ? tagsArray : nil
-    }
-    
-    return nil
-}
-
-func sermonsFromSermonDicts(sermonDicts:[[String:String]]?) -> [Sermon]?
-{
-    if (sermonDicts != nil) {
-        return sermonDicts?.map({ (sermonDict:[String : String]) -> Sermon in
-            Sermon(dict: sermonDict)
-        })
     }
     
     return nil

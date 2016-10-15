@@ -12,26 +12,30 @@ class SettingsViewController: UIViewController {
 
     @IBOutlet weak var autoAdvanceSwitch: UISwitch!
     
-    @IBAction func autoAdvanceAction(sender: UISwitch) {
-        globals.autoAdvance = sender.on
+    @IBAction func autoAdvanceAction(_ sender: UISwitch) {
+        globals.autoAdvance = sender.isOn
     }
     
     @IBOutlet weak var audioSizeLabel: UILabel!
     @IBOutlet weak var cacheSizeLabel: UILabel!
     @IBOutlet weak var cacheSwitch: UISwitch!
     
-    @IBAction func cacheAction(sender: UISwitch) {
-        globals.cacheDownloads = sender.on
+    @IBAction func cacheAction(_ sender: UISwitch) {
+        globals.cacheDownloads = sender.isOn
         
-        if !sender.on {
-            NSURLCache.sharedURLCache().removeAllCachedResponses()
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
+        if !sender.isOn {
+            URLCache.shared.removeAllCachedResponses()
+            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                globals.loadSingles = false
+                
                 for sermon in globals.sermonRepository.list! {
                     sermon.notesDownload?.deleteDownload()
                     sermon.slidesDownload?.deleteDownload()
                 }
+                
+                globals.loadSingles = true
 
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                DispatchQueue.main.async(execute: { () -> Void in
                     self.updateCacheSize()
                 })
             })
@@ -42,18 +46,22 @@ class SettingsViewController: UIViewController {
 //        dismissViewControllerAnimated(true, completion: nil)
 //    }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        autoAdvanceSwitch.on = globals.autoAdvance
-        cacheSwitch.on = globals.cacheDownloads
+        autoAdvanceSwitch.isOn = globals.autoAdvance
+        cacheSwitch.isOn = globals.cacheDownloads
     }
     
     func updateCacheSize()
     {
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
-            let sizeOfCache = globals.cacheSize(Constants.SLIDES) + globals.cacheSize(Constants.NOTES)
+        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+            globals.loadSingles = false
             
+            let sizeOfCache = globals.cacheSize(Purpose.slides) + globals.cacheSize(Purpose.notes)
+            
+            globals.loadSingles = true
+
             var size:Float = Float(sizeOfCache)
             
             var count = 0
@@ -63,7 +71,7 @@ class SettingsViewController: UIViewController {
                 count += 1
             } while size > 1024
             
-            var sizeLabel:String!
+            var sizeLabel:String
             
             switch count {
             case 0:
@@ -87,7 +95,7 @@ class SettingsViewController: UIViewController {
                 break
             }
 
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
                 self.cacheSizeLabel.text = "\(String(format: "%0.1f",size)) \(sizeLabel) in use"
             })
         })
@@ -95,8 +103,8 @@ class SettingsViewController: UIViewController {
     
     func updateAudioSize()
     {
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
-            let sizeOfAudio = globals.cacheSize(Constants.AUDIO)
+        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+            let sizeOfAudio = globals.cacheSize(Purpose.audio)
             
             var size:Float = Float(sizeOfAudio)
             
@@ -107,7 +115,7 @@ class SettingsViewController: UIViewController {
                 count += 1
             } while size > 1024
             
-            var sizeLabel:String!
+            var sizeLabel:String
             
             switch count {
             case 0:
@@ -131,7 +139,7 @@ class SettingsViewController: UIViewController {
                 break
             }
             
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
                 self.audioSizeLabel.text = "Audio Storage: \(String(format: "%0.1f",size)) \(sizeLabel) in use"
             })
         })
@@ -142,9 +150,9 @@ class SettingsViewController: UIViewController {
 
         // Do any additional setup after loading the view.
         if #available(iOS 9.0, *) {
-            cacheSwitch.enabled = true
+            cacheSwitch.isEnabled = true
         } else {
-            cacheSwitch.enabled = false
+            cacheSwitch.isEnabled = false
         }
 
         cacheSizeLabel.text = "Updating..."
@@ -157,7 +165,7 @@ class SettingsViewController: UIViewController {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        NSURLCache.sharedURLCache().removeAllCachedResponses()
+        URLCache.shared.removeAllCachedResponses()
     }
 
     /*

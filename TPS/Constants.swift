@@ -9,9 +9,116 @@
 import Foundation
 import UIKit
 
-struct Constants {
-    static let JSON_URL_PREFIX = "https://s3.amazonaws.com/jd2-86d4fd0ec0a8fca71eef54e388261c5b-us/"
+struct Field {
+    static let id = "mediacode"
+    
+    static let date = "date"
+    static let service = "service"
+    
+    static let title = "title"
+    
+    static let name = "name"
+    
+    static let audio = "audio_url"
+    static let video = "m3u8"
+    
+    static let notes = "transcript"
+    static let slides = "slides"
+    static let outline = "outline"
+    
+    static let files = "files"
 
+    static let playing = "playing"
+    static let showing = "showing"
+    
+    static let speaker = "teacher" // was "speaker"
+    static let speaker_sort = "speaker sort"
+    
+    static let scripture = "text" // was "scripture"
+    static let category = "category"
+    
+    static let series = "NA"
+    static let series_sort = "series sort"
+
+    static let part = "part"
+    static let tags = "series"
+    static let book = "book"
+    static let year = "year"
+}
+
+struct Media {
+    static let AUDIO = "AUDIO"
+    static let VIDEO = "VIDEO"
+    static let SLIDES = "SLIDES"
+    static let NOTES = "NOTES"
+    static let OUTLINE = "OUTLINE"
+    
+    static let NONE = "none"
+}
+
+struct Purpose {
+    static let audio = Media.AUDIO
+    static let video = Media.VIDEO
+    static let slides = Media.SLIDES
+    static let notes = Media.NOTES
+    static let outline = Media.OUTLINE
+}
+
+struct Playing {
+    static let audio = Media.AUDIO
+    static let video = Media.VIDEO
+}
+
+struct Showing {
+    static let video = Media.VIDEO
+    static let notes = Media.NOTES
+    static let slides = Media.SLIDES
+    static let none = Media.NONE
+}
+
+struct Grouping {
+    static let Year = "Year"
+    static let Book = "Book"
+    static let Speaker = "Speaker"
+    static let Title = "Title"
+
+    static let YEAR = "year"
+    static let BOOK = "book"
+    static let SPEAKER = "speaker"
+    static let TITLE = "title"
+}
+
+struct Constants {
+//    static let JSON_URL_PREFIX = "https://s3.amazonaws.com/jd2-86d4fd0ec0a8fca71eef54e388261c5b-us/"
+    static let JSON_BASE_URL = "http://dev.countrysidebible.org/medialist_all.php?return="
+
+    static let JSON_MEDIA_PATH = "media" //
+    
+    static let JSON_MEDIA_URL = JSON_BASE_URL + JSON_MEDIA_PATH //
+    
+    static let JSON_CATEGORIES_PATH = "categories" //
+    
+    static let JSON_CATEGORIES_URL = JSON_BASE_URL + JSON_CATEGORIES_PATH //
+    
+    static let JSON_CATEGORY_URL = JSON_MEDIA_URL + "&categoryID=" //
+    
+    static let JSON_SERMONS_URL = JSON_CATEGORY_URL + globals.sermonCategoryID! //
+    
+    static let SINGLE_JSON_URL = "http://dev.countrysidebible.org/medialist_all.php?return=single&mediacode="
+    
+    static let BASE_MEDIA_URL = "http://sitedata.countrysidebible.org/avmedia/"
+    
+//    static let BASE_AUDIO_URL = "http://sitedata.countrysidebible.org/avmedia/se/"
+//    static let BASE_PDF_URL = "http://sitedata.countrysidebible.org/avmedia/dc/"
+
+//    static let BASE_VIDEO_URL_PREFIX = "https://player.vimeo.com/external/"
+    
+//    Slides: {year}/{mediacode}slides.pdf
+//    Outline: {year}/{mediacode}outline.pdf
+//    Transcript: {year}/{mediacode}transcript.pdf
+    
+//    static let BASE_DOWNLOAD_URL:String = "http://sitedata.countrysidebible.org/avmedia/se/download.php?file="
+    
     static let UPDATE_PLAY_PAUSE_NOTIFICATION = "UPDATE PLAY PAUSE"
     
     static let MIN_PLAY_TIME = 15.0
@@ -25,10 +132,15 @@ struct Constants {
     static let WORKING_TIMER_INTERVAL = 0.1
     static let SEEKING_TIMER_INTERVAL = 0.1
     
-    static let JSON_ARRAY_KEY = "sermons"
+    static let JSON_CATEGORIES_ARRAY_KEY = "categoryEntries"
+    static let JSON_SERMONS_ARRAY_KEY = "mediaEntries"
+    static let JSON_SINGLE_ARRAY_KEY = "singleEntry"
+
     static let JSON_TYPE = "json"
     static let JSON_FILENAME_EXTENSION = ".json"
-    static let SERMONS_JSON_FILENAME = JSON_ARRAY_KEY + JSON_FILENAME_EXTENSION
+
+    static let CATEGORIES_JSON_FILENAME = JSON_CATEGORIES_ARRAY_KEY + JSON_FILENAME_EXTENSION
+    static let SERMONS_JSON_FILENAME = JSON_SERMONS_ARRAY_KEY + JSON_FILENAME_EXTENSION
 
     static let DICT = "dict"
 
@@ -39,7 +151,7 @@ struct Constants {
     static let REACHABILITY_TEST_URL = "http://www.countrysidebible.org/"
     
     static let Downloading_Sermons = "Downloading Sermons"
-    static let Loading_Sermons = "Loading Sermons"
+    static let Loading_Sermons = "Loading"
     static let Synthesizing_Tags = "Synthesizing Tags"
     static let Loading_Settings = "Loading Settings"
     static let Sorting_and_Grouping = "Sorting and Grouping"
@@ -47,8 +159,8 @@ struct Constants {
     
     static let COVER_ART_IMAGE = "cover170x170"
     
-    static let CACHE_POLICY = NSURLRequestCachePolicy.ReloadRevalidatingCacheData
-    static let CACHE_TIMEOUT = 1.0
+    static let CACHE_POLICY = NSURLRequest.CachePolicy.reloadRevalidatingCacheData
+    static let CACHE_TIMEOUT = 10.0
     
     static let UPDATE_VIEW_NOTIFICATION = "UPDATE VIEW"
     static let CLEAR_VIEW_NOTIFICATION = "CLEAR VIEW"
@@ -67,6 +179,7 @@ struct Constants {
 
     static let AUTO_ADVANCE = "AUTO_ADVANCE"
     static let CACHE_DOWNLOADS = "CACHE DOWNLOADS"
+    static let MEDIA_CATEGORY = "MEDIA CATEGORY"
     
     static let SEARCH_TEXT = "SEARCH TEXT"
     
@@ -90,7 +203,8 @@ struct Constants {
     static let CBC_in_Apple_Maps = CBC_SHORT + " in Apple Maps"
     static let CBC_in_Google_Maps = CBC_SHORT + " in Google Maps"
 
-    static let Sermons = "Sermons"
+    static let Sermon = "Media"
+    static let Sermons = "Media"
     
     static let CBC_LONG_TITLE = CBC_LONG + SINGLE_SPACE_STRING + Sermons
     static let CBC_SHORT_TITLE = CBC_SHORT + SINGLE_SPACE_STRING + Sermons
@@ -106,7 +220,7 @@ struct Constants {
     static let CBC_PHONE_NUMBER = "(817) 488-5381"
     static let CBC_FULL_ADDRESS = CBC_STREET_ADDRESS + ", " + CBC_CITY_STATE_ZIPCODE_COUNTRY
     
-    static let CBC_TITLE_POSTFIX = " Sermons"
+    static let CBC_TITLE_POSTFIX = " " + Sermons
     
     static let CBC_TITLE_SHORT = CBC_SHORT + CBC_TITLE_POSTFIX
     static let CBC_TITLE_LONG = CBC_LONG + CBC_TITLE_POSTFIX
@@ -118,30 +232,8 @@ struct Constants {
     static let ALL = "all"
     static let DOWNLOADED = "downloaded"
 
-    static let ID = "id"
-    static let DATE = "date"
-    static let SERVICE = "service"
-    static let TITLE = "title"
-    static let NAME = "name"
-    
-    static let SPEAKER = "speaker"
-    static let SPEAKER_SORT = "speaker sort"
-    
-    static let SCRIPTURE = "scripture"
-    
 //    static let Scripture_Full_Screen = "Scripture Full Screen"
     static let Scripture_in_Browser = "Scripture in Browser"
-    
-    static let SERIES = "series"
-    static let SERIES_SORT = "series sort"
-    
-    static let TAGS = "tags"
-    static let AUDIO = "audio"
-    static let VIDEO = "video"
-    static let NOTES = "notes"
-    static let SLIDES = "slides"
-    
-    static let NONE = "none"
     
     static let SERMON_PLAYING = "sermon playing"
     static let CURRENT_TIME = "current time"
@@ -156,43 +248,33 @@ struct Constants {
     
     static let TAGS_SEPARATOR = "|"
     
-    static let PLAYING = "playing"
-    static let SHOWING = "showing"
-    
     static let SORTING = "sorting"
     static let GROUPING = "grouping"
     
     static let COLLECTION = "collection"
-    
-    static let Sorting = "Sorting"
-    static let Grouping = "Grouping"
-    static let Index = "Index"
+
+    struct Titles {
+        static let Sorting = "Sorting"
+        static let Grouping = "Grouping"
+        static let Index = "Index"
+    }
     
     static let Sorting_Options_Title = "Sort By"
     static let Grouping_Options_Title = "Group By"
     
     static let Options = "Options"
     
-    static let Sorting_Options =  Sorting + SINGLE_SPACE_STRING + Options
-    static let Grouping_Options = Grouping + SINGLE_SPACE_STRING + Options
+    static let Sorting_Options =  Titles.Sorting + SINGLE_SPACE_STRING + Options
+    static let Grouping_Options = Titles.Grouping + SINGLE_SPACE_STRING + Options
     
     static let SETTINGS_VERSION_KEY = "Settings Version"
-    static let SETTINGS_VERSION = "2.0"
+    static let SETTINGS_VERSION = "2.1"
     
     static let SETTINGS_KEY = "Settings"
     static let VIEW_SPLITS_KEY = "View Splits"
     
     static let SELECTED_SERMON_KEY = "selectedSermonKey"
     static let SELECTED_SERMON_DETAIL_KEY = "selectedSermonDetailKey"
-    
-    static let Year = "Year"
-    static let YEAR = "year"
-    
-    static let Book = "Book"
-    static let BOOK = "book"
-    
-    static let Speaker = "Speaker"
-    static let Series = "Series"
     
     static let MIN_SLIDER_WIDTH = CGFloat(60)
     static let MIN_STV_SEGMENT_WIDTH = CGFloat(20)
@@ -280,16 +362,10 @@ struct Constants {
     static let CHECK_FILE_SLEEP_INTERVAL = 0.01
     static let CHECK_FILE_MAX_ITERATIONS = 200
     
-    static let BASE_AUDIO_URL = "http://sitedata.countrysidebible.org/avmedia/se/"
-    static let BASE_PDF_URL = "http://sitedata.countrysidebible.org/avmedia/dc/"
-    static let BASE_VIDEO_URL_PREFIX = "https://player.vimeo.com/external/"
-    
-    static let BASE_DOWNLOAD_URL:String = "http://sitedata.countrysidebible.org/avmedia/se/download.php?file="
-    
     static let SCRIPTURE_URL_PREFIX = "http://www.biblegateway.com/passage/?search="
     static let SCRIPTURE_URL_POSTFIX = "&version=NASB"
     
-    static let TRANSCRIPT_PREFIX = "tx-un-"
+//    static let TRANSCRIPT_PREFIX = "tx-un-"
     static let PDF_FILE_EXTENSION = ".pdf"
     
     static let New = "New"
@@ -329,8 +405,8 @@ struct Constants {
     static let Full_Screen = "Full Screen"
     static let Open_in_Browser = "Open in Browser"
     
-    static let Email_Sermon = "E-mail Sermon"
-    static let Email_Series = "E-mail Series"
+    static let Email_Sermon = "E-mail"
+    static let Email_Series = "E-mail All"
     
     static let Check_for_Update = "Check for Update"
     
@@ -347,6 +423,7 @@ struct Constants {
     
     static let MP3_FILENAME_EXTENSION = ".mp3"
     static let MP4_FILENAME_EXTENSION = ".mp4"
+    static let M3U8_FILENAME_EXTENSION = ".m3u8"
     
     static let TMP_FILENAME_EXTENSION = ".tmp"
 
@@ -361,11 +438,17 @@ struct Constants {
     
     static let sortings = [CHRONOLOGICAL, REVERSE_CHRONOLOGICAL]
     static let Sortings = [Oldest_to_Newest, Newest_to_Oldest]
-    static let groupings = [YEAR, SERIES, BOOK, SPEAKER]
-    static let Groupings = [Year, Series, Book, Speaker]
+    
+    static let groupings = [Grouping.YEAR, Grouping.TITLE, Grouping.BOOK, Grouping.SPEAKER]
+    static let Groupings = [Grouping.Year, Grouping.Title, Grouping.Book, Grouping.Speaker]
 
     static let Old_Testament = "Old Testament"
     static let New_Testament = "New Testament"
+    
+    static let OT = "O.T."
+    static let NT = "N.T."
+    
+    static let NOT_IN_THE_BOOKS_OF_THE_BIBLE = Constants.OLD_TESTAMENT_BOOKS.count + Constants.NEW_TESTAMENT_BOOKS.count + 1
     
     static let OLD_TESTAMENT_BOOKS:[String] = [
         "Genesis",

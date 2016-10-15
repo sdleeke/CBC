@@ -29,13 +29,13 @@ enum PopoverPurpose {
     case editingTags
 }
 
-class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISearchBarDelegate, UISearchControllerDelegate, UIPopoverPresentationControllerDelegate, PopoverTableViewControllerDelegate, NSURLSessionDownloadDelegate {
+class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISearchBarDelegate, UISearchControllerDelegate, UIPopoverPresentationControllerDelegate, PopoverTableViewControllerDelegate, PopoverPickerControllerDelegate, URLSessionDownloadDelegate { //
 
-    override func canBecomeFirstResponder() -> Bool {
+    override var canBecomeFirstResponder : Bool {
         return true //splitViewController == nil
     }
     
-    override func motionEnded(motion: UIEventSubtype, withEvent event: UIEvent?) {
+    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?) {
         if (splitViewController == nil) {
             globals.motionEnded(motion,event: event)
         }
@@ -43,11 +43,71 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
     var refreshControl:UIRefreshControl?
 
-    var session:NSURLSession? // Used for JSON
+    var session:URLSession? // Used for JSON
+    
+    func stringPicked(_ string:String?)
+    {
+        dismiss(animated: true, completion: nil)
+        
+//        print(string)
+        
+        if (globals.sermonCategory != string) {
+            globals.sermonCategory = string
+            globals.tags.selected = nil
+            
+            if globals.player.mpPlayer?.contentURL != URL(string: Constants.LIVE_STREAM_URL) {
+                globals.player.mpPlayer?.pause()
+                globals.player.mpPlayer?.view.isHidden = true
+                globals.updateCurrentTimeExact()
+            }
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.searchBar.placeholder = nil
+                self.sermonCategoryButton.setTitle(globals.sermonCategory, for: UIControlState.normal)
+                self.listActivityIndicator.isHidden = false
+                self.listActivityIndicator.startAnimating()
+            })
+            
+            // This does not show the activityIndicator
+            handleRefresh(refreshControl!)
+        }
+    }
 
+    @IBOutlet weak var sermonCategoryButton: UIButton!
+    @IBAction func sermonCategoryButtonAction(_ button: UIButton) {
+        NSLog("categoryButtonAction")
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "StringPicker") as? UINavigationController {
+            if let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
+                
+                navigationController.modalPresentationStyle = .popover
+                
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = UIPopoverArrowDirection(rawValue: UIPopoverArrowDirection.up.rawValue + UIPopoverArrowDirection.down.rawValue)
+                
+                navigationController.popoverPresentationController?.sourceView = self.view
+                navigationController.popoverPresentationController?.sourceRect = sermonCategoryButton.frame
+                
+                popover.navigationItem.title = "Select Category"
+                
+                popover.delegate = self
+                
+                popover.strings = ["All Media"]
+                
+                if (globals.sermonCategories != nil) {
+                    popover.strings?.append(contentsOf: globals.sermonCategories!)
+                }
+                
+                popover.string = globals.sermonCategory
+                
+                present(navigationController, animated: true, completion: nil)
+            }
+        }
+    }
+    
     @IBOutlet weak var listActivityIndicator: UIActivityIndicatorView!
 
-    var progressTimer:NSTimer?
+    var progressTimer:Timer?
     
     @IBOutlet weak var progressIndicator: UIProgressView!
     
@@ -56,20 +116,20 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     @IBOutlet weak var tableView: UITableView!
     
     @IBOutlet weak var showButton: UIBarButtonItem!
-    @IBAction func show(button: UIBarButtonItem) {
-        if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+    @IBAction func show(_ button: UIBarButtonItem) {
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
             if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .Popover
+                navigationController.modalPresentationStyle = .popover
                 //            popover?.preferredContentSize = CGSizeMake(300, 500)
                 
-                navigationController.popoverPresentationController?.permittedArrowDirections = .Up
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
                 navigationController.popoverPresentationController?.delegate = self
                 
                 navigationController.popoverPresentationController?.barButtonItem = button
                 
 //                popover.navigationItem.title = "Show"
                 
-                popover.navigationController?.navigationBarHidden = true
+                popover.navigationController?.isNavigationBarHidden = true
                 
                 popover.delegate = self
                 popover.purpose = .selectingShow
@@ -111,7 +171,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                                     }
                                 } else {
                                     // There is no selectedSermon - which should never happen
-                                    print("There is no selectedSermon - which should never happen")
+                                    NSLog("There is no selectedSermon - which should never happen")
                                 }
                             } else {
                                 // About is showing
@@ -126,10 +186,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     //Nothing to show
                 }
                 
-                if (splitViewController != nil) {
-                    showMenu.append(Constants.Scripture_Index)
-                }
-                
+                showMenu.append(Constants.Scripture_Index)
+
                 showMenu.append(Constants.History)
                 
                 showMenu.append(Constants.Clear_History)
@@ -143,16 +201,16 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 popover.showIndex = false //(globals.grouping == .series)
                 popover.showSectionHeaders = false
                 
-                presentViewController(navigationController, animated: true, completion: nil)
+                present(navigationController, animated: true, completion: nil)
             }
         }
     }
     
     var selectedSermon:Sermon? {
         didSet {
-            let defaults = NSUserDefaults.standardUserDefaults()
+            let defaults = UserDefaults.standard
             if (selectedSermon != nil) {
-                defaults.setObject(selectedSermon!.id,forKey: Constants.SELECTED_SERMON_KEY)
+                defaults.set(selectedSermon!.id,forKey: Constants.SELECTED_SERMON_KEY)
             } else {
                 // We always select, never deselect, so this should not be done.  If we set this to nil it is for some other reason, like clearing the UI.
 //                defaults.removeObjectForKey(Constants.SELECTED_SERMON_KEY)
@@ -167,14 +225,14 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     {
         if let barButtons = toolbarItems {
             for barButton in barButtons {
-                barButton.enabled = false
+                barButton.isEnabled = false
             }
         }
     }
     
     func disableBarButtons()
     {
-        navigationItem.leftBarButtonItem?.enabled = false
+        navigationItem.leftBarButtonItem?.isEnabled = false
         disableToolBarButtons()
     }
     
@@ -183,7 +241,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         if (globals.sermonRepository.list != nil) {
             if let barButtons = toolbarItems {
                 for barButton in barButtons {
-                    barButton.enabled = true
+                    barButton.isEnabled = true
                 }
             }
         }
@@ -192,13 +250,13 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     func enableBarButtons()
     {
         if (globals.sermonRepository.list != nil) {
-            navigationItem.leftBarButtonItem?.enabled = true
+            navigationItem.leftBarButtonItem?.isEnabled = true
             enableToolBarButtons()
         }
     }
     
-    func rowClickedAtIndex(index: Int, strings: [String], purpose:PopoverPurpose, sermon:Sermon?) {
-        dismissViewControllerAnimated(true, completion: nil)
+    func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, sermon:Sermon?) {
+        dismiss(animated: true, completion: nil)
         
         switch purpose {
         case .selectingCellAction:
@@ -226,41 +284,41 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
         case .selectingHistory:
             var sermonID:String
-            if let range = globals.history!.reverse()[index].rangeOfString(Constants.TAGS_SEPARATOR) {
-                sermonID = globals.history!.reverse()[index].substringFromIndex(range.endIndex)
+            if let range = globals.history!.reversed()[index].range(of: Constants.TAGS_SEPARATOR) {
+                sermonID = globals.history!.reversed()[index].substring(from: range.upperBound)
             } else {
-                sermonID = globals.history!.reverse()[index]
+                sermonID = globals.history!.reversed()[index]
             }
             if let sermon = globals.sermonRepository.index![sermonID] {
                 if globals.activeSermons!.contains(sermon) {
-                    selectOrScrollToSermon(sermon, select: true, scroll: true, position: UITableViewScrollPosition.Middle)
+                    selectOrScrollToSermon(sermon, select: true, scroll: true, position: UITableViewScrollPosition.top) // was Middle
                 } else {
-                    dismissViewControllerAnimated(true, completion: nil)
+                    dismiss(animated: true, completion: nil)
                     
                     let alert = UIAlertController(title:"Sermon Not in List",
-                        message: "You are currently showing sermons tagged with \"\(globals.sermonTagsSelected!)\" and the sermon \"\(sermon.title!)\" does not have that tag.  Show sermons tagged with \"All\" and try again.",
-                        preferredStyle: UIAlertControllerStyle.Alert)
+                        message: "You are currently showing the series \"\(globals.tags.selected!)\" and the sermon \"\(sermon.title!)\" does is not in that series.  Show the series \"All\" and try again.",
+                        preferredStyle: UIAlertControllerStyle.alert)
                     
-                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
                         
                     })
                     alert.addAction(action)
                     
-                    presentViewController(alert, animated: true, completion: nil)
+                    present(alert, animated: true, completion: nil)
                 }
             } else {
-                dismissViewControllerAnimated(true, completion: nil)
+                dismiss(animated: true, completion: nil)
                 
                 let alert = UIAlertController(title:"Sermon Not Found!",
                     message: "Yep, a genuine error - this should never happen!",
-                    preferredStyle: UIAlertControllerStyle.Alert)
+                    preferredStyle: UIAlertControllerStyle.alert)
                 
-                let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+                let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
                     
                 })
                 alert.addAction(action)
                 
-                presentViewController(alert, animated: true, completion: nil)
+                present(alert, animated: true, completion: nil)
             }
             break
             
@@ -268,17 +326,17 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             // Should we be showing globals.active!.sermonTags instead?  That would be the equivalent of drilling down.
 
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
+            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                 //                    if (index >= 0) && (index <= globals.sermons.all!.sermonTags!.count) {
                 if (index < strings.count) {
                     var new:Bool = false
                     
                     switch strings[index] {
                     case Constants.All:
-                        if (globals.showing != Constants.ALL) {
+                        if (globals.tags.showing != Constants.ALL) {
                             new = true
-                            globals.showing = Constants.ALL
-                            globals.sermonTagsSelected = nil
+                            globals.tags.showing = Constants.ALL
+                            globals.tags.selected = nil
                         }
                         break
                         
@@ -287,25 +345,25 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         
                         let tagSelected = strings[index]
                         
-                        new = (globals.showing != Constants.TAGGED) || (globals.sermonTagsSelected != tagSelected)
+                        new = (globals.tags.showing != Constants.TAGGED) || (globals.tags.selected != tagSelected)
                         
                         if (new) {
-                            //                                print("\(globals.active!.sermonTags)")
+                            //                                NSLog("\(globals.active!.sermonTags)")
                             
-                            globals.sermonTagsSelected = tagSelected
+                            globals.tags.selected = tagSelected
                             
-                            globals.showing = Constants.TAGGED
+                            globals.tags.showing = Constants.TAGGED
                         }
                         break
                     }
                     
                     if (new) {
-                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        DispatchQueue.main.async(execute: { () -> Void in
                             globals.clearDisplay()
                             
                             self.tableView.reloadData()
                             
-                            self.listActivityIndicator.hidden = false
+                            self.listActivityIndicator.isHidden = false
                             self.listActivityIndicator.startAnimating()
                             
                             self.disableBarButtons()
@@ -315,14 +373,14 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             self.updateSearchResults(globals.searchText)
                         }
                         
-                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        DispatchQueue.main.async(execute: { () -> Void in
                             globals.setupDisplay()
                             
                             self.tableView.reloadData()
-                            self.selectOrScrollToSermon(self.selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.Middle)
+                            self.selectOrScrollToSermon(self.selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
                             
                             self.listActivityIndicator.stopAnimating()
-                            self.listActivityIndicator.hidden = true
+                            self.listActivityIndicator.isHidden = true
                             
                             self.enableBarButtons()
                             
@@ -330,14 +388,14 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         })
                     }
                 } else {
-                    print("Index out of range")
+                    NSLog("Index out of range")
                 }
             })
             break
             
         case .selectingSection:
-            dismissViewControllerAnimated(true, completion: nil)
-            let indexPath = NSIndexPath(forRow: 0, inSection: index)
+            dismiss(animated: true, completion: nil)
+            let indexPath = IndexPath(row: 0, section: index)
             
             //Too slow
             //                if (globals.grouping == Constants.SERIES) {
@@ -349,7 +407,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             //                        var sermons = [Sermon]()
             //
             //                        for sermon in globals.activeSermons! {
-            //                            if !sermon.hasSeries() {
+            //                            if !sermon.hasSeries {
             //                                sermons.append(sermon)
             //                            }
             //                        }
@@ -369,41 +427,41 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             //                }
             
             //Can't use this reliably w/ variable row heights.
-            tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: UITableViewScrollPosition.Top, animated: true)
+            tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.top, animated: true)
             break
             
         case .selectingGrouping:
-            dismissViewControllerAnimated(true, completion: nil)
+            dismiss(animated: true, completion: nil)
             globals.grouping = Constants.groupings[index]
             
             if (globals.sermonsNeed.grouping) {
                 globals.clearDisplay()
                 tableView.reloadData()
                 
-                listActivityIndicator.hidden = false
+                listActivityIndicator.isHidden = false
                 listActivityIndicator.startAnimating()
                 
                 disableBarButtons()
                 
-                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
+                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                     globals.progress = 0
                     globals.finished = 0
                     
-                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                        self.progressTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.PROGRESS_TIMER_INTERVAL, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.progressTimer = Timer.scheduledTimer(timeInterval: Constants.PROGRESS_TIMER_INTERVAL, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
                     })
                     
                     globals.setupDisplay()
                     
-                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                    DispatchQueue.main.async(execute: { () -> Void in
                         self.progressTimer?.invalidate()
                         self.progressTimer = nil
-                        self.progressIndicator.hidden = true
+                        self.progressIndicator.isHidden = true
                     })
                     
-                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                    DispatchQueue.main.async(execute: { () -> Void in
                         self.tableView.reloadData()
-                        self.selectOrScrollToSermon(self.selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.Middle)
+                        self.selectOrScrollToSermon(self.selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
                         self.listActivityIndicator.stopAnimating()
                         self.enableBarButtons()
                     })
@@ -412,24 +470,24 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             break
             
         case .selectingSorting:
-            dismissViewControllerAnimated(true, completion: nil)
+            dismiss(animated: true, completion: nil)
             globals.sorting = Constants.sortings[index]
             
             if (globals.sermonsNeed.sorting) {
                 globals.clearDisplay()
                 tableView.reloadData()
                 
-                listActivityIndicator.hidden = false
+                listActivityIndicator.isHidden = false
                 listActivityIndicator.startAnimating()
                 
                 disableBarButtons()
                 
-                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
+                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                     globals.setupDisplay()
                     
-                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                    DispatchQueue.main.async(execute: { () -> Void in
                         self.tableView.reloadData()
-                        self.selectOrScrollToSermon(self.selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.Middle)
+                        self.selectOrScrollToSermon(self.selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
                         self.listActivityIndicator.stopAnimating()
                         self.enableBarButtons()
                         //
@@ -448,7 +506,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             break
             
         case .selectingShow:
-            dismissViewControllerAnimated(true, completion: nil)
+            dismiss(animated: true, completion: nil)
             switch strings[index] {
             case Constants.About:
                 about()
@@ -457,34 +515,34 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             case Constants.Current_Selection:
                 if let sermon = selectedSermon {
                     if globals.activeSermons!.contains(sermon) {
-                        selectOrScrollToSermon(selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.Top)
+                        selectOrScrollToSermon(selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.top)
                     } else {
-                        dismissViewControllerAnimated(true, completion: nil)
+                        dismiss(animated: true, completion: nil)
                         
                         let alert = UIAlertController(title:"Sermon Not in List",
-                            message: "You are currently showing sermons tagged with \"\(globals.sermonTagsSelected!)\" and the sermon \"\(sermon.title!)\" does not have that tag.  Show sermons tagged with \"All\" and try again.",
-                            preferredStyle: UIAlertControllerStyle.Alert)
+                            message: "You are currently showing the series \"\(globals.tags.selected!)\" and the sermon \"\(sermon.title!)\" is not in that series.  Show the series \"All\" and try again.",
+                            preferredStyle: UIAlertControllerStyle.alert)
                         
-                        let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+                        let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
                             
                         })
                         alert.addAction(action)
                         
-                        presentViewController(alert, animated: true, completion: nil)
+                        present(alert, animated: true, completion: nil)
                     }
                 } else {
-                    dismissViewControllerAnimated(true, completion: nil)
+                    dismiss(animated: true, completion: nil)
                     
                     let alert = UIAlertController(title:"Sermon Not Found!",
                         message: "Yep, a genuine error - this should never happen!",
-                        preferredStyle: UIAlertControllerStyle.Alert)
+                        preferredStyle: UIAlertControllerStyle.alert)
                     
-                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: { (UIAlertAction) -> Void in
+                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
                         
                     })
                     alert.addAction(action)
                     
-                    presentViewController(alert, animated: true, completion: nil)
+                    present(alert, animated: true, completion: nil)
                 }
                 break
                 
@@ -493,20 +551,25 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
             case Constants.Sermon_Paused:
                 globals.gotoPlayingPaused = true
-                performSegueWithIdentifier(Constants.SHOW_SERMON_SEGUE, sender: self)
+                performSegue(withIdentifier: Constants.SHOW_SERMON_SEGUE, sender: self)
                 break
                 
             case Constants.Scripture_Index:
-                performSegueWithIdentifier(Constants.SHOW_SCRIPTURE_INDEX_SEGUE, sender: nil)
+                let viewController = self.storyboard!.instantiateViewController(withIdentifier: "Scripture Index")
+                self.navigationController?.navigationItem.hidesBackButton = false
+                self.navigationController?.isToolbarHidden = true
+                self.navigationController?.pushViewController(viewController, animated: true)
+
+//                performSegue(withIdentifier: Constants.SHOW_SCRIPTURE_INDEX_SEGUE, sender: nil)
                 break
                 
             case Constants.History:
-                if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
                     if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                        navigationController.modalPresentationStyle = .Popover
+                        navigationController.modalPresentationStyle = .popover
                         //            popover?.preferredContentSize = CGSizeMake(300, 500)
                         
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .Up
+                        navigationController.popoverPresentationController?.permittedArrowDirections = .up
                         navigationController.popoverPresentationController?.delegate = self
                         
                         navigationController.popoverPresentationController?.barButtonItem = showButton
@@ -520,14 +583,14 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //                        var sections = [String]()
                         
 //                        print(globals.history)
-                        if let historyList = globals.history?.reverse() {
+                        if let historyList = globals.history?.reversed() {
 //                            print(historyList)
                             for history in historyList {
                                 var sermonID:String
 //                                var date:String
                                 
-                                if let range = history.rangeOfString(Constants.TAGS_SEPARATOR) {
-                                    sermonID = history.substringFromIndex(range.endIndex)
+                                if let range = history.range(of: Constants.TAGS_SEPARATOR) {
+                                    sermonID = history.substring(from: range.upperBound)
 //                                    date = history.substringToIndex(range.startIndex)
                                     
                                     if let sermon = globals.sermonRepository.index![sermonID] {
@@ -586,24 +649,24 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //                        popover.section.indexes = indexes.count > 0 ? indexes : nil
 //                        popover.section.counts = counts.count > 0 ? counts : nil
 
-                        presentViewController(navigationController, animated: true, completion: nil)
+                        present(navigationController, animated: true, completion: nil)
                     }
                 }
                 break
                 
             case Constants.Clear_History:
                 globals.history = nil
-                let defaults = NSUserDefaults.standardUserDefaults()
-                defaults.removeObjectForKey(Constants.HISTORY)
+                let defaults = UserDefaults.standard
+                defaults.removeObject(forKey: Constants.HISTORY)
                 defaults.synchronize()
                 break
                 
             case Constants.Live:
-                performSegueWithIdentifier(Constants.SHOW_LIVE_SEGUE, sender: nil)
+                performSegue(withIdentifier: Constants.SHOW_LIVE_SEGUE, sender: nil)
                 break
                 
             case Constants.Settings:
-                performSegueWithIdentifier(Constants.SHOW_SETTINGS_SEGUE, sender: nil)
+                performSegue(withIdentifier: Constants.SHOW_SETTINGS_SEGUE, sender: nil)
                 break
                 
             default:
@@ -616,17 +679,17 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         }
     }
     
-    func willPresentSearchController(searchController: UISearchController) {
-//        print("willPresentSearchController")
+    func willPresentSearchController(_ searchController: UISearchController) {
+//        NSLog("willPresentSearchController")
         globals.searchActive = true
     }
     
-    func willDismissSearchController(searchController: UISearchController)
+    func willDismissSearchController(_ searchController: UISearchController)
     {
         globals.searchActive = false
     }
     
-    func didDismissSearchController(searchController: UISearchController)
+    func didDismissSearchController(_ searchController: UISearchController)
     {
         didDismissSearch()
     }
@@ -634,7 +697,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     func didDismissSearch() {
         globals.sermons.search = nil
         
-        listActivityIndicator.hidden = false
+        listActivityIndicator.isHidden = false
         listActivityIndicator.startAnimating()
         
         globals.clearDisplay()
@@ -643,51 +706,104 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         disableBarButtons()
         
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
+        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
             globals.setupDisplay()
             
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
                 self.tableView.reloadData()
                 self.listActivityIndicator.stopAnimating()
                 self.enableBarButtons()
                 
                 //Moving the list can be very disruptive
-                self.selectOrScrollToSermon(self.selectedSermon, select: true, scroll: false, position: UITableViewScrollPosition.None)
+                self.selectOrScrollToSermon(self.selectedSermon, select: true, scroll: false, position: UITableViewScrollPosition.none)
             })
         })
     }
     
-    func index(object:AnyObject?)
+    func index(_ object:AnyObject?)
     {
         //In case we have one already showing
-        dismissViewControllerAnimated(true, completion: nil)
+        dismiss(animated: true, completion: nil)
 
         //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.sermonSections
         //And when the user chooses one, scroll to the first time in that section.
         
-        if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
             if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 let button = object as? UIBarButtonItem
                 
-                navigationController.modalPresentationStyle = .Popover
+                navigationController.modalPresentationStyle = .popover
                 //            popover?.preferredContentSize = CGSizeMake(300, 500)
                 
-                navigationController.popoverPresentationController?.permittedArrowDirections = .Down
+                navigationController.popoverPresentationController?.permittedArrowDirections = .down
                 navigationController.popoverPresentationController?.delegate = self
                 
                 navigationController.popoverPresentationController?.barButtonItem = button
                 
-                popover.navigationItem.title = Constants.Index
+                popover.navigationItem.title = Constants.Titles.Index
                 
                 popover.delegate = self
                 
                 popover.purpose = .selectingSection
-                popover.strings = globals.active?.sectionTitles
+
+                switch globals.grouping! {
+                case Grouping.TITLE:
+                    popover.strings = globals.active?.sectionTitles
+                    popover.indexStrings = globals.active?.sectionTitles
+                    popover.showIndex = true
+                    popover.showSectionHeaders = true
+                    break
+                    
+                case Grouping.BOOK:
+                    if let books = globals.active?.sectionTitles?.filter({ (string:String) -> Bool in
+                        return bookNumberInBible(string) != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
+                    }) {
+//                        print(books)
+                        popover.strings = books
+
+                        if let other = globals.active?.sectionTitles?.filter({ (string:String) -> Bool in
+                            return bookNumberInBible(string) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
+                        }) {
+//                            print(other)
+//                            print(other.sorted(by: { stringWithoutPrefixes($0)! < stringWithoutPrefixes($1)! } ))
+                            popover.strings?.append(contentsOf: other)
+//                            popover.strings?.append(contentsOf: other.sorted(by: { stringWithoutPrefixes($0)! < stringWithoutPrefixes($1)! } ))
+                        }
+                    }
+//                    print(popover.strings)
+                    popover.indexStrings = popover.strings
+                    popover.showIndex = false
+                    popover.showSectionHeaders = false
+                    break
+                    
+                case Grouping.SPEAKER:
+                    popover.strings = globals.active?.sectionTitles?.sorted(by: { lastNameFromName($0)! < lastNameFromName($1)! } )
+                    
+                    popover.transform = lastNameFromName
+                    
+//                        ?.sorted(by: {
+//                        print($0,$1)
+//                        let index0 = globals.active!.sectionTitles!.index(of: $0)!
+//                        let index1 = globals.active!.sectionTitles!.index(of: $1)!
+//                        
+//                        print(globals.active!.sectionIndexTitles![index0],globals.active!.sectionIndexTitles![index1])
+//                        return globals.active!.sectionIndexTitles![index0] < globals.active!.sectionIndexTitles![index1]
+//                    })
+
+                    popover.indexStrings = globals.active?.sectionIndexTitles
+                    popover.showIndex = true
+                    popover.showSectionHeaders = true
+                    break
+                    
+                default:
+                    popover.strings = globals.active?.sectionTitles
+                    popover.indexStrings = globals.active?.sectionTitles
+                    popover.showIndex = false
+                    popover.showSectionHeaders = false
+                    break
+                }
                 
-                popover.showIndex = (globals.grouping == Constants.SERIES)
-                popover.showSectionHeaders = (globals.grouping == Constants.SERIES)
-                
-                presentViewController(navigationController, animated: true, completion: nil)
+                present(navigationController, animated: true, completion: nil)
             }
         }
 
@@ -700,22 +816,22 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        }
     }
 
-    func grouping(object:AnyObject?)
+    func grouping(_ object:AnyObject?)
     {
         //In case we have one already showing
-        dismissViewControllerAnimated(true, completion: nil)
+        dismiss(animated: true, completion: nil)
         
         //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.sermonSections
         //And when the user chooses one, scroll to the first time in that section.
         
-        if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
             if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 let button = object as? UIBarButtonItem
                 
-                navigationController.modalPresentationStyle = .Popover
+                navigationController.modalPresentationStyle = .popover
                 //            popover?.preferredContentSize = CGSizeMake(300, 500)
                 
-                navigationController.popoverPresentationController?.permittedArrowDirections = .Down
+                navigationController.popoverPresentationController?.permittedArrowDirections = .down
                 navigationController.popoverPresentationController?.delegate = self
                 
                 navigationController.popoverPresentationController?.barButtonItem = button
@@ -730,27 +846,27 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 popover.showIndex = false
                 popover.showSectionHeaders = false
                 
-                presentViewController(navigationController, animated: true, completion: nil)
+                present(navigationController, animated: true, completion: nil)
             }
         }
     }
     
-    func sorting(object:AnyObject?)
+    func sorting(_ object:AnyObject?)
     {
         //In case we have one already showing
-        dismissViewControllerAnimated(true, completion: nil)
+        dismiss(animated: true, completion: nil)
         
         //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.sermonSections
         //And when the user chooses one, scroll to the first time in that section.
         
-        if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
             if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 let button = object as? UIBarButtonItem
                 
-                navigationController.modalPresentationStyle = .Popover
+                navigationController.modalPresentationStyle = .popover
                 //            popover?.preferredContentSize = CGSizeMake(300, 500)
                 
-                navigationController.popoverPresentationController?.permittedArrowDirections = .Down
+                navigationController.popoverPresentationController?.permittedArrowDirections = .down
                 navigationController.popoverPresentationController?.delegate = self
                 
                 navigationController.popoverPresentationController?.barButtonItem = button
@@ -765,38 +881,38 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 popover.showIndex = false
                 popover.showSectionHeaders = false
                 
-                presentViewController(navigationController, animated: true, completion: nil)
+                present(navigationController, animated: true, completion: nil)
             }
         }
     }
 
     // Specifically for Plus size iPhones.
-    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
     {
-        return UIModalPresentationStyle.None
+        return UIModalPresentationStyle.none
     }
     
-    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.None
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+        return UIModalPresentationStyle.none
     }
     
-    private func setupShowMenu()
+    fileprivate func setupShowMenu()
     {
         let showButton = navigationItem.leftBarButtonItem
         
         showButton?.title = Constants.FA_REORDER
-        showButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FontAwesome, size: Constants.FA_SHOW_FONT_SIZE)!], forState: UIControlState.Normal)
+        showButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FontAwesome, size: Constants.FA_SHOW_FONT_SIZE)!], for: UIControlState())
         
-        showButton?.enabled = (globals.sermons.all != nil) //&& !globals.sermonsSortingOrGrouping
+        showButton?.isEnabled = (globals.sermons.all != nil) //&& !globals.sermonsSortingOrGrouping
     }
     
-    private func setupSortingAndGroupingOptions()
+    fileprivate func setupSortingAndGroupingOptions()
     {
-        let sortingButton = UIBarButtonItem(title: Constants.Sorting, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(MediaTableViewController.sorting(_:)))
-        let groupingButton = UIBarButtonItem(title: Constants.Grouping, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(MediaTableViewController.grouping(_:)))
-        let indexButton = UIBarButtonItem(title: Constants.Index, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(MediaTableViewController.index(_:)))
+        let sortingButton = UIBarButtonItem(title: Constants.Titles.Sorting, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.sorting(_:)))
+        let groupingButton = UIBarButtonItem(title: Constants.Titles.Grouping, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.grouping(_:)))
+        let indexButton = UIBarButtonItem(title: Constants.Titles.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.index(_:)))
 
-        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.FlexibleSpace, target: nil, action: nil)
+        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
 
         var barButtons = [UIBarButtonItem]()
         
@@ -808,7 +924,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         barButtons.append(indexButton)
         barButtons.append(spaceButton)
         
-        navigationController?.toolbar.translucent = false
+        navigationController?.toolbar.isTranslucent = false
         
         if (globals.sermonRepository.list == nil) {
             disableToolBarButtons()
@@ -817,26 +933,26 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         setToolbarItems(barButtons, animated: true)
     }
     
-    func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
-//        print("searchBar:textDidChange:")
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+//        NSLog("searchBar:textDidChange:")
         //Unstable results from incremental search
 //        updateSearchResults()
     }
 
-    func searchBarSearchButtonClicked(searchBar: UISearchBar) {
-//        print("searchBarSearchButtonClicked:")
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+//        NSLog("searchBarSearchButtonClicked:")
         searchBar.resignFirstResponder()
         globals.searchText = searchBar.text
         updateSearchResults(globals.searchText)
     }
     
-    func searchBarShouldBeginEditing(searchBar: UISearchBar) -> Bool
+    func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool
     {
         return !globals.loading && !globals.refreshing && (globals.sermons.all != nil) // !globals.sermonsSortingOrGrouping &&
     }
     
-    func searchBarTextDidBeginEditing(searchBar: UISearchBar) {
-//        print("searchBarTextDidBeginEditing:")
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+//        NSLog("searchBarTextDidBeginEditing:")
         globals.searchActive = true
         searchBar.showsCancelButton = true
         
@@ -845,12 +961,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         disableToolBarButtons()
     }
     
-    func searchBarTextDidEndEditing(searchBar: UISearchBar) {
-//        print("searchBarTextDidEndEditing:")
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+//        NSLog("searchBarTextDidEndEditing:")
     }
     
-    func searchBarCancelButtonClicked(searchBar: UISearchBar) {
-//        print("searchBarCancelButtonClicked:")
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+//        NSLog("searchBarCancelButtonClicked:")
         searchBar.showsCancelButton = false
         searchBar.resignFirstResponder()
         searchBar.text = nil
@@ -870,6 +986,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         enableBarButtons()
         
         listActivityIndicator.stopAnimating()
+        listActivityIndicator.isHidden = true
         
         setupTitle()
         
@@ -878,41 +995,179 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         selectedSermon = globals.selectedSermon
         
         //Without this background/main dispatching there isn't time to scroll after a reload.
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                self.selectOrScrollToSermon(self.selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.Middle)
+        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.selectOrScrollToSermon(self.selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
             })
         })
         
         if (splitViewController != nil) {
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_VIEW_NOTIFICATION, object: nil)
+            DispatchQueue.main.async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.UPDATE_VIEW_NOTIFICATION), object: nil)
             })
         }
     }
     
     func updateProgress()
     {
-//        print("\(Float(globals.progress))")
-//        print("\(Float(globals.finished))")
-//        print("\(Float(globals.progress) / Float(globals.finished))")
+//        NSLog("\(Float(globals.progress))")
+//        NSLog("\(Float(globals.finished))")
+//        NSLog("\(Float(globals.progress) / Float(globals.finished))")
         
         self.progressIndicator.progress = 0
         if (globals.finished > 0) {
-            self.progressIndicator.hidden = false
+            self.progressIndicator.isHidden = false
             self.progressIndicator.progress = Float(globals.progress) / Float(globals.finished)
         }
         
-        //            print("\(self.progressIndicator.progress)")
+        //            NSLog("\(self.progressIndicator.progress)")
         
         if self.progressIndicator.progress == 1.0 {
             self.progressTimer?.invalidate()
             
-            self.progressIndicator.hidden = true
+            self.progressIndicator.isHidden = true
             self.progressIndicator.progress = 0
             
             globals.progress = 0
             globals.finished = 0
+        }
+    }
+    
+    func jsonFromURL(url:String,filename:String) -> JSON
+    {
+        let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename)
+        
+        do {
+            let data = try Data(contentsOf: URL(string: url)!, options: NSData.ReadingOptions.mappedIfSafe)
+            
+            let json = JSON(data: data)
+            if json != JSON.null {
+                try data.write(to: jsonFileSystemURL!, options: NSData.WritingOptions.atomicWrite)
+                
+                print(json)
+                return json
+            } else {
+                NSLog("could not get json from file, make sure that file contains valid json.")
+                
+                let data = try Data(contentsOf: jsonFileSystemURL!, options: NSData.ReadingOptions.mappedIfSafe)
+                
+                let json = JSON(data: data)
+                if json != JSON.null {
+//                    print(json)
+                    return json
+                }
+            }
+        } catch let error as NSError {
+            NSLog(error.localizedDescription)
+            
+            do {
+                let data = try Data(contentsOf: jsonFileSystemURL!, options: NSData.ReadingOptions.mappedIfSafe)
+                
+                let json = JSON(data: data)
+                if json != JSON.null {
+                    //                        print(json)
+                    return json
+                }
+            } catch let error as NSError {
+                NSLog(error.localizedDescription)
+            }
+        }
+        //        } else {
+        //            NSLog("Invalid filename/path.")
+        //        }
+        
+        return nil
+    }
+    
+    func loadJSONDictsFromCachesDirectory(key:String) -> [[String:String]]?
+    {
+        var sermonDicts = [[String:String]]()
+        
+        let json = jsonDataFromCachesDirectory()
+        
+        if json != JSON.null {
+            //            NSLog("json:\(json)")
+            
+            let sermons = json[key]
+            
+            for i in 0..<sermons.count {
+                
+                var dict = [String:String]()
+                
+                for (key,value) in sermons[i] {
+                    dict[key] = "\(value)"
+                }
+                
+                sermonDicts.append(dict)
+            }
+            
+            //            print(sermonDicts)
+            
+            return sermonDicts.count > 0 ? sermonDicts : nil
+        } else {
+            NSLog("could not get json from file, make sure that file contains valid json.")
+        }
+        
+        return nil
+    }
+    
+    func loadJSONDictsFromURL(url:String,key:String,filename:String) -> [[String:String]]?
+    {
+        var sermonDicts = [[String:String]]()
+        
+        let json = jsonFromURL(url: url,filename: filename)
+        
+        if json != JSON.null {
+            //            NSLog("json:\(json)")
+            
+            let sermons = json[key]
+            
+            for i in 0..<sermons.count {
+                
+                var dict = [String:String]()
+                
+                for (key,value) in sermons[i] {
+                    dict[key] = "\(value)"
+                }
+                
+                sermonDicts.append(dict)
+            }
+            
+            //            print(sermonDicts)
+            
+            return sermonDicts.count > 0 ? sermonDicts : nil
+        } else {
+            NSLog("could not get json from file, make sure that file contains valid json.")
+        }
+        
+        return nil
+    }
+    
+    func sermonsFromSermonDicts(_ sermonDicts:[[String:String]]?) -> [Sermon]?
+    {
+        if (sermonDicts != nil) {
+            return sermonDicts?.map({ (sermonDict:[String : String]) -> Sermon in
+                Sermon(dict: sermonDict)
+            })
+        }
+        
+        return nil
+    }
+
+    func loadCategories()
+    {
+        if let categoriesDicts = self.loadJSONDictsFromURL(url: Constants.JSON_CATEGORIES_URL,key:Constants.JSON_CATEGORIES_ARRAY_KEY,filename: Constants.CATEGORIES_JSON_FILENAME) {
+            //                print(categoriesDicts)
+            
+            var sermonCategoryDicts = [String:String]()
+            
+            for categoriesDict in categoriesDicts {
+                sermonCategoryDicts[categoriesDict["category_name"]!] = categoriesDict["id"]
+            }
+            
+            globals.sermonCategoryDicts = sermonCategoryDicts
+            
+            //                print(globals.sermonCategories)
         }
     }
     
@@ -921,17 +1176,17 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         globals.progress = 0
         globals.finished = 0
         
-        progressTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.PROGRESS_TIMER_INTERVAL, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
+        progressTimer = Timer.scheduledTimer(timeInterval: Constants.PROGRESS_TIMER_INTERVAL, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
         
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
+        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
             globals.loading = true
 
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
                 self.navigationItem.title = Constants.Loading_Sermons
             })
             
-            var success = false
-            var newSermons:[Sermon]?
+//            var success = false
+//            var newSermons:[Sermon]?
 
 //            if let sermons = sermonsFromArchive() {
 //                newSermons = sermons
@@ -942,84 +1197,98 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //                success = true
 //            }
         
-            if let sermons = sermonsFromSermonDicts(loadSermonDicts()) {
-                newSermons = sermons
-                success = true
-            }
+//            if let sermons = sermonsFromSermonDicts(loadSermonDicts()) {
+//                newSermons = sermons
+//                success = true
+//            }
+//
+//            if (!success) {
+//                // REVERT TO KNOWN GOOD JSON
+//                removeJSONFromFileSystemDirectory() // This will cause JSON to be loaded from the BUNDLE next time.
+//                
+//                dispatch_async(dispatch_get_main_queue(), { () -> Void in
+//                    self.setupTitle()
+//                    
+//                    self.listActivityIndicator.stopAnimating()
+//                    self.listActivityIndicator.hidden = true
+//                    self.refreshControl?.endRefreshing()
+//                    
+//                    if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
+//                        let alert = UIAlertController(title:"Unable to Load Sermons",
+//                            message: "Please try to refresh the list.",
+//                            preferredStyle: UIAlertControllerStyle.Alert)
+//                        
+//                        let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+//                            
+//                        })
+//                        alert.addAction(action)
+//                        
+//                        self.presentViewController(alert, animated: true, completion: nil)
+//                    }
+//                })
+//                return
+//            }
 
-            if (!success) {
-                // REVERT TO KNOWN GOOD JSON
-                removeJSONFromFileSystemDirectory() // This will cause JSON to be loaded from the BUNDLE next time.
-                
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    self.setupTitle()
-                    
-                    self.listActivityIndicator.stopAnimating()
-                    self.listActivityIndicator.hidden = true
-                    self.refreshControl?.endRefreshing()
-                    
-                    if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
-                        let alert = UIAlertController(title:"Unable to Load Sermons",
-                            message: "Please try to refresh the list.",
-                            preferredStyle: UIAlertControllerStyle.Alert)
-                        
-                        let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
-                            
-                        })
-                        alert.addAction(action)
-                        
-                        self.presentViewController(alert, animated: true, completion: nil)
-                    }
-                })
-                return
-            }
+//            var sermonsNewToUser:[Sermon]?
+//            
+//            if (globals.sermonRepository.list != nil) {
+//                
+//                let old = Set(globals.sermonRepository.list!.map({ (sermon:Sermon) -> String in
+//                    return sermon.id
+//                }))
+//                
+//                let new = Set(newSermons!.map({ (sermon:Sermon) -> String in
+//                    return sermon.id
+//                }))
+//                
+//                //                NSLog("\(old.count)")
+//                //                NSLog("\(new.count)")
+//                
+//                let inOldAndNew = old.intersect(new)
+//                //                NSLog("\(inOldAndNew.count)")
+//                
+//                if inOldAndNew.count == 0 {
+//                    NSLog("There were NO sermons in BOTH the old JSON and the new JSON.")
+//                }
+//                
+//                let onlyInOld = old.subtract(new)
+//                //                NSLog("\(onlyInOld.count)")
+//                
+//                if onlyInOld.count > 0 {
+//                    NSLog("There were \(onlyInOld.count) sermons in the old JSON that are NOT in the new JSON.")
+//                }
+//                
+//                let onlyInNew = new.subtract(old)
+//                //                NSLog("\(onlyInNew.count)")
+//                
+//                if onlyInNew.count > 0 {
+//                    NSLog("There are \(onlyInNew.count) sermons in the new JSON that were NOT in the old JSON.")
+//                }
+//                
+//                if (onlyInNew.count > 0) {
+//                    sermonsNewToUser = onlyInNew.map({ (id:String) -> Sermon in
+//                        return newSermons!.filter({ (sermon:Sermon) -> Bool in
+//                            return sermon.id == id
+//                        }).first!
+//                    })
+//                }
+//            }
+            
+            var url:String?
 
-            var sermonsNewToUser:[Sermon]?
-            
-            if (globals.sermonRepository.list != nil) {
-                
-                let old = Set(globals.sermonRepository.list!.map({ (sermon:Sermon) -> String in
-                    return sermon.id
-                }))
-                
-                let new = Set(newSermons!.map({ (sermon:Sermon) -> String in
-                    return sermon.id
-                }))
-                
-                //                print("\(old.count)")
-                //                print("\(new.count)")
-                
-                let inOldAndNew = old.intersect(new)
-                //                print("\(inOldAndNew.count)")
-                
-                if inOldAndNew.count == 0 {
-                    print("There were NO sermons in BOTH the old JSON and the new JSON.")
-                }
-                
-                let onlyInOld = old.subtract(new)
-                //                print("\(onlyInOld.count)")
-                
-                if onlyInOld.count > 0 {
-                    print("There were \(onlyInOld.count) sermons in the old JSON that are NOT in the new JSON.")
-                }
-                
-                let onlyInNew = new.subtract(old)
-                //                print("\(onlyInNew.count)")
-                
-                if onlyInNew.count > 0 {
-                    print("There are \(onlyInNew.count) sermons in the new JSON that were NOT in the old JSON.")
-                }
-                
-                if (onlyInNew.count > 0) {
-                    sermonsNewToUser = onlyInNew.map({ (id:String) -> Sermon in
-                        return newSermons!.filter({ (sermon:Sermon) -> Bool in
-                            return sermon.id == id
-                        }).first!
-                    })
-                }
+            if globals.sermonCategory != "All Media" {
+                url = Constants.JSON_CATEGORY_URL + globals.sermonCategoryID!
+            } else {
+                url = Constants.JSON_MEDIA_URL
             }
             
-            globals.sermonRepository.list = newSermons
+//            print(Constants.JSON_CATEGORY_URL + globals.sermonCategoryID!)
+            
+            if let sermonDicts = self.loadJSONDictsFromURL(url: url!,key: Constants.JSON_SERMONS_ARRAY_KEY,filename: Constants.SERMONS_JSON_FILENAME) {
+                globals.sermonRepository.list = self.sermonsFromSermonDicts(sermonDicts)
+            }
+            
+//            globals.sermonRepository.list = newSermons
 
 //            testSermonsTagsAndSeries()
 //            
@@ -1034,119 +1303,139 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //            //If we can download at all, we assume we can download it all, which allows us to test all sermons to see if they can be downloaded/played.
 //            testSermonsAudioFiles()
 
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
                 self.navigationItem.title = Constants.Loading_Settings
             })
             globals.loadSettings()
             
-            for sermon in globals.sermonRepository.list! {
-                sermon.removeTag(Constants.New)
-            }
+//            for sermon in globals.sermonRepository.list! {
+//                sermon.removeTag(Constants.New)
+//            }
+
+//            if (sermonsNewToUser != nil) {
+//                for sermon in sermonsNewToUser! {
+//                    sermon.addTag(Constants.New)
+//                }
+//                //                NSLog("\(sermonsNewToUser)")
+//                
+//                globals.showing = Constants.TAGGED
+//                globals.sermonTagsSelected = Constants.New
+//            } else {
+//                if (globals.showing == Constants.TAGGED) {
+//                    if (globals.sermonTagsSelected == Constants.New) {
+//                        globals.sermonTagsSelected = nil
+//                        globals.showing = Constants.ALL
+//                    }
+//                }
+//            }
+//            
+//            if (globals.showing == Constants.TAGGED) {
+//                if (globals.sermonTagsSelected == Constants.New) {
+//                    globals.sermonTagsSelected = nil
+//                    globals.showing = Constants.ALL
+//                }
+//            }
             
-            if (sermonsNewToUser != nil) {
-                for sermon in sermonsNewToUser! {
-                    sermon.addTag(Constants.New)
-                }
-                //                print("\(sermonsNewToUser)")
-                
-                globals.showing = Constants.TAGGED
-                globals.sermonTagsSelected = Constants.New
-            } else {
-                if (globals.showing == Constants.TAGGED) {
-                    if (globals.sermonTagsSelected == Constants.New) {
-                        globals.sermonTagsSelected = nil
-                        globals.showing = Constants.ALL
-                    }
-                }
-            }
-            
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
                 self.navigationItem.title = Constants.Sorting_and_Grouping
             })
             
-            if (globals.sermons.all == nil) {
-                globals.sermons.all = SermonsListGroupSort(sermons: globals.sermonRepository.list)
-            }
+            globals.sermons.all = SermonsListGroupSort(sermons: globals.sermonRepository.list)
 
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
                 self.searchBar.text = globals.searchText
-                self.updateSearchResults(globals.searchText)
             })
-            
+
+            self.updateSearchResults(globals.searchText)
+
             globals.setupDisplay()
             
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
                 self.navigationItem.title = Constants.Setting_up_Player
+                
                 if (globals.player.playing != nil) {
                     globals.player.playOnLoad = false
+                    
+                    // This MUST be called on the main loop.
                     globals.setupPlayer(globals.player.playing)
                 }
             })
+
+            self.refreshControl?.endRefreshing()
             
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
                 self.navigationItem.title = Constants.CBC_SHORT_TITLE
                 self.setupViews()
+                self.sermonCategoryButton.isEnabled = true
+                self.listActivityIndicator.isHidden = true
+                self.listActivityIndicator.stopAnimating()
             })
             
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
                 completion?()
             })
             
+            globals.refreshing = false
             globals.loading = false
         })
     }
     
-    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset: Int64, expectedTotalBytes: Int64)
     {
-    print("URLSession:downloadTask:bytesWritten:totalBytesWritten:totalBytesExpectedToWrite:")
+    
+    }
+    
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
+    {
+    NSLog("URLSession:downloadTask:bytesWritten:totalBytesWritten:totalBytesExpectedToWrite:")
         
         let filename = downloadTask.taskDescription!
         
-        print("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
+        NSLog("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
         
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
     }
     
-    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didFinishDownloadingToURL location: NSURL)
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)
     {
-        print("URLSession:downloadTask:didFinishDownloadingToURL")
+        NSLog("URLSession:downloadTask:didFinishDownloadingToURL")
         
         var success = false
         
-        print("countOfBytesExpectedToReceive: \(downloadTask.countOfBytesExpectedToReceive)")
+        NSLog("countOfBytesExpectedToReceive: \(downloadTask.countOfBytesExpectedToReceive)")
         
-        print("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
+        NSLog("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
         
         let filename = downloadTask.taskDescription!
         
-        print("filename: \(filename) location: \(location)")
+        NSLog("filename: \(filename) location: \(location)")
         
         if (downloadTask.countOfBytesReceived > 0) {
-            let fileManager = NSFileManager.defaultManager()
+            let fileManager = FileManager.default
             
             //Get documents directory URL
-            if let destinationURL = cachesURL()?.URLByAppendingPathComponent(filename) {
+            if let destinationURL = cachesURL()?.appendingPathComponent(filename) {
                 // Check if file exist
-                if (fileManager.fileExistsAtPath(destinationURL.path!)){
+                if (fileManager.fileExists(atPath: destinationURL.path)){
                     do {
-                        try fileManager.removeItemAtURL(destinationURL)
+                        try fileManager.removeItem(at: destinationURL)
                     } catch _ {
-                        print("failed to remove old json file")
+                        NSLog("failed to remove old json file")
                     }
                 }
                 
                 do {
-                    try fileManager.copyItemAtURL(location, toURL: destinationURL)
-                    try fileManager.removeItemAtURL(location)
+                    try fileManager.copyItem(at: location as URL, to: destinationURL)
+                    try fileManager.removeItem(at: location as URL)
                     success = true
                 } catch _ {
-                    print("failed to copy new json file to Documents")
+                    NSLog("failed to copy new json file to Documents")
                 }
             } else {
-                print("failed to get destinationURL")
+                NSLog("failed to get destinationURL")
             }
         } else {
-            print("downloadTask.countOfBytesReceived not > 0")
+            NSLog("downloadTask.countOfBytesReceived not > 0")
         }
         
         if success {
@@ -1154,39 +1443,42 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             // file and successfully copied it to the Documents directory.
             
             // URL call back does NOT run on the main queue
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
                 if !globals.player.paused {
                     globals.player.paused = true
                     globals.player.mpPlayer?.pause()
                     globals.updateCurrentTimeExact()
                 }
                 
-                globals.player.mpPlayer?.view.hidden = true
+                globals.player.mpPlayer?.view.isHidden = true
                 globals.player.mpPlayer?.view.removeFromSuperview()
                 
-                self.loadSermons() {
-                    self.refreshControl?.endRefreshing()
-                    UIApplication.sharedApplication().networkActivityIndicatorVisible = false
-                    globals.refreshing = false
+                self.loadCategories()
+                
+                self.loadSermons()
+                {
+//                    self.refreshControl?.endRefreshing()
+                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
+//                    globals.refreshing = false
                 }
             })
         } else {
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
-                    let alert = UIAlertController(title:"Unable to Download Sermons",
+            DispatchQueue.main.async(execute: { () -> Void in
+                if (UIApplication.shared.applicationState == UIApplicationState.active) {
+                    let alert = UIAlertController(title:"Unable to Download Media",
                         message: "Please try to refresh the list again.",
-                        preferredStyle: UIAlertControllerStyle.Alert)
+                        preferredStyle: UIAlertControllerStyle.alert)
                     
-                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
                         
                     })
                     alert.addAction(action)
                     
-                    self.presentViewController(alert, animated: true, completion: nil)
+                    self.present(alert, animated: true, completion: nil)
                 }
                 
                 self.refreshControl!.endRefreshing()
-                UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+                UIApplication.shared.isNetworkActivityIndicatorVisible = false
                 
                 globals.setupDisplay()
                 self.tableView.reloadData()
@@ -1198,14 +1490,14 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         }
     }
     
-    func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?)
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
     {
-        print("URLSession:task:didCompleteWithError")
+        NSLog("URLSession:task:didCompleteWithError")
         
         if (error != nil) {
-//            print("Download failed for: \(session.description)")
+//            NSLog("Download failed for: \(session.description)")
         } else {
-//            print("Download succeeded for: \(session.description)")
+//            NSLog("Download succeeded for: \(session.description)")
         }
         
         // This deletes more than the temp file associated with this download and sometimes it deletes files in progress
@@ -1213,7 +1505,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        removeTempFiles()
         
         let filename = task.taskDescription
-        print("filename: \(filename!) error: \(error)")
+        NSLog("filename: \(filename!) error: \(error)")
         
         session.invalidateAndCancel()
         
@@ -1221,27 +1513,35 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         //            globals.downloadTasks.removeAtIndex(taskIndex)
         //        }
         
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+        UIApplication.shared.isNetworkActivityIndicatorVisible = false
     }
     
-    func URLSession(session: NSURLSession, didBecomeInvalidWithError error: NSError?)
+    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?)
     {
-        print("URLSession:didBecomeInvalidWithError")
+        NSLog("URLSession:didBecomeInvalidWithError")
 
     }
     
     func downloadJSON()
     {
+        var url:String?
+        
+        if globals.sermonCategory != "All Media" {
+            url = Constants.JSON_CATEGORY_URL + globals.sermonCategoryID!
+        } else {
+            url = Constants.JSON_MEDIA_URL
+        }
+        
         navigationItem.title = Constants.Downloading_Sermons
         
-        let jsonURL = "\(Constants.JSON_URL_PREFIX)\(Constants.CBC_SHORT.lowercaseString).\(Constants.SERMONS_JSON_FILENAME)"
-        let downloadRequest = NSMutableURLRequest(URL: NSURL(string: jsonURL)!)
+//        let jsonURL = "\(Constants.JSON_URL_PREFIX)\(Constants.CBC_SHORT.lowercaseString).\(Constants.SERMONS_JSON_FILENAME)"
+        let downloadRequest = URLRequest(url: URL(string: url!)!)
         
-        let configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
+        let configuration = URLSessionConfiguration.default
         
-        session = NSURLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+        session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
         
-        let downloadTask = session?.downloadTaskWithRequest(downloadRequest)
+        let downloadTask = session?.downloadTask(with: downloadRequest)
         downloadTask?.taskDescription = Constants.SERMONS_JSON_FILENAME
         
         downloadTask?.resume()
@@ -1249,10 +1549,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         //downloadTask goes out of scope but session must retain it.  Which means if we didn't retain session they would both be lost
         // and we would likely lose the download.
         
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
     }
     
-    func handleRefresh(refreshControl: UIRefreshControl) {
+    func handleRefresh(_ refreshControl: UIRefreshControl) {
         globals.refreshing = true
         
         globals.cancelAllDownloads()
@@ -1262,14 +1562,23 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         tableView.reloadData()
 
         if splitViewController != nil {
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                NSNotificationCenter.defaultCenter().postNotificationName(Constants.CLEAR_VIEW_NOTIFICATION, object: nil)
+            DispatchQueue.main.async(execute: { () -> Void in
+//                self.performSegue(withIdentifier: Constants.SHOW_SERMON_SEGUE, sender: self)
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.CLEAR_VIEW_NOTIFICATION), object: nil)
             })
         }
 
         disableBarButtons()
         
-        downloadJSON()
+        sermonCategoryButton.isEnabled = false
+        
+        loadCategories()
+        
+        // loadSermons or downloadJSON
+        
+        loadSermons(completion: nil)
+        
+//        downloadJSON()
     }
 
     func removeRefreshControl()
@@ -1293,14 +1602,21 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MediaTableViewController.updateList), name: Constants.UPDATE_SERMON_LIST_NOTIFICATION, object: globals.sermons.tagged)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.UPDATE_SERMON_LIST_NOTIFICATION), object: globals.sermons.tagged)
 
         refreshControl = UIRefreshControl()
-        refreshControl!.addTarget(self, action: #selector(MediaTableViewController.handleRefresh(_:)), forControlEvents: UIControlEvents.ValueChanged)
+        refreshControl!.addTarget(self, action: #selector(MediaTableViewController.handleRefresh(_:)), for: UIControlEvents.valueChanged)
 
         if globals.sermonRepository.list == nil {
             //            disableBarButtons()
-            loadSermons(nil)
+            
+            loadCategories()
+            
+            // Download or Load
+            
+//            downloadJSON()
+            
+            loadSermons(completion: nil)
         }
         
         //Eliminates blank cells at end.
@@ -1310,7 +1626,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        tableView.estimatedRowHeight = tableView.rowHeight
 //        tableView.rowHeight = UITableViewAutomaticDimension
         
-        if let selectedSermonKey = NSUserDefaults.standardUserDefaults().stringForKey(Constants.SELECTED_SERMON_KEY) {
+        if let selectedSermonKey = UserDefaults.standard.string(forKey: Constants.SELECTED_SERMON_KEY) {
             selectedSermon = globals.sermonRepository.list?.filter({ (sermon:Sermon) -> Bool in
                 return sermon.id == selectedSermonKey
             }).first
@@ -1319,7 +1635,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         //.AllVisible and .Automatic is the only option that works reliably.
         //.PrimaryOverlay and .PrimaryHidden create constraint errors after dismissing the master and then swiping right to bring it back
         //and *then* changing orientation
-        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.automatic //iPad only
         
         // Reload the table
         tableView.reloadData()
@@ -1329,72 +1645,83 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         // Uncomment the following line to preserve selection between presentations
         // clearsSelectionOnViewWillAppear = false
 
-        navigationController?.toolbarHidden = false
+        navigationController?.isToolbarHidden = false
         setupSortingAndGroupingOptions()
         setupShowMenu()
     }
 
-    func searchBarResultsListButtonClicked(searchBar: UISearchBar) {
-//        print("searchBarResultsListButtonClicked")
+    func searchBarResultsListButtonClicked(_ searchBar: UISearchBar) {
+//        NSLog("searchBarResultsListButtonClicked")
         
         if !globals.loading && !globals.refreshing && (globals.sermons.all?.sermonTags != nil) && (self.storyboard != nil) { // !globals.sermonsSortingOrGrouping &&
-            if let navigationController = self.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
                 if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                    navigationController.modalPresentationStyle = .Popover
+                    navigationController.modalPresentationStyle = .popover
                     //            popover?.preferredContentSize = CGSizeMake(300, 500)
                     
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .Up
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
                     navigationController.popoverPresentationController?.delegate = self
                     
                     navigationController.popoverPresentationController?.sourceView = searchBar
                     navigationController.popoverPresentationController?.sourceRect = searchBar.bounds
                     
-                    popover.navigationItem.title = "Show Sermons Tagged With"
+                    popover.navigationItem.title = "Show Series"
                     
                     popover.delegate = self
                     popover.purpose = .selectingTags
                     
-                    popover.strings = [Constants.All]
-                    popover.strings?.appendContentsOf(globals.sermons.all!.sermonTags!)
+//                    print(globals.sermons.all!.sermonTags!)
+                    
+                    var strings = [Constants.All]
+                    
+                    strings.append(contentsOf: globals.sermons.all!.sermonTags!)
+                    
+                    popover.strings = strings.sorted(by: { stringWithoutPrefixes($0)! < stringWithoutPrefixes($1)! })
+                    
+                    popover.indexStrings = popover.strings
+                    
+//                    print(globals.sermons.all!.sermonTags)
                     
                     popover.showIndex = true
                     popover.showSectionHeaders = true
                     
-                    presentViewController(navigationController, animated: true, completion: nil)
+                    present(navigationController, animated: true, completion: nil)
                 }
             }
         }
     }
     
-    func updateSearchResultsForSearchController(searchController: UISearchController)
+    func updateSearchResults(for searchController: UISearchController)
     {
         updateSearchResults(globals.searchText)
     }
     
-    func updateSearchResults(searchText:String?)
+    func updateSearchResults(_ searchText:String?)
     {
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-            self.listActivityIndicator.hidden = false
-            self.listActivityIndicator.startAnimating()
-        })
-        
         if searchText != nil {
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.listActivityIndicator.isHidden = false
+                self.listActivityIndicator.startAnimating()
+            })
+            
             globals.clearDisplay()
 
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
                 self.tableView.reloadData()
                 self.disableToolBarButtons()
             })
             
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
+            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                 if (searchText != Constants.EMPTY_STRING) {
                     let searchSermons = globals.sermonsToSearch?.filter({ (sermon:Sermon) -> Bool in
-                        return ((sermon.title?.rangeOfString(searchText!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
-                            ((sermon.date?.rangeOfString(searchText!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
-                            ((sermon.speaker?.rangeOfString(searchText!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
-                            ((sermon.series?.rangeOfString(searchText!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
-                            ((sermon.scripture?.rangeOfString(searchText!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil) ||
-                            ((sermon.tags?.rangeOfString(searchText!, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil)) != nil)
+                        return
+                            ((sermon.id?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
+                            ((sermon.title?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
+                            ((sermon.date?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
+                            ((sermon.speaker?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
+                            ((sermon.series?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
+                            ((sermon.scripture?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
+                            ((sermon.tags?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil)
                         })
                     
                     globals.sermons.search = SermonsListGroupSort(sermons: searchSermons)
@@ -1403,32 +1730,32 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 globals.setupDisplay()
                 
                 if (globals.searchText == searchText) {
-                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                    DispatchQueue.main.async(execute: { () -> Void in
                         self.tableView.reloadData()
                         self.listActivityIndicator.stopAnimating()
-                        self.listActivityIndicator.hidden = true
+                        self.listActivityIndicator.isHidden = true
                         self.enableToolBarButtons()
                     })
                 } else {
-                    print("Threw away search results!")
+                    NSLog("Threw away search results!")
                 }
             })
         }
     }
 
-    func selectOrScrollToSermon(sermon:Sermon?, select:Bool, scroll:Bool, position: UITableViewScrollPosition)
+    func selectOrScrollToSermon(_ sermon:Sermon?, select:Bool, scroll:Bool, position: UITableViewScrollPosition)
     {
-        if (sermon != nil) && (globals.activeSermons?.indexOf(sermon!) != nil) {
-            var indexPath = NSIndexPath(forItem: 0, inSection: 0)
+        if (sermon != nil) && (globals.activeSermons?.index(of: sermon!) != nil) {
+            var indexPath = IndexPath(item: 0, section: 0)
             
             var section:Int = -1
             var row:Int = -1
             
             let sermons = globals.activeSermons
 
-            if let index = sermons!.indexOf(sermon!) {
+            if let index = sermons!.index(of: sermon!) {
                 switch globals.grouping! {
-                case Constants.YEAR:
+                case Grouping.YEAR:
 //                    let calendar = NSCalendar.currentCalendar()
 //                    let components = calendar.components(.Year, fromDate: sermons![index].fullDate!)
 //                    
@@ -1443,19 +1770,19 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //                    default:
 //                        break
 //                    }
-                    section = globals.active!.sectionTitles!.indexOf(sermon!.yearSection!)!
+                    section = globals.active!.sectionTitles!.index(of: sermon!.yearSection!)!
                     break
                     
-                case Constants.SERIES:
-                    section = globals.active!.sectionTitles!.indexOf(sermon!.seriesSection!)!
+                case Grouping.TITLE:
+                    section = globals.active!.sectionTitles!.index(of: sermon!.seriesSection!)!
                     break
                     
-                case Constants.BOOK:
-                    section = globals.active!.sectionTitles!.indexOf(sermon!.bookSection!)!
+                case Grouping.BOOK:
+                    section = globals.active!.sectionTitles!.index(of: sermon!.bookSection!)!
                     break
                     
-                case Constants.SPEAKER:
-                    section = globals.active!.sectionTitles!.indexOf(sermon!.speakerSection!)!
+                case Grouping.SPEAKER:
+                    section = globals.active!.sectionTitles!.index(of: sermon!.speakerSection!)!
                     break
                     
                 default:
@@ -1465,35 +1792,37 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 row = index - globals.active!.sectionIndexes![section]
             }
 
+//            print(section)
+            
             if (section > -1) && (row > -1) {
-                indexPath = NSIndexPath(forItem: row,inSection: section)
+                indexPath = IndexPath(item: row,section: section)
                 
-                //            print("\(globals.sermonSelected?.title)")
-                //            print("Row: \(indexPath.item)")
-                //            print("Section: \(indexPath.section)")
+                //            NSLog("\(globals.sermonSelected?.title)")
+                //            NSLog("Row: \(indexPath.item)")
+                //            NSLog("Section: \(indexPath.section)")
                 
                 if (select) {
-                    tableView.selectRowAtIndexPath(indexPath, animated: false, scrollPosition: UITableViewScrollPosition.None)
+                    tableView.selectRow(at: indexPath, animated: false, scrollPosition: UITableViewScrollPosition.none)
                 }
                 
                 if (scroll) {
                     //Scrolling when the user isn't expecting it can be jarring.
-                    tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: position, animated: false)
+                    tableView.scrollToRow(at: indexPath, at: position, animated: false)
                 }
             }
         }
     }
 
     
-    private func setupSearchBar()
+    fileprivate func setupSearchBar()
     {
-        switch globals.showing! {
+        switch globals.tags.showing! {
         case Constants.ALL:
             searchBar.placeholder = Constants.All
             break
             
         case Constants.TAGGED:
-            searchBar.placeholder = globals.sermonTagsSelected
+            searchBar.placeholder = globals.tags.selected
             break
             
         default:
@@ -1506,7 +1835,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     {
         if (!globals.loading && !globals.refreshing) {
             if (splitViewController == nil) {
-                if (UIDeviceOrientationIsLandscape(UIDevice.currentDevice().orientation)) {
+                if (UIDeviceOrientationIsLandscape(UIDevice.current.orientation)) {
                     navigationItem.title = Constants.CBC_LONG_TITLE
                 } else {
                     navigationItem.title = Constants.CBC_SHORT_TITLE
@@ -1519,16 +1848,16 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func setupSplitViewController()
     {
-        if (UIDeviceOrientationIsPortrait(UIDevice.currentDevice().orientation)) {
+        if (UIDeviceOrientationIsPortrait(UIDevice.current.orientation)) {
             if (globals.sermons.all == nil) {
-                splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryOverlay//iPad only
+                splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.primaryOverlay//iPad only
             } else {
                 if (splitViewController != nil) {
                     if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
                         if let _ = nvc.visibleViewController as? WebViewController {
-                            splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
+                            splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.primaryHidden //iPad only
                         } else {
-                            splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                            splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.automatic //iPad only
                         }
                     }
                 }
@@ -1537,25 +1866,30 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             if (splitViewController != nil) {
                 if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
                     if let _ = nvc.visibleViewController as? WebViewController {
-                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.PrimaryHidden //iPad only
+                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.primaryHidden //iPad only
                     } else {
-                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.Automatic //iPad only
+                        splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.automatic //iPad only
                     }
                 }
             }
         }
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
         if (globals.sermons.all == nil) { // SortingOrGrouping
+            sermonCategoryButton.isEnabled = false
             listActivityIndicator.startAnimating()
             disableBarButtons()
         } else {
             listActivityIndicator.stopAnimating()
             enableBarButtons()
         }
+        
+//        print(globals.sermonCategory)
+        
+        sermonCategoryButton.setTitle(globals.sermonCategory, for: UIControlState.normal)
 
         setupSearchBar()
         
@@ -1563,15 +1897,15 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         setupTitle()
         
-        navigationController?.toolbarHidden = false
+        navigationController?.isToolbarHidden = false
     }
     
     func about()
     {
-        performSegueWithIdentifier(Constants.SHOW_ABOUT2_SEGUE, sender: self)
+        performSegue(withIdentifier: Constants.SHOW_ABOUT2_SEGUE, sender: self)
     }
     
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         //Do we want to do this?  If someone has selected something farther down the list to view, not play, when they come back
@@ -1582,29 +1916,29 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         //getting setup in viewWillAppear.
         
         if (!globals.scrolledToSermonLastSelected) {
-            selectOrScrollToSermon(selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.Middle)
+            selectOrScrollToSermon(selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
             globals.scrolledToSermonLastSelected = true
         }
     }
     
-    override func viewWillDisappear(animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
         if (splitViewController == nil) {
-            navigationController?.toolbarHidden = true
+            navigationController?.isToolbarHidden = true
         }
         
-        NSNotificationCenter.defaultCenter().removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
     
-    override func viewDidDisappear(animated: Bool) {
+    override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        NSURLCache.sharedURLCache().removeAllCachedResponses()
+        URLCache.shared.removeAllCachedResponses()
     }
 
     /*
@@ -1613,15 +1947,15 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     */
     
-    override func shouldPerformSegueWithIdentifier(identifier: String, sender: AnyObject?) -> Bool {
+    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool {
         var show:Bool
         
         show = true
 
-    //    print("shouldPerformSegueWithIdentifier")
-    //    print("Selected: \(globals.sermonSelected?.title)")
-    //    print("Last Selected: \(globals.sermonLastSelected?.title)")
-    //    print("Playing: \(globals.player.playing?.title)")
+    //    NSLog("shouldPerformSegueWithIdentifier")
+    //    NSLog("Selected: \(globals.sermonSelected?.title)")
+    //    NSLog("Last Selected: \(globals.sermonLastSelected?.title)")
+    //    NSLog("Playing: \(globals.player.playing?.title)")
         
         switch identifier {
             case Constants.SHOW_ABOUT_SEGUE:
@@ -1647,10 +1981,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     }
     
     
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         // Get the new view controller using [segue destinationViewController].
         // Pass the selected object to the new view controller.
-        var dvc = segue.destinationViewController as UIViewController
+        var dvc = segue.destination as UIViewController
         // this next if-statement makes sure the segue prepares properly even
         //   if the MVC we're seguing to is wrapped in a UINavigationController
         if let navCon = dvc as? UINavigationController {
@@ -1661,13 +1995,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             switch identifier {
             case Constants.SHOW_SETTINGS_SEGUE:
                 if let svc = dvc as? SettingsViewController {
-                    svc.modalPresentationStyle = .Popover
+                    svc.modalPresentationStyle = .popover
                     svc.popoverPresentationController?.delegate = self
                 }
                 break
                 
             case Constants.SHOW_LIVE_SEGUE:
-                globals.setupLivePlayingInfoCenter()
                 break
                 
             case Constants.SHOW_SCRIPTURE_INDEX_SEGUE:
@@ -1680,7 +2013,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             case Constants.SHOW_SERMON_SEGUE:
-                if globals.player.mpPlayer?.contentURL == NSURL(string:Constants.LIVE_STREAM_URL) {
+                if globals.player.mpPlayer?.contentURL == URL(string:Constants.LIVE_STREAM_URL) {
                     globals.player.stateTime = nil
                     globals.player.playOnLoad = false
                 }
@@ -1716,18 +2049,18 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
     }
 
-    override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator)
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
     {
-        super.viewWillTransitionToSize(size, withTransitionCoordinator: coordinator)
+        super.viewWillTransition(to: size, with: coordinator)
         
         if (self.view.window == nil) {
             return
         }
         
         //Without this background/main dispatching there isn't time to scroll after a reload.
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), { () -> Void in
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                self.selectOrScrollToSermon(self.selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.Middle)
+        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.selectOrScrollToSermon(self.selectedSermon, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
             })
         })
 
@@ -1737,7 +2070,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         if (splitViewController != nil) {
             if (popover != nil) {
-                dismissViewControllerAnimated(true, completion: nil)
+                dismiss(animated: true, completion: nil)
                 popover = nil
             }
         }
@@ -1745,41 +2078,41 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     // MARK: UITableViewDataSource
 
-    func numberOfSectionsInTableView(TableView: UITableView) -> Int {
+    func numberOfSectionsInTableView(_ TableView: UITableView) -> Int {
         //#warning Incomplete method implementation -- Return the number of sections
         //return series.count
         return globals.display.sectionTitles != nil ? globals.display.sectionTitles!.count : 0
     }
 
-    func sectionIndexTitlesForTableView(tableView: UITableView) -> [AnyObject]! {
+    func sectionIndexTitlesForTableView(_ tableView: UITableView) -> [AnyObject]! {
         return nil
     }
     
-    func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return Constants.HEADER_HEIGHT
     }
 
-    func tableView(tableView: UITableView, sectionForSectionIndexTitle title: String, atIndex index: Int) -> Int {
+    func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, atIndex index: Int) -> Int {
         return 0
     }
     
-    func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         return globals.display.sectionTitles != nil ? globals.display.sectionTitles![section] : nil
     }
     
-    func tableView(TableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ TableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         //#warning Incomplete method implementation -- Return the number of items in the section
         return globals.display.sectionCounts != nil ? globals.display.sectionCounts![section] : 0
     }
 
-    func tableView(TableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> MediaTableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier(Constants.SERMONS_CELL_IDENTIFIER, forIndexPath: indexPath) as! MediaTableViewCell
+    func tableView(_ TableView: UITableView, cellForRowAtIndexPath indexPath: IndexPath) -> MediaTableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.SERMONS_CELL_IDENTIFIER, for: indexPath) as! MediaTableViewCell
     
         // Configure the cell
         if let section = globals.display.sectionIndexes?[indexPath.section] {
             cell.sermon = globals.display.sermons?[section + indexPath.row]
         } else {
-            print("No sermon for cell!")
+            NSLog("No sermon for cell!")
         }
 
         cell.vc = self
@@ -1789,26 +2122,26 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
     // MARK: UITableViewDelegate
     
-    func tableView(tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
         if let header = view as? UITableViewHeaderFooterView {
             header.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
-            header.textLabel?.textColor = UIColor.blackColor()
+            header.textLabel?.textColor = UIColor.black
             header.alpha = 0.85
         }
     }
     
-    func tableView(TableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-//        print("didSelect")
+    func tableView(_ TableView: UITableView, didSelectRowAtIndexPath indexPath: IndexPath) {
+//        NSLog("didSelect")
 
-        if let cell: MediaTableViewCell = tableView.cellForRowAtIndexPath(indexPath) as? MediaTableViewCell {
+        if let cell: MediaTableViewCell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
             selectedSermon = cell.sermon
         } else {
             
         }
     }
     
-    func tableView(TableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
-//        print("didDeselect")
+    func tableView(_ TableView: UITableView, didDeselectRowAtIndexPath indexPath: IndexPath) {
+//        NSLog("didDeselect")
 
 //        if let cell: MediaTableViewCell = tableView.cellForRowAtIndexPath(indexPath) as? MediaTableViewCell {
 //
@@ -1820,17 +2153,17 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     /*
     // Uncomment this method to specify if the specified item should be highlighted during tracking
     */
-    func tableView(TableView: UITableView, shouldHighlightRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-//        print("shouldHighlight")
+    func tableView(_ TableView: UITableView, shouldHighlightRowAtIndexPath indexPath: IndexPath) -> Bool {
+//        NSLog("shouldHighlight")
         return true
     }
     
-    func tableView(TableView: UITableView, didHighlightRowAtIndexPath indexPath: NSIndexPath) {
-//        print("Highlighted")
+    func tableView(_ TableView: UITableView, didHighlightRowAtIndexPath indexPath: IndexPath) {
+//        NSLog("Highlighted")
     }
     
-    func tableView(TableView: UITableView, didUnhighlightRowAtIndexPath indexPath: NSIndexPath) {
-//        print("Unhighlighted")
+    func tableView(_ TableView: UITableView, didUnhighlightRowAtIndexPath indexPath: IndexPath) {
+//        NSLog("Unhighlighted")
     }
     
     /*

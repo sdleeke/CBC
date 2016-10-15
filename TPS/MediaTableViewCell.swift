@@ -7,10 +7,30 @@
 //
 
 import UIKit
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
+
+fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l > r
+  default:
+    return rhs < lhs
+  }
+}
+
 
 class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate {
 
-    var downloadObserver:NSTimer?
+    var downloadObserver:Timer?
 
     weak var vc:UIViewController?
 
@@ -18,7 +38,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     {
         if (sermon != nil) {
             if (sermon!.audioDownload?.state == .downloading) && (downloadObserver == nil) {
-                downloadObserver = NSTimer.scheduledTimerWithTimeInterval(Constants.DOWNLOADING_TIMER_INTERVAL, target: self, selector: #selector(MediaTableViewCell.updateUI), userInfo: nil, repeats: true)
+                downloadObserver = Timer.scheduledTimer(timeInterval: Constants.DOWNLOADING_TIMER_INTERVAL, target: self, selector: #selector(MediaTableViewCell.updateUI), userInfo: nil, repeats: true)
             }
 
             if (sermon!.audioDownload?.state == .downloaded) && (downloadObserver != nil) {
@@ -35,29 +55,35 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             
             title.text = "\(sermon!.date!) \(sermon!.service!) \(sermon!.speaker!)"
             
+//            print(sermon?.title)
+            
             if (sermon?.title != nil) {
-                if (sermon!.title!.rangeOfString(" (Part") != nil) {
-                    let first = sermon!.title!.substringToIndex((sermon!.title!.rangeOfString(" (Part")?.endIndex)!)
-                    let second = sermon!.title!.substringFromIndex((sermon!.title!.rangeOfString(" (Part ")?.endIndex)!)
+                if (sermon!.title!.range(of: " (Part ") != nil) {
+                    let first = sermon!.title!.substring(to: (sermon!.title!.range(of: " (Part")?.upperBound)!)
+                    let second = sermon!.title!.substring(from: (sermon!.title!.range(of: " (Part ")?.upperBound)!)
                     let combined = first + "\u{00a0}" + second // replace the space with an unbreakable one
                     detail.text = "\(combined)\n\(sermon!.scripture!)"
                 } else {
                     detail.text = "\(sermon!.title!)\n\(sermon!.scripture!)"
                 }
+                
+                if globals.sermonCategory == "All Media" {
+                    detail.text = "\(sermon!.category!)\n" + detail.text!
+                }
             }
         } else {
-            print("No sermon for cell!")
+            NSLog("No sermon for cell!")
         }
     }
     
     var sermon:Sermon? {
         didSet {
             if (oldValue != nil) {
-                NSNotificationCenter.defaultCenter().removeObserver(self, name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: oldValue)
+                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.SERMON_UPDATE_UI_NOTIFICATION), object: oldValue)
             }
             
             if (sermon != nil) {
-                NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MediaTableViewCell.updateUI), name: Constants.SERMON_UPDATE_UI_NOTIFICATION, object: sermon)
+                NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateUI), name: NSNotification.Name(rawValue: Constants.SERMON_UPDATE_UI_NOTIFICATION), object: sermon)
             }
 
             updateUI()
@@ -69,19 +95,19 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     @IBOutlet weak var icons: UILabel!
     
     @IBOutlet weak var downloadButton: UIButton!
-    @IBAction func downloadAction(sender: UIButton)
+    @IBAction func downloadAction(_ sender: UIButton)
     {
-//        print("Download!")
+//        NSLog("Download!")
 //        if (Reachability.isConnectedToNetwork()) {
         
             if (sermon != nil) {
                 
-                if let navigationController = vc?.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+                if let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
                     if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                        vc?.dismissViewControllerAnimated(true, completion: nil)
+                        vc?.dismiss(animated: true, completion: nil)
                         
-                        navigationController.modalPresentationStyle = .Popover
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .Any
+                        navigationController.modalPresentationStyle = .popover
+                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
                         navigationController.popoverPresentationController?.delegate = self
                         
                         navigationController.popoverPresentationController?.sourceView = self
@@ -97,7 +123,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                         
                         var strings = [String]()
                         
-                        if sermon!.hasAudio() {
+                        if sermon!.hasAudio {
                             switch sermon!.audioDownload!.state {
                             case .none:
                                 strings.append(Constants.Download_Audio)
@@ -117,7 +143,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                         popover.showIndex = false
                         popover.showSectionHeaders = false
                         
-                        vc?.presentViewController(navigationController, animated: true, completion: nil)
+                        vc?.present(navigationController, animated: true, completion: nil)
                     }
                 }
 
@@ -126,32 +152,32 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     }
     
     // Specifically for Plus size iPhones.
-    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
     {
-        return UIModalPresentationStyle.None
+        return UIModalPresentationStyle.none
     }
     
-    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.None
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+        return UIModalPresentationStyle.none
     }
     
     @IBOutlet weak var tagsButton: UIButton!
-    @IBAction func tagsAction(sender: UIButton)
+    @IBAction func tagsAction(_ sender: UIButton)
     {
         if (sermon != nil) {
-            if (sermon!.hasTags()) {
-                if let navigationController = vc?.storyboard!.instantiateViewControllerWithIdentifier(Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+            if (sermon!.hasTags) {
+                if let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
                     if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                        vc?.dismissViewControllerAnimated(true, completion: nil)
+                        vc?.dismiss(animated: true, completion: nil)
                         
-                        navigationController.modalPresentationStyle = .Popover
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .Any
+                        navigationController.modalPresentationStyle = .popover
+                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
                         navigationController.popoverPresentationController?.delegate = self
                         
                         navigationController.popoverPresentationController?.sourceView = self
                         navigationController.popoverPresentationController?.sourceRect = tagsButton.frame
                         
-                        popover.navigationItem.title = "Show Sermons Tagged With"
+                        popover.navigationItem.title = "Show Series" // Show Sermons Tagged With
                         //                        popover.preferredContentSize = CGSizeMake(300, 500)
                         
                         popover.delegate = self.vc as? MediaTableViewController
@@ -159,53 +185,53 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                         
                         popover.strings = sermon!.tagsArray
                         popover.strings?.append(Constants.All)
-                        popover.strings?.sortInPlace()
+                        popover.strings?.sort()
                         
                         popover.showIndex = false
                         popover.showSectionHeaders = false
                         
-                        vc?.presentViewController(navigationController, animated: true, completion: nil)
+                        vc?.present(navigationController, animated: true, completion: nil)
                     }
                 }
             }
         }
     }
     
-    private func networkUnavailable(message:String?)
+    fileprivate func networkUnavailable(_ message:String?)
     {
-        if (UIApplication.sharedApplication().applicationState == UIApplicationState.Active) {
-            vc?.dismissViewControllerAnimated(true, completion: nil)
+        if (UIApplication.shared.applicationState == UIApplicationState.active) {
+            vc?.dismiss(animated: true, completion: nil)
             
             let alert = UIAlertController(title:Constants.Network_Error,
                 message: message,
-                preferredStyle: UIAlertControllerStyle.ActionSheet)
+                preferredStyle: UIAlertControllerStyle.actionSheet)
             
-            let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.Cancel, handler: { (UIAlertAction) -> Void in
+            let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
                 
             })
             alert.addAction(action)
             
-            alert.modalPresentationStyle = UIModalPresentationStyle.Popover
+            alert.modalPresentationStyle = UIModalPresentationStyle.popover
             alert.popoverPresentationController?.sourceView = self
             alert.popoverPresentationController?.sourceRect = downloadButton.frame
             
-            vc?.presentViewController(alert, animated: true, completion: nil)
+            vc?.present(alert, animated: true, completion: nil)
         }
     }
     
     func setupTagsButton()
     {
         if (tagsButton != nil) {
-            if (sermon!.hasTags()) {
-                tagsButton.hidden = false
+            if (sermon!.hasTags) {
+                tagsButton.isHidden = false
                 
                 if (sermon?.tagsSet?.count > 1) {
-                    tagsButton.setTitle(Constants.FA_TAGS, forState: UIControlState.Normal)
+                    tagsButton.setTitle(Constants.FA_TAGS, for: UIControlState())
                 } else {
-                    tagsButton.setTitle(Constants.FA_TAG, forState: UIControlState.Normal)
+                    tagsButton.setTitle(Constants.FA_TAG, for: UIControlState())
                 }
             } else {
-                tagsButton.hidden = true
+                tagsButton.isHidden = true
             }
         }
     }
@@ -215,15 +241,15 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         if sermon != nil {
             switch sermon!.audioDownload!.state {
             case .none:
-                downloadButton.setTitle(Constants.FA_DOWNLOAD, forState: UIControlState.Normal)
+                downloadButton.setTitle(Constants.FA_DOWNLOAD, for: UIControlState())
                 break
                 
             case .downloaded:
-                downloadButton.setTitle(Constants.FA_DOWNLOADED, forState: UIControlState.Normal)
+                downloadButton.setTitle(Constants.FA_DOWNLOADED, for: UIControlState())
                 break
                 
             case .downloading:
-                downloadButton.setTitle(Constants.FA_DOWNLOADING, forState: UIControlState.Normal)
+                downloadButton.setTitle(Constants.FA_DOWNLOADING, for: UIControlState())
                 break
             }
         }
@@ -233,7 +259,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     {
         var tsva = String()
         
-        if (sermon!.hasTags()) {
+        if (sermon!.hasTags) {
             if (sermon?.tagsSet?.count > 1) {
                 tsva = tsva + Constants.SINGLE_SPACE_STRING + Constants.FA_TAGS
             } else {
@@ -241,19 +267,19 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             }
         }
         
-        if (sermon!.hasNotes()) {
+        if (sermon!.hasNotes) {
             tsva = tsva + Constants.SINGLE_SPACE_STRING + Constants.FA_TRANSCRIPT
         }
         
-        if (sermon!.hasSlides()) {
+        if (sermon!.hasSlides) {
             tsva = tsva + Constants.SINGLE_SPACE_STRING + Constants.FA_SLIDES
         }
         
-        if (sermon!.hasVideo()) {
+        if (sermon!.hasVideo) {
             tsva = tsva + Constants.SINGLE_SPACE_STRING + Constants.FA_VIDEO
         }
         
-        if (sermon!.hasAudio()) {
+        if (sermon!.hasAudio) {
             tsva = tsva + Constants.SINGLE_SPACE_STRING + Constants.FA_AUDIO
         }
   
@@ -265,17 +291,17 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         if sermon != nil {
             switch sermon!.audioDownload!.state {
             case .none:
-                downloadProgressBar.hidden = true
+                downloadProgressBar.isHidden = true
                 downloadProgressBar.progress = 0
                 break
                 
             case .downloaded:
-                downloadProgressBar.hidden = true
+                downloadProgressBar.isHidden = true
                 downloadProgressBar.progress = 1
                 break
                 
             case .downloading:
-                downloadProgressBar.hidden = false
+                downloadProgressBar.isHidden = false
                 if (sermon!.audioDownload!.totalBytesExpectedToWrite > 0) {
                     downloadProgressBar.progress = Float(sermon!.audioDownload!.totalBytesWritten) / Float(sermon!.audioDownload!.totalBytesExpectedToWrite)
                 } else {
@@ -293,7 +319,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         // Initialization code
     }
 
-    override func setSelected(selected: Bool, animated: Bool) {
+    override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
 
         // Configure the view for the selected state

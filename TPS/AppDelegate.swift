@@ -14,7 +14,7 @@ import MediaPlayer
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, UISplitViewControllerDelegate {
 
-    func splitViewController(splitViewController: UISplitViewController, collapseSecondaryViewController secondaryViewController:UIViewController, ontoPrimaryViewController primaryViewController:UIViewController) -> Bool {
+    func splitViewController(_ splitViewController: UISplitViewController, collapseSecondary secondaryViewController:UIViewController, onto primaryViewController:UIViewController) -> Bool {
         guard let secondaryAsNavController = secondaryViewController as? UINavigationController else { return false }
         guard let topAsDetailController = secondaryAsNavController.topViewController as? MediaViewController else { return false }
         if topAsDetailController.selectedSermon == nil {
@@ -43,53 +43,52 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
         do {
             try audioSession.setCategory(AVAudioSessionCategoryPlayback)
         } catch _ {
-            print("failed to setCategory(AVAudioSessionCategoryPlayback)")
+            NSLog("failed to setCategory(AVAudioSessionCategoryPlayback)")
         }
         
         do {
             //        audioSession.setCategory(AVAudioSessionCategoryPlayback, withOptions: AVAudioSessionCategoryOptions.MixWithOthers, error:nil)
             try audioSession.setActive(true)
         } catch _ {
-            print("failed to audioSession.setActive(true)")
+            NSLog("failed to audioSession.setActive(true)")
         }
     }
     
-    func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         
         globals = Globals()
         
-        let cache = NSURLCache(memoryCapacity: 10 * 1024 * 1024, diskCapacity: 100 * 1024 * 1024, diskPath: nil)
-        NSURLCache.setSharedURLCache(cache)
+        URLCache.shared = URLCache(memoryCapacity: 10 * 1024 * 1024, diskCapacity: 100 * 1024 * 1024, diskPath: nil)
         
         startAudio()
         
         globals.addAccessoryEvents()
         
-        UIApplication.sharedApplication().beginReceivingRemoteControlEvents()
+        UIApplication.shared.beginReceivingRemoteControlEvents()
         
-        globals.player.observer = NSTimer.scheduledTimerWithTimeInterval(Constants.PLAYER_TIMER_INTERVAL, target: self, selector: #selector(AppDelegate.playerTimer), userInfo: nil, repeats: true)
+        globals.player.observer = Timer.scheduledTimer(timeInterval: Constants.PLAYER_TIMER_INTERVAL, target: self, selector: #selector(AppDelegate.playerTimer), userInfo: nil, repeats: true)
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AppDelegate.mpPlayerLoadStateDidChange), name: MPMoviePlayerLoadStateDidChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(AppDelegate.mpPlayerLoadStateDidChange), name: NSNotification.Name.MPMoviePlayerLoadStateDidChange, object: nil)
 
         return true
     }
 
-    func applicationWillResignActive(application: UIApplication) {
+    func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
-//        print("applicationWillResignActive")
+//        NSLog("applicationWillResignActive")
     }
     
-    func applicationDidEnterBackground(application: UIApplication) {
+    func applicationDidEnterBackground(_ application: UIApplication) {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-//        print("applicationDidEnterBackground")
+//        NSLog("applicationDidEnterBackground")
     }
     
-    func applicationWillEnterForeground(application: UIApplication) {
+    func applicationWillEnterForeground(_ application: UIApplication) {
         // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
-//        print("applicationWillEnterForeground")
+//        NSLog("applicationWillEnterForeground")
 
         globals.setupPlayingInfoCenter()
 
@@ -103,42 +102,42 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
             globals.player.paused = false
         }
         
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-            NSNotificationCenter.defaultCenter().postNotificationName(Constants.UPDATE_PLAY_PAUSE_NOTIFICATION, object: nil)
+        DispatchQueue.main.async(execute: { () -> Void in
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.UPDATE_PLAY_PAUSE_NOTIFICATION), object: nil)
         })
     }
     
-    func applicationDidBecomeActive(application: UIApplication) {
+    func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
 //        println("applicationDidBecomeActive")
     }
     
-    func applicationWillTerminate(application: UIApplication) {
+    func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-//        print("applicationWillTerminate")
+//        NSLog("applicationWillTerminate")
     }
 
-    func application(application: UIApplication, handleEventsForBackgroundURLSession identifier: String, completionHandler: () -> Void)
+    func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String, completionHandler: @escaping () -> Void)
     {
-        print("application:handleEventsForBackgroundURLSession")
+        NSLog("application:handleEventsForBackgroundURLSession")
         
         /*
         In iOS, when a background transfer completes or requires credentials, if your app is no longer running, iOS automatically relaunches your app in the background and calls the application:handleEventsForBackgroundURLSession:completionHandler: method on your app’s UIApplicationDelegate object. This call provides the identifier of the session that caused your app to be launched. Your app should store that completion handler, create a background configuration object with the same identifier, and create a session with that configuration object. The new session is automatically reassociated with ongoing background activity. Later, when the session finishes the last background download task, it sends the session delegate a URLSessionDidFinishEventsForBackgroundURLSession: message. Your session delegate should then call the stored completion handler.
         */
         
-        let configuration = NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier(identifier)
+        let configuration = URLSessionConfiguration.background(withIdentifier: identifier)
         configuration.sessionSendsLaunchEvents = true
         
         var filename:String?
         
-        filename = identifier.substringFromIndex(Constants.DOWNLOAD_IDENTIFIER.endIndex)
+        filename = identifier.substring(from: Constants.DOWNLOAD_IDENTIFIER.endIndex)
         
         for sermon in globals.sermonRepository.list! {
             if let download = sermon.downloads.filter({ (key:String, value:Download) -> Bool in
-                //                print("handleEventsForBackgroundURLSession: \(filename) \(key)")
+                //                NSLog("handleEventsForBackgroundURLSession: \(filename) \(key)")
                 return value.task?.taskDescription == filename
             }).first?.1 {
-                download.session = NSURLSession(configuration: configuration, delegate: sermon, delegateQueue: nil)
+                download.session = URLSession(configuration: configuration, delegate: sermon, delegateQueue: nil)
                 download.completionHandler = completionHandler
                 break
             }

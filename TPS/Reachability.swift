@@ -8,23 +8,23 @@
 
 import Foundation
 
-public class Reachability {
+open class Reachability {
     
     class func isConnectedToNetwork()->Bool
     {
         
         var Status:Bool = false
-        let url = NSURL(string: Constants.REACHABILITY_TEST_URL)
-        let request = NSMutableURLRequest(URL: url!)
-        request.HTTPMethod = "HEAD"
-        request.cachePolicy = NSURLRequestCachePolicy.ReloadIgnoringLocalAndRemoteCacheData
+        let url = URL(string: Constants.REACHABILITY_TEST_URL)
+        let request = NSMutableURLRequest(url: url!)
+        request.httpMethod = "HEAD"
+        request.cachePolicy = NSURLRequest.CachePolicy.reloadIgnoringLocalAndRemoteCacheData
         request.timeoutInterval = 10.0
         
-        var response: NSURLResponse?
+        var response: URLResponse?
         
-        let _ = (try? NSURLConnection.sendSynchronousRequest(request, returningResponse: &response)) as NSData?
+        let _ = (try? NSURLConnection.sendSynchronousRequest(request as URLRequest, returning: &response)) as Data?
         
-        if let httpResponse = response as? NSHTTPURLResponse {
+        if let httpResponse = response as? HTTPURLResponse {
             if httpResponse.statusCode == 200 {
                 Status = true
             }

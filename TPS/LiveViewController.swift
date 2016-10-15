@@ -12,11 +12,11 @@ import MediaPlayer
 import AVKit
 
 class LiveViewController: UIViewController {
-    override func canBecomeFirstResponder() -> Bool {
+    override var canBecomeFirstResponder : Bool {
         return true //splitViewController == nil
     }
     
-    override func motionEnded(motion: UIEventSubtype, withEvent event: UIEvent?) {
+    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?) {
         if (splitViewController == nil) {
             globals.motionEnded(motion,event: event)
         }
@@ -24,38 +24,38 @@ class LiveViewController: UIViewController {
     
     func fullScreen()
     {
-        globals.player.mpPlayer?.setFullscreen(!globals.player.mpPlayer!.fullscreen, animated: true)
+        globals.player.mpPlayer?.setFullscreen(!globals.player.mpPlayer!.isFullscreen, animated: true)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-//        print("\(globals.player.mpPlayer?.contentURL)")
-//        print("\(NSURL(string:Constants.LIVE_STREAM_URL))")
+//        NSLog("\(globals.player.mpPlayer?.contentURL)")
+//        NSLog("\(NSURL(string:Constants.LIVE_STREAM_URL))")
         
         setupLivePlayerView()
         
-        self.navigationItem.setRightBarButtonItem(UIBarButtonItem(title: "Full Screen", style: UIBarButtonItemStyle.Plain, target: self, action: #selector(LiveViewController.fullScreen)),animated: true)
+        navigationItem.setRightBarButton(UIBarButtonItem(title: "Full Screen", style: UIBarButtonItemStyle.plain, target: self, action: #selector(LiveViewController.fullScreen)),animated: true)
     }
 
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 //        globals.player.mpPlayer?.controlStyle = MPMovieControlStyle.Embedded
     }
     
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
     }
     
-    override func viewWillDisappear(animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        NSURLCache.sharedURLCache().removeAllCachedResponses()
+        URLCache.shared.removeAllCachedResponses()
     }
 
     @IBOutlet weak var webView: UIView!
@@ -65,13 +65,17 @@ class LiveViewController: UIViewController {
         globals.player.mpPlayer?.setFullscreen(true, animated: true)
     }
     
-    private func setupLivePlayerView()
+    fileprivate func setupLivePlayerView()
     {
-        if (globals.player.mpPlayer?.contentURL != NSURL(string:Constants.LIVE_STREAM_URL)) {
+        if (globals.player.mpPlayer?.contentURL != URL(string:Constants.LIVE_STREAM_URL)) {
+            globals.updateCurrentTimeExact()
+            
             globals.player.mpPlayer?.stop()
             globals.player.paused = true
 
-            globals.player.mpPlayer = MPMoviePlayerController(contentURL: NSURL(string: Constants.LIVE_STREAM_URL)!)
+            globals.setupLivePlayingInfoCenter()
+
+            globals.player.mpPlayer = MPMoviePlayerController(contentURL: URL(string: Constants.LIVE_STREAM_URL)!)
             globals.player.mpPlayer?.prepareToPlay()
         }
         
@@ -80,20 +84,20 @@ class LiveViewController: UIViewController {
 
             let view = globals.player.mpPlayer!.view
 
-            view.hidden = true
-            view.removeFromSuperview()
+            view?.isHidden = true
+            view?.removeFromSuperview()
             
-            view.gestureRecognizers = nil
+            view?.gestureRecognizers = nil
             
             let tap = UITapGestureRecognizer(target: self, action: #selector(LiveViewController.zoomScreen))
             tap.numberOfTapsRequired = 2
-            view.addGestureRecognizer(tap)
+            view?.addGestureRecognizer(tap)
             
-            view.frame = webView.bounds
+            view?.frame = webView.bounds
             
-            webView.addSubview(view)
+            view?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
             
-            view.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+            webView.addSubview(view!)
             
 //            let top = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.Top, multiplier: 1.0, constant: 0.0)
 //            webView.addConstraint(top)
@@ -106,24 +110,26 @@ class LiveViewController: UIViewController {
 //            
 //            let trailing = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Trailing, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.Trailing, multiplier: 1.0, constant: 0.0)
 //            webView.addConstraint(trailing)
+//            print(view)
+//            print(view?.superview)
             
-            let centerX = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.CenterX, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.CenterX, multiplier: 1.0, constant: 0.0)
+            let centerX = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
             webView.addConstraint(centerX)
             
-            let centerY = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.CenterY, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.CenterY, multiplier: 1.0, constant: 0.0)
+            let centerY = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
             webView.addConstraint(centerY)
             
-            let width = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Width, relatedBy: NSLayoutRelation.GreaterThanOrEqual, toItem: view.superview, attribute: NSLayoutAttribute.Width, multiplier: 1.0, constant: 0.0)
+            let width = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: view!.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
             webView.addConstraint(width)
             
-            let height = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Height, relatedBy: NSLayoutRelation.GreaterThanOrEqual, toItem: view.superview, attribute: NSLayoutAttribute.Height, multiplier: 1.0, constant: 0.0)
+            let height = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: view!.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
             webView.addConstraint(height)
 
             webView!.setNeedsLayout()
 
-            webView.bringSubviewToFront(view)
+            webView.bringSubview(toFront: view!)
 
-            view.hidden = false
+            view?.isHidden = false
 
             globals.player.mpPlayer!.play()
         }

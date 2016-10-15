@@ -18,73 +18,73 @@ class SplitView: UIView {
     
     var lineWidth: CGFloat = 1.0 { didSet { setNeedsDisplay() } }
     
-    var color: UIColor = UIColor.blackColor() { didSet { setNeedsDisplay() } }
+    var color: UIColor = UIColor.black { didSet { setNeedsDisplay() } }
     
     var scale: CGFloat = 1.0 { didSet { setNeedsDisplay() } }
 
     var height:CGFloat = 200 {
         didSet {
-            //            print("Height: \(height)")
+            //            NSLog("Height: \(height)")
             setNeedsDisplay()
         }
     }
     
     var min:CGFloat = 50 {
         didSet {
-            //            print("Height: \(min)")
+            //            NSLog("Height: \(min)")
             setNeedsDisplay()
         }
     }
     
     var max:CGFloat = 500 {
         didSet {
-            //            print("Height: \(max)")
+            //            NSLog("Height: \(max)")
             setNeedsDisplay()
         }
     }
     
 //    weak var dataSource: SplitViewDataSource?
     
-    private var splitCenter: CGPoint? {
+    fileprivate var splitCenter: CGPoint? {
         var splitPoint:CGPoint?
         
-        splitPoint = CGPointMake(self.bounds.width / 2, self.bounds.height - height)
+        splitPoint = CGPoint(x: self.bounds.width / 2, y: self.bounds.height - height)
         
         return splitPoint
     }
     
-    override func drawRect(rect: CGRect)
+    override func draw(_ rect: CGRect)
     {
         if let startingPoint = splitCenter {
             let context = UIGraphicsGetCurrentContext()
-            CGContextSaveGState(context)
+            context!.saveGState()
 
             let indicatorPath = UIBezierPath()
             
             let height:CGFloat = bounds.width/4
             
             let left = CGPoint(x: startingPoint.x - bounds.width/2, y: startingPoint.y)
-            indicatorPath.moveToPoint(left)
+            indicatorPath.move(to: left)
 
             let right = CGPoint(x: startingPoint.x + bounds.width/2, y: startingPoint.y)
-            indicatorPath.addLineToPoint(right)
+            indicatorPath.addLine(to: right)
             
-//            print("startingPoint.y: \(round(startingPoint.y)) min: \(round(min)) max: \(round(max))")
+//            NSLog("startingPoint.y: \(round(startingPoint.y)) min: \(round(min)) max: \(round(max))")
             
             if (round(startingPoint.y) > (bounds.height - round(max))) {
                 let bottom = CGPoint(x: startingPoint.x, y: startingPoint.y - height)
-                indicatorPath.moveToPoint(bottom)
-                indicatorPath.addLineToPoint(left)
-                indicatorPath.moveToPoint(bottom)
-                indicatorPath.addLineToPoint(right)
+                indicatorPath.move(to: bottom)
+                indicatorPath.addLine(to: left)
+                indicatorPath.move(to: bottom)
+                indicatorPath.addLine(to: right)
             }
 
             if (round(startingPoint.y) < (bounds.height - round(min))) {
                 let top = CGPoint(x: startingPoint.x, y: startingPoint.y + height)
-                indicatorPath.moveToPoint(top)
-                indicatorPath.addLineToPoint(left)
-                indicatorPath.moveToPoint(top)
-                indicatorPath.addLineToPoint(right)
+                indicatorPath.move(to: top)
+                indicatorPath.addLine(to: left)
+                indicatorPath.move(to: top)
+                indicatorPath.addLine(to: right)
             }
             
             indicatorPath.lineWidth = lineWidth
@@ -93,26 +93,26 @@ class SplitView: UIView {
 
             let boundsPath = UIBezierPath()
             
-            boundsPath.moveToPoint(bounds.origin)
-            boundsPath.addLineToPoint(CGPoint(x: bounds.origin.x + bounds.width, y: bounds.origin.y))
+            boundsPath.move(to: bounds.origin)
+            boundsPath.addLine(to: CGPoint(x: bounds.origin.x + bounds.width, y: bounds.origin.y))
             
             if (splitViewController == nil) {
-                boundsPath.addLineToPoint(CGPoint(x: bounds.origin.x + bounds.width,    y: splitCenter!.y))
-                boundsPath.addLineToPoint(CGPoint(x: bounds.origin.x,                   y: splitCenter!.y))
+                boundsPath.addLine(to: CGPoint(x: bounds.origin.x + bounds.width,    y: splitCenter!.y))
+                boundsPath.addLine(to: CGPoint(x: bounds.origin.x,                   y: splitCenter!.y))
             } else {
-                boundsPath.addLineToPoint(CGPoint(x: bounds.origin.x + bounds.width,    y: bounds.origin.y + bounds.height))
-                boundsPath.addLineToPoint(CGPoint(x: bounds.origin.x,                   y: bounds.origin.y + bounds.height))
+                boundsPath.addLine(to: CGPoint(x: bounds.origin.x + bounds.width,    y: bounds.origin.y + bounds.height))
+                boundsPath.addLine(to: CGPoint(x: bounds.origin.x,                   y: bounds.origin.y + bounds.height))
             }
             
-            boundsPath.addLineToPoint(bounds.origin)
+            boundsPath.addLine(to: bounds.origin)
 
             boundsPath.lineWidth = lineWidth / 2
             color.set()
             boundsPath.stroke()
 
-            CGContextRestoreGState(context)
+            context!.restoreGState()
         } else {
-            print("No starting point!")
+            NSLog("No starting point!")
         }
     }
 }
