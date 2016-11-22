@@ -10,6 +10,13 @@ import UIKit
 
 class SettingsViewController: UIViewController {
 
+    
+    @IBOutlet weak var searchTranscriptsSwitch: UISwitch!
+    
+    @IBAction func searchTranscriptsAction(_ sender: UISwitch) {
+        globals.searchTranscripts = sender.isOn
+    }
+    
     @IBOutlet weak var autoAdvanceSwitch: UISwitch!
     
     @IBAction func autoAdvanceAction(_ sender: UISwitch) {
@@ -28,9 +35,9 @@ class SettingsViewController: UIViewController {
             DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                 globals.loadSingles = false
                 
-                for sermon in globals.sermonRepository.list! {
-                    sermon.notesDownload?.deleteDownload()
-                    sermon.slidesDownload?.deleteDownload()
+                for mediaItem in globals.mediaRepository.list! {
+                    mediaItem.notesDownload?.deleteDownload()
+                    mediaItem.slidesDownload?.deleteDownload()
                 }
                 
                 globals.loadSingles = true
@@ -49,6 +56,7 @@ class SettingsViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
+        searchTranscriptsSwitch.isOn = globals.searchTranscripts
         autoAdvanceSwitch.isOn = globals.autoAdvance
         cacheSwitch.isOn = globals.cacheDownloads
     }

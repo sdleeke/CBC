@@ -23,7 +23,7 @@
 		17579DE01B84706500F1424F /* PopoverTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17579DDF1B84706500F1424F /* PopoverTableViewController.swift */; };
 		175EDA261BAC80F600942E6D /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175EDA251BAC80F600942E6D /* Reachability.swift */; };
 		17763BE31BEA329400BB5556 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17763BE21BEA329400BB5556 /* Constants.swift */; };
-		17763BE51BEA32C700BB5556 /* Sermon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17763BE41BEA32C700BB5556 /* Sermon.swift */; };
+		17763BE51BEA32C700BB5556 /* MediaItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17763BE41BEA32C700BB5556 /* MediaItem.swift */; };
 		177FBA951C5CF36400AFBB50 /* OBSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 177FBA941C5CF36400AFBB50 /* OBSlider.swift */; };
 		1780A7B81B7759FC0003FD39 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1780A7B71B7759FC0003FD39 /* MapKit.framework */; };
 		1798C74E1CA93BC900CED4A5 /* Globals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C74D1CA93BC900CED4A5 /* Globals.swift */; };
@@ -32,8 +32,9 @@
 		17BBEDD71BBF631F0070BF89 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17BBEDD61BBF631F0070BF89 /* SwiftyJSON.swift */; };
 		17D4641C1C8E135800519C98 /* ScriptureIndexViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */; };
 		17E75ECA1B835FC600AE8ED5 /* functions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E75EC91B835FC600AE8ED5 /* functions.swift */; };
-		17E893541BA83FCE00D5D2FB /* SplitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E893531BA83FCE00D5D2FB /* SplitView.swift */; };
+		17E893541BA83FCE00D5D2FB /* ViewSplit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E893531BA83FCE00D5D2FB /* ViewSplit.swift */; };
 		17F2E5BC1BE0F5C300FD146A /* fontawesome-webfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 17D9AA061BE0EDF700ED5090 /* fontawesome-webfont.ttf */; };
+		17F549251DBADA26008B5051 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 17F549241DBADA26008B5051 /* AVKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,7 +75,7 @@
 		17579DDF1B84706500F1424F /* PopoverTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PopoverTableViewController.swift; sourceTree = "<group>"; };
 		175EDA251BAC80F600942E6D /* Reachability.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reachability.swift; sourceTree = "<group>"; };
 		17763BE21BEA329400BB5556 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
-		17763BE41BEA32C700BB5556 /* Sermon.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sermon.swift; sourceTree = "<group>"; };
+		17763BE41BEA32C700BB5556 /* MediaItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaItem.swift; sourceTree = "<group>"; };
 		177FBA941C5CF36400AFBB50 /* OBSlider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OBSlider.swift; sourceTree = "<group>"; };
 		1780A7B71B7759FC0003FD39 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		1798C74D1CA93BC900CED4A5 /* Globals.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Globals.swift; sourceTree = "<group>"; };
@@ -86,7 +87,8 @@
 		17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScriptureIndexViewController.swift; sourceTree = "<group>"; };
 		17D9AA061BE0EDF700ED5090 /* fontawesome-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "fontawesome-webfont.ttf"; sourceTree = "<group>"; };
 		17E75EC91B835FC600AE8ED5 /* functions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = functions.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
-		17E893531BA83FCE00D5D2FB /* SplitView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SplitView.swift; sourceTree = "<group>"; };
+		17E893531BA83FCE00D5D2FB /* ViewSplit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewSplit.swift; sourceTree = "<group>"; };
+		17F549241DBADA26008B5051 /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,6 +96,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				17F549251DBADA26008B5051 /* AVKit.framework in Frameworks */,
 				1780A7B81B7759FC0003FD39 /* MapKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -123,6 +126,7 @@
 				1798C7561CA93CC700CED4A5 /* TPSUITests */,
 				174EEE611B74C0DD004F6942 /* Products */,
 				1780A7B71B7759FC0003FD39 /* MapKit.framework */,
+				17F549231DBADA25008B5051 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -142,7 +146,7 @@
 				174EEE931B74C145004F6942 /* AppDelegate.swift */,
 				1798C74D1CA93BC900CED4A5 /* Globals.swift */,
 				17763BE21BEA329400BB5556 /* Constants.swift */,
-				17763BE41BEA32C700BB5556 /* Sermon.swift */,
+				17763BE41BEA32C700BB5556 /* MediaItem.swift */,
 				175EDA251BAC80F600942E6D /* Reachability.swift */,
 				17BBEDD61BBF631F0070BF89 /* SwiftyJSON.swift */,
 				177FBA941C5CF36400AFBB50 /* OBSlider.swift */,
@@ -153,7 +157,7 @@
 				1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */,
 				174EEE871B74C11E004F6942 /* iPad.storyboard */,
 				174EEE881B74C11E004F6942 /* iPhone.storyboard */,
-				17E893531BA83FCE00D5D2FB /* SplitView.swift */,
+				17E893531BA83FCE00D5D2FB /* ViewSplit.swift */,
 				174EEE891B74C11E004F6942 /* MediaViewController.swift */,
 				17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */,
 				171A6ED41BF2172100E3323C /* WebViewController.swift */,
@@ -200,6 +204,14 @@
 				1798C7591CA93CC700CED4A5 /* Info.plist */,
 			);
 			path = TPSUITests;
+			sourceTree = "<group>";
+		};
+		17F549231DBADA25008B5051 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				17F549241DBADA26008B5051 /* AVKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -271,7 +283,7 @@
 				TargetAttributes = {
 					174EEE5F1B74C0DD004F6942 = {
 						CreatedOnToolsVersion = 6.4;
-						DevelopmentTeam = 8975UQUKKK;
+						DevelopmentTeam = 35U7HMB59T;
 						LastSwiftMigration = 0800;
 						SystemCapabilities = {
 							com.apple.BackgroundModes = {
@@ -357,7 +369,7 @@
 				1798C74E1CA93BC900CED4A5 /* Globals.swift in Sources */,
 				174EEE901B74C11E004F6942 /* MediaViewController.swift in Sources */,
 				1798C7501CA93BF600CED4A5 /* LiveViewController.swift in Sources */,
-				17E893541BA83FCE00D5D2FB /* SplitView.swift in Sources */,
+				17E893541BA83FCE00D5D2FB /* ViewSplit.swift in Sources */,
 				1712CD701C77449B005E09D6 /* SettingsViewController.swift in Sources */,
 				174EEE911B74C11E004F6942 /* AboutViewController.swift in Sources */,
 				174EEE8D1B74C11E004F6942 /* MediaTableViewController.swift in Sources */,
@@ -366,7 +378,7 @@
 				174EEE921B74C11E004F6942 /* MediaTableViewCell.swift in Sources */,
 				177FBA951C5CF36400AFBB50 /* OBSlider.swift in Sources */,
 				171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */,
-				17763BE51BEA32C700BB5556 /* Sermon.swift in Sources */,
+				17763BE51BEA32C700BB5556 /* MediaItem.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -496,11 +508,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 35U7HMB59T;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = TPS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.leeke.TPS;
+				PRODUCT_BUNDLE_IDENTIFIER = org.countrysidebible.CBC;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 			};
@@ -511,12 +524,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 35U7HMB59T;
 				ENABLE_BITCODE = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				INFOPLIST_FILE = TPS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.leeke.TPS;
+				PRODUCT_BUNDLE_IDENTIFIER = org.countrysidebible.CBC;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 3.0;

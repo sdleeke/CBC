@@ -29,8 +29,16 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     var item:MKMapItem?
     
     fileprivate func showSendMailErrorAlert() {
-        let sendMailErrorAlert = UIAlertView(title: "Could Not Send Email", message: "Your device could not send e-mail.  Please check your e-mail configuration and try again.", delegate: self, cancelButtonTitle:Constants.Okay)
-        sendMailErrorAlert.show()
+        let alert = UIAlertController(title: "Could Not Send Email",
+                                      message: "Your device could not send e-mail.  Please check your e-mail configuration and try again.",
+                                      preferredStyle: UIAlertControllerStyle.alert)
+        
+        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+
+        })
+        alert.addAction(action)
+        
+        self.present(alert, animated: true, completion: nil)
     }
     
     // MARK: MFMailComposeViewControllerDelegate Method
@@ -47,7 +55,7 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
         let mailComposeViewController = MFMailComposeViewController()
         mailComposeViewController.mailComposeDelegate = self // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
         
-        mailComposeViewController.setToRecipients([Constants.CBC_EMAIL])
+        mailComposeViewController.setToRecipients([Constants.CBC.EMAIL])
         mailComposeViewController.setSubject(Constants.EMAIL_SUBJECT)
         //        mailComposeViewController.setMessageBody(bodyString, isHTML: false)
         mailComposeViewController.setMessageBody(bodyString, isHTML: true)
@@ -81,7 +89,7 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     
     fileprivate func openInGoogleMaps()
     {
-        let urlAddress = Constants.CBC_FULL_ADDRESS.replacingOccurrences(of: " ", with: "+", options: NSString.CompareOptions.literal, range: nil)
+        let urlAddress = Constants.CBC.FULL_ADDRESS.replacingOccurrences(of: " ", with: "+", options: NSString.CompareOptions.literal, range: nil)
         
         if (UIApplication.shared.canOpenURL(URL(string:"comgooglemaps://")!)) { // Reachability.isConnectedToNetwork() &&
             let querystring = "comgooglemaps://?q="+urlAddress
@@ -102,7 +110,7 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     
     fileprivate func openInAppleMaps()
     {
-        item?.name = Constants.CBC_LONG
+        item?.name = Constants.CBC.LONG
         item?.openInMaps(launchOptions: nil)
     }
     
@@ -114,7 +122,7 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
         //In case we have one already showing
         dismiss(animated: true, completion: nil)
         
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
             if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 navigationController.modalPresentationStyle = .popover
                 //            popover?.preferredContentSize = CGSizeMake(300, 500)
@@ -134,6 +142,7 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
                 var actionMenu = [String]()
                 
                 actionMenu.append(Constants.Email_CBC)
+                actionMenu.append(Constants.CBC_WebSite)
                 actionMenu.append(Constants.CBC_in_Apple_Maps)
                 actionMenu.append(Constants.CBC_in_Google_Maps)
                 
@@ -157,7 +166,7 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
         return UIModalPresentationStyle.none
     }
     
-    func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, sermon:Sermon?) {
+    func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
         dismiss(animated: true, completion: nil)
         
         switch purpose {
@@ -166,6 +175,10 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
 
             case Constants.Email_CBC:
                 email()
+                break
+                
+            case Constants.CBC_WebSite:
+                openWebSite(Constants.CBC.WEBSITE)
                 break
                 
             case Constants.CBC_in_Apple_Maps:
@@ -203,8 +216,8 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
-        navigationItem.leftItemsSupplementBackButton = true
+//        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
+//        navigationItem.leftItemsSupplementBackButton = true
         
         // Do any additional setup after loading the view.  E.g.
     }
@@ -214,13 +227,13 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
         setVersion()
         
         let geocoder = CLGeocoder()
-        geocoder.geocodeAddressString(Constants.CBC_FULL_ADDRESS, completionHandler:{(placemarks, error) -> Void in
+        geocoder.geocodeAddressString(Constants.CBC.FULL_ADDRESS, completionHandler:{(placemarks, error) -> Void in
             if let placemark = placemarks?[0] {
                 let coordinates:CLLocationCoordinate2D = placemark.location!.coordinate
                 
                 let pointAnnotation:MKPointAnnotation = MKPointAnnotation()
                 pointAnnotation.coordinate = coordinates
-                pointAnnotation.title = Constants.CBC_LONG
+                pointAnnotation.title = Constants.CBC.LONG
                 
                 self.mapView?.addAnnotation(pointAnnotation)
                 self.mapView?.setCenter(coordinates, animated: false)

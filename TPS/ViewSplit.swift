@@ -1,5 +1,5 @@
 //
-//  SplitView.swift
+//  ViewSplit.swift
 //  TPS
 //
 //  Created by Steve Leeke on 9/15/15.
@@ -13,8 +13,8 @@ import UIKit
 //}
 
 @IBDesignable
-class SplitView: UIView {
-    weak var splitViewController:UISplitViewController?
+class ViewSplit: UIView {
+//    weak var splitViewController:UISplitViewController?
     
     var lineWidth: CGFloat = 1.0 { didSet { setNeedsDisplay() } }
     
@@ -96,13 +96,13 @@ class SplitView: UIView {
             boundsPath.move(to: bounds.origin)
             boundsPath.addLine(to: CGPoint(x: bounds.origin.x + bounds.width, y: bounds.origin.y))
             
-            if (splitViewController == nil) {
+//            if (splitViewController == nil) {
                 boundsPath.addLine(to: CGPoint(x: bounds.origin.x + bounds.width,    y: splitCenter!.y))
                 boundsPath.addLine(to: CGPoint(x: bounds.origin.x,                   y: splitCenter!.y))
-            } else {
-                boundsPath.addLine(to: CGPoint(x: bounds.origin.x + bounds.width,    y: bounds.origin.y + bounds.height))
-                boundsPath.addLine(to: CGPoint(x: bounds.origin.x,                   y: bounds.origin.y + bounds.height))
-            }
+//            } else {
+//                boundsPath.addLine(to: CGPoint(x: bounds.origin.x + bounds.width,    y: bounds.origin.y + bounds.height))
+//                boundsPath.addLine(to: CGPoint(x: bounds.origin.x,                   y: bounds.origin.y + bounds.height))
+//            }
             
             boundsPath.addLine(to: bounds.origin)
 

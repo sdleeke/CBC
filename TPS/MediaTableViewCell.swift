@@ -7,26 +7,6 @@
 //
 
 import UIKit
-fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l < r
-  case (nil, _?):
-    return true
-  default:
-    return false
-  }
-}
-
-fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l > r
-  default:
-    return rhs < lhs
-  }
-}
-
 
 class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate {
 
@@ -36,12 +16,12 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 
     func updateUI()
     {
-        if (sermon != nil) {
-            if (sermon!.audioDownload?.state == .downloading) && (downloadObserver == nil) {
-                downloadObserver = Timer.scheduledTimer(timeInterval: Constants.DOWNLOADING_TIMER_INTERVAL, target: self, selector: #selector(MediaTableViewCell.updateUI), userInfo: nil, repeats: true)
+        if (mediaItem != nil) {
+            if (mediaItem!.audioDownload?.state == .downloading) && (downloadObserver == nil) {
+                downloadObserver = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.DOWNLOADING, target: self, selector: #selector(MediaTableViewCell.updateUI), userInfo: nil, repeats: true)
             }
 
-            if (sermon!.audioDownload?.state == .downloaded) && (downloadObserver != nil) {
+            if (mediaItem!.audioDownload?.state == .downloaded) && (downloadObserver != nil) {
                 downloadObserver?.invalidate()
                 downloadObserver = nil
             }
@@ -53,37 +33,37 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     
             setupIcons()
             
-            title.text = "\(sermon!.date!) \(sermon!.service!) \(sermon!.speaker!)"
+            title.text = "\(mediaItem!.date!) \(mediaItem!.service!) \(mediaItem!.speaker!)"
             
-//            print(sermon?.title)
+//            print(mediaItem?.title)
             
-            if (sermon?.title != nil) {
-                if (sermon!.title!.range(of: " (Part ") != nil) {
-                    let first = sermon!.title!.substring(to: (sermon!.title!.range(of: " (Part")?.upperBound)!)
-                    let second = sermon!.title!.substring(from: (sermon!.title!.range(of: " (Part ")?.upperBound)!)
+            if (mediaItem?.title != nil) {
+                if (mediaItem!.title!.range(of: " (Part ") != nil) {
+                    let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
+                    let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
                     let combined = first + "\u{00a0}" + second // replace the space with an unbreakable one
-                    detail.text = "\(combined)\n\(sermon!.scripture!)"
+                    detail.text = "\(combined)\n\(mediaItem!.scripture!)"
                 } else {
-                    detail.text = "\(sermon!.title!)\n\(sermon!.scripture!)"
+                    detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scripture!)"
                 }
-                
-                if globals.sermonCategory == "All Media" {
-                    detail.text = "\(sermon!.category!)\n" + detail.text!
-                }
+//                
+//                if globals.mediaCategory.selected == "All Media" {
+//                    detail.text = "\(mediaItem!.category!)\n" + detail.text!
+//                }
             }
         } else {
-            NSLog("No sermon for cell!")
+            NSLog("No mediaItem for cell!")
         }
     }
     
-    var sermon:Sermon? {
+    var mediaItem:MediaItem? {
         didSet {
             if (oldValue != nil) {
-                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.SERMON_UPDATE_UI_NOTIFICATION), object: oldValue)
+                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
             }
             
-            if (sermon != nil) {
-                NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateUI), name: NSNotification.Name(rawValue: Constants.SERMON_UPDATE_UI_NOTIFICATION), object: sermon)
+            if (mediaItem != nil) {
+                NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: mediaItem)
             }
 
             updateUI()
@@ -100,9 +80,9 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 //        NSLog("Download!")
 //        if (Reachability.isConnectedToNetwork()) {
         
-            if (sermon != nil) {
+            if (mediaItem != nil) {
                 
-                if let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+                if let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
                     if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                         vc?.dismiss(animated: true, completion: nil)
                         
@@ -113,18 +93,20 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                         navigationController.popoverPresentationController?.sourceView = self
                         navigationController.popoverPresentationController?.sourceRect = downloadButton.frame
                         
-                        popover.navigationItem.title = Constants.Actions
-                        //                        popover.preferredContentSize = CGSizeMake(300, 500)
+//                        popover.navigationItem.title = Constants.Actions
+//                        popover.preferredContentSize = CGSizeMake(300, 500)
                         
+                        popover.navigationController?.isNavigationBarHidden = true
+
                         popover.delegate = self.vc as? PopoverTableViewControllerDelegate
                         popover.purpose = .selectingCellAction
 
-                        popover.selectedSermon = sermon
+                        popover.selectedMediaItem = mediaItem
                         
                         var strings = [String]()
                         
-                        if sermon!.hasAudio {
-                            switch sermon!.audioDownload!.state {
+                        if mediaItem!.hasAudio {
+                            switch mediaItem!.audioDownload!.state {
                             case .none:
                                 strings.append(Constants.Download_Audio)
                                 break
@@ -164,9 +146,9 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     @IBOutlet weak var tagsButton: UIButton!
     @IBAction func tagsAction(_ sender: UIButton)
     {
-        if (sermon != nil) {
-            if (sermon!.hasTags) {
-                if let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.POPOVER_TABLEVIEW_IDENTIFIER) as? UINavigationController {
+        if (mediaItem != nil) {
+            if (mediaItem!.hasTags) {
+                if let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
                     if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                         vc?.dismiss(animated: true, completion: nil)
                         
@@ -177,13 +159,13 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                         navigationController.popoverPresentationController?.sourceView = self
                         navigationController.popoverPresentationController?.sourceRect = tagsButton.frame
                         
-                        popover.navigationItem.title = "Show Series" // Show Sermons Tagged With
+                        popover.navigationItem.title = Constants.Show // Show MediaItems Tagged With
                         //                        popover.preferredContentSize = CGSizeMake(300, 500)
                         
                         popover.delegate = self.vc as? MediaTableViewController
                         popover.purpose = .selectingTags
                         
-                        popover.strings = sermon!.tagsArray
+                        popover.strings = mediaItem!.tagsArray
                         popover.strings?.append(Constants.All)
                         popover.strings?.sort()
                         
@@ -222,13 +204,13 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     func setupTagsButton()
     {
         if (tagsButton != nil) {
-            if (sermon!.hasTags) {
+            if (mediaItem!.hasTags) {
                 tagsButton.isHidden = false
                 
-                if (sermon?.tagsSet?.count > 1) {
-                    tagsButton.setTitle(Constants.FA_TAGS, for: UIControlState())
+                if (mediaItem?.tagsSet?.count > 1) {
+                    tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState())
                 } else {
-                    tagsButton.setTitle(Constants.FA_TAG, for: UIControlState())
+                    tagsButton.setTitle(Constants.FA.TAG, for: UIControlState())
                 }
             } else {
                 tagsButton.isHidden = true
@@ -238,18 +220,18 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     
     func setupDownloadButtonForAudio()
     {
-        if sermon != nil {
-            switch sermon!.audioDownload!.state {
+        if mediaItem != nil {
+            switch mediaItem!.audioDownload!.state {
             case .none:
-                downloadButton.setTitle(Constants.FA_DOWNLOAD, for: UIControlState())
+                downloadButton.setTitle(Constants.FA.DOWNLOAD, for: UIControlState())
                 break
                 
             case .downloaded:
-                downloadButton.setTitle(Constants.FA_DOWNLOADED, for: UIControlState())
+                downloadButton.setTitle(Constants.FA.DOWNLOADED, for: UIControlState())
                 break
                 
             case .downloading:
-                downloadButton.setTitle(Constants.FA_DOWNLOADING, for: UIControlState())
+                downloadButton.setTitle(Constants.FA.DOWNLOADING, for: UIControlState())
                 break
             }
         }
@@ -259,28 +241,32 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     {
         var tsva = String()
         
-        if (sermon!.hasTags) {
-            if (sermon?.tagsSet?.count > 1) {
-                tsva = tsva + Constants.SINGLE_SPACE_STRING + Constants.FA_TAGS
+        if (globals.mediaPlayer.mediaItem == mediaItem) && (globals.mediaPlayer.state == .playing) {
+            tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.PLAYING
+        }
+        
+        if (mediaItem!.hasTags) {
+            if (mediaItem?.tagsSet?.count > 1) {
+                tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.TAGS
             } else {
-                tsva = tsva + Constants.SINGLE_SPACE_STRING + Constants.FA_TAG
+                tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.TAG
             }
         }
         
-        if (sermon!.hasNotes) {
-            tsva = tsva + Constants.SINGLE_SPACE_STRING + Constants.FA_TRANSCRIPT
+        if (mediaItem!.hasNotes) {
+            tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT
         }
         
-        if (sermon!.hasSlides) {
-            tsva = tsva + Constants.SINGLE_SPACE_STRING + Constants.FA_SLIDES
+        if (mediaItem!.hasSlides) {
+            tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.SLIDES
         }
         
-        if (sermon!.hasVideo) {
-            tsva = tsva + Constants.SINGLE_SPACE_STRING + Constants.FA_VIDEO
+        if (mediaItem!.hasVideo) {
+            tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.VIDEO
         }
         
-        if (sermon!.hasAudio) {
-            tsva = tsva + Constants.SINGLE_SPACE_STRING + Constants.FA_AUDIO
+        if (mediaItem!.hasAudio) {
+            tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.AUDIO
         }
   
         icons.text = tsva
@@ -288,8 +274,8 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     
     func setupProgressBarForAudio()
     {
-        if sermon != nil {
-            switch sermon!.audioDownload!.state {
+        if mediaItem != nil {
+            switch mediaItem!.audioDownload!.state {
             case .none:
                 downloadProgressBar.isHidden = true
                 downloadProgressBar.progress = 0
@@ -302,8 +288,8 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                 
             case .downloading:
                 downloadProgressBar.isHidden = false
-                if (sermon!.audioDownload!.totalBytesExpectedToWrite > 0) {
-                    downloadProgressBar.progress = Float(sermon!.audioDownload!.totalBytesWritten) / Float(sermon!.audioDownload!.totalBytesExpectedToWrite)
+                if (mediaItem!.audioDownload!.totalBytesExpectedToWrite > 0) {
+                    downloadProgressBar.progress = Float(mediaItem!.audioDownload!.totalBytesWritten) / Float(mediaItem!.audioDownload!.totalBytesExpectedToWrite)
                 } else {
                     downloadProgressBar.progress = 0
                 }

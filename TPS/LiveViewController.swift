@@ -8,7 +8,7 @@
 
 import UIKit
 import WebKit
-import MediaPlayer
+import AVFoundation
 import AVKit
 
 class LiveViewController: UIViewController {
@@ -22,26 +22,16 @@ class LiveViewController: UIViewController {
         }
     }
     
-    func fullScreen()
-    {
-        globals.player.mpPlayer?.setFullscreen(!globals.player.mpPlayer!.isFullscreen, animated: true)
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-//        NSLog("\(globals.player.mpPlayer?.contentURL)")
-//        NSLog("\(NSURL(string:Constants.LIVE_STREAM_URL))")
-        
         setupLivePlayerView()
-        
-        navigationItem.setRightBarButton(UIBarButtonItem(title: "Full Screen", style: UIBarButtonItemStyle.plain, target: self, action: #selector(LiveViewController.fullScreen)),animated: true)
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-//        globals.player.mpPlayer?.controlStyle = MPMovieControlStyle.Embedded
+//        globals.mediaPlayer.player?.controlStyle = MPMovieControlStyle.Embedded
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -60,58 +50,72 @@ class LiveViewController: UIViewController {
 
     @IBOutlet weak var webView: UIView!
 
-    func zoomScreen()
+    @IBOutlet weak var textView: UITextView!
+    
+    @IBOutlet weak var textViewHeight: NSLayoutConstraint!
+    
+    func showHideNotice(_ pan:UIPanGestureRecognizer)
     {
-        globals.player.mpPlayer?.setFullscreen(true, animated: true)
+        switch pan.state {
+        case .began:
+            break
+            
+        case .ended:
+            break
+            
+        case .changed:
+            let translation = pan.translation(in: view)
+            
+            if translation.y != 0 {
+                if textViewHeight.constant - translation.y < 0 {
+                    textViewHeight.constant = 0
+                } else
+                    if textViewHeight.constant - translation.y > self.view.bounds.height {
+                        textViewHeight.constant = self.view.bounds.height
+                    } else {
+                    textViewHeight.constant -= translation.y
+                }
+            }
+            
+            self.view.setNeedsLayout()
+            //                self.view.layoutSubviews()
+            
+            pan.setTranslation(CGPoint.zero, in: view)
+            break
+            
+        default:
+            break
+        }
     }
     
     fileprivate func setupLivePlayerView()
     {
-        if (globals.player.mpPlayer?.contentURL != URL(string:Constants.LIVE_STREAM_URL)) {
-            globals.updateCurrentTimeExact()
-            
-            globals.player.mpPlayer?.stop()
-            globals.player.paused = true
+        if (globals.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+            globals.mediaPlayer.pause() // IfPlaying
 
+            globals.setupPlayer(url: URL(string:Constants.URL.LIVE_STREAM),playOnLoad:true)
             globals.setupLivePlayingInfoCenter()
-
-            globals.player.mpPlayer = MPMoviePlayerController(contentURL: URL(string: Constants.LIVE_STREAM_URL)!)
-            globals.player.mpPlayer?.prepareToPlay()
         }
         
-        if (globals.player.mpPlayer != nil) {
-//            globals.player.mpPlayer!.setFullscreen(false, animated: false)
+        globals.mediaPlayer.showsPlaybackControls = true
+        
+        view.gestureRecognizers = nil
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(LiveViewController.showHideNotice(_:)))
+        view.addGestureRecognizer(pan)
 
-            let view = globals.player.mpPlayer!.view
+        textView.sizeToFit()
+        
+        if (globals.mediaPlayer.view != nil) {
+            let view = globals.mediaPlayer.view
 
             view?.isHidden = true
             view?.removeFromSuperview()
-            
-            view?.gestureRecognizers = nil
-            
-            let tap = UITapGestureRecognizer(target: self, action: #selector(LiveViewController.zoomScreen))
-            tap.numberOfTapsRequired = 2
-            view?.addGestureRecognizer(tap)
             
             view?.frame = webView.bounds
             
             view?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
             
             webView.addSubview(view!)
-            
-//            let top = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.Top, multiplier: 1.0, constant: 0.0)
-//            webView.addConstraint(top)
-//            
-//            let leading = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Leading, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.Leading, multiplier: 1.0, constant: 0.0)
-//            webView.addConstraint(leading)
-//            
-//            let bottom = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Bottom, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: 0.0)
-//            webView.addConstraint(bottom)
-//            
-//            let trailing = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.Trailing, relatedBy: NSLayoutRelation.Equal, toItem: view.superview, attribute: NSLayoutAttribute.Trailing, multiplier: 1.0, constant: 0.0)
-//            webView.addConstraint(trailing)
-//            print(view)
-//            print(view?.superview)
             
             let centerX = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
             webView.addConstraint(centerX)
@@ -131,7 +135,7 @@ class LiveViewController: UIViewController {
 
             view?.isHidden = false
 
-            globals.player.mpPlayer!.play()
+            globals.mediaPlayer.play()
         }
     }
 }

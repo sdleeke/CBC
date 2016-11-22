@@ -10,7 +10,7 @@ import UIKit
 
 protocol PopoverTableViewControllerDelegate
 {
-    func rowClickedAtIndex(_ index:Int, strings:[String], purpose:PopoverPurpose, sermon:Sermon?)
+    func rowClickedAtIndex(_ index:Int, strings:[String], purpose:PopoverPurpose, mediaItem:MediaItem?)
 }
 
 struct Section {
@@ -19,12 +19,18 @@ struct Section {
     var indexes:[Int]?
 }
 
-class PopoverTableViewController: UITableViewController {
+class PopoverTableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
+    
+    @IBOutlet weak var tableView: UITableView!
     
     var delegate : PopoverTableViewControllerDelegate?
     var purpose : PopoverPurpose?
     
-    var selectedSermon:Sermon?
+    var selectedMediaItem:MediaItem?
+    
+    var stringsFunction:((Void)->[String]?)?
     
     var allowsSelection:Bool = true
     var allowsMultipleSelection:Bool = false
@@ -36,7 +42,7 @@ class PopoverTableViewController: UITableViewController {
     
     var strings:[String]?
     
-    var transform:((String?)->String?)?
+//    var transform:((String?)->String?)?
     
     lazy var section:Section! = {
         var section = Section()
@@ -45,7 +51,7 @@ class PopoverTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         //This makes accurate scrolling to sections impossible but since we don't use scrollToRowAtIndexPath with
         //the popover, this makes multi-line rows possible.
 
@@ -114,60 +120,6 @@ class PopoverTableViewController: UITableViewController {
             }
             
             self.preferredContentSize = CGSize(width: width, height: height)
-
-            if showIndex {
-                let a = "A"
-                
-                section.titles = Array(Set(indexStrings!.map({ (string:String) -> String in
-                    if string.endIndex >= a.endIndex {
-                        return stringWithoutPrefixes(string)!.substring(to: a.endIndex)
-                    } else {
-                        return string
-                    }
-                }))).sorted() { $0 < $1 }
-                
-                var indexes = [Int]()
-                var counts = [Int]()
-                
-//                print(section.titles)
-                
-                for sectionTitle in section.titles! {
-                    var counter = 0
-                    
-                    for index in 0..<strings!.count {
-                        let testString = transform != nil ? transform!(strings![index]) : strings![index]
-                        
-                        var string:String?
-                        
-                        if testString!.endIndex >= a.endIndex {
-//                            print(stringWithoutPrefixes(testString))
-                            if (indexStrings?[index]) != nil {
-                                string = stringWithoutPrefixes(testString)!.substring(to: a.endIndex)
-                            } else {
-                                string = testString
-                            }
-                        } else {
-                            string = testString
-                        }
-
-                        if (sectionTitle == string) {
-                            if (counter == 0) {
-                                indexes.append(index)
-                            }
-                            counter += 1
-                        }
-                    }
-                    
-                    counts.append(counter)
-                }
-                
-//                print(indexStrings)
-//                print(indexes)
-//                print(counts)
-                
-                section.indexes = indexes.count > 0 ? indexes : nil
-                section.counts = counts.count > 0 ? counts : nil
-            }
         }
         
 //        NSLog("Strings: \(strings)")
@@ -182,24 +134,149 @@ class PopoverTableViewController: UITableViewController {
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
     }
     
+    func setupIndex()
+    {
+        if showIndex && (strings != nil) && (indexStrings != nil) {
+            let a = "A"
+            
+            var indexes = [Int]()
+            var counts = [Int]()
+            
+            section.titles = Array(Set(indexStrings!.map({ (string:String) -> String in
+                if string.endIndex >= a.endIndex {
+                    return stringWithoutPrefixes(string)!.substring(to: a.endIndex).uppercased()
+                } else {
+                    return string
+                }
+            }))).sorted() { $0 < $1 }
+            
+            var stringIndex = [String:[String]]()
+            
+            for indexString in indexStrings! {
+                if stringIndex[indexString.substring(to: a.endIndex)] == nil {
+                    stringIndex[indexString.substring(to: a.endIndex)] = [String]()
+                }
+//                print(testString,string)
+                stringIndex[indexString.substring(to: a.endIndex)]?.append(indexString)
+//                if let testString = transform != nil ? transform!(string) : string {
+//                }
+            }
+            
+            var counter = 0
+            
+            for key in stringIndex.keys.sorted() {
+//                print(stringIndex[key]!)
+                indexes.append(counter)
+                counts.append(stringIndex[key]!.count)
+                counter += stringIndex[key]!.count
+            }
+            
+            //                print(section.titles)
+            
+//            for sectionTitle in section.titles! {
+//                var counter = 0
+//                
+//                for index in 0..<strings!.count {
+//                    let testString = transform != nil ? transform!(strings![index]) : strings![index]
+//                    
+//                    var string:String?
+//                    
+//                    if testString!.endIndex >= a.endIndex {
+//                        //                            print(stringWithoutPrefixes(testString))
+//                        if (indexStrings?[index]) != nil {
+//                            string = stringWithoutPrefixes(testString)!.substring(to: a.endIndex)
+//                        } else {
+//                            string = testString
+//                        }
+//                    } else {
+//                        string = testString
+//                    }
+//                    
+//                    if (sectionTitle == string) {
+//                        if (counter == 0) {
+//                            indexes.append(index)
+//                        }
+//                        counter += 1
+//                    } else {
+//                        print(index,strings![index],sectionTitle,string)
+//                    }
+//                }
+//                
+//                counts.append(counter)
+//            }
+            
+//            print(indexStrings)
+//            print(section.titles)
+//            print(indexes)
+//            print(counts)
+            
+//            for string in indexStrings! {
+//                print(string)
+//            }
+
+//            for string in section.titles! {
+//                if let index = section.titles?.index(of:string) {
+//                    print(string,indexes[index],counts[index])
+//                }
+//            }
+            
+            section.indexes = indexes.count > 0 ? indexes : nil
+            section.counts = counts.count > 0 ? counts : nil
+        }
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
+        
+        if stringsFunction != nil {
+            DispatchQueue.global(qos: .background).async {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.activityIndicator.startAnimating()
+                    self.activityIndicator?.isHidden = false
+                })
+                self.strings = self.stringsFunction?()
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.tableView.reloadData()
+                    self.activityIndicator.stopAnimating()
+                    self.activityIndicator?.isHidden = true
+//                    DispatchQueue.global(qos: .background).async {
+//                        DispatchQueue.main.async(execute: { () -> Void in
+//                            self.view.sizeToFit()
+//                        })
+//                    }
+                })
+            }
+        } else {
+            activityIndicator?.isHidden = false
+            activityIndicator?.startAnimating()
+        }
     }
 
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
 
+        DispatchQueue.global(qos: .background).async {
+            self.setupIndex()
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.tableView.reloadData()
+                if self.stringsFunction == nil {
+                    self.activityIndicator?.stopAnimating()
+                    self.activityIndicator?.isHidden = true
+                }
+            })
+        }
+        
         // The code below scrolls to the currently selected tag (if there is one), but that makes getting to All at the top of the list harder.
         // And since the currently selectd tag (if there is one) is shown in the search bar prompt text, I don't think this is needed.
-//        if (purpose == .selectingTags) && (globals.sermonTagsSelected != nil) && (globals.sermonTagsSelected != Constants.All) {
-//            if (strings != nil) && (globals.sermonTagsSelected != nil) {
+//        if (purpose == .selectingTags) && (globals.mediaItemTagsSelected != nil) && (globals.mediaItemTagsSelected != Constants.All) {
+//            if (strings != nil) && (globals.mediaItemTagsSelected != nil) {
 //                if (showSectionHeaders) {
-//                    let sectionNumber = section.titles!.indexOf(globals.sermonTagsSelected!.substringToIndex("A".endIndex))
+//                    let sectionNumber = section.titles!.indexOf(globals.mediaItemTagsSelected!.substringToIndex("A".endIndex))
 //                    var row = section.indexes![sectionNumber!]
 //                    for increment in 0..<section.counts![sectionNumber!] {
-//                        if globals.sermonTagsSelected == strings?[row+increment] {
+//                        if globals.mediaItemTagsSelected == strings?[row+increment] {
 //                            row = increment
 //                            break
 //                        }
@@ -207,7 +284,7 @@ class PopoverTableViewController: UITableViewController {
 //                    let indexPath = NSIndexPath(forRow: row, inSection: sectionNumber!)
 //                    tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: UITableViewScrollPosition.None, animated: true)
 //                } else {
-//                    if let row = strings!.indexOf(globals.sermonTagsSelected!) {
+//                    if let row = strings!.indexOf(globals.mediaItemTagsSelected!) {
 //                        let indexPath = NSIndexPath(forRow: row, inSection: 0)
 //                        tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: UITableViewScrollPosition.None, animated: true)
 //                    }
@@ -224,7 +301,7 @@ class PopoverTableViewController: UITableViewController {
 
     // MARK: - Table view data source
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Potentially incomplete method implementation.
         // Return the number of sections.
         if (showIndex) {
@@ -234,7 +311,7 @@ class PopoverTableViewController: UITableViewController {
         }
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete method implementation.
         // Return the number of rows in the section.
         if (showIndex) {
@@ -244,7 +321,7 @@ class PopoverTableViewController: UITableViewController {
         }
     }
 
-    override func sectionIndexTitles(for tableView: UITableView) -> [String]? {
+    func sectionIndexTitles(for tableView: UITableView) -> [String]? {
         if (showIndex) {
             return self.section.titles
         } else {
@@ -256,7 +333,7 @@ class PopoverTableViewController: UITableViewController {
 //        return 48
 //    }
     
-    override func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int {
+    func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int {
         if (showIndex) {
             return index
         } else {
@@ -264,7 +341,7 @@ class PopoverTableViewController: UITableViewController {
         }
     }
     
-    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         if (showSectionHeaders) { // showIndex && 
             return self.section.titles != nil ? self.section.titles![section] : nil
         } else {
@@ -272,8 +349,8 @@ class PopoverTableViewController: UITableViewController {
         }
     }
     
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.POPOVER_CELL_IDENTIFIER, for: indexPath)
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.POPOVER_CELL, for: indexPath)
 
         var index = -1
         
@@ -297,12 +374,16 @@ class PopoverTableViewController: UITableViewController {
             cell.accessoryType = UITableViewCellAccessoryType.none
             break
             
+        case .selectingCellSearch:
+            cell.accessoryType = UITableViewCellAccessoryType.none
+            break
+            
         case .showingTags:
-            //            NSLog("strings: \(strings[indexPath.row]) sermontTag: \(sermonSelected?.tags)")
+            //            NSLog("strings: \(strings[indexPath.row]) mediaItemTag: \(mediaItemSelected?.tags)")
             
             cell.accessoryType = UITableViewCellAccessoryType.none
             
-//            if (selectedSermon?.tagsArray?.indexOf(strings![index]) != nil) {
+//            if (selectedMediaItem?.tagsArray?.indexOf(strings![index]) != nil) {
 //                    cell.accessoryType = UITableViewCellAccessoryType.Checkmark
 //            } else {
 //                cell.accessoryType = UITableViewCellAccessoryType.None
@@ -310,7 +391,7 @@ class PopoverTableViewController: UITableViewController {
             break
             
         case .selectingTags:
-            //            NSLog("strings: \(strings[indexPath.row]) sermontTag: \(globals.sermonTag)")
+            //            NSLog("strings: \(strings[indexPath.row]) mediaItemTag: \(globals.mediaItemTag)")
             let string = strings![index]
             
             switch globals.tags.showing! {
@@ -360,16 +441,18 @@ class PopoverTableViewController: UITableViewController {
             break
         
         default:
+            cell.accessoryType = UITableViewCellAccessoryType.none
             break
         }
 
+//        print(strings)
         cell.textLabel?.text = strings![index]
 
         return cell
     }
 
-    override func tableView(_ TableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        let cell = tableView.cellForRowAtIndexPath(indexPath)
+    func tableView(_ TableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+//        let cell = tableView.cellForRow(at: indexPath)
 
         var index = -1
         if (showIndex) {
@@ -378,7 +461,7 @@ class PopoverTableViewController: UITableViewController {
             index = indexPath.row
         }
 
-        delegate?.rowClickedAtIndex(index, strings: self.strings!, purpose: self.purpose!, sermon: self.selectedSermon)
+        delegate?.rowClickedAtIndex(index, strings: self.strings!, purpose: self.purpose!, mediaItem: self.selectedMediaItem)
     }
 
     /*

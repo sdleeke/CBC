@@ -1,5 +1,5 @@
 //
-//  sermonFunctions.swift
+//  functions.swift
 //  TPS
 //
 //  Created by Steve Leeke on 8/18/15.
@@ -9,18 +9,30 @@
 import Foundation
 import MediaPlayer
 import AVKit
-fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l < r
-  case (nil, _?):
-    return true
-  default:
-    return false
-  }
+
+func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+    switch (lhs, rhs) {
+    case let (l?, r?):
+        return l < r
+    case (nil, _?):
+        return true
+    default:
+        return false
+    }
 }
 
-fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+func <= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+    switch (lhs, rhs) {
+    case let (l?, r?):
+        return l <= r
+    case (nil, _?):
+        return true
+    default:
+        return false
+    }
+}
+
+func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   switch (lhs, rhs) {
   case let (l?, r?):
     return l >= r
@@ -29,7 +41,7 @@ fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   }
 }
 
-fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   switch (lhs, rhs) {
   case let (l?, r?):
     return l > r
@@ -37,7 +49,6 @@ fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     return rhs < lhs
   }
 }
-
 
 //typealias GroupTuple = (indexes: [Int]?, counts: [Int]?)
 
@@ -152,7 +163,7 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
 
 //func jsonDataFromURL() -> JSON
 //{
-//    if let url = NSURL(string: Constants.JSON_URL_PREFIX + Constants.CBC_SHORT.lowercaseString + "." + Constants.SERMONS_JSON_FILENAME) {
+//    if let url = NSURL(string: Constants.JSON_URL_PREFIX + Constants.CBC.SHORT.lowercaseString + "." + Constants.SERMONS_JSON_FILENAME) {
 //        do {
 //            let data = try NSData(contentsOfURL: url, options: NSDataReadingOptions.DataReadingMappedIfSafe)
 //            let json = JSON(data: data)
@@ -194,22 +205,22 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
 
 func removeJSONFromFileSystemDirectory()
 {
-    if let jsonFileSystemURL = cachesURL()?.appendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
+    if let jsonFileSystemURL = cachesURL()?.appendingPathComponent(Constants.JSON.FILENAME.MEDIA) {
         do {
             try FileManager.default.removeItem(atPath: jsonFileSystemURL.path)
         } catch _ {
-            NSLog("failed to copy sermons.json")
+            NSLog("failed to copy mediaItems.json")
         }
     }
 }
 
-func jsonToFileSystemDirectory(key:String) // Constants.JSON_SERMONS_ARRAY_KEY
+func jsonToFileSystemDirectory(key:String)
 {
     let fileManager = FileManager.default
     
-    let jsonBundlePath = Bundle.main.path(forResource: key, ofType: Constants.JSON_TYPE)
+    let jsonBundlePath = Bundle.main.path(forResource: key, ofType: Constants.JSON.TYPE)
     
-    if let jsonFileURL = cachesURL()?.appendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
+    if let jsonFileURL = cachesURL()?.appendingPathComponent(Constants.JSON.FILENAME.MEDIA) {
         // Check if file exist
         if (!fileManager.fileExists(atPath: jsonFileURL.path)){
             if (jsonBundlePath != nil) {
@@ -217,7 +228,7 @@ func jsonToFileSystemDirectory(key:String) // Constants.JSON_SERMONS_ARRAY_KEY
                     // Copy File From Bundle To Documents Directory
                     try fileManager.copyItem(atPath: jsonBundlePath!,toPath: jsonFileURL.path)
                 } catch _ {
-                    NSLog("failed to copy sermons.json")
+                    NSLog("failed to copy mediaItems.json")
                 }
             }
         } else {
@@ -258,7 +269,7 @@ func jsonToFileSystemDirectory(key:String) // Constants.JSON_SERMONS_ARRAY_KEY
                         try fileManager.removeItem(atPath: jsonFileURL.path)
                         try fileManager.copyItem(atPath: jsonBundlePath!,toPath: jsonFileURL.path)
                     } catch _ {
-                        NSLog("failed to copy sermons.json")
+                        NSLog("failed to copy mediaItems.json")
                     }
                 }
             } catch _ {
@@ -270,9 +281,9 @@ func jsonToFileSystemDirectory(key:String) // Constants.JSON_SERMONS_ARRAY_KEY
 
 func jsonDataFromDocumentsDirectory() -> JSON
 {
-    jsonToFileSystemDirectory(key:Constants.JSON_SERMONS_ARRAY_KEY)
+    jsonToFileSystemDirectory(key:Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES)
     
-    if let jsonURL = cachesURL()?.appendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
+    if let jsonURL = cachesURL()?.appendingPathComponent(Constants.JSON.FILENAME.MEDIA) {
         if let data = try? Data(contentsOf: jsonURL) {
             let json = JSON(data: data)
             if json != JSON.null {
@@ -290,7 +301,7 @@ func jsonDataFromDocumentsDirectory() -> JSON
 
 func jsonDataFromCachesDirectory() -> JSON
 {
-    if let jsonURL = cachesURL()?.appendingPathComponent(Constants.SERMONS_JSON_FILENAME) {
+    if let jsonURL = cachesURL()?.appendingPathComponent(Constants.JSON.FILENAME.MEDIA) {
         if let data = try? Data(contentsOf: jsonURL) {
             let json = JSON(data: data)
             if json != JSON.null {
@@ -305,119 +316,6 @@ func jsonDataFromCachesDirectory() -> JSON
     
     return nil
 }
-
-//func sermonsFromArchive() -> [Sermon]?
-//{
-//    // JSON is newer than Archive, reutrn nil.  That will force the archive to be rebuilt from the JSON.
-//    
-//    let fileManager = NSFileManager.defaultManager()
-//    
-//    let archiveFileSystemURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_ARCHIVE)
-//    let archiveExistsInFileSystem = fileManager.fileExistsAtPath(archiveFileSystemURL!.path!)
-//    
-//    if !archiveExistsInFileSystem {
-//        return nil
-//    }
-//    
-//    let jsonFileSystemURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME)
-//    let jsonExistsInFileSystem = fileManager.fileExistsAtPath(jsonFileSystemURL!.path!)
-//    
-//    if (!jsonExistsInFileSystem) {
-//        // This should not happen since JSON should have been copied before the first archive was created.
-//        // Since we don't understand this state, return nil
-//        return nil
-//    }
-//    
-//    let jsonInBundlePath = NSBundle.mainBundle().pathForResource(Constants.JSON_ARRAY_KEY, ofType: Constants.JSON_TYPE)
-//    let jsonExistsInBundle = fileManager.fileExistsAtPath(jsonInBundlePath!)
-//    
-//    if (jsonExistsInFileSystem && jsonExistsInBundle) {
-//        // Need to see if jsonInBundle is newer
-//        
-//        do {
-//            let jsonInBundleAttributes = try fileManager.attributesOfItemAtPath(jsonInBundlePath!)
-//            let jsonInFileSystemAttributes = try fileManager.attributesOfItemAtPath(jsonFileSystemURL!.path!)
-//            
-//            let jsonInBundleModDate = jsonInBundleAttributes[NSFileModificationDate] as! NSDate
-//            let jsonInDocumentsModDate = jsonInFileSystemAttributes[NSFileModificationDate] as! NSDate
-//            
-////            NSLog("jsonInBundleModDate: \(jsonInBundleModDate)")
-////            NSLog("jsonInDocumentsModDate: \(jsonInDocumentsModDate)")
-//            
-//            if (jsonInDocumentsModDate.isOlderThan(jsonInBundleModDate)) {
-//                //The JSON in the Bundle is newer, we need to use it instead of the archive
-//                NSLog("JSON in Documents is older than JSON in Bundle")
-//                return nil
-//            }
-//            
-//            if (jsonInDocumentsModDate.isEqualTo(jsonInBundleModDate)) {
-//                //This is normal since JSON in Documents is copied from JSON in Bundle.  Do nothing.
-//                NSLog("JSON in Bundle and in Documents are the same date")
-//            }
-//            
-//            if (jsonInDocumentsModDate.isNewerThan(jsonInBundleModDate)) {
-//                //The JSON in Documents is newer, we need to see if it is newer than the archive.
-//                NSLog("JSON in Documents is newer than JSON in Bundle")
-//            }
-//        } catch _ {
-//            NSLog("failed to get json file attributes")
-//        }
-//    }
-//    
-//    if (archiveExistsInFileSystem && jsonExistsInFileSystem) {
-//        do {
-//            let jsonInDocumentsAttributes = try fileManager.attributesOfItemAtPath(jsonFileSystemURL!.path!)
-//            let archiveInDocumentsAttributes = try fileManager.attributesOfItemAtPath(archiveFileSystemURL!.path!)
-//            
-//            let jsonInDocumentsModDate = jsonInDocumentsAttributes[NSFileModificationDate] as! NSDate
-//            let archiveInDocumentsModDate = archiveInDocumentsAttributes[NSFileModificationDate] as! NSDate
-//            
-////            NSLog("archiveInDocumentsModDate: \(archiveInDocumentsModDate)")
-//            
-//            if (jsonInDocumentsModDate.isNewerThan(archiveInDocumentsModDate)) {
-//                //Do nothing, the json in Documents is newer, i.e. it was downloaded after the archive was created.
-//                NSLog("JSON in Documents is newer than Archive in Documents")
-//                return nil
-//            }
-//            
-//            if (archiveInDocumentsModDate.isEqualTo(jsonInDocumentsModDate)) {
-//                //Should never happen since archive is created from JSON
-//                NSLog("JSON in Documents is the same date as Archive in Documents")
-//                return nil
-//            }
-//            
-//            if (archiveInDocumentsModDate.isNewerThan(jsonInDocumentsModDate)) {
-//                NSLog("Archive in Documents is newer than JSON in Documents")
-//                
-//                let data = NSData(contentsOfURL: NSURL(fileURLWithPath: archiveFileSystemURL!.path!))
-//                if (data != nil) {
-//                    let sermons = NSKeyedUnarchiver.unarchiveObjectWithData(data!) as? [Sermon]
-//                    if sermons != nil {
-//                        return sermons
-//                    } else {
-//                        NSLog("could not get sermons from archive.")
-//                    }
-//                } else {
-//                    NSLog("could not get data from archive.")
-//                }
-//            }
-//        } catch _ {
-//            NSLog("failed to get json file attributes")
-//        }
-//    }
-//    
-//    return nil
-//}
-//
-//func sermonsToArchive(sermons:[Sermon]?)
-//{
-//    if (sermons != nil) {
-//        if let archive = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_ARCHIVE) {
-//            NSKeyedArchiver.archivedDataWithRootObject(sermons!).writeToURL(archive, atomically: true)
-//            NSLog("Finished saving the sermon archive.")
-//        }
-//    }
-//}
 
 extension Date
 {
@@ -467,8 +365,6 @@ extension Date
 
 func stringWithoutPrefixes(_ fromString:String?) -> String?
 {
-    let quote:String = "\""
-    
     if let range = fromString?.range(of: "A is ") {
         if range.lowerBound == "a".startIndex {
             return fromString
@@ -481,7 +377,7 @@ func stringWithoutPrefixes(_ fromString:String?) -> String?
 //        }
 //    }
     
-    let sourceString = fromString?.replacingOccurrences(of: quote, with: "").replacingOccurrences(of: "...", with: "")
+    let sourceString = fromString?.replacingOccurrences(of: Constants.QUOTE, with: Constants.EMPTY_STRING).replacingOccurrences(of: "...", with: Constants.EMPTY_STRING)
 //    print(sourceString)
     
     let prefixes = ["A ","An ","The "] // "And ",
@@ -503,25 +399,25 @@ func stringWithoutPrefixes(_ fromString:String?) -> String?
     return sortString
 }
 
-func sortSermons(_ sermons:[Sermon]?, sorting:String?, grouping:String?) -> [Sermon]?
+func sortMediaItems(_ mediaItems:[MediaItem]?, sorting:String?, grouping:String?) -> [MediaItem]?
 {
-    var result:[Sermon]?
+    var result:[MediaItem]?
     
     switch grouping! {
     case Grouping.YEAR:
-        result = sortSermonsByYear(sermons,sorting: sorting)
+        result = sortMediaItemsByYear(mediaItems,sorting: sorting)
         break
         
     case Grouping.TITLE:
-        result = sortSermonsBySeries(sermons,sorting: sorting)
+        result = sortMediaItemsBySeries(mediaItems,sorting: sorting)
         break
         
     case Grouping.BOOK:
-        result = sortSermonsByBook(sermons,sorting: sorting)
+        result = sortMediaItemsByBook(mediaItems,sorting: sorting)
         break
         
     case Grouping.SPEAKER:
-        result = sortSermonsBySpeaker(sermons,sorting: sorting)
+        result = sortMediaItemsBySpeaker(mediaItems,sorting: sorting)
         break
         
     default:
@@ -533,27 +429,27 @@ func sortSermons(_ sermons:[Sermon]?, sorting:String?, grouping:String?) -> [Ser
 }
 
 
-func sermonSections(_ sermons:[Sermon]?,sorting:String?,grouping:String?) -> [String]?
+func mediaItemSections(_ mediaItems:[MediaItem]?,sorting:String?,grouping:String?) -> [String]?
 {
     var strings:[String]?
     
     switch grouping! {
     case Grouping.YEAR:
-        strings = yearsFromSermons(sermons, sorting: sorting)?.map() { (year) in
+        strings = yearsFromMediaItems(mediaItems, sorting: sorting)?.map() { (year) in
             return "\(year)"
         }
         break
         
     case Grouping.TITLE:
-        strings = seriesSectionsFromSermons(sermons,withTitles: true)
+        strings = seriesSectionsFromMediaItems(mediaItems,withTitles: true)
         break
         
     case Grouping.BOOK:
-        strings = bookSectionsFromSermons(sermons)
+        strings = bookSectionsFromMediaItems(mediaItems)
         break
         
     case Grouping.SPEAKER:
-        strings = speakerSectionsFromSermons(sermons)
+        strings = speakerSectionsFromMediaItems(mediaItems)
         break
         
     default:
@@ -565,17 +461,17 @@ func sermonSections(_ sermons:[Sermon]?,sorting:String?,grouping:String?) -> [St
 }
 
 
-func yearsFromSermons(_ sermons:[Sermon]?, sorting: String?) -> [Int]?
+func yearsFromMediaItems(_ mediaItems:[MediaItem]?, sorting: String?) -> [Int]?
 {
-    return sermons != nil ?
+    return mediaItems != nil ?
         Array(
             Set(
-                sermons!.filter({ (sermon:Sermon) -> Bool in
-                    assert(sermon.fullDate != nil) // We're assuming this gets ALL sermons.
-                    return sermon.fullDate != nil
-                }).map({ (sermon:Sermon) -> Int in
+                mediaItems!.filter({ (mediaItem:MediaItem) -> Bool in
+                    assert(mediaItem.fullDate != nil) // We're assuming this gets ALL mediaItems.
+                    return mediaItem.fullDate != nil
+                }).map({ (mediaItem:MediaItem) -> Int in
                     let calendar = Calendar.current
-                    let components = (calendar as NSCalendar).components(.year, from: sermon.fullDate! as Date)
+                    let components = (calendar as NSCalendar).components(.year, from: mediaItem.fullDate! as Date)
                     return components.year!
                 })
             )
@@ -606,7 +502,7 @@ func testament(_ book:String) -> String
             return Constants.New_Testament
     }
     
-    return ""
+    return Constants.EMPTY_STRING
 }
 
 func chaptersFromScripture(_ scripture:String?) -> [Int]
@@ -618,15 +514,15 @@ func chaptersFromScripture(_ scripture:String?) -> [Int]
     var colonCount = 0
     
     if (scripture != nil) {
-        let string = scripture?.replacingOccurrences(of: Constants.SINGLE_SPACE_STRING, with: Constants.EMPTY_STRING)
+        let string = scripture?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
         
-        //        if (string!.rangeOfString(Constants.SINGLE_SPACE_STRING) != nil) {
-        //            string = string?.substringFromIndex(string!.rangeOfString(Constants.SINGLE_SPACE_STRING)!.endIndex)
+        //        if (string!.rangeOfString(Constants.SINGLE_SPACE) != nil) {
+        //            string = string?.substringFromIndex(string!.rangeOfString(Constants.SINGLE_SPACE)!.endIndex)
         //        } else {
         //            return []
         //        }
         
-        if (string == "") {
+        if (string == Constants.EMPTY_STRING) {
             return []
         }
         
@@ -643,7 +539,7 @@ func chaptersFromScripture(_ scripture:String?) -> [Int]
                 chapters = [Int(string!)!]
             }
         } else {
-            var chars = ""
+            var chars = Constants.EMPTY_STRING
             
             var seenColon = false
             var seenHyphen = false
@@ -679,7 +575,7 @@ func chaptersFromScripture(_ scripture:String?) -> [Int]
                         }
                     }
                     colonCount += 1
-                    chars = ""
+                    chars = Constants.EMPTY_STRING
                     break
                     
                 case "–":
@@ -694,7 +590,7 @@ func chaptersFromScripture(_ scripture:String?) -> [Int]
                             }
                         }
                     }
-                    chars = ""
+                    chars = Constants.EMPTY_STRING
                     break
                     
                 case "(":
@@ -708,10 +604,10 @@ func chaptersFromScripture(_ scripture:String?) -> [Int]
                         if (Int(chars) != nil) {
                             chapters.append(Int(chars)!)
                         }
-                        chars = ""
+                        chars = Constants.EMPTY_STRING
                     } else {
                         // Could be chapter or a verse
-                        chars = ""
+                        chars = Constants.EMPTY_STRING
                     }
                     break
                     
@@ -727,7 +623,7 @@ func chaptersFromScripture(_ scripture:String?) -> [Int]
                         if (Int(chars) != nil) {
                             endChapter = Int(chars)!
                         }
-                        chars = ""
+                        chars = Constants.EMPTY_STRING
                     }
                 }
                 if (endChapter != 0) {
@@ -831,7 +727,7 @@ func booksFromScripture(_ scripture:String?) -> [String]
         books = otBooks
         books.append(contentsOf: ntBooks)
         
-        string = string?.replacingOccurrences(of: " ", with: "")
+        string = string?.replacingOccurrences(of: " ", with: Constants.EMPTY_STRING)
 
 //        print(string)
         if string == "-" {
@@ -871,33 +767,33 @@ func booksFromScripture(_ scripture:String?) -> [String]
     return books
 }
 
-func sermonsInSermonSeries(_ sermon:Sermon?) -> [Sermon]?
+func multiPartMediaItems(_ mediaItem:MediaItem?) -> [MediaItem]?
 {
-    var sermonsInSeries:[Sermon]?
+    var multiPartMediaItems:[MediaItem]?
     
-    if (sermon != nil) {
-        if (sermon!.hasSeries) {
-            if (globals.sermons.all?.groupSort?[Grouping.TITLE]?[sermon!.seriesSort!]?[Constants.CHRONOLOGICAL] == nil) {
-                let seriesSermons = globals.sermonRepository.list?.filter({ (testSermon:Sermon) -> Bool in
-                    return sermon!.hasSeries ? (testSermon.series == sermon!.series) : (testSermon.id == sermon!.id)
+    if (mediaItem != nil) {
+        if (mediaItem!.hasMultipleParts) {
+            if (globals.media.all?.groupSort?[Grouping.TITLE]?[mediaItem!.multiPartSort!]?[Constants.CHRONOLOGICAL] == nil) {
+                let seriesMediaItems = globals.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
+                    return mediaItem!.hasMultipleParts ? (testMediaItem.multiPartName == mediaItem!.multiPartName) : (testMediaItem.id == mediaItem!.id)
                 })
-                sermonsInSeries = sortSermonsByYear(seriesSermons, sorting: Constants.CHRONOLOGICAL)
+                multiPartMediaItems = sortMediaItemsByYear(seriesMediaItems, sorting: Constants.CHRONOLOGICAL)
             } else {
-                sermonsInSeries = globals.sermons.all?.groupSort?[Grouping.TITLE]?[sermon!.seriesSort!]?[Constants.CHRONOLOGICAL]
+                multiPartMediaItems = globals.media.all?.groupSort?[Grouping.TITLE]?[mediaItem!.multiPartSort!]?[Constants.CHRONOLOGICAL]
             }
         } else {
-            sermonsInSeries = [sermon!]
+            multiPartMediaItems = [mediaItem!]
         }
     }
     
-    return sermonsInSeries
+    return multiPartMediaItems
 }
 
-func sermonsInBook(_ sermons:[Sermon]?,book:String?) -> [Sermon]?
+func mediaItemsInBook(_ mediaItems:[MediaItem]?,book:String?) -> [MediaItem]?
 {
-    return sermons?.filter({ (sermon:Sermon) -> Bool in
-        return sermon.book == book
-    }).sorted(by: { (first:Sermon, second:Sermon) -> Bool in
+    return mediaItems?.filter({ (mediaItem:MediaItem) -> Bool in
+        return mediaItem.book == book
+    }).sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
         if (first.fullDate!.isEqualTo(second.fullDate!)) {
             return first.service < second.service
         } else {
@@ -906,14 +802,14 @@ func sermonsInBook(_ sermons:[Sermon]?,book:String?) -> [Sermon]?
     })
 }
 
-func booksFromSermons(_ sermons:[Sermon]?) -> [String]?
+func booksFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 {
-    return sermons != nil ?
+    return mediaItems != nil ?
         Array(
-            Set(sermons!.filter({ (sermon:Sermon) -> Bool in
-                return sermon.hasBook
-            }).map({ (sermon:Sermon) -> String in
-                return sermon.book!
+            Set(mediaItems!.filter({ (mediaItem:MediaItem) -> Bool in
+                return mediaItem.hasBook
+            }).map({ (mediaItem:MediaItem) -> String in
+                return mediaItem.book!
             })
             )
             ).sorted(by: { (first:String, second:String) -> Bool in
@@ -935,12 +831,12 @@ func booksFromSermons(_ sermons:[Sermon]?) -> [String]?
         : nil
 }
 
-func bookSectionsFromSermons(_ sermons:[Sermon]?) -> [String]?
+func bookSectionsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 {
-    return sermons != nil ?
+    return mediaItems != nil ?
         Array(
-            Set(sermons!.map({ (sermon:Sermon) -> String in
-                return sermon.hasBook ? sermon.book! : sermon.scripture != nil ? sermon.scripture! : Constants.None
+            Set(mediaItems!.map({ (mediaItem:MediaItem) -> String in
+                return mediaItem.hasBook ? mediaItem.book! : mediaItem.scripture != nil ? mediaItem.scripture! : Constants.None
             })
             )
             ).sorted(by: { (first:String, second:String) -> Bool in
@@ -962,15 +858,15 @@ func bookSectionsFromSermons(_ sermons:[Sermon]?) -> [String]?
         : nil
 }
 
-func seriesFromSermons(_ sermons:[Sermon]?) -> [String]?
+func seriesFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 {
-    return sermons != nil ?
+    return mediaItems != nil ?
         Array(
             Set(
-                sermons!.filter({ (sermon:Sermon) -> Bool in
-                    return sermon.hasSeries
-                }).map({ (sermon:Sermon) -> String in
-                    return sermon.series!
+                mediaItems!.filter({ (mediaItem:MediaItem) -> Bool in
+                    return mediaItem.hasMultipleParts
+                }).map({ (mediaItem:MediaItem) -> String in
+                    return mediaItem.multiPartName!
                 })
             )
             ).sorted(by: { (first:String, second:String) -> Bool in
@@ -979,13 +875,13 @@ func seriesFromSermons(_ sermons:[Sermon]?) -> [String]?
         : nil
 }
 
-func seriesSectionsFromSermons(_ sermons:[Sermon]?) -> [String]?
+func seriesSectionsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 {
-    return sermons != nil ?
+    return mediaItems != nil ?
         Array(
             Set(
-                sermons!.map({ (sermon:Sermon) -> String in
-                    return sermon.seriesSection!
+                mediaItems!.map({ (mediaItem:MediaItem) -> String in
+                    return mediaItem.multiPartSection!
                 })
             )
             ).sorted(by: { (first:String, second:String) -> Bool in
@@ -994,16 +890,16 @@ func seriesSectionsFromSermons(_ sermons:[Sermon]?) -> [String]?
         : nil
 }
 
-func seriesSectionsFromSermons(_ sermons:[Sermon]?,withTitles:Bool) -> [String]?
+func seriesSectionsFromMediaItems(_ mediaItems:[MediaItem]?,withTitles:Bool) -> [String]?
 {
-    return sermons != nil ?
+    return mediaItems != nil ?
         Array(
             Set(
-                sermons!.map({ (sermon:Sermon) -> String in
-                    if (sermon.hasSeries) {
-                        return sermon.series!
+                mediaItems!.map({ (mediaItem:MediaItem) -> String in
+                    if (mediaItem.hasMultipleParts) {
+                        return mediaItem.multiPartName!
                     } else {
-                        return withTitles ? sermon.title! : Constants.Individual_Sermons
+                        return withTitles ? mediaItem.title! : Constants.Individual_Media
                     }
                 })
             )
@@ -1030,24 +926,139 @@ func bookNumberInBible(_ book:String?) -> Int?
     }
 }
 
+func tokensFromString(_ string:String?) -> [String]?
+{
+    var tokens:[String]?
+    
+    if (string != nil) {
+        var str = string?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+
+        if let range = str?.range(of: Constants.PART_INDICATOR_SINGULAR) {
+            str = str?.substring(to: range.lowerBound)
+        }
+        
+        //        print(name)
+        //        print(string)
+        
+        var token = Constants.EMPTY_STRING
+        
+        func processToken()
+        {
+            if (token.endIndex > "XX".endIndex) {
+                // "Q", "A", "I", "at", "or", "to", "of", "in", "on",  "be", "is", "vs", "us", "An"
+                for word in ["are", "can", "And", "The", "for"] {
+                    if token.lowercased() == word.lowercased() {
+                        token = Constants.EMPTY_STRING
+                        break
+                    }
+                }
+                
+                if let range = token.range(of: "'s") {
+                    token = token.substring(to: range.lowerBound)
+                }
+                
+                if let range = token.range(of: "'") {
+                    if range.upperBound == token.endIndex {
+                        token = token.substring(to: range.lowerBound)
+                    }
+                }
+                
+                if token != Constants.EMPTY_STRING {
+                    if tokens == nil {
+                        tokens = [token]
+                    } else {
+                        tokens?.append(token)
+                    }
+                    token = Constants.EMPTY_STRING
+                }
+            } else {
+                token = Constants.EMPTY_STRING
+            }
+        }
+        
+        for char in str!.characters {
+            if CharacterSet(charactersIn: " :-!;,.()?&").contains(UnicodeScalar(String(char))!) {
+                processToken()
+            } else {
+                if !CharacterSet(charactersIn: "$0123456789").contains(UnicodeScalar(String(char))!) {
+                    token.append(char)
+                }
+            }
+        }
+
+        if token != Constants.EMPTY_STRING {
+            processToken()
+        }
+    }
+    
+    return tokens
+}
 
 func lastNameFromName(_ name:String?) -> String?
 {
     if var lastname = name {
-        while (lastname.range(of: Constants.SINGLE_SPACE_STRING) != nil) {
-            lastname = lastname.substring(from: lastname.range(of: Constants.SINGLE_SPACE_STRING)!.upperBound)
+        while (lastname.range(of: Constants.SINGLE_SPACE) != nil) {
+            lastname = lastname.substring(from: lastname.range(of: Constants.SINGLE_SPACE)!.upperBound)
         }
         return lastname
     }
     return nil
 }
 
-func speakerSectionsFromSermons(_ sermons:[Sermon]?) -> [String]?
+func firstNameFromName(_ name:String?) -> String?
 {
-    return sermons != nil ?
+    var firstName:String?
+    
+    var string:String?
+    
+    if (name != nil) {
+        if let title = titleFromName(name) {
+            string = name?.substring(from: title.endIndex)
+        } else {
+            string = name
+        }
+        
+        string = string?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    
+//        print(name)
+//        print(string)
+        
+        var newString = Constants.EMPTY_STRING
+        
+        for char in string!.characters {
+            if String(char) == " " {
+                firstName = newString
+                break
+            }
+            newString.append(char)
+        }
+    }
+    
+    return firstName
+}
+
+func titleFromName(_ name:String?) -> String?
+{
+    var title = Constants.EMPTY_STRING
+    
+    if (name != nil) && (name?.range(of: ". ") != nil) {
+        for char in name!.characters {
+            title.append(char)
+            if String(char) == "." {
+                break
+            }
+        }
+    }
+    
+    return title != Constants.EMPTY_STRING ? title : nil
+}
+
+func speakerSectionsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
+{
+    return mediaItems != nil ?
         Array(
-            Set(sermons!.map({ (sermon:Sermon) -> String in
-                return sermon.speakerSection!
+            Set(mediaItems!.map({ (mediaItem:MediaItem) -> String in
+                return mediaItem.speakerSection!
             })
             )
             ).sorted(by: { (first:String, second:String) -> Bool in
@@ -1056,14 +1067,14 @@ func speakerSectionsFromSermons(_ sermons:[Sermon]?) -> [String]?
         : nil
 }
 
-func speakersFromSermons(_ sermons:[Sermon]?) -> [String]?
+func speakersFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 {
-    return sermons != nil ?
+    return mediaItems != nil ?
         Array(
-            Set(sermons!.filter({ (sermon:Sermon) -> Bool in
-                return sermon.hasSpeaker
-            }).map({ (sermon:Sermon) -> String in
-                return sermon.speaker!
+            Set(mediaItems!.filter({ (mediaItem:MediaItem) -> Bool in
+                return mediaItem.hasSpeaker
+            }).map({ (mediaItem:MediaItem) -> String in
+                return mediaItem.speaker!
             })
             )
             ).sorted(by: { (first:String, second:String) -> Bool in
@@ -1072,9 +1083,9 @@ func speakersFromSermons(_ sermons:[Sermon]?) -> [String]?
         : nil
 }
 
-func sortSermonsChronologically(_ sermons:[Sermon]?) -> [Sermon]?
+func sortMediaItemsChronologically(_ mediaItems:[MediaItem]?) -> [MediaItem]?
 {
-    return sermons?.sorted() {
+    return mediaItems?.sorted() {
         if ($0.fullDate!.isEqualTo($1.fullDate!)) {
             if ($0.service == $1.service) {
                 return $0.part < $1.part
@@ -1087,9 +1098,9 @@ func sortSermonsChronologically(_ sermons:[Sermon]?) -> [Sermon]?
     }
 }
 
-func sortSermonsReverseChronologically(_ sermons:[Sermon]?) -> [Sermon]?
+func sortMediaItemsReverseChronologically(_ mediaItems:[MediaItem]?) -> [MediaItem]?
 {
-    return sermons?.sorted() {
+    return mediaItems?.sorted() {
         if ($0.fullDate!.isEqualTo($1.fullDate!)) {
             if ($0.service == $1.service) {
                 return $0.part > $1.part
@@ -1102,27 +1113,27 @@ func sortSermonsReverseChronologically(_ sermons:[Sermon]?) -> [Sermon]?
     }
 }
 
-func sortSermonsByYear(_ sermons:[Sermon]?,sorting:String?) -> [Sermon]?
+func sortMediaItemsByYear(_ mediaItems:[MediaItem]?,sorting:String?) -> [MediaItem]?
 {
-    var sortedSermons:[Sermon]?
+    var sortedMediaItems:[MediaItem]?
 
     switch sorting! {
     case Constants.CHRONOLOGICAL:
-        sortedSermons = sortSermonsChronologically(sermons)
+        sortedMediaItems = sortMediaItemsChronologically(mediaItems)
         break
         
     case Constants.REVERSE_CHRONOLOGICAL:
-        sortedSermons = sortSermonsReverseChronologically(sermons)
+        sortedMediaItems = sortMediaItemsReverseChronologically(mediaItems)
         break
         
     default:
         break
     }
     
-    return sortedSermons
+    return sortedMediaItems
 }
 
-func compareSermonDates(first:Sermon, second:Sermon, sorting:String?) -> Bool
+func compareMediaItemDates(first:MediaItem, second:MediaItem, sorting:String?) -> Bool
 {
     var result = false
 
@@ -1150,27 +1161,27 @@ func compareSermonDates(first:Sermon, second:Sermon, sorting:String?) -> Bool
     return result
 }
 
-func sortSermonsBySeries(_ sermons:[Sermon]?,sorting:String?) -> [Sermon]?
+func sortMediaItemsBySeries(_ mediaItems:[MediaItem]?,sorting:String?) -> [MediaItem]?
 {
-    return sermons?.sorted() {
+    return mediaItems?.sorted() {
         var result = false
         
         let first = $0
         let second = $1
         
-        if (first.seriesSectionSort != second.seriesSectionSort) {
-            result = first.seriesSectionSort < second.seriesSectionSort
+        if (first.multiPartSectionSort != second.multiPartSectionSort) {
+            result = first.multiPartSectionSort < second.multiPartSectionSort
         } else {
-            result = compareSermonDates(first: first,second: second, sorting: sorting)
+            result = compareMediaItemDates(first: first,second: second, sorting: sorting)
         }
 
         return result
     }
 }
 
-func sortSermonsBySpeaker(_ sermons:[Sermon]?,sorting: String?) -> [Sermon]?
+func sortMediaItemsBySpeaker(_ mediaItems:[MediaItem]?,sorting: String?) -> [MediaItem]?
 {
-    return sermons?.sorted() {
+    return mediaItems?.sorted() {
         var result = false
         
         let first = $0
@@ -1179,16 +1190,16 @@ func sortSermonsBySpeaker(_ sermons:[Sermon]?,sorting: String?) -> [Sermon]?
         if (first.speakerSectionSort != second.speakerSectionSort) {
             result = first.speakerSectionSort < second.speakerSectionSort
         } else {
-            result = compareSermonDates(first: first,second: second, sorting: sorting)
+            result = compareMediaItemDates(first: first,second: second, sorting: sorting)
         }
         
         return result
     }
 }
 
-func sortSermonsByBook(_ sermons:[Sermon]?, sorting:String?) -> [Sermon]?
+func sortMediaItemsByBook(_ mediaItems:[MediaItem]?, sorting:String?) -> [MediaItem]?
 {
-    return sermons?.sorted() {
+    return mediaItems?.sorted() {
         let first = bookNumberInBible($0.book)
         let second = bookNumberInBible($1.book)
         
@@ -1198,7 +1209,7 @@ func sortSermonsByBook(_ sermons:[Sermon]?, sorting:String?) -> [Sermon]?
             if (first != second) {
                 result = first < second
             } else {
-                result = compareSermonDates(first: $0,second: $1, sorting: sorting)
+                result = compareMediaItemDates(first: $0,second: $1, sorting: sorting)
             }
         } else
             if (first != nil) && (second == nil) {
@@ -1211,7 +1222,7 @@ func sortSermonsByBook(_ sermons:[Sermon]?, sorting:String?) -> [Sermon]?
                         if ($0.bookSection != $1.bookSection) {
                             result = $0.bookSection < $1.bookSection
                         } else {
-                            result = compareSermonDates(first: $0,second: $1, sorting: sorting)
+                            result = compareMediaItemDates(first: $0,second: $1, sorting: sorting)
                         }
         }
         
@@ -1220,32 +1231,32 @@ func sortSermonsByBook(_ sermons:[Sermon]?, sorting:String?) -> [Sermon]?
 }
 
 
-func testSermonsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
+func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
 {
     var counter = 1
 
     if (testExisting) {
-        NSLog("Testing the availability of sermon transcripts and slides that we DO have in the sermonDicts - start")
+        NSLog("Testing the availability of mediaItem transcripts and slides that we DO have in the mediaItemDicts - start")
         
-        if let sermons = globals.sermonRepository.list {
-            for sermon in sermons {
+        if let mediaItems = globals.mediaRepository.list {
+            for mediaItem in mediaItems {
                 if (showTesting) {
-                    NSLog("Testing: \(counter) \(sermon.title!)")
+                    NSLog("Testing: \(counter) \(mediaItem.title!)")
                 } else {
 //                    NSLog(".", terminator: Constants.EMPTY_STRING)
                 }
                 
-                if (sermon.notes != nil) {
-                    if ((try? Data(contentsOf: sermon.notesURL! as URL)) == nil) {
-                        NSLog("Transcript DOES NOT exist for: \(sermon.title!) PDF: \(sermon.notes!)")
+                if (mediaItem.notes != nil) {
+                    if ((try? Data(contentsOf: mediaItem.notesURL! as URL)) == nil) {
+                        NSLog("Transcript DOES NOT exist for: \(mediaItem.title!) PDF: \(mediaItem.notes!)")
                     } else {
                         
                     }
                 }
                 
-                if (sermon.slides != nil) {
-                    if ((try? Data(contentsOf: sermon.slidesURL! as URL)) == nil) {
-                        NSLog("Slides DO NOT exist for: \(sermon.title!) PDF: \(sermon.slides!)")
+                if (mediaItem.slides != nil) {
+                    if ((try? Data(contentsOf: mediaItem.slidesURL! as URL)) == nil) {
+                        NSLog("Slides DO NOT exist for: \(mediaItem.title!) PDF: \(mediaItem.slides!)")
                     } else {
                         
                     }
@@ -1255,35 +1266,35 @@ func testSermonsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
             }
         }
         
-        NSLog("\nTesting the availability of sermon transcripts and slides that we DO have in the sermonDicts - end")
+        NSLog("\nTesting the availability of mediaItem transcripts and slides that we DO have in the mediaItemDicts - end")
     }
 
     if (testMissing) {
-        NSLog("Testing the availability of sermon transcripts and slides that we DO NOT have in the sermonDicts - start")
+        NSLog("Testing the availability of mediaItem transcripts and slides that we DO NOT have in the mediaItemDicts - start")
         
         counter = 1
-        if let sermons = globals.sermonRepository.list {
-            for sermon in sermons {
+        if let mediaItems = globals.mediaRepository.list {
+            for mediaItem in mediaItems {
                 if (showTesting) {
-                    NSLog("Testing: \(counter) \(sermon.title!)")
+                    NSLog("Testing: \(counter) \(mediaItem.title!)")
                 } else {
 //                    NSLog(".", terminator: Constants.EMPTY_STRING)
                 }
                 
-                if (sermon.audio == nil) {
-                    NSLog("No Audio file for: \(sermon.title) can't test for PDF's")
+                if (mediaItem.audio == nil) {
+                    NSLog("No Audio file for: \(mediaItem.title) can't test for PDF's")
                 } else {
-                    if (sermon.notes == nil) {
-                        if ((try? Data(contentsOf: sermon.notesURL!)) != nil) {
-                            NSLog("Transcript DOES exist for: \(sermon.title!) ID:\(sermon.id)")
+                    if (mediaItem.notes == nil) {
+                        if ((try? Data(contentsOf: mediaItem.notesURL!)) != nil) {
+                            NSLog("Transcript DOES exist for: \(mediaItem.title!) ID:\(mediaItem.id)")
                         } else {
                             
                         }
                     }
                     
-                    if (sermon.slides == nil) {
-                        if ((try? Data(contentsOf: sermon.slidesURL!)) != nil) {
-                            NSLog("Slides DO exist for: \(sermon.title!) ID: \(sermon.id)")
+                    if (mediaItem.slides == nil) {
+                        if ((try? Data(contentsOf: mediaItem.slidesURL!)) != nil) {
+                            NSLog("Slides DO exist for: \(mediaItem.title!) ID: \(mediaItem.id)")
                         } else {
                             
                         }
@@ -1294,34 +1305,34 @@ func testSermonsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
             }
         }
         
-        NSLog("\nTesting the availability of sermon transcripts and slides that we DO NOT have in the sermonDicts - end")
+        NSLog("\nTesting the availability of mediaItem transcripts and slides that we DO NOT have in the mediaItemDicts - end")
     }
 }
 
-func testSermonsTagsAndSeries()
+func testMediaItemsTagsAndSeries()
 {
-    NSLog("Testing for sermon series and tags the same - start")
+    NSLog("Testing for mediaItem series and tags the same - start")
     
-    if let sermons = globals.sermonRepository.list {
-        for sermon in sermons {
-            if (sermon.hasSeries) && (sermon.hasTags) {
-                if (sermon.series == sermon.tags) {
-                    NSLog("Series and Tags the same in: \(sermon.title!) Series:\(sermon.series!) Tags:\(sermon.tags!)")
+    if let mediaItems = globals.mediaRepository.list {
+        for mediaItem in mediaItems {
+            if (mediaItem.hasMultipleParts) && (mediaItem.hasTags) {
+                if (mediaItem.multiPartName == mediaItem.tags) {
+                    NSLog("Multiple Part Name and Tags the same in: \(mediaItem.title!) Multiple Part Name:\(mediaItem.multiPartName!) Tags:\(mediaItem.tags!)")
                 }
             }
         }
     }
     
-    NSLog("Testing for sermon series and tags the same - end")
+    NSLog("Testing for mediaItem series and tags the same - end")
 }
 
-func testSermonsForAudio()
+func testMediaItemsForAudio()
 {
     NSLog("Testing for audio - start")
     
-    for sermon in globals.sermonRepository.list! {
-        if (!sermon.hasAudio) {
-            NSLog("Audio missing in: \(sermon.title!)")
+    for mediaItem in globals.mediaRepository.list! {
+        if (!mediaItem.hasAudio) {
+            NSLog("Audio missing in: \(mediaItem.title!)")
         } else {
 
         }
@@ -1330,45 +1341,45 @@ func testSermonsForAudio()
     NSLog("Testing for audio - end")
 }
 
-func testSermonsForSpeaker()
+func testMediaItemsForSpeaker()
 {
     NSLog("Testing for speaker - start")
     
-    for sermon in globals.sermonRepository.list! {
-        if (!sermon.hasSpeaker) {
-            NSLog("Speaker missing in: \(sermon.title!)")
+    for mediaItem in globals.mediaRepository.list! {
+        if (!mediaItem.hasSpeaker) {
+            NSLog("Speaker missing in: \(mediaItem.title!)")
         }
     }
     
     NSLog("Testing for speaker - end")
 }
 
-func testSermonsForSeries()
+func testMediaItemsForSeries()
 {
-    NSLog("Testing for sermons with \"(Part \" in the title but no series - start")
+    NSLog("Testing for mediaItems with \"(Part \" in the title but no series - start")
     
-    for sermon in globals.sermonRepository.list! {
-        if (sermon.title?.range(of: "(Part ", options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil) && sermon.hasSeries {
-            NSLog("Series missing in: \(sermon.title!)")
+    for mediaItem in globals.mediaRepository.list! {
+        if (mediaItem.title?.range(of: "(Part ", options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil) && mediaItem.hasMultipleParts {
+            NSLog("Series missing in: \(mediaItem.title!)")
         }
     }
     
-    NSLog("Testing for sermons with \"(Part \" in the title but no series - end")
+    NSLog("Testing for mediaItems with \"(Part \" in the title but no series - end")
 }
 
-func testSermonsBooksAndSeries()
+func testMediaItemsBooksAndSeries()
 {
-    NSLog("Testing for sermon series and book the same - start")
+    NSLog("Testing for mediaItem series and book the same - start")
 
-    for sermon in globals.sermonRepository.list! {
-        if (sermon.hasSeries) && (sermon.hasBook) {
-            if (sermon.series == sermon.book) {
-                NSLog("Series and Book the same in: \(sermon.title!) Series:\(sermon.series!) Book:\(sermon.book!)")
+    for mediaItem in globals.mediaRepository.list! {
+        if (mediaItem.hasMultipleParts) && (mediaItem.hasBook) {
+            if (mediaItem.multiPartName == mediaItem.book) {
+                NSLog("Multiple Part Name and Book the same in: \(mediaItem.title!) Multiple Part Name:\(mediaItem.multiPartName!) Book:\(mediaItem.book!)")
             }
         }
     }
 
-    NSLog("Testing for sermon series and book the same - end")
+    NSLog("Testing for mediaItem series and book the same - end")
 }
 
 func tagsSetFromTagsString(_ tagsString:String?) -> Set<String>?
@@ -1420,11 +1431,11 @@ func tagsArrayFromTagsString(_ tagsString:String?) -> [String]?
     return arrayOfTags
 }
 
-func sermonsWithTag(_ sermons:[Sermon]?,tag:String?) -> [Sermon]?
+func mediaItemsWithTag(_ mediaItems:[MediaItem]?,tag:String?) -> [MediaItem]?
 {
     return tag != nil ?
-        sermons?.filter({ (sermon:Sermon) -> Bool in
-            if let tagSet = sermon.tagsSet {
+        mediaItems?.filter({ (mediaItem:MediaItem) -> Bool in
+            if let tagSet = mediaItem.tagsSet {
                 return tagSet.contains(tag!)
             } else {
                 return false
@@ -1432,13 +1443,13 @@ func sermonsWithTag(_ sermons:[Sermon]?,tag:String?) -> [Sermon]?
         }) : nil
 }
 
-func tagsFromSermons(_ sermons:[Sermon]?) -> [String]?
+func tagsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 {
-    if sermons != nil {
+    if mediaItems != nil {
         var tagsSet = Set<String>()
 
-        for sermon in sermons! {
-            if let tags = sermon.tagsSet {
+        for mediaItem in mediaItems! {
+            if let tags = mediaItem.tagsSet {
                 tagsSet.formUnion(tags)
             }
         }

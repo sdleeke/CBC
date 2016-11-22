@@ -28,21 +28,19 @@ class OBSlider: UISlider {
 		let beginTracking = super.beginTracking(touch, with: event)
 		
 		if (beginTracking) {
-//			let thumbRect = self.thumbRectForBounds(self.bounds, trackRect: self.trackRectForBounds(self.bounds), value: self.value)
-		
 			self.realPositionValue = self.value
-			self.beganTrackingLocation = CGPoint(x: touch.location(in: self.superview).x, y: touch.location(in: self.superview).y)
+			self.beganTrackingLocation = CGPoint(x: touch.location(in: self.superview!.superview).x, y: touch.location(in: self.superview!.superview).y)
 		}
 		
 		return beginTracking
 	}
 	
 	override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
-		let previousLocation = touch.previousLocation(in: self.superview)
-		let currentLocation = touch.location(in: self.superview)
+		let previousLocation = touch.previousLocation(in: self.superview!.superview)
+		let currentLocation = touch.location(in: self.superview!.superview)
 		let trackingOffset = currentLocation.x - previousLocation.x // delta x
 		
-		let verticalOffset = fabs(currentLocation.y - beganTrackingLocation!.y)/(self.superview!.bounds.height - beganTrackingLocation!.y)
+		let verticalOffset = fabs(currentLocation.y - beganTrackingLocation!.y)/(self.superview!.superview!.bounds.height - beganTrackingLocation!.y)
 //        NSLog("verticalOffset: \(CGFloat(verticalOffset))")
         
         var scrubbingSpeedChangePosIndex: NSInteger = self.indexOfLowerScrubbingSpeed(scrubbingSpeedChangePositions, forOffset: verticalOffset)
@@ -61,13 +59,14 @@ class OBSlider: UISlider {
 		
 //        NSLog("valueAdjustment: \(valueAdjustment)")
 		
-		var thumbAdjustment: Float = 0.0
+//		var thumbAdjustment: Float = 0.0
 		
-		if (((self.beganTrackingLocation!.y < currentLocation.y) && (currentLocation.y < previousLocation.y)) || ((self.beganTrackingLocation!.y > currentLocation.y) && (currentLocation.y > previousLocation.y))) {
-			
-			thumbAdjustment = (self.realPositionValue - self.value) / Float(1 + fabs(currentLocation.y - self.beganTrackingLocation!.y))
-		}
-		
+//		if (((self.beganTrackingLocation!.y < currentLocation.y) && (currentLocation.y < previousLocation.y)) || ((self.beganTrackingLocation!.y > currentLocation.y) && (currentLocation.y > previousLocation.y))) {
+//			thumbAdjustment = (self.realPositionValue - self.value) / Float(1 + fabs(currentLocation.y - self.beganTrackingLocation!.y))
+//		}
+
+        let thumbAdjustment: Float = (self.realPositionValue - self.value) / Float(1 + fabs(currentLocation.y - self.beganTrackingLocation!.y))
+
 //        NSLog("thumbAdjustment: \(thumbAdjustment)")
 
         self.value += valueAdjustment + thumbAdjustment
