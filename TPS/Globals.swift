@@ -405,13 +405,10 @@ class MediaPlayer {
     
     var mediaItem:MediaItem? {
         didSet {
-//            if playing == nil {
-//                MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-//            }
-
             globals.mediaCategory.playing = mediaItem?.id
             
             if mediaItem == nil {
+                MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
                 player = nil
                 stateTime = nil
             }
@@ -791,7 +788,7 @@ class Globals : NSObject {
     var cacheDownloads:Bool {
         get {
 //            print(UserDefaults.standard.object(forKey: Constants.USER_SETTINGS.CACHE_DOWNLOADS))
-            
+
             if UserDefaults.standard.object(forKey: Constants.USER_SETTINGS.CACHE_DOWNLOADS) == nil {
                 if #available(iOS 9.0, *) {
                     UserDefaults.standard.set(true, forKey: Constants.USER_SETTINGS.CACHE_DOWNLOADS)
@@ -811,6 +808,7 @@ class Globals : NSObject {
     var isRefreshing:Bool   = false
     var isLoading:Bool      = false
     
+    var searchComplete:Bool = true
     var searchActive:Bool = false
     var searchText:String? {
         didSet {

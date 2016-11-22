@@ -1000,7 +1000,9 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
         
         set {
-            wasShowing = dict![Field.showing]
+            if newValue != Showing.video {
+                wasShowing = newValue
+            }
             dict![Field.showing] = newValue
             mediaItemSettings?[Field.showing] = newValue
         }

@@ -301,14 +301,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     
                     globals.mediaPlayer.view?.isHidden = true
 
-                    // Because there is a mediaItem selected but we've STOPPED so there isn't one playing.
-//                    globals.mediaPlayer.mediaItem = nil // Handled by stop()
-                    
                     setupSpinner()
-//                    if spinner.isAnimating {
-//                        spinner.isHidden = true
-//                        spinner.stopAnimating()
-//                    }
                     
                     removeSliderObserver()
                     
@@ -334,14 +327,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 if (globals.mediaPlayer.mediaItem == selectedMediaItem) {
                     globals.mediaPlayer.stop() // IfPlaying
                     
-                    // Because there is a mediaItem selected but we've STOPPED so there isn't one playing.
-//                    globals.mediaPlayer.mediaItem = nil // Handled by stop()
-                    
                     setupSpinner()
-//                    if spinner.isAnimating {
-//                        spinner.isHidden = true
-//                        spinner.stopAnimating()
-//                    }
                     
                     removeSliderObserver()
                     
@@ -1895,8 +1881,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         
         if (selectedMediaItem == globals.mediaPlayer.mediaItem) {
             if (selectedMediaItem?.playing == Playing.video) {
-                globals.mediaPlayer.view?.isHidden = false
                 if selectedMediaItem?.showing == Showing.video {
+                    globals.mediaPlayer.view?.isHidden = false
                     mediaItemNotesAndSlides.bringSubview(toFront: globals.mediaPlayer.view!)
                 }
             }
@@ -2161,7 +2147,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             if document.visible(selectedMediaItem) {
                 if (document.wkWebView != nil) {
                     progressIndicator.progress = Float(document.wkWebView!.estimatedProgress)
-                    
+
                     if progressIndicator.progress == 1 {
                         progressIndicator.isHidden = true
                     }
@@ -2182,6 +2168,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         if document?.wkWebView == nil {
 //            document?.wkWebView?.removeFromSuperview()
             document?.wkWebView = WKWebView(frame: mediaItemNotesAndSlides.bounds)
+        }
+
+        if (document != nil) && !document!.loaded {
             loadDocument(document)
         }
         
@@ -2206,8 +2195,12 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                         activityIndicator.isHidden = false
                         activityIndicator.startAnimating()
                         
+                        mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
+                        
                         progressIndicator.progress = document!.download!.totalBytesExpectedToWrite != 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
                         progressIndicator.isHidden = false
+
+                        mediaItemNotesAndSlides.bringSubview(toFront: progressIndicator)
                     }
                     
                     if document?.loadTimer == nil {
@@ -2382,7 +2375,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 hideOtherDocuments()
                 
                 if (wkWebView != nil) {
-                    wkWebView?.isHidden = false
+//                    wkWebView?.isHidden = false
                     mediaItemNotesAndSlides.bringSubview(toFront: wkWebView!)
                 }
                 break
@@ -2394,7 +2387,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 hideOtherDocuments()
                 
                 if (wkWebView != nil) {
-                    wkWebView?.isHidden = false
+//                    wkWebView?.isHidden = false
                     mediaItemNotesAndSlides.bringSubview(toFront: wkWebView!)
                 }
                 break
@@ -2403,7 +2396,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 //This should not happen unless it is playing video.
                 switch selectedMediaItem!.playing! {
                 case Playing.audio:
-                    //This should never happen.
                     setupDefaultDocuments()
                     break
 
@@ -3749,13 +3741,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     spinner.startAnimating()
                 }
             } else {
-                if globals.mediaPlayer.isPaused {
-                    if spinner.isAnimating {
-                        spinner.isHidden = true
-                        spinner.stopAnimating()
-                    }
-                }
-                
                 if globals.mediaPlayer.isPlaying {
                     switch globals.mediaPlayer.mediaItem!.playing! {
                     case Playing.audio:
@@ -3781,6 +3766,11 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                         
                     default:
                         break
+                    }
+                } else {
+                    if spinner.isAnimating {
+                        spinner.isHidden = true
+                        spinner.stopAnimating()
                     }
                 }
             }

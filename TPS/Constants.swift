@@ -161,7 +161,10 @@ struct Constants {
         static let MEDIA_UPDATE_UI          = "MEDIA UPDATE UI"
         static let MEDIA_DOWNLOAD_FAILED    = "MEDIA DOWNLOAD FAILED"
         
-        static let UPDATE_MEDIA_LIST       = "UPDATE MEDIA LIST"
+        static let UPDATE_MEDIA_LIST        = "UPDATE MEDIA LIST"
+        
+        static let EDITING                  = "EDITING"
+        static let NOT_EDITING              = "NOT EDITING"
     }
     
     struct IDENTIFIER {
@@ -278,6 +281,8 @@ struct Constants {
     
     static let Sermon = "Sermon"
     static let Sermons = "Sermons"
+    
+    static let Transcript = "Transcript"
     
     static let EMAIL_SUBJECT = CBC.LONG
     static let EMAIL_ONE_SUBJECT = "Recommendation"

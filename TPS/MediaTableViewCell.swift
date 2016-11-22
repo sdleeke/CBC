@@ -13,6 +13,25 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     var downloadObserver:Timer?
 
     weak var vc:UIViewController?
+    
+    override func willTransition(to state: UITableViewCellStateMask)
+    {
+        switch state.rawValue {
+        case 2:
+            DispatchQueue.main.async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.EDITING), object: nil)
+            })
+            break
+        
+        default:
+            DispatchQueue.main.async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.NOT_EDITING), object: nil)
+            })
+            break
+        }
+        
+//        print(state.rawValue)
+    }
 
     func updateUI()
     {
