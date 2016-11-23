@@ -155,95 +155,101 @@ class MediaPlayer {
     
     func play()
     {
-        if url != nil {
-            switch url!.absoluteString {
-            case Constants.URL.LIVE_STREAM:
-                player?.play()
-                break
-                
-            default:
-                if loaded {
-                    if (mediaItem != stateTime?.mediaItem) || (stateTime?.mediaItem == nil) {
-                        stateTime = PlayerStateTime(mediaItem)
-                    }
-                    
-                    stateTime?.startTime = mediaItem?.currentTime
-                    
-                    stateTime?.state = .playing
-                    
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-                    })
-                    
-                    player?.play()
-                    
-                    globals.setupPlayingInfoCenter()
+        guard (url != nil) else {
+            return
+        }
+
+        switch url!.absoluteString {
+        case Constants.URL.LIVE_STREAM:
+            player?.play()
+            break
+            
+        default:
+            if loaded {
+                if (mediaItem != stateTime?.mediaItem) || (stateTime?.mediaItem == nil) {
+                    stateTime = PlayerStateTime(mediaItem)
                 }
-                break
+                
+                stateTime?.startTime = mediaItem?.currentTime
+                
+                stateTime?.state = .playing
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+                })
+                
+                player?.play()
+                
+                globals.setupPlayingInfoCenter()
             }
+            break
         }
     }
     
     func pause()
     {
-        if url != nil {
-            switch url!.absoluteString {
-            case Constants.URL.LIVE_STREAM:
-                player?.pause()
-                break
-                
-            default:
-                player?.pause()
-                
-                updateCurrentTimeExact()
-                
-                if (mediaItem != stateTime?.mediaItem) || (stateTime?.mediaItem == nil) {
-                    stateTime = PlayerStateTime(mediaItem)
-                }
-                
-                stateTime?.state = .paused
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-                })
-                
-                globals.setupPlayingInfoCenter()
-                break
+        guard (url != nil) else {
+            return
+        }
+
+        switch url!.absoluteString {
+        case Constants.URL.LIVE_STREAM:
+            player?.pause()
+            break
+            
+        default:
+            player?.pause()
+            
+            updateCurrentTimeExact()
+            
+            if (mediaItem != stateTime?.mediaItem) || (stateTime?.mediaItem == nil) {
+                stateTime = PlayerStateTime(mediaItem)
             }
+            
+            stateTime?.state = .paused
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+            })
+            
+            globals.setupPlayingInfoCenter()
+            break
         }
     }
     
     func stop()
     {
-        if url != nil {
-            switch url!.absoluteString {
-            case Constants.URL.LIVE_STREAM:
-                player?.pause()
-                break
-                
-            default:
-                player?.pause()
-                
-                updateCurrentTimeExact()
-         
-                if (mediaItem != stateTime?.mediaItem) || (stateTime?.mediaItem == nil) {
-                    stateTime = PlayerStateTime(mediaItem)
-                }
-                
-                stateTime?.state = .stopped
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-                    
-                    self.mediaItem = nil // This is unique to stop()
-                })
-                
-                globals.setupPlayingInfoCenter()
-                break
+        guard (url != nil) else {
+            return
+        }
+
+        switch url!.absoluteString {
+        case Constants.URL.LIVE_STREAM:
+            player?.pause()
+            break
+            
+        default:
+            player?.pause()
+            
+            updateCurrentTimeExact()
+            
+            if (mediaItem != stateTime?.mediaItem) || (stateTime?.mediaItem == nil) {
+                stateTime = PlayerStateTime(mediaItem)
             }
+            
+            stateTime?.state = .stopped
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+                
+                self.mediaItem = nil // This is unique to stop()
+            })
+            
+            globals.setupPlayingInfoCenter()
+            break
         }
     }
     
@@ -292,34 +298,38 @@ class MediaPlayer {
     
     func seek(to: Double?)
     {
-        if to != nil {
-            if url != nil {
-                switch url!.absoluteString {
-                case Constants.URL.LIVE_STREAM:
-                    break
-                    
-                default:
-                    if loaded {
-                        var seek = to!
-                        
-                        if seek > currentItem!.duration.seconds {
-                            seek = currentItem!.duration.seconds
-                        }
-                        
-                        if seek < 0 {
-                            seek = 0
-                        }
+        guard (to != nil) else {
+            return
+        }
 
-                        player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution))
+        guard (url != nil) else {
+            return
+        }
 
-                        mediaItem?.currentTime = seek.description
-                        stateTime?.startTime = seek.description
-                        
-                        globals.setupPlayingInfoCenter()
-                    }
-                    break
+        switch url!.absoluteString {
+        case Constants.URL.LIVE_STREAM:
+            break
+            
+        default:
+            if loaded {
+                var seek = to!
+                
+                if seek > currentItem!.duration.seconds {
+                    seek = currentItem!.duration.seconds
                 }
+                
+                if seek < 0 {
+                    seek = 0
+                }
+                
+                player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution))
+                
+                mediaItem?.currentTime = seek.description
+                stateTime?.startTime = seek.description
+                
+                globals.setupPlayingInfoCenter()
             }
+            break
         }
     }
     
@@ -568,25 +578,28 @@ struct MediaCategory {
             }
         }
         set {
-            if (selected != nil) {
-                if settings == nil {
-                    settings = [String:[String:String]]()
-                }
-                if (settings != nil) {
-                    if (settings?[selected!] == nil) {
-                        settings?[selected!] = [String:String]()
-                    }
-                    if (settings?[selected!]?[key] != newValue) {
-                        settings?[selected!]?[key] = newValue
-                        
-                        // For a high volume of activity this can be very expensive.
-                        saveSettingsBackground()
-                    }
-                } else {
-                    NSLog("settings == nil!")
-                }
-            } else {
+            guard (selected != nil) else {
                 NSLog("selected == nil!")
+                return
+            }
+
+            if settings == nil {
+                settings = [String:[String:String]]()
+            }
+            
+            guard (settings != nil) else {
+                NSLog("settings == nil!")
+                return
+            }
+
+            if (settings?[selected!] == nil) {
+                settings?[selected!] = [String:String]()
+            }
+            if (settings?[selected!]?[key] != newValue) {
+                settings?[selected!]?[key] = newValue
+                
+                // For a high volume of activity this can be very expensive.
+                saveSettingsBackground()
             }
         }
     }

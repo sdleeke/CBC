@@ -235,7 +235,18 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                     self.activityIndicator.startAnimating()
                     self.activityIndicator?.isHidden = false
                 })
+                
                 self.strings = self.stringsFunction?()
+                if self.strings != nil {
+                    let array = Array(Set(self.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
+                        
+                    self.indexStrings = array.map({ (string:String) -> String in
+                        return string.uppercased()
+                    })
+                    
+                    self.setupIndex()
+                }
+                
                 DispatchQueue.main.async(execute: { () -> Void in
                     self.tableView.reloadData()
                     self.activityIndicator.stopAnimating()

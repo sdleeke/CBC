@@ -469,6 +469,7 @@ class Download {
                     DispatchQueue.main.async(execute: { () -> Void in
                         // The following must appear AFTER we change the state
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.mediaItem)
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                     })
                     break
                     
@@ -476,6 +477,7 @@ class Download {
                     DispatchQueue.main.async(execute: { () -> Void in
                         // The following must appear AFTER we change the state
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.mediaItem)
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                     })
                     break
                 }
@@ -830,29 +832,25 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
     }
     
-    func searchTokens() -> [String]?
+    func searchStrings() -> [String]?
     {
         var array = [String]()
-        var set = Set<String>()
+        //        var set = Set<String>()
         
-//        if tagsArray != nil {
-//            tokens = tokens.union(Set(tagsArray!))
-//        }
-        
-        if books != nil {
-            array.append(contentsOf: books!)
-        }
+        //        if tagsArray != nil {
+        //            tokens = tokens.union(Set(tagsArray!))
+        //        }
         
         if hasSpeaker {
             array.append(speaker!)
-//            
-//            if let firstname = firstNameFromName(speaker) {
-//                array.append(firstname)
-//            }
-//            
-//            if let lastname = lastNameFromName(speaker) {
-//                array.append(lastname)
-//            }
+            //
+            //            if let firstname = firstNameFromName(speaker) {
+            //                array.append(firstname)
+            //            }
+            //
+            //            if let lastname = lastNameFromName(speaker) {
+            //                array.append(lastname)
+            //            }
         }
         
         if hasMultipleParts {
@@ -861,13 +859,50 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             array.append(title!)
         }
         
+        if books != nil {
+            array.append(contentsOf: books!)
+        }
+        
+        if let titleTokens = tokensFromString(title) {
+            array.append(contentsOf: titleTokens)
+        }
+        
+        return array.count > 0 ? array : nil
+    }
+    
+    func searchTokens() -> [String]?
+    {
+        var set = Set<String>()
+
+        if tagsArray != nil {
+            for tag in tagsArray! {
+                if let tokens = tokensFromString(tag) {
+                    set = set.union(Set(tokens))
+                }
+            }
+        }
+        
+        if hasSpeaker {
+            if let firstname = firstNameFromName(speaker) {
+                set.insert(firstname)
+            }
+
+            if let lastname = lastNameFromName(speaker) {
+                set.insert(lastname)
+            }
+        }
+        
+        if books != nil {
+            set = set.union(Set(books!))
+        }
+        
         if let titleTokens = tokensFromString(title) {
             set = set.union(Set(titleTokens))
         }
         
-        array.append(contentsOf: Array(set).sorted())
-        
-        return array.count > 0 ? array : nil
+        return set.count > 0 ? Array(set).map({ (string:String) -> String in
+                return string.uppercased()
+            }).sorted() : nil
     }
     
     func search(searchText:String?) -> Bool
@@ -1531,6 +1566,14 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         get {
 //            print(video)
             
+            guard video != nil else {
+                return nil
+            }
+            
+            guard video!.contains(Constants.BASE_URL.VIDEO_PREFIX) else {
+                return nil
+            }
+            
             let tail = video?.substring(from: Constants.BASE_URL.VIDEO_PREFIX.endIndex)
 //            print(tail)
             
@@ -1543,7 +1586,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     
     var externalVideo:String? {
         get {
-            return Constants.BASE_URL.EXTERNAL_VIDEO_PREFIX + videoID!
+            return videoID != nil ? Constants.BASE_URL.EXTERNAL_VIDEO_PREFIX + videoID! : nil
         }
     }
     
@@ -1558,85 +1601,86 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
     }
     
-    var fullNotesHTML:String? {
+    var searchMarkedNotesHTML:String? {
         get {
-            if notesHTML != nil {
-                var stringBefore:String = Constants.EMPTY_STRING
-                var stringAfter:String = Constants.EMPTY_STRING
-                var foundString:String = Constants.EMPTY_STRING
-                var string:String = notesHTML!
-                var newString:String = Constants.EMPTY_STRING
-                
-                repeat {
-                    //                            print(string)
-                    
-                    if let range = string.lowercased().range(of: globals.searchText!.lowercased()) {
-                        stringBefore = string.substring(to: range.lowerBound)
-                        stringAfter = string.substring(from: range.upperBound)
-                        
-                        foundString = string.substring(from: range.lowerBound)
-                        let newRange = foundString.lowercased().range(of: globals.searchText!.lowercased())
-                        foundString = foundString.substring(to: newRange!.upperBound)
-                        
-                        foundString = "<mark style=\"background-color:yellow;\">" + foundString + "</mark>"
-                        
-                        newString = newString + stringBefore + foundString
-                        
-                        stringBefore = stringBefore + foundString
-                        
-                        string = stringAfter
-                    }
-                } while (string.lowercased().range(of: globals.searchText!.lowercased()) != nil)
-                
-                newString = newString + stringAfter
-                
-                var header = "<center><b>"
-                
-                if let string = title {
-                    header = header + string + "</br>"
-                }
-                
-                if let string = scripture {
-                    header = header + string + "</br>"
-                }
-                
-                if let string = formattedDate {
-                    header = header + string + "</br>"
-                }
-                
-                if let string = speaker {
-                    header = header + "<i>by " + string + "</i></br>"
-                }
-                
-                header = header + "<i>Countryside Bible Church</i></br>"
-                
-                header = header + "</br>"
-                header = header + "Available online at <a href=\"\(websiteURL!)\">www.countrysidebible.org</a></br>"
-                
-                if let string = yearString {
-                    header = header + "Copyright \(string).  All rights reserved.</br>"
-                } else {
-                    header = header + "Copyright, all rights reserved.</br>"
-                }
-                
-                header = header + "<i>Unedited transcript for personal use only.</i>"
-                
-                header = header + "</b></center>"
-                
-                newString = header + newString
-                
-                return newString
-            } else {
+            guard (notesHTML != nil) else {
                 return nil
             }
+            
+            guard globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) else {
+                return nil
+            }
+            
+            var stringBefore:String = Constants.EMPTY_STRING
+            var stringAfter:String = Constants.EMPTY_STRING
+            var foundString:String = Constants.EMPTY_STRING
+            var string:String = notesHTML!
+            var newString:String = Constants.EMPTY_STRING
+            
+            repeat {
+                //                            print(string)
+                
+                if let range = string.lowercased().range(of: globals.searchText!.lowercased()) {
+                    stringBefore = string.substring(to: range.lowerBound)
+                    stringAfter = string.substring(from: range.upperBound)
+                    
+                    foundString = string.substring(from: range.lowerBound)
+                    let newRange = foundString.lowercased().range(of: globals.searchText!.lowercased())
+                    foundString = foundString.substring(to: newRange!.upperBound)
+                    
+                    foundString = "<mark style=\"background-color:yellow;\">" + foundString + "</mark>"
+                    
+                    newString = newString + stringBefore + foundString
+                    
+                    stringBefore = stringBefore + foundString
+                    
+                    string = stringAfter
+                }
+            } while (string.lowercased().range(of: globals.searchText!.lowercased()) != nil)
+            
+            newString = newString + stringAfter
+            
+            var header = "<center><b>"
+            
+            if let string = title {
+                header = header + string + "</br>"
+            }
+            
+            if let string = scripture {
+                header = header + string + "</br>"
+            }
+            
+            if let string = formattedDate {
+                header = header + string + "</br>"
+            }
+            
+            if let string = speaker {
+                header = header + "<i>by " + string + "</i></br>"
+            }
+            
+            header = header + "<i>Countryside Bible Church</i></br>"
+            
+            header = header + "</br>"
+            header = header + "Available online at <a href=\"\(websiteURL!)\">www.countrysidebible.org</a></br>"
+            
+            if let string = yearString {
+                header = header + "Copyright \(string).  All rights reserved.</br>"
+            } else {
+                header = header + "Copyright, all rights reserved.</br>"
+            }
+            
+            header = header + "<i>Unedited transcript for personal use only.</i>"
+            
+            header = header + "</b></center>"
+            
+            newString = header + newString
+            
+            return newString
         }
     }
     
     var notesHTML:String? {
-        get { // hasNotesHTML &&
-//            if (dict![Field.notes_HTML] == nil) {
-//                loadNotesHTML()
-//            }
+        get {
             //            print(dict![Field.notes])
             return dict![Field.notes_HTML]
         }
@@ -1698,6 +1742,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     
     var hasNotesHTML:Bool {
         get {
+//            print(files)
             return files != nil ? files!.contains("H") : false
         }
     }
@@ -2057,26 +2102,29 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                 return globals.multiPartSettings?[mediaItem!.seriesID]?[key]
             }
             set {
-                if (mediaItem != nil) {
-                    if globals.multiPartSettings == nil {
-                        globals.multiPartSettings = [String:[String:String]]()
-                    }
-                    if (globals.multiPartSettings != nil) {
-                        if (globals.multiPartSettings?[mediaItem!.seriesID] == nil) {
-                            globals.multiPartSettings?[mediaItem!.seriesID] = [String:String]()
-                        }
-                        if (globals.multiPartSettings?[mediaItem!.seriesID]?[key] != newValue) {
-                            //                        NSLog("\(mediaItem)")
-                            globals.multiPartSettings?[mediaItem!.seriesID]?[key] = newValue
-                            
-                            // For a high volume of activity this can be very expensive.
-                            globals.saveSettingsBackground()
-                        }
-                    } else {
-                        NSLog("globals.viewSplits == nil in SeriesSettings!")
-                    }
-                } else {
+                guard (mediaItem != nil) else {
                     NSLog("mediaItem == nil in SeriesSettings!")
+                    return
+                }
+
+                if globals.multiPartSettings == nil {
+                    globals.multiPartSettings = [String:[String:String]]()
+                }
+                
+                guard (globals.multiPartSettings != nil) else {
+                    NSLog("globals.viewSplits == nil in SeriesSettings!")
+                    return
+                }
+                
+                if (globals.multiPartSettings?[mediaItem!.seriesID] == nil) {
+                    globals.multiPartSettings?[mediaItem!.seriesID] = [String:String]()
+                }
+                if (globals.multiPartSettings?[mediaItem!.seriesID]?[key] != newValue) {
+                    //                        NSLog("\(mediaItem)")
+                    globals.multiPartSettings?[mediaItem!.seriesID]?[key] = newValue
+                    
+                    // For a high volume of activity this can be very expensive.
+                    globals.saveSettingsBackground()
                 }
             }
         }
@@ -2163,72 +2211,74 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             }
         }
         
-        if (download != nil) {
-            if (download!.fileSystemURL != nil) {
-                if debug {
-                    NSLog("URLSession:downloadTask:didFinishDownloadingToURL:")
-                    
-                    NSLog("session: \(session.sessionDescription)")
-                    NSLog("downloadTask: \(downloadTask.taskDescription)")
-                    
-                    NSLog("purpose: \(download!.purpose!)")
-                    
-                    NSLog("path: \(download!.fileSystemURL!.path)")
-                    NSLog("filename: \(download!.fileSystemURL!.lastPathComponent)")
-                    
-                    if (downloadTask.taskDescription != download!.fileSystemURL!.lastPathComponent) {
-                        NSLog("downloadTask.taskDescription != download!.fileSystemURL.lastPathComponent")
-                    }
-                    
-                    NSLog("bytes written: \(download!.totalBytesWritten)")
-                    NSLog("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
-                }
-                
-                let fileManager = FileManager.default
-                
-                // Check if file exists
-                //            NSLog("location: \(location) \n\ndestinationURL: \(destinationURL)\n\n")
-                
-                do {
-                    if (download?.state == .downloading) && (download!.totalBytesExpectedToWrite != -1) {
-                        if (fileManager.fileExists(atPath: download!.fileSystemURL!.path)){
-                            do {
-                                try fileManager.removeItem(at: download!.fileSystemURL!)
-                            } catch _ {
-                                NSLog("failed to remove duplicate download")
-                            }
-                        }
-                        
-                        if debug {
-                            NSLog("\(location)")
-                        }
-
-                        try fileManager.copyItem(at: location, to: download!.fileSystemURL!)
-                        try fileManager.removeItem(at: location)
-                        download?.state = .downloaded
-                    } else {
-                        // Nothing was downloaded
-                        download?.state = .none
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
-                        })
-                    }
-                } catch _ {
-                    NSLog("failed to copy temp download file")
-                    download?.state = .none
-                }
-            } else {
-                NSLog("NO FILE SYSTEM URL!")
-            }
-        } else {
+        guard (download != nil) else {
             NSLog("NO DOWNLOAD FOUND!")
+            return
         }
         
+        guard (download!.fileSystemURL != nil) else {
+            NSLog("NO FILE SYSTEM URL!")
+            return
+        }
+
+        if debug {
+            NSLog("URLSession:downloadTask:didFinishDownloadingToURL:")
+            
+            NSLog("session: \(session.sessionDescription)")
+            NSLog("downloadTask: \(downloadTask.taskDescription)")
+            
+            NSLog("purpose: \(download!.purpose!)")
+            
+            NSLog("path: \(download!.fileSystemURL!.path)")
+            NSLog("filename: \(download!.fileSystemURL!.lastPathComponent)")
+            
+            if (downloadTask.taskDescription != download!.fileSystemURL!.lastPathComponent) {
+                NSLog("downloadTask.taskDescription != download!.fileSystemURL.lastPathComponent")
+            }
+            
+            NSLog("bytes written: \(download!.totalBytesWritten)")
+            NSLog("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
+        }
+        
+        let fileManager = FileManager.default
+        
+        // Check if file exists
+        //            NSLog("location: \(location) \n\ndestinationURL: \(destinationURL)\n\n")
+        
+        do {
+            if (download?.state == .downloading) && (download!.totalBytesExpectedToWrite != -1) {
+                if (fileManager.fileExists(atPath: download!.fileSystemURL!.path)){
+                    do {
+                        try fileManager.removeItem(at: download!.fileSystemURL!)
+                    } catch _ {
+                        NSLog("failed to remove duplicate download")
+                    }
+                }
+                
+                if debug {
+                    NSLog("\(location)")
+                }
+                
+                try fileManager.copyItem(at: location, to: download!.fileSystemURL!)
+                try fileManager.removeItem(at: location)
+                download?.state = .downloaded
+            } else {
+                // Nothing was downloaded
+                download?.state = .none
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
+                })
+            }
+        } catch _ {
+            NSLog("failed to copy temp download file")
+            download?.state = .none
+        }
+    
         DispatchQueue.main.async(execute: { () -> Void in
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
         })
     }
-    
+
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
     {
         var download:Download?
@@ -2240,38 +2290,39 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             }
         }
         
-        if (download != nil) {
-            if debug {
-                NSLog("URLSession:task:didCompleteWithError:")
-                
-                NSLog("session: \(session.sessionDescription)")
-                NSLog("task: \(task.taskDescription)")
-                
-                NSLog("purpose: \(download!.purpose!)")
-                
-                if (download?.fileSystemURL != nil) {
-                    NSLog("path: \(download!.fileSystemURL!.path)")
-                    NSLog("filename: \(download!.fileSystemURL!.lastPathComponent)")
-                    
-                    if (task.taskDescription != download!.fileSystemURL!.lastPathComponent) {
-                        NSLog("task.taskDescription != download!.fileSystemURL.lastPathComponent")
-                    }
-                } else {
-                    NSLog("No fileSystemURL")
-                }
-                
-                NSLog("bytes written: \(download!.totalBytesWritten)")
-                NSLog("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
-            }
-            
-           if (error != nil) {
-                NSLog("with error: \(error!.localizedDescription)")
-                download?.state = .none
-            }
-        } else {
+        guard (download != nil) else {
             NSLog("NO DOWNLOAD FOUND!")
+            return
         }
 
+        if debug {
+            NSLog("URLSession:task:didCompleteWithError:")
+            
+            NSLog("session: \(session.sessionDescription)")
+            NSLog("task: \(task.taskDescription)")
+            
+            NSLog("purpose: \(download!.purpose!)")
+            
+            if (download?.fileSystemURL != nil) {
+                NSLog("path: \(download!.fileSystemURL!.path)")
+                NSLog("filename: \(download!.fileSystemURL!.lastPathComponent)")
+                
+                if (task.taskDescription != download!.fileSystemURL!.lastPathComponent) {
+                    NSLog("task.taskDescription != download!.fileSystemURL.lastPathComponent")
+                }
+            } else {
+                NSLog("No fileSystemURL")
+            }
+            
+            NSLog("bytes written: \(download!.totalBytesWritten)")
+            NSLog("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
+        }
+        
+        if (error != nil) {
+            NSLog("with error: \(error!.localizedDescription)")
+            download?.state = .none
+        }
+        
         //        NSLog("Download error: \(error)")
         //
         //        if (download?.totalBytesExpectedToWrite == 0) {
@@ -2302,32 +2353,33 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             }
         }
         
-        if (download != nil) {
-            if debug {
-                NSLog("URLSession:didBecomeInvalidWithError:")
-                
-                NSLog("session: \(session.sessionDescription)")
-
-                NSLog("purpose: \(download!.purpose!)")
-                
-                if (download?.fileSystemURL != nil) {
-                    NSLog("path: \(download!.fileSystemURL!.path)")
-                    NSLog("filename: \(download!.fileSystemURL!.lastPathComponent)")
-                } else {
-                    NSLog("No fileSystemURL")
-                }
-                
-                NSLog("bytes written: \(download!.totalBytesWritten)")
-                NSLog("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
-            }
-            
-            if (error != nil) {
-                NSLog("with error: \(error!.localizedDescription)")
-            }
-        } else {
+        guard (download != nil) else {
             NSLog("NO DOWNLOAD FOUND!")
+            return
         }
         
+        if debug {
+            NSLog("URLSession:didBecomeInvalidWithError:")
+            
+            NSLog("session: \(session.sessionDescription)")
+            
+            NSLog("purpose: \(download!.purpose!)")
+            
+            if (download?.fileSystemURL != nil) {
+                NSLog("path: \(download!.fileSystemURL!.path)")
+                NSLog("filename: \(download!.fileSystemURL!.lastPathComponent)")
+            } else {
+                NSLog("No fileSystemURL")
+            }
+            
+            NSLog("bytes written: \(download!.totalBytesWritten)")
+            NSLog("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
+        }
+        
+        if (error != nil) {
+            NSLog("with error: \(error!.localizedDescription)")
+        }
+
         download?.session = nil
     }
     

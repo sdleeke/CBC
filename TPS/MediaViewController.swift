@@ -1009,146 +1009,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         controller.dismiss(animated: true, completion: nil)
     }
     
-    func setupBody(_ mediaItem:MediaItem?) -> String? {
-        var bodyString:String?
-        
-        if (mediaItem != nil) {
-            bodyString = Constants.QUOTE + mediaItem!.title! + Constants.QUOTE + " by " + mediaItem!.speaker! + " from " + Constants.CBC.LONG
-
-            bodyString = bodyString! + "\n\nAudio: " + mediaItem!.audioURL!.absoluteString
-            
-            if mediaItem!.hasVideo {
-                bodyString = bodyString! + "\n\nVideo " + mediaItem!.externalVideo!
-            }
-            
-            if mediaItem!.hasSlides {
-                bodyString = bodyString! + "\n\nSlides: " + mediaItem!.slidesURL!.absoluteString
-            }
-            
-            if mediaItem!.hasNotes {
-                bodyString = bodyString! + "\n\nTranscript " + mediaItem!.notesURL!.absoluteString
-            }
-        }
-        
-        return bodyString
-    }
-    
-    func setupMediaItemBodyHTML(_ mediaItem:MediaItem?) -> String? {
-        var bodyString:String?
-        
-        if (mediaItem != nil) {
-            bodyString = Constants.QUOTE +  "<a href=\"" + mediaItem!.websiteURL!.absoluteString + "\">\(mediaItem!.title!)</a>" + Constants.QUOTE + " by " + mediaItem!.speaker! + " from <a href=\"\(Constants.CBC.WEBSITE)\">" + Constants.CBC.LONG + "</a>"
-            
-            bodyString = bodyString! + " (<a href=\"" + mediaItem!.audioURL!.absoluteString + "\">Audio</a>)"
-            
-            if mediaItem!.hasVideo {
-                bodyString = bodyString! + " (<a href=\"" + mediaItem!.externalVideo! + "\">Video</a>) "
-            }
-
-            if mediaItem!.hasSlides {
-                bodyString = bodyString! + " (<a href=\"" + mediaItem!.slidesURL!.absoluteString + "\">Slides</a>)"
-            }
-            
-            if mediaItem!.hasNotes {
-                bodyString = bodyString! + " (<a href=\"" + mediaItem!.notesURL!.absoluteString + "\">Transcript</a>) "
-            }
-            
-            bodyString = bodyString! + "<br/>"
-        }
-        
-        return bodyString
-    }
-    
-    func setupMultiPartMediaItemBodyHTML(_ multiPartMediaItems:[MediaItem]?) -> String? {
-        var bodyString:String?
-
-        if let mediaItems = multiPartMediaItems {
-            var speakerCounts = [String:Int]()
-            
-            for mediaItem in mediaItems {
-                if mediaItem.speaker != nil {
-                    if speakerCounts[mediaItem.speaker!] == nil {
-                        speakerCounts[mediaItem.speaker!] = 1
-                    } else {
-                        speakerCounts[mediaItem.speaker!]! += 1
-                    }
-                }
-            }
-            
-            let multiPartName = mediaItems[0].multiPartName
-            
-            let speakerCount = speakerCounts.keys.count
-            
-            let speakers = speakerCounts.keys.map({ (string:String) -> String in
-                return string
-            }) as [String]
-            
-            if (mediaItems.count > 0) {
-                switch speakerCount {
-                case 1:
-                    bodyString = "\"\(multiPartName!)\" by \(speakers[0])"
-                    break
-                    
-                default:
-                    bodyString = "\"\(multiPartName!)\""
-                    break
-                }
-                bodyString = bodyString! + " from <a href=\"\(Constants.CBC.WEBSITE)\">" + Constants.CBC.LONG + "</a>"
-                bodyString = bodyString! + "<br/>" + "<br/>"
-                
-                let mediaItemList = mediaItems.sorted() {
-                    if ($0.fullDate!.isEqualTo($1.fullDate!)) {
-                        return $0.service < $1.service
-                    } else {
-                        return $0.fullDate!.isOlderThan($1.fullDate!)
-                    }
-                }
-                
-                for mediaItem in mediaItemList {
-                    if speakerCount > 1 {
-                        bodyString = bodyString! + "<a href=\"" + mediaItem.websiteURL!.absoluteString + "\">\(mediaItem.title!)</a>" + " by \(mediaItem.speaker!)"
-                    } else {
-                        bodyString = bodyString! + "<a href=\"" + mediaItem.websiteURL!.absoluteString + "\">\(mediaItem.title!)</a>"
-                    }
-                    
-                    bodyString = bodyString! + " (<a href=\"" + mediaItem.audioURL!.absoluteString + "\">Audio</a>)"
-                    
-                    if mediaItem.hasVideo {
-                        bodyString = bodyString! + " (<a href=\"" + mediaItem.externalVideo! + "\">Video</a>) "
-                    }
-                    
-                    if mediaItem.hasSlides {
-                        bodyString = bodyString! + " (<a href=\"" + mediaItem.slidesURL!.absoluteString + "\">Slides</a>)"
-                    }
-                    
-                    if mediaItem.hasNotes {
-                        bodyString = bodyString! + " (<a href=\"" + mediaItem.notesURL!.absoluteString + "\">Transcript</a>) "
-                    }
-                    
-                    bodyString = bodyString! + "<br/>"
-                }
-                
-                bodyString = bodyString! + "<br/>"
-            }
-        }
-        
-        return bodyString
-    }
-    
-    func addressStringHTML() -> String
-    {
-        let addressString:String = "<br/>\(Constants.CBC.LONG)<br/>\(Constants.CBC.STREET_ADDRESS)<br/>\(Constants.CBC.CITY_STATE_ZIPCODE_COUNTRY)<br/>\(Constants.CBC.PHONE_NUMBER)<br/><a href=\"mailto:\(Constants.CBC.EMAIL)\">\(Constants.CBC.EMAIL)</a><br/>\(Constants.CBC.WEBSITE)"
-        
-        return addressString
-    }
-    
-    func addressString() -> String
-    {
-        let addressString:String = "\n\n\(Constants.CBC.LONG)\n\(Constants.CBC.STREET_ADDRESS)\n\(Constants.CBC.CITY_STATE_ZIPCODE_COUNTRY)\nPhone: \(Constants.CBC.PHONE_NUMBER)\nE-mail:\(Constants.CBC.EMAIL)\nWeb: \(Constants.CBC.WEBSITE)"
-        
-        return addressString
-    }
-    
     func mailMediaItem(_ mediaItem:MediaItem?)
     {
         let mailComposeViewController = MFMailComposeViewController()
@@ -1168,7 +1028,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         }
     }
     
-    func mailMediaItemSeries(_ mediaItems:[MediaItem]?)
+    func mailMediaItems(_ mediaItems:[MediaItem]?)
     {
         let mailComposeViewController = MFMailComposeViewController()
         mailComposeViewController.mailComposeDelegate = self // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
@@ -1176,7 +1036,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         mailComposeViewController.setToRecipients([])
         mailComposeViewController.setSubject(Constants.EMAIL_ALL_SUBJECT)
         
-        if let bodyString = setupMultiPartMediaItemBodyHTML(mediaItems) {
+        if let bodyString = setupMediaItemsBodyHTML(mediaItems) {
             mailComposeViewController.setMessageBody(bodyString, isHTML: true)
         }
         
@@ -1453,7 +1313,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 break
                 
             case Constants.Email_All:
-                mailMediaItemSeries(multiPartMediaItems)
+                mailMediaItems(multiPartMediaItems)
                 break
                 
             case Constants.Refresh_Document:

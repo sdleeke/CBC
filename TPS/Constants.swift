@@ -203,7 +203,8 @@ struct Constants {
     struct CBC {
         static let EMAIL = "cbcstaff@countrysidebible.org"
         static let WEBSITE = "http://www.countrysidebible.org"
-        static let SINGLE_WEBSITE = WEBSITE + "/cbcmedia?return=single&mediacode="
+        static let MEDIA_WEBSITE = WEBSITE + "/cbcmedia"
+        static let SINGLE_WEBSITE = MEDIA_WEBSITE + "?return=single&mediacode="
         static let STREET_ADDRESS = "250 Countryside Court"
         static let CITY_STATE_ZIPCODE_COUNTRY = "Southlake, TX 76092, USA"
         static let PHONE_NUMBER = "(817) 488-5381"
@@ -278,6 +279,10 @@ struct Constants {
     static let Select_Category = "Select Category"
     
     static let Search = "Search"
+    static let Tokens = "Words"
+
+//    static let Search_Terms = "Search Terms"
+//    static let Search_Transcript = "Search Transcript"
     
     static let Sermon = "Sermon"
     static let Sermons = "Sermons"

@@ -8,6 +8,7 @@
 
 import UIKit
 import AVFoundation
+import MessageUI
 
 extension UIColor {
     convenience init(red: Int, green: Int, blue: Int) {
@@ -54,7 +55,7 @@ enum JSONSource {
 //    var searchResults:MediaListGroupSort?
 //}
 
-class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISearchBarDelegate, UISearchControllerDelegate, UIPopoverPresentationControllerDelegate, URLSessionDownloadDelegate, PopoverTableViewControllerDelegate, PopoverPickerControllerDelegate { //
+class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISearchBarDelegate, UISearchControllerDelegate, UIPopoverPresentationControllerDelegate, URLSessionDownloadDelegate, MFMailComposeViewControllerDelegate, PopoverTableViewControllerDelegate, PopoverPickerControllerDelegate { //
 
     var showProgress = true
     
@@ -238,6 +239,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 showMenu.append(Constants.Settings)
                 
+                showMenu.append(Constants.Email_All)
+                
                 popover.strings = showMenu
                 
                 popover.showIndex = false //(globals.grouping == .series)
@@ -301,6 +304,62 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         navigationItem.rightBarButtonItem?.isEnabled = true
         
         enableToolBarButtons()
+    }
+    
+    // MARK: MFMailComposeViewControllerDelegate Method
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+        controller.dismiss(animated: true, completion: nil)
+    }
+    
+    func showSendMailErrorAlert() {
+        let alert = UIAlertController(title: "Could Not Send Email",
+                                      message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",
+                                      preferredStyle: UIAlertControllerStyle.alert)
+        
+        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+            
+        })
+        alert.addAction(action)
+        
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    func mailMediaItem(_ mediaItem:MediaItem?)
+    {
+        let mailComposeViewController = MFMailComposeViewController()
+        mailComposeViewController.mailComposeDelegate = self // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
+        
+        mailComposeViewController.setToRecipients([])
+        mailComposeViewController.setSubject(Constants.EMAIL_ONE_SUBJECT)
+        
+        if let bodyString = setupMediaItemBodyHTML(mediaItem) {
+            mailComposeViewController.setMessageBody(bodyString, isHTML: true)
+        }
+        
+        if MFMailComposeViewController.canSendMail() {
+            self.present(mailComposeViewController, animated: true, completion: nil)
+        } else {
+            self.showSendMailErrorAlert()
+        }
+    }
+    
+    func mailMediaItems(_ mediaItems:[MediaItem]?)
+    {
+        let mailComposeViewController = MFMailComposeViewController()
+        mailComposeViewController.mailComposeDelegate = self // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
+        
+        mailComposeViewController.setToRecipients([])
+        mailComposeViewController.setSubject(Constants.EMAIL_ALL_SUBJECT)
+        
+        if let bodyString = setupMediaItemsBodyHTML(mediaItems) {
+            mailComposeViewController.setMessageBody(bodyString, isHTML: true)
+        }
+        
+        if MFMailComposeViewController.canSendMail() {
+            self.present(mailComposeViewController, animated: true, completion: nil)
+        } else {
+            self.showSendMailErrorAlert()
+        }
     }
     
     func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
@@ -400,8 +459,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 } else {
                     dismiss(animated: true, completion: nil)
                     
-                    let alert = UIAlertController(title:"Media Item Not in List",
-                        message: "You are currently showing the series \"\(globals.tags.selected!)\" and the media item \"\(mediaItem.title!)\" does is not in that series.  Show the series \"All\" and try again.",
+                    let alert = UIAlertController(title:"Not in List",
+                        message: "You are currently showing \"\(globals.tags.selected!)\" and \"\(mediaItem.title!)\" is not in that list.  Show \"All\" and try again.",
                         preferredStyle: UIAlertControllerStyle.alert)
                     
                     let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
@@ -625,6 +684,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 about()
                 break
                 
+            case Constants.Email_All:
+                mailMediaItems(globals.active?.list)
+                break
+                
             case Constants.Current_Selection:
                 if let mediaItem = selectedMediaItem {
                     if globals.active!.mediaItems!.contains(mediaItem) {
@@ -632,8 +695,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     } else {
                         dismiss(animated: true, completion: nil)
                         
-                        let alert = UIAlertController(title:"Media Item Not in List",
-                            message: "The media item \"\(mediaItem.title!)\" is not in the list of media shown.",
+                        let alert = UIAlertController(title:"Not in List",
+//                            message: "\"\(mediaItem.title!)\" is not in the list.",
+                            message: "You are currently showing \"\(globals.tags.selected!)\" and \"\(mediaItem.title!)\" is not in that list.  Show \"All\" and try again.",
                             preferredStyle: UIAlertControllerStyle.alert)
                         
                         let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
@@ -1240,7 +1304,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         let json = jsonFromURL(url: url,filename: filename)
         
         if json != JSON.null {
-            //            NSLog("json:\(json)")
+            NSLog("json:\(json)")
             
             let mediaItems = json[key]
             
@@ -1249,6 +1313,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 var dict = [String:String]()
                 
                 for (key,value) in mediaItems[i] {
+//                    print(key,value)
                     dict[key] = "\(value)"
                 }
                 
@@ -1835,6 +1900,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     func editing()
     {
         refreshList = false
+        searchBar.resignFirstResponder()
     }
     
     func notEditing()
@@ -2832,66 +2898,173 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     {
         refreshList = false
         
+        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+            return nil
+        }
+        guard let mediaItem = cell.mediaItem else {
+            return nil
+        }
+        
         let search = UITableViewRowAction(style: .normal, title: Constants.Search) { action, index in
-            if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
-                if let mediaItem = cell.mediaItem {
-                    if let searchTokens = mediaItem.searchTokens() {
-//                        print(searchTokens)
-                        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-                            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                                self.dismiss(animated: true, completion: nil)
+            if let searchStrings = mediaItem.searchStrings() {
+                //                        print(searchTokens)
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
+                    if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                        self.dismiss(animated: true, completion: nil)
+                        
+                        navigationController.modalPresentationStyle = .popover
+                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                        navigationController.popoverPresentationController?.delegate = self
+                        
+                        navigationController.popoverPresentationController?.sourceView = tableView
+                        navigationController.popoverPresentationController?.sourceRect = cell.frame
+                        
+                        popover.navigationItem.title = Constants.Search
+                        
+                        popover.navigationController?.isNavigationBarHidden = false
+                        
+                        popover.delegate = self
+                        popover.purpose = .selectingCellSearch
+                        
+                        popover.selectedMediaItem = mediaItem
+                        
+                        popover.showIndex = true
+                        popover.showSectionHeaders = true
+                        
+                        popover.strings = searchStrings
+                        
+                        if mediaItem.hasNotesHTML && (mediaItem.notesHTML == nil) {
+                            popover.stringsFunction = {
+                                mediaItem.loadNotesHTML()
                                 
-                                navigationController.modalPresentationStyle = .popover
-                                navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                                navigationController.popoverPresentationController?.delegate = self
+                                var strings = popover.strings
                                 
-                                navigationController.popoverPresentationController?.sourceView = tableView
-                                navigationController.popoverPresentationController?.sourceRect = cell.frame
-                                
-                                popover.navigationItem.title = Constants.Search
-                                
-                                popover.navigationController?.isNavigationBarHidden = false
-                                
-                                popover.delegate = self
-                                popover.purpose = .selectingCellSearch
-                                
-                                popover.selectedMediaItem = mediaItem
-                                
-                                popover.strings = searchTokens
-                                
-                                if globals.searchTranscripts && mediaItem.hasNotesHTML && globals.searchActive && (globals.searchText != nil) {
-                                    if (mediaItem.notesHTML == nil) {
-                                        popover.stringsFunction = {
-                                            mediaItem.loadNotesHTML()
-                                            
-                                            var strings = searchTokens
-                                            
-                                            if mediaItem.searchNotesHTML(searchText: globals.searchText) {
-                                                strings.insert(Constants.Transcript,at: 0)
-                                            }
-                                            
-                                            return strings
-                                        }
-                                    } else {
-                                        if mediaItem.searchNotesHTML(searchText: globals.searchText) {
-                                            popover.strings?.insert(Constants.Transcript,at:0)
-                                        }
+                                if globals.searchTranscripts && globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
+                                    if mediaItem.searchNotesHTML(searchText: globals.searchText) {
+                                        strings?.insert(Constants.Transcript,at: 0)
                                     }
                                 }
                                 
-                                popover.showIndex = false
-                                popover.showSectionHeaders = false
-                                
-                                self.present(navigationController, animated: true, completion: nil)
+                                return strings
+                            }
+                        } else {
+                            if globals.searchTranscripts && globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
+                                if mediaItem.searchNotesHTML(searchText: globals.searchText) {
+                                    popover.strings?.insert(Constants.Transcript,at: 0)
+                                }
                             }
                         }
+                        
+                        popover.showIndex = false
+                        popover.showSectionHeaders = false
+                        
+                        self.present(navigationController, animated: true, completion: nil)
                     }
                 }
             }
         }
         search.backgroundColor = UIColor.controlBlue()
         
-        return [search]
+        let words = UITableViewRowAction(style: .normal, title: Constants.Tokens) { action, index in
+            if let searchTokens = mediaItem.searchTokens() {
+                //                        print(searchTokens)
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
+                    if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                        self.dismiss(animated: true, completion: nil)
+                        
+                        navigationController.modalPresentationStyle = .popover
+                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                        navigationController.popoverPresentationController?.delegate = self
+                        
+                        navigationController.popoverPresentationController?.sourceView = tableView
+                        navigationController.popoverPresentationController?.sourceRect = cell.frame
+                        
+                        popover.navigationItem.title = Constants.Search
+                        
+                        popover.navigationController?.isNavigationBarHidden = false
+                        
+                        popover.delegate = self
+                        popover.purpose = .selectingCellSearch
+                        
+                        popover.selectedMediaItem = mediaItem
+                        
+                        popover.strings = nil
+                        
+                        popover.stringsFunction = {
+                            if mediaItem.hasNotesHTML && (mediaItem.notesHTML == nil) {
+                                mediaItem.loadNotesHTML()
+                            }
+                            var tokens = Set(searchTokens)
+                            
+                            if let notesTokens = tokensFromString(mediaItem.notesHTML) {
+                                tokens = tokens.union(Set(notesTokens))
+                            }
+                            
+                            let tokenArray = Array(tokens).sorted()
+                            
+//                            print(tokenArray)
+
+                            return tokenArray
+                        }
+                        
+                        popover.showIndex = true
+                        popover.showSectionHeaders = true
+                        
+                        self.present(navigationController, animated: true, completion: nil)
+                    }
+                }
+            }
+        }
+        words.backgroundColor = UIColor.blue
+        
+//        let transcript = UITableViewRowAction(style: .normal, title: Constants.Search) { action, index in
+//            //                    if mediaItem?.notesHTML?.lowercased().range(of: globals.searchText!.lowercased()) != nil {
+//            // put a <b></b> around the matched text everywhere it occurs
+//            // load the transcript into a popover webViewController that loads the HTML string.
+//            
+//            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController {
+//                if let popover = navigationController.viewControllers[0] as? WebViewController {
+//                    self.dismiss(animated: true, completion: nil)
+//                    
+//                    navigationController.modalPresentationStyle = .overFullScreen
+//                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
+//                    navigationController.popoverPresentationController?.delegate = self
+//                    
+//                    //                                navigationController.modalPresentationStyle = .popover
+//                    //                                navigationController.popoverPresentationController?.sourceView = tableView
+//                    //
+//                    //                                navigationController.popoverPresentationController?.sourceRect = tableView.frame
+//                    
+//                    popover.navigationItem.title = Constants.Search_For
+//                    
+//                    popover.navigationController?.isNavigationBarHidden = false
+//                    
+//                    popover.selectedMediaItem = mediaItem
+//                    popover.content = .notesHTML
+//                    
+//                    self.present(navigationController, animated: true, completion: nil
+//                        //                                    {
+//                        //                                        DispatchQueue.main.async(execute: { () -> Void in
+//                        //                                            self.tableView.reloadData()
+//                        //                                        })
+//                        //                                    }
+//                    )
+//                }
+//            }
+//        }
+//        transcript.backgroundColor = UIColor.controlBlue()
+//
+//        if globals.searchActive && (globals.searchText != nil) && (mediaItem.notesHTML != nil) {
+//            return [search,transcript]
+//        } else {
+//            return [search]
+//        }
+
+        if mediaItem.hasNotesHTML {
+            return [search, words]
+        } else {
+            return [search]
+        }
     }
     
     /*

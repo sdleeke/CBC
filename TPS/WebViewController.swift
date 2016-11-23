@@ -978,7 +978,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         progressIndicator.isHidden = content == .notesHTML
         
         if content == .notesHTML {
-            if let notesHTML = selectedMediaItem?.fullNotesHTML {
+            if let notesHTML = selectedMediaItem?.searchMarkedNotesHTML {
                 html.string = notesHTML
             }
         }

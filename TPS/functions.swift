@@ -928,56 +928,61 @@ func bookNumberInBible(_ book:String?) -> Int?
 
 func tokensFromString(_ string:String?) -> [String]?
 {
-    var tokens:[String]?
+    guard (string != nil) else {
+        return nil
+    }
     
-    if (string != nil) {
-        var str = string?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-
-        if let range = str?.range(of: Constants.PART_INDICATOR_SINGULAR) {
-            str = str?.substring(to: range.lowerBound)
-        }
-        
-        //        print(name)
-        //        print(string)
-        
-        var token = Constants.EMPTY_STRING
-        
-        func processToken()
-        {
-            if (token.endIndex > "XX".endIndex) {
-                // "Q", "A", "I", "at", "or", "to", "of", "in", "on",  "be", "is", "vs", "us", "An"
-                for word in ["are", "can", "And", "The", "for"] {
-                    if token.lowercased() == word.lowercased() {
-                        token = Constants.EMPTY_STRING
-                        break
-                    }
+    var tokens = Set<String>()
+    
+    var str = string?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    
+    if let range = str?.range(of: Constants.PART_INDICATOR_SINGULAR) {
+        str = str?.substring(to: range.lowerBound)
+    }
+    
+    //        print(name)
+    //        print(string)
+    
+    var token = Constants.EMPTY_STRING
+    
+    func processToken()
+    {
+        if (token.endIndex > "XX".endIndex) {
+            // "Q", "A", "I", "at", "or", "to", "of", "in", "on",  "be", "is", "vs", "us", "An"
+            for word in ["are", "can", "And", "The", "for"] {
+                if token.lowercased() == word.lowercased() {
+                    token = Constants.EMPTY_STRING
+                    break
                 }
-                
+            }
+            
+            if token.lowercased() != "it's" {
                 if let range = token.range(of: "'s") {
                     token = token.substring(to: range.lowerBound)
                 }
-                
-                if let range = token.range(of: "'") {
-                    if range.upperBound == token.endIndex {
-                        token = token.substring(to: range.lowerBound)
-                    }
-                }
-                
-                if token != Constants.EMPTY_STRING {
-                    if tokens == nil {
-                        tokens = [token]
-                    } else {
-                        tokens?.append(token)
-                    }
-                    token = Constants.EMPTY_STRING
-                }
-            } else {
+            }
+            
+            token = token.trimmingCharacters(in: CharacterSet(charactersIn: "'"))
+
+//            if let range = token.range(of: "'") {
+//                if range.upperBound == token.endIndex {
+//                    token = token.substring(to: range.lowerBound)
+//                }
+//            }
+            
+            if token != Constants.EMPTY_STRING {
+                tokens.insert(token.uppercased())
                 token = Constants.EMPTY_STRING
             }
+        } else {
+            token = Constants.EMPTY_STRING
         }
-        
-        for char in str!.characters {
-            if CharacterSet(charactersIn: " :-!;,.()?&").contains(UnicodeScalar(String(char))!) {
+    }
+    
+    for char in str!.characters {
+//        print(char)
+        if UnicodeScalar(String(char)) != nil {
+            if CharacterSet(charactersIn: "\" :-!;,.()?&/<>[]").contains(UnicodeScalar(String(char))!) {
                 processToken()
             } else {
                 if !CharacterSet(charactersIn: "$0123456789").contains(UnicodeScalar(String(char))!) {
@@ -985,13 +990,15 @@ func tokensFromString(_ string:String?) -> [String]?
                 }
             }
         }
-
-        if token != Constants.EMPTY_STRING {
-            processToken()
-        }
     }
     
-    return tokens
+    if token != Constants.EMPTY_STRING {
+        processToken()
+    }
+    
+    return Array(tokens).sorted() {
+        $0.lowercased() < $1.lowercased()
+    }
 }
 
 func lastNameFromName(_ name:String?) -> String?
@@ -1467,5 +1474,258 @@ func tagsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
     return nil
 }
 
+
+func setupBody(_ mediaItem:MediaItem?) -> String? {
+    var bodyString:String?
+    
+    if (mediaItem != nil) {
+        bodyString = Constants.QUOTE + mediaItem!.title! + Constants.QUOTE + " by " + mediaItem!.speaker! + " from " + Constants.CBC.LONG
+        
+        bodyString = bodyString! + "\n\nAudio: " + mediaItem!.audioURL!.absoluteString
+        
+        if mediaItem!.hasVideo {
+            bodyString = bodyString! + "\n\nVideo " + mediaItem!.externalVideo!
+        }
+        
+        if mediaItem!.hasSlides {
+            bodyString = bodyString! + "\n\nSlides: " + mediaItem!.slidesURL!.absoluteString
+        }
+        
+        if mediaItem!.hasNotes {
+            bodyString = bodyString! + "\n\nTranscript " + mediaItem!.notesURL!.absoluteString
+        }
+    }
+    
+    return bodyString
+}
+
+func setupMediaItemBodyHTML(_ mediaItem:MediaItem?) -> String? {
+    var bodyString:String?
+    
+    guard mediaItem?.title != nil else {
+        return nil
+    }
+    
+    if let websiteURL = mediaItem?.websiteURL?.absoluteString {
+        bodyString = "<a href=\"" + websiteURL + "\">\(mediaItem!.title!)</a>"
+    } else {
+        bodyString = mediaItem!.title!
+    }
+    
+    if let speaker = mediaItem?.speaker {
+        bodyString = bodyString! + " by " + speaker
+    }
+    
+    bodyString = bodyString! + " from <a href=\"\(Constants.CBC.WEBSITE)\">" + Constants.CBC.LONG + "</a>"
+    
+    // Don't need these now that there is a web page for each sermon.
+//    if let audioURL = mediaItem?.audioURL?.absoluteString {
+//        bodyString = bodyString! + " (<a href=\"" + audioURL + "\">Audio</a>)"
+//    }
+//    
+//    if let externalVideo = mediaItem?.externalVideo {
+//        bodyString = bodyString! + " (<a href=\"" + externalVideo + "\">Video</a>) "
+//    }
+//    
+//    if let slidesURL = mediaItem?.slidesURL?.absoluteString {
+//        bodyString = bodyString! + " (<a href=\"" + slidesURL + "\">Slides</a>)"
+//    }
+//    
+//    if let notesURL = mediaItem?.notesURL?.absoluteString {
+//        bodyString = bodyString! + " (<a href=\"" + notesURL + "\">Transcript</a>) "
+//    }
+    
+    bodyString = bodyString! + "<br/>"
+    
+    return bodyString
+}
+
+func setupMediaItemsBodyHTML(_ mediaItems:[MediaItem]?) -> String? {
+    var bodyString:String?
+    
+    guard (mediaItems != nil) else {
+        return nil
+    }
+
+    var mediaListSort = [String:[MediaItem]]()
+
+    var mediaItemList:[MediaItem]?
+    
+    mediaItemList = mediaItems?.sorted() {
+        if stringWithoutPrefixes($0.title) == stringWithoutPrefixes($1.title) {
+            if ($0.fullDate!.isEqualTo($1.fullDate!)) {
+                return $0.service < $1.service
+            } else {
+                return $0.fullDate!.isOlderThan($1.fullDate!)
+            }
+        } else {
+            return stringWithoutPrefixes($0.title) < stringWithoutPrefixes($1.title)
+        }
+    }
+
+    guard (mediaItemList != nil) else {
+        return nil
+    }
+    
+    for mediaItem in mediaItemList! {
+        if let multiPartName = mediaItem.multiPartName {
+            if mediaListSort[multiPartName] == nil {
+                mediaListSort[multiPartName] = [mediaItem]
+            } else {
+                mediaListSort[multiPartName]?.append(mediaItem)
+            }
+        } else {
+            if let title = mediaItem.title {
+                if mediaListSort[title] == nil {
+                    mediaListSort[title] = [mediaItem]
+                } else {
+                    mediaListSort[title]?.append(mediaItem)
+                }
+            }
+        }
+    }
+
+    func mediaItemBodyString(_ mediaItem:MediaItem)
+    {
+        // Don't need these now that there is a web page for each sermon.
+//        if let audioURL = mediaItem.audioURL?.absoluteString {
+//            bodyString = bodyString! + " (<a href=\"" + audioURL + "\">Audio</a>)"
+//        }
+//        
+//        if let externalVideo = mediaItem.externalVideo {
+//            bodyString = bodyString! + " (<a href=\"" + externalVideo + "\">Video</a>) "
+//        }
+//        
+//        if let slidesURL = mediaItem.slidesURL?.absoluteString {
+//            bodyString = bodyString! + " (<a href=\"" + slidesURL + "\">Slides</a>)"
+//        }
+//        
+//        if let notesURL = mediaItem.notesURL?.absoluteString {
+//            bodyString = bodyString! + " (<a href=\"" + notesURL + "\">Transcript</a>) "
+//        }
+        
+        bodyString = bodyString! + "<br/>"
+        
+        //                    print(bodyString)
+    }
+    
+    bodyString = "The following media "
+    
+    if mediaItemList!.count > 1 {
+        bodyString = bodyString! + "are"
+    } else {
+        bodyString = bodyString! + "is"
+    }
+    bodyString = bodyString! + " from <a href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+    
+    let keys:[String] = mediaListSort.keys.map({ (string:String) -> String in
+        return string
+    }).sorted() {
+        stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
+    }
+    
+    var lastKey:String?
+    
+    for key in keys {
+        if let mediaItems = mediaListSort[key] {
+            switch mediaItems.count {
+            case 1:
+                if let mediaItem = mediaItems.first {
+                    bodyString = bodyString! + "<a href=\"" + mediaItem.websiteURL!.absoluteString + "\">\(mediaItem.title!)</a>" + " by \(mediaItem.speaker!)"
+                    
+                    mediaItemBodyString(mediaItem)
+                }
+                break
+                
+            default:
+                if lastKey != nil {
+                    if let count = mediaListSort[lastKey!]?.count {
+                        if count == 1 {
+                            bodyString = bodyString! + "<br/>"
+                        }
+                    }
+                }
+
+                var speakerCounts = [String:Int]()
+                
+                for mediaItem in mediaItems {
+                    if mediaItem.speaker != nil {
+                        if speakerCounts[mediaItem.speaker!] == nil {
+                            speakerCounts[mediaItem.speaker!] = 1
+                        } else {
+                            speakerCounts[mediaItem.speaker!]! += 1
+                        }
+                    }
+                }
+                
+                let speakerCount = speakerCounts.keys.count
+                
+                let speakers = speakerCounts.keys.map({ (string:String) -> String in
+                    return string
+                }) as [String]
+                
+                bodyString = bodyString! + key
+                
+                switch speakerCount {
+                case 1:
+                    bodyString = bodyString! + " by \(speakers[0])<br/>"
+                    break
+                    
+                default:
+                    bodyString = bodyString! + "<br/>"
+                    break
+                }
+                
+                for mediaItem in mediaItems {
+                    if var title = mediaItem.title {
+                        if mediaItem.multiPartName == nil {
+                            if let formattedDate = mediaItem.formattedDate {
+                                title = formattedDate
+                            }
+                        }
+
+                        if let websiteURL = mediaItem.websiteURL?.absoluteString {
+                            bodyString = bodyString! + "<a href=\"" + websiteURL + "\">\(title)</a>"
+                        } else {
+                            bodyString = bodyString! + title
+                        }
+                    }
+                    
+                    if let speaker = mediaItem.speaker, speakerCount > 1 {
+                        bodyString = bodyString! + " by \(speaker)"
+                    }
+//                    if (speakerCount > 1) && (mediaItem.speaker != nil) {
+//                        bodyString = bodyString! + " by \(mediaItem.speaker!)"
+//                    }
+                    
+                    mediaItemBodyString(mediaItem)
+                }
+                bodyString = bodyString! + "<br/>"
+                break
+            }
+        }
+        
+        lastKey = key
+    }
+    
+    bodyString = bodyString! + "<br/>"
+
+    
+    return bodyString
+}
+
+func addressStringHTML() -> String
+{
+    let addressString:String = "<br/>\(Constants.CBC.LONG)<br/>\(Constants.CBC.STREET_ADDRESS)<br/>\(Constants.CBC.CITY_STATE_ZIPCODE_COUNTRY)<br/>\(Constants.CBC.PHONE_NUMBER)<br/><a href=\"mailto:\(Constants.CBC.EMAIL)\">\(Constants.CBC.EMAIL)</a><br/>\(Constants.CBC.WEBSITE)"
+    
+    return addressString
+}
+
+func addressString() -> String
+{
+    let addressString:String = "\n\n\(Constants.CBC.LONG)\n\(Constants.CBC.STREET_ADDRESS)\n\(Constants.CBC.CITY_STATE_ZIPCODE_COUNTRY)\nPhone: \(Constants.CBC.PHONE_NUMBER)\nE-mail:\(Constants.CBC.EMAIL)\nWeb: \(Constants.CBC.WEBSITE)"
+    
+    return addressString
+}
 
 
