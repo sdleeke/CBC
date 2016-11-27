@@ -49,7 +49,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
-        NSLog("applicationWillResignActive")
+        print("applicationWillResignActive")
 
 //        if globals.mediaPlayer.rate == 0 {
 //            if globals.mediaPlayer.isPlaying {
@@ -70,14 +70,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
     func applicationDidEnterBackground(_ application: UIApplication) {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-//        NSLog("applicationDidEnterBackground")
+//        print("applicationDidEnterBackground")
         
 //        globals.mediaPlayer.view?.isHidden = true
     }
     
     func applicationWillEnterForeground(_ application: UIApplication) {
         // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
-//        NSLog("applicationWillEnterForeground")
+//        print("applicationWillEnterForeground")
 
         if (globals.mediaPlayer.rate == 0) && (globals.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
             //It is paused, possibly not by us, but by the system
@@ -132,12 +132,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
     
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-//        NSLog("applicationWillTerminate")
+//        print("applicationWillTerminate")
     }
 
     func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String, completionHandler: @escaping () -> Void)
     {
-        NSLog("application:handleEventsForBackgroundURLSession")
+        print("application:handleEventsForBackgroundURLSession")
         
         /*
         In iOS, when a background transfer completes or requires credentials, if your app is no longer running, iOS automatically relaunches your app in the background and calls the application:handleEventsForBackgroundURLSession:completionHandler: method on your app’s UIApplicationDelegate object. This call provides the identifier of the session that caused your app to be launched. Your app should store that completion handler, create a background configuration object with the same identifier, and create a session with that configuration object. The new session is automatically reassociated with ongoing background activity. Later, when the session finishes the last background download task, it sends the session delegate a URLSessionDidFinishEventsForBackgroundURLSession: message. Your session delegate should then call the stored completion handler.
@@ -152,7 +152,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
         
         for mediaItem in globals.mediaRepository.list! {
             if let download = mediaItem.downloads.filter({ (key:String, value:Download) -> Bool in
-                //                NSLog("handleEventsForBackgroundURLSession: \(filename) \(key)")
+                //                print("handleEventsForBackgroundURLSession: \(filename) \(key)")
                 return value.task?.taskDescription == filename
             }).first?.1 {
                 download.session = URLSession(configuration: configuration, delegate: mediaItem, delegateQueue: nil)

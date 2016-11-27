@@ -52,7 +52,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     
             setupIcons()
             
-            title.text = "\(mediaItem!.date!) \(mediaItem!.service!) \(mediaItem!.speaker!)"
+            title.text = "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)"
             
 //            print(mediaItem?.title)
             
@@ -71,7 +71,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 //                }
             }
         } else {
-            NSLog("No mediaItem for cell!")
+            print("No mediaItem for cell!")
         }
     }
     
@@ -96,7 +96,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     @IBOutlet weak var downloadButton: UIButton!
     @IBAction func downloadAction(_ sender: UIButton)
     {
-//        NSLog("Download!")
+//        print("Download!")
 //        if (Reachability.isConnectedToNetwork()) {
         
             if (mediaItem != nil) {
@@ -185,8 +185,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                         popover.purpose = .selectingTags
                         
                         popover.strings = mediaItem!.tagsArray
-                        popover.strings?.append(Constants.All)
-                        popover.strings?.sort()
+                        popover.strings?.insert(Constants.All,at: 0)
                         
                         popover.showIndex = false
                         popover.showSectionHeaders = false

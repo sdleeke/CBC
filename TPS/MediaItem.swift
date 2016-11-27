@@ -60,33 +60,50 @@ class MediaListGroupSort {
             return
         }
         
-        var string:String?
-        var name:String?
+//        var strings:[String]?
+//        var names:[String]?
         
         var groupedMediaItems = [String:[String:[MediaItem]]]()
         
         globals.finished += list!.count
         
         for mediaItem in list! {
+            var entries:[(string:String,name:String)]?
+            
             switch grouping! {
             case Grouping.YEAR:
-                string = mediaItem.yearString
-                name = string
+                entries = [(mediaItem.yearString,mediaItem.yearString)]
                 break
                 
             case Grouping.TITLE:
-                string = mediaItem.multiPartSectionSort
-                name = mediaItem.multiPartSection
+                entries = [(mediaItem.multiPartSectionSort,mediaItem.multiPartSection)]
                 break
                 
             case Grouping.BOOK:
-                string = mediaItem.bookSection
-                name = mediaItem.bookSection
+                // Need to update this for the fact that mediaItems can have more than one book.
+                if let books = mediaItem.books {
+                    for book in books {
+                        if entries == nil {
+                            entries = [(book,book)]
+                        } else {
+                            entries?.append((book,book))
+                        }
+                    }
+                }
+                if entries == nil {
+                    if mediaItem.scripture == Constants.Selected_Scriptures {
+                        entries = [(Constants.Selected_Scriptures,Constants.Selected_Scriptures)]
+                    } else {
+                        entries = [(Constants.None,Constants.None)]
+                    }
+                }
+//                if entries?.count > 1 {
+//                    print(mediaItem,entries!)
+//                }
                 break
                 
             case Grouping.SPEAKER:
-                string = mediaItem.speakerSectionSort
-                name = mediaItem.speakerSection
+                entries = [(mediaItem.speakerSectionSort,mediaItem.speakerSection)]
                 break
                 
             default:
@@ -97,19 +114,23 @@ class MediaListGroupSort {
                 groupNames?[grouping!] = [String:String]()
             }
             
-            groupNames?[grouping!]?[string!] = name!
-            
-            if (groupedMediaItems[grouping!] == nil) {
-                groupedMediaItems[grouping!] = [String:[MediaItem]]()
+            if entries != nil {
+                for entry in entries! {
+                    groupNames?[grouping!]?[entry.string] = entry.name
+                    
+                    if (groupedMediaItems[grouping!] == nil) {
+                        groupedMediaItems[grouping!] = [String:[MediaItem]]()
+                    }
+                    
+                    if groupedMediaItems[grouping!]?[entry.string] == nil {
+                        groupedMediaItems[grouping!]?[entry.string] = [mediaItem]
+                    } else {
+                        groupedMediaItems[grouping!]?[entry.string]?.append(mediaItem)
+                    }
+                    
+                    globals.progress += 1
+                }
             }
-            
-            if groupedMediaItems[grouping!]?[string!] == nil {
-                groupedMediaItems[grouping!]?[string!] = [mediaItem]
-            } else {
-                groupedMediaItems[grouping!]?[string!]?.append(mediaItem)
-            }
-            
-            globals.progress += 1
         }
         
         if (groupedMediaItems[grouping!] != nil) {
@@ -158,7 +179,7 @@ class MediaListGroupSort {
             sortGroup(grouping)
         }
         
-        //        NSLog("\(groupSort)")
+        //        print("\(groupSort)")
         if (groupSort![grouping!] != nil) {
             for key in groupSort![grouping!]!.keys.sorted(
                 by: {
@@ -420,8 +441,6 @@ enum State {
     case none
 }
 
-var debug = false
-
 class Download {
     weak var mediaItem:MediaItem?
     
@@ -507,7 +526,7 @@ class Download {
                 let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileSystemURL!.path)
                 size = fileAttributes[FileAttributeKey.size] as! Int
             } catch _ {
-                NSLog("failed to get file attributes for \(fileSystemURL!)")
+                print("failed to get file attributes for \(fileSystemURL!)")
             }
         }
         
@@ -520,9 +539,9 @@ class Download {
             state = .downloading
             
             if (downloadURL == nil) {
-                NSLog("\(mediaItem?.title)")
-                NSLog("\(purpose)")
-                NSLog("\(fileSystemURL)")
+                print("\(mediaItem?.title)")
+                print("\(purpose)")
+                print("\(fileSystemURL)")
             }
             
             let downloadRequest = URLRequest(url: downloadURL!)
@@ -556,7 +575,7 @@ class Download {
                 do {
                     try FileManager.default.removeItem(at: fileSystemURL!)
                 } catch _ {
-                    NSLog("failed to delete download")
+                    print("failed to delete download")
                 }
             }
             
@@ -602,12 +621,14 @@ class Download {
 class MediaItem : NSObject, URLSessionDownloadDelegate {
     var dict:[String:String]?
     
+    var bcv:[String:[Int:[Int]]]?
+    
     var singleLoaded = false
 
     init(dict:[String:String]?)
     {
         super.init()
-//        NSLog("\(dict)")
+//        print("\(dict)")
         self.dict = dict
     }
     
@@ -694,8 +715,8 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             // This should be constructed from the speaker (first and last initial), date, and service. E.g. tp160501a
             // BUT it doesn't work for gs == Guest Speaker
 //            if speaker != nil {
-//                let firstName = speaker!.substringToIndex(speaker!.rangeOfString(" ")!.startIndex)
-//                let lastName = speaker!.substringFromIndex(speaker!.rangeOfString(" ")!.endIndex)
+//                let firstName = speaker!.substringToIndex(speaker!.rangeOfString(Constants.SINGLE_SPACE)!.startIndex)
+//                let lastName = speaker!.substringFromIndex(speaker!.rangeOfString(Constants.SINGLE_SPACE)!.endIndex)
 //                
 //                let firstInitial = firstName.lowercaseString.substringToIndex("a".endIndex)
 //                let lastInitial = lastName.lowercaseString.substringToIndex("a".endIndex)
@@ -1156,7 +1177,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                 return json
             }
         } catch let error as NSError {
-            NSLog(error.localizedDescription)
+            print(error.localizedDescription)
         }
         
         return nil
@@ -1169,7 +1190,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         let json = singleJSONFromURL() // jsonDataFromDocumentsDirectory()
         
         if json != JSON.null {
-            NSLog("single json:\(json)")
+            print("single json:\(json)")
             
             let mediaItems = json[Constants.JSON.ARRAY_KEY.SINGLE_ENTRY]
             
@@ -1188,7 +1209,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             
             return mediaItemDicts.count > 0 ? mediaItemDicts[0] : nil
         } else {
-            NSLog("could not get json from file, make sure that file contains valid json.")
+            print("could not get json from file, make sure that file contains valid json.")
         }
         
         return nil
@@ -1196,18 +1217,11 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     
     func loadNotesHTML()
     {
-//        print(date!,title!)
-        
-//        if !singleLoaded && globals.loadSingles {
-//            self.singleLoaded = true
-//            DispatchQueue.global(qos: .default).async { () -> Void in
-                if let mediaItemDict = self.loadSingleDict() {
-                    self.dict![Field.notes_HTML] = mediaItemDict[Field.notes_HTML]
-                } else {
-                    NSLog("loadSingle failure")
-                }
-//            }
-//        }
+        if let mediaItemDict = self.loadSingleDict() {
+            self.dict![Field.notes_HTML] = mediaItemDict[Field.notes_HTML]
+        } else {
+            print("loadSingle failure")
+        }
     }
     
     var formattedDate:String? {
@@ -1221,13 +1235,13 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     
     var date:String? {
         get {
-            return dict![Field.date]?.substring(to: dict![Field.date]!.range(of: " ")!.lowerBound) // last two characters // dict![Field.title]
+            return dict![Field.date]?.substring(to: dict![Field.date]!.range(of: Constants.SINGLE_SPACE)!.lowerBound) // last two characters // dict![Field.title]
         }
     }
     
     var service:String? {
         get {
-            return dict![Field.date]?.substring(from: dict![Field.date]!.range(of: " ")!.upperBound) // last two characters // dict![Field.title]
+            return dict![Field.date]?.substring(from: dict![Field.date]!.range(of: Constants.SINGLE_SPACE)!.upperBound) // last two characters // dict![Field.title]
         }
     }
     
@@ -1303,12 +1317,12 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
 //                        dict![Field.speaker_sort] = speakerSort
 ////                        settings?[Field.speaker_sort] = speakerSort
 //                    } else {
-//                        NSLog("NO SPEAKER")
+//                        print("NO SPEAKER")
 //                    }
                 }
             }
             if dict![Field.speaker_sort] == nil {
-                NSLog("Speaker sort is NIL")
+                print("Speaker sort is NIL")
             }
             return dict![Field.speaker_sort]
         }
@@ -1337,7 +1351,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                         dict![Field.multi_part_name_sort] = multiPartSort
 //                        settings?[Field.series_sort] = multiPartSort
                     } else {
-//                        NSLog("multiPartSort is nil")
+//                        print("multiPartSort is nil")
                     }
                 }
             }
@@ -1390,7 +1404,25 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                     return tags
                 }
             } else {
-                return dict![Field.tags]
+                var tags:String?
+                
+                if hasSlides {
+                    tags = tags != nil ? tags! + "|Slides" : "Slides"
+                }
+                if hasNotes {
+                    tags = tags != nil ? tags! + "|Transcript" : "Transcript"
+                }
+                if hasVideo {
+                    tags = tags != nil ? tags! + "|Video" : "Video"
+                }
+                
+//                if let books = self.books {
+//                    for book in books {
+//                        tags = tags != nil ? tags! + "|Book:" + book : "Book:" + book
+//                    }
+//                }
+                
+                return dict![Field.tags] != nil ? dict![Field.tags]! + (tags != nil ? "|" + tags! : "") : tags
             }
         }
 //        set {
@@ -1523,7 +1555,16 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     
     var tagsArray:[String]? {
         get {
-            return tagsSet == nil ? nil : Array(tagsSet!).sorted() { $0 < $1 }
+            return tagsSet == nil ? nil : Array(tagsSet!).sorted() {
+//                let range0 = $0.range(of: "Book:")
+//                let range1 = $1.range(of: "Book:")
+//                
+//                if (range0 != nil) && (range1 != nil) {
+//                    return bookNumberInBible($0.substring(from: range0!.upperBound)) < bookNumberInBible($1.substring(from: range1!.upperBound))
+//                } else {
+                    return $0 < $1
+//                }
+            }
         }
     }
     
@@ -1708,7 +1749,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
     }
     
-    // A=Audio, V=Video, O=Outline, S=Slides, T=Transcript
+    // A=Audio, V=Video, O=Outline, S=Slides, T=Transcript, H=HTML Transcript
 
     var files:String? {
         get {
@@ -1850,9 +1891,93 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         return nil
     }
     
-    func chapters(_ thisBook:String) -> [Int]
+    func verses(book:String,chapter:Int) -> [Int]
     {
-        var chaptersForBook = [Int]()
+        var versesForChapter = [Int]()
+        
+        if let bacv = booksAndChaptersAndVerses() {
+            if let verses = bacv[book]?[chapter] {
+                versesForChapter = verses
+            }
+        }
+        
+        return versesForChapter
+    }
+    
+    func chaptersAndVerses(book:String) -> [Int:[Int]]
+    {
+        var chaptersAndVerses = [Int:[Int]]()
+        
+        if let bacv = booksAndChaptersAndVerses() {
+            if let cav = bacv[book] {
+                chaptersAndVerses = cav
+            }
+        }
+        
+        return chaptersAndVerses
+    }
+    
+    func booksAndChaptersAndVerses() -> [String:[Int:[Int]]]?
+    {
+        if self.bcv != nil {
+            return self.bcv
+        }
+        
+        guard (scripture != nil) else {
+            return nil
+        }
+        
+//        print(scripture!)
+        
+        var booksAndChaptersAndVerses = [String:[Int:[Int]]]()
+        
+        let books = booksFromScripture(scripture)
+        
+        var scriptures = [String]()
+        
+        var string = scripture!
+        
+        let separator = ";"
+        
+        repeat {
+            if string.range(of: separator) != nil {
+                scriptures.append(string.substring(to: string.range(of: separator)!.lowerBound))
+                string = string.substring(from: string.range(of: separator)!.upperBound)
+            }
+        } while (string.range(of: separator) != nil)
+        
+        scriptures.append(string)
+        
+        for scripture in scriptures {
+            for book in books {
+                if (scripture.range(of: book) != nil) {
+                    booksAndChaptersAndVerses[book] = chaptersAndVersesFromScripture(book:book,reference:scripture.substring(from: scripture.range(of: book)!.upperBound))
+                    if let chapters = booksAndChaptersAndVerses[book]?.keys {
+                        for chapter in chapters {
+                            if booksAndChaptersAndVerses[book]?[chapter] == nil {
+                                print(description,book,chapter)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+//        print(scripture!)
+//        print(booksAndChaptersAndVerses)
+        
+        self.bcv = booksAndChaptersAndVerses.count > 0 ? booksAndChaptersAndVerses : nil
+        
+        return self.bcv
+    }
+    
+    func chapters(_ thisBook:String) -> [Int]?
+    {
+        guard !Constants.NO_CHAPTER_BOOKS.contains(thisBook) else {
+            return [1]
+        }
+        
+        var chaptersForBook:[Int]?
         
         let books = booksFromScripture(scripture)
         
@@ -1862,7 +1987,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             
         case 1:
             if book == books.first {
-                if ["Philemon","Jude","2 John","3 John"].contains(thisBook) {
+                if Constants.NO_CHAPTER_BOOKS.contains(thisBook) {
                     chaptersForBook = [1]
                 } else {
                     var string = scripture!
@@ -1876,7 +2001,9 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                             if (subString.range(of: thisBook) != nil) {
                                 subString = subString.substring(from: subString.range(of: thisBook)!.upperBound)
                             }
-                            chaptersForBook.append(contentsOf: chaptersFromScripture(subString))
+                            if let chapters = chaptersFromScripture(subString) {
+                                chaptersForBook?.append(contentsOf: chapters)
+                            }
                             
                             string = string.substring(from: string.range(of: ";")!.upperBound)
                         } while (string.range(of: ";") != nil)
@@ -1885,7 +2012,9 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                         if (string.range(of: thisBook) != nil) {
                             string = string.substring(from: string.range(of: thisBook)!.upperBound)
                         }
-                        chaptersForBook.append(contentsOf: chaptersFromScripture(string))
+                        if let chapters = chaptersFromScripture(string) {
+                            chaptersForBook?.append(contentsOf: chapters)
+                        }
                     }
                 }
             }
@@ -1909,15 +2038,21 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             
             for scripture in scriptures {
                 if (scripture.range(of: thisBook) != nil) {
-                    chaptersForBook.append(contentsOf: chaptersFromScripture(scripture.substring(from: scripture.range(of: thisBook)!.upperBound)))
+                    if let chapters = chaptersFromScripture(scripture.substring(from: scripture.range(of: thisBook)!.upperBound)) {
+                        if chaptersForBook == nil {
+                            chaptersForBook = chapters
+                        } else {
+                            chaptersForBook?.append(contentsOf: chapters)
+                        }
+                    }
                 }
             }
             break
         }
         
 //        if chaptersForBook.count > 1 {
-//            NSLog("\(scripture)")
-//            NSLog("\(chaptersForBook)")
+//            print("\(scripture)")
+//            print("\(chaptersForBook)")
 //        }
         
         return chaptersForBook
@@ -2036,6 +2171,10 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             mediaItemString = "\(mediaItemString) \(title!)"
         }
         
+        if (scripture != nil) {
+            mediaItemString = "\(mediaItemString) \(scripture!)"
+        }
+        
         if (speaker != nil) {
             mediaItemString = "\(mediaItemString) \(speaker!)"
         }
@@ -2048,7 +2187,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         
         init(mediaItem:MediaItem?) {
             if (mediaItem == nil) {
-                NSLog("nil mediaItem in Settings init!")
+                print("nil mediaItem in Settings init!")
             }
             self.mediaItem = mediaItem
         }
@@ -2067,17 +2206,17 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                             globals.mediaItemSettings?[mediaItem!.id] = [String:String]()
                         }
                         if (globals.mediaItemSettings?[mediaItem!.id]?[key] != newValue) {
-                            //                        NSLog("\(mediaItem)")
+                            //                        print("\(mediaItem)")
                             globals.mediaItemSettings?[mediaItem!.id]?[key] = newValue
                             
                             // For a high volume of activity this can be very expensive.
                             globals.saveSettingsBackground()
                         }
                     } else {
-                        NSLog("globals.settings == nil in Settings!")
+                        print("globals.settings == nil in Settings!")
                     }
                 } else {
-                    NSLog("mediaItem == nil in Settings!")
+                    print("mediaItem == nil in Settings!")
                 }
             }
         }
@@ -2092,7 +2231,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         
         init(mediaItem:MediaItem?) {
             if (mediaItem == nil) {
-                NSLog("nil mediaItem in Settings init!")
+                print("nil mediaItem in Settings init!")
             }
             self.mediaItem = mediaItem
         }
@@ -2103,7 +2242,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             }
             set {
                 guard (mediaItem != nil) else {
-                    NSLog("mediaItem == nil in SeriesSettings!")
+                    print("mediaItem == nil in SeriesSettings!")
                     return
                 }
 
@@ -2112,7 +2251,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                 }
                 
                 guard (globals.multiPartSettings != nil) else {
-                    NSLog("globals.viewSplits == nil in SeriesSettings!")
+                    print("globals.viewSplits == nil in SeriesSettings!")
                     return
                 }
                 
@@ -2120,7 +2259,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                     globals.multiPartSettings?[mediaItem!.seriesID] = [String:String]()
                 }
                 if (globals.multiPartSettings?[mediaItem!.seriesID]?[key] != newValue) {
-                    //                        NSLog("\(mediaItem)")
+                    //                        print("\(mediaItem)")
                     globals.multiPartSettings?[mediaItem!.seriesID]?[key] = newValue
                     
                     // For a high volume of activity this can be very expensive.
@@ -2164,35 +2303,33 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
 
         if (download != nil) {
-            if debug {
-                NSLog("URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:")
+            debug("URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:")
+            
+            debug("session: \(session.sessionDescription)")
+            debug("downloadTask: \(downloadTask.taskDescription)")
+            
+            if (download?.fileSystemURL != nil) {
+                debug("path: \(download!.fileSystemURL!.path)")
+                debug("filename: \(download!.fileSystemURL!.lastPathComponent)")
                 
-                NSLog("session: \(session.sessionDescription)")
-                NSLog("downloadTask: \(downloadTask.taskDescription)")
-                
-                if (download?.fileSystemURL != nil) {
-                    NSLog("path: \(download!.fileSystemURL!.path)")
-                    NSLog("filename: \(download!.fileSystemURL!.lastPathComponent)")
-                    
-                    if (downloadTask.taskDescription != download!.fileSystemURL!.lastPathComponent) {
-                        NSLog("downloadTask.taskDescription != download!.fileSystemURL.lastPathComponent")
-                    }
-                } else {
-                    NSLog("No fileSystemURL")
+                if (downloadTask.taskDescription != download!.fileSystemURL!.lastPathComponent) {
+                    debug("downloadTask.taskDescription != download!.fileSystemURL.lastPathComponent")
                 }
-                
-                NSLog("bytes written: \(totalBytesWritten)")
-                NSLog("bytes expected to write: \(totalBytesExpectedToWrite)")
+            } else {
+                debug("No fileSystemURL")
             }
+            
+            debug("bytes written: \(totalBytesWritten)")
+            debug("bytes expected to write: \(totalBytesExpectedToWrite)")
             
             if (download?.state == .downloading) {
                 download?.totalBytesWritten = totalBytesWritten
                 download?.totalBytesExpectedToWrite = totalBytesExpectedToWrite
             } else {
-                NSLog("ERROR NOT DOWNLOADING")
+                print("ERROR NOT DOWNLOADING")
             }
         } else {
-            NSLog("ERROR NO DOWNLOAD")
+            print("ERROR NO DOWNLOAD")
         }
         
         DispatchQueue.main.async(execute: { () -> Void in
@@ -2212,38 +2349,36 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
         
         guard (download != nil) else {
-            NSLog("NO DOWNLOAD FOUND!")
+            print("NO DOWNLOAD FOUND!")
             return
         }
         
         guard (download!.fileSystemURL != nil) else {
-            NSLog("NO FILE SYSTEM URL!")
+            print("NO FILE SYSTEM URL!")
             return
         }
 
-        if debug {
-            NSLog("URLSession:downloadTask:didFinishDownloadingToURL:")
-            
-            NSLog("session: \(session.sessionDescription)")
-            NSLog("downloadTask: \(downloadTask.taskDescription)")
-            
-            NSLog("purpose: \(download!.purpose!)")
-            
-            NSLog("path: \(download!.fileSystemURL!.path)")
-            NSLog("filename: \(download!.fileSystemURL!.lastPathComponent)")
-            
-            if (downloadTask.taskDescription != download!.fileSystemURL!.lastPathComponent) {
-                NSLog("downloadTask.taskDescription != download!.fileSystemURL.lastPathComponent")
-            }
-            
-            NSLog("bytes written: \(download!.totalBytesWritten)")
-            NSLog("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
+        debug("URLSession:downloadTask:didFinishDownloadingToURL:")
+        
+        debug("session: \(session.sessionDescription)")
+        debug("downloadTask: \(downloadTask.taskDescription)")
+        
+        debug("purpose: \(download!.purpose!)")
+        
+        debug("path: \(download!.fileSystemURL!.path)")
+        debug("filename: \(download!.fileSystemURL!.lastPathComponent)")
+        
+        if (downloadTask.taskDescription != download!.fileSystemURL!.lastPathComponent) {
+            debug("downloadTask.taskDescription != download!.fileSystemURL.lastPathComponent")
         }
+        
+        debug("bytes written: \(download!.totalBytesWritten)")
+        debug("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
         
         let fileManager = FileManager.default
         
         // Check if file exists
-        //            NSLog("location: \(location) \n\ndestinationURL: \(destinationURL)\n\n")
+        //            print("location: \(location) \n\ndestinationURL: \(destinationURL)\n\n")
         
         do {
             if (download?.state == .downloading) && (download!.totalBytesExpectedToWrite != -1) {
@@ -2251,13 +2386,11 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                     do {
                         try fileManager.removeItem(at: download!.fileSystemURL!)
                     } catch _ {
-                        NSLog("failed to remove duplicate download")
+                        print("failed to remove duplicate download")
                     }
                 }
                 
-                if debug {
-                    NSLog("\(location)")
-                }
+                debug("\(location)")
                 
                 try fileManager.copyItem(at: location, to: download!.fileSystemURL!)
                 try fileManager.removeItem(at: location)
@@ -2270,7 +2403,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                 })
             }
         } catch _ {
-            NSLog("failed to copy temp download file")
+            print("failed to copy temp download file")
             download?.state = .none
         }
     
@@ -2291,44 +2424,42 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
         
         guard (download != nil) else {
-            NSLog("NO DOWNLOAD FOUND!")
+            print("NO DOWNLOAD FOUND!")
             return
         }
 
-        if debug {
-            NSLog("URLSession:task:didCompleteWithError:")
+        debug("URLSession:task:didCompleteWithError:")
+        
+        debug("session: \(session.sessionDescription)")
+        debug("task: \(task.taskDescription)")
+        
+        debug("purpose: \(download!.purpose!)")
+        
+        if (download?.fileSystemURL != nil) {
+            debug("path: \(download!.fileSystemURL!.path)")
+            debug("filename: \(download!.fileSystemURL!.lastPathComponent)")
             
-            NSLog("session: \(session.sessionDescription)")
-            NSLog("task: \(task.taskDescription)")
-            
-            NSLog("purpose: \(download!.purpose!)")
-            
-            if (download?.fileSystemURL != nil) {
-                NSLog("path: \(download!.fileSystemURL!.path)")
-                NSLog("filename: \(download!.fileSystemURL!.lastPathComponent)")
-                
-                if (task.taskDescription != download!.fileSystemURL!.lastPathComponent) {
-                    NSLog("task.taskDescription != download!.fileSystemURL.lastPathComponent")
-                }
-            } else {
-                NSLog("No fileSystemURL")
+            if (task.taskDescription != download!.fileSystemURL!.lastPathComponent) {
+                debug("task.taskDescription != download!.fileSystemURL.lastPathComponent")
             }
-            
-            NSLog("bytes written: \(download!.totalBytesWritten)")
-            NSLog("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
+        } else {
+            debug("No fileSystemURL")
         }
         
+        debug("bytes written: \(download!.totalBytesWritten)")
+        debug("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
+        
         if (error != nil) {
-            NSLog("with error: \(error!.localizedDescription)")
+            print("with error: \(error!.localizedDescription)")
             download?.state = .none
         }
         
-        //        NSLog("Download error: \(error)")
+        //        print("Download error: \(error)")
         //
         //        if (download?.totalBytesExpectedToWrite == 0) {
         //            download?.state = .none
         //        } else {
-        //            NSLog("Download succeeded for: \(session.description)")
+        //            print("Download succeeded for: \(session.description)")
         ////            download?.state = .downloaded // <- This caused a very spurious error.  Let this state chagne happen in didFinishDownloadingToURL!
         //        }
         
@@ -2354,30 +2485,28 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
         
         guard (download != nil) else {
-            NSLog("NO DOWNLOAD FOUND!")
+            print("NO DOWNLOAD FOUND!")
             return
         }
         
-        if debug {
-            NSLog("URLSession:didBecomeInvalidWithError:")
-            
-            NSLog("session: \(session.sessionDescription)")
-            
-            NSLog("purpose: \(download!.purpose!)")
-            
-            if (download?.fileSystemURL != nil) {
-                NSLog("path: \(download!.fileSystemURL!.path)")
-                NSLog("filename: \(download!.fileSystemURL!.lastPathComponent)")
-            } else {
-                NSLog("No fileSystemURL")
-            }
-            
-            NSLog("bytes written: \(download!.totalBytesWritten)")
-            NSLog("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
+        debug("URLSession:didBecomeInvalidWithError:")
+        
+        debug("session: \(session.sessionDescription)")
+        
+        debug("purpose: \(download!.purpose!)")
+        
+        if (download?.fileSystemURL != nil) {
+            debug("path: \(download!.fileSystemURL!.path)")
+            debug("filename: \(download!.fileSystemURL!.lastPathComponent)")
+        } else {
+            debug("No fileSystemURL")
         }
         
+        debug("bytes written: \(download!.totalBytesWritten)")
+        debug("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
+        
         if (error != nil) {
-            NSLog("with error: \(error!.localizedDescription)")
+            print("with error: \(error!.localizedDescription)")
         }
 
         download?.session = nil
@@ -2385,14 +2514,14 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     
     func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession)
     {
-        NSLog("URLSessionDidFinishEventsForBackgroundURLSession")
+        print("URLSessionDidFinishEventsForBackgroundURLSession")
         
         var filename:String?
         
         filename = session.configuration.identifier!.substring(from: Constants.DOWNLOAD_IDENTIFIER.endIndex)
         
         if let download = downloads.filter({ (key:String, value:Download) -> Bool in
-            //                NSLog("\(filename) \(key)")
+            //                print("\(filename) \(key)")
             return value.task?.taskDescription == filename
         }).first?.1 {
             download.completionHandler?()
@@ -2512,7 +2641,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         if !hasNotes { //  && Reachability.isConnectedToNetwork()
             if ((try? Data(contentsOf: notesURL!)) != nil) {
 //                notes = testNotes
-                NSLog("Transcript DOES exist for: \(title!)")
+                print("Transcript DOES exist for: \(title!)")
             }
         }
         
@@ -2529,7 +2658,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         if !hasSlides { //  && Reachability.isConnectedToNetwork()
             if ((try? Data(contentsOf: slidesURL!)) != nil) {
 //                slides = testSlides
-                NSLog("Slides DO exist for: \(title!)")
+                print("Slides DO exist for: \(title!)")
             } else {
                 
             }

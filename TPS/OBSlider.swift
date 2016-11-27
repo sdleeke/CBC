@@ -41,7 +41,7 @@ class OBSlider: UISlider {
 		let trackingOffset = currentLocation.x - previousLocation.x // delta x
 		
 		let verticalOffset = fabs(currentLocation.y - beganTrackingLocation!.y)/(self.superview!.superview!.bounds.height - beganTrackingLocation!.y)
-//        NSLog("verticalOffset: \(CGFloat(verticalOffset))")
+//        print("verticalOffset: \(CGFloat(verticalOffset))")
         
         var scrubbingSpeedChangePosIndex: NSInteger = self.indexOfLowerScrubbingSpeed(scrubbingSpeedChangePositions, forOffset: verticalOffset)
 		
@@ -49,7 +49,7 @@ class OBSlider: UISlider {
 			scrubbingSpeedChangePosIndex = self.scrubbingSpeeds.count
 		}
 		self.scrubbingSpeed = Float(self.scrubbingSpeeds[scrubbingSpeedChangePosIndex - 1] as! NSNumber)
-//        NSLog("scrubbingSpeed: \(self.scrubbingSpeed)")
+//        print("scrubbingSpeed: \(self.scrubbingSpeed)")
 		
 		let trackRect: CGRect = self.trackRect(forBounds: self.bounds)
 		
@@ -57,7 +57,7 @@ class OBSlider: UISlider {
 		
 		let valueAdjustment: Float = self.scrubbingSpeed * (self.maximumValue - self.minimumValue) * Float(trackingOffset / trackRect.size.width)
 		
-//        NSLog("valueAdjustment: \(valueAdjustment)")
+//        print("valueAdjustment: \(valueAdjustment)")
 		
 //		var thumbAdjustment: Float = 0.0
 		
@@ -67,7 +67,7 @@ class OBSlider: UISlider {
 
         let thumbAdjustment: Float = (self.realPositionValue - self.value) / Float(1 + fabs(currentLocation.y - self.beganTrackingLocation!.y))
 
-//        NSLog("thumbAdjustment: \(thumbAdjustment)")
+//        print("thumbAdjustment: \(thumbAdjustment)")
 
         self.value += valueAdjustment + thumbAdjustment
 		
@@ -88,7 +88,7 @@ class OBSlider: UISlider {
 	func indexOfLowerScrubbingSpeed (_ scrubbingSpeedPositions: NSArray, forOffset verticalOffset: CGFloat) -> NSInteger {
 		for i in 0..<scrubbingSpeedPositions.count {
 			let scrubbingSpeedOffset: NSNumber = scrubbingSpeedPositions[i] as! NSNumber
-//            NSLog("indexOfLowerScrubbingSpeed: \(CGFloat(scrubbingSpeedOffset))")
+//            print("indexOfLowerScrubbingSpeed: \(CGFloat(scrubbingSpeedOffset))")
 			if (verticalOffset < CGFloat(scrubbingSpeedOffset)) {
 				return i
 			}

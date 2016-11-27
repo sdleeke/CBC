@@ -31,7 +31,7 @@ class LiveViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-//        globals.mediaPlayer.player?.controlStyle = MPMovieControlStyle.Embedded
+        navigationController?.isToolbarHidden = true
     }
     
     override func viewDidAppear(_ animated: Bool) {

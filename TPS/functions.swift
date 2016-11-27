@@ -81,7 +81,7 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
             }
         }
     } catch _ {
-        NSLog("failed to get files in caches directory")
+        print("failed to get files in caches directory")
     }
     
     return files.count > 0 ? files : nil
@@ -96,11 +96,11 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
 //            let array = try fileManager.contentsOfDirectoryAtPath(path)
 //
 //            for string in array {
-//                NSLog("Deleting: \(string)")
+//                print("Deleting: \(string)")
 //                try fileManager.removeItemAtPath(path + string)
 //            }
 //        } catch _ {
-//            NSLog("failed to remove temp file")
+//            print("failed to remove temp file")
 //        }
 //    }
 
@@ -114,12 +114,12 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
 //        
 //        for name in array {
 //            if (name.rangeOfString(Constants.TMP_FILENAME_EXTENSION)?.endIndex == name.endIndex) {
-//                NSLog("Deleting: \(name)")
+//                print("Deleting: \(name)")
 //                try fileManager.removeItemAtPath(path + name)
 //            }
 //        }
 //    } catch _ {
-//        NSLog("failed to remove temp files")
+//        print("failed to remove temp files")
 //    }
 //}
 
@@ -136,7 +136,7 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
 //        do {
 //            try fileManager.removeItemAtURL(oldURL!)
 //        } catch _ {
-//            NSLog("failed to remove old json file")
+//            print("failed to remove old json file")
 //        }
 //    }
 //    
@@ -148,16 +148,16 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
 //            //        try fileManager.copyItemAtURL(sourceURL!, toURL: destinationURL!)
 //            //        try fileManager.removeItemAtURL(sourceURL!)
 //        } catch _ {
-//            NSLog("failed to promote new json file from tmp to final")
+//            print("failed to promote new json file from tmp to final")
 //            
 //            do {
 //                try fileManager.moveItemAtURL(oldURL!, toURL: destinationURL!)
 //            } catch _ {
-//                NSLog("failed to move json file back from old to current")
+//                print("failed to move json file back from old to current")
 //            }
 //        }
 //    } catch _ {
-//        NSLog("failed to move current json file to old")
+//        print("failed to move current json file to old")
 //    }
 //}
 
@@ -170,13 +170,13 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
 //            if json != JSON.null {
 //                return json
 //            } else {
-//                NSLog("could not get json from file, make sure that file contains valid json.")
+//                print("could not get json from file, make sure that file contains valid json.")
 //            }
 //        } catch let error as NSError {
-//            NSLog(error.localizedDescription)
+//            print(error.localizedDescription)
 //        }
 //    } else {
-//        NSLog("Invalid filename/path.")
+//        print("Invalid filename/path.")
 //    }
 //    
 //    return nil
@@ -191,13 +191,13 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
 //            if json != JSON.null {
 //                return json
 //            } else {
-//                NSLog("could not get json from file, make sure that file contains valid json.")
+//                print("could not get json from file, make sure that file contains valid json.")
 //            }
 //        } catch let error as NSError {
-//            NSLog(error.localizedDescription)
+//            print(error.localizedDescription)
 //        }
 //    } else {
-//        NSLog("Invalid filename/path.")
+//        print("Invalid filename/path.")
 //    }
 //
 //    return nil
@@ -209,7 +209,7 @@ func removeJSONFromFileSystemDirectory()
         do {
             try FileManager.default.removeItem(atPath: jsonFileSystemURL.path)
         } catch _ {
-            NSLog("failed to copy mediaItems.json")
+            print("failed to copy mediaItems.json")
         }
     }
 }
@@ -228,7 +228,7 @@ func jsonToFileSystemDirectory(key:String)
                     // Copy File From Bundle To Documents Directory
                     try fileManager.copyItem(atPath: jsonBundlePath!,toPath: jsonFileURL.path)
                 } catch _ {
-                    NSLog("failed to copy mediaItems.json")
+                    print("failed to copy mediaItems.json")
                 }
             }
         } else {
@@ -244,36 +244,36 @@ func jsonToFileSystemDirectory(key:String)
                 
                 if (jsonDocumentsModDate.isNewerThan(jsonBundleModDate)) {
                     //Do nothing, the json in Documents is newer, i.e. it was downloaded after the install.
-                    NSLog("JSON in Documents is newer than JSON in bundle")
+                    print("JSON in Documents is newer than JSON in bundle")
                 }
                 
                 if (jsonDocumentsModDate.isEqualTo(jsonBundleModDate)) {
-                    NSLog("JSON in Documents is the same date as JSON in bundle")
+                    print("JSON in Documents is the same date as JSON in bundle")
                     let jsonBundleFileSize = jsonBundleAttributes[FileAttributeKey.size] as! Int
                     let jsonDocumentsFileSize = jsonDocumentsAttributes[FileAttributeKey.size] as! Int
                     
                     if (jsonBundleFileSize != jsonDocumentsFileSize) {
-                        NSLog("Same dates different file sizes")
+                        print("Same dates different file sizes")
                         //We have a problem.
                     } else {
-                        NSLog("Same dates same file sizes")
+                        print("Same dates same file sizes")
                         //Do nothing, they are the same.
                     }
                 }
                 
                 if (jsonBundleModDate.isNewerThan(jsonDocumentsModDate)) {
-                    NSLog("JSON in bundle is newer than JSON in Documents")
+                    print("JSON in bundle is newer than JSON in Documents")
                     //copy the bundle into Documents directory
                     do {
                         // Copy File From Bundle To Documents Directory
                         try fileManager.removeItem(atPath: jsonFileURL.path)
                         try fileManager.copyItem(atPath: jsonBundlePath!,toPath: jsonFileURL.path)
                     } catch _ {
-                        NSLog("failed to copy mediaItems.json")
+                        print("failed to copy mediaItems.json")
                     }
                 }
             } catch _ {
-                NSLog("failed to get json file attributes")
+                print("failed to get json file attributes")
             }
         }
     }
@@ -289,10 +289,10 @@ func jsonDataFromDocumentsDirectory() -> JSON
             if json != JSON.null {
                 return json
             } else {
-                NSLog("could not get json from data, make sure the file contains valid json.")
+                print("could not get json from data, make sure the file contains valid json.")
             }
         } else {
-            NSLog("could not get data from the json file.")
+            print("could not get data from the json file.")
         }
     }
     
@@ -307,10 +307,10 @@ func jsonDataFromCachesDirectory() -> JSON
             if json != JSON.null {
                 return json
             } else {
-                NSLog("could not get json from data, make sure the file contains valid json.")
+                print("could not get json from data, make sure the file contains valid json.")
             }
         } else {
-            NSLog("could not get data from the json file.")
+            print("could not get data from the json file.")
         }
     }
     
@@ -505,7 +505,640 @@ func testament(_ book:String) -> String
     return Constants.EMPTY_STRING
 }
 
-func chaptersFromScripture(_ scripture:String?) -> [Int]
+func versessFromScripture(_ scripture:String?) -> [Int]?
+{
+    var verses = [Int]()
+
+    if (scripture != nil) {
+        var string = scripture?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
+        
+        if (string == Constants.EMPTY_STRING) {
+            return []
+        }
+        
+        let colon = string?.range(of: ":")
+//        let hyphen = string?.range(of: "-")
+//        let comma = string?.range(of: ",")
+        
+        //Is not correct for books with only one chapter
+        // e.g. ["Philemon","Jude","2 John","3 John"]
+        if colon == nil {
+            return []
+        }
+
+        string = string?.substring(from: colon!.upperBound)
+        
+        var chars = Constants.EMPTY_STRING
+        
+        var seenHyphen = false
+        var seenComma = false
+        
+        var startVerse = 0
+        var endVerse = 0
+        
+        var breakOut = false
+        
+        for character in string!.characters {
+            if breakOut {
+                break
+            }
+            switch character {
+            case "–":
+                fallthrough
+            case "-":
+                seenHyphen = true
+                if (startVerse == 0) {
+                    if Int(chars) != nil {
+                        startVerse = Int(chars)!
+                    }
+                }
+                chars = Constants.EMPTY_STRING
+                break
+                
+            case "(":
+                breakOut = true
+                break
+                
+            case ",":
+                seenComma = true
+                if (Int(chars) != nil) {
+                    verses.append(Int(chars)!)
+                }
+                chars = Constants.EMPTY_STRING
+                break
+                
+            default:
+                chars.append(character)
+//                print(chars)
+                break
+            }
+        }
+        if !seenHyphen {
+            if Int(chars) != nil {
+                startVerse = Int(chars)!
+            }
+        }
+        if (startVerse != 0) {
+            if (endVerse == 0) {
+                if (Int(chars) != nil) {
+                    endVerse = Int(chars)!
+                }
+                chars = Constants.EMPTY_STRING
+            }
+            if (endVerse != 0) {
+                for verse in startVerse...endVerse {
+                    verses.append(verse)
+                }
+            } else {
+                verses.append(startVerse)
+            }
+        }
+        if seenComma {
+            if Int(chars) != nil {
+                verses.append(Int(chars)!)
+            }
+        }
+    }
+    
+    return verses.count > 0 ? verses : nil
+}
+
+func debug(_ string:String)
+{
+//    print(string)
+}
+
+func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
+{
+    guard (book != nil) else {
+        return nil
+    }
+    
+    var chaptersAndVerses = [Int:[Int]]()
+    
+    var startChapter = 0
+    var endChapter = 0
+    var startVerse = 0
+    var endVerse = 0
+
+    startChapter = 1
+    
+    switch testament(book!) {
+    case Constants.Old_Testament:
+        endChapter = Constants.OLD_TESTAMENT_CHAPTERS[Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!]
+        break
+        
+    case Constants.New_Testament:
+        endChapter = Constants.NEW_TESTAMENT_CHAPTERS[Constants.NEW_TESTAMENT_BOOKS.index(of: book!)!]
+        break
+        
+    default:
+        break
+    }
+    
+    for chapter in startChapter...endChapter {
+        startVerse = 1
+        
+        switch testament(book!) {
+        case Constants.Old_Testament:
+            endVerse = Constants.OLD_TESTAMENT_VERSES[Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!][chapter - 1]
+            break
+            
+        case Constants.New_Testament:
+            endVerse = Constants.NEW_TESTAMENT_VERSES[Constants.NEW_TESTAMENT_BOOKS.index(of: book!)!][chapter - 1]
+            break
+            
+        default:
+            break
+        }
+        
+        for verse in startVerse...endVerse {
+            if chaptersAndVerses[chapter] == nil {
+                chaptersAndVerses[chapter] = [verse]
+            } else {
+                chaptersAndVerses[chapter]?.append(verse)
+            }
+        }
+    }
+    
+    return chaptersAndVerses
+}
+
+func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
+{
+    guard book != nil else {
+        return nil
+    }
+ 
+    var verses = [Int]()
+    
+    let startVerse = 1
+    var endVerse = 0
+    
+    switch testament(book!) {
+    case Constants.Old_Testament:
+        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!) {
+            if index < Constants.OLD_TESTAMENT_VERSES.count {
+                if chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
+                    endVerse = Constants.OLD_TESTAMENT_VERSES[index][chapter - 1]
+                }
+            }
+        }
+        break
+    case Constants.New_Testament:
+        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!) {
+            if index < Constants.NEW_TESTAMENT_VERSES.count {
+                if chapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
+                    endVerse = Constants.NEW_TESTAMENT_VERSES[index][chapter - 1]
+                }
+            }
+        }
+        break
+    default:
+        break
+    }
+    
+    if startVerse == endVerse {
+        verses.append(startVerse)
+    } else {
+        if endVerse >= startVerse {
+            for verse in startVerse...endVerse {
+                verses.append(verse)
+            }
+        }
+    }
+    
+    if verses.count == 0 {
+        switch testament(book!) {
+        case Constants.Old_Testament:
+            let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!)
+            print(Constants.OLD_TESTAMENT_BOOKS.index(of: book!),Constants.OLD_TESTAMENT_VERSES.count,Constants.OLD_TESTAMENT_VERSES[index!].count)
+            break
+        case Constants.New_Testament:
+            let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!)
+            print(Constants.NEW_TESTAMENT_BOOKS.index(of: book!),Constants.NEW_TESTAMENT_VERSES.count,Constants.NEW_TESTAMENT_VERSES[index!].count)
+            break
+        default:
+            break
+        }
+        print(book,index,chapter)
+    }
+    
+    return verses.count > 0 ? verses : nil
+}
+
+func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int]]?
+{
+    // This can only comprehend a range of chapters or a range of verses from a single book.
+//    if (book == "Mark") && (reference == " 2:23-3:6") {
+//        print(book,reference)
+//    }
+    guard (book != nil) else {
+        return nil
+    }
+    
+    guard (reference?.range(of: ".") == nil) else {
+        return nil
+    }
+    
+    guard (reference?.range(of: "&") == nil) else {
+        return nil
+    }
+    
+    var chaptersAndVerses = [Int:[Int]]()
+    
+    var tokens = [String]()
+    
+    var currentChapter = 0
+    var startChapter = 0
+    var endChapter = 0
+    var startVerse = 0
+    var endVerse = 0
+    
+    //        print(book!,reference!)
+    
+    let string = reference?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
+    
+    if (string == nil) || (string == Constants.EMPTY_STRING) {
+//        print(book,reference)
+        
+        // Now we have a book w/ no chapter or verse references
+        // FILL in all chapters and all verses and return
+        
+        return chaptersAndVersesForBook(book)
+    }
+    
+//    print(string)
+    
+    var token = Constants.EMPTY_STRING
+    
+    for char in string!.characters {
+        if CharacterSet(charactersIn: ":,-").contains(UnicodeScalar(String(char))!) {
+            tokens.append(token)
+            token = Constants.EMPTY_STRING
+            
+            tokens.append(String(char))
+        } else {
+            if CharacterSet(charactersIn: "0123456789").contains(UnicodeScalar(String(char))!) {
+                token.append(char)
+            }
+        }
+    }
+    
+    if token != Constants.EMPTY_STRING {
+        tokens.append(token)
+    }
+    
+    debug("Done w/ parsing and creating tokens")
+    
+    if tokens.count > 0 {
+        var startVerses = Constants.NO_CHAPTER_BOOKS.contains(book!)
+        
+        if let first = tokens.first {
+            if let number = Int(first) {
+                tokens.remove(at: 0)
+                if Constants.NO_CHAPTER_BOOKS.contains(book!) {
+                    currentChapter = 1
+                    startVerse = number
+                } else {
+                    currentChapter = number
+                    startChapter = number
+                }
+            } else {
+                return chaptersAndVersesForBook(book)
+            }
+        }
+        
+        repeat {
+            if let first = tokens.first {
+                tokens.remove(at: 0)
+                
+                switch first {
+                case ":":
+                    debug(": Verses follow")
+                    
+                    startVerses = true
+                    //                        startChapter = 0
+                    break
+                    
+                case ",":
+                    if !startVerses {
+                        debug(", Look for chapters")
+                        
+                        if let first = tokens.first {
+                            if let number = Int(first) {
+                                tokens.remove(at: 0)
+
+                                if tokens.first == ":" {
+                                    tokens.remove(at: 0)
+                                    startChapter = number
+                                    currentChapter = number
+                                } else {
+                                    currentChapter = number
+                                    chaptersAndVerses[currentChapter] = versesForBookChapter(book,currentChapter)
+                                    
+                                    if chaptersAndVerses[currentChapter] == nil {
+                                        print(book,reference)
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        debug(", Look for verses")
+
+                        if startVerse > 0 {
+                            if chaptersAndVerses[currentChapter] == nil {
+                                chaptersAndVerses[currentChapter] = [Int]()
+                            }
+                            chaptersAndVerses[currentChapter]?.append(startVerse)
+                            startVerse = 0
+                        }
+                        
+                        if tokens.first == ":" {
+                            tokens.remove(at: 0)
+                            if let number = Int(first) {
+                                startChapter = number
+                                currentChapter = number
+                            }
+                        } else {
+                            if let number = Int(first) {
+                                if chaptersAndVerses[currentChapter] == nil {
+                                    chaptersAndVerses[currentChapter] = [Int]()
+                                }
+                                chaptersAndVerses[currentChapter]?.append(number)
+                            }
+                        }
+
+//                        if let first = tokens.first {
+//                            if let number = Int(first) {
+//                                tokens.remove(at: 0)
+//                                
+//                            }
+//                        }
+//
+//                        debug(", Done w/ chapters")
+//                        
+//                        startChapter = 0
+//                        endChapter = 0
+                    }
+                    break
+                    
+                case "-":
+                    if !startVerses {
+                        debug("- Look for chapters")
+                        
+                        if let first = tokens.first {
+                            if let chapter = Int(first) {
+                                tokens.remove(at: 0)
+                                endChapter = chapter
+                            }
+                        }
+                    } else {
+                        debug("- Look for verses")
+                        
+                        if let first = tokens.first {
+                            if let number = Int(first) {
+                                tokens.remove(at: 0)
+                                
+                                debug("See if reference is split across chapters")
+                                
+                                if tokens.first == ":" {
+                                    tokens.remove(at: 0)
+                                    
+                                    debug("Reference is split across chapters")
+                                    debug("First get the endVerse for the first chapter in the reference")
+                                    
+                                    switch testament(book!) {
+                                    case Constants.Old_Testament:
+                                        endVerse = Constants.OLD_TESTAMENT_VERSES[Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!][currentChapter - 1]
+                                        break
+                                    case Constants.New_Testament:
+                                        endVerse = Constants.NEW_TESTAMENT_VERSES[Constants.NEW_TESTAMENT_BOOKS.index(of: book!)!][currentChapter - 1]
+                                        break
+                                    default:
+                                        break
+                                    }
+                                    
+                                    debug("Add the remaining verses for the first chapter")
+                                    
+                                    if chaptersAndVerses[currentChapter] == nil {
+                                        chaptersAndVerses[currentChapter] = [Int]()
+                                    }
+                                    if startVerse == endVerse {
+                                        chaptersAndVerses[currentChapter]?.append(startVerse)
+                                    } else {
+                                        for verse in startVerse...endVerse {
+                                            chaptersAndVerses[currentChapter]?.append(verse)
+                                        }
+                                    }
+                                    
+                                    debug("Done w/ verses")
+                                    
+                                    startVerse = 0
+                                    endVerse = 0
+                                    
+                                    debug("Now determine whehter there are any chapters between the first and the last in the reference")
+                                    
+                                    currentChapter = number
+                                    endChapter = number
+                                    
+                                    if (endChapter - startChapter) > 1 {
+                                        let start = startChapter + 1
+                                        let end = endChapter - 1
+                                        
+                                        debug("If there are, add those verses")
+                                        
+                                        for chapter in start...end {
+                                            startVerse = 1
+                                            
+                                            switch testament(book!) {
+                                            case Constants.Old_Testament:
+                                                if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!) {
+                                                    if index < Constants.OLD_TESTAMENT_VERSES.count {
+                                                        if chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
+                                                            endVerse = Constants.OLD_TESTAMENT_VERSES[index][chapter - 1]
+                                                        }
+                                                    }
+                                                }
+                                                break
+                                            case Constants.New_Testament:
+                                                if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!) {
+                                                    if index < Constants.NEW_TESTAMENT_VERSES.count {
+                                                        if chapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
+                                                            endVerse = Constants.NEW_TESTAMENT_VERSES[index][chapter - 1]
+                                                        }
+                                                    }
+                                                }
+                                                break
+                                            default:
+                                                break
+                                            }
+
+                                            if endVerse >= startVerse {
+                                                if chaptersAndVerses[chapter] == nil {
+                                                    chaptersAndVerses[chapter] = [Int]()
+                                                }
+                                                if startVerse == endVerse {
+                                                    chaptersAndVerses[chapter]?.append(startVerse)
+                                                } else {
+                                                    for verse in startVerse...endVerse {
+                                                        chaptersAndVerses[chapter]?.append(verse)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    debug("Now add the verses from the last chapter")
+                                    debug("First find the end verse")
+                                    
+                                    if let first = tokens.first {
+                                        if let number = Int(first) {
+                                            tokens.remove(at: 0)
+                                            
+                                            startVerse = 1
+                                            endVerse = number
+                                            
+                                            if chaptersAndVerses[currentChapter] == nil {
+                                                chaptersAndVerses[currentChapter] = [Int]()
+                                            }
+                                            if startVerse == endVerse {
+                                                chaptersAndVerses[currentChapter]?.append(startVerse)
+                                            } else {
+                                                for verse in startVerse...endVerse {
+                                                    chaptersAndVerses[currentChapter]?.append(verse)
+                                                }
+                                            }
+                                            
+                                            debug("Done w/ verses")
+                                            
+                                            startVerse = 0
+                                            endVerse = 0
+                                        }
+                                    }
+                                } else {
+                                    debug("reference is not split across chapters")
+                                    
+                                    endVerse = number
+                                    
+                                    debug("\(currentChapter) \(startVerse) \(endVerse)")
+                                    
+                                    if chaptersAndVerses[currentChapter] == nil {
+                                        chaptersAndVerses[currentChapter] = [Int]()
+                                    }
+                                    if startVerse == endVerse {
+                                        chaptersAndVerses[currentChapter]?.append(startVerse)
+                                    } else {
+                                        for verse in startVerse...endVerse {
+                                            chaptersAndVerses[currentChapter]?.append(verse)
+                                        }
+                                    }
+                                    
+                                    debug("Done w/ verses")
+                                    
+                                    startVerse = 0
+                                    endVerse = 0
+                                }
+                                
+                                debug("Done w/ chapters")
+                                
+                                startChapter = 0
+                                endChapter = 0
+                            }
+                        }
+                    }
+                    break
+                    
+                default:
+                    debug("default")
+                    
+                    if let number = Int(first) {
+                        if let first = tokens.first {
+                            if first == ":" {
+                                debug("chapter")
+                                
+                                startVerses = true
+                                startChapter = number
+                                currentChapter = number
+                            } else {
+                                debug("chapter or verse")
+                                
+                                if startVerses {
+                                    debug("verse")
+                                    
+                                    startVerse = number
+                                }
+                            }
+                        } else {
+                            debug("no more tokens: chapter or verse")
+                            
+                            if startVerses {
+                                debug("verse")
+                                startVerse = number
+                            }
+                        }
+                    }
+                    break
+                }
+            }
+        } while tokens.first != nil
+        
+        debug("Done w/ processing tokens")
+        debug("If start and end (chapter,verse) remaining, process them")
+        
+//        print(book!,reference!)
+        
+        if startChapter > 0 {
+            if endChapter > 0 {
+                if endChapter >= startChapter {
+                    for chapter in startChapter...endChapter {
+                        chaptersAndVerses[chapter] = versesForBookChapter(book,chapter)
+                        
+                        if chaptersAndVerses[chapter] == nil {
+                            print(book,reference)
+                        }
+                    }
+                }
+            } else {
+                chaptersAndVerses[startChapter] = versesForBookChapter(book,startChapter)
+                
+                if chaptersAndVerses[startChapter] == nil {
+                    print(book,reference)
+                }
+            }
+            startChapter = 0
+            endChapter = 0
+        }
+        if startVerse > 0 {
+            if endVerse > 0 {
+                if chaptersAndVerses[currentChapter] == nil {
+                    chaptersAndVerses[currentChapter] = [Int]()
+                }
+                for verse in startVerse...endVerse {
+                    chaptersAndVerses[currentChapter]?.append(verse)
+                }
+            } else {
+                chaptersAndVerses[currentChapter] = [startVerse]
+            }
+            startVerse = 0
+            endVerse = 0
+        }
+    } else {
+//        print(book,reference,string,tokens)
+        return chaptersAndVersesForBook(book)
+    }
+
+//    if (book == "1 John") { //  && (reference == " - Revelation")
+//        print(book,reference,string,tokens)
+//        print(chaptersAndVerses)
+//    }
+
+//    print(chaptersAndVerses)
+
+    return chaptersAndVerses.count > 0 ? chaptersAndVerses : nil
+}
+
+func chaptersFromScripture(_ scripture:String?) -> [Int]?
 {
     // This can only comprehend a range of chapters or a range of verses from a single book.
     
@@ -523,16 +1156,16 @@ func chaptersFromScripture(_ scripture:String?) -> [Int]
         //        }
         
         if (string == Constants.EMPTY_STRING) {
-            return []
+            return nil
         }
         
-        //        NSLog("\(string!)")
+        //        print("\(string!)")
         
         let colon = string!.range(of: ":")
         let hyphen = string!.range(of: "-")
         let comma = string!.range(of: ",")
         
-//        print(scripture,string)
+        //        print(scripture,string)
         
         if (colon == nil) && (hyphen == nil) &&  (comma == nil) {
             if (Int(string!) != nil) {
@@ -642,56 +1275,19 @@ func chaptersFromScripture(_ scripture:String?) -> [Int]
                     }
                 }
             }
-            
-            //            if (colon != nil) {
-            //                let stringToColon = string?.substringToIndex(colon!.startIndex)
-            //
-            //                NSLog("stringToColon: \(stringToColon)")
-            //
-            //                chapters = [Int(stringToColon!)!]
-            //
-            //                let stringFromColon = string?.substringFromIndex(colon!.endIndex)
-            //
-            //                NSLog("stringFromColon: \(stringFromColon)")
-            //            } else {
-            //                if (hyphen != nil) {
-            //                    let stringToHyphen = string?.substringToIndex(hyphen!.startIndex)
-            //                    let startingChapter = Int(stringToHyphen!)!
-            //
-            //                    let stringFromHyphen = string?.substringFromIndex(hyphen!.endIndex)
-            //                    let endingChapter = Int(stringFromHyphen!)!
-            //
-            //                    for index in startingChapter...endingChapter {
-            //                        chapters.append(index)
-            //                    }
-            //                    //                            NSLog("\(chapters)")
-            //                    //                            NSLog("\(chapters)")
-            //                }
-            //                if (comma != nil) {
-            //                    let stringToComma = string?.substringToIndex(comma!.startIndex)
-            //                    let startingChapter = Int(stringToComma!)!
-            //                    chapters = [startingChapter]
-            //
-            //                    let stringFromComma = string?.substringFromIndex(comma!.endIndex)
-            //                    let endingChapter = Int(stringFromComma!)!
-            //                    chapters.append(endingChapter)
-            //                    //                            NSLog("\(chapters)")
-            //                    //                            NSLog("\(chapters)")
-            //                }
-            //            }
         }
     }
     
-//    if (colonCount > 1) || (chapters.count > 1) {
-//        NSLog("\(scripture)")
-//        NSLog("\(chapters)")
-////        NSLog("ERROR")
-//    }
+    //    if (colonCount > 1) || (chapters.count > 1) {
+    //        print("\(scripture)")
+    //        print("\(chapters)")
+    ////        print("ERROR")
+    //    }
     
-//    NSLog("\(scripture)")
-//    NSLog("\(chapters)")
+    //    print("\(scripture)")
+    //    print("\(chapters)")
     
-    return chapters
+    return chapters.count > 0 ? chapters : nil
 }
 
 func booksFromScripture(_ scripture:String?) -> [String]
@@ -709,7 +1305,7 @@ func booksFromScripture(_ scripture:String?) -> [String]
         for book in Constants.OLD_TESTAMENT_BOOKS {
             if string?.range(of: book) != nil {
                 otBooks.append(book)
-                string = string!.substring(to: string!.range(of: book)!.lowerBound) + " " + string!.substring(from: string!.range(of: book)!.upperBound)
+                string = string!.substring(to: string!.range(of: book)!.lowerBound) + Constants.SINGLE_SPACE + string!.substring(from: string!.range(of: book)!.upperBound)
             }
         }
         
@@ -718,7 +1314,7 @@ func booksFromScripture(_ scripture:String?) -> [String]
         for book in Constants.NEW_TESTAMENT_BOOKS.reversed() {
             if string?.range(of: book) != nil {
                 books.append(book)
-                string = string!.substring(to: string!.range(of: book)!.lowerBound) + " " + string!.substring(from: string!.range(of: book)!.upperBound)
+                string = string!.substring(to: string!.range(of: book)!.lowerBound) + Constants.SINGLE_SPACE + string!.substring(from: string!.range(of: book)!.upperBound)
             }
         }
         
@@ -727,7 +1323,7 @@ func booksFromScripture(_ scripture:String?) -> [String]
         books = otBooks
         books.append(contentsOf: ntBooks)
         
-        string = string?.replacingOccurrences(of: " ", with: Constants.EMPTY_STRING)
+        string = string?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
 
 //        print(string)
         if string == "-" {
@@ -1033,7 +1629,7 @@ func firstNameFromName(_ name:String?) -> String?
         var newString = Constants.EMPTY_STRING
         
         for char in string!.characters {
-            if String(char) == " " {
+            if String(char) == Constants.SINGLE_SPACE {
                 firstName = newString
                 break
             }
@@ -1243,19 +1839,19 @@ func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
     var counter = 1
 
     if (testExisting) {
-        NSLog("Testing the availability of mediaItem transcripts and slides that we DO have in the mediaItemDicts - start")
+        print("Testing the availability of mediaItem transcripts and slides that we DO have in the mediaItemDicts - start")
         
         if let mediaItems = globals.mediaRepository.list {
             for mediaItem in mediaItems {
                 if (showTesting) {
-                    NSLog("Testing: \(counter) \(mediaItem.title!)")
+                    print("Testing: \(counter) \(mediaItem.title!)")
                 } else {
-//                    NSLog(".", terminator: Constants.EMPTY_STRING)
+//                    print(".", terminator: Constants.EMPTY_STRING)
                 }
                 
                 if (mediaItem.notes != nil) {
                     if ((try? Data(contentsOf: mediaItem.notesURL! as URL)) == nil) {
-                        NSLog("Transcript DOES NOT exist for: \(mediaItem.title!) PDF: \(mediaItem.notes!)")
+                        print("Transcript DOES NOT exist for: \(mediaItem.title!) PDF: \(mediaItem.notes!)")
                     } else {
                         
                     }
@@ -1263,7 +1859,7 @@ func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
                 
                 if (mediaItem.slides != nil) {
                     if ((try? Data(contentsOf: mediaItem.slidesURL! as URL)) == nil) {
-                        NSLog("Slides DO NOT exist for: \(mediaItem.title!) PDF: \(mediaItem.slides!)")
+                        print("Slides DO NOT exist for: \(mediaItem.title!) PDF: \(mediaItem.slides!)")
                     } else {
                         
                     }
@@ -1273,27 +1869,27 @@ func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
             }
         }
         
-        NSLog("\nTesting the availability of mediaItem transcripts and slides that we DO have in the mediaItemDicts - end")
+        print("\nTesting the availability of mediaItem transcripts and slides that we DO have in the mediaItemDicts - end")
     }
 
     if (testMissing) {
-        NSLog("Testing the availability of mediaItem transcripts and slides that we DO NOT have in the mediaItemDicts - start")
+        print("Testing the availability of mediaItem transcripts and slides that we DO NOT have in the mediaItemDicts - start")
         
         counter = 1
         if let mediaItems = globals.mediaRepository.list {
             for mediaItem in mediaItems {
                 if (showTesting) {
-                    NSLog("Testing: \(counter) \(mediaItem.title!)")
+                    print("Testing: \(counter) \(mediaItem.title!)")
                 } else {
-//                    NSLog(".", terminator: Constants.EMPTY_STRING)
+//                    print(".", terminator: Constants.EMPTY_STRING)
                 }
                 
                 if (mediaItem.audio == nil) {
-                    NSLog("No Audio file for: \(mediaItem.title) can't test for PDF's")
+                    print("No Audio file for: \(mediaItem.title) can't test for PDF's")
                 } else {
                     if (mediaItem.notes == nil) {
                         if ((try? Data(contentsOf: mediaItem.notesURL!)) != nil) {
-                            NSLog("Transcript DOES exist for: \(mediaItem.title!) ID:\(mediaItem.id)")
+                            print("Transcript DOES exist for: \(mediaItem.title!) ID:\(mediaItem.id)")
                         } else {
                             
                         }
@@ -1301,7 +1897,7 @@ func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
                     
                     if (mediaItem.slides == nil) {
                         if ((try? Data(contentsOf: mediaItem.slidesURL!)) != nil) {
-                            NSLog("Slides DO exist for: \(mediaItem.title!) ID: \(mediaItem.id)")
+                            print("Slides DO exist for: \(mediaItem.title!) ID: \(mediaItem.id)")
                         } else {
                             
                         }
@@ -1312,81 +1908,81 @@ func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
             }
         }
         
-        NSLog("\nTesting the availability of mediaItem transcripts and slides that we DO NOT have in the mediaItemDicts - end")
+        print("\nTesting the availability of mediaItem transcripts and slides that we DO NOT have in the mediaItemDicts - end")
     }
 }
 
 func testMediaItemsTagsAndSeries()
 {
-    NSLog("Testing for mediaItem series and tags the same - start")
+    print("Testing for mediaItem series and tags the same - start")
     
     if let mediaItems = globals.mediaRepository.list {
         for mediaItem in mediaItems {
             if (mediaItem.hasMultipleParts) && (mediaItem.hasTags) {
                 if (mediaItem.multiPartName == mediaItem.tags) {
-                    NSLog("Multiple Part Name and Tags the same in: \(mediaItem.title!) Multiple Part Name:\(mediaItem.multiPartName!) Tags:\(mediaItem.tags!)")
+                    print("Multiple Part Name and Tags the same in: \(mediaItem.title!) Multiple Part Name:\(mediaItem.multiPartName!) Tags:\(mediaItem.tags!)")
                 }
             }
         }
     }
     
-    NSLog("Testing for mediaItem series and tags the same - end")
+    print("Testing for mediaItem series and tags the same - end")
 }
 
 func testMediaItemsForAudio()
 {
-    NSLog("Testing for audio - start")
+    print("Testing for audio - start")
     
     for mediaItem in globals.mediaRepository.list! {
         if (!mediaItem.hasAudio) {
-            NSLog("Audio missing in: \(mediaItem.title!)")
+            print("Audio missing in: \(mediaItem.title!)")
         } else {
 
         }
     }
     
-    NSLog("Testing for audio - end")
+    print("Testing for audio - end")
 }
 
 func testMediaItemsForSpeaker()
 {
-    NSLog("Testing for speaker - start")
+    print("Testing for speaker - start")
     
     for mediaItem in globals.mediaRepository.list! {
         if (!mediaItem.hasSpeaker) {
-            NSLog("Speaker missing in: \(mediaItem.title!)")
+            print("Speaker missing in: \(mediaItem.title!)")
         }
     }
     
-    NSLog("Testing for speaker - end")
+    print("Testing for speaker - end")
 }
 
 func testMediaItemsForSeries()
 {
-    NSLog("Testing for mediaItems with \"(Part \" in the title but no series - start")
+    print("Testing for mediaItems with \"(Part \" in the title but no series - start")
     
     for mediaItem in globals.mediaRepository.list! {
         if (mediaItem.title?.range(of: "(Part ", options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil) && mediaItem.hasMultipleParts {
-            NSLog("Series missing in: \(mediaItem.title!)")
+            print("Series missing in: \(mediaItem.title!)")
         }
     }
     
-    NSLog("Testing for mediaItems with \"(Part \" in the title but no series - end")
+    print("Testing for mediaItems with \"(Part \" in the title but no series - end")
 }
 
 func testMediaItemsBooksAndSeries()
 {
-    NSLog("Testing for mediaItem series and book the same - start")
+    print("Testing for mediaItem series and book the same - start")
 
     for mediaItem in globals.mediaRepository.list! {
         if (mediaItem.hasMultipleParts) && (mediaItem.hasBook) {
             if (mediaItem.multiPartName == mediaItem.book) {
-                NSLog("Multiple Part Name and Book the same in: \(mediaItem.title!) Multiple Part Name:\(mediaItem.multiPartName!) Book:\(mediaItem.book!)")
+                print("Multiple Part Name and Book the same in: \(mediaItem.title!) Multiple Part Name:\(mediaItem.multiPartName!) Book:\(mediaItem.book!)")
             }
         }
     }
 
-    NSLog("Testing for mediaItem series and book the same - end")
+    print("Testing for mediaItem series and book the same - end")
 }
 
 func tagsSetFromTagsString(_ tagsString:String?) -> Set<String>?
@@ -1461,12 +2057,15 @@ func tagsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
             }
         }
         
+        tagsSet.insert("Slides")
+        tagsSet.insert("Transcript")
+        
         var tagsArray = Array(tagsSet).sorted(by: { stringWithoutPrefixes($0) < stringWithoutPrefixes($1) })
 
         tagsArray.append(Constants.All)
         
-    //    NSLog("Tag Set: \(tagsSet)")
-    //    NSLog("Tag Array: \(tagsArray)")
+    //    print("Tag Set: \(tagsSet)")
+    //    print("Tag Array: \(tagsArray)")
         
         return tagsArray.count > 0 ? tagsArray : nil
     }
@@ -1540,15 +2139,138 @@ func setupMediaItemBodyHTML(_ mediaItem:MediaItem?) -> String? {
     return bodyString
 }
 
+func setupMediaItemsGlobalBodyHTML(_ mediaItems:[MediaItem]?) -> String? {
+    var bodyString:String?
+    
+    guard (mediaItems != nil) else {
+        return nil
+    }
+    
+    var mediaSortListGroup = MediaListGroupSort(mediaItems: mediaItems)
+    
+    func mediaItemBodyString(_ mediaItem:MediaItem)
+    {
+        // Don't need these now that there is a web page for each sermon.
+        //        if let audioURL = mediaItem.audioURL?.absoluteString {
+        //            bodyString = bodyString! + " (<a href=\"" + audioURL + "\">Audio</a>)"
+        //        }
+        //
+        //        if let externalVideo = mediaItem.externalVideo {
+        //            bodyString = bodyString! + " (<a href=\"" + externalVideo + "\">Video</a>) "
+        //        }
+        //
+        //        if let slidesURL = mediaItem.slidesURL?.absoluteString {
+        //            bodyString = bodyString! + " (<a href=\"" + slidesURL + "\">Slides</a>)"
+        //        }
+        //
+        //        if let notesURL = mediaItem.notesURL?.absoluteString {
+        //            bodyString = bodyString! + " (<a href=\"" + notesURL + "\">Transcript</a>) "
+        //        }
+        
+        bodyString = bodyString! + "<br/>"
+        
+        //                    print(bodyString)
+    }
+    
+    bodyString = "The following media "
+    
+    if mediaItems!.count > 1 {
+        bodyString = bodyString! + "are"
+    } else {
+        bodyString = bodyString! + "is"
+    }
+    bodyString = bodyString! + " from <a href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+
+    if let category = globals.mediaCategory.selected {
+        bodyString = bodyString! + "Category: \(category)<br/><br/>"
+    }
+
+    if (globals.tags.showing == Constants.TAGGED) {
+        if let tag = globals.tags.selected {
+            bodyString = bodyString! + "Collection: \(tag)<br/><br/>"
+        }
+    }
+    
+    if globals.searchActive {
+        if (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
+            if let searchText = globals.searchText {
+                bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
+            }
+        }
+    }
+    
+//    let keys:[String] = mediaSortListGroup.groupSort![globals.grouping!]!.keys.map({ (string:String) -> String in
+//        return string
+//    })
+
+    let keys = mediaSortListGroup.sectionIndexTitles
+    
+    for key in keys! {
+        if let name = mediaSortListGroup.groupNames?[globals.grouping!]?[key] {
+            if let mediaItems = mediaSortListGroup.groupSort?[globals.grouping!]?[key]?[globals.sorting!] {
+                var speakerCounts = [String:Int]()
+                
+                for mediaItem in mediaItems {
+                    if mediaItem.speaker != nil {
+                        if speakerCounts[mediaItem.speaker!] == nil {
+                            speakerCounts[mediaItem.speaker!] = 1
+                        } else {
+                            speakerCounts[mediaItem.speaker!]! += 1
+                        }
+                    }
+                }
+                
+                let speakerCount = speakerCounts.keys.count as Int
+                
+//                let speakers = speakerCounts.keys.map({ (string:String) -> String in
+//                    return string
+//                }) as [String]
+
+                bodyString = bodyString! + name
+
+                if speakerCount == 1 {
+                    if let speaker = mediaItems[0].speaker {
+                        if name != speaker {
+                            bodyString = bodyString! + " by " + speaker + "<br/>"
+                        } else {
+                            bodyString = bodyString! + "<br/>"
+                        }
+                    }
+                } else {
+                    bodyString = bodyString! + "<br/>"
+                }
+
+                for mediaItem in mediaItems {
+                    if let websiteURL = mediaItem.websiteURL?.absoluteString, let title = mediaItem.title, let speaker = mediaItem.speaker, let date = mediaItem.formattedDate, let scripture = mediaItem.scripture {
+                        bodyString = bodyString! + date + " <a href=\"" + websiteURL + "\">\(title)</a> " + scripture
+                            
+                        if (name != speaker) && (speakerCount > 1) {
+                            bodyString = bodyString! + " by \(speaker)"
+                        }
+                        
+                        mediaItemBodyString(mediaItem)
+                    }
+                }
+            }
+        }
+        
+        bodyString = bodyString! + "<br/>"
+    }
+    
+    bodyString = bodyString! + "<br/>"
+    
+    return bodyString
+}
+
 func setupMediaItemsBodyHTML(_ mediaItems:[MediaItem]?) -> String? {
     var bodyString:String?
     
     guard (mediaItems != nil) else {
         return nil
     }
-
+    
     var mediaListSort = [String:[MediaItem]]()
-
+    
     var mediaItemList:[MediaItem]?
     
     mediaItemList = mediaItems?.sorted() {
@@ -1562,7 +2284,7 @@ func setupMediaItemsBodyHTML(_ mediaItems:[MediaItem]?) -> String? {
             return stringWithoutPrefixes($0.title) < stringWithoutPrefixes($1.title)
         }
     }
-
+    
     guard (mediaItemList != nil) else {
         return nil
     }
@@ -1584,25 +2306,25 @@ func setupMediaItemsBodyHTML(_ mediaItems:[MediaItem]?) -> String? {
             }
         }
     }
-
+    
     func mediaItemBodyString(_ mediaItem:MediaItem)
     {
         // Don't need these now that there is a web page for each sermon.
-//        if let audioURL = mediaItem.audioURL?.absoluteString {
-//            bodyString = bodyString! + " (<a href=\"" + audioURL + "\">Audio</a>)"
-//        }
-//        
-//        if let externalVideo = mediaItem.externalVideo {
-//            bodyString = bodyString! + " (<a href=\"" + externalVideo + "\">Video</a>) "
-//        }
-//        
-//        if let slidesURL = mediaItem.slidesURL?.absoluteString {
-//            bodyString = bodyString! + " (<a href=\"" + slidesURL + "\">Slides</a>)"
-//        }
-//        
-//        if let notesURL = mediaItem.notesURL?.absoluteString {
-//            bodyString = bodyString! + " (<a href=\"" + notesURL + "\">Transcript</a>) "
-//        }
+        //        if let audioURL = mediaItem.audioURL?.absoluteString {
+        //            bodyString = bodyString! + " (<a href=\"" + audioURL + "\">Audio</a>)"
+        //        }
+        //
+        //        if let externalVideo = mediaItem.externalVideo {
+        //            bodyString = bodyString! + " (<a href=\"" + externalVideo + "\">Video</a>) "
+        //        }
+        //
+        //        if let slidesURL = mediaItem.slidesURL?.absoluteString {
+        //            bodyString = bodyString! + " (<a href=\"" + slidesURL + "\">Slides</a>)"
+        //        }
+        //
+        //        if let notesURL = mediaItem.notesURL?.absoluteString {
+        //            bodyString = bodyString! + " (<a href=\"" + notesURL + "\">Transcript</a>) "
+        //        }
         
         bodyString = bodyString! + "<br/>"
         
@@ -1611,12 +2333,30 @@ func setupMediaItemsBodyHTML(_ mediaItems:[MediaItem]?) -> String? {
     
     bodyString = "The following media "
     
-    if mediaItemList!.count > 1 {
+    if mediaItems!.count > 1 {
         bodyString = bodyString! + "are"
     } else {
         bodyString = bodyString! + "is"
     }
     bodyString = bodyString! + " from <a href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+    
+    if let category = globals.mediaCategory.selected {
+        bodyString = bodyString! + "Category: \(category)<br/><br/>"
+    }
+    
+    if (globals.tags.showing == Constants.TAGGED) {
+        if let tag = globals.tags.selected {
+            bodyString = bodyString! + "Collection: \(tag)<br/><br/>"
+        }
+    }
+    
+    if globals.searchActive {
+        if (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
+            if let searchText = globals.searchText {
+                bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
+            }
+        }
+    }
     
     let keys:[String] = mediaListSort.keys.map({ (string:String) -> String in
         return string
@@ -1645,7 +2385,7 @@ func setupMediaItemsBodyHTML(_ mediaItems:[MediaItem]?) -> String? {
                         }
                     }
                 }
-
+                
                 var speakerCounts = [String:Int]()
                 
                 for mediaItem in mediaItems {
@@ -1683,7 +2423,7 @@ func setupMediaItemsBodyHTML(_ mediaItems:[MediaItem]?) -> String? {
                                 title = formattedDate
                             }
                         }
-
+                        
                         if let websiteURL = mediaItem.websiteURL?.absoluteString {
                             bodyString = bodyString! + "<a href=\"" + websiteURL + "\">\(title)</a>"
                         } else {
@@ -1694,9 +2434,9 @@ func setupMediaItemsBodyHTML(_ mediaItems:[MediaItem]?) -> String? {
                     if let speaker = mediaItem.speaker, speakerCount > 1 {
                         bodyString = bodyString! + " by \(speaker)"
                     }
-//                    if (speakerCount > 1) && (mediaItem.speaker != nil) {
-//                        bodyString = bodyString! + " by \(mediaItem.speaker!)"
-//                    }
+                    //                    if (speakerCount > 1) && (mediaItem.speaker != nil) {
+                    //                        bodyString = bodyString! + " by \(mediaItem.speaker!)"
+                    //                    }
                     
                     mediaItemBodyString(mediaItem)
                 }
@@ -1709,7 +2449,7 @@ func setupMediaItemsBodyHTML(_ mediaItems:[MediaItem]?) -> String? {
     }
     
     bodyString = bodyString! + "<br/>"
-
+    
     
     return bodyString
 }

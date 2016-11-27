@@ -24,21 +24,21 @@ class ViewSplit: UIView {
 
     var height:CGFloat = 200 {
         didSet {
-            //            NSLog("Height: \(height)")
+            //            print("Height: \(height)")
             setNeedsDisplay()
         }
     }
     
     var min:CGFloat = 50 {
         didSet {
-            //            NSLog("Height: \(min)")
+            //            print("Height: \(min)")
             setNeedsDisplay()
         }
     }
     
     var max:CGFloat = 500 {
         didSet {
-            //            NSLog("Height: \(max)")
+            //            print("Height: \(max)")
             setNeedsDisplay()
         }
     }
@@ -69,7 +69,7 @@ class ViewSplit: UIView {
             let right = CGPoint(x: startingPoint.x + bounds.width/2, y: startingPoint.y)
             indicatorPath.addLine(to: right)
             
-//            NSLog("startingPoint.y: \(round(startingPoint.y)) min: \(round(min)) max: \(round(max))")
+//            print("startingPoint.y: \(round(startingPoint.y)) min: \(round(min)) max: \(round(max))")
             
             if (round(startingPoint.y) > (bounds.height - round(max))) {
                 let bottom = CGPoint(x: startingPoint.x, y: startingPoint.y - height)
@@ -112,7 +112,7 @@ class ViewSplit: UIView {
 
             context!.restoreGState()
         } else {
-            NSLog("No starting point!")
+            print("No starting point!")
         }
     }
 }

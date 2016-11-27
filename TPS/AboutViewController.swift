@@ -89,7 +89,7 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     
     fileprivate func openInGoogleMaps()
     {
-        let urlAddress = Constants.CBC.FULL_ADDRESS.replacingOccurrences(of: " ", with: "+", options: NSString.CompareOptions.literal, range: nil)
+        let urlAddress = Constants.CBC.FULL_ADDRESS.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.PLUS, options: NSString.CompareOptions.literal, range: nil)
         
         if (UIApplication.shared.canOpenURL(URL(string:"comgooglemaps://")!)) { // Reachability.isConnectedToNetwork() &&
             let querystring = "comgooglemaps://?q="+urlAddress
@@ -117,7 +117,7 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     @IBOutlet weak var actionButton: UIBarButtonItem!
     
     @IBAction func actions(_ sender: UIBarButtonItem) {
-//        NSLog("action!")
+//        print("action!")
         
         //In case we have one already showing
         dismiss(animated: true, completion: nil)

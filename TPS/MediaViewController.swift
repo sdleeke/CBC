@@ -41,7 +41,7 @@ class Document {
             }
             
             if download == nil {
-                NSLog("download == nil")
+                print("download == nil")
             }
             
             return download
@@ -351,7 +351,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             }
             break
         default:
-            NSLog("oops!")
+            print("oops!")
             break
         }
     }
@@ -583,11 +583,11 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         if (globals.mediaPlayer.state != nil) && (globals.mediaPlayer.mediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) {
             switch globals.mediaPlayer.state! {
             case .none:
-//                NSLog("none")
+//                print("none")
                 break
                 
             case .playing:
-//                NSLog("playing")
+//                print("playing")
                 globals.mediaPlayer.pause() // IfPlaying
 
                 setupPlayPauseButton()
@@ -599,7 +599,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 break
                 
             case .paused:
-//                NSLog("paused")
+//                print("paused")
                 if globals.mediaPlayer.loaded && (globals.mediaPlayer.url == selectedMediaItem?.playingURL) {
                     playCurrentMediaItem(selectedMediaItem)
 //                    switch globals.mediaPlayer.mediaItem!.playing! {
@@ -620,17 +620,17 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 break
                 
             case .stopped:
-//                NSLog("stopped")
+//                print("stopped")
                 break
                 
             case .seekingForward:
-//                NSLog("seekingForward")
+//                print("seekingForward")
                 globals.mediaPlayer.pause() // IfPlaying
 //                setupPlayPauseButton()
                 break
                 
             case .seekingBackward:
-//                NSLog("seekingBackward")
+//                print("seekingBackward")
                 globals.mediaPlayer.pause() // IfPlaying
 //                setupPlayPauseButton()
                 break
@@ -649,7 +649,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 
         maxConstraintConstant = height - 31 - (navigationController != nil ? navigationController!.navigationBar.bounds.height : 0) + 11
 
-//        NSLog("height: \(height) logo.bounds.height: \(logo.bounds.height) slider.bounds.height: \(slider.bounds.height) navigationBar.bounds.height: \(navigationController!.navigationBar.bounds.height)")
+//        print("height: \(height) logo.bounds.height: \(logo.bounds.height) slider.bounds.height: \(slider.bounds.height) navigationBar.bounds.height: \(navigationController!.navigationBar.bounds.height)")
 //        
 //        print(minConstraintConstant,maxConstraintConstant)
         
@@ -748,7 +748,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     {
         let newConstraintConstant = mediaItemNotesAndSlidesConstraint.constant + change
         
-        //            NSLog("pan rowHeight: \(tableView.rowHeight)")
+        //            print("pan rowHeight: \(tableView.rowHeight)")
         
         let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
 
@@ -934,18 +934,18 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     }
     
     @IBAction func sliderTouchDown(_ sender: UISlider) {
-        NSLog("sliderTouchDown")
+        print("sliderTouchDown")
         controlView.sliding = true
         removeSliderObserver()
     }
     
     @IBAction func sliderTouchUpOutside(_ sender: UISlider) {
-        NSLog("sliderTouchUpOutside")
+        print("sliderTouchUpOutside")
         adjustAudioAfterUserMovedSlider()
     }
     
     @IBAction func sliderTouchUpInside(_ sender: UISlider) {
-        NSLog("sliderTouchUpInside")
+        print("sliderTouchUpInside")
         adjustAudioAfterUserMovedSlider()
     }
     
@@ -1054,7 +1054,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             let printURL = mediaItem?.downloadURL
             
             if (printURL != nil) && UIPrintInteractionController.canPrint(printURL!) {
-//                NSLog("can print!")
+//                print("can print!")
                 let pi = UIPrintInfo.printInfo()
                 pi.outputType = UIPrintInfoOutputType.general
                 pi.jobName = "Print";
@@ -1080,9 +1080,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 
         urlString = urlString.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)!
 
-//        NSLog("\(mediaItem!.scripture!)")
-//        NSLog("\(urlString)")
-//        NSLog("\(NSURL(string:urlString))")
+//        print("\(mediaItem!.scripture!)")
+//        print("\(urlString)")
+//        print("\(NSURL(string:urlString))")
         
         if let url = URL(string:urlString) {
             if (UIApplication.shared.canOpenURL(url)) { // Reachability.isConnectedToNetwork() &&
@@ -1105,7 +1105,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //            let twitterSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeTwitter)
 //            twitterSheet.setInitialText(bodyString)
 //            //                let str = Constants.BASE_AUDIO_URL + mediaItem!.audio!
-//            //                NSLog("\(str)")
+//            //                print("\(str)")
 //            //                twitterSheet.addURL(NSURL(string:str))
 //            self.presentViewController(twitterSheet, animated: true, completion: nil)
 //        } else {
@@ -1123,7 +1123,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 ////                let twitterSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeTwitter)
 ////                twitterSheet.setInitialText(bodyString)
 //////                let str = Constants.BASE_AUDIO_URL + mediaItem!.audio!
-//////                NSLog("\(str)")
+//////                print("\(str)")
 //////                twitterSheet.addURL(NSURL(string:str))
 ////                self.presentViewController(twitterSheet, animated: true, completion: nil)
 ////            } else {
@@ -1152,7 +1152,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //            let facebookSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeFacebook)
 //            facebookSheet.setInitialText(bodyString)
 //            //                let str = Constants.BASE_AUDIO_URL + mediaItem!.audio!
-//            //                NSLog("\(str)")
+//            //                print("\(str)")
 //            //                facebookSheet.addURL(NSURL(string: str))
 //            self.presentViewController(facebookSheet, animated: true, completion: nil)
 //        } else {
@@ -1174,7 +1174,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 ////                let facebookSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeFacebook)
 ////                facebookSheet.setInitialText(bodyString)
 //////                let str = Constants.BASE_AUDIO_URL + mediaItem!.audio!
-//////                NSLog("\(str)")
+//////                print("\(str)")
 //////                facebookSheet.addURL(NSURL(string: str))
 ////                self.presentViewController(facebookSheet, animated: true, completion: nil)
 ////            } else {
@@ -1668,7 +1668,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             
             wkWebView?.scrollView.scrollsToTop = false
             
-            //        NSLog("\(mediaItemNotesAndSlides.frame)")
+            //        print("\(mediaItemNotesAndSlides.frame)")
             //        mediaItemNotesWebView?.UIDelegate = self
             
             wkWebView?.scrollView.delegate = self
@@ -1695,11 +1695,11 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     }
     
     func scrollViewDidZoom(_ scrollView: UIScrollView) {
-//        NSLog("scrollViewDidZoom")
+//        print("scrollViewDidZoom")
     }
     
     func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
-//        NSLog("scrollViewDidEndZooming")
+//        print("scrollViewDidEndZooming")
         if let view = scrollView.superview as? WKWebView {
             captureContentOffset(view)
             captureZoomScale(view)
@@ -1707,11 +1707,11 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        NSLog("scrollViewDidScroll")
+//        print("scrollViewDidScroll")
     }
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-//        NSLog("scrollViewDidEndScrollingAnimation")
+//        print("scrollViewDidEndScrollingAnimation")
         if let view = scrollView.superview as? WKWebView {
             captureContentOffset(view)
         }
@@ -1719,7 +1719,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
     {
-//        NSLog("scrollViewDidEndDecelerating")
+//        print("scrollViewDidEndDecelerating")
         if let view = scrollView.superview as? WKWebView {
             captureContentOffset(view)
         }
@@ -1727,7 +1727,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool)
     {
-//        NSLog("scrollViewDidEndDragging")
+//        print("scrollViewDidEndDragging")
         if !decelerate {
             scrollViewDidEndDecelerating(scrollView)
         }
@@ -1923,17 +1923,18 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         let document = timer?.userInfo as? Document
         
         if (selectedMediaItem != nil) {
+            print(selectedMediaItem)
             if (document?.download != nil) {
-                NSLog("totalBytesWritten: \(document!.download!.totalBytesWritten)")
-                NSLog("totalBytesExpectedToWrite: \(document!.download!.totalBytesExpectedToWrite)")
+                print("totalBytesWritten: \(document!.download!.totalBytesWritten)")
+                print("totalBytesExpectedToWrite: \(document!.download!.totalBytesExpectedToWrite)")
                 
                 switch document!.download!.state {
                 case .none:
-//                    NSLog(".none")
+//                    print(".none")
                     document?.download?.task?.cancel()
                     
                     document?.loadTimer?.invalidate()
-                    document?.loadTimer = nil
+//                    document?.loadTimer = nil
                     
                     if document!.visible(selectedMediaItem) {
                         self.activityIndicator.stopAnimating()
@@ -1951,14 +1952,14 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     break
                     
                 case .downloading:
-//                    NSLog(".downloading")
+//                    print(".downloading")
                     if document!.visible(selectedMediaItem) {
                         progressIndicator.progress = document!.download!.totalBytesExpectedToWrite > 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
                     }
                     break
                     
                 case .downloaded:
-//                    NSLog(".downloaded")
+//                    print(".downloaded")
                     if #available(iOS 9.0, *) {
 
                         document?.loadTimer?.invalidate()
@@ -2023,7 +2024,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     fileprivate func setupDocument(_ document:Document?)
     {
-//        NSLog("setupDocument")
+//        print("setupDocument")
         
         if document?.wkWebView == nil {
 //            document?.wkWebView?.removeFromSuperview()
@@ -2102,14 +2103,14 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     })
                     
                     if (document == nil) {
-                        NSLog("document nil")
+                        print("document nil")
                     }
                     if (document!.download == nil) {
-                        NSLog("document!.download nil")
+                        print("document!.download nil")
                     }
                     if (document!.download!.downloadURL == nil) {
-                        NSLog("\(self.selectedMediaItem?.title)")
-                        NSLog("document!.download!.downloadURL nil")
+                        print("\(self.selectedMediaItem?.title)")
+                        print("document!.download!.downloadURL nil")
                     }
                     let request = URLRequest(url: document!.download!.downloadURL! as URL, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
                     _ = document?.wkWebView?.load(request)
@@ -2167,10 +2168,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         progressIndicator.isHidden = true
         progressIndicator.progress = 0.0
 
-//        NSLog("setupNotesAndSlides")
-//        NSLog("Selected: \(globals.mediaItemSelected?.title)")
-//        NSLog("Last Selected: \(globals.mediaItemLastSelected?.title)")
-//        NSLog("Playing: \(globals.player.playing?.title)")
+//        print("setupNotesAndSlides")
+//        print("Selected: \(globals.mediaItemSelected?.title)")
+//        print("Last Selected: \(globals.mediaItemLastSelected?.title)")
+//        print("Playing: \(globals.player.playing?.title)")
         
         if (selectedMediaItem != nil) {
             viewSplit.isHidden = false
@@ -2199,8 +2200,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 slidesDocument?.wkWebView?.isHidden = true
             }
             
-    //        NSLog("notes hidden \(mediaItemNotes.hidden)")
-    //        NSLog("slides hidden \(mediaItemSlides.hidden)")
+    //        print("notes hidden \(mediaItemNotes.hidden)")
+    //        print("slides hidden \(mediaItemSlides.hidden)")
             
             // Check whether they can or should show what they claim to show!
             
@@ -2350,18 +2351,18 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             
             if (multiPartMediaItems?.count > 0) {
                 if let mediaItemIndex = multiPartMediaItems?.index(of: mediaItem!) {
-//                    NSLog("\(mediaItemIndex)")
+//                    print("\(mediaItemIndex)")
                     indexPath = IndexPath(row: mediaItemIndex, section: 0)
                 }
             }
             
-//            NSLog("\(tableView.bounds)")
+//            print("\(tableView.bounds)")
             
             if (select) {
                 tableView.selectRow(at: indexPath, animated: true, scrollPosition: position)
             }
             
-//            NSLog("Row: \(indexPath.row) Section: \(indexPath.section)")
+//            print("Row: \(indexPath.row) Section: \(indexPath.section)")
 
             if (position == UITableViewScrollPosition.top) {
 //                var point = CGPointZero //tableView.bounds.origin
@@ -2500,8 +2501,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                         var contentOffsetXRatio:Float = 0.0
                         var contentOffsetYRatio:Float = 0.0
                         
-                        //        NSLog("\(mediaItemNotesWebView!.scrollView.contentSize)")
-                        //        NSLog("\(mediaItemSlidesWebView!.scrollView.contentSize)")
+                        //        print("\(mediaItemNotesWebView!.scrollView.contentSize)")
+                        //        print("\(mediaItemSlidesWebView!.scrollView.contentSize)")
                         
                         if let ratio = selectedMediaItem!.mediaItemSettings?[document.purpose! + Constants.CONTENT_OFFSET_X_RATIO] {
                             contentOffsetXRatio = Float(ratio)!
@@ -2558,7 +2559,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 break
             }
             
-            //            NSLog("min: \(minConstraintConstant) max: \(maxConstraintConstant)")
+            //            print("min: \(minConstraintConstant) max: \(maxConstraintConstant)")
             
             viewSplit.min = newMinConstraintConstant
             viewSplit.max = newMaxConstraintConstant
@@ -2578,14 +2579,14 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     
                     let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(size.height - 12) //Adjustment of 12 for difference in NavBar height between landscape (shorter) and portrait (taller by 12)
                     
-                    //                    NSLog("min: \(minConstraintConstant) max: \(maxConstraintConstant)")
+                    //                    print("min: \(minConstraintConstant) max: \(maxConstraintConstant)")
                     
                     if newConstraintConstant < minConstraintConstant { newConstraintConstant = minConstraintConstant }
                     if newConstraintConstant > maxConstraintConstant { newConstraintConstant = maxConstraintConstant }
                     
                     self.mediaItemNotesAndSlidesConstraint.constant = newConstraintConstant
                     
-                    //                    NSLog("\(viewSplit) \(size) \(mediaItemNotesAndSlidesConstraint.constant)")
+                    //                    print("\(viewSplit) \(size) \(mediaItemNotesAndSlidesConstraint.constant)")
                     
                     viewSplit.min = minConstraintConstant
                     viewSplit.max = maxConstraintConstant
@@ -2598,7 +2599,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 captureViewSplit()
                 
                 if let ratio = ratioForSlideView(viewSplit) {
-                    //            NSLog("\(self.view.bounds.height)")
+                    //            print("\(self.view.bounds.height)")
                     setTableViewWidth(width: size.width * ratio)
                 } else {
                     setTableViewWidth(width: size.width / 2)
@@ -2629,7 +2630,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 ratio = CGFloat(Float(viewSplit)!)
             }
         }
-        //        NSLog("ratio: '\(ratio)")
+        //        print("ratio: '\(ratio)")
         return ratio
     }
     
@@ -2642,7 +2643,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 ratio = CGFloat(Float(slideSplit)!)
             }
         }
-        //        NSLog("ratio: '\(ratio)")
+        //        print("ratio: '\(ratio)")
         return ratio
     }
     
@@ -2668,7 +2669,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     {
         var newConstraintConstant:CGFloat
         
-        //        NSLog("setupViewSplit ratio: \(ratio)")
+        //        print("setupViewSplit ratio: \(ratio)")
         
         let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
         
@@ -2699,7 +2700,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         if splitViewController == nil {
             if (UIDeviceOrientationIsLandscape(UIDevice.current.orientation)) {
                 if let ratio = ratioForSlideView(viewSplit) {
-                    //            NSLog("\(self.view.bounds.height)")
+                    //            print("\(self.view.bounds.height)")
                     setTableViewWidth(width: self.view.bounds.width * ratio)
                 } else {
                     setTableViewWidth(width: self.view.bounds.width / 2)
@@ -2714,12 +2715,12 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     {
         var newConstraintConstant:CGFloat
         
-//        NSLog("setupViewSplit ratio: \(ratio)")
+//        print("setupViewSplit ratio: \(ratio)")
         
         let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
         
         if let ratio = ratioForSplitView(viewSplit) {
-//            NSLog("\(self.view.bounds.height)")
+//            print("\(self.view.bounds.height)")
             newConstraintConstant = self.view.bounds.height * ratio
         } else {
             let numberOfAdditionalRows = CGFloat(multiPartMediaItems != nil ? multiPartMediaItems!.count : 0)
@@ -2814,14 +2815,14 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 
         setupPlayerView(globals.mediaPlayer.view)
 
-        //        NSLog("viewWillAppear 1 mediaItemNotesAndSlides.bounds: \(mediaItemNotesAndSlides.bounds)")
-        //        NSLog("viewWillAppear 1 tableView.bounds: \(tableView.bounds)")
+        //        print("viewWillAppear 1 mediaItemNotesAndSlides.bounds: \(mediaItemNotesAndSlides.bounds)")
+        //        print("viewWillAppear 1 tableView.bounds: \(tableView.bounds)")
         
         setupViewSplit()
         setupSlideSplit()
         
-        //        NSLog("viewWillAppear 2 mediaItemNotesAndSlides.bounds: \(mediaItemNotesAndSlides.bounds)")
-        //        NSLog("viewWillAppear 2 tableView.bounds: \(tableView.bounds)")
+        //        print("viewWillAppear 2 mediaItemNotesAndSlides.bounds: \(mediaItemNotesAndSlides.bounds)")
+        //        print("viewWillAppear 2 tableView.bounds: \(tableView.bounds)")
         
         //These are being added here for the case when this view is opened and the mediaItem selected is playing already
         addSliderObserver()
@@ -2914,8 +2915,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-//        NSLog("viewDidAppear mediaItemNotesAndSlides.bounds: \(mediaItemNotesAndSlides.bounds)")
-//        NSLog("viewDidAppear tableView.bounds: \(tableView.bounds)")
+//        print("viewDidAppear mediaItemNotesAndSlides.bounds: \(mediaItemNotesAndSlides.bounds)")
+//        print("viewDidAppear tableView.bounds: \(tableView.bounds)")
 
 //        setupSplitViewController()
         
@@ -2926,14 +2927,14 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     fileprivate func captureViewSplit()
     {
-        //        NSLog("captureViewSplit: \(mediaItemSelected?.title)")
+        //        print("captureViewSplit: \(mediaItemSelected?.title)")
         
         if (self.view != nil) && (viewSplit.bounds.size.width > 0) {
             if (selectedMediaItem != nil) {
-                //                NSLog("\(self.view.bounds.height)")
+                //                print("\(self.view.bounds.height)")
                 let ratio = self.mediaItemNotesAndSlidesConstraint.constant / self.view.bounds.height
                 
-                //            NSLog("captureViewSplit ratio: \(ratio)")
+                //            print("captureViewSplit ratio: \(ratio)")
                 
                 selectedMediaItem?.viewSplit = "\(ratio)"
             }
@@ -2942,14 +2943,14 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     fileprivate func captureSlideSplit()
     {
-        //        NSLog("captureViewSplit: \(mediaItemSelected?.title)")
+        //        print("captureViewSplit: \(mediaItemSelected?.title)")
 
         if (self.view != nil) && (viewSplit.bounds.size.width == 0) {
             if (selectedMediaItem != nil) {
-                //                NSLog("\(self.view.bounds.height)")
+                //                print("\(self.view.bounds.height)")
                 let ratio = self.tableViewWidth.constant / self.view.bounds.width
                 
-                //            NSLog("captureViewSplit ratio: \(ratio)")
+                //            print("captureViewSplit ratio: \(ratio)")
                 
                 selectedMediaItem?.slideSplit = "\(ratio)"
             }
@@ -2982,7 +2983,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     fileprivate func captureZoomScale(_ webView:WKWebView?)
     {
-        //        NSLog("captureZoomScale: \(mediaItemSelected?.title)")
+        //        print("captureZoomScale: \(mediaItemSelected?.title)")
         
         if (UIApplication.shared.applicationState == UIApplicationState.active) && (webView != nil) && (!webView!.isLoading) && (webView!.url != nil) {
             if (documents[selectedMediaItem!.id] != nil) {
@@ -3022,7 +3023,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        NSLog("didReceiveMemoryWarning: \(selectedMediaItem?.title)")
+        print("didReceiveMemoryWarning: \(selectedMediaItem?.title)")
         // Dispose of any resources that can be recreated.
         URLCache.shared.removeAllCachedResponses()
     }
@@ -3148,10 +3149,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             
             var progress:Double = -1.0
 
-//            NSLog("currentTime",selectedMediaItem?.currentTime)
-//            NSLog("timeNow",timeNow)
-//            NSLog("length",length)
-//            NSLog("progress",progress)
+//            print("currentTime",selectedMediaItem?.currentTime)
+//            print("timeNow",timeNow)
+//            print("length",length)
+//            print("progress",progress)
             
             if (length > 0) && (globals.mediaPlayer.state != nil) {
                 switch globals.mediaPlayer.state! {
@@ -3191,10 +3192,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //                    if selectedMediaItem?.currentTime != playerCurrentTime.description {
                         progress = playingCurrentTime / length
 
-//                        NSLog("paused")
-//                        NSLog("timeNow",timeNow)
-//                        NSLog("progress",progress)
-//                        NSLog("length",length)
+//                        print("paused")
+//                        print("timeNow",timeNow)
+//                        print("progress",progress)
+//                        print("length",length)
                         
                         slider.value = Float(progress)
                         setTimes(timeNow: playingCurrentTime,length: length)
@@ -3210,10 +3211,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //                    if selectedMediaItem?.currentTime != playerCurrentTime.description {
                         progress = playingCurrentTime / length
                         
-//                        NSLog("stopped")
-//                        NSLog("timeNow",timeNow)
-//                        NSLog("progress",progress)
-//                        NSLog("length",length)
+//                        print("stopped")
+//                        print("timeNow",timeNow)
+//                        print("progress",progress)
+//                        print("length",length)
                         
                         slider.value = Float(progress)
                         setTimes(timeNow: playingCurrentTime,length: length)
@@ -3304,11 +3305,11 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             
             switch globals.mediaPlayer.state! {
             case .none:
-//                NSLog("none")
+//                print("none")
                 break
                 
             case .playing:
-//                NSLog("playing")
+//                print("playing")
                 setSliderAndTimesToAudio()
                 
                 if (selectedMediaItem != nil) && (selectedMediaItem == globals.mediaPlayer.mediaItem) {
@@ -3366,7 +3367,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 break
                 
             case .paused:
-//                NSLog("paused")
+//                print("paused")
                 
                 if globals.mediaPlayer.loaded {
                     setSliderAndTimesToAudio()
@@ -3382,11 +3383,11 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 break
                 
             case .stopped:
-//                NSLog("stopped")
+//                print("stopped")
                 break
                 
             case .seekingForward:
-//                NSLog("seekingForward")
+//                print("seekingForward")
                 setupSpinner()
 //                if !spinner.isAnimating {
 //                    spinner.isHidden = false
@@ -3395,7 +3396,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 break
                 
             case .seekingBackward:
-//                NSLog("seekingBackward")
+//                print("seekingBackward")
                 setupSpinner()
 //                if !spinner.isAnimating {
 //                    spinner.isHidden = false
@@ -3407,27 +3408,27 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //            if (globals.mediaPlayer.player != nil) {
 //                switch globals.mediaPlayer.player!.playbackState {
 //                case .Interrupted:
-//                    NSLog("sliderTimer.Interrupted")
+//                    print("sliderTimer.Interrupted")
 //                    break
 //                    
 //                case .Paused:
-//                    NSLog("sliderTimer.Paused")
+//                    print("sliderTimer.Paused")
 //                    break
 //                    
 //                case .Playing:
-//                    NSLog("sliderTimer.Playing")
+//                    print("sliderTimer.Playing")
 //                    break
 //                    
 //                case .SeekingBackward:
-//                    NSLog("sliderTimer.SeekingBackward")
+//                    print("sliderTimer.SeekingBackward")
 //                    break
 //                    
 //                case .SeekingForward:
-//                    NSLog("sliderTimer.SeekingForward")
+//                    print("sliderTimer.SeekingForward")
 //                    break
 //                    
 //                case .Stopped:
-//                    NSLog("sliderTimer.Stopped")
+//                    print("sliderTimer.Stopped")
 //                    break
 //                }
 //            }
@@ -3501,7 +3502,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 
         if mediaItem!.hasCurrentTime() {
             if mediaItem!.atEnd {
-                NSLog("playPause globals.mediaPlayer.currentTime and globals.player.playing!.currentTime reset to 0!")
+                print("playPause globals.mediaPlayer.currentTime and globals.player.playing!.currentTime reset to 0!")
                 mediaItem?.currentTime = Constants.ZERO
                 seekToTime = CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution)
                 mediaItem?.atEnd = false
@@ -3509,7 +3510,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 seekToTime = CMTimeMakeWithSeconds(Double(mediaItem!.currentTime!)!,Constants.CMTime_Resolution)
             }
         } else {
-            NSLog("playPause selectedMediaItem has NO currentTime!")
+            print("playPause selectedMediaItem has NO currentTime!")
             mediaItem!.currentTime = Constants.ZERO
             seekToTime = CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution)
         }
@@ -3689,7 +3690,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //    }
     
     func webView(_ webView: WKWebView, didFail didFailNavigation: WKNavigation!, withError: Error) {
-        NSLog("wkDidFailNavigation")
+        print("wkDidFailNavigation")
 //        if (splitViewController != nil) || (self == navigationController?.visibleViewController) {
 //        }
 
@@ -3724,7 +3725,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
 //    func webView(_ webView: WKWebView, didFailProvisionalNavigation: WKNavigation!, withError: Error) {
 ////        print(webView.URL)
-//        NSLog("wkDidFailProvisionalNavigation")
+//        print("wkDidFailProvisionalNavigation")
 //        if (splitViewController != nil) || (self == navigationController?.visibleViewController) {
 ////            stvControl.hidden = true
 //            
@@ -3757,13 +3758,13 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //    }
     
     func webView(_ wkWebView: WKWebView, didStartProvisionalNavigation: WKNavigation!) {
-//        NSLog("wkDidStartProvisionalNavigation")
+//        print("wkDidStartProvisionalNavigation")
 
     }
     
     func wkSetZoomScaleThenContentOffset(_ wkWebView: WKWebView, scale:CGFloat, offset:CGPoint) {
-//        NSLog("scale: \(scale)")
-//        NSLog("offset: \(offset)")
+//        print("scale: \(scale)")
+//        print("offset: \(offset)")
 
         DispatchQueue.main.async(execute: { () -> Void in
             // The effects of the next two calls are strongly order dependent.
@@ -3775,12 +3776,12 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             }
         })
 
-//        NSLog("contentOffset after: \(wkWebView.scrollView.contentOffset)")
+//        print("contentOffset after: \(wkWebView.scrollView.contentOffset)")
     }
     
     func setDocumentContentOffsetAndZoomScale(_ document:Document?)
     {
-//        NSLog("setNotesContentOffsetAndZoomScale Loading: \(mediaItemNotesWebView!.loading)")
+//        print("setNotesContentOffsetAndZoomScale Loading: \(mediaItemNotesWebView!.loading)")
 
         var zoomScale:CGFloat = 1.0
         
@@ -3788,28 +3789,28 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         var contentOffsetYRatio:Float = 0.0
         
         if let ratioStr = selectedMediaItem?.mediaItemSettings?[document!.purpose! + Constants.CONTENT_OFFSET_X_RATIO] {
-//            NSLog("X ratio string: \(ratio)")
+//            print("X ratio string: \(ratio)")
             contentOffsetXRatio = Float(ratioStr)!
         } else {
-//            NSLog("No notes X ratio")
+//            print("No notes X ratio")
         }
         
         if let ratioStr = selectedMediaItem?.mediaItemSettings?[document!.purpose! + Constants.CONTENT_OFFSET_Y_RATIO] {
-//            NSLog("Y ratio string: \(ratio)")
+//            print("Y ratio string: \(ratio)")
             contentOffsetYRatio = Float(ratioStr)!
         } else {
-//            NSLog("No notes Y ratio")
+//            print("No notes Y ratio")
         }
         
         if let zoomScaleStr = selectedMediaItem?.mediaItemSettings?[document!.purpose! + Constants.ZOOM_SCALE] {
             zoomScale = CGFloat(Float(zoomScaleStr)!)
         } else {
-//            NSLog("No notes zoomScale")
+//            print("No notes zoomScale")
         }
         
-//        NSLog("\(notesContentOffsetXRatio)")
-//        NSLog("\(mediaItemNotesWebView!.scrollView.contentSize.width)")
-//        NSLog("\(notesZoomScale)")
+//        print("\(notesContentOffsetXRatio)")
+//        print("\(mediaItemNotesWebView!.scrollView.contentSize.width)")
+//        print("\(notesZoomScale)")
         
         let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio) * document!.wkWebView!.scrollView.contentSize.width * zoomScale,
                                         y: CGFloat(contentOffsetYRatio) * document!.wkWebView!.scrollView.contentSize.height * zoomScale)
@@ -3818,17 +3819,17 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-//        NSLog("wkWebViewDidFinishNavigation Loading:\(webView.loading)")
+//        print("wkWebViewDidFinishNavigation Loading:\(webView.loading)")
         
-//        NSLog("Frame: \(webView.frame)")
-//        NSLog("Bounds: \(webView.bounds)")
+//        print("Frame: \(webView.frame)")
+//        print("Bounds: \(webView.bounds)")
 
         if (self.view != nil) {
             if (selectedMediaItem != nil) {
                 if (documents[selectedMediaItem!.id] != nil) {
                     for document in documents[selectedMediaItem!.id]!.values {
                         if (webView == document.wkWebView) {
-    //                        NSLog("mediaItemNotesWebView")
+    //                        print("mediaItemNotesWebView")
                             if document.visible(selectedMediaItem) {
                                 DispatchQueue.main.async(execute: { () -> Void in
                                     self.activityIndicator.stopAnimating()
@@ -3838,12 +3839,12 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                                     
                                     self.setupSTVControl()
                                     
-//                                    NSLog("webView:hidden=panning")
+//                                    print("webView:hidden=panning")
                                     webView.isHidden = false // self.panning
                                 })
                             } else {
                                 DispatchQueue.main.async(execute: { () -> Void in
-//                                    NSLog("webView:hidden=true")
+//                                    print("webView:hidden=true")
                                     webView.isHidden = true
                                 })
                             }

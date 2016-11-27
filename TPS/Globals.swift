@@ -87,7 +87,7 @@ class PlayerStateTime {
         }
         
         if stateName != nil {
-            NSLog(stateName!)
+            print(stateName!)
         }
     }
 }
@@ -283,7 +283,7 @@ class MediaPlayer {
     func updateCurrentTimeExact(_ seekToTime:TimeInterval)
     {
         if (seekToTime == 0) {
-            NSLog("seekToTime == 0")
+            print("seekToTime == 0")
         }
         
         //    print(seekToTime)
@@ -352,6 +352,11 @@ class MediaPlayer {
         set {
             globals.unobservePlayer()
 
+            if sliderTimerReturn != nil {
+                player?.removeTimeObserver(sliderTimerReturn!)
+                sliderTimerReturn = nil
+            }
+            
             controller?.player = newValue
         }
     }
@@ -454,7 +459,7 @@ struct MediaRepository {
                     if index![mediaItem.id!] == nil {
                         index![mediaItem.id!] = mediaItem
                     } else {
-                        NSLog("DUPLICATE MEDIAITEM ID: \(mediaItem)")
+                        print("DUPLICATE MEDIAITEM ID: \(mediaItem)")
                     }
                 }
             }
@@ -551,7 +556,7 @@ struct MediaCategory {
     func saveSettingsBackground()
     {
         if allowSaveSettings {
-            NSLog("saveSettingsBackground")
+            print("saveSettingsBackground")
             
             DispatchQueue.global(qos: .background).async {
                 self.saveSettings()
@@ -562,7 +567,7 @@ struct MediaCategory {
     func saveSettings()
     {
         if allowSaveSettings {
-            NSLog("saveSettings")
+            print("saveSettings")
             let defaults = UserDefaults.standard
             defaults.set(settings, forKey: Constants.SETTINGS.KEY.CATEGORY)
             defaults.synchronize()
@@ -579,7 +584,7 @@ struct MediaCategory {
         }
         set {
             guard (selected != nil) else {
-                NSLog("selected == nil!")
+                print("selected == nil!")
                 return
             }
 
@@ -588,7 +593,7 @@ struct MediaCategory {
             }
             
             guard (settings != nil) else {
-                NSLog("settings == nil!")
+                print("settings == nil!")
                 return
             }
 
@@ -934,7 +939,7 @@ class Globals : NSObject {
     func saveSettingsBackground()
     {
         if allowSaveSettings {
-            NSLog("saveSettingsBackground")
+            print("saveSettingsBackground")
             
             DispatchQueue.global(qos: .background).async {
                 self.saveSettings()
@@ -945,11 +950,11 @@ class Globals : NSObject {
     func saveSettings()
     {
         if allowSaveSettings {
-            NSLog("saveSettings")
+            print("saveSettings")
             let defaults = UserDefaults.standard
-            //    NSLog("\(settings)")
+            //    print("\(settings)")
             defaults.set(mediaItemSettings,forKey: Constants.SETTINGS.KEY.MEDIA)
-            //    NSLog("\(seriesViewSplits)")
+            //    print("\(seriesViewSplits)")
             defaults.set(multiPartSettings, forKey: Constants.SETTINGS.KEY.MULTI_PART_MEDIA)
             defaults.synchronize()
         }
@@ -958,7 +963,7 @@ class Globals : NSObject {
     func clearSettings()
     {
         let defaults = UserDefaults.standard
-        //    NSLog("\(settings)")
+        //    print("\(settings)")
         defaults.removeObject(forKey: Constants.SETTINGS.KEY.MEDIA)
         defaults.removeObject(forKey: Constants.SETTINGS.KEY.MULTI_PART_MEDIA)
         defaults.removeObject(forKey: Constants.SETTINGS.KEY.CATEGORY)
@@ -972,17 +977,17 @@ class Globals : NSObject {
         if let settingsVersion = defaults.string(forKey: Constants.SETTINGS.VERSION.KEY) {
             if settingsVersion == Constants.SETTINGS.VERSION.NUMBER {
                 if let mediaItemSettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.KEY.MEDIA) {
-                    //        NSLog("\(settingsDictionary)")
+                    //        print("\(settingsDictionary)")
                     mediaItemSettings = mediaItemSettingsDictionary as? [String:[String:String]]
                 }
                 
                 if let seriesSettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.KEY.MULTI_PART_MEDIA) {
-                    //        NSLog("\(viewSplitsDictionary)")
+                    //        print("\(viewSplitsDictionary)")
                     multiPartSettings = seriesSettingsDictionary as? [String:[String:String]]
                 }
                 
                 if let categorySettingsDictionary = defaults.dictionary(forKey: Constants.SETTINGS.KEY.CATEGORY) {
-                    //        NSLog("\(viewSplitsDictionary)")
+                    //        print("\(viewSplitsDictionary)")
                     mediaCategory.settings = categorySettingsDictionary as? [String:[String:String]]
                 }
                 
@@ -1046,7 +1051,7 @@ class Globals : NSObject {
                 mediaPlayer.mediaItem = mediaCategory.playing != nil ? mediaRepository.index?[mediaCategory.playing!] : nil
 
                 if let historyArray = defaults.array(forKey: Constants.HISTORY) {
-                    //        NSLog("\(settingsDictionary)")
+                    //        print("\(settingsDictionary)")
                     history = historyArray as? [String]
                 }
             } else {
@@ -1073,7 +1078,7 @@ class Globals : NSObject {
 //            multiPartSettings = [String:[String:String]]()
 //        }
         
-        //    NSLog("\(settings)")
+        //    print("\(settings)")
     }
     
     func cancelAllDownloads()
@@ -1282,7 +1287,7 @@ class Globals : NSObject {
                 nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime]  = mediaPlayer.currentTime?.seconds
                 nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate]         = mediaPlayer.rate
                 
-                //    NSLog("\(mediaItemInfo.count)")
+                //    print("\(mediaItemInfo.count)")
                 
 //                print(nowPlayingInfo)
                 
@@ -1398,8 +1403,8 @@ class Globals : NSObject {
             try audioSession.setCategory(AVAudioSessionCategoryPlayback)
             try audioSession.setActive(true)
         } catch _ {
-            NSLog("failed to setCategory(AVAudioSessionCategoryPlayback)")
-            NSLog("failed to audioSession.setActive(true)")
+            print("failed to setCategory(AVAudioSessionCategoryPlayback)")
+            print("failed to audioSession.setActive(true)")
         }
         
         UIApplication.shared.beginReceivingRemoteControlEvents()
@@ -1412,7 +1417,7 @@ class Globals : NSObject {
         do {
             try audioSession.setActive(false)
         } catch _ {
-            NSLog("failed to audioSession.setActive(false)")
+            print("failed to audioSession.setActive(false)")
         }
     }
     
@@ -1501,7 +1506,7 @@ class Globals : NSObject {
             defaults.set(history, forKey: Constants.HISTORY)
             defaults.synchronize()
         } else {
-            NSLog("mediaItem NIL!")
+            print("mediaItem NIL!")
         }
     }
     
@@ -1618,21 +1623,21 @@ class Globals : NSObject {
     {
         MPRemoteCommandCenter.shared().playCommand.isEnabled = true
         MPRemoteCommandCenter.shared().playCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-            NSLog("RemoteControlPlay")
+            print("RemoteControlPlay")
             self.mediaPlayer.play()
             return MPRemoteCommandHandlerStatus.success
         })
         
         MPRemoteCommandCenter.shared().pauseCommand.isEnabled = true
         MPRemoteCommandCenter.shared().pauseCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-            NSLog("RemoteControlPause")
+            print("RemoteControlPause")
             self.mediaPlayer.pause()
             return MPRemoteCommandHandlerStatus.success
         })
         
         MPRemoteCommandCenter.shared().togglePlayPauseCommand.isEnabled = true
         MPRemoteCommandCenter.shared().togglePlayPauseCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-            NSLog("RemoteControlTogglePlayPause")
+            print("RemoteControlTogglePlayPause")
             if self.mediaPlayer.isPaused {
                 self.mediaPlayer.play()
             } else {
@@ -1643,7 +1648,7 @@ class Globals : NSObject {
         
         MPRemoteCommandCenter.shared().stopCommand.isEnabled = true
         MPRemoteCommandCenter.shared().stopCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-            NSLog("RemoteControlStop")
+            print("RemoteControlStop")
             self.mediaPlayer.pause()
             return MPRemoteCommandHandlerStatus.success
         })
@@ -1663,7 +1668,7 @@ class Globals : NSObject {
         MPRemoteCommandCenter.shared().skipBackwardCommand.isEnabled = true
 //        MPRemoteCommandCenter.shared().skipBackwardCommand.preferredIntervals = [15]
         MPRemoteCommandCenter.shared().skipBackwardCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-            NSLog("RemoteControlSkipBackward")
+            print("RemoteControlSkipBackward")
             self.mediaPlayer.seek(to: self.mediaPlayer.currentTime!.seconds - 15)
             return MPRemoteCommandHandlerStatus.success
         })
@@ -1671,7 +1676,7 @@ class Globals : NSObject {
         MPRemoteCommandCenter.shared().skipForwardCommand.isEnabled = true
         //        MPRemoteCommandCenter.shared().skipForwardCommand.preferredIntervals = [15]
         MPRemoteCommandCenter.shared().skipForwardCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-            NSLog("RemoteControlSkipForward")
+            print("RemoteControlSkipForward")
             self.mediaPlayer.seek(to: self.mediaPlayer.currentTime!.seconds + 15)
             return MPRemoteCommandHandlerStatus.success
         })
@@ -1679,7 +1684,7 @@ class Globals : NSObject {
         if #available(iOS 9.1, *) {
             MPRemoteCommandCenter.shared().changePlaybackPositionCommand.isEnabled = true
             MPRemoteCommandCenter.shared().changePlaybackPositionCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
-                NSLog("MPChangePlaybackPositionCommand")
+                print("MPChangePlaybackPositionCommand")
                 self.mediaPlayer.seek(to: (event as! MPChangePlaybackPositionCommandEvent).positionTime)
                 return MPRemoteCommandHandlerStatus.success
             })

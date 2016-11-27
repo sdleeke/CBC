@@ -68,11 +68,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     }
     
     func scrollViewDidZoom(_ scrollView: UIScrollView) {
-//        NSLog("scrollViewDidZoom")
+//        print("scrollViewDidZoom")
     }
     
     func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
-//        NSLog("scrollViewDidEndZooming")
+//        print("scrollViewDidEndZooming")
         if let _ = scrollView.superview as? WKWebView {
             switch content {
             case .document:
@@ -86,11 +86,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        NSLog("scrollViewDidScroll")
+//        print("scrollViewDidScroll")
     }
     
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-//        NSLog("scrollViewDidEndScrollingAnimation")
+//        print("scrollViewDidEndScrollingAnimation")
         if let _ = scrollView.superview as? WKWebView {
             switch content {
             case .document:
@@ -105,7 +105,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
     {
-//        NSLog("scrollViewDidEndDecelerating")
+//        print("scrollViewDidEndDecelerating")
         if let _ = scrollView.superview as? WKWebView {
             switch content {
             case .document:
@@ -120,7 +120,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool)
     {
-//        NSLog("scrollViewDidEndDragging")
+//        print("scrollViewDidEndDragging")
         if !decelerate {
             scrollViewDidEndDecelerating(scrollView)
         }
@@ -138,7 +138,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
 ////        }
 //    
 //        if (navigationAction.request.url != nil) {
-//            //            NSLog("\(navigationAction.request.URL!.absoluteString)")
+//            //            print("\(navigationAction.request.URL!.absoluteString)")
 //            
 //            if (navigationAction.request.url!.absoluteString.endIndex < Constants.BASE_PDF_URL.endIndex) {
 //                decisionHandler(WKNavigationActionPolicy.cancel)
@@ -160,7 +160,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     
     func webView(_ wkWebView: WKWebView, didFail didFailNavigation: WKNavigation!, withError: Error) {
         if (splitViewController != nil) || (self == navigationController?.visibleViewController) {
-            NSLog("wkDidFailNavigation")
+            print("wkDidFailNavigation")
             activityIndicator.stopAnimating()
             activityIndicator.isHidden = true
             progressIndicator.isHidden = true
@@ -173,7 +173,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     
     func webView(_ wkWebView: WKWebView, didFailProvisionalNavigation: WKNavigation!, withError: Error) {
         if (splitViewController != nil) || (self == navigationController?.visibleViewController) {
-            NSLog("wkDidFailProvisionalNavigation")
+            print("wkDidFailProvisionalNavigation")
             activityIndicator.stopAnimating()
             activityIndicator.isHidden = true
             progressIndicator.isHidden = true
@@ -182,7 +182,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     }
     
     func webView(_ wkWebView: WKWebView, didStartProvisionalNavigation: WKNavigation!) {
-        //        NSLog("wkDidStartProvisionalNavigation")
+        //        print("wkDidStartProvisionalNavigation")
         
     }
     
@@ -248,7 +248,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             printURL = mediaItem?.downloadURL as URL?
             
             if (printURL?.absoluteString != Constants.EMPTY_STRING) && UIPrintInteractionController.canPrint(printURL!) {
-                //                NSLog("can print!")
+                //                print("can print!")
                 let pi = UIPrintInfo.printInfo()
                 pi.outputType = UIPrintInfoOutputType.general
                 pi.jobName = Constants.Print;
@@ -504,11 +504,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     }
     
     func setWKZoomScaleThenContentOffset(_ wkWebView: WKWebView, scale:CGFloat, offset:CGPoint) {
-//        NSLog("scale: \(scale)")
-//        NSLog("offset: \(offset)")
+//        print("scale: \(scale)")
+//        print("offset: \(offset)")
 //
-//        NSLog("contentInset: \(webView.scrollView.contentInset)")
-//        NSLog("contentSize: \(webView.scrollView.contentSize)")
+//        print("contentInset: \(webView.scrollView.contentInset)")
+//        print("contentSize: \(webView.scrollView.contentSize)")
 
         DispatchQueue.main.async(execute: { () -> Void in
             // The effects of the next two calls are strongly order dependent.
@@ -580,7 +580,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     {
         // This used in transition to size to set the content offset.
         
-        NSLog("Before setContentOffset: \(wkWebView?.scrollView.contentOffset)")
+        print("Before setContentOffset: \(wkWebView?.scrollView.contentOffset)")
         
         if (wkWebView != nil) && (selectedMediaItem != nil) { // !showScripture &&
             var contentOffsetXRatioStr:String?
@@ -603,13 +603,13 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio * wkWebView!.scrollView.contentSize.width), //
                 y: CGFloat(contentOffsetYRatio * wkWebView!.scrollView.contentSize.height)) //
             
-            //            NSLog("About to setContentOffset with: \(contentOffset)")
+            //            print("About to setContentOffset with: \(contentOffset)")
             
             DispatchQueue.main.async(execute: { () -> Void in
                 wkWebView?.scrollView.setContentOffset(contentOffset,animated: false)
             })
             
-            //            NSLog("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
+            //            print("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
         }
     }
     
@@ -617,27 +617,27 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     {
         // This used in transition to size to set the content offset.
         
-        NSLog("Before setContentOffset: \(wkWebView?.scrollView.contentOffset)")
+        print("Before setContentOffset: \(wkWebView?.scrollView.contentOffset)")
         
         if (wkWebView != nil) && (selectedMediaItem != nil) { // !showScripture &&
             let contentOffset = CGPoint(x: CGFloat(html.xRatio * Double(wkWebView!.scrollView.contentSize.width)), //
                 y: CGFloat(html.yRatio * Double(wkWebView!.scrollView.contentSize.height))) //
             
-            //            NSLog("About to setContentOffset with: \(contentOffset)")
+            //            print("About to setContentOffset with: \(contentOffset)")
             
             DispatchQueue.main.async(execute: { () -> Void in
                 wkWebView?.scrollView.setZoomScale(CGFloat(self.html.zoomScale), animated: false)
                 wkWebView?.scrollView.setContentOffset(contentOffset,animated: false)
             })
             
-            //            NSLog("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
+            //            print("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
         }
     }
     
     func captureContentOffsetAndZoomScale()
     {
-        //        NSLog("\(wkWebView!.scrollView.contentOffset)")
-        //        NSLog("\(wkWebView!.scrollView.zoomScale)")
+        //        print("\(wkWebView!.scrollView.contentOffset)")
+        //        print("\(wkWebView!.scrollView.zoomScale)")
         
         if (UIApplication.shared.applicationState == UIApplicationState.active) && (selectedMediaItem != nil) && // !showScripture &&
             (wkWebView != nil) && (!wkWebView!.isLoading) && (wkWebView!.url != nil) {
@@ -652,8 +652,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     
     func captureHTMLContentOffsetAndZoomScale()
     {
-        //        NSLog("\(wkWebView!.scrollView.contentOffset)")
-        //        NSLog("\(wkWebView!.scrollView.zoomScale)")
+        //        print("\(wkWebView!.scrollView.contentOffset)")
+        //        print("\(wkWebView!.scrollView.zoomScale)")
         
         if (UIApplication.shared.applicationState == UIApplicationState.active) && (selectedMediaItem != nil) && // !showScripture &&
             (wkWebView != nil) && (!wkWebView!.isLoading) {
@@ -715,7 +715,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             break
         }
         
-//        NSLog("Size: \(size)")
+//        print("Size: \(size)")
 
 //        setupSplitViewController()
         
@@ -739,7 +739,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
 //        case UIApplicationState.Active:
 //            setupSplitViewController()
 //            
-//            NSLog("Before animateAlongsideTransition: \(wkWebView?.scrollView.contentOffset)")
+//            print("Before animateAlongsideTransition: \(wkWebView?.scrollView.contentOffset)")
 //            fallthrough
 //            
 //        case UIApplicationState.Background:
@@ -779,13 +779,13 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         download = selectedMediaItem?.download
 
 //        if (download != nil) {
-//            NSLog("totalBytesWritten: \(download!.totalBytesWritten)")
-//            NSLog("totalBytesExpectedToWrite: \(download!.totalBytesExpectedToWrite)")
+//            print("totalBytesWritten: \(download!.totalBytesWritten)")
+//            print("totalBytesExpectedToWrite: \(download!.totalBytesExpectedToWrite)")
 //        }
 
         switch download!.state {
         case .none:
-            NSLog(".none")
+            print(".none")
             self.loadTimer?.invalidate()
             self.loadTimer = nil
             
@@ -797,12 +797,12 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             break
         
         case .downloading:
-            NSLog(".downloading")
+            print(".downloading")
             progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
             break
 
         case .downloaded:
-            NSLog(".downloaded")
+            print(".downloaded")
             progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
 //            print(progressIndicator.progress)
 

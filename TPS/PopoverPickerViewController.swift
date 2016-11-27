@@ -26,7 +26,7 @@ class PopoverPickerViewController: UIViewController, UIPickerViewDataSource, UIP
     
     @IBAction func selectButtonAction(sender: UIButton)
     {
-        NSLog("\(string)")
+        print("\(string)")
         delegate?.stringPicked(string)
     }
     

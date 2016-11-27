@@ -97,9 +97,9 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                 }
             }
             
-    //        NSLog("count: \(CGFloat(strings!.count)) rowHeight: \(tableView.rowHeight) height: \(height)")
+    //        print("count: \(CGFloat(strings!.count)) rowHeight: \(tableView.rowHeight) height: \(height)")
             
-            var width = CGFloat(max * 12)
+            var width = CGFloat(max * 15)
             if width < 200 {
                 width = 200
             }
@@ -122,10 +122,10 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             self.preferredContentSize = CGSize(width: width, height: height)
         }
         
-//        NSLog("Strings: \(strings)")
-//        NSLog("Sections: \(sections)")
-//        NSLog("Section Indexes: \(sectionIndexes)")
-//        NSLog("Section Counts: \(sectionCounts)")
+//        print("Strings: \(strings)")
+//        print("Sections: \(sections)")
+//        print("Section Indexes: \(sectionIndexes)")
+//        print("Section Counts: \(sectionCounts)")
 
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -390,7 +390,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             break
             
         case .showingTags:
-            //            NSLog("strings: \(strings[indexPath.row]) mediaItemTag: \(mediaItemSelected?.tags)")
+            //            print("strings: \(strings[indexPath.row]) mediaItemTag: \(mediaItemSelected?.tags)")
             
             cell.accessoryType = UITableViewCellAccessoryType.none
             
@@ -402,7 +402,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             break
             
         case .selectingTags:
-            //            NSLog("strings: \(strings[indexPath.row]) mediaItemTag: \(globals.mediaItemTag)")
+            //            print("strings: \(strings[indexPath.row]) mediaItemTag: \(globals.mediaItemTag)")
             let string = strings![index]
             
             switch globals.tags.showing! {

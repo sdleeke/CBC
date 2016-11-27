@@ -104,7 +104,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
     @IBOutlet weak var mediaCategoryButton: UIButton!
     @IBAction func mediaCategoryButtonAction(_ button: UIButton) {
-        NSLog("categoryButtonAction")
+        print("categoryButtonAction")
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController {
             if let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
                 
@@ -351,7 +351,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         mailComposeViewController.setToRecipients([])
         mailComposeViewController.setSubject(Constants.EMAIL_ALL_SUBJECT)
         
-        if let bodyString = setupMediaItemsBodyHTML(mediaItems) {
+        if let bodyString = setupMediaItemsGlobalBodyHTML(mediaItems) {
             mailComposeViewController.setMessageBody(bodyString, isHTML: true)
         }
         
@@ -512,7 +512,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         new = (globals.tags.showing != Constants.TAGGED) || (globals.tags.selected != tagSelected)
                         
                         if (new) {
-                            //                                NSLog("\(globals.active!.mediaItemTags)")
+                            //                                print("\(globals.active!.mediaItemTags)")
                             
                             globals.tags.selected = tagSelected
                             
@@ -552,7 +552,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         })
                     }
                 } else {
-                    NSLog("Index out of range")
+                    print("Index out of range")
                 }
             })
             break
@@ -813,7 +813,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //                                date = historyItem.substringToIndex(range.startIndex)
 //                                
 //                                for index in 0..<sections.count {
-//                                    if (sections[index] == date.substringToIndex(date.rangeOfString(" ")!.startIndex)) {
+//                                    if (sections[index] == date.substringToIndex(date.rangeOfString(Constants.SINGLE_SPACE)!.startIndex)) {
 //                                        if (counter == 0) {
 //                                            indexes.append(index)
 //                                        }
@@ -859,7 +859,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     }
     
     func willPresentSearchController(_ searchController: UISearchController) {
-//        NSLog("willPresentSearchController")
+//        print("willPresentSearchController")
         globals.searchActive = true
     }
     
@@ -1101,7 +1101,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-//        NSLog("searchBar:textDidChange:")
+//        print("searchBar:textDidChange:")
         //Unstable results from incremental search
 //        print(searchText)
         if (searchText != Constants.EMPTY_STRING) { //
@@ -1114,7 +1114,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     }
 
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-//        NSLog("searchBarSearchButtonClicked:")
+//        print("searchBarSearchButtonClicked:")
         searchBar.resignFirstResponder()
 //        print(searchBar.text)
         if (searchBar.text != nil) && (searchBar.text != Constants.EMPTY_STRING) { //
@@ -1133,7 +1133,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     }
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
-//        NSLog("searchBarTextDidBeginEditing:")
+//        print("searchBarTextDidBeginEditing:")
         globals.searchActive = true
         searchBar.showsCancelButton = true
 
@@ -1149,11 +1149,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     }
     
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
-//        NSLog("searchBarTextDidEndEditing:")
+//        print("searchBarTextDidEndEditing:")
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-//        NSLog("searchBarCancelButtonClicked:")
+//        print("searchBarCancelButtonClicked:")
         searchBar.showsCancelButton = false
         searchBar.resignFirstResponder()
         searchBar.text = nil
@@ -1196,9 +1196,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func updateProgress()
     {
-//        NSLog("\(Float(globals.progress))")
-//        NSLog("\(Float(globals.finished))")
-//        NSLog("\(Float(globals.progress) / Float(globals.finished))")
+//        print("\(Float(globals.progress))")
+//        print("\(Float(globals.finished))")
+//        print("\(Float(globals.progress) / Float(globals.finished))")
         
         self.progressIndicator.progress = 0
         if (globals.finished > 0) {
@@ -1206,7 +1206,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             self.progressIndicator.progress = Float(globals.progress) / Float(globals.finished)
         }
         
-        //            NSLog("\(self.progressIndicator.progress)")
+        //            print("\(self.progressIndicator.progress)")
         
         if self.progressIndicator.progress == 1.0 {
             self.progressTimer?.invalidate()
@@ -1233,7 +1233,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 print(json)
                 return json
             } else {
-                NSLog("could not get json from file, make sure that file contains valid json.")
+                print("could not get json from file, make sure that file contains valid json.")
                 
                 let data = try Data(contentsOf: jsonFileSystemURL!) // , options: NSData.ReadingOptions.mappedIfSafe
                 
@@ -1244,7 +1244,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 }
             }
         } catch let error as NSError {
-            NSLog(error.localizedDescription)
+            print(error.localizedDescription)
             
             do {
                 let data = try Data(contentsOf: jsonFileSystemURL!) // , options: NSData.ReadingOptions.mappedIfSafe
@@ -1255,11 +1255,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     return json
                 }
             } catch let error as NSError {
-                NSLog(error.localizedDescription)
+                print(error.localizedDescription)
             }
         }
         //        } else {
-        //            NSLog("Invalid filename/path.")
+        //            print("Invalid filename/path.")
         //        }
         
         return nil
@@ -1272,7 +1272,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         let json = jsonDataFromCachesDirectory()
         
         if json != JSON.null {
-//            NSLog("json:\(json)")
+//            print("json:\(json)")
             
             let mediaItems = json[key]
             
@@ -1291,7 +1291,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             return mediaItemDicts.count > 0 ? mediaItemDicts : nil
         } else {
-            NSLog("could not get json from file, make sure that file contains valid json.")
+            print("could not get json from file, make sure that file contains valid json.")
         }
         
         return nil
@@ -1304,7 +1304,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         let json = jsonFromURL(url: url,filename: filename)
         
         if json != JSON.null {
-            NSLog("json:\(json)")
+            print(json)
             
             let mediaItems = json[key]
             
@@ -1324,7 +1324,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             return mediaItemDicts.count > 0 ? mediaItemDicts : nil
         } else {
-            NSLog("could not get json from file, make sure that file contains valid json.")
+            print("could not get json from file, make sure that file contains valid json.")
         }
         
         return nil
@@ -1629,11 +1629,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
     {
-    NSLog("URLSession:downloadTask:bytesWritten:totalBytesWritten:totalBytesExpectedToWrite:")
+    print("URLSession:downloadTask:bytesWritten:totalBytesWritten:totalBytesExpectedToWrite:")
         
         let filename = downloadTask.taskDescription!
         
-        NSLog("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
+        print("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
         
         DispatchQueue.main.async(execute: { () -> Void in
             self.progressIndicator.isHidden = false
@@ -1648,7 +1648,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)
     {
-        NSLog("URLSession:downloadTask:didFinishDownloadingToURL")
+        print("URLSession:downloadTask:didFinishDownloadingToURL")
         
         DispatchQueue.main.async(execute: { () -> Void in
             self.progressIndicator.isHidden = true
@@ -1656,13 +1656,13 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
         var success = false
         
-        NSLog("countOfBytesExpectedToReceive: \(downloadTask.countOfBytesExpectedToReceive)")
+        print("countOfBytesExpectedToReceive: \(downloadTask.countOfBytesExpectedToReceive)")
         
-        NSLog("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
+        print("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
         
         let filename = downloadTask.taskDescription!
         
-        NSLog("filename: \(filename) location: \(location)")
+        print("filename: \(filename) location: \(location)")
         
         if (downloadTask.countOfBytesReceived > 0) {
             let fileManager = FileManager.default
@@ -1674,7 +1674,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     do {
                         try fileManager.removeItem(at: destinationURL)
                     } catch _ {
-                        NSLog("failed to remove old json file")
+                        print("failed to remove old json file")
                     }
                 }
                 
@@ -1683,13 +1683,13 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     try fileManager.removeItem(at: location as URL)
                     success = true
                 } catch _ {
-                    NSLog("failed to copy new json file to Documents")
+                    print("failed to copy new json file to Documents")
                 }
             } else {
-                NSLog("failed to get destinationURL")
+                print("failed to get destinationURL")
             }
         } else {
-            NSLog("downloadTask.countOfBytesReceived not > 0")
+            print("downloadTask.countOfBytesReceived not > 0")
         }
         
         if success {
@@ -1742,12 +1742,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
     {
-        NSLog("URLSession:task:didCompleteWithError")
+        print("URLSession:task:didCompleteWithError")
         
         if (error != nil) {
-//            NSLog("Download failed for: \(session.description)")
+//            print("Download failed for: \(session.description)")
         } else {
-//            NSLog("Download succeeded for: \(session.description)")
+//            print("Download succeeded for: \(session.description)")
         }
         
         // This deletes more than the temp file associated with this download and sometimes it deletes files in progress
@@ -1755,7 +1755,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        removeTempFiles()
         
         let filename = task.taskDescription
-        NSLog("filename: \(filename!) error: \(error)")
+        print("filename: \(filename!) error: \(error)")
         
         session.invalidateAndCancel()
         
@@ -1768,7 +1768,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?)
     {
-        NSLog("URLSession:didBecomeInvalidWithError")
+        print("URLSession:didBecomeInvalidWithError")
 
     }
     
@@ -2001,7 +2001,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     }
 
     func searchBarResultsListButtonClicked(_ searchBar: UISearchBar) {
-//        NSLog("searchBarResultsListButtonClicked")
+//        print("searchBarResultsListButtonClicked")
         
         if !globals.isLoading && !globals.isRefreshing && (globals.media.all?.mediaItemTags != nil) && (self.storyboard != nil) { // !globals.mediaItemsSortingOrGrouping &&
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
@@ -2337,9 +2337,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             if (section > -1) && (row > -1) {
                 indexPath = IndexPath(item: row,section: section)
                 
-                //            NSLog("\(globals.mediaItemSelected?.title)")
-                //            NSLog("Row: \(indexPath.item)")
-                //            NSLog("Section: \(indexPath.section)")
+                //            print("\(globals.mediaItemSelected?.title)")
+                //            print("Row: \(indexPath.item)")
+                //            print("Section: \(indexPath.section)")
                 
                 if (select) {
                     tableView.selectRow(at: indexPath, animated: false, scrollPosition: UITableViewScrollPosition.none)
@@ -2475,9 +2475,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
-        if (splitViewController == nil) {
-            navigationController?.isToolbarHidden = true
-        }
+//        if (splitViewController == nil) {
+//            navigationController?.isToolbarHidden = true
+//        }
         
 //        NotificationCenter.default.removeObserver(self) // If you do this it won't get notified of list changes, i.e. adding and removing from Favorites and Downloads.
     }
@@ -2503,10 +2503,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         show = true
 
-    //    NSLog("shouldPerformSegueWithIdentifier")
-    //    NSLog("Selected: \(globals.mediaItemSelected?.title)")
-    //    NSLog("Last Selected: \(globals.mediaItemLastSelected?.title)")
-    //    NSLog("Playing: \(globals.player.playing?.title)")
+    //    print("shouldPerformSegueWithIdentifier")
+    //    print("Selected: \(globals.mediaItemSelected?.title)")
+    //    print("Last Selected: \(globals.mediaItemLastSelected?.title)")
+    //    print("Playing: \(globals.player.playing?.title)")
         
         switch identifier {
             case Constants.SEGUE.SHOW_ABOUT:
@@ -2853,7 +2853,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         cell.mediaItem = globals.display.mediaItems?[section + indexPath.row]
                     }
                 } else {
-                    NSLog("No mediaItem for cell!")
+                    print("No mediaItem for cell!")
                 }
             }
         }
@@ -2874,7 +2874,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAtIndexPath indexPath: IndexPath) {
-//        NSLog("didSelect")
+//        print("didSelect")
 
         if let cell: MediaTableViewCell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
             selectedMediaItem = cell.mediaItem
@@ -2885,7 +2885,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     }
     
     func tableView(_ TableView: UITableView, didDeselectRowAtIndexPath indexPath: IndexPath) {
-//        NSLog("didDeselect")
+//        print("didDeselect")
 
 //        if let cell: MediaTableViewCell = tableView.cellForRowAtIndexPath(indexPath) as? MediaTableViewCell {
 //
@@ -2933,22 +2933,20 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         
                         popover.strings = searchStrings
                         
-                        if mediaItem.hasNotesHTML && (mediaItem.notesHTML == nil) {
-                            popover.stringsFunction = {
-                                mediaItem.loadNotesHTML()
-                                
-                                var strings = popover.strings
-                                
-                                if globals.searchTranscripts && globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
+                        if globals.searchTranscripts && globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
+                            if mediaItem.hasNotesHTML && (mediaItem.notesHTML == nil) {
+                                popover.stringsFunction = {
+                                    var strings = popover.strings
+                                    
+                                    mediaItem.loadNotesHTML()
+                                    
                                     if mediaItem.searchNotesHTML(searchText: globals.searchText) {
                                         strings?.insert(Constants.Transcript,at: 0)
                                     }
+                                    
+                                    return strings
                                 }
-                                
-                                return strings
-                            }
-                        } else {
-                            if globals.searchTranscripts && globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
+                            } else {
                                 if mediaItem.searchNotesHTML(searchText: globals.searchText) {
                                     popover.strings?.insert(Constants.Transcript,at: 0)
                                 }
@@ -3111,16 +3109,16 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     /*
     // Uncomment this method to specify if the specified item should be highlighted during tracking
     func tableView(_ tableView: UITableView, shouldHighlightRowAtIndexPath indexPath: IndexPath) -> Bool {
-        NSLog("shouldHighlight")
+        print("shouldHighlight")
         return true
     }
     
     func tableView(_ tableView: UITableView, didHighlightRowAtIndexPath indexPath: IndexPath) {
-        NSLog("didHighlight")
+        print("didHighlight")
     }
     
     func tableView(_ tableView: UITableView, didUnhighlightRowAtIndexPath indexPath: IndexPath) {
-        NSLog("Unhighlighted")
+        print("Unhighlighted")
     }
      */
     
