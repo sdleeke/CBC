@@ -1218,7 +1218,23 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             globals.finished = 0
         }
     }
-    
+
+    func jsonAlert(title:String,message:String)
+    {
+        if (UIApplication.shared.applicationState == UIApplicationState.active) {
+            let alert = UIAlertController(title:title,
+                                          message:message,
+                                          preferredStyle: UIAlertControllerStyle.alert)
+            
+            let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                
+            })
+            alert.addAction(action)
+            
+            self.present(alert, animated: true, completion: nil)
+        }
+    }
+
     func jsonFromURL(url:String,filename:String) -> JSON
     {
         let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename)
@@ -1228,22 +1244,38 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             let json = JSON(data: data)
             if json != JSON.null {
-                try data.write(to: jsonFileSystemURL!, options: NSData.WritingOptions.atomicWrite)
+                do {
+                    try data.write(to: jsonFileSystemURL!, options: NSData.WritingOptions.atomicWrite)
+                } catch let error as NSError {
+                    jsonAlert(title:"Media list write failure.",message:"Please try again.")
+                    print(error.localizedDescription)
+                }
                 
                 print(json)
                 return json
             } else {
-                print("could not get json from file, make sure that file contains valid json.")
+                print("could not get json from URL, make sure that it exists and contains valid json.")
                 
-                let data = try Data(contentsOf: jsonFileSystemURL!) // , options: NSData.ReadingOptions.mappedIfSafe
-                
-                let json = JSON(data: data)
-                if json != JSON.null {
-//                    print(json)
-                    return json
+                do {
+                    let data = try Data(contentsOf: jsonFileSystemURL!) // , options: NSData.ReadingOptions.mappedIfSafe
+                    
+                    let json = JSON(data: data)
+                    if json != JSON.null {
+                        jsonAlert(title:"Media list failed to load.",message:"Last available copy loaded.")
+                        print("could get json from the file system.")
+//                        print(json)
+                        return json
+                    } else {
+                        jsonAlert(title:"Media list and last available both failed to load.",message:"Please try again.")
+                        print("could not get json from the file system either.")
+                    }
+                } catch let error as NSError {
+                    jsonAlert(title:"Media list failed to load and last available failed to read.",message:"Please try again.")
+                    print(error.localizedDescription)
                 }
             }
         } catch let error as NSError {
+            print("getting json from URL failed, make sure that it exists and contains valid json.")
             print(error.localizedDescription)
             
             do {
@@ -1251,10 +1283,16 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 let json = JSON(data: data)
                 if json != JSON.null {
+                    jsonAlert(title:"Media list download failed.",message:"Last available copy loaded.")
+                    print("could get json from the file system.")
                     //                        print(json)
                     return json
+                } else {
+                    jsonAlert(title:"Media list download and loading last available load both failed.",message:"Please try again.")
+                    print("could not get json from the file system either.")
                 }
             } catch let error as NSError {
+                jsonAlert(title:"Media list download and loading last available read both failed.",message:"Please try again.")
                 print(error.localizedDescription)
             }
         }

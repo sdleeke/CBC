@@ -246,10 +246,10 @@ struct Constants {
     
     static let COVER_ART_IMAGE = "cover170x170"
     
-    struct CACHE {
-        static let POLICY = NSURLRequest.CachePolicy.reloadRevalidatingCacheData
-        static let TIMEOUT = 10.0
-    }
+//    struct CACHE {
+//        static let POLICY = NSURLRequest.CachePolicy.reloadRevalidatingCacheData
+//        static let TIMEOUT = 10.0
+//    }
 
     static let HEADER_HEIGHT = CGFloat(48)
     static let VIEW_TRANSITION_TIME = 0.75 // seconds

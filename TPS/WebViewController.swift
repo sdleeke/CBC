@@ -922,7 +922,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                         }
                     })
                     
-                    let request = URLRequest(url: url!, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
+                    let request = URLRequest(url: url!)
+//                    let request = URLRequest(url: url!, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
                     _ = self.wkWebView?.load(request) // NSURLRequest(URL: NSURL(string: stringURL!)!)
                 })
             }
@@ -946,7 +947,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                     }
                 })
                 
-                let request = URLRequest(url: url!, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
+                let request = URLRequest(url: url!)
+//                let request = URLRequest(url: url!, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
                 _ = self.wkWebView?.load(request) // NSURLRequest(URL: NSURL(string: stringURL!)!)
             })
         }

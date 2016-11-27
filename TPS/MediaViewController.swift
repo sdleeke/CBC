@@ -2112,7 +2112,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                         print("\(self.selectedMediaItem?.title)")
                         print("document!.download!.downloadURL nil")
                     }
-                    let request = URLRequest(url: document!.download!.downloadURL! as URL, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
+                    
+                    let request = URLRequest(url: document!.download!.downloadURL!)
+//                    let request = URLRequest(url: document!.download!.downloadURL! as URL, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
                     _ = document?.wkWebView?.load(request)
                 })
             }
@@ -2131,7 +2133,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     }
                 })
                 
-                let request = URLRequest(url: document!.download!.downloadURL! as URL, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
+                let request = URLRequest(url: document!.download!.downloadURL!)
+//                let request = URLRequest(url: document!.download!.downloadURL! as URL, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
                 _ = document?.wkWebView?.load(request)
             })
         }
