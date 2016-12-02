@@ -248,7 +248,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     }
                 }
 
-                multiPartMediaItems = selectedMediaItem?.multiPartMediaItems // mediaItemsInMediaItemSeries(selectedMediaItem)
+                mediaItems = selectedMediaItem?.multiPartMediaItems // mediaItemsInMediaItemSeries(selectedMediaItem)
                 
 //                print(selectedMediaItem)
 //                let defaults = UserDefaults.standard
@@ -261,7 +261,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             } else {
                 // We always select, never deselect, so this should not be done.  If we set this to nil it is for some other reason, like clearing the UI.
                 //                defaults.removeObjectForKey(Constants.SELECTED_SERMON_DETAIL_KEY)
-                multiPartMediaItems = nil
+                mediaItems = nil
                 for key in documents.keys {
                     for document in documents[key]!.values {
                         document.wkWebView?.removeFromSuperview()
@@ -273,7 +273,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         }
     }
     
-    var multiPartMediaItems:[MediaItem]?
+    var mediaItems:[MediaItem]?
 
     @IBOutlet weak var tableViewWidth: NSLayoutConstraint!
     
@@ -454,52 +454,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         
         if keyPath == #keyPath(AVPlayerItem.status) {
             setupSliderAndTimes()
-//            let status: AVPlayerItemStatus
-//            
-//            // Get the status change from the change dictionary
-//            if let statusNumber = change?[.newKey] as? NSNumber {
-//                status = AVPlayerItemStatus(rawValue: statusNumber.intValue)!
-//            } else {
-//                status = .unknown
-//            }
-//            
-//            // Switch over the status
-//            switch status {
-//            case .readyToPlay:
-//                // Player item is ready to play.
-//                //                print(player?.currentItem?.duration.value)
-//                //                print(player?.currentItem?.duration.timescale)
-//                //                print(player?.currentItem?.duration.seconds)
-//                setupSliderAndTimes()
-//
-////                if let length = player?.currentItem?.duration.seconds {
-////                    let timeNow = Double(selectedMediaItem!.currentTime!)!
-////                    let progress = timeNow / length
-////                    
-////                    //                    print("timeNow",timeNow)
-////                    //                    print("progress",progress)
-////                    //                    print("length",length)
-////                    
-////                    slider.value = Float(progress)
-////                    setTimes(timeNow: timeNow,length: length)
-////                    
-////                    elapsed.isHidden = false
-////                    remaining.isHidden = false
-////                    slider.isHidden = false
-////                    slider.isEnabled = false
-////                }
-//                break
-//                
-//            case .failed:
-//                // Player item failed. See error.
-//                setupSliderAndTimes()
-//                break
-//                
-//            case .unknown:
-//                // Player item is not yet ready.
-//                setupSliderAndTimes()
-//                break
-//            }
         }
     }
 
@@ -966,7 +920,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         })
         alert.addAction(action)
         
-        self.present(alert, animated: true, completion: nil)
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.present(alert, animated: true, completion: nil)
+        })
     }
     
     // MARK: MFMessageComposeViewControllerDelegate Method
@@ -976,16 +932,17 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     func message(_ mediaItem:MediaItem?)
     {
-        
         let messageComposeViewController = MFMessageComposeViewController()
         messageComposeViewController.messageComposeDelegate = self // Extremely important to set the --messageComposeDelegate-- property, NOT the --delegate-- property
         
         messageComposeViewController.recipients = nil
         messageComposeViewController.subject = "Recommendation"
-        messageComposeViewController.body = setupBody(mediaItem)
+        messageComposeViewController.body = mediaItem?.contents
         
         if MFMessageComposeViewController.canSendText() {
-            self.present(messageComposeViewController, animated: true, completion: nil)
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.present(messageComposeViewController, animated: true, completion: nil)
+            })
         } else {
             self.showSendMailErrorAlert()
         }
@@ -1001,77 +958,14 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         })
         alert.addAction(action)
         
-        self.present(alert, animated: true, completion: nil)
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.present(alert, animated: true, completion: nil)
+        })
     }
     
     // MARK: MFMailComposeViewControllerDelegate Method
     func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
         controller.dismiss(animated: true, completion: nil)
-    }
-    
-    func mailMediaItem(_ mediaItem:MediaItem?)
-    {
-        let mailComposeViewController = MFMailComposeViewController()
-        mailComposeViewController.mailComposeDelegate = self // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
-        
-        mailComposeViewController.setToRecipients([])
-        mailComposeViewController.setSubject(Constants.EMAIL_ONE_SUBJECT)
-
-        if let bodyString = setupMediaItemBodyHTML(mediaItem) {
-            mailComposeViewController.setMessageBody(bodyString, isHTML: true)
-        }
-
-        if MFMailComposeViewController.canSendMail() {
-            self.present(mailComposeViewController, animated: true, completion: nil)
-        } else {
-            self.showSendMailErrorAlert()
-        }
-    }
-    
-    func mailMediaItems(_ mediaItems:[MediaItem]?)
-    {
-        let mailComposeViewController = MFMailComposeViewController()
-        mailComposeViewController.mailComposeDelegate = self // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
-        
-        mailComposeViewController.setToRecipients([])
-        mailComposeViewController.setSubject(Constants.EMAIL_ALL_SUBJECT)
-        
-        if let bodyString = setupMediaItemsBodyHTML(mediaItems) {
-            mailComposeViewController.setMessageBody(bodyString, isHTML: true)
-        }
-        
-        if MFMailComposeViewController.canSendMail() {
-            self.present(mailComposeViewController, animated: true, completion: nil)
-        } else {
-            self.showSendMailErrorAlert()
-        }
-    }
-    
-    func printMediaItem(_ mediaItem:MediaItem?)
-    {
-        if (UIPrintInteractionController.isPrintingAvailable && (mediaItem != nil))
-        {
-            let printURL = mediaItem?.downloadURL
-            
-            if (printURL != nil) && UIPrintInteractionController.canPrint(printURL!) {
-//                print("can print!")
-                let pi = UIPrintInfo.printInfo()
-                pi.outputType = UIPrintInfoOutputType.general
-                pi.jobName = "Print";
-                pi.orientation = UIPrintInfoOrientation.portrait
-                pi.duplex = UIPrintInfoDuplex.longEdge
-                
-                let pic = UIPrintInteractionController.shared
-                pic.printInfo = pi
-                pic.showsPageRange = true
-                
-                //Never could get this to work:
-//            pic?.printFormatter = webView?.viewPrintFormatter()
-                
-                pic.printingItem = printURL
-                pic.present(from: navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
-            }
-        }
     }
     
     fileprivate func openMediaItemScripture(_ mediaItem:MediaItem?)
@@ -1212,8 +1106,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             
         case .selectingAction:
             switch strings[index] {
-            case Constants.Print:
-                printMediaItem(selectedMediaItem)
+            case Constants.Print_Slides:
+                fallthrough
+            case Constants.Print_Transcript:
+                printDocument(viewController: self, documentURL: selectedMediaItem?.downloadURL)
                 break
                 
             case Constants.Add_to_Favorites:
@@ -1221,7 +1117,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 break
                 
             case Constants.Add_All_to_Favorites:
-                for mediaItem in multiPartMediaItems! {
+                for mediaItem in mediaItems! {
                     mediaItem.addTag(Constants.Favorites)
                 }
                 break
@@ -1231,7 +1127,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 break
                 
             case Constants.Remove_All_From_Favorites:
-                for mediaItem in multiPartMediaItems! {
+                for mediaItem in mediaItems! {
                     mediaItem.removeTag(Constants.Favorites)
                 }
                 break
@@ -1283,7 +1179,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 break
                 
             case Constants.Download_All_Audio:
-                for mediaItem in multiPartMediaItems! {
+                for mediaItem in mediaItems! {
                     mediaItem.audioDownload?.download()
                 }
                 break
@@ -1293,7 +1189,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 break
                 
             case Constants.Cancel_All_Audio_Downloads:
-                for mediaItem in multiPartMediaItems! {
+                for mediaItem in mediaItems! {
                     mediaItem.audioDownload?.cancelDownload()
                 }
                 break
@@ -1303,21 +1199,81 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 break
                 
             case Constants.Delete_All_Audio_Downloads:
-                for mediaItem in multiPartMediaItems! {
+                for mediaItem in mediaItems! {
                     mediaItem.audioDownload?.deleteDownload()
                 }
                 break
                 
             case Constants.Email_One:
-                mailMediaItem(selectedMediaItem)
+                if selectedMediaItem != nil {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.dismiss(animated: true, completion: nil)
+                        
+                        let alert = UIAlertController(title: "Format into columns?",
+                                                      message: "Columns may not display correctly on a small screen.",
+                                                      preferredStyle: UIAlertControllerStyle.alert)
+                        
+                        let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                            mailMediaItems(viewController: self,mediaItems: [self.selectedMediaItem!], stringFunction: setupMediaItemsBodyHTML,links: true,columns: true,attachments: false)
+                        })
+                        alert.addAction(yesAction)
+                        
+                        let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                            mailMediaItems(viewController: self,mediaItems: [self.selectedMediaItem!], stringFunction: setupMediaItemsBodyHTML,links: true,columns: false,attachments: false)
+                        })
+                        alert.addAction(noAction)
+                        
+                        let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                            
+                        })
+                        alert.addAction(cancelAction)
+                    
+                        self.present(alert, animated: true, completion: nil)
+                    })
+                }
                 break
                 
             case Constants.Email_All:
-                mailMediaItems(multiPartMediaItems)
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.dismiss(animated: true, completion: nil)
+                    
+                    let alert = UIAlertController(title: "Format into columns?",
+                                                  message: "Columns may not display correctly on a small screen.",
+                                                  preferredStyle: UIAlertControllerStyle.alert)
+                    
+                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                        mailMediaItems(viewController: self,mediaItems: self.mediaItems, stringFunction: setupMediaItemsBodyHTML,links: true,columns: true,attachments: false)
+                    })
+                    alert.addAction(yesAction)
+                    
+                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                        mailMediaItems(viewController: self,mediaItems: self.mediaItems, stringFunction: setupMediaItemsBodyHTML,links: true,columns: false,attachments: false)
+                    })
+                    alert.addAction(noAction)
+                    
+                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                        
+                    })
+                    alert.addAction(cancelAction)
+                    
+                    self.present(alert, animated: true, completion: nil)
+                })
+                break
+                
+            case Constants.Share:
+                if selectedMediaItem != nil {
+                    shareMediaItems(viewController: self, mediaItems: [selectedMediaItem!], stringFunction: setupMediaItemsBody, barButton: navigationItem.rightBarButtonItem)
+                }
+                break
+                
+            case Constants.Share_All:
+                shareMediaItems(viewController: self, mediaItems: mediaItems, stringFunction: setupMediaItemsBody, barButton: navigationItem.rightBarButtonItem)
                 break
                 
             case Constants.Refresh_Document:
+                // This only refreshes the visible document.
                 download?.deleteDownload()
+                document?.loaded = false
                 setupDocumentsAndVideo()
                 break
                 
@@ -1336,249 +1292,201 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         //In case we have one already showing
         dismiss(animated: true, completion: nil)
 
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .popover
-                //            popover?.preferredContentSize = CGSizeMake(300, 500)
-                
-                navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                navigationController.popoverPresentationController?.delegate = self
-                
-                navigationController.popoverPresentationController?.barButtonItem = actionButton
-                
-                //                popover.navigationItem.title = Constants.Show
-                
-                popover.navigationController?.isNavigationBarHidden = true
-                
-                popover.delegate = self
-                popover.purpose = .selectingAction
-                
-                var actionMenu = [String]()
-                
-                if (document != nil) {
-//                if (selectedMediaItem!.hasNotes() && selectedMediaItem!.showingNotes()) || (selectedMediaItem!.hasSlides() && selectedMediaItem!.showingSlides()) {
-                    actionMenu.append(Constants.Print)
-                }
-
-                if selectedMediaItem!.hasFavoritesTag {
-                    actionMenu.append(Constants.Remove_From_Favorites)
-                } else {
-                    actionMenu.append(Constants.Add_to_Favorites)
-                }
-                
-                if multiPartMediaItems?.count > 1 {
-                    var favoriteMediaItems = 0
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            navigationController.modalPresentationStyle = .popover
+            //            popover?.preferredContentSize = CGSizeMake(300, 500)
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.barButtonItem = actionButton
+            
+            //                popover.navigationItem.title = Constants.Show
+            
+            popover.navigationController?.isNavigationBarHidden = true
+            
+            popover.delegate = self
+            popover.purpose = .selectingAction
+            
+            var actionMenu = [String]()
+            
+            if UIPrintInteractionController.isPrintingAvailable, let purpose = document?.purpose  {
+                switch purpose {
+                case Purpose.notes:
+                    actionMenu.append(Constants.Print_Transcript)
+                    break
                     
-                    for mediaItem in multiPartMediaItems! {
-                        if (mediaItem.hasFavoritesTag) {
-                            favoriteMediaItems += 1
-                        }
-                    }
-                    switch favoriteMediaItems {
-                    case 0:
-                        actionMenu.append(Constants.Add_All_to_Favorites)
-                        break
-                        
-                    case 1:
-                        actionMenu.append(Constants.Add_All_to_Favorites)
-
-                        if !selectedMediaItem!.hasFavoritesTag {
-                            actionMenu.append(Constants.Remove_All_From_Favorites)
-                        }
-                        break
-                        
-                    case multiPartMediaItems!.count - 1:
-                        if selectedMediaItem!.hasFavoritesTag {
-                            actionMenu.append(Constants.Add_All_to_Favorites)
-                        }
-                        
-                        actionMenu.append(Constants.Remove_All_From_Favorites)
-                        break
-                        
-                    case multiPartMediaItems!.count:
-                        actionMenu.append(Constants.Remove_All_From_Favorites)
-                        break
-                        
-                    default:
-                        actionMenu.append(Constants.Add_All_to_Favorites)
-                        actionMenu.append(Constants.Remove_All_From_Favorites)
-                        break
-                    }
-                }
-                
-                actionMenu.append(Constants.Open_on_CBC_Website)
-                
-                if (selectedMediaItem!.hasVideo && selectedMediaItem!.playingVideo && selectedMediaItem!.showingVideo) || (document != nil) {
-//                   (selectedMediaItem!.hasSlides() && selectedMediaItem!.showingSlides()) || (selectedMediaItem!.hasNotes() && selectedMediaItem!.showingNotes()) {
-                    if splitViewController != nil {
-//                        actionMenu.append(Constants.Zoom)
-                    }
-                }
-                
-                if (document != nil) && globals.cacheDownloads {
-                    actionMenu.append(Constants.Refresh_Document)
-                }
-
-//                if (selectedMediaItem!.hasSlides() && selectedMediaItem!.showingSlides()) || (selectedMediaItem!.hasNotes() && selectedMediaItem!.showingNotes()) {
-//                }
-                
-                if document != nil {
-//                if (selectedMediaItem!.hasSlides() && selectedMediaItem!.showingSlides()) || (selectedMediaItem!.hasNotes() && selectedMediaItem!.showingNotes()) {
-                    actionMenu.append(Constants.Open_in_Browser)
-                }
-                
-//                if (selectedMediaItem!.hasScripture && (selectedMediaItem?.scripture != Constants.Selected_Scriptures)) {
-//                    actionMenu.append(Constants.Scripture_Full_Screen)
-//                }
-                
-                if (selectedMediaItem!.hasScripture && (selectedMediaItem?.scripture != Constants.Selected_Scriptures)) {
-                    actionMenu.append(Constants.Scripture_in_Browser)
-                }
-                
-                if let mediaItems = multiPartMediaItems {
-                    var mediaItemsToDownload = 0
-                    var mediaItemsDownloading = 0
-                    var mediaItemsDownloaded = 0
+                case Purpose.slides:
+                    actionMenu.append(Constants.Print_Slides)
+                    break
                     
-                    for mediaItem in mediaItems {
-                        switch mediaItem.audioDownload!.state {
-                        case .none:
-                            mediaItemsToDownload += 1
-                            break
-                        case .downloading:
-                            mediaItemsDownloading += 1
-                            break
-                        case .downloaded:
-                            mediaItemsDownloaded += 1
-                            break
-                        }
+                default:
+                    break
+                }
+            }
+
+            if selectedMediaItem!.hasFavoritesTag {
+                actionMenu.append(Constants.Remove_From_Favorites)
+            } else {
+                actionMenu.append(Constants.Add_to_Favorites)
+            }
+            
+            if mediaItems?.count > 1 {
+                var favoriteMediaItems = 0
+                
+                for mediaItem in mediaItems! {
+                    if (mediaItem.hasFavoritesTag) {
+                        favoriteMediaItems += 1
+                    }
+                }
+                switch favoriteMediaItems {
+                case 0:
+                    actionMenu.append(Constants.Add_All_to_Favorites)
+                    break
+                    
+                case 1:
+                    actionMenu.append(Constants.Add_All_to_Favorites)
+
+                    if !selectedMediaItem!.hasFavoritesTag {
+                        actionMenu.append(Constants.Remove_All_From_Favorites)
+                    }
+                    break
+                    
+                case mediaItems!.count - 1:
+                    if selectedMediaItem!.hasFavoritesTag {
+                        actionMenu.append(Constants.Add_All_to_Favorites)
                     }
                     
-                    if (selectedMediaItem?.audioDownload != nil) {
+                    actionMenu.append(Constants.Remove_All_From_Favorites)
+                    break
+                    
+                case mediaItems!.count:
+                    actionMenu.append(Constants.Remove_All_From_Favorites)
+                    break
+                    
+                default:
+                    actionMenu.append(Constants.Add_All_to_Favorites)
+                    actionMenu.append(Constants.Remove_All_From_Favorites)
+                    break
+                }
+            }
+            
+            actionMenu.append(Constants.Open_on_CBC_Website)
+            
+            if (document != nil) && globals.cacheDownloads {
+                actionMenu.append(Constants.Refresh_Document)
+            }
+
+            if document != nil {
+                actionMenu.append(Constants.Open_in_Browser)
+            }
+            
+            if (selectedMediaItem!.hasScripture && (selectedMediaItem?.scripture != Constants.Selected_Scriptures)) {
+                actionMenu.append(Constants.Scripture_in_Browser)
+            }
+            
+            if let mediaItems = mediaItems {
+                var mediaItemsToDownload = 0
+                var mediaItemsDownloading = 0
+                var mediaItemsDownloaded = 0
+                
+                for mediaItem in mediaItems {
+                    switch mediaItem.audioDownload!.state {
+                    case .none:
+                        mediaItemsToDownload += 1
+                        break
+                    case .downloading:
+                        mediaItemsDownloading += 1
+                        break
+                    case .downloaded:
+                        mediaItemsDownloaded += 1
+                        break
+                    }
+                }
+                
+                if (selectedMediaItem?.audioDownload != nil) {
 //                        print(selectedMediaItem?.audioDownload?.state)
 
-                        switch selectedMediaItem!.audioDownload!.state {
-                        case .none:
-                            actionMenu.append(Constants.Download_Audio)
-                            break
-                            
-                        case .downloading:
-                            actionMenu.append(Constants.Cancel_Audio_Download)
-                            break
-                            
-                        case .downloaded:
-                            actionMenu.append(Constants.Delete_Audio_Download)
-                            break
-                        }
+                    switch selectedMediaItem!.audioDownload!.state {
+                    case .none:
+                        actionMenu.append(Constants.Download_Audio)
+                        break
                         
-                        switch selectedMediaItem!.audioDownload!.state {
-                        case .none:
-                            if (mediaItemsToDownload > 1) {
-                                actionMenu.append(Constants.Download_All_Audio)
-                            }
-                            if (mediaItemsDownloading > 0) {
-                                actionMenu.append(Constants.Cancel_All_Audio_Downloads)
-                            }
-                            if (mediaItemsDownloaded > 0) {
-                                actionMenu.append(Constants.Delete_All_Audio_Downloads)
-                            }
-                            break
-                            
-                        case .downloading:
-                            if (mediaItemsToDownload > 0) {
-                                actionMenu.append(Constants.Download_All_Audio)
-                            }
-                            if (mediaItemsDownloading > 1) {
-                                actionMenu.append(Constants.Cancel_All_Audio_Downloads)
-                            }
-                            if (mediaItemsDownloaded > 0) {
-                                actionMenu.append(Constants.Delete_All_Audio_Downloads)
-                            }
-                            break
-                            
-                        case .downloaded:
-                            if (mediaItemsToDownload > 0) {
-                                actionMenu.append(Constants.Download_All_Audio)
-                            }
-                            if (mediaItemsDownloading > 0) {
-                                actionMenu.append(Constants.Cancel_All_Audio_Downloads)
-                            }
-                            if (mediaItemsDownloaded > 1) {
-                                actionMenu.append(Constants.Delete_All_Audio_Downloads)
-                            }
-                            break
-                        }
+                    case .downloading:
+                        actionMenu.append(Constants.Cancel_Audio_Download)
+                        break
+                        
+                    case .downloaded:
+                        actionMenu.append(Constants.Delete_Audio_Download)
+                        break
                     }
                     
-//                    if (selectedMediaItem?.audioDownload?.state == State.none) {
-//                        if (mediaItemsToDownload > 1) {
-//                            actionMenu.append(Constants.Download_All_Audio)
-//                        }
-//                    } else {
-//                        if (mediaItemsToDownload > 0) {
-//                            actionMenu.append(Constants.Download_All_Audio)
-//                        }
-//                    }
-                    
-//                    if (selectedMediaItem?.audioDownload?.state == .downloading) {
-//                        if (mediaItemsDownloading > 1) {
-//                            actionMenu.append(Constants.Cancel_All_Audio_Downloads)
-//                        }
-//                    } else {
-//                        if (mediaItemsDownloading > 0) {
-//                            actionMenu.append(Constants.Cancel_All_Audio_Downloads)
-//                        }
-//                    }
-                    
-//                    if (selectedMediaItem?.audioDownload?.state == .downloaded) {
-//                        if (mediaItemsDownloaded > 1) {
-//                            actionMenu.append(Constants.Delete_All_Audio_Downloads)
-//                        }
-//                    } else {
-//                        if (mediaItemsDownloaded > 0) {
-//                            actionMenu.append(Constants.Delete_All_Audio_Downloads)
-//                        }
-//                    }
+                    switch selectedMediaItem!.audioDownload!.state {
+                    case .none:
+                        if (mediaItemsToDownload > 1) {
+                            actionMenu.append(Constants.Download_All_Audio)
+                        }
+                        if (mediaItemsDownloading > 0) {
+                            actionMenu.append(Constants.Cancel_All_Audio_Downloads)
+                        }
+                        if (mediaItemsDownloaded > 0) {
+                            actionMenu.append(Constants.Delete_All_Audio_Downloads)
+                        }
+                        break
+                        
+                    case .downloading:
+                        if (mediaItemsToDownload > 0) {
+                            actionMenu.append(Constants.Download_All_Audio)
+                        }
+                        if (mediaItemsDownloading > 1) {
+                            actionMenu.append(Constants.Cancel_All_Audio_Downloads)
+                        }
+                        if (mediaItemsDownloaded > 0) {
+                            actionMenu.append(Constants.Delete_All_Audio_Downloads)
+                        }
+                        break
+                        
+                    case .downloaded:
+                        if (mediaItemsToDownload > 0) {
+                            actionMenu.append(Constants.Download_All_Audio)
+                        }
+                        if (mediaItemsDownloading > 0) {
+                            actionMenu.append(Constants.Cancel_All_Audio_Downloads)
+                        }
+                        if (mediaItemsDownloaded > 1) {
+                            actionMenu.append(Constants.Delete_All_Audio_Downloads)
+                        }
+                        break
+                    }
                 }
-                
-                actionMenu.append(Constants.Email_One)
-                if (selectedMediaItem!.hasMultipleParts && (multiPartMediaItems?.count > 1)) {
-                        actionMenu.append(Constants.Email_All)
-                }
-
-                popover.strings = actionMenu
-                
-                popover.showIndex = false //(globals.grouping == .series)
-                popover.showSectionHeaders = false
-                
-                present(navigationController, animated: true, completion: nil)
             }
+            
+            if MFMailComposeViewController.canSendMail() {
+                actionMenu.append(Constants.Email_One)
+                if (selectedMediaItem!.hasMultipleParts && (mediaItems?.count > 1)) {
+                    actionMenu.append(Constants.Email_All)
+                }
+            }
+
+            if selectedMediaItem != nil {
+                actionMenu.append(Constants.Share)
+            }
+            
+            if mediaItems?.count > 1 {
+                actionMenu.append(Constants.Share_All)
+            }
+            
+            popover.strings = actionMenu
+            
+            popover.showIndex = false //(globals.grouping == .series)
+            popover.showSectionHeaders = false
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.present(navigationController, animated: true, completion: nil)
+            })
         }
     }
-    
-//    func zoomScreen()
-//    {
-//        //It works!  Problem was in globals.mediaPlayer.player?.removeFromSuperview() in viewWillDisappear().  Moved it to viewWillAppear()
-//        //Thank you StackOverflow!
-//
-////        globals.mediaPlayer.player?.setFullscreen(!globals.mediaPlayer.player!.isFullscreen, animated: true)
-//        
-//        if splitViewController != nil {
-//            print(splitViewController!.displayMode.rawValue)
-//            switch splitViewController!.displayMode {
-//                //            case .automatic:
-//                //                break
-//                
-//            case .primaryHidden:
-//                splitViewController?.preferredDisplayMode = .automatic
-//                break
-//                
-//            default:
-//                splitViewController?.preferredDisplayMode = .primaryHidden
-//                break
-//            }
-//        }
-//    }
     
     func showHideSlider(_ pan:UIPanGestureRecognizer)
     {
@@ -1800,6 +1708,13 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             })
         }
         
+        // This reloads all of the documents and sets the zoomscale and content offset correctly.
+        if let id = selectedMediaItem?.id, let keys = documents[id]?.keys {
+            for key in keys {
+                documents[id]?[key]?.loaded = false
+            }
+        }
+
         updateUI()
     }
     
@@ -1826,7 +1741,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         
         navigationController?.setToolbarHidden(true, animated: false)
 //        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
-//        navigationItem.leftItemsSupplementBackButton = true
+        navigationItem.leftItemsSupplementBackButton = true
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.resetConstraint))
         tap.numberOfTapsRequired = 2
@@ -1843,12 +1758,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //        tableView.rowHeight = UITableViewAutomaticDimension
 
         setupSpinner()
-//        if globals.mediaPlayer.loaded {
-//            if spinner.isAnimating {
-//                spinner.stopAnimating()
-//                spinner.isHidden = true
-//            }
-//        }
 
         if (selectedMediaItem == nil) {
             //Will only happen on an iPad
@@ -1923,7 +1832,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         let document = timer?.userInfo as? Document
         
         if (selectedMediaItem != nil) {
-            print(selectedMediaItem)
+//            print(selectedMediaItem)
             if (document?.download != nil) {
                 print("totalBytesWritten: \(document!.download!.totalBytesWritten)")
                 print("totalBytesExpectedToWrite: \(document!.download!.totalBytesExpectedToWrite)")
@@ -2352,11 +2261,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         if (mediaItem != nil) {
             var indexPath = IndexPath(row: 0, section: 0)
             
-            if (multiPartMediaItems?.count > 0) {
-                if let mediaItemIndex = multiPartMediaItems?.index(of: mediaItem!) {
-//                    print("\(mediaItemIndex)")
-                    indexPath = IndexPath(row: mediaItemIndex, section: 0)
-                }
+            if mediaItems?.count > 0, let mediaItemIndex = mediaItems?.index(of: mediaItem!) {
+                //                    print("\(mediaItemIndex)")
+                indexPath = IndexPath(row: mediaItemIndex, section: 0)
             }
             
 //            print("\(tableView.bounds)")
@@ -2432,34 +2339,33 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         //In case we have one already showing
         dismiss(animated: true, completion: nil)
         
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                let button = object as? UIBarButtonItem
-                
-                navigationController.modalPresentationStyle = .popover
-                //            popover?.preferredContentSize = CGSizeMake(300, 500)
-                
-                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            let button = object as? UIBarButtonItem
+            
+            navigationController.modalPresentationStyle = .popover
+            //            popover?.preferredContentSize = CGSizeMake(300, 500)
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
 
-                navigationController.popoverPresentationController?.delegate = self
-                
-                navigationController.popoverPresentationController?.barButtonItem = button
-                
-                popover.navigationItem.title = Constants.Tags
-                
-                popover.delegate = self
-                
-                popover.purpose = .showingTags
-                popover.strings = selectedMediaItem?.tagsArray
-                
-                popover.showIndex = false
-                popover.showSectionHeaders = false
-                
-                popover.allowsSelection = false
-                popover.selectedMediaItem = selectedMediaItem
-                
-                present(navigationController, animated: true, completion: nil)
-            }
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.barButtonItem = button
+            
+            popover.navigationItem.title = Constants.Tags
+            
+            popover.delegate = self
+            
+            popover.purpose = .showingTags
+            popover.strings = selectedMediaItem?.tagsArray
+            
+            popover.showIndex = false
+            popover.showSectionHeaders = false
+            
+            popover.allowsSelection = false
+            popover.selectedMediaItem = selectedMediaItem
+            
+            present(navigationController, animated: true, completion: nil)
         }
     }
     
@@ -2628,10 +2534,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     {
         var ratio:CGFloat?
         
-        if (selectedMediaItem != nil) {
-            if let viewSplit = selectedMediaItem?.viewSplit {
-                ratio = CGFloat(Float(viewSplit)!)
-            }
+        if let viewSplit = selectedMediaItem?.viewSplit {
+            ratio = CGFloat(Float(viewSplit)!)
         }
         //        print("ratio: '\(ratio)")
         return ratio
@@ -2641,10 +2545,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     {
         var ratio:CGFloat?
         
-        if (selectedMediaItem != nil) {
-            if let slideSplit = selectedMediaItem?.slideSplit {
-                ratio = CGFloat(Float(slideSplit)!)
-            }
+        if let slideSplit = selectedMediaItem?.slideSplit {
+            ratio = CGFloat(Float(slideSplit)!)
         }
         //        print("ratio: '\(ratio)")
         return ratio
@@ -2676,7 +2578,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         
         let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
         
-        newConstraintConstant = minConstraintConstant + tableView.rowHeight * (multiPartMediaItems!.count > 1 ? 1 : 1)
+        newConstraintConstant = minConstraintConstant + tableView.rowHeight * (mediaItems!.count > 1 ? 1 : 1)
         
         if newConstraintConstant > ((maxConstraintConstant+minConstraintConstant)/2) {
             newConstraintConstant = (maxConstraintConstant+minConstraintConstant)/2
@@ -2726,7 +2628,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //            print("\(self.view.bounds.height)")
             newConstraintConstant = self.view.bounds.height * ratio
         } else {
-            let numberOfAdditionalRows = CGFloat(multiPartMediaItems != nil ? multiPartMediaItems!.count : 0)
+            let numberOfAdditionalRows = CGFloat(mediaItems != nil ? mediaItems!.count : 0)
             newConstraintConstant = minConstraintConstant + tableView.rowHeight * numberOfAdditionalRows
             
             if newConstraintConstant > ((maxConstraintConstant+minConstraintConstant)/2) {
@@ -2879,24 +2781,20 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             if (globals.media.all == nil) {
                 splitViewController?.preferredDisplayMode = .primaryOverlay//iPad only
             } else {
-                if (splitViewController != nil) {
-                    if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
-                        if let _ = nvc.visibleViewController as? WebViewController {
-                            splitViewController?.preferredDisplayMode = .primaryHidden //iPad only
-                        } else {
-                            splitViewController?.preferredDisplayMode = .automatic //iPad only
-                        }
-                    }
-                }
-            }
-        } else {
-            if (splitViewController != nil) {
                 if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
                     if let _ = nvc.visibleViewController as? WebViewController {
                         splitViewController?.preferredDisplayMode = .primaryHidden //iPad only
                     } else {
                         splitViewController?.preferredDisplayMode = .automatic //iPad only
                     }
+                }
+            }
+        } else {
+            if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
+                if let _ = nvc.visibleViewController as? WebViewController {
+                    splitViewController?.preferredDisplayMode = .primaryHidden //iPad only
+                } else {
+                    splitViewController?.preferredDisplayMode = .automatic //iPad only
                 }
             }
         }
@@ -3028,7 +2926,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         super.didReceiveMemoryWarning()
         print("didReceiveMemoryWarning: \(selectedMediaItem?.title)")
         // Dispose of any resources that can be recreated.
-        URLCache.shared.removeAllCachedResponses()
+        globals.freeMemory()
     }
     
     /*
@@ -3051,18 +2949,16 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             destination = navCon.visibleViewController!
         }
 
-        if let wvc = destination as? WebViewController {
-            if let identifier = segue.identifier {
-                switch identifier {
-                case Constants.SEGUE.SHOW_FULL_SCREEN:
-                    splitViewController?.preferredDisplayMode = .primaryHidden
-                    setupWKContentOffsets()
-                    wvc.selectedMediaItem = sender as? MediaItem
+        if let wvc = destination as? WebViewController, let identifier = segue.identifier {
+            switch identifier {
+            case Constants.SEGUE.SHOW_FULL_SCREEN:
+                splitViewController?.preferredDisplayMode = .primaryHidden
+                setupWKContentOffsets()
+                wvc.selectedMediaItem = sender as? MediaItem
 //                    wvc.showScripture = showScripture
-                    break
-                default:
-                    break
-                }
+                break
+            default:
+                break
             }
         }
     }
@@ -3076,15 +2972,17 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete method implementation.
         // Return the number of rows in the section.
-        return selectedMediaItem != nil ? (multiPartMediaItems != nil ? multiPartMediaItems!.count : 0) : 0
+        return selectedMediaItem != nil ? (mediaItems != nil ? mediaItems!.count : 0) : 0
     }
     
     /*
     */
     func tableView(_ tableView: UITableView, cellForRowAtIndexPath indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.MULTIPART_MEDIAITEM, for: indexPath) as! MediaTableViewCell
-    
-        cell.mediaItem = multiPartMediaItems?[indexPath.row]
+        
+        cell.isHiddenUI(true)
+        
+        cell.mediaItem = mediaItems?[indexPath.row]
         
         cell.vc = self
         
@@ -3322,50 +3220,14 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                         globals.mediaPlayer.pause() // IfPlaying
                         setupPlayPauseButton()
                         
-                        if globals.mediaPlayer.mediaItem?.playing == Playing.video {
-                            if let currentTime = globals.mediaPlayer.mediaItem?.currentTime {
-                                if let time = Double(currentTime) {
-                                    let newCurrentTime = (time - Constants.BACK_UP_TIME) < 0 ? 0 : time - Constants.BACK_UP_TIME
-                                    globals.mediaPlayer.mediaItem?.currentTime = (Double(newCurrentTime) - 1).description
-                                    globals.mediaPlayer.seek(to: newCurrentTime)
-                                }
-                            }
+                        if globals.mediaPlayer.mediaItem?.playing == Playing.video,
+                            let currentTime = globals.mediaPlayer.mediaItem?.currentTime,
+                            let time = Double(currentTime) {
+                            let newCurrentTime = (time - Constants.BACK_UP_TIME) < 0 ? 0 : time - Constants.BACK_UP_TIME
+                            globals.mediaPlayer.mediaItem?.currentTime = (Double(newCurrentTime) - 1).description
+                            globals.mediaPlayer.seek(to: newCurrentTime)
                         }
                     }
-                    
-//                    if !globals.mediaPlayer.loaded {
-//                        if !spinner.isAnimating {
-//                            spinner.isHidden = false
-//                            spinner.startAnimating()
-//                        }
-//                    } else {
-//                        if (globals.mediaPlayer.rate == 0) {
-//                            globals.mediaPlayer.pause() // IfPlaying
-//                            setupPlayPauseButton()
-//                            
-//                            if globals.mediaPlayer.mediaItem?.playing == Playing.video {
-//                                if let currentTime = globals.mediaPlayer.mediaItem?.currentTime {
-//                                    if let time = Double(currentTime) {
-//                                        let newCurrentTime = (time - Constants.BACK_UP_TIME) < 0 ? 0 : time - Constants.BACK_UP_TIME
-//                                        globals.mediaPlayer.mediaItem?.currentTime = (Double(newCurrentTime) - 1).description
-//                                        globals.mediaPlayer.seek(to: newCurrentTime)
-//                                    }
-//                                }
-//                            }
-//                        } else {
-//                            if (globals.mediaPlayer.currentTime!.seconds > Double(globals.mediaPlayer.startTime!)!) {
-//                                if spinner.isAnimating {
-//                                    spinner.isHidden = true
-//                                    spinner.stopAnimating()
-//                                }
-//                            } else {
-//                                if !spinner.isAnimating {
-//                                    spinner.isHidden = false
-//                                    spinner.startAnimating()
-//                                }
-//                            }
-//                        }
-//                    }
                 }
                 break
                 
@@ -3475,7 +3337,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             })
             alert.addAction(action)
             
-            present(alert, animated: true, completion: nil)
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.present(alert, animated: true, completion: nil)
+            })
         }
     }
     
@@ -3493,7 +3357,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             })
             alert.addAction(action)
             
-            present(alert, animated: true, completion: nil)
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.present(alert, animated: true, completion: nil)
+            })
         }
     }
     
@@ -3655,10 +3521,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             }
         }
         
-        if (selectedMediaItem != multiPartMediaItems![indexPath.row]) || (globals.history == nil) {
-            globals.addToHistory(multiPartMediaItems![indexPath.row])
+        if (selectedMediaItem != mediaItems![indexPath.row]) || (globals.history == nil) {
+            globals.addToHistory(mediaItems![indexPath.row])
         }
-        selectedMediaItem = multiPartMediaItems![indexPath.row]
+        selectedMediaItem = mediaItems![indexPath.row]
 
         setupSpinner()
         setupAudioOrVideo()
@@ -3716,6 +3582,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                         }
                         
                         networkUnavailable(withError.localizedDescription)
+                        NSLog(withError.localizedDescription)
                     }
                 }
             }
@@ -3753,6 +3620,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //                            }
 //                            
 ////                            networkUnavailable(withError.localizedDescription)
+//                              NSLog(withError.localizedDescription)
 //                        }
 //                    }
 //                }

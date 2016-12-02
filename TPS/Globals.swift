@@ -654,12 +654,6 @@ struct SelectedMediaItem {
         get {
             var selectedMediaItem:MediaItem?
             
-//            let defaults = UserDefaults.standard
-//            if let selectedMediaItemID = defaults.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER) {
-//                selectedMediaItem = globals.mediaRepository.index?[selectedMediaItemID]
-//            }
-            //            defaults.synchronize()
-
             if let selectedMediaItemID = globals.mediaCategory.selectedInMaster {
                 selectedMediaItem = globals.mediaRepository.index?[selectedMediaItemID]
             }
@@ -672,14 +666,6 @@ struct SelectedMediaItem {
         get {
             var selectedMediaItem:MediaItem?
             
-//            let defaults = UserDefaults.standard
-//            if let selectedMediaItemID = defaults.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.DETAIL) {
-//                selectedMediaItem = globals.mediaRepository.index?[selectedMediaItemID]
-//            }
-            //            defaults.synchronize()
-            
-            //            print(selectedMediaItem)
-
             if let selectedMediaItemID = globals.mediaCategory.selectedInDetail {
                 selectedMediaItem = globals.mediaRepository.index?[selectedMediaItemID]
             }
@@ -916,6 +902,16 @@ class Globals : NSObject {
     
     var display = Display()
     
+    func freeMemory()
+    {
+        if !searchActive {
+            media.all?.searches = nil
+            media.tagged?.searches = nil
+        }
+        
+        URLCache.shared.removeAllCachedResponses()
+    }
+    
     func clearDisplay()
     {
         display.mediaItems = nil
@@ -1027,27 +1023,6 @@ class Globals : NSObject {
                 searchText = defaults.string(forKey: Constants.SEARCH_TEXT)
                 searchActive = searchText != nil
 
-//                var indexOfMediaItem:Int?
-//                
-//                if let dict = defaults.dictionary(forKey: Constants.SETTINGS.MEDIA_PLAYING) as? [String:String] {
-////                    print(dict)
-//
-//                    let mediaItemToMatch = MediaItem(dict: dict)
-//                    
-//                    indexOfMediaItem = mediaRepository.list?.index(where: { (mediaItem:MediaItem) -> Bool in
-////                        print(mediaItem.title,mediaItemToMatch.title)
-////                        print(mediaItem.date,mediaItemToMatch.date)
-////                        print(mediaItem.service,mediaItemToMatch.service)
-////                        print(mediaItem.speaker,mediaItemToMatch.speaker)
-//                        return  (mediaItem.title   == mediaItemToMatch.title)     &&
-//                                (mediaItem.date    == mediaItemToMatch.date)      &&
-//                                (mediaItem.service == mediaItemToMatch.service)   &&
-//                                (mediaItem.speaker == mediaItemToMatch.speaker)
-//                    })
-//                }
-//                
-//                mediaPlayer.mediaItem = indexOfMediaItem != nil ? mediaRepository.list?[indexOfMediaItem!] : nil
-                
                 mediaPlayer.mediaItem = mediaCategory.playing != nil ? mediaRepository.index?[mediaCategory.playing!] : nil
 
                 if let historyArray = defaults.array(forKey: Constants.HISTORY) {
@@ -1315,37 +1290,31 @@ class Globals : NSObject {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
         })
 
-        if let duration = mediaPlayer.duration?.seconds {
-            if let currentTime = mediaPlayer.currentTime?.seconds {
-                mediaPlayer.mediaItem?.atEnd = currentTime >= (duration - 1)
-                if (mediaPlayer.mediaItem != nil) && !mediaPlayer.mediaItem!.atEnd {
-                    reloadPlayer(globals.mediaPlayer.mediaItem)
-                }
-            } else {
-                mediaPlayer.mediaItem?.atEnd = true
+        if let duration = mediaPlayer.duration?.seconds,
+            let currentTime = mediaPlayer.currentTime?.seconds {
+            mediaPlayer.mediaItem?.atEnd = currentTime >= (duration - 1)
+            if (mediaPlayer.mediaItem != nil) && !mediaPlayer.mediaItem!.atEnd {
+                reloadPlayer(globals.mediaPlayer.mediaItem)
             }
         } else {
             mediaPlayer.mediaItem?.atEnd = true
         }
         
         if autoAdvance && (mediaPlayer.mediaItem != nil) && mediaPlayer.mediaItem!.atEnd && (mediaPlayer.mediaItem?.multiPartMediaItems != nil) {
-            if (mediaPlayer.mediaItem?.playing == Playing.audio) {
-                let mediaItems = mediaPlayer.mediaItem?.multiPartMediaItems
-                if let index = mediaItems?.index(of: mediaPlayer.mediaItem!) {
-                    if index < (mediaItems!.count - 1) {
-                        if let nextMediaItem = mediaItems?[index + 1] {
-                            nextMediaItem.playing = Playing.audio
-                            nextMediaItem.currentTime = Constants.ZERO
-                            mediaPlayer.mediaItem = nextMediaItem
-                            
-                            setupPlayer(nextMediaItem,playOnLoad:true)
-                            
-                            DispatchQueue.main.async(execute: { () -> Void in
-                                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SHOW_PLAYING), object: nil)
-                            })
-                        }
-                    }
-                }
+            if mediaPlayer.mediaItem?.playing == Playing.audio,
+                let mediaItems = mediaPlayer.mediaItem?.multiPartMediaItems,
+                let index = mediaItems.index(of: mediaPlayer.mediaItem!),
+                index < (mediaItems.count - 1) {
+                let nextMediaItem = mediaItems[index + 1]
+                nextMediaItem.playing = Playing.audio
+                nextMediaItem.currentTime = Constants.ZERO
+                mediaPlayer.mediaItem = nextMediaItem
+                
+                setupPlayer(nextMediaItem,playOnLoad:true)
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SHOW_PLAYING), object: nil)
+                })
             }
         }
     }
@@ -1521,10 +1490,8 @@ class Globals : NSObject {
         
         if mediaRepository.list != nil {
             for mediaItem in mediaRepository.list! {
-                if let download = mediaItem.downloads[purpose] {
-                    if download.isDownloaded() {
-                        totalFileSize += download.fileSize
-                    }
+                if let download = mediaItem.downloads[purpose], download.isDownloaded() {
+                    totalFileSize += download.fileSize
                 }
             }
         }

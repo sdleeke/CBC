@@ -43,10 +43,8 @@ class PopoverPickerViewController: UIViewController, UIPickerViewDataSource, UIP
 //        print(string)
 //        print(strings)
         
-        if string != nil {
-            if let index = strings?.index(of:string!) {
-                picker.selectRow(index, inComponent: 0, animated: false)
-            }
+        if string != nil, let index = strings?.index(of:string!) {
+            picker.selectRow(index, inComponent: 0, animated: false)
         }
         
         self.preferredContentSize = CGSize(width: 300, height: 300)

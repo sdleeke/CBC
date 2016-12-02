@@ -95,6 +95,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 self.mediaCategoryButton.setTitle(globals.mediaCategory.selected, for: UIControlState.normal)
                 self.listActivityIndicator.isHidden = false
                 self.listActivityIndicator.startAnimating()
+                self.disableBarButtons()
             })
             
             // This does not show the activityIndicator
@@ -105,34 +106,32 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     @IBOutlet weak var mediaCategoryButton: UIButton!
     @IBAction func mediaCategoryButtonAction(_ button: UIButton) {
         print("categoryButtonAction")
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController {
-            if let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
-                
-                navigationController.modalPresentationStyle = .popover
-                
-                navigationController.popoverPresentationController?.delegate = self
-                
-                navigationController.popoverPresentationController?.permittedArrowDirections = UIPopoverArrowDirection(rawValue: UIPopoverArrowDirection.up.rawValue + UIPopoverArrowDirection.down.rawValue)
-                
-                navigationController.popoverPresentationController?.sourceView = self.view
-                navigationController.popoverPresentationController?.sourceRect = mediaCategoryButton.frame
-                
-                popover.navigationItem.title = Constants.Select_Category
-                
-                popover.delegate = self
-                
-//                popover.strings = ["All Media"]
-//                
-//                if (globals.mediaCategory.names != nil) {
-//                    popover.strings?.append(contentsOf: globals.mediaCategory.names!)
-//                }
-                
-                popover.strings = globals.mediaCategory.names
-                
-                popover.string = globals.mediaCategory.selected
-                
-                present(navigationController, animated: true, completion: nil)
-            }
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
+            navigationController.modalPresentationStyle = .popover
+            
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = UIPopoverArrowDirection(rawValue: UIPopoverArrowDirection.up.rawValue + UIPopoverArrowDirection.down.rawValue)
+            
+            navigationController.popoverPresentationController?.sourceView = self.view
+            navigationController.popoverPresentationController?.sourceRect = mediaCategoryButton.frame
+            
+            popover.navigationItem.title = Constants.Select_Category
+            
+            popover.delegate = self
+            
+    //                popover.strings = ["All Media"]
+    //                
+    //                if (globals.mediaCategory.names != nil) {
+    //                    popover.strings?.append(contentsOf: globals.mediaCategory.names!)
+    //                }
+            
+            popover.strings = globals.mediaCategory.names
+            
+            popover.string = globals.mediaCategory.selected
+            
+            present(navigationController, animated: true, completion: nil)
         }
     }
     
@@ -148,106 +147,113 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     @IBOutlet weak var showButton: UIBarButtonItem!
     @IBAction func show(_ button: UIBarButtonItem) {
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .popover
-                //            popover?.preferredContentSize = CGSizeMake(300, 500)
-                
-                navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                navigationController.popoverPresentationController?.delegate = self
-                
-                navigationController.popoverPresentationController?.barButtonItem = button
-                
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            navigationController.modalPresentationStyle = .popover
+            //            popover?.preferredContentSize = CGSizeMake(300, 500)
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.barButtonItem = button
+            
 //                popover.navigationItem.title = Constants.Show
-                
-                popover.navigationController?.isNavigationBarHidden = true
-                
-                popover.delegate = self
-                popover.purpose = .selectingShow
-                
-                var showMenu = [String]()
-                
-                if (self.splitViewController != nil) {
-                    // What if it is collapsed and the detail view is showing?
-                    if (!globals.showingAbout) {
-                        showMenu.append(Constants.About)
-                    }
-                } else {
+            
+            popover.navigationController?.isNavigationBarHidden = true
+            
+            popover.delegate = self
+            popover.purpose = .selectingShow
+            
+            var showMenu = [String]()
+            
+            if (self.splitViewController != nil) {
+                // What if it is collapsed and the detail view is showing?
+                if (!globals.showingAbout) {
                     showMenu.append(Constants.About)
                 }
+            } else {
+                showMenu.append(Constants.About)
+            }
+            
+            //Because the list extends above and below the visible area, visibleCells is deceptive - the cell can be hidden behind a navbar or toolbar and still returned in the array of visibleCells.
+            if (globals.display.mediaItems != nil) && (selectedMediaItem != nil) { // && (globals.display.mediaItems?.indexOf(selectedMediaItem!) != nil)
+                showMenu.append(Constants.Current_Selection)
+            }
+            
+            if (globals.mediaPlayer.mediaItem != nil) {
+                var show:String = Constants.EMPTY_STRING
                 
-                //Because the list extends above and below the visible area, visibleCells is deceptive - the cell can be hidden behind a navbar or toolbar and still returned in the array of visibleCells.
-                if (globals.display.mediaItems != nil) && (selectedMediaItem != nil) { // && (globals.display.mediaItems?.indexOf(selectedMediaItem!) != nil)
-                    showMenu.append(Constants.Current_Selection)
-                }
-                
-                if (globals.mediaPlayer.mediaItem != nil) {
-                    var show:String = Constants.EMPTY_STRING
-                    
-                    if globals.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM) {
-                        switch globals.mediaPlayer.state! {
-                        case .paused:
-                            show = Constants.Media_Paused
-                            break
-                            
-                        case .playing:
-                            show = Constants.Media_Playing
-                            break
-                            
-                        default:
-                            show = Constants.None
-                            break
-                        }
-                    } else {
+                if globals.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM) {
+                    switch globals.mediaPlayer.state! {
+                    case .paused:
                         show = Constants.Media_Paused
-                    }
-                    
-                    if (self.splitViewController != nil) {
-                        if let nvc = self.splitViewController!.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
-                            if let myvc = nvc.topViewController as? MediaViewController {
-                                if (myvc.selectedMediaItem != nil) {
-                                    if (myvc.selectedMediaItem?.title != globals.mediaPlayer.mediaItem?.title) || (myvc.selectedMediaItem?.date != globals.mediaPlayer.mediaItem?.date) {
-                                        // The mediaItemPlaying is not the one showing
-                                        showMenu.append(show)
-                                    } else {
-                                        // The mediaItemPlaying is the one showing
-                                    }
-                                } else {
-                                    // The mediaItemPlaying can't be showing because there is not selectedMediaItem.
-                                    showMenu.append(show)
-                                }
-                            } else {
-                                // About is showing
-                                showMenu.append(show)
-                            }
-                        }
-                    } else {
-                        //Always show it
-                        showMenu.append(show)
+                        break
+                        
+                    case .playing:
+                        show = Constants.Media_Playing
+                        break
+                        
+                    default:
+                        show = Constants.None
+                        break
                     }
                 } else {
-                    //Nothing to show
+                    show = Constants.Media_Paused
                 }
                 
-                showMenu.append(Constants.Scripture_Index)
-
-                showMenu.append(Constants.History)
-                
-                showMenu.append(Constants.Clear_History)
-                
-                showMenu.append(Constants.Live)
-                
-                showMenu.append(Constants.Settings)
-                
-                showMenu.append(Constants.Email_All)
-                
-                popover.strings = showMenu
-                
-                popover.showIndex = false //(globals.grouping == .series)
-                popover.showSectionHeaders = false
-                
-                present(navigationController, animated: true, completion: nil)
+                if (self.splitViewController != nil) {
+                    if let nvc = self.splitViewController!.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
+                        if let myvc = nvc.topViewController as? MediaViewController {
+                            if (myvc.selectedMediaItem != nil) {
+                                if (myvc.selectedMediaItem?.title != globals.mediaPlayer.mediaItem?.title) || (myvc.selectedMediaItem?.date != globals.mediaPlayer.mediaItem?.date) {
+                                    // The mediaItemPlaying is not the one showing
+                                    showMenu.append(show)
+                                } else {
+                                    // The mediaItemPlaying is the one showing
+                                }
+                            } else {
+                                // The mediaItemPlaying can't be showing because there is not selectedMediaItem.
+                                showMenu.append(show)
+                            }
+                        } else {
+                            // About is showing
+                            showMenu.append(show)
+                        }
+                    }
+                } else {
+                    //Always show it
+                    showMenu.append(show)
+                }
+            } else {
+                //Nothing to show
             }
+            
+            showMenu.append(Constants.Scripture_Index)
+
+            showMenu.append(Constants.History)
+            
+            showMenu.append(Constants.Clear_History)
+            
+            showMenu.append(Constants.Live)
+            
+            showMenu.append(Constants.Settings)
+            
+            if UIPrintInteractionController.isPrintingAvailable {
+                showMenu.append(Constants.Print_All)
+            }
+            
+            if MFMailComposeViewController.canSendMail() {
+                showMenu.append(Constants.Email_All)
+            }
+            
+            showMenu.append(Constants.Share_All)
+            
+            popover.strings = showMenu
+            
+            popover.showIndex = false //(globals.grouping == .series)
+            popover.showSectionHeaders = false
+            
+            present(navigationController, animated: true, completion: nil)
         }
     }
     
@@ -311,57 +317,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         controller.dismiss(animated: true, completion: nil)
     }
     
-    func showSendMailErrorAlert() {
-        let alert = UIAlertController(title: "Could Not Send Email",
-                                      message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",
-                                      preferredStyle: UIAlertControllerStyle.alert)
-        
-        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-            
-        })
-        alert.addAction(action)
-        
-        self.present(alert, animated: true, completion: nil)
-    }
-    
-    func mailMediaItem(_ mediaItem:MediaItem?)
-    {
-        let mailComposeViewController = MFMailComposeViewController()
-        mailComposeViewController.mailComposeDelegate = self // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
-        
-        mailComposeViewController.setToRecipients([])
-        mailComposeViewController.setSubject(Constants.EMAIL_ONE_SUBJECT)
-        
-        if let bodyString = setupMediaItemBodyHTML(mediaItem) {
-            mailComposeViewController.setMessageBody(bodyString, isHTML: true)
-        }
-        
-        if MFMailComposeViewController.canSendMail() {
-            self.present(mailComposeViewController, animated: true, completion: nil)
-        } else {
-            self.showSendMailErrorAlert()
-        }
-    }
-    
-    func mailMediaItems(_ mediaItems:[MediaItem]?)
-    {
-        let mailComposeViewController = MFMailComposeViewController()
-        mailComposeViewController.mailComposeDelegate = self // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
-        
-        mailComposeViewController.setToRecipients([])
-        mailComposeViewController.setSubject(Constants.EMAIL_ALL_SUBJECT)
-        
-        if let bodyString = setupMediaItemsGlobalBodyHTML(mediaItems) {
-            mailComposeViewController.setMessageBody(bodyString, isHTML: true)
-        }
-        
-        if MFMailComposeViewController.canSendMail() {
-            self.present(mailComposeViewController, animated: true, completion: nil)
-        } else {
-            self.showSendMailErrorAlert()
-        }
-    }
-    
     func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
         dismiss(animated: true, completion: nil)
         
@@ -372,41 +327,25 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             switch searchText {
             case Constants.Transcript:
                 if globals.searchActive && (globals.searchText != nil) && (mediaItem?.notesHTML != nil) {
-//                    if mediaItem?.notesHTML?.lowercased().range(of: globals.searchText!.lowercased()) != nil {
-                        // put a <b></b> around the matched text everywhere it occurs
-                        // load the transcript into a popover webViewController that loads the HTML string.
-                    
-                        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController {
-                            if let popover = navigationController.viewControllers[0] as? WebViewController {
-                                self.dismiss(animated: true, completion: nil)
-                                
-                                navigationController.modalPresentationStyle = .overFullScreen
-                                navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                                navigationController.popoverPresentationController?.delegate = self
-
-//                                navigationController.modalPresentationStyle = .popover
-//                                navigationController.popoverPresentationController?.sourceView = tableView
-//                                
-//                                navigationController.popoverPresentationController?.sourceRect = tableView.frame
-                                
-                                popover.navigationItem.title = Constants.Search
-                                
-                                popover.navigationController?.isNavigationBarHidden = false
-                                
-                                popover.selectedMediaItem = mediaItem
-                                popover.content = .notesHTML
-                                
-                                self.present(navigationController, animated: true, completion: nil
-//                                    {
-//                                        DispatchQueue.main.async(execute: { () -> Void in
-//                                            self.tableView.reloadData()
-//                                        })
-//                                    }
-                                )
-                            }
-                        }
-
-//                    }
+                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                        let popover = navigationController.viewControllers[0] as? WebViewController {
+                        self.dismiss(animated: true, completion: nil)
+                        
+                        navigationController.modalPresentationStyle = .overFullScreen
+                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                        navigationController.popoverPresentationController?.delegate = self
+                        
+                        popover.navigationItem.title = Constants.Search
+                        
+                        popover.navigationController?.isNavigationBarHidden = false
+                        
+                        popover.selectedMediaItem = mediaItem
+                        popover.content = .notesHTML
+                        
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.present(navigationController, animated: true, completion: nil)
+                        })
+                    }
                 }
                 break
                 
@@ -415,7 +354,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 globals.searchText = searchText
                 searchBar.text = searchText
                 searchBar.showsCancelButton = true
-                updateSearchResults(searchText)
+                updateSearchResults(searchText,completion: nil)
                 DispatchQueue.main.async(execute: { () -> Void in
                     self.tableView.reloadData()
                 })
@@ -468,7 +407,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     })
                     alert.addAction(action)
                     
-                    present(alert, animated: true, completion: nil)
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.present(alert, animated: true, completion: nil)
+                    })
                 }
             } else {
                 dismiss(animated: true, completion: nil)
@@ -482,7 +423,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 })
                 alert.addAction(action)
                 
-                present(alert, animated: true, completion: nil)
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.present(alert, animated: true, completion: nil)
+                })
             }
             break
             
@@ -534,7 +477,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         })
                         
                         if (globals.searchActive) {
-                            self.updateSearchResults(globals.searchText)
+                            self.updateSearchResults(globals.searchText,completion: nil)
                         }
                         
                         DispatchQueue.main.async(execute: { () -> Void in
@@ -661,16 +604,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
                             self.listActivityIndicator.stopAnimating()
                             self.enableBarButtons()
-                            //
-                            //                            if (self.splitViewController != nil) {
-                            //                                //iPad only
-                            //                                if let nvc = self.splitViewController!.viewControllers[self.splitViewController!.viewControllers.count - 1] as? UINavigationController {
-                            //                                    if let myvc = nvc.visibleViewController as? MediaViewController {
-                            //                                        myvc.sortMediaItemsInSeries()
-                            //                                    }
-                            //                                }
-                            //
-                            //                            }
                         })
                     })
                 })
@@ -684,8 +617,62 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 about()
                 break
                 
+            case Constants.Print_All:
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.dismiss(animated: true, completion: nil)
+                    
+                    let alert = UIAlertController(title: "Format into columns?",
+                                                  message: "Columns may not display correctly on a small screen.",
+                                                  preferredStyle: UIAlertControllerStyle.alert)
+                    
+                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                        printMediaItems(viewController: self,mediaItems: globals.active?.list,stringFunction: setupMediaItemsGlobalBodyHTML,links: false,columns: true, barButton: self.navigationItem.leftBarButtonItem)
+                    })
+                    alert.addAction(yesAction)
+                    
+                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                        printMediaItems(viewController: self,mediaItems: globals.active?.list,stringFunction: setupMediaItemsGlobalBodyHTML,links: false,columns: false, barButton: self.navigationItem.leftBarButtonItem)
+                    })
+                    alert.addAction(noAction)
+                    
+                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                        
+                    })
+                    alert.addAction(cancelAction)
+                
+                    self.present(alert, animated: true, completion: nil)
+                })
+                break
+                
             case Constants.Email_All:
-                mailMediaItems(globals.active?.list)
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.dismiss(animated: true, completion: nil)
+                    
+                    let alert = UIAlertController(title: "Format into columns?",
+                                                  message: "Columns may not display correctly on a small screen.",
+                                                  preferredStyle: UIAlertControllerStyle.alert)
+                    
+                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                        mailMediaItems(viewController: self,mediaItems: globals.active?.list, stringFunction: setupMediaItemsGlobalBodyHTML,links: true,columns: true,attachments: false)
+                    })
+                    alert.addAction(yesAction)
+                    
+                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                        mailMediaItems(viewController: self,mediaItems: globals.active?.list, stringFunction: setupMediaItemsGlobalBodyHTML,links: true,columns: false,attachments: false)
+                    })
+                    alert.addAction(noAction)
+                    
+                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                        
+                    })
+                    alert.addAction(cancelAction)
+                
+                    self.present(alert, animated: true, completion: nil)
+                })
+                break
+                
+            case Constants.Share_All:
+                shareMediaItems(viewController: self, mediaItems: globals.active?.list, stringFunction: setupMediaItemsGlobalBody, barButton: navigationItem.leftBarButtonItem)
                 break
                 
             case Constants.Current_Selection:
@@ -705,7 +692,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         })
                         alert.addAction(action)
                         
-                        present(alert, animated: true, completion: nil)
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.present(alert, animated: true, completion: nil)
+                        })
                     }
                 } else {
                     dismiss(animated: true, completion: nil)
@@ -719,7 +708,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     })
                     alert.addAction(action)
                     
-                    present(alert, animated: true, completion: nil)
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.present(alert, animated: true, completion: nil)
+                    })
                 }
                 break
                 
@@ -743,47 +734,47 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             case Constants.History:
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-                    if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                        navigationController.modalPresentationStyle = .popover
-                        //            popover?.preferredContentSize = CGSizeMake(300, 500)
-                        
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                        navigationController.popoverPresentationController?.delegate = self
-                        
-                        navigationController.popoverPresentationController?.barButtonItem = showButton
-                        
-                        popover.navigationItem.title = Constants.History
-                        
-                        popover.delegate = self
-                        popover.purpose = .selectingHistory
-                        
-                        var historyMenu = [String]()
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                    navigationController.modalPresentationStyle = .popover
+                    //            popover?.preferredContentSize = CGSizeMake(300, 500)
+                    
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.barButtonItem = showButton
+                    
+                    popover.navigationItem.title = Constants.History
+                    
+                    popover.delegate = self
+                    popover.purpose = .selectingHistory
+                    
+                    var historyMenu = [String]()
 //                        var sections = [String]()
-                        
+                    
 //                        print(globals.history)
-                        if let historyList = globals.history?.reversed() {
+                    if let historyList = globals.history?.reversed() {
 //                            print(historyList)
-                            for history in historyList {
-                                var mediaItemID:String
+                        for history in historyList {
+                            var mediaItemID:String
 //                                var date:String
-                                
-                                if let range = history.range(of: Constants.TAGS_SEPARATOR) {
-                                    mediaItemID = history.substring(from: range.upperBound)
+                            
+                            if let range = history.range(of: Constants.TAGS_SEPARATOR) {
+                                mediaItemID = history.substring(from: range.upperBound)
 //                                    date = history.substringToIndex(range.startIndex)
-                                    
-                                    if let mediaItem = globals.mediaRepository.index![mediaItemID] {
-                                        historyMenu.append(mediaItem.text!)
-                                    }
+                                
+                                if let mediaItem = globals.mediaRepository.index![mediaItemID] {
+                                    historyMenu.append(mediaItem.text!)
                                 }
                             }
                         }
-                        
-                        popover.strings = historyMenu
-                        
-                        popover.showIndex = false
-                        popover.showSectionHeaders = false // true if the code below and related code above is used. 
-                        
+                    }
+                    
+                    popover.strings = historyMenu
+                    
+                    popover.showIndex = false
+                    popover.showSectionHeaders = false // true if the code below and related code above is used. 
+                    
 //                        var indexes = [Int]()
 //                        var counts = [Int]()
 //                        
@@ -828,8 +819,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //                        popover.section.indexes = indexes.count > 0 ? indexes : nil
 //                        popover.section.counts = counts.count > 0 ? counts : nil
 
-                        present(navigationController, animated: true, completion: nil)
-                    }
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.present(navigationController, animated: true, completion: nil)
+                    })
                 }
                 break
                 
@@ -904,74 +896,73 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
         
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                let button = object as? UIBarButtonItem
-                
-                navigationController.modalPresentationStyle = .popover
-                //            popover?.preferredContentSize = CGSizeMake(300, 500)
-                
-                navigationController.popoverPresentationController?.permittedArrowDirections = .down
-                navigationController.popoverPresentationController?.delegate = self
-                
-                navigationController.popoverPresentationController?.barButtonItem = button
-                
-                popover.navigationItem.title = Constants.Menu.Index
-                
-                popover.delegate = self
-                
-                popover.purpose = .selectingSection
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            let button = object as? UIBarButtonItem
+            
+            navigationController.modalPresentationStyle = .popover
+            //            popover?.preferredContentSize = CGSizeMake(300, 500)
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .down
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.barButtonItem = button
+            
+            popover.navigationItem.title = Constants.Menu.Index
+            
+            popover.delegate = self
+            
+            popover.purpose = .selectingSection
 
-                switch globals.grouping! {
-                case Grouping.TITLE:
-                    popover.strings = globals.active?.sectionTitles
-                    popover.indexStrings = globals.active?.sectionIndexTitles
-                    popover.showIndex = true
-                    popover.showSectionHeaders = true
-                    break
-                    
-                case Grouping.BOOK:
-                    if let books = globals.active?.sectionTitles?.filter({ (string:String) -> Bool in
-                        return bookNumberInBible(string) != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
-                    }) {
+            switch globals.grouping! {
+            case Grouping.TITLE:
+                popover.strings = globals.active?.sectionTitles
+                popover.indexStrings = globals.active?.sectionIndexTitles
+                popover.showIndex = true
+                popover.showSectionHeaders = true
+                break
+                
+            case Grouping.BOOK:
+                if let books = globals.active?.sectionTitles?.filter({ (string:String) -> Bool in
+                    return bookNumberInBible(string) != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
+                }) {
 //                        print(books)
-                        popover.strings = books
+                    popover.strings = books
 
-                        if let other = globals.active?.sectionTitles?.filter({ (string:String) -> Bool in
-                            return bookNumberInBible(string) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
-                        }) {
-                            popover.strings?.append(contentsOf: other)
-                        }
+                    if let other = globals.active?.sectionTitles?.filter({ (string:String) -> Bool in
+                        return bookNumberInBible(string) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
+                    }) {
+                        popover.strings?.append(contentsOf: other)
                     }
-                    
-//                    print(popover.strings)
-                    
-                    popover.indexStrings = popover.strings
-
-                    popover.showIndex = false
-                    popover.showSectionHeaders = false
-                    break
-                    
-                case Grouping.SPEAKER:
-                    popover.strings = globals.active?.sectionTitles
-                    popover.indexStrings = globals.active?.sectionIndexTitles
-                    
-//                    popover.transform = lastNameFromName
-
-                    popover.showIndex = true
-                    popover.showSectionHeaders = true
-                    break
-                    
-                default:
-                    popover.strings = globals.active?.sectionTitles
-                    popover.indexStrings = globals.active?.sectionIndexTitles
-                    popover.showIndex = false
-                    popover.showSectionHeaders = false
-                    break
                 }
                 
-                present(navigationController, animated: true, completion: nil)
+//                    print(popover.strings)
+                
+                popover.indexStrings = popover.strings
+
+                popover.showIndex = false
+                popover.showSectionHeaders = false
+                break
+                
+            case Grouping.SPEAKER:
+                popover.strings = globals.active?.sectionTitles
+                popover.indexStrings = globals.active?.sectionIndexTitles
+                
+//                    popover.transform = lastNameFromName
+
+                popover.showIndex = true
+                popover.showSectionHeaders = true
+                break
+                
+            default:
+                popover.strings = globals.active?.sectionTitles
+                popover.indexStrings = globals.active?.sectionIndexTitles
+                popover.showIndex = false
+                popover.showSectionHeaders = false
+                break
             }
+            
+            present(navigationController, animated: true, completion: nil)
         }
 
         // Too slow
@@ -991,30 +982,29 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
         
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                let button = object as? UIBarButtonItem
-                
-                navigationController.modalPresentationStyle = .popover
-                //            popover?.preferredContentSize = CGSizeMake(300, 500)
-                
-                navigationController.popoverPresentationController?.permittedArrowDirections = .down
-                navigationController.popoverPresentationController?.delegate = self
-                
-                navigationController.popoverPresentationController?.barButtonItem = button
-                
-                popover.navigationItem.title = Constants.Options_Title.Grouping
-                
-                popover.delegate = self
-                
-                popover.purpose = .selectingGrouping
-                popover.strings = Constants.Groupings
-                
-                popover.showIndex = false
-                popover.showSectionHeaders = false
-                
-                present(navigationController, animated: true, completion: nil)
-            }
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            let button = object as? UIBarButtonItem
+            
+            navigationController.modalPresentationStyle = .popover
+            //            popover?.preferredContentSize = CGSizeMake(300, 500)
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .down
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.barButtonItem = button
+            
+            popover.navigationItem.title = Constants.Options_Title.Grouping
+            
+            popover.delegate = self
+            
+            popover.purpose = .selectingGrouping
+            popover.strings = Constants.Groupings
+            
+            popover.showIndex = false
+            popover.showSectionHeaders = false
+            
+            present(navigationController, animated: true, completion: nil)
         }
     }
     
@@ -1026,30 +1016,29 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
         
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                let button = object as? UIBarButtonItem
-                
-                navigationController.modalPresentationStyle = .popover
-                //            popover?.preferredContentSize = CGSizeMake(300, 500)
-                
-                navigationController.popoverPresentationController?.permittedArrowDirections = .down
-                navigationController.popoverPresentationController?.delegate = self
-                
-                navigationController.popoverPresentationController?.barButtonItem = button
-                
-                popover.navigationItem.title = Constants.Options_Title.Sorting
-                
-                popover.delegate = self
-                
-                popover.purpose = .selectingSorting
-                popover.strings = Constants.Sortings
-                
-                popover.showIndex = false
-                popover.showSectionHeaders = false
-                
-                present(navigationController, animated: true, completion: nil)
-            }
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            let button = object as? UIBarButtonItem
+            
+            navigationController.modalPresentationStyle = .popover
+            //            popover?.preferredContentSize = CGSizeMake(300, 500)
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .down
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.barButtonItem = button
+            
+            popover.navigationItem.title = Constants.Options_Title.Sorting
+            
+            popover.delegate = self
+            
+            popover.purpose = .selectingSorting
+            popover.strings = Constants.Sortings
+            
+            popover.showIndex = false
+            popover.showSectionHeaders = false
+            
+            present(navigationController, animated: true, completion: nil)
         }
     }
 
@@ -1106,7 +1095,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        print(searchText)
         if (searchText != Constants.EMPTY_STRING) { //
             globals.searchText = searchText
-            updateSearchResults(searchText)
+            updateSearchResults(searchText,completion: nil)
         } else {
             globals.clearDisplay()
             tableView.reloadData()
@@ -1119,7 +1108,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        print(searchBar.text)
         if (searchBar.text != nil) && (searchBar.text != Constants.EMPTY_STRING) { //
             globals.searchText = searchBar.text
-            updateSearchResults(searchBar.text)
+            updateSearchResults(searchBar.text,completion: nil)
         } else {
             globals.clearDisplay()
             tableView.reloadData()
@@ -1140,7 +1129,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        print(searchBar.text)
         if (searchBar.text != nil) && (searchBar.text != Constants.EMPTY_STRING) { //
             globals.searchText = searchBar.text
-            updateSearchResults(searchBar.text)
+            updateSearchResults(searchBar.text,completion: nil)
         }
         
         globals.clearDisplay()
@@ -1251,7 +1240,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //                    jsonAlert(title:"Pursue sanctification!",message:"Media list read, loaded, and written.")
                 } catch let error as NSError {
                     jsonAlert(title:"Media List Error",message:"Media list read and loaded but write failed.")
-                    print(error.localizedDescription)
+                    NSLog(error.localizedDescription)
                 }
                 
                 print(json)
@@ -1274,7 +1263,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     }
                 } catch let error as NSError {
                     jsonAlert(title:"Media List Error",message:"Media list read but failed to load.  Last available copy read failed.")
-                    print(error.localizedDescription)
+                    NSLog(error.localizedDescription)
                 }
             }
         } catch let error as NSError {
@@ -1296,7 +1285,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 }
             } catch let error as NSError {
                 jsonAlert(title:"Media List Error",message:"Media list read failed.  Last available copy read failed.")
-                print(error.localizedDescription)
+                NSLog(error.localizedDescription)
             }
         }
         //        } else {
@@ -1595,9 +1584,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     // This MUST be called on the main loop.
                     globals.setupPlayer(globals.mediaPlayer.mediaItem,playOnLoad:false)
                 }
-            })
-            
-            DispatchQueue.main.async(execute: { () -> Void in
+
                 self.navigationItem.title = Constants.CBC.TITLE.SHORT
                 
                 self.setupViews()
@@ -1617,9 +1604,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         })
                     }
                 }
-            })
-            
-            DispatchQueue.main.async(execute: { () -> Void in
+
                 completion?()
             })
             
@@ -1670,7 +1655,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
     {
-    print("URLSession:downloadTask:bytesWritten:totalBytesWritten:totalBytesExpectedToWrite:")
+        print("URLSession:downloadTask:bytesWritten:totalBytesWritten:totalBytesExpectedToWrite:")
         
         let filename = downloadTask.taskDescription!
         
@@ -1912,7 +1897,13 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     self.present(alert, animated: true, completion: nil)
                 } else {
                     if globals.searchActive && globals.searchTranscripts && !globals.searchComplete {
-                        self.updateSearchResults(globals.searchText)
+                        self.updateSearchResults(globals.searchText,completion: {
+                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                                DispatchQueue.main.async(execute: { () -> Void in
+                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: false, scroll: false, position: UITableViewScrollPosition.top)
+                                })
+                            })
+                        })
                     }
                 }
             }
@@ -1981,6 +1972,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             case .direct:
+                tableView.isHidden = true
+
                 loadMediaItems()
                 {
                     if globals.mediaRepository.list == nil {
@@ -2003,15 +1996,51 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         
                         self.present(alert, animated: true, completion: nil)
                     } else {
+                        if let selectedMediaItemKey = UserDefaults.standard.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER) {
+                            self.selectedMediaItem = globals.mediaRepository.list?.filter({ (mediaItem:MediaItem) -> Bool in
+                                return mediaItem.id == selectedMediaItemKey
+                            }).first
+                        }
+                        
                         if globals.searchActive && globals.searchTranscripts && !globals.searchComplete {
-                            self.updateSearchResults(globals.searchText)
+                            self.updateSearchResults(globals.searchText,completion: {
+                                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                                    DispatchQueue.main.async(execute: { () -> Void in
+                                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                                    })
+                                })
+                            })
+                            
+                        } else {
+                            // Reload the table
+                            self.tableView.reloadData()
+                            
+                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                                DispatchQueue.main.async(execute: { () -> Void in
+                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                                })
+                            })
                         }
                     }
+
+                    self.tableView.isHidden = false
                 }
                 break
             }
         }
         
+        if let selectedMediaItemKey = UserDefaults.standard.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER) {
+            selectedMediaItem = globals.mediaRepository.list?.filter({ (mediaItem:MediaItem) -> Bool in
+                return mediaItem.id == selectedMediaItemKey
+            }).first
+        }
+
+        // Reload the table
+        tableView.reloadData()
+        
+        setupSortingAndGroupingOptions()
+        setupShowMenu()
+
         //Eliminates blank cells at end.
         tableView.tableFooterView = UIView()
         
@@ -2019,77 +2048,65 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        tableView.estimatedRowHeight = tableView.rowHeight
 //        tableView.rowHeight = UITableViewAutomaticDimension
         
-        if let selectedMediaItemKey = UserDefaults.standard.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER) {
-            selectedMediaItem = globals.mediaRepository.list?.filter({ (mediaItem:MediaItem) -> Bool in
-                return mediaItem.id == selectedMediaItemKey
-            }).first
-        }
-        
         // App MUST start in preferredDisplayMode == .automatic or the MVC can't be dragged out after it is hidden when mode is changed to primaryHidden!
         splitViewController?.preferredDisplayMode = .automatic //iPad only
         
-        // Reload the table
-        tableView.reloadData()
-
         tableView?.allowsSelection = true
 
         // Uncomment the following line to preserve selection between presentations
         // clearsSelectionOnViewWillAppear = false
 
         navigationController?.isToolbarHidden = false
-        setupSortingAndGroupingOptions()
-        setupShowMenu()
     }
 
     func searchBarResultsListButtonClicked(_ searchBar: UISearchBar) {
 //        print("searchBarResultsListButtonClicked")
         
         if !globals.isLoading && !globals.isRefreshing && (globals.media.all?.mediaItemTags != nil) && (self.storyboard != nil) { // !globals.mediaItemsSortingOrGrouping &&
-            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-                if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                    navigationController.modalPresentationStyle = .popover
-                    //            popover?.preferredContentSize = CGSizeMake(300, 500)
-                    
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                    navigationController.popoverPresentationController?.delegate = self
-                    
-                    navigationController.popoverPresentationController?.sourceView = searchBar
-                    navigationController.popoverPresentationController?.sourceRect = searchBar.bounds
-                    
-                    popover.navigationItem.title = Constants.Show
-                    
-                    popover.delegate = self
-                    popover.purpose = .selectingTags
-                    
+            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .popover
+                //            popover?.preferredContentSize = CGSizeMake(300, 500)
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.sourceView = searchBar
+                navigationController.popoverPresentationController?.sourceRect = searchBar.bounds
+                
+                popover.navigationItem.title = Constants.Show
+                
+                popover.delegate = self
+                popover.purpose = .selectingTags
+                
 //                    print(globals.media.all!.mediaItemTags!)
-                    
-                    var strings = [Constants.All]
-                    
-                    strings.append(contentsOf: globals.media.all!.mediaItemTags!)
-                    
-                    popover.strings = strings.sorted(by: { stringWithoutPrefixes($0)! < stringWithoutPrefixes($1)! })
-                    
-                    popover.indexStrings = popover.strings?.map({ (string:String) -> String in
-                        return stringWithoutPrefixes(string)!.lowercased()
-                    })
-                    
+                
+                var strings = [Constants.All]
+                
+                strings.append(contentsOf: globals.media.all!.mediaItemTags!)
+                
+                popover.strings = strings.sorted(by: { stringWithoutPrefixes($0)! < stringWithoutPrefixes($1)! })
+                
+                popover.indexStrings = popover.strings?.map({ (string:String) -> String in
+                    return stringWithoutPrefixes(string)!.lowercased()
+                })
+                
 //                    print(globals.media.all!.mediaItemTags)
-                    
-                    popover.showIndex = true
-                    popover.showSectionHeaders = true
-                    
-                    present(navigationController, animated: true, completion: nil)
-                }
+                
+                popover.showIndex = true
+                popover.showSectionHeaders = true
+                
+                present(navigationController, animated: true, completion: nil)
             }
         }
     }
     
     func updateSearchResults(for searchController: UISearchController)
     {
-        updateSearchResults(globals.searchText)
+        updateSearchResults(globals.searchText,completion: nil)
     }
     
-    func updateSearchResults(_ searchText:String?)
+    func updateSearchResults(_ searchText:String?,completion: (() -> Void)?)
     {
 //        print(searchText)
         
@@ -2310,6 +2327,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         self.listActivityIndicator.stopAnimating()
                         self.listActivityIndicator.isHidden = true
                         self.enableBarButtons()
+
+                        completion?()
                     })
                     
                     globals.searchComplete = true
@@ -2359,7 +2378,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     break
                     
                 case Grouping.BOOK:
-                    section = globals.active!.sectionTitles!.index(of: mediaItem!.bookSection!)!
+                    // For mediaItem.books.count > 1 this arbitrarily selects the first one, which may not be correct.
+//                    print(mediaItem)
+//                    print(mediaItem!.books)
+//                    print(mediaItem!.bookSections)
+//                    print(mediaItem!.bookSections.first)
+                    section = globals.active!.sectionTitles!.index(of: mediaItem!.bookSections.first!)!
                     break
                     
                 case Grouping.SPEAKER:
@@ -2530,7 +2554,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        URLCache.shared.removeAllCachedResponses()
+        globals.freeMemory()
     }
 
     /*
@@ -2880,7 +2904,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
     func tableView(_ TableView: UITableView, cellForRowAtIndexPath indexPath: IndexPath) -> MediaTableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.MEDIAITEM, for: indexPath) as! MediaTableViewCell
-    
+        
+        cell.isHiddenUI(true)
+        
 //        cell.addObserver(self,
 //                          forKeyPath: #keyPath(UITableViewCell.),
 //                          options: [.old, .new],
@@ -2947,158 +2973,121 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         }
         
         let search = UITableViewRowAction(style: .normal, title: Constants.Search) { action, index in
-            if let searchStrings = mediaItem.searchStrings() {
-                //                        print(searchTokens)
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-                    if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                        self.dismiss(animated: true, completion: nil)
-                        
-                        navigationController.modalPresentationStyle = .popover
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                        navigationController.popoverPresentationController?.delegate = self
-                        
-                        navigationController.popoverPresentationController?.sourceView = tableView
-                        navigationController.popoverPresentationController?.sourceRect = cell.frame
-                        
-                        popover.navigationItem.title = Constants.Search
-                        
-                        popover.navigationController?.isNavigationBarHidden = false
-                        
-                        popover.delegate = self
-                        popover.purpose = .selectingCellSearch
-                        
-                        popover.selectedMediaItem = mediaItem
-                        
-                        popover.showIndex = true
-                        popover.showSectionHeaders = true
-                        
-                        popover.strings = searchStrings
-                        
-                        if globals.searchTranscripts && globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
-                            if mediaItem.hasNotesHTML && (mediaItem.notesHTML == nil) {
-                                popover.stringsFunction = {
-                                    var strings = popover.strings
-                                    
-                                    mediaItem.loadNotesHTML()
-                                    
-                                    if mediaItem.searchNotesHTML(searchText: globals.searchText) {
-                                        strings?.insert(Constants.Transcript,at: 0)
-                                    }
-                                    
-                                    return strings
-                                }
-                            } else {
-                                if mediaItem.searchNotesHTML(searchText: globals.searchText) {
-                                    popover.strings?.insert(Constants.Transcript,at: 0)
-                                }
+            if let searchStrings = mediaItem.searchStrings(),
+                let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                self.dismiss(animated: true, completion: nil)
+                
+                navigationController.modalPresentationStyle = .popover
+                navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                navigationController.popoverPresentationController?.delegate = self
+                
+                let sourceView = cell.subviews[0].subviews[0]
+                
+                var rect:CGRect
+                
+                if mediaItem.hasNotesHTML {
+                    let modView = cell.subviews[0].subviews[1]
+                    rect = CGRect(x: sourceView.frame.origin.x - modView.frame.width, y: sourceView.frame.origin.y, width: sourceView.frame.width, height: sourceView.frame.height)
+                } else {
+                    rect = sourceView.frame
+                }
+
+                navigationController.popoverPresentationController?.sourceView = sourceView
+                navigationController.popoverPresentationController?.sourceRect = rect
+                
+                popover.navigationItem.title = Constants.Search
+                
+                popover.navigationController?.isNavigationBarHidden = false
+                
+                popover.delegate = self
+                popover.purpose = .selectingCellSearch
+                
+                popover.selectedMediaItem = mediaItem
+                
+                popover.showIndex = true
+                popover.showSectionHeaders = true
+                
+                popover.strings = searchStrings
+                
+                if globals.searchTranscripts && globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
+                    if mediaItem.hasNotesHTML && (mediaItem.notesHTML == nil) {
+                        popover.stringsFunction = {
+                            var strings = popover.strings
+                            
+                            mediaItem.loadNotesHTML()
+                            
+                            if mediaItem.searchNotesHTML(searchText: globals.searchText) {
+                                strings?.insert(Constants.Transcript,at: 0)
                             }
+                            
+                            return strings
                         }
-                        
-                        popover.showIndex = false
-                        popover.showSectionHeaders = false
-                        
-                        self.present(navigationController, animated: true, completion: nil)
+                    } else {
+                        if mediaItem.searchNotesHTML(searchText: globals.searchText) {
+                            popover.strings?.insert(Constants.Transcript,at: 0)
+                        }
                     }
                 }
+                
+                popover.showIndex = false
+                popover.showSectionHeaders = false
+                
+                self.present(navigationController, animated: true, completion: nil)
             }
         }
         search.backgroundColor = UIColor.controlBlue()
         
         let words = UITableViewRowAction(style: .normal, title: Constants.Tokens) { action, index in
-            if let searchTokens = mediaItem.searchTokens() {
-                //                        print(searchTokens)
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-                    if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                        self.dismiss(animated: true, completion: nil)
-                        
-                        navigationController.modalPresentationStyle = .popover
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                        navigationController.popoverPresentationController?.delegate = self
-                        
-                        navigationController.popoverPresentationController?.sourceView = tableView
-                        navigationController.popoverPresentationController?.sourceRect = cell.frame
-                        
-                        popover.navigationItem.title = Constants.Search
-                        
-                        popover.navigationController?.isNavigationBarHidden = false
-                        
-                        popover.delegate = self
-                        popover.purpose = .selectingCellSearch
-                        
-                        popover.selectedMediaItem = mediaItem
-                        
-                        popover.strings = nil
-                        
-                        popover.stringsFunction = {
-                            if mediaItem.hasNotesHTML && (mediaItem.notesHTML == nil) {
-                                mediaItem.loadNotesHTML()
-                            }
-                            var tokens = Set(searchTokens)
-                            
-                            if let notesTokens = tokensFromString(mediaItem.notesHTML) {
-                                tokens = tokens.union(Set(notesTokens))
-                            }
-                            
-                            let tokenArray = Array(tokens).sorted()
-                            
+            if let searchTokens = mediaItem.searchTokens(),
+                let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                self.dismiss(animated: true, completion: nil)
+                
+                navigationController.modalPresentationStyle = .popover
+                navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                navigationController.popoverPresentationController?.delegate = self
+                
+                let sourceView = cell.subviews[0].subviews[1]
+                navigationController.popoverPresentationController?.sourceView = sourceView
+                navigationController.popoverPresentationController?.sourceRect = sourceView.frame
+                
+                popover.navigationItem.title = Constants.Search
+                
+                popover.navigationController?.isNavigationBarHidden = false
+                
+                popover.delegate = self
+                popover.purpose = .selectingCellSearch
+                
+                popover.selectedMediaItem = mediaItem
+                
+                popover.strings = nil
+                
+                popover.stringsFunction = {
+                    if mediaItem.hasNotesHTML && (mediaItem.notesHTML == nil) {
+                        mediaItem.loadNotesHTML()
+                    }
+                    var tokens = Set(searchTokens)
+                    
+                    if let notesTokens = tokensFromString(mediaItem.notesHTML) {
+                        tokens = tokens.union(Set(notesTokens))
+                    }
+                    
+                    let tokenArray = Array(tokens).sorted()
+                    
 //                            print(tokenArray)
 
-                            return tokenArray
-                        }
-                        
-                        popover.showIndex = true
-                        popover.showSectionHeaders = true
-                        
-                        self.present(navigationController, animated: true, completion: nil)
-                    }
+                    return tokenArray
                 }
+                
+                popover.showIndex = true
+                popover.showSectionHeaders = true
+                
+                self.present(navigationController, animated: true, completion: nil)
             }
         }
         words.backgroundColor = UIColor.blue
         
-//        let transcript = UITableViewRowAction(style: .normal, title: Constants.Search) { action, index in
-//            //                    if mediaItem?.notesHTML?.lowercased().range(of: globals.searchText!.lowercased()) != nil {
-//            // put a <b></b> around the matched text everywhere it occurs
-//            // load the transcript into a popover webViewController that loads the HTML string.
-//            
-//            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController {
-//                if let popover = navigationController.viewControllers[0] as? WebViewController {
-//                    self.dismiss(animated: true, completion: nil)
-//                    
-//                    navigationController.modalPresentationStyle = .overFullScreen
-//                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
-//                    navigationController.popoverPresentationController?.delegate = self
-//                    
-//                    //                                navigationController.modalPresentationStyle = .popover
-//                    //                                navigationController.popoverPresentationController?.sourceView = tableView
-//                    //
-//                    //                                navigationController.popoverPresentationController?.sourceRect = tableView.frame
-//                    
-//                    popover.navigationItem.title = Constants.Search_For
-//                    
-//                    popover.navigationController?.isNavigationBarHidden = false
-//                    
-//                    popover.selectedMediaItem = mediaItem
-//                    popover.content = .notesHTML
-//                    
-//                    self.present(navigationController, animated: true, completion: nil
-//                        //                                    {
-//                        //                                        DispatchQueue.main.async(execute: { () -> Void in
-//                        //                                            self.tableView.reloadData()
-//                        //                                        })
-//                        //                                    }
-//                    )
-//                }
-//            }
-//        }
-//        transcript.backgroundColor = UIColor.controlBlue()
-//
-//        if globals.searchActive && (globals.searchText != nil) && (mediaItem.notesHTML != nil) {
-//            return [search,transcript]
-//        } else {
-//            return [search]
-//        }
-
         if mediaItem.hasNotesHTML {
             return [search, words]
         } else {

@@ -91,8 +91,8 @@ class MediaListGroupSort {
                     }
                 }
                 if entries == nil {
-                    if mediaItem.scripture == Constants.Selected_Scriptures {
-                        entries = [(Constants.Selected_Scriptures,Constants.Selected_Scriptures)]
+                    if let scripture = mediaItem.scripture?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) {
+                        entries = [(scripture,scripture)]
                     } else {
                         entries = [(Constants.None,Constants.None)]
                     }
@@ -621,7 +621,7 @@ class Download {
 class MediaItem : NSObject, URLSessionDownloadDelegate {
     var dict:[String:String]?
     
-    var bcv:[String:[Int:[Int]]]?
+    var booksChaptersVerses:BooksChaptersVerses?
     
     var singleLoaded = false
 
@@ -712,39 +712,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     
     var id:String! {
         get {
-            // This should be constructed from the speaker (first and last initial), date, and service. E.g. tp160501a
-            // BUT it doesn't work for gs == Guest Speaker
-//            if speaker != nil {
-//                let firstName = speaker!.substringToIndex(speaker!.rangeOfString(Constants.SINGLE_SPACE)!.startIndex)
-//                let lastName = speaker!.substringFromIndex(speaker!.rangeOfString(Constants.SINGLE_SPACE)!.endIndex)
-//                
-//                let firstInitial = firstName.lowercaseString.substringToIndex("a".endIndex)
-//                let lastInitial = lastName.lowercaseString.substringToIndex("a".endIndex)
-//                
-//                let calendar = NSCalendar.currentCalendar()
-//                
-//                let year = String(format: "%02d",calendar.components(.Year, fromDate: fullDate!).year % 1000)
-//                let month = String(format: "%02d",calendar.components(.Month, fromDate: fullDate!).month)
-//                let day = String(format: "%02d",calendar.components(.Day, fromDate: fullDate!).day)
-//
-//                let service = self.service!.lowercaseString.substringToIndex("a".endIndex)
-//                
-//                let idString = firstInitial + lastInitial + year + month + day + service
-//                
-////                print(idString)
-//            }
-            
             return dict![Field.id]
-            
-//            if dict?[Constants.ID] != nil {
-//                return dict?[Constants.ID]
-//            } else {
-//                if let cd = audio?.range(of: "CD") {
-//                    return audio?.substring(to: cd.lowerBound)
-//                } else {
-//                    return audio?.substring(to: audio!.range(of: Constants.MP3_FILENAME_EXTENSION)!.lowerBound)
-//                }
-//            }
         }
     }
     
@@ -856,22 +824,9 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     func searchStrings() -> [String]?
     {
         var array = [String]()
-        //        var set = Set<String>()
-        
-        //        if tagsArray != nil {
-        //            tokens = tokens.union(Set(tagsArray!))
-        //        }
         
         if hasSpeaker {
             array.append(speaker!)
-            //
-            //            if let firstname = firstNameFromName(speaker) {
-            //                array.append(firstname)
-            //            }
-            //
-            //            if let lastname = lastNameFromName(speaker) {
-            //                array.append(lastname)
-            //            }
         }
         
         if hasMultipleParts {
@@ -1177,7 +1132,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                 return json
             }
         } catch let error as NSError {
-            print(error.localizedDescription)
+            NSLog(error.localizedDescription)
         }
         
         return nil
@@ -1224,12 +1179,34 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
     }
     
+    func formatDate(_ format:String?) -> String? {
+        let dateStringFormatter = DateFormatter()
+        dateStringFormatter.dateFormat = format
+        dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+        return dateStringFormatter.string(for: fullDate)
+    }
+    
     var formattedDate:String? {
         get {
-            let dateStringFormatter = DateFormatter()
-            dateStringFormatter.dateFormat = "MMMM d, yyyy"
-            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-            return dateStringFormatter.string(for: fullDate)
+            return formatDate("MMMM d, yyyy")
+        }
+    }
+    
+    var formattedDateMonth:String? {
+        get {
+            return formatDate("MMMM")
+        }
+    }
+    
+    var formattedDateDay:String? {
+        get {
+            return formatDate("d")
+        }
+    }
+    
+    var formattedDateYear:String? {
+        get {
+            return formatDate("yyyy")
         }
     }
     
@@ -1870,35 +1847,47 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
     }
     
-    var bookSection:String! {
-        get {
-            return hasBook ? book! : hasScripture ? scripture! : Constants.None
+    var bookSections:[String]
+    {
+        if books == nil {
+//            print(scripture)
+//            if hasScripture {
+//                print([scripture!.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)])
+//            } else {
+//                print([Constants.None])
+//            }
         }
+        return books != nil ? books! : (hasScripture ? [scripture!.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)] : [Constants.None])
     }
     
-    var testament:String? {
-        if (hasBook) {
-            if (Constants.OLD_TESTAMENT_BOOKS.contains(book!)) {
-                return Constants.Old_Testament
-            }
-            if (Constants.NEW_TESTAMENT_BOOKS.contains(book!)) {
-                return Constants.New_Testament
-            }
-        } else {
-            return nil
-        }
-        
-        return nil
-    }
+
+//    var bookSection:String! {
+//        get {
+//            return hasBook ? book! : hasScripture ? scripture! : Constants.None
+//        }
+//    }
+    
+//    var testament:String? {
+//        if (hasBook) {
+//            if (Constants.OLD_TESTAMENT_BOOKS.contains(book!)) {
+//                return Constants.Old_Testament
+//            }
+//            if (Constants.NEW_TESTAMENT_BOOKS.contains(book!)) {
+//                return Constants.New_Testament
+//            }
+//        } else {
+//            return nil
+//        }
+//        
+//        return nil
+//    }
     
     func verses(book:String,chapter:Int) -> [Int]
     {
         var versesForChapter = [Int]()
         
-        if let bacv = booksAndChaptersAndVerses() {
-            if let verses = bacv[book]?[chapter] {
-                versesForChapter = verses
-            }
+        if let bacv = booksAndChaptersAndVerses(), let verses = bacv[book]?[chapter] {
+            versesForChapter = verses
         }
         
         return versesForChapter
@@ -1908,19 +1897,17 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     {
         var chaptersAndVerses = [Int:[Int]]()
         
-        if let bacv = booksAndChaptersAndVerses() {
-            if let cav = bacv[book] {
-                chaptersAndVerses = cav
-            }
+        if let bacv = booksAndChaptersAndVerses(), let cav = bacv[book] {
+            chaptersAndVerses = cav
         }
         
         return chaptersAndVerses
     }
     
-    func booksAndChaptersAndVerses() -> [String:[Int:[Int]]]?
+    func booksAndChaptersAndVerses() -> BooksChaptersVerses?
     {
-        if self.bcv != nil {
-            return self.bcv
+        if self.booksChaptersVerses != nil {
+            return self.booksChaptersVerses
         }
         
         guard (scripture != nil) else {
@@ -1929,10 +1916,14 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         
 //        print(scripture!)
         
-        var booksAndChaptersAndVerses = [String:[Int:[Int]]]()
+        let booksAndChaptersAndVerses = BooksChaptersVerses()
         
         let books = booksFromScripture(scripture)
         
+        guard (books != nil) else {
+            return nil
+        }
+
         var scriptures = [String]()
         
         var string = scripture!
@@ -1949,7 +1940,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         scriptures.append(string)
         
         for scripture in scriptures {
-            for book in books {
+            for book in books! {
                 if (scripture.range(of: book) != nil) {
                     booksAndChaptersAndVerses[book] = chaptersAndVersesFromScripture(book:book,reference:scripture.substring(from: scripture.range(of: book)!.upperBound))
                     if let chapters = booksAndChaptersAndVerses[book]?.keys {
@@ -1966,9 +1957,9 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
 //        print(scripture!)
 //        print(booksAndChaptersAndVerses)
         
-        self.bcv = booksAndChaptersAndVerses.count > 0 ? booksAndChaptersAndVerses : nil
+        self.booksChaptersVerses = booksAndChaptersAndVerses.data?.count > 0 ? booksAndChaptersAndVerses : nil
         
-        return self.bcv
+        return self.booksChaptersVerses
     }
     
     func chapters(_ thisBook:String) -> [Int]?
@@ -1981,12 +1972,16 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         
         let books = booksFromScripture(scripture)
         
-        switch books.count {
+        guard (books != nil) else {
+            return nil
+        }
+
+        switch books!.count {
         case 0:
             break
             
         case 1:
-            if book == books.first {
+            if thisBook == books!.first {
                 if Constants.NO_CHAPTER_BOOKS.contains(thisBook) {
                     chaptersForBook = [1]
                 } else {
@@ -2017,6 +2012,8 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                         }
                     }
                 }
+            } else {
+                // THIS SHOULD NOT HAPPEN
             }
             break
             
@@ -2064,45 +2061,45 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
     } //Derived from scripture
     
-    var book:String? {
-        get {
-            if (dict![Field.book] == nil) {
-                if let bookTitle = mediaItemSettings?[Field.book] {
-                    dict![Field.book] = bookTitle
-                } else {
-                    if (scripture == Constants.Selected_Scriptures) {
-//                        dict![Field.book] = Constants.Selected_Scriptures
-                    } else {
-                        if scripture != nil {
-                            if (dict![Field.book] == nil) {
-                                for bookTitle in Constants.OLD_TESTAMENT_BOOKS {
-                                    if (scripture!.endIndex >= bookTitle.endIndex) &&
-                                        (scripture!.substring(to: bookTitle.endIndex) == bookTitle) {
-                                            dict![Field.book] = bookTitle
-                                            break
-                                    }
-                                }
-                            }
-                            if (dict![Field.book] == nil) {
-                                for bookTitle in Constants.NEW_TESTAMENT_BOOKS {
-                                    if (scripture!.endIndex >= bookTitle.endIndex) &&
-                                        (scripture!.substring(to: bookTitle.endIndex) == bookTitle) {
-                                            dict![Field.book] = bookTitle
-                                            break
-                                    }
-                                }
-                            }
-                            if (dict![Field.book] != nil) {
-//                                settings?[Field.book] = dict![Field.book]
-                            }
-                        }
-                    }
-                }
-            }
-            
-            return dict![Field.book]
-        }
-    }//Derived from scripture
+//    var book:String? {
+//        get {
+//            if (dict![Field.book] == nil) {
+//                if let bookTitle = mediaItemSettings?[Field.book] {
+//                    dict![Field.book] = bookTitle
+//                } else {
+//                    if (scripture == Constants.Selected_Scriptures) {
+////                        dict![Field.book] = Constants.Selected_Scriptures
+//                    } else {
+//                        if scripture != nil {
+//                            if (dict![Field.book] == nil) {
+//                                for bookTitle in Constants.OLD_TESTAMENT_BOOKS {
+//                                    if (scripture!.endIndex >= bookTitle.endIndex) &&
+//                                        (scripture!.substring(to: bookTitle.endIndex) == bookTitle) {
+//                                            dict![Field.book] = bookTitle
+//                                            break
+//                                    }
+//                                }
+//                            }
+//                            if (dict![Field.book] == nil) {
+//                                for bookTitle in Constants.NEW_TESTAMENT_BOOKS {
+//                                    if (scripture!.endIndex >= bookTitle.endIndex) &&
+//                                        (scripture!.substring(to: bookTitle.endIndex) == bookTitle) {
+//                                            dict![Field.book] = bookTitle
+//                                            break
+//                                    }
+//                                }
+//                            }
+//                            if (dict![Field.book] != nil) {
+////                                settings?[Field.book] = dict![Field.book]
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            
+//            return dict![Field.book]
+//        }
+//    }//Derived from scripture
     
     lazy var fullDate:Date?  = {
         [unowned self] in
@@ -2112,6 +2109,143 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             return nil
         }
     }()//Derived from date
+    
+    var contents:String? {
+        get {
+            return stripHTML(bodyHTML(includeURLs: false, includeColumns: false, includeSpeaker: true), includeColumns: false)
+
+            // Don't need these now that there is a web page for each sermon.
+            //    if let audioURL = mediaItem?.audioURL?.absoluteString {
+            //        bodyString = bodyString! + " (<a href=\"" + audioURL + "\">Audio</a>)"
+            //    }
+            //
+            //    if let externalVideo = mediaItem?.externalVideo {
+            //        bodyString = bodyString! + " (<a href=\"" + externalVideo + "\">Video</a>) "
+            //    }
+            //
+            //    if let slidesURL = mediaItem?.slidesURL?.absoluteString {
+            //        bodyString = bodyString! + " (<a href=\"" + slidesURL + "\">Slides</a>)"
+            //    }
+            //
+            //    if let notesURL = mediaItem?.notesURL?.absoluteString {
+            //        bodyString = bodyString! + " (<a href=\"" + notesURL + "\">Transcript</a>) "
+            //    }
+        }
+    }
+
+    var contentsHTML:String? {
+        get {
+            var bodyString = "<html><body>"
+            
+            if let string = bodyHTML(includeURLs: true, includeColumns: true, includeSpeaker: true) {
+                bodyString = bodyString + string
+            }
+            
+            // Don't need these now that there is a web page for each sermon.
+            //    if let audioURL = mediaItem?.audioURL?.absoluteString {
+            //        bodyString = bodyString! + " (<a href=\"" + audioURL + "\">Audio</a>)"
+            //    }
+            //
+            //    if let externalVideo = mediaItem?.externalVideo {
+            //        bodyString = bodyString! + " (<a href=\"" + externalVideo + "\">Video</a>) "
+            //    }
+            //
+            //    if let slidesURL = mediaItem?.slidesURL?.absoluteString {
+            //        bodyString = bodyString! + " (<a href=\"" + slidesURL + "\">Slides</a>)"
+            //    }
+            //
+            //    if let notesURL = mediaItem?.notesURL?.absoluteString {
+            //        bodyString = bodyString! + " (<a href=\"" + notesURL + "\">Transcript</a>) "
+            //    }
+            
+            bodyString = bodyString + "</body></htm>"
+            
+            return bodyString
+        }
+    }
+
+    func bodyHTML(includeURLs:Bool,includeColumns:Bool,includeSpeaker:Bool) -> String?
+    {
+        var bodyString:String?
+        
+        if includeColumns {
+            bodyString = "<tr>"
+            
+            bodyString = bodyString! + "<td>"
+            if let month = formattedDateMonth {
+                bodyString = bodyString! + month
+            }
+            bodyString = bodyString! + "</td>"
+            
+            bodyString = bodyString! + "<td align=\"right\">"
+            if let day = formattedDateDay {
+                bodyString  = bodyString! + day + ","
+            }
+            bodyString = bodyString! + "</td>"
+            
+            bodyString = bodyString! + "<td align=\"right\">"
+            if let year = formattedDateYear {
+                bodyString  = bodyString! + year
+            }
+            bodyString = bodyString! + "</td>"
+            
+            bodyString = bodyString! + "<td>"
+            if let service = self.service {
+                bodyString  = bodyString! + service
+            }
+            bodyString = bodyString! + "</td>"
+            
+            bodyString = bodyString! + "<td>"
+            if let title = self.title {
+                if includeURLs, let websiteURL = websiteURL?.absoluteString {
+                    bodyString = bodyString! + "<a href=\"" + websiteURL + "\">\(title)</a>"
+                } else {
+                    bodyString = bodyString! + title
+                }
+            }
+            bodyString = bodyString! + "</td>"
+            
+            bodyString = bodyString! + "<td>"
+            if let scripture = self.scripture {
+                bodyString = bodyString! + scripture
+            }
+            bodyString = bodyString! + "</td>"
+            
+            bodyString = bodyString! + "<td>"
+            if includeSpeaker, let speaker = self.speaker {
+                bodyString = bodyString! + speaker
+            }
+            bodyString = bodyString! + "</td>"
+            
+            bodyString = bodyString! + "</tr>"
+        } else {
+            if let date = formattedDate {
+                bodyString = date
+            }
+            
+            if let service = self.service {
+                bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + service
+            }
+            
+            if let title = self.title {
+                if includeURLs, let websiteURL = websiteURL?.absoluteString {
+                    bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + "<a href=\"" + websiteURL + "\">\(title)</a>"
+                } else {
+                    bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + title
+                }
+            }
+            
+            if let scripture = self.scripture {
+                bodyString  = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + scripture
+            }
+            
+            if includeSpeaker, let speaker = self.speaker {
+                bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + speaker
+            }
+        }
+        
+        return bodyString
+    }
     
     var text : String? {
         get {
@@ -2591,7 +2725,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     var hasBook:Bool
     {
         get {
-            return (self.book != nil) && (self.book != Constants.EMPTY_STRING)
+            return (self.books != nil) // && (self.book != Constants.EMPTY_STRING)
         }
     }
     

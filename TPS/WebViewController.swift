@@ -165,6 +165,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             activityIndicator.isHidden = true
             progressIndicator.isHidden = true
             networkUnavailable(withError.localizedDescription)
+            NSLog(withError.localizedDescription)
         }
         // Keep trying
         //        let request = NSURLRequest(URL: wkWebView.URL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
@@ -178,6 +179,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             activityIndicator.isHidden = true
             progressIndicator.isHidden = true
             networkUnavailable(withError.localizedDescription)
+            NSLog(withError.localizedDescription)
         }
     }
     
@@ -220,70 +222,55 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         wkWebView?.superview?.setNeedsLayout()
     }
     
-    func printHTML(htmlString:String)
+    func printHTML(htmlString:String,orientation:UIPrintInfoOrientation)
     {
+        guard UIPrintInteractionController.isPrintingAvailable else {
+            return
+        }
+
         let pi = UIPrintInfo.printInfo()
         pi.outputType = UIPrintInfoOutputType.general
         pi.jobName = Constants.Print;
         pi.orientation = UIPrintInfoOrientation.portrait
         pi.duplex = UIPrintInfoDuplex.longEdge
         
+        pi.orientation = orientation
+        
         let pic = UIPrintInteractionController.shared
         pic.printInfo = pi
         pic.showsPageRange = true
+        pic.showsPaperSelectionForLoadedPapers = true
 
         let formatter = UIMarkupTextPrintFormatter(markupText: htmlString)
-        formatter.contentInsets = UIEdgeInsets(top: 72, left: 72, bottom: 72, right: 72) // 1" margins
-
+        formatter.perPageContentInsets = UIEdgeInsets(top: 72, left: 54, bottom: 54, right: 54) // 72=1" margins
+        
         pic.printFormatter = formatter
-        pic.present(from: navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
-    }
-    
-    func printMediaItem(_ mediaItem:MediaItem?)
-    {
-        if (UIPrintInteractionController.isPrintingAvailable && (mediaItem != nil))
-        {
-            var printURL:URL?
-            
-            printURL = mediaItem?.downloadURL as URL?
-            
-            if (printURL?.absoluteString != Constants.EMPTY_STRING) && UIPrintInteractionController.canPrint(printURL!) {
-                //                print("can print!")
-                let pi = UIPrintInfo.printInfo()
-                pi.outputType = UIPrintInfoOutputType.general
-                pi.jobName = Constants.Print;
-                pi.orientation = UIPrintInfoOrientation.portrait
-                pi.duplex = UIPrintInfoDuplex.longEdge
-                
-                let pic = UIPrintInteractionController.shared
-                pic.printInfo = pi
-                pic.showsPageRange = true
-                
-                //Never could get this to work:
-                //            pic?.printFormatter = webView?.viewPrintFormatter()
-                
-                pic.printingItem = printURL
-                pic.present(from: navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
-            }
-        }
+
+        DispatchQueue.main.async(execute: { () -> Void in
+            pic.present(from: self.navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
+        })
     }
     
     fileprivate func networkUnavailable(_ message:String?)
     {
-        if (UIApplication.shared.applicationState == UIApplicationState.active) { //  && (self.view.window != nil)
-            dismiss(animated: true, completion: nil)
-            
-            let alert = UIAlertController(title:Constants.Network_Error,
-                message: message,
-                preferredStyle: UIAlertControllerStyle.alert)
-            
-            let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                
-            })
-            alert.addAction(action)
-            
-            present(alert, animated: true, completion: nil)
+        guard (UIApplication.shared.applicationState == UIApplicationState.active) else { //  && (self.view.window != nil)
+            return
         }
+
+        dismiss(animated: true, completion: nil)
+        
+        let alert = UIAlertController(title:Constants.Network_Error,
+                                      message: message,
+                                      preferredStyle: UIAlertControllerStyle.alert)
+        
+        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+            
+        })
+        alert.addAction(action)
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.present(alert, animated: true, completion: nil)
+        })
     }
     
     // Specifically for Plus size iPhones.
@@ -312,9 +299,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         mailComposeViewController.setMessageBody(htmlString, isHTML: true)
         
         if MFMailComposeViewController.canSendMail() {
-            self.present(mailComposeViewController, animated: true, completion: nil)
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.present(mailComposeViewController, animated: true, completion: nil)
+            })
         } else {
-            self.showSendMailErrorAlert()
+            showSendMailErrorAlert()
         }
     }
     
@@ -328,7 +317,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         })
         alert.addAction(action)
         
-        self.present(alert, animated: true, completion: nil)
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.present(alert, animated: true, completion: nil)
+        })
     }
     
     func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
@@ -338,8 +329,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         case .selectingAction:
             switch strings[index] {
             case Constants.Print:
-                //                printMediaItem(selectedMediaItem)
-                printHTML(htmlString: html.string)
+                printHTML(htmlString: html.string,orientation: .portrait)
                 break
                 
             case Constants.Email_One:
@@ -423,52 +413,47 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         //In case we have one already showing
 //        dismiss(animated: true, completion: nil)
         
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .popover
-                //            popover?.preferredContentSize = CGSizeMake(300, 500)
-                
-                navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                navigationController.popoverPresentationController?.delegate = self
-                
-                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-                
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            navigationController.modalPresentationStyle = .popover
+            //            popover?.preferredContentSize = CGSizeMake(300, 500)
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+            
 //                popover.navigationItem.title = Constants.Actions
-                
-                popover.navigationController?.isNavigationBarHidden = true
-                
-                popover.delegate = self
-                popover.purpose = .selectingAction
-                
-                var actionMenu = [String]()
+            
+            popover.navigationController?.isNavigationBarHidden = true
+            
+            popover.delegate = self
+            popover.purpose = .selectingAction
+            
+            var actionMenu = [String]()
 
+            if UIPrintInteractionController.isPrintingAvailable {
                 actionMenu.append(Constants.Print)
-                actionMenu.append(Constants.Email_One)
-                
-                if html.fontSize <= 3 {
-                    actionMenu.append(Constants.Increase_Font_Size)
-                }
-                
-                if html.fontSize >= -1 {
-                    actionMenu.append(Constants.Decrease_Font_Size)
-                }
-
-//                if (selectedMediaItem!.hasNotes && selectedMediaItem!.showingNotes) || (selectedMediaItem!.hasSlides && selectedMediaItem!.showingSlides) {
-//                    actionMenu.append(Constants.Print)
-//                    actionMenu.append(Constants.Open_in_Browser)
-//                    
-//                    if globals.cacheDownloads { //  && !showScripture
-//                        actionMenu.append(Constants.Refresh_Document)
-//                    }
-//                }
-                
-                popover.strings = actionMenu
-                
-                popover.showIndex = false //(globals.grouping == .series)
-                popover.showSectionHeaders = false
-                
-                present(navigationController, animated: true, completion: nil)
             }
+            
+            if MFMailComposeViewController.canSendMail() {
+                actionMenu.append(Constants.Email_One)
+            }
+            
+            if html.fontSize <= 3 {
+                actionMenu.append(Constants.Increase_Font_Size)
+            }
+            
+            if html.fontSize >= -1 {
+                actionMenu.append(Constants.Decrease_Font_Size)
+            }
+
+            popover.strings = actionMenu
+            
+            popover.showIndex = false //(globals.grouping == .series)
+            popover.showSectionHeaders = false
+            
+            present(navigationController, animated: true, completion: nil)
         }
     }
     
@@ -674,24 +659,20 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             if (globals.media.all == nil) {
                 splitViewController?.preferredDisplayMode = .primaryOverlay//iPad only
             } else {
-                if (splitViewController != nil) {
-                    if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
-                        if let _ = nvc.visibleViewController as? WebViewController {
-                            splitViewController?.preferredDisplayMode = .primaryHidden //iPad only
-                        } else {
-                            splitViewController?.preferredDisplayMode = .automatic //iPad only
-                        }
-                    }
-                }
-            }
-        } else {
-            if (splitViewController != nil) {
                 if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
                     if let _ = nvc.visibleViewController as? WebViewController {
                         splitViewController?.preferredDisplayMode = .primaryHidden //iPad only
                     } else {
                         splitViewController?.preferredDisplayMode = .automatic //iPad only
                     }
+                }
+            }
+        } else {
+            if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
+                if let _ = nvc.visibleViewController as? WebViewController {
+                    splitViewController?.preferredDisplayMode = .primaryHidden //iPad only
+                } else {
+                    splitViewController?.preferredDisplayMode = .automatic //iPad only
                 }
             }
         }
@@ -765,9 +746,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     override func viewDidLoad() {
         super.viewDidLoad()
         
-//        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
-//        navigationItem.leftItemsSupplementBackButton = true
         navigationController?.setToolbarHidden(true, animated: true)
+//        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
+        navigationItem.leftItemsSupplementBackButton = true
         
         // Do any additional setup after loading the view.
     }
@@ -1026,7 +1007,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        URLCache.shared.removeAllCachedResponses()
+        globals.freeMemory()
     }
     
 

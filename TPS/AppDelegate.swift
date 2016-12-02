@@ -83,11 +83,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
             //It is paused, possibly not by us, but by the system
             if globals.mediaPlayer.isPlaying {
                 globals.mediaPlayer.pause() // IfPlaying
-                if let currentTime = globals.mediaPlayer.mediaItem?.currentTime {
-                    if let time = Double(currentTime) {
-                        let newCurrentTime = (time - Constants.BACK_UP_TIME) < 0 ? 0 : time - Constants.BACK_UP_TIME
-                        globals.mediaPlayer.mediaItem?.currentTime = (Double(newCurrentTime) - 1).description
-                    }
+                if let currentTime = globals.mediaPlayer.mediaItem?.currentTime, let time = Double(currentTime) {
+                    let newCurrentTime = (time - Constants.BACK_UP_TIME) < 0 ? 0 : time - Constants.BACK_UP_TIME
+                    globals.mediaPlayer.mediaItem?.currentTime = (Double(newCurrentTime) - 1).description
                 }
             }
 

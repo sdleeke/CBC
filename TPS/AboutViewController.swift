@@ -122,37 +122,36 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
         //In case we have one already showing
         dismiss(animated: true, completion: nil)
         
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-            if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .popover
-                //            popover?.preferredContentSize = CGSizeMake(300, 500)
-                
-                navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                navigationController.popoverPresentationController?.delegate = self
-                
-                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-                
-                //                popover.navigationItem.title = "Actions"
-                
-                popover.navigationController?.isNavigationBarHidden = true
-                
-                popover.delegate = self
-                popover.purpose = .selectingAction
-                
-                var actionMenu = [String]()
-                
-                actionMenu.append(Constants.Email_CBC)
-                actionMenu.append(Constants.CBC_WebSite)
-                actionMenu.append(Constants.CBC_in_Apple_Maps)
-                actionMenu.append(Constants.CBC_in_Google_Maps)
-                
-                popover.strings = actionMenu
-                
-                popover.showIndex = false //(globals.grouping == .series)
-                popover.showSectionHeaders = false
-                
-                present(navigationController, animated: true, completion: nil)
-            }
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            navigationController.modalPresentationStyle = .popover
+            //            popover?.preferredContentSize = CGSizeMake(300, 500)
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+            
+            //                popover.navigationItem.title = "Actions"
+            
+            popover.navigationController?.isNavigationBarHidden = true
+            
+            popover.delegate = self
+            popover.purpose = .selectingAction
+            
+            var actionMenu = [String]()
+            
+            actionMenu.append(Constants.Email_CBC)
+            actionMenu.append(Constants.CBC_WebSite)
+            actionMenu.append(Constants.CBC_in_Apple_Maps)
+            actionMenu.append(Constants.CBC_in_Google_Maps)
+            
+            popover.strings = actionMenu
+            
+            popover.showIndex = false //(globals.grouping == .series)
+            popover.showSectionHeaders = false
+            
+            present(navigationController, animated: true, completion: nil)
         }
     }
     
@@ -202,24 +201,22 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     @IBOutlet weak var versionLabel: UILabel!
     fileprivate func setVersion()
     {
-        if let dict = Bundle.main.infoDictionary {
-            if let appVersion = dict["CFBundleShortVersionString"] as? String {
-                if let buildNumber = dict["CFBundleVersion"] as? String {
-                    versionLabel.text = appVersion + "." + buildNumber
-                    versionLabel.sizeToFit()
-                }
-            }
+        if  let dict = Bundle.main.infoDictionary,
+            let appVersion = dict["CFBundleShortVersionString"] as? String,
+            let buildNumber = dict["CFBundleVersion"] as? String {
+            versionLabel.text = appVersion + "." + buildNumber
+            versionLabel.sizeToFit()
         }
     }
 
     @IBOutlet weak var mapView: MKMapView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        navigationController?.setToolbarHidden(true, animated: false)
 //        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
-//        navigationItem.leftItemsSupplementBackButton = true
-        
-        // Do any additional setup after loading the view.  E.g.
+        navigationItem.leftItemsSupplementBackButton = true
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -259,7 +256,7 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        URLCache.shared.removeAllCachedResponses()
+        globals.freeMemory()
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)

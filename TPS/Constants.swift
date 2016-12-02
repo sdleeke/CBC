@@ -509,6 +509,10 @@ struct Constants {
     }
     
     static let Print = "Print"
+    static let Print_All = "Print All"
+ 
+    static let Print_Slides = "Print Slides"
+    static let Print_Transcript = "Print Transcript"
     
     static let Zoom = "Zoom"
     static let Full_Screen = "Full Screen"
@@ -523,6 +527,9 @@ struct Constants {
     static let Decrease_Font_Size = "Decrease Font Size"
     
     static let Refresh_Document = "Refresh Document"
+    
+    static let Share = "Share"
+    static let Share_All = "Share All"
     
     static let Share_on = "Share on "
     static let Share_on_Facebook = Share_on + "Facebook"

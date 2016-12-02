@@ -158,8 +158,6 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                 }
 //                print(testString,string)
                 stringIndex[indexString.substring(to: a.endIndex)]?.append(indexString)
-//                if let testString = transform != nil ? transform!(string) : string {
-//                }
             }
             
             var counter = 0
@@ -170,55 +168,6 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                 counts.append(stringIndex[key]!.count)
                 counter += stringIndex[key]!.count
             }
-            
-            //                print(section.titles)
-            
-//            for sectionTitle in section.titles! {
-//                var counter = 0
-//                
-//                for index in 0..<strings!.count {
-//                    let testString = transform != nil ? transform!(strings![index]) : strings![index]
-//                    
-//                    var string:String?
-//                    
-//                    if testString!.endIndex >= a.endIndex {
-//                        //                            print(stringWithoutPrefixes(testString))
-//                        if (indexStrings?[index]) != nil {
-//                            string = stringWithoutPrefixes(testString)!.substring(to: a.endIndex)
-//                        } else {
-//                            string = testString
-//                        }
-//                    } else {
-//                        string = testString
-//                    }
-//                    
-//                    if (sectionTitle == string) {
-//                        if (counter == 0) {
-//                            indexes.append(index)
-//                        }
-//                        counter += 1
-//                    } else {
-//                        print(index,strings![index],sectionTitle,string)
-//                    }
-//                }
-//                
-//                counts.append(counter)
-//            }
-            
-//            print(indexStrings)
-//            print(section.titles)
-//            print(indexes)
-//            print(counts)
-            
-//            for string in indexStrings! {
-//                print(string)
-//            }
-
-//            for string in section.titles! {
-//                if let index = section.titles?.index(of:string) {
-//                    print(string,indexes[index],counts[index])
-//                }
-//            }
             
             section.indexes = indexes.count > 0 ? indexes : nil
             section.counts = counts.count > 0 ? counts : nil
@@ -307,7 +256,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
-        URLCache.shared.removeAllCachedResponses()
+        globals.freeMemory()
     }
 
     // MARK: - Table view data source

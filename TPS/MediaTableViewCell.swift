@@ -32,10 +32,26 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         
 //        print(state.rawValue)
     }
+    
+    func isHiddenUI(_ state:Bool)
+    {
+        title.isHidden = state
+        detail.isHidden = state
+        
+        icons.isHidden = state
+        
+        downloadButton.isHidden = state
 
+        if (tagsButton != nil) {
+            tagsButton.isHidden = state
+        }
+    }
+    
     func updateUI()
     {
         if (mediaItem != nil) {
+            isHiddenUI(false)
+
             if (mediaItem!.audioDownload?.state == .downloading) && (downloadObserver == nil) {
                 downloadObserver = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.DOWNLOADING, target: self, selector: #selector(MediaTableViewCell.updateUI), userInfo: nil, repeats: true)
             }
@@ -71,6 +87,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 //                }
             }
         } else {
+            isHiddenUI(true)
             print("No mediaItem for cell!")
         }
     }
@@ -101,51 +118,50 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         
             if (mediaItem != nil) {
                 
-                if let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-                    if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                        vc?.dismiss(animated: true, completion: nil)
-                        
-                        navigationController.modalPresentationStyle = .popover
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                        navigationController.popoverPresentationController?.delegate = self
-                        
-                        navigationController.popoverPresentationController?.sourceView = self
-                        navigationController.popoverPresentationController?.sourceRect = downloadButton.frame
-                        
+                if let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                    vc?.dismiss(animated: true, completion: nil)
+                    
+                    navigationController.modalPresentationStyle = .popover
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.sourceView = self
+                    navigationController.popoverPresentationController?.sourceRect = downloadButton.frame
+                    
 //                        popover.navigationItem.title = Constants.Actions
 //                        popover.preferredContentSize = CGSizeMake(300, 500)
-                        
-                        popover.navigationController?.isNavigationBarHidden = true
+                    
+                    popover.navigationController?.isNavigationBarHidden = true
 
-                        popover.delegate = self.vc as? PopoverTableViewControllerDelegate
-                        popover.purpose = .selectingCellAction
+                    popover.delegate = self.vc as? PopoverTableViewControllerDelegate
+                    popover.purpose = .selectingCellAction
 
-                        popover.selectedMediaItem = mediaItem
-                        
-                        var strings = [String]()
-                        
-                        if mediaItem!.hasAudio {
-                            switch mediaItem!.audioDownload!.state {
-                            case .none:
-                                strings.append(Constants.Download_Audio)
-                                break
-                                
-                            case .downloading:
-                                strings.append(Constants.Cancel_Audio_Download)
-                                break
-                            case .downloaded:
-                                strings.append(Constants.Delete_Audio_Download)
-                                break
-                            }
+                    popover.selectedMediaItem = mediaItem
+                    
+                    var strings = [String]()
+                    
+                    if mediaItem!.hasAudio {
+                        switch mediaItem!.audioDownload!.state {
+                        case .none:
+                            strings.append(Constants.Download_Audio)
+                            break
+                            
+                        case .downloading:
+                            strings.append(Constants.Cancel_Audio_Download)
+                            break
+                        case .downloaded:
+                            strings.append(Constants.Delete_Audio_Download)
+                            break
                         }
-                        
-                        popover.strings = strings
-                        
-                        popover.showIndex = false
-                        popover.showSectionHeaders = false
-                        
-                        vc?.present(navigationController, animated: true, completion: nil)
                     }
+                    
+                    popover.strings = strings
+                    
+                    popover.showIndex = false
+                    popover.showSectionHeaders = false
+                    
+                    vc?.present(navigationController, animated: true, completion: nil)
                 }
 
                 updateUI()
@@ -165,35 +181,31 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     @IBOutlet weak var tagsButton: UIButton!
     @IBAction func tagsAction(_ sender: UIButton)
     {
-        if (mediaItem != nil) {
-            if (mediaItem!.hasTags) {
-                if let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-                    if let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                        vc?.dismiss(animated: true, completion: nil)
-                        
-                        navigationController.modalPresentationStyle = .popover
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                        navigationController.popoverPresentationController?.delegate = self
-                        
-                        navigationController.popoverPresentationController?.sourceView = self
-                        navigationController.popoverPresentationController?.sourceRect = tagsButton.frame
-                        
-                        popover.navigationItem.title = Constants.Show // Show MediaItems Tagged With
-                        //                        popover.preferredContentSize = CGSizeMake(300, 500)
-                        
-                        popover.delegate = self.vc as? MediaTableViewController
-                        popover.purpose = .selectingTags
-                        
-                        popover.strings = mediaItem!.tagsArray
-                        popover.strings?.insert(Constants.All,at: 0)
-                        
-                        popover.showIndex = false
-                        popover.showSectionHeaders = false
-                        
-                        vc?.present(navigationController, animated: true, completion: nil)
-                    }
-                }
-            }
+        if mediaItem != nil, mediaItem!.hasTags,
+            let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            vc?.dismiss(animated: true, completion: nil)
+            
+            navigationController.modalPresentationStyle = .popover
+            navigationController.popoverPresentationController?.permittedArrowDirections = .any
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.sourceView = self
+            navigationController.popoverPresentationController?.sourceRect = tagsButton.frame
+            
+            popover.navigationItem.title = Constants.Show // Show MediaItems Tagged With
+            //                        popover.preferredContentSize = CGSizeMake(300, 500)
+            
+            popover.delegate = self.vc as? MediaTableViewController
+            popover.purpose = .selectingTags
+            
+            popover.strings = mediaItem!.tagsArray
+            popover.strings?.insert(Constants.All,at: 0)
+            
+            popover.showIndex = false
+            popover.showSectionHeaders = false
+            
+            vc?.present(navigationController, animated: true, completion: nil)
         }
     }
     
