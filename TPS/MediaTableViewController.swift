@@ -229,7 +229,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             }
             
             showMenu.append(Constants.Scripture_Index)
-
+            
+            showMenu.append(Constants.View_List)
+            
             showMenu.append(Constants.History)
             
             showMenu.append(Constants.Clear_History)
@@ -238,15 +240,15 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             showMenu.append(Constants.Settings)
             
-            if UIPrintInteractionController.isPrintingAvailable {
-                showMenu.append(Constants.Print_All)
-            }
-            
-            if MFMailComposeViewController.canSendMail() {
-                showMenu.append(Constants.Email_All)
-            }
-            
-            showMenu.append(Constants.Share_All)
+//            if UIPrintInteractionController.isPrintingAvailable {
+//                showMenu.append(Constants.Print_All)
+//            }
+//            
+//            if MFMailComposeViewController.canSendMail() {
+//                showMenu.append(Constants.Email_All)
+//            }
+//            
+//            showMenu.append(Constants.Share_All)
             
             popover.strings = showMenu
             
@@ -318,7 +320,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     }
     
     func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
-        dismiss(animated: true, completion: nil)
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.dismiss(animated: true, completion: nil)
+        })
         
         switch purpose {
         case .selectingCellSearch:
@@ -326,27 +330,46 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             switch searchText {
             case Constants.Transcript:
-                if globals.searchActive && (globals.searchText != nil) && (mediaItem?.notesHTML != nil) {
-                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
-                        let popover = navigationController.viewControllers[0] as? WebViewController {
-                        self.dismiss(animated: true, completion: nil)
-                        
-                        navigationController.modalPresentationStyle = .overFullScreen
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                        navigationController.popoverPresentationController?.delegate = self
-                        
-                        popover.navigationItem.title = Constants.Search
-                        
-                        popover.navigationController?.isNavigationBarHidden = false
-                        
-                        popover.selectedMediaItem = mediaItem
-                        popover.content = .notesHTML
-                        
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            self.present(navigationController, animated: true, completion: nil)
+                if globals.searchActive && (globals.searchText != nil) {
+                    presentHTMLModal(viewController: self, htmlString: mediaItem?.searchMarkedNotesHTML)
+                } else {
+                    if mediaItem?.notesHTML == nil {
+                        process(viewController: self, work: { () -> (Any?) in
+                            DispatchQueue.main.async(execute: { () -> Void in
+                                self.dismiss(animated: true, completion: nil)
+                            })
+
+                            mediaItem?.loadNotesHTML()
+                            
+                            return mediaItem?.fullNotesHTML
+                        }, completion: { (data:Any?) in
+                            presentHTMLModal(viewController: self, htmlString: data as? String)
                         })
+                    } else {
+                        presentHTMLModal(viewController: self, htmlString: mediaItem?.fullNotesHTML)
                     }
                 }
+                
+//                if globals.searchActive && (globals.searchText != nil) && (mediaItem?.notesHTML != nil),
+//                    let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+//                    let popover = navigationController.viewControllers[0] as? WebViewController {
+//                    self.dismiss(animated: true, completion: nil)
+//                    
+//                    navigationController.modalPresentationStyle = .overFullScreen
+//                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
+//                    navigationController.popoverPresentationController?.delegate = self
+//                    
+//                    popover.navigationItem.title = Constants.Search
+//                    
+//                    popover.navigationController?.isNavigationBarHidden = false
+//                    
+//                    popover.selectedMediaItem = mediaItem
+//                    popover.content = .notesHTML
+//                    
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                        self.present(navigationController, animated: true, completion: nil)
+//                    })
+//                }
                 break
                 
             default:
@@ -617,63 +640,102 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 about()
                 break
                 
-            case Constants.Print_All:
+            case Constants.View_List:
                 DispatchQueue.main.async(execute: { () -> Void in
-                    self.dismiss(animated: true, completion: nil)
-                    
-                    let alert = UIAlertController(title: "Format into columns?",
-                                                  message: "Columns may not display correctly on a small screen.",
-                                                  preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                        printMediaItems(viewController: self,mediaItems: globals.active?.list,stringFunction: setupMediaItemsGlobalBodyHTML,links: false,columns: true, barButton: self.navigationItem.leftBarButtonItem)
+                    process(viewController: self, work: { () -> (Any?) in
+                        return setupMediaItemsGlobalHTML(globals.active?.list, includeURLs: true, includeColumns: true)
+                    }, completion: { (data:Any?) in
+                        presentHTMLModal(viewController: self, htmlString: data as? String)
                     })
-                    alert.addAction(yesAction)
                     
-                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                        printMediaItems(viewController: self,mediaItems: globals.active?.list,stringFunction: setupMediaItemsGlobalBodyHTML,links: false,columns: false, barButton: self.navigationItem.leftBarButtonItem)
-                    })
-                    alert.addAction(noAction)
-                    
-                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                        
-                    })
-                    alert.addAction(cancelAction)
-                
-                    self.present(alert, animated: true, completion: nil)
+//                    let alert = UIAlertController(title: "Format into columns?",
+//                                                  message: "", // Columns may not display correctly on a small screen.
+//                                                  preferredStyle: UIAlertControllerStyle.alert)
+//                    
+//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+//                        process(viewController: self, work: { () -> (Any?) in
+//                            return setupMediaItemsGlobalHTML(globals.active?.list, includeURLs: true, includeColumns: true)
+//                        }, completion: { (data:Any?) in
+//                            presentHTMLModal(viewController: self, htmlString: data as? String)
+//                        })
+//                    })
+//                    alert.addAction(yesAction)
+//                    
+//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+//                        process(viewController: self, work: { () -> (Any?) in
+//                            return setupMediaItemsGlobalHTML(globals.active?.list, includeURLs: true, includeColumns: false)
+//                        }, completion: { (data:Any?) in
+//                            presentHTMLModal(viewController: self, htmlString: data as? String)
+//                        })
+//                    })
+//                    alert.addAction(noAction)
+//                    
+//                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+//                        
+//                    })
+//                    alert.addAction(cancelAction)
+//                    
+//                    self.present(alert, animated: true, completion: nil)
                 })
                 break
                 
-            case Constants.Email_All:
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.dismiss(animated: true, completion: nil)
-                    
-                    let alert = UIAlertController(title: "Format into columns?",
-                                                  message: "Columns may not display correctly on a small screen.",
-                                                  preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                        mailMediaItems(viewController: self,mediaItems: globals.active?.list, stringFunction: setupMediaItemsGlobalBodyHTML,links: true,columns: true,attachments: false)
-                    })
-                    alert.addAction(yesAction)
-                    
-                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                        mailMediaItems(viewController: self,mediaItems: globals.active?.list, stringFunction: setupMediaItemsGlobalBodyHTML,links: true,columns: false,attachments: false)
-                    })
-                    alert.addAction(noAction)
-                    
-                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                        
-                    })
-                    alert.addAction(cancelAction)
-                
-                    self.present(alert, animated: true, completion: nil)
-                })
-                break
-                
-            case Constants.Share_All:
-                shareMediaItems(viewController: self, mediaItems: globals.active?.list, stringFunction: setupMediaItemsGlobalBody, barButton: navigationItem.leftBarButtonItem)
-                break
+//            case Constants.Print_All:
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    self.dismiss(animated: true, completion: nil)
+//                    
+//                    let alert = UIAlertController(title: "Format into columns?",
+//                                                  message: "Columns may not display correctly on a small screen.",
+//                                                  preferredStyle: UIAlertControllerStyle.alert)
+//                    
+//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+//                        printMediaItems(viewController: self,mediaItems: globals.active?.list,stringFunction: setupMediaItemsGlobalBodyHTML,links: false,columns: true, barButton: self.navigationItem.leftBarButtonItem)
+//                    })
+//                    alert.addAction(yesAction)
+//                    
+//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+//                        printMediaItems(viewController: self,mediaItems: globals.active?.list,stringFunction: setupMediaItemsGlobalBodyHTML,links: false,columns: false, barButton: self.navigationItem.leftBarButtonItem)
+//                    })
+//                    alert.addAction(noAction)
+//                    
+//                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+//                        
+//                    })
+//                    alert.addAction(cancelAction)
+//                    
+//                    self.present(alert, animated: true, completion: nil)
+//                })
+//                break
+//                
+//            case Constants.Email_All:
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    self.dismiss(animated: true, completion: nil)
+//                    
+//                    let alert = UIAlertController(title: "Format into columns?",
+//                                                  message: "Columns may not display correctly on a small screen.",
+//                                                  preferredStyle: UIAlertControllerStyle.alert)
+//                    
+//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+//                        mailMediaItems(viewController: self,mediaItems: globals.active?.list, stringFunction: setupMediaItemsGlobalBodyHTML,links: true,columns: true,attachments: false)
+//                    })
+//                    alert.addAction(yesAction)
+//                    
+//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+//                        mailMediaItems(viewController: self,mediaItems: globals.active?.list, stringFunction: setupMediaItemsGlobalBodyHTML,links: true,columns: false,attachments: false)
+//                    })
+//                    alert.addAction(noAction)
+//                    
+//                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+//                        
+//                    })
+//                    alert.addAction(cancelAction)
+//                
+//                    self.present(alert, animated: true, completion: nil)
+//                })
+//                break
+//                
+//            case Constants.Share_All:
+//                shareMediaItems(viewController: self, mediaItems: globals.active?.list, stringFunction: setupMediaItemsGlobalBody, barButton: navigationItem.leftBarButtonItem)
+//                break
                 
             case Constants.Current_Selection:
                 if let mediaItem = selectedMediaItem {
@@ -3010,26 +3072,42 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 popover.strings = searchStrings
                 
-                if globals.searchTranscripts && globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
-                    if mediaItem.hasNotesHTML && (mediaItem.notesHTML == nil) {
-                        popover.stringsFunction = {
-                            var strings = popover.strings
-                            
-                            mediaItem.loadNotesHTML()
-                            
-                            if mediaItem.searchNotesHTML(searchText: globals.searchText) {
-                                strings?.insert(Constants.Transcript,at: 0)
+                if mediaItem.hasNotesHTML {
+                    if globals.searchTranscripts && globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
+                        if mediaItem.notesHTML == nil {
+                            popover.stringsFunction = {
+                                var strings = popover.strings
+                                
+                                mediaItem.loadNotesHTML()
+                                
+                                if mediaItem.searchNotesHTML(searchText: globals.searchText) {
+                                    strings?.insert(Constants.Transcript,at: 0)
+                                }
+                                
+                                return strings
                             }
-                            
-                            return strings
+                        } else {
+                            if mediaItem.searchNotesHTML(searchText: globals.searchText) {
+                                popover.strings?.insert(Constants.Transcript,at: 0)
+                            }
                         }
                     } else {
-                        if mediaItem.searchNotesHTML(searchText: globals.searchText) {
+                        if mediaItem.notesHTML == nil {
+                            popover.stringsFunction = {
+                                var strings = popover.strings
+                                
+                                mediaItem.loadNotesHTML()
+                                
+                                strings?.insert(Constants.Transcript,at: 0)
+                                
+                                return strings
+                            }
+                        } else {
                             popover.strings?.insert(Constants.Transcript,at: 0)
                         }
                     }
                 }
-                
+            
                 popover.showIndex = false
                 popover.showSectionHeaders = false
                 

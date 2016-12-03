@@ -1635,7 +1635,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             var string:String = notesHTML!
             var newString:String = Constants.EMPTY_STRING
             
-            repeat {
+            while (string.lowercased().range(of: globals.searchText!.lowercased()) != nil) {
                 //                            print(string)
                 
                 if let range = string.lowercased().range(of: globals.searchText!.lowercased()) {
@@ -1654,10 +1654,14 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                     
                     string = stringAfter
                 }
-            } while (string.lowercased().range(of: globals.searchText!.lowercased()) != nil)
+            }
             
-            newString = newString + stringAfter
-            
+            return headerHTML! + newString + stringAfter
+        }
+    }
+    
+    var headerHTML:String? {
+        get {
             var header = "<center><b>"
             
             if let string = title {
@@ -1690,10 +1694,18 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             header = header + "<i>Unedited transcript for personal use only.</i>"
             
             header = header + "</b></center>"
-            
-            newString = header + newString
-            
-            return newString
+
+            return header
+        }
+    }
+    
+    var fullNotesHTML:String? {
+        get {
+            guard (notesHTML != nil) else {
+                return nil
+            }
+
+            return insertHead("<html><body>" + headerHTML! + notesHTML! + "</body></html>",fontSize: Constants.FONT_SIZE)
         }
     }
     
@@ -1930,12 +1942,10 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         
         let separator = ";"
         
-        repeat {
-            if string.range(of: separator) != nil {
-                scriptures.append(string.substring(to: string.range(of: separator)!.lowerBound))
-                string = string.substring(from: string.range(of: separator)!.upperBound)
-            }
-        } while (string.range(of: separator) != nil)
+        while (string.range(of: separator) != nil) {
+            scriptures.append(string.substring(to: string.range(of: separator)!.lowerBound))
+            string = string.substring(from: string.range(of: separator)!.upperBound)
+        }
         
         scriptures.append(string)
         
@@ -1990,7 +2000,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                     if (string.range(of: ";") == nil) {
                         chaptersForBook = chaptersFromScripture(string.substring(from: scripture!.range(of: thisBook)!.upperBound))
                     } else {
-                        repeat {
+                        while (string.range(of: ";") != nil) {
                             var subString = string.substring(to: string.range(of: ";")!.lowerBound)
                             
                             if (subString.range(of: thisBook) != nil) {
@@ -2001,7 +2011,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                             }
                             
                             string = string.substring(from: string.range(of: ";")!.upperBound)
-                        } while (string.range(of: ";") != nil)
+                        }
                         
                         //                        print(string)
                         if (string.range(of: thisBook) != nil) {
@@ -2024,12 +2034,10 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             
             let separator = ";"
             
-            repeat {
-                if string.range(of: separator) != nil {
-                    scriptures.append(string.substring(to: string.range(of: separator)!.lowerBound))
-                    string = string.substring(from: string.range(of: separator)!.upperBound)
-                }
-            } while (string.range(of: separator) != nil)
+            while (string.range(of: separator) != nil) {
+                scriptures.append(string.substring(to: string.range(of: separator)!.lowerBound))
+                string = string.substring(from: string.range(of: separator)!.upperBound)
+            }
             
             scriptures.append(string)
             
@@ -2112,7 +2120,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     
     var contents:String? {
         get {
-            return stripHTML(bodyHTML(includeURLs: false, includeColumns: false, includeSpeaker: true), includeColumns: false)
+            return stripHTML(bodyHTML(order: ["date","title","scripture","speaker"], includeURLs: false, includeColumns: false))
 
             // Don't need these now that there is a web page for each sermon.
             //    if let audioURL = mediaItem?.audioURL?.absoluteString {
@@ -2137,7 +2145,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         get {
             var bodyString = "<html><body>"
             
-            if let string = bodyHTML(includeURLs: true, includeColumns: true, includeSpeaker: true) {
+            if let string = bodyHTML(order: ["date","title","scripture","speaker"], includeURLs: true, includeColumns: true) {
                 bodyString = bodyString + string
             }
             
@@ -2164,83 +2172,113 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
     }
 
-    func bodyHTML(includeURLs:Bool,includeColumns:Bool,includeSpeaker:Bool) -> String?
+    func bodyHTML(order:[String],includeURLs:Bool,includeColumns:Bool) -> String?
     {
         var bodyString:String?
         
         if includeColumns {
             bodyString = "<tr>"
             
-            bodyString = bodyString! + "<td>"
-            if let month = formattedDateMonth {
-                bodyString = bodyString! + month
-            }
-            bodyString = bodyString! + "</td>"
-            
-            bodyString = bodyString! + "<td align=\"right\">"
-            if let day = formattedDateDay {
-                bodyString  = bodyString! + day + ","
-            }
-            bodyString = bodyString! + "</td>"
-            
-            bodyString = bodyString! + "<td align=\"right\">"
-            if let year = formattedDateYear {
-                bodyString  = bodyString! + year
-            }
-            bodyString = bodyString! + "</td>"
-            
-            bodyString = bodyString! + "<td>"
-            if let service = self.service {
-                bodyString  = bodyString! + service
-            }
-            bodyString = bodyString! + "</td>"
-            
-            bodyString = bodyString! + "<td>"
-            if let title = self.title {
-                if includeURLs, let websiteURL = websiteURL?.absoluteString {
-                    bodyString = bodyString! + "<a href=\"" + websiteURL + "\">\(title)</a>"
-                } else {
-                    bodyString = bodyString! + title
+            for item in order {
+                switch item.lowercased() {
+                case "date":
+                    bodyString = bodyString! + "<td>"
+                    if let month = formattedDateMonth {
+                        bodyString = bodyString! + month
+                    }
+                    bodyString = bodyString! + "</td>"
+                    
+                    bodyString = bodyString! + "<td align=\"right\">"
+                    if let day = formattedDateDay {
+                        bodyString  = bodyString! + day + ","
+                    }
+                    bodyString = bodyString! + "</td>"
+                    
+                    bodyString = bodyString! + "<td align=\"right\">"
+                    if let year = formattedDateYear {
+                        bodyString  = bodyString! + year
+                    }
+                    bodyString = bodyString! + "</td>"
+                    
+                    bodyString = bodyString! + "<td>"
+                    if let service = self.service {
+                        bodyString  = bodyString! + service
+                    }
+                    bodyString = bodyString! + "</td>"
+                    break
+                    
+                case "title":
+                    bodyString = bodyString! + "<td>"
+                    if let title = self.title {
+                        if includeURLs, let websiteURL = websiteURL?.absoluteString {
+                            bodyString = bodyString! + "<a href=\"" + websiteURL + "\">\(title)</a>"
+                        } else {
+                            bodyString = bodyString! + title
+                        }
+                    }
+                    bodyString = bodyString! + "</td>"
+                    break
+
+                case "scripture":
+                    bodyString = bodyString! + "<td>"
+                    if let scripture = self.scripture {
+                        bodyString = bodyString! + scripture
+                    }
+                    bodyString = bodyString! + "</td>"
+                    break
+
+                case "speaker":
+                    bodyString = bodyString! + "<td>"
+                    if let speaker = self.speaker {
+                        bodyString = bodyString! + speaker
+                    }
+                    bodyString = bodyString! + "</td>"
+                    break
+                    
+                default:
+                    break
                 }
             }
-            bodyString = bodyString! + "</td>"
-            
-            bodyString = bodyString! + "<td>"
-            if let scripture = self.scripture {
-                bodyString = bodyString! + scripture
-            }
-            bodyString = bodyString! + "</td>"
-            
-            bodyString = bodyString! + "<td>"
-            if includeSpeaker, let speaker = self.speaker {
-                bodyString = bodyString! + speaker
-            }
-            bodyString = bodyString! + "</td>"
             
             bodyString = bodyString! + "</tr>"
         } else {
-            if let date = formattedDate {
-                bodyString = date
-            }
-            
-            if let service = self.service {
-                bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + service
-            }
-            
-            if let title = self.title {
-                if includeURLs, let websiteURL = websiteURL?.absoluteString {
-                    bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + "<a href=\"" + websiteURL + "\">\(title)</a>"
-                } else {
-                    bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + title
+            for item in order {
+                switch item.lowercased() {
+                case "date":
+                    if let date = formattedDate {
+                        bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + date
+                    }
+                    
+                    if let service = self.service {
+                        bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + service
+                    }
+                    break
+
+                case "title":
+                    if let title = self.title {
+                        if includeURLs, let websiteURL = websiteURL?.absoluteString {
+                            bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + "<a href=\"" + websiteURL + "\">\(title)</a>"
+                        } else {
+                            bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + title
+                        }
+                    }
+                    break
+
+                case "scripture":
+                    if let scripture = self.scripture {
+                        bodyString  = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + scripture
+                    }
+                    break
+                    
+                case "speaker":
+                    if let speaker = self.speaker {
+                        bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + speaker
+                    }
+                    break
+                    
+                default:
+                    break
                 }
-            }
-            
-            if let scripture = self.scripture {
-                bodyString  = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + scripture
-            }
-            
-            if includeSpeaker, let speaker = self.speaker {
-                bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + speaker
             }
         }
         

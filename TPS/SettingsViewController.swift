@@ -74,10 +74,10 @@ class SettingsViewController: UIViewController {
             
             var count = 0
             
-            repeat {
+            while size > 1024 {
                 size /= 1024
                 count += 1
-            } while size > 1024
+            }
             
             var sizeLabel:String
             
@@ -118,10 +118,10 @@ class SettingsViewController: UIViewController {
             
             var count = 0
             
-            repeat {
+            while size > 1024 {
                 size /= 1024
                 count += 1
-            } while size > 1024
+            } 
             
             var sizeLabel:String
             

@@ -1140,7 +1140,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     
     func setupMediaItemsScriptureBody(_ mediaItems:[MediaItem]?) -> String?
     {
-        return stripHTML(setupMediaItemsScriptureBodyHTML(mediaItems,includeURLs: false,includeColumns: false),includeColumns:false)
+        return stripHTML(setupMediaItemsScriptureBodyHTML(mediaItems,includeURLs: false,includeColumns: false))
     }
     
     func setupMediaItemsScriptureBodyHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String?
@@ -1243,7 +1243,13 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     }
                     
                     for mediaItem in mediaItems {
-                        if let string = mediaItem.bodyHTML(includeURLs: includeURLs, includeColumns: includeColumns, includeSpeaker: speakerCount > 1) {
+                        var order = ["scripture","title","date"]
+                        
+                        if speakerCount > 1 {
+                            order.append("speaker")
+                        }
+
+                        if let string = mediaItem.bodyHTML(order: order, includeURLs: includeURLs, includeColumns: includeColumns) {
                             bodyString = bodyString! + string
                         }
                         
@@ -1328,24 +1334,26 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         
         bodyString = bodyString! + "</body></html>"
         
-        return bodyString
+        return insertHead(bodyString,fontSize:Constants.FONT_SIZE)
     }
 
-    func showSendMailErrorAlert() {
-        let alert = UIAlertController(title: "Could Not Send Email",
-                                      message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",
-                                      preferredStyle: UIAlertControllerStyle.alert)
-        
-        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-            
-        })
-        alert.addAction(action)
-        
-        self.present(alert, animated: true, completion: nil)
-    }
+//    func showSendMailErrorAlert() {
+//        let alert = UIAlertController(title: "Could Not Send Email",
+//                                      message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",
+//                                      preferredStyle: UIAlertControllerStyle.alert)
+//        
+//        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+//            
+//        })
+//        alert.addAction(action)
+//        
+//        self.present(alert, animated: true, completion: nil)
+//    }
     
     func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
-        dismiss(animated: true, completion: nil)
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.dismiss(animated: true, completion: nil)
+        })
         
         switch purpose {
         case .selectingSection:
@@ -1359,63 +1367,105 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             
         case .selectingAction:
             switch strings[index] {
-            case Constants.Print_All:
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.dismiss(animated: true, completion: nil)
+            case Constants.View_List:
+                process(viewController: self, work: { () -> (Any?) in
+                    return self.setupMediaItemsScriptureBodyHTML(self.mediaItems, includeURLs: true, includeColumns: true)
+                }, completion: { (data:Any?) in
+                    presentHTMLModal(viewController: self, htmlString: data as? String)
                     
-                    let alert = UIAlertController(title: "Format into columns?",
-                                                  message: "Columns may not display correctly on a small screen.",
-                                                  preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                        printMediaItems(viewController: self,mediaItems: globals.active?.list,stringFunction: self.setupMediaItemsScriptureBodyHTML,links: false,columns: true, barButton: self.navigationItem.rightBarButtonItem)
-                    })
-                    alert.addAction(yesAction)
-                    
-                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                        printMediaItems(viewController: self,mediaItems: globals.active?.list,stringFunction: self.setupMediaItemsScriptureBodyHTML,links: false,columns: false, barButton: self.navigationItem.rightBarButtonItem)
-                    })
-                    alert.addAction(noAction)
-                    
-                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                        
-                    })
-                    alert.addAction(cancelAction)
-                    
-                    self.present(alert, animated: true, completion: nil)
                 })
+
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    let alert = UIAlertController(title: "Format into columns?",
+//                                                  message: "", // Columns may not display correctly on a small screen.
+//                                                  preferredStyle: UIAlertControllerStyle.alert)
+//                    
+//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+//                        process(viewController: self, work: { () -> (Any?) in
+//                            return self.setupMediaItemsScriptureBodyHTML(self.mediaItems, includeURLs: true, includeColumns: true)
+//                        }, completion: { (data:Any?) in
+//                            presentHTMLModal(viewController: self, htmlString: data as? String)
+//                        
+//                        })
+//                    })
+//                    alert.addAction(yesAction)
+//                    
+//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+//                        process(viewController: self, work: { () -> (Any?) in
+//                            return self.setupMediaItemsScriptureBodyHTML(self.mediaItems, includeURLs: true, includeColumns: false)
+//                        }, completion: { (data:Any?) in
+//                            presentHTMLModal(viewController: self, htmlString: data as? String)
+//                            
+//                        })
+//                    })
+//                    alert.addAction(noAction)
+//                    
+//                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+//                        
+//                    })
+//                    alert.addAction(cancelAction)
+//                    
+//                    self.present(alert, animated: true, completion: nil)
+//                })
                 break
                 
-            case Constants.Email_All:
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.dismiss(animated: true, completion: nil)
-                    
-                    let alert = UIAlertController(title: "Format into columns?",
-                                                  message: "Columns may not display correctly on a small screen.",
-                                                  preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                        mailMediaItems(viewController: self,mediaItems: globals.active?.list, stringFunction: self.setupMediaItemsScriptureBodyHTML,links: true,columns: true,attachments: false)
-                    })
-                    alert.addAction(yesAction)
-                    
-                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                        mailMediaItems(viewController: self,mediaItems: globals.active?.list, stringFunction: self.setupMediaItemsScriptureBodyHTML,links: true,columns: false,attachments: false)
-                    })
-                    alert.addAction(noAction)
-                    
-                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                        
-                    })
-                    alert.addAction(cancelAction)
-                    
-                    self.present(alert, animated: true, completion: nil)
-                })
-                break
-                
-            case Constants.Share_All:
-                shareMediaItems(viewController: self, mediaItems: mediaItems, stringFunction: setupMediaItemsScriptureBody, barButton: navigationItem.rightBarButtonItem)
-                break
+//            case Constants.Print_All:
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    self.dismiss(animated: true, completion: nil)
+//                    
+//                    let alert = UIAlertController(title: "Format into columns?",
+//                                                  message: "Columns may not display correctly on a small screen.",
+//                                                  preferredStyle: UIAlertControllerStyle.alert)
+//                    
+//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+//                        printMediaItems(viewController: self,mediaItems: globals.active?.list,stringFunction: self.setupMediaItemsScriptureBodyHTML,links: false,columns: true, barButton: self.navigationItem.rightBarButtonItem)
+//                    })
+//                    alert.addAction(yesAction)
+//                    
+//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+//                        printMediaItems(viewController: self,mediaItems: globals.active?.list,stringFunction: self.setupMediaItemsScriptureBodyHTML,links: false,columns: false, barButton: self.navigationItem.rightBarButtonItem)
+//                    })
+//                    alert.addAction(noAction)
+//                    
+//                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+//                        
+//                    })
+//                    alert.addAction(cancelAction)
+//                    
+//                    self.present(alert, animated: true, completion: nil)
+//                })
+//                break
+//                
+//            case Constants.Email_All:
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    self.dismiss(animated: true, completion: nil)
+//                    
+//                    let alert = UIAlertController(title: "Format into columns?",
+//                                                  message: "Columns may not display correctly on a small screen.",
+//                                                  preferredStyle: UIAlertControllerStyle.alert)
+//                    
+//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+//                        mailMediaItems(viewController: self,mediaItems: globals.active?.list, stringFunction: self.setupMediaItemsScriptureBodyHTML,links: true,columns: true,attachments: false)
+//                    })
+//                    alert.addAction(yesAction)
+//                    
+//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+//                        mailMediaItems(viewController: self,mediaItems: globals.active?.list, stringFunction: self.setupMediaItemsScriptureBodyHTML,links: true,columns: false,attachments: false)
+//                    })
+//                    alert.addAction(noAction)
+//                    
+//                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+//                        
+//                    })
+//                    alert.addAction(cancelAction)
+//                    
+//                    self.present(alert, animated: true, completion: nil)
+//                })
+//                break
+//                
+//            case Constants.Share_All:
+//                shareMediaItems(viewController: self, mediaItems: mediaItems, stringFunction: setupMediaItemsScriptureBody, barButton: navigationItem.rightBarButtonItem)
+//                break
                 
             default:
                 break
@@ -1474,15 +1524,17 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             
             var actionMenu = [String]()
             
-            if UIPrintInteractionController.isPrintingAvailable {
-                actionMenu.append(Constants.Print_All)
-            }
-
-            if MFMailComposeViewController.canSendMail() {
-                actionMenu.append(Constants.Email_All)
-            }
-
-            actionMenu.append(Constants.Share_All)
+            actionMenu.append(Constants.View_List)
+            
+//            if UIPrintInteractionController.isPrintingAvailable {
+//                actionMenu.append(Constants.Print_All)
+//            }
+//
+//            if MFMailComposeViewController.canSendMail() {
+//                actionMenu.append(Constants.Email_All)
+//            }
+//
+//            actionMenu.append(Constants.Share_All)
             
             popover.strings = actionMenu
             

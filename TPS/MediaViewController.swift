@@ -932,6 +932,11 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     func message(_ mediaItem:MediaItem?)
     {
+        guard MFMessageComposeViewController.canSendText() else {
+            showSendMailErrorAlert(viewController: self)
+            return
+        }
+
         let messageComposeViewController = MFMessageComposeViewController()
         messageComposeViewController.messageComposeDelegate = self // Extremely important to set the --messageComposeDelegate-- property, NOT the --delegate-- property
         
@@ -939,29 +944,25 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         messageComposeViewController.subject = "Recommendation"
         messageComposeViewController.body = mediaItem?.contents
         
-        if MFMessageComposeViewController.canSendText() {
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.present(messageComposeViewController, animated: true, completion: nil)
-            })
-        } else {
-            self.showSendMailErrorAlert()
-        }
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.present(messageComposeViewController, animated: true, completion: nil)
+        })
     }
     
-    func showSendMailErrorAlert() {
-        let alert = UIAlertController(title: "Could Not Send Email",
-                                      message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",
-                                      preferredStyle: UIAlertControllerStyle.alert)
-        
-        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-            
-        })
-        alert.addAction(action)
-        
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.present(alert, animated: true, completion: nil)
-        })
-    }
+//    func showSendMailErrorAlert() {
+//        let alert = UIAlertController(title: "Could Not Send Email",
+//                                      message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",
+//                                      preferredStyle: UIAlertControllerStyle.alert)
+//        
+//        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+//            
+//        })
+//        alert.addAction(action)
+//        
+//        DispatchQueue.main.async(execute: { () -> Void in
+//            self.present(alert, animated: true, completion: nil)
+//        })
+//    }
     
     // MARK: MFMailComposeViewControllerDelegate Method
     func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
@@ -1082,7 +1083,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //    }
     
     func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
-        dismiss(animated: true, completion: nil)
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.dismiss(animated: true, completion: nil)
+        })
         
         switch purpose {
         case .selectingCellAction:
@@ -1206,58 +1209,37 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 
             case Constants.Email_One:
                 if selectedMediaItem != nil {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.dismiss(animated: true, completion: nil)
-                        
-                        let alert = UIAlertController(title: "Format into columns?",
-                                                      message: "Columns may not display correctly on a small screen.",
-                                                      preferredStyle: UIAlertControllerStyle.alert)
-                        
-                        let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                            mailMediaItems(viewController: self,mediaItems: [self.selectedMediaItem!], stringFunction: setupMediaItemsBodyHTML,links: true,columns: true,attachments: false)
-                        })
-                        alert.addAction(yesAction)
-                        
-                        let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                            mailMediaItems(viewController: self,mediaItems: [self.selectedMediaItem!], stringFunction: setupMediaItemsBodyHTML,links: true,columns: false,attachments: false)
-                        })
-                        alert.addAction(noAction)
-                        
-                        let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                            
-                        })
-                        alert.addAction(cancelAction)
-                    
-                        self.present(alert, animated: true, completion: nil)
-                    })
+                    mailMediaItems(viewController: self,mediaItems: [selectedMediaItem!], stringFunction: setupMediaItemsHTML,links: true,columns: true,attachments: false)
                 }
                 break
                 
             case Constants.Email_All:
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.dismiss(animated: true, completion: nil)
-                    
-                    let alert = UIAlertController(title: "Format into columns?",
-                                                  message: "Columns may not display correctly on a small screen.",
-                                                  preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                        mailMediaItems(viewController: self,mediaItems: self.mediaItems, stringFunction: setupMediaItemsBodyHTML,links: true,columns: true,attachments: false)
-                    })
-                    alert.addAction(yesAction)
-                    
-                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                        mailMediaItems(viewController: self,mediaItems: self.mediaItems, stringFunction: setupMediaItemsBodyHTML,links: true,columns: false,attachments: false)
-                    })
-                    alert.addAction(noAction)
-                    
-                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                        
-                    })
-                    alert.addAction(cancelAction)
-                    
-                    self.present(alert, animated: true, completion: nil)
-                })
+                mailMediaItems(viewController: self,mediaItems: self.mediaItems, stringFunction: setupMediaItemsHTML,links: true,columns: true,attachments: false)
+                
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    self.dismiss(animated: true, completion: nil)
+//                    
+//                    let alert = UIAlertController(title: "Format into columns?",
+//                                                  message: "", // Columns may not display correctly on a small screen.
+//                                                  preferredStyle: UIAlertControllerStyle.alert)
+//                    
+//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+//                        mailMediaItems(viewController: self,mediaItems: self.mediaItems, stringFunction: setupMediaItemsHTML,links: true,columns: true,attachments: false)
+//                    })
+//                    alert.addAction(yesAction)
+//                    
+//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+//                        mailMediaItems(viewController: self,mediaItems: self.mediaItems, stringFunction: setupMediaItemsHTML,links: true,columns: false,attachments: false)
+//                    })
+//                    alert.addAction(noAction)
+//                    
+//                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+//                        
+//                    })
+//                    alert.addAction(cancelAction)
+//                    
+//                    self.present(alert, animated: true, completion: nil)
+//                })
                 break
                 
             case Constants.Share:

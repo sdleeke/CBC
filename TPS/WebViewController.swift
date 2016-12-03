@@ -11,8 +11,8 @@ import WebKit
 import MessageUI
 
 struct HTML {
-    var string:String = Constants.EMPTY_STRING
-    var fontSize = 0
+    var string:String?
+    var fontSize = Constants.FONT_SIZE
     var xRatio = 0.0
     var yRatio = 0.0
     var zoomScale = 0.0
@@ -22,7 +22,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
 
     enum Content {
         case document
-        case notesHTML
+        case html
     }
     
     var wkWebView:WKWebView?
@@ -78,7 +78,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             case .document:
                 captureContentOffsetAndZoomScale()
                 break
-            case .notesHTML:
+            case .html:
                 captureHTMLContentOffsetAndZoomScale()
                 break
             }
@@ -96,7 +96,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             case .document:
                 captureContentOffsetAndZoomScale()
                 break
-            case .notesHTML:
+            case .html:
                 captureHTMLContentOffsetAndZoomScale()
                 break
             }
@@ -111,7 +111,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             case .document:
                 captureContentOffsetAndZoomScale()
                 break
-            case .notesHTML:
+            case .html:
                 captureHTMLContentOffsetAndZoomScale()
                 break
             }
@@ -222,34 +222,34 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         wkWebView?.superview?.setNeedsLayout()
     }
     
-    func printHTML(htmlString:String,orientation:UIPrintInfoOrientation)
-    {
-        guard UIPrintInteractionController.isPrintingAvailable else {
-            return
-        }
-
-        let pi = UIPrintInfo.printInfo()
-        pi.outputType = UIPrintInfoOutputType.general
-        pi.jobName = Constants.Print;
-        pi.orientation = UIPrintInfoOrientation.portrait
-        pi.duplex = UIPrintInfoDuplex.longEdge
-        
-        pi.orientation = orientation
-        
-        let pic = UIPrintInteractionController.shared
-        pic.printInfo = pi
-        pic.showsPageRange = true
-        pic.showsPaperSelectionForLoadedPapers = true
-
-        let formatter = UIMarkupTextPrintFormatter(markupText: htmlString)
-        formatter.perPageContentInsets = UIEdgeInsets(top: 72, left: 54, bottom: 54, right: 54) // 72=1" margins
-        
-        pic.printFormatter = formatter
-
-        DispatchQueue.main.async(execute: { () -> Void in
-            pic.present(from: self.navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
-        })
-    }
+//    func printHTML(htmlString:String,orientation:UIPrintInfoOrientation)
+//    {
+//        guard UIPrintInteractionController.isPrintingAvailable else {
+//            return
+//        }
+//
+//        let pi = UIPrintInfo.printInfo()
+//        pi.outputType = UIPrintInfoOutputType.general
+//        pi.jobName = Constants.Print;
+//        pi.orientation = UIPrintInfoOrientation.portrait
+//        pi.duplex = UIPrintInfoDuplex.longEdge
+//        
+//        pi.orientation = orientation
+//        
+//        let pic = UIPrintInteractionController.shared
+//        pic.printInfo = pi
+//        pic.showsPageRange = true
+//        pic.showsPaperSelectionForLoadedPapers = true
+//
+//        let formatter = UIMarkupTextPrintFormatter(markupText: htmlString)
+//        formatter.perPageContentInsets = UIEdgeInsets(top: 72, left: 54, bottom: 54, right: 54) // 72=1" margins
+//        
+//        pic.printFormatter = formatter
+//
+//        DispatchQueue.main.async(execute: { () -> Void in
+//            pic.present(from: self.navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
+//        })
+//    }
     
     fileprivate func networkUnavailable(_ message:String?)
     {
@@ -288,82 +288,84 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         controller.dismiss(animated: true, completion: nil)
     }
     
-    func mailHTML(htmlString:String)
-    {
-        let mailComposeViewController = MFMailComposeViewController()
-        mailComposeViewController.mailComposeDelegate = self // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
-        
-        mailComposeViewController.setToRecipients([])
-        mailComposeViewController.setSubject(selectedMediaItem!.title!)
-        
-        mailComposeViewController.setMessageBody(htmlString, isHTML: true)
-        
-        if MFMailComposeViewController.canSendMail() {
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.present(mailComposeViewController, animated: true, completion: nil)
-            })
-        } else {
-            showSendMailErrorAlert()
-        }
-    }
+//    func mailHTML(htmlString:String)
+//    {
+//        let mailComposeViewController = MFMailComposeViewController()
+//        mailComposeViewController.mailComposeDelegate = self // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
+//        
+//        mailComposeViewController.setToRecipients([])
+//        mailComposeViewController.setSubject(selectedMediaItem!.title!)
+//        
+//        mailComposeViewController.setMessageBody(htmlString, isHTML: true)
+//        
+//        if MFMailComposeViewController.canSendMail() {
+//            DispatchQueue.main.async(execute: { () -> Void in
+//                self.present(mailComposeViewController, animated: true, completion: nil)
+//            })
+//        } else {
+//            showSendMailErrorAlert()
+//        }
+//    }
     
-    func showSendMailErrorAlert() {
-        let alert = UIAlertController(title: "Could Not Send Email",
-                                      message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",
-                                      preferredStyle: UIAlertControllerStyle.alert)
-        
-        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-            
-        })
-        alert.addAction(action)
-        
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.present(alert, animated: true, completion: nil)
-        })
-    }
+//    func showSendMailErrorAlert() {
+//        let alert = UIAlertController(title: "Could Not Send Email",
+//                                      message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",
+//                                      preferredStyle: UIAlertControllerStyle.alert)
+//        
+//        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+//            
+//        })
+//        alert.addAction(action)
+//        
+//        DispatchQueue.main.async(execute: { () -> Void in
+//            self.present(alert, animated: true, completion: nil)
+//        })
+//    }
     
     func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
-        dismiss(animated: true, completion: nil)
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.dismiss(animated: true, completion: nil)
+        })
         
         switch purpose {
         case .selectingAction:
             switch strings[index] {
             case Constants.Print:
-                printHTML(htmlString: html.string,orientation: .portrait)
+                
+                let alert = UIAlertController(title: "Remove Links?",
+                                              message: "This can take some time.",
+                                              preferredStyle: UIAlertControllerStyle.alert)
+                
+                let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                    process(viewController: self, work: { () -> (Any?) in
+                        return stripLinks(self.html.string)
+                    }, completion: { (data:Any?) in
+                        printHTML(viewController: self, dismiss: false, htmlString: data as? String)
+                    })
+                })
+                alert.addAction(yesAction)
+                
+                let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                    printHTML(viewController: self, dismiss: false, htmlString: self.html.string)
+                })
+                alert.addAction(noAction)
+                
+                let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                    
+                })
+                alert.addAction(cancelAction)
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.present(alert, animated: true, completion: nil)
+                })
+                break
+                
+            case Constants.Share:
+                shareHTML(viewController: self, dismiss: false, htmlString: html.string!)
                 break
                 
             case Constants.Email_One:
-                mailHTML(htmlString: html.string)
-                break
-                
-            case Constants.Increase_Font_Size:
-                var newString:String
-                
-                if html.fontSize <= 3 {
-                    html.fontSize += 1
-                }
-                
-                if html.fontSize < 0 {
-                    newString = "<font size=\"\(html.fontSize)\">" + html.string + "</font>"
-                } else {
-                    newString = "<font size=\"+\(html.fontSize)\">" + html.string + "</font>"
-                }
-                _ = wkWebView?.loadHTMLString(newString, baseURL: nil)
-                break
-                
-            case Constants.Decrease_Font_Size:
-                var newString:String
-                
-                if html.fontSize >= -1 {
-                    html.fontSize -= 1
-                }
-
-                if html.fontSize < 0 {
-                    newString = "<font size=\"\(html.fontSize)\">" + html.string + "</font>"
-                } else {
-                    newString = "<font size=\"+\(html.fontSize)\">" + html.string + "</font>"
-                }
-                _ = wkWebView?.loadHTMLString(newString, baseURL: nil)
+                mailHTML(viewController: self, dismiss: false, to: [], subject: "", htmlString: html.string!)
                 break
                 
             case Constants.Open_in_Browser:
@@ -440,14 +442,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 actionMenu.append(Constants.Email_One)
             }
             
-            if html.fontSize <= 3 {
-                actionMenu.append(Constants.Increase_Font_Size)
+            if html.string != nil {
+                actionMenu.append(Constants.Share)
             }
             
-            if html.fontSize >= -1 {
-                actionMenu.append(Constants.Decrease_Font_Size)
-            }
-
             popover.strings = actionMenu
             
             popover.showIndex = false //(globals.grouping == .series)
@@ -457,21 +455,49 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         }
     }
     
+    func increaseFontSize()
+    {
+        html.fontSize += 1
+        
+        html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
+        _ = wkWebView?.loadHTMLString(html.string!, baseURL: nil)
+    }
+    
+    func decreaseFontSize()
+    {
+        html.fontSize -= 1
+        
+        html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
+        _ = wkWebView?.loadHTMLString(html.string!, baseURL: nil)
+    }
+    
     fileprivate func setupActionButton()
     {
-        if (selectedMediaItem != nil) {
-            navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(WebViewController.actions)), animated: true)
+        let actionButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(WebViewController.actions))
 
-            navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
+        let plusButton = UIBarButtonItem(title: "Larger", style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.increaseFontSize))
+        
+        let minusButton = UIBarButtonItem(title: "Smaller", style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.decreaseFontSize))
+        
+        navigationItem.setRightBarButtonItems([actionButton,plusButton,minusButton], animated: true)
+        
+//        navigationItem.setRightBarButton(actionButton, animated: true)
+        
+        navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
 
-//            if htmlString != nil {
-//                navigationItem.setRightBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
-//            } else {
-//                navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(WebViewController.actions)), animated: true)
-//            }
-        } else {
-            self.navigationItem.rightBarButtonItem = nil
-        }
+//        if (selectedMediaItem != nil) {
+//            navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(WebViewController.actions)), animated: true)
+//
+//            navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
+//
+////            if htmlString != nil {
+////                navigationItem.setRightBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
+////            } else {
+////                navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(WebViewController.actions)), animated: true)
+////            }
+//        } else {
+//            self.navigationItem.rightBarButtonItem = nil
+//        }
     }
 
     func loading()
@@ -691,7 +717,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
 //            captureContentOffsetAndZoomScale()
             break
             
-        case .notesHTML:
+        case .html:
             captureHTMLContentOffsetAndZoomScale()
             break
         }
@@ -709,7 +735,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                     self.setupWKContentOffset(self.wkWebView)
                     break
                     
-                case .notesHTML:
+                case .html:
                     self.setupHTMLWKContentOffset(self.wkWebView)
                     break
                 }
@@ -950,7 +976,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        navigationItem.title = selectedMediaItem!.title!
+        if let title = selectedMediaItem?.title {
+            navigationItem.title = title
+        }
         
         setupActionButton()
 
@@ -958,11 +986,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
 
         webView.bringSubview(toFront: activityIndicator)
         
-        progressIndicator.isHidden = content == .notesHTML
+        progressIndicator.isHidden = content == .html
         
-        if content == .notesHTML {
-            if let notesHTML = selectedMediaItem?.searchMarkedNotesHTML {
-                html.string = notesHTML
+        if content == .html {
+            if let htmlString = selectedMediaItem?.searchMarkedNotesHTML {
+                html.string = htmlString
             }
         }
 
@@ -974,8 +1002,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             loadDocument()
             break
             
-        case .notesHTML:
-            _ = wkWebView?.loadHTMLString(html.string, baseURL: nil)
+        case .html:
+            if html.string != nil {
+                _ = wkWebView?.loadHTMLString(html.string!, baseURL: nil)
+            }
             break
         }
         

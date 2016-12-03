@@ -78,10 +78,10 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                     
                     var strings = [String]()
                     
-                    repeat {
+                    while newString.characters.contains("\n") {
                         strings.append(newString.substring(to: newString.range(of: "\n")!.lowerBound))
                         newString = newString.substring(from: newString.range(of: "\n")!.upperBound)
-                    } while newString.characters.contains("\n")
+                    }
 
                     strings.append(newString)
 

@@ -523,10 +523,14 @@ struct Constants {
     static let Email_One = "E-mail"
     static let Email_All = "E-mail All"
     
+    static let FONT_SIZE = 12
     static let Increase_Font_Size = "Increase Font Size"
     static let Decrease_Font_Size = "Decrease Font Size"
     
     static let Refresh_Document = "Refresh Document"
+    
+    static let View_List = "View List"
+    static let List = "List"
     
     static let Share = "Share"
     static let Share_All = "Share All"

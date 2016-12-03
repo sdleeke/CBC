@@ -2380,8 +2380,13 @@ func tagsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
     return nil
 }
 
-func mailMediaItem(viewController:UIViewController?, mediaItem:MediaItem?,stringFunction:((MediaItem?)->String?)?)
+func mailMediaItem(viewController:UIViewController, mediaItem:MediaItem?,stringFunction:((MediaItem?)->String?)?)
 {
+    guard MFMailComposeViewController.canSendMail() else {
+        showSendMailErrorAlert(viewController: viewController)
+        return
+    }
+
     let mailComposeViewController = MFMailComposeViewController()
     mailComposeViewController.mailComposeDelegate = viewController as? MFMailComposeViewControllerDelegate // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
     
@@ -2393,39 +2398,68 @@ func mailMediaItem(viewController:UIViewController?, mediaItem:MediaItem?,string
     }
     
     if MFMailComposeViewController.canSendMail() {
-        viewController?.present(mailComposeViewController, animated: true, completion: nil)
+        viewController.present(mailComposeViewController, animated: true, completion: nil)
     } else {
         showSendMailErrorAlert(viewController: viewController)
     }
 }
 
-func process(viewController:UIViewController?,work:(()->(Any?))?,completion:((Any?)->())?)
+func presentHTMLModal(viewController:UIViewController, htmlString:String?)
 {
-    guard (viewController != nil) && (work != nil)  && (completion != nil) else {
+    guard (htmlString != nil) else {
+        return
+    }
+    
+    if let navigationController = viewController.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+        let popover = navigationController.viewControllers[0] as? WebViewController {
+        viewController.dismiss(animated: true, completion: nil)
+        
+        navigationController.modalPresentationStyle = .overFullScreen
+//        navigationController.popoverPresentationController?.permittedArrowDirections = .any
+        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+        
+        popover.navigationItem.title = globals.mediaCategory.selected! + Constants.SINGLE_SPACE + Constants.List
+        
+        popover.selectedMediaItem = nil
+        
+        popover.html.string = htmlString!
+        popover.content = .html
+
+        popover.navigationController?.isNavigationBarHidden = false
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            viewController.present(navigationController, animated: true, completion: nil)
+        })
+    }
+}
+
+func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any?)->())?)
+{
+    guard (work != nil)  && (completion != nil) else {
         return
     }
     
     // to share
     
-    if let buttons = viewController?.navigationItem.rightBarButtonItems {
+    if let buttons = viewController.navigationItem.rightBarButtonItems {
         for button in buttons {
             button.isEnabled = false
         }
     }
     
-    if let buttons = viewController?.navigationItem.leftBarButtonItems {
+    if let buttons = viewController.navigationItem.leftBarButtonItems {
         for button in buttons {
             button.isEnabled = false
         }
     }
     
-    if let buttons = viewController?.navigationController?.toolbarItems {
+    if let buttons = viewController.navigationController?.toolbarItems {
         for button in buttons {
             button.isEnabled = false
         }
     }
     
-    let uiView = viewController!.view!
+    let uiView = viewController.view!
     
     let container: UIView = UIView()
     
@@ -2465,19 +2499,19 @@ func process(viewController:UIViewController?,work:(()->(Any?))?,completion:((An
             actInd.stopAnimating()
             container.removeFromSuperview()
             
-            if let buttons = viewController?.navigationItem.rightBarButtonItems {
+            if let buttons = viewController.navigationItem.rightBarButtonItems {
                 for button in buttons {
                     button.isEnabled = true
                 }
             }
             
-            if let buttons = viewController?.navigationItem.leftBarButtonItems {
+            if let buttons = viewController.navigationItem.leftBarButtonItems {
                 for button in buttons {
                     button.isEnabled = true
                 }
             }
             
-            if let buttons = viewController?.navigationController?.toolbarItems {
+            if let buttons = viewController.navigationController?.toolbarItems {
                 for button in buttons {
                     button.isEnabled = true
                 }
@@ -2488,13 +2522,96 @@ func process(viewController:UIViewController?,work:(()->(Any?))?,completion:((An
     }
 }
 
+func mailHTML(viewController:UIViewController,dismiss:Bool,to: [String],subject: String, htmlString:String)
+{
+    if dismiss {
+        viewController.dismiss(animated: true, completion: nil)
+    }
+    
+    let mailComposeViewController = MFMailComposeViewController()
+    mailComposeViewController.mailComposeDelegate = viewController as? MFMailComposeViewControllerDelegate // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
+    
+    mailComposeViewController.setToRecipients(to)
+    mailComposeViewController.setSubject(subject)
+    
+    mailComposeViewController.setMessageBody(htmlString, isHTML: true)
+    
+    if MFMailComposeViewController.canSendMail() {
+        DispatchQueue.main.async(execute: { () -> Void in
+            viewController.present(mailComposeViewController, animated: true, completion: nil)
+        })
+    } else {
+        showSendMailErrorAlert(viewController: viewController)
+    }
+}
+
+func printHTML(viewController:UIViewController,dismiss:Bool,htmlString:String?)
+{
+    guard UIPrintInteractionController.isPrintingAvailable && (htmlString != nil) else {
+        return
+    }
+    
+    func printJob(orientation:UIPrintInfoOrientation)
+    {
+        let pi = UIPrintInfo.printInfo()
+        pi.outputType = UIPrintInfoOutputType.general
+        pi.jobName = Constants.Print;
+        pi.duplex = UIPrintInfoDuplex.longEdge
+        
+        pi.orientation = orientation
+        
+        let pic = UIPrintInteractionController.shared
+        pic.printInfo = pi
+        pic.showsPageRange = true
+        pic.showsPaperSelectionForLoadedPapers = true
+        
+        let formatter = UIMarkupTextPrintFormatter(markupText: htmlString!)
+        formatter.perPageContentInsets = UIEdgeInsets(top: 72, left: 54, bottom: 54, right: 54) // 72=1" margins
+        
+        pic.printFormatter = formatter
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            pic.present(from: viewController.navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
+        })
+    }
+
+    if dismiss {
+        DispatchQueue.main.async(execute: { () -> Void in
+            viewController.dismiss(animated: true, completion: nil)
+        })
+    }
+    
+    let alert = UIAlertController(title: "Page Orientation?",
+                                  message: "",
+                                  preferredStyle: UIAlertControllerStyle.alert)
+    
+    let yesAction = UIAlertAction(title: "Portrait", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+        printJob(orientation: .portrait)
+    })
+    alert.addAction(yesAction)
+    
+    let noAction = UIAlertAction(title: "Landscape", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+        printJob(orientation: .landscape)
+    })
+    alert.addAction(noAction)
+    
+    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+        
+    })
+    alert.addAction(cancelAction)
+    
+    DispatchQueue.main.async(execute: { () -> Void in
+        viewController.present(alert, animated: true, completion: nil)
+    })
+}
+
 func printDocument(viewController:UIViewController?,documentURL:URL?)
 {
     guard UIPrintInteractionController.isPrintingAvailable && (viewController != nil) && (documentURL != nil) else { // && UIPrintInteractionController.canPrint(printURL!)  is too slow
         return
     }
     
-    process(viewController: viewController, work: {
+    process(viewController: viewController!, work: {
         return NSData(contentsOf: documentURL!)
     }, completion: { (data:Any?) in
         let pi = UIPrintInfo.printInfo()
@@ -2512,13 +2629,14 @@ func printDocument(viewController:UIViewController?,documentURL:URL?)
         //            pic?.printFormatter = webView?.viewPrintFormatter()
         
         pic.printingItem = data
+        
         pic.present(from: viewController!.navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
     })
 }
 
-func printMediaItem(viewController:UIViewController?, mediaItem:MediaItem?,barButton:UIBarButtonItem?)
+func printMediaItem(viewController:UIViewController, mediaItem:MediaItem?,barButton:UIBarButtonItem?)
 {
-    guard UIPrintInteractionController.isPrintingAvailable && (viewController != nil) && (mediaItem != nil) && (barButton != nil) else {
+    guard UIPrintInteractionController.isPrintingAvailable && (mediaItem != nil) && (barButton != nil) else {
         return
     }
     
@@ -2546,9 +2664,9 @@ func printMediaItem(viewController:UIViewController?, mediaItem:MediaItem?,barBu
     })
 }
 
-func printMediaItems(viewController:UIViewController?,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?,Bool,Bool)->String?)?,links:Bool,columns:Bool,barButton:UIBarButtonItem?)
+func printMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?,Bool,Bool)->String?)?,links:Bool,columns:Bool,barButton:UIBarButtonItem?)
 {
-    guard UIPrintInteractionController.isPrintingAvailable && (viewController != nil) && (mediaItems != nil) && (stringFunction != nil) && (barButton != nil) else {
+    guard UIPrintInteractionController.isPrintingAvailable && (mediaItems != nil) && (stringFunction != nil) && (barButton != nil) else {
         return
     }
     
@@ -2562,8 +2680,8 @@ func printMediaItems(viewController:UIViewController?,mediaItems:[MediaItem]?,st
             let pi = UIPrintInfo.printInfo()
             pi.outputType = UIPrintInfoOutputType.general
             pi.jobName = "Print";
-            pi.orientation = UIPrintInfoOrientation.portrait
             pi.duplex = UIPrintInfoDuplex.longEdge
+
             pi.orientation = orientation
             
             let pic = UIPrintInteractionController.shared
@@ -2576,13 +2694,14 @@ func printMediaItems(viewController:UIViewController?,mediaItems:[MediaItem]?,st
                 formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
 
                 pic.printFormatter = formatter
+                
                 pic.present(from: barButton!, animated: true, completionHandler: nil)
             }
         })
     }
     
     DispatchQueue.main.async(execute: { () -> Void in
-        viewController?.dismiss(animated: true, completion: nil)
+        viewController.dismiss(animated: true, completion: nil)
     })
     
     let alert = UIAlertController(title: "Page Orientation?",
@@ -2607,11 +2726,12 @@ func printMediaItems(viewController:UIViewController?,mediaItems:[MediaItem]?,st
     alert.addAction(cancelAction)
     
     DispatchQueue.main.async(execute: { () -> Void in
-        viewController?.present(alert, animated: true, completion: nil)
+        viewController.present(alert, animated: true, completion: nil)
     })
 }
 
-func showSendMailErrorAlert(viewController:UIViewController?) {
+func showSendMailErrorAlert(viewController:UIViewController)
+{
     let alert = UIAlertController(title: "Could Not Send Email",
                                   message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",
                                   preferredStyle: UIAlertControllerStyle.alert)
@@ -2621,13 +2741,14 @@ func showSendMailErrorAlert(viewController:UIViewController?) {
     })
     alert.addAction(action)
     
-    viewController?.present(alert, animated: true, completion: nil)
+    viewController.present(alert, animated: true, completion: nil)
 }
 
 
-func mailMediaItems(viewController:UIViewController?,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?,Bool,Bool)->String?)?,links:Bool,columns:Bool,attachments:Bool)
+func mailMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?,Bool,Bool)->String?)?,links:Bool,columns:Bool,attachments:Bool)
 {
-    guard (viewController != nil) && (mediaItems != nil) && (stringFunction != nil) else {
+    guard (mediaItems != nil) && (stringFunction != nil) && MFMailComposeViewController.canSendMail() else {
+        showSendMailErrorAlert(viewController: viewController)
         return
     }
     
@@ -2685,53 +2806,81 @@ func mailMediaItems(viewController:UIViewController?,mediaItems:[MediaItem]?,str
                 }
             }
             
-            if MFMailComposeViewController.canSendMail() {
-                viewController?.present(mailComposeViewController, animated: true, completion: nil)
-            } else {
-                showSendMailErrorAlert(viewController: viewController)
-            }
+            viewController.present(mailComposeViewController, animated: true, completion: nil)
         }
     })
 }
 
-func shareMediaItems(viewController:UIViewController?,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?)->String?)?,barButton:UIBarButtonItem?)
+func shareHTML(viewController:UIViewController,dismiss:Bool,htmlString:String?)
 {
-    guard (viewController != nil) && (mediaItems != nil) && (stringFunction != nil) && (barButton != nil) else {
+    guard htmlString != nil else {
+        return
+    }
+    
+    if dismiss {
+        viewController.dismiss(animated: true, completion: nil)
+    }
+    
+    let activityItems = [ htmlString ]
+    
+    let activityViewController = UIActivityViewController(activityItems:activityItems, applicationActivities: nil)
+    
+    activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
+    
+    // exclude some activity types from the list (optional)
+    
+    activityViewController.excludedActivityTypes = [ .addToReadingList ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+    
+    DispatchQueue.main.async(execute: { () -> Void in
+        // present the view controller
+        viewController.present(activityViewController, animated: true, completion: nil)
+    })
+}
+
+func shareMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?)->String?)?,barButton:UIBarButtonItem?)
+{
+    guard (mediaItems != nil) && (stringFunction != nil) && (barButton != nil) else {
         return
     }
 
     process(viewController: viewController, work: {
-        if let text = stringFunction?(mediaItems) {
-            var itemsToShare:[Any] = [ text ]
-            
-            if mediaItems?.count == 1 {
-                if let mediaItem = mediaItems?[0] {
-                    if let notesURL = mediaItem.notesURL {
-                        do {
-                            let notes = try Data(contentsOf: notesURL)
-                            itemsToShare.append(notes)
-                        } catch let error as NSError {
-                            NSLog(error.localizedDescription)
-                        }
-                    }
-
-                    if let slidesURL = mediaItem.slidesURL {
-                        do {
-                            let slides = try Data(contentsOf: slidesURL)
-                            itemsToShare.append(slides)
-                        } catch let error as NSError {
-                            NSLog(error.localizedDescription)
-                        }
-                    }
-                    
-                    itemsToShare.append(mediaItem.websiteURL as Any)
-                }
-            }
-            
-            return itemsToShare
+//        if let text = stringFunction?(mediaItems) {
+//            var itemsToShare:[Any] = [ text ]
+//            
+//            if mediaItems?.count == 1 {
+//                if let mediaItem = mediaItems?[0] {
+//                    if let notesURL = mediaItem.notesURL {
+//                        do {
+//                            let notes = try Data(contentsOf: notesURL)
+//                            itemsToShare.append(notes)
+//                        } catch let error as NSError {
+//                            NSLog(error.localizedDescription)
+//                        }
+//                    }
+//
+//                    if let slidesURL = mediaItem.slidesURL {
+//                        do {
+//                            let slides = try Data(contentsOf: slidesURL)
+//                            itemsToShare.append(slides)
+//                        } catch let error as NSError {
+//                            NSLog(error.localizedDescription)
+//                        }
+//                    }
+//                    
+//                    itemsToShare.append(mediaItem.websiteURL as Any)
+//                }
+//            }
+//            
+//            return itemsToShare
+//        }
+//
+//        return nil
+        
+        if let string = stringFunction?(mediaItems) {
+            return [string]
+        } else {
+            return nil
         }
-
-        return nil
     }, completion: { (data:Any?) in
         if let activityItems = data as? [Any] {
             let activityViewController = UIActivityViewController(activityItems:activityItems, applicationActivities: nil)
@@ -2746,7 +2895,7 @@ func shareMediaItems(viewController:UIViewController?,mediaItems:[MediaItem]?,st
                 activityViewController.excludedActivityTypes = [ .addToReadingList ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
             }
             
-            viewController?.present(activityViewController, animated: true, completion: nil)
+            viewController.present(activityViewController, animated: true, completion: nil)
         }
     })
 }
@@ -2801,59 +2950,105 @@ func shareMediaItems(viewController:UIViewController?,mediaItems:[MediaItem]?,st
 
 func setupMediaItemsBody(_ mediaItems:[MediaItem]?) -> String?
 {
-    return stripHTML(setupMediaItemsBodyHTML(mediaItems,includeURLs: false,includeColumns:false),includeColumns:false)
+    return setupMediaItemsHTML(mediaItems,includeURLs:true,includeColumns:true)
 }
 
-func stripHTML(_ string:String?,includeColumns:Bool) -> String?
+func stripHead(_ string:String?) -> String?
 {
     var bodyString = string
+    
+    while bodyString?.range(of: "<head>") != nil {
+        if let startRange = bodyString?.range(of: "<head>") {
+            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: "</head>") {
+                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
+                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+            }
+        }
+    }
+    
+    return bodyString
+}
+
+func insertHead(_ string:String?,fontSize:Int) -> String?
+{
+    let head = "<html><head><style>body{font: -apple-system-body;font-size:\(fontSize)pt;}td{font-size:\(fontSize)pt;}</style></head>"
+    
+    return string?.replacingOccurrences(of: "<html>", with: head)
+}
+
+func stripLinks(_ string:String?) -> String?
+{
+    var bodyString = string
+    
+    while bodyString?.range(of: "<a href") != nil {
+        if let startRange = bodyString?.range(of: "<a href") {
+            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
+                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
+                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+            }
+        }
+    }
+    
+    bodyString = bodyString?.replacingOccurrences(of: "</a>", with: "")
+    
+    return bodyString
+}
+
+func stripHTML(_ string:String?) -> String?
+{
+    var bodyString = stripLinks(stripHead(string))
     
     bodyString = bodyString?.replacingOccurrences(of: "<html>", with: "")
     bodyString = bodyString?.replacingOccurrences(of: "<body>", with: "")
 
-    if let startRange = bodyString?.range(of: "<font") {
-        if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
-            bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: endRange.upperBound)
+    while bodyString?.range(of: "<font") != nil {
+        if let startRange = bodyString?.range(of: "<font") {
+            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
+                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
+                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+            }
         }
     }
 
     bodyString = bodyString?.replacingOccurrences(of: "<br/>", with: "\n")
     
-    if includeColumns {
-        bodyString = bodyString?.replacingOccurrences(of: "<table>", with: "")
+    bodyString = bodyString?.replacingOccurrences(of: "<table>", with: "")
+    
+    bodyString = bodyString?.replacingOccurrences(of: "<tr>", with: "")
 
-        bodyString = bodyString?.replacingOccurrences(of: "<tr>", with: "")
-        
+    while bodyString?.range(of: "<td") != nil {
         if let startRange = bodyString?.range(of: "<td") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
-                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: endRange.upperBound)
+                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
+                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
             }
         }
-        
-//        bodyString = bodyString?.replacingOccurrences(of: "<td>", with: "")
-//        bodyString = bodyString?.replacingOccurrences(of: "<td colspan=\"5\">", with: "")
-//        bodyString = bodyString?.replacingOccurrences(of: "<td align=\"right\">", with: "")
-        
-        bodyString = bodyString?.replacingOccurrences(of: "</td>", with: " ")
-        
-        bodyString = bodyString?.replacingOccurrences(of: "</tr>", with: "\n")
-        
-        bodyString = bodyString?.replacingOccurrences(of: "</table>", with: "")
     }
+    
+//    bodyString = bodyString?.replacingOccurrences(of: "<td>", with: "")
+//    bodyString = bodyString?.replacingOccurrences(of: "<td colspan=\"5\">", with: "")
+//    bodyString = bodyString?.replacingOccurrences(of: "<td align=\"right\">", with: "")
+    
+    bodyString = bodyString?.replacingOccurrences(of: "</td>", with: Constants.SINGLE_SPACE)
+    
+    bodyString = bodyString?.replacingOccurrences(of: "</tr>", with: "\n")
+    
+    bodyString = bodyString?.replacingOccurrences(of: "</table>", with: "")
 
     bodyString = bodyString?.replacingOccurrences(of: "</font>", with: "")
+    
     bodyString = bodyString?.replacingOccurrences(of: "</body>", with: "")
     bodyString = bodyString?.replacingOccurrences(of: "</html>", with: "")
     
-    return bodyString
+    return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
 }
 
-func setupMediaItemsGlobalBody(_ mediaItems:[MediaItem]?) -> String?
-{
-    return stripHTML(setupMediaItemsGlobalBodyHTML(mediaItems,includeURLs:false,includeColumns:false),includeColumns:false)
-}
+//func setupMediaItemsGlobalBody(_ mediaItems:[MediaItem]?) -> String?
+//{
+//    return stripHTML(setupMediaItemsGlobalHTML(mediaItems,includeURLs:false,includeColumns:false))
+//}
 
-func setupMediaItemsGlobalBodyHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String?
+func setupMediaItemsGlobalHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String?
 {
     var bodyString:String?
     
@@ -2898,7 +3093,7 @@ func setupMediaItemsGlobalBodyHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,in
     let keys = mediaListGroupSort.sectionIndexTitles
     
     if includeColumns {
-        bodyString  = bodyString! + "<table>"
+        bodyString = bodyString! + "<table>"
     }
 
     for key in keys! {
@@ -2919,8 +3114,8 @@ func setupMediaItemsGlobalBodyHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,in
             let speakerCount = speakerCounts.keys.count
             
             if includeColumns {
-                bodyString  = bodyString! + "<tr>"
-                bodyString  = bodyString! + "<td colspan=\"5\">"
+                bodyString = bodyString! + "<tr>"
+                bodyString = bodyString! + "<td colspan=\"5\">"
             }
             
             bodyString = bodyString! + name
@@ -2932,47 +3127,54 @@ func setupMediaItemsGlobalBodyHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,in
             }
 
             if includeColumns {
-                bodyString  = bodyString! + "</td>"
-                bodyString  = bodyString! + "</tr>"
+                bodyString = bodyString! + "</td>"
+                bodyString = bodyString! + "</tr>"
             } else {
                 bodyString = bodyString! + "<br/>"
             }
 
             for mediaItem in mediaItems {
-                if let string = mediaItem.bodyHTML(includeURLs: includeURLs, includeColumns: includeColumns, includeSpeaker: speakerCount > 1) {
+                var order = ["date","title","scripture"]
+                
+                if speakerCount > 1 {
+                    order.append("speaker")
+                }
+                
+                if let string = mediaItem.bodyHTML(order: order, includeURLs: includeURLs, includeColumns: includeColumns) {
                     bodyString = bodyString! + string
                 }
+                
                 if !includeColumns {
-                    bodyString  = bodyString! + "<br/>"
+                    bodyString = bodyString! + "<br/>"
                 }
             }
         }
         
         if includeColumns {
-            bodyString  = bodyString! + "<tr>"
-            bodyString  = bodyString! + "<td colspan=\"5\">"
+            bodyString = bodyString! + "<tr>"
+            bodyString = bodyString! + "<td colspan=\"5\">"
         }
         
         bodyString  = bodyString! + "<br/>"
         
         if includeColumns {
-            bodyString  = bodyString! + "</td>"
-            bodyString  = bodyString! + "</tr>"
+            bodyString = bodyString! + "</td>"
+            bodyString = bodyString! + "</tr>"
         }
     }
     
     if includeColumns {
-        bodyString  = bodyString! + "</table>"
+        bodyString = bodyString! + "</table>"
     }
     
     bodyString = bodyString! + "<br/>"
     
     bodyString = bodyString! + "</body></html>"
     
-    return bodyString
+    return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
 }
 
-func setupMediaItemsBodyHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String? {
+func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String? {
     var bodyString:String?
     
     guard (mediaItems != nil) else {
@@ -3064,7 +3266,7 @@ func setupMediaItemsBodyHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeC
             switch mediaItems.count {
             case 1:
                 if let mediaItem = mediaItems.first {
-                    if let string = mediaItem.bodyHTML(includeURLs:includeURLs,includeColumns:includeColumns, includeSpeaker: true) {
+                    if let string = mediaItem.bodyHTML(order: ["date","title","scripture","speaker"],includeURLs:includeURLs,includeColumns:includeColumns) {
                         bodyString = bodyString! + string
                     }
                     
@@ -3134,7 +3336,13 @@ func setupMediaItemsBodyHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeC
                 }
                 
                 for mediaItem in mediaItems {
-                    if let string = mediaItem.bodyHTML(includeURLs:includeURLs,includeColumns:includeColumns, includeSpeaker: speakerCount > 1) {
+                    var order = ["date","title","scripture"]
+                    
+                    if speakerCount > 1 {
+                        order.append("speaker")
+                    }
+                    
+                    if let string = mediaItem.bodyHTML(order: order, includeURLs: includeURLs, includeColumns: includeColumns) {
                         bodyString = bodyString! + string
                     }
                     
@@ -3164,7 +3372,7 @@ func setupMediaItemsBodyHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeC
     
     bodyString = bodyString! + "</body></html>"
     
-    return bodyString
+    return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
 }
 
 func addressStringHTML() -> String
