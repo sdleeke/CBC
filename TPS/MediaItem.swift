@@ -17,6 +17,8 @@ typealias MediaGroupSort = [String:[String:[String:[MediaItem]]]]
 typealias MediaGroupNames = [String:[String:String]]
 
 class MediaListGroupSort {
+    var htmlString:String?
+    
     var list:[MediaItem]? { //Not in any specific order
         didSet {
             if (list != nil) {
@@ -2182,25 +2184,25 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             for item in order {
                 switch item.lowercased() {
                 case "date":
-                    bodyString = bodyString! + "<td>"
+                    bodyString = bodyString! + "<td valign=\"top\">"
                     if let month = formattedDateMonth {
                         bodyString = bodyString! + month
                     }
                     bodyString = bodyString! + "</td>"
                     
-                    bodyString = bodyString! + "<td align=\"right\">"
+                    bodyString = bodyString! + "<td valign=\"top\" align=\"right\">"
                     if let day = formattedDateDay {
                         bodyString  = bodyString! + day + ","
                     }
                     bodyString = bodyString! + "</td>"
                     
-                    bodyString = bodyString! + "<td align=\"right\">"
+                    bodyString = bodyString! + "<td valign=\"top\" align=\"right\">"
                     if let year = formattedDateYear {
                         bodyString  = bodyString! + year
                     }
                     bodyString = bodyString! + "</td>"
                     
-                    bodyString = bodyString! + "<td>"
+                    bodyString = bodyString! + "<td valign=\"top\">"
                     if let service = self.service {
                         bodyString  = bodyString! + service
                     }
@@ -2208,7 +2210,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                     break
                     
                 case "title":
-                    bodyString = bodyString! + "<td>"
+                    bodyString = bodyString! + "<td valign=\"top\">"
                     if let title = self.title {
                         if includeURLs, let websiteURL = websiteURL?.absoluteString {
                             bodyString = bodyString! + "<a href=\"" + websiteURL + "\">\(title)</a>"
@@ -2220,7 +2222,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                     break
 
                 case "scripture":
-                    bodyString = bodyString! + "<td>"
+                    bodyString = bodyString! + "<td valign=\"top\">"
                     if let scripture = self.scripture {
                         bodyString = bodyString! + scripture
                     }
@@ -2228,7 +2230,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                     break
 
                 case "speaker":
-                    bodyString = bodyString! + "<td>"
+                    bodyString = bodyString! + "<td valign=\"top\">"
                     if let speaker = self.speaker {
                         bodyString = bodyString! + speaker
                     }

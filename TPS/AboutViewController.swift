@@ -28,44 +28,10 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     
     var item:MKMapItem?
     
-//    fileprivate func showSendMailErrorAlert() {
-//        let alert = UIAlertController(title: "Could Not Send Email",
-//                                      message: "Your device could not send e-mail.  Please check your e-mail configuration and try again.",
-//                                      preferredStyle: UIAlertControllerStyle.alert)
-//        
-//        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-//
-//        })
-//        alert.addAction(action)
-//        
-//        self.present(alert, animated: true, completion: nil)
-//    }
-    
     // MARK: MFMailComposeViewControllerDelegate Method
     func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
         controller.dismiss(animated: true, completion: nil)
     }
-    
-//    fileprivate func email()
-//    {
-//        let bodyString = String()
-//        
-//        //        bodyString = bodyString + addressStringHTML()
-//        
-//        let mailComposeViewController = MFMailComposeViewController()
-//        mailComposeViewController.mailComposeDelegate = self // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
-//        
-//        mailComposeViewController.setToRecipients([Constants.CBC.EMAIL])
-//        mailComposeViewController.setSubject(Constants.EMAIL_SUBJECT)
-//        //        mailComposeViewController.setMessageBody(bodyString, isHTML: false)
-//        mailComposeViewController.setMessageBody(bodyString, isHTML: true)
-//        
-//        if MFMailComposeViewController.canSendMail() {
-//            present(mailComposeViewController, animated: true, completion: nil)
-//        } else {
-//            showSendMailErrorAlert()
-//        }
-//    }
     
     fileprivate func openWebSite(_ urlString:String)
     {
@@ -175,7 +141,7 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
             switch strings[index] {
 
             case Constants.Email_CBC:
-                mailHTML(viewController: self, dismiss: true, to: [Constants.CBC.EMAIL], subject: Constants.EMAIL_SUBJECT, htmlString: "")
+                mailHTML(viewController: self, to: [Constants.CBC.EMAIL], subject: Constants.EMAIL_SUBJECT, htmlString: "")
                 break
                 
             case Constants.CBC_WebSite:

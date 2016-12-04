@@ -224,14 +224,10 @@ class BooksChaptersVerses : Swift.Comparable {
     }
 }
 
-//struct Reference {
-//    var book:String
-//    var chapter:Int?
-//    var verse:Int?
-//}
-
 class ScriptureIndex {
-    var active = false
+//    var active = false
+    
+    var htmlString:String?
     
     var sorted = [String:Bool]()
     
@@ -247,10 +243,15 @@ class ScriptureIndex {
                     //Test  //Book  //Ch#/Verse#
     var byVerse = [String:[String:[Int:[Int:[MediaItem]]]]]()
 
-    var selectedTestament:String? = Constants.OT
+    var selectedTestament:String? = Constants.OT {
+        didSet {
+            htmlString = nil
+        }
+    }
     
     var selectedBook:String? {
         didSet {
+            htmlString = nil
             if selectedBook == nil {
                 selectedChapter = 0
                 selectedVerse = 0
@@ -260,13 +261,18 @@ class ScriptureIndex {
     
     var selectedChapter:Int = 0 {
         didSet {
+            htmlString = nil
             if selectedChapter == 0 {
                 selectedVerse = 0
             }
         }
     }
     
-    var selectedVerse:Int = 0
+    var selectedVerse:Int = 0 {
+        didSet {
+            htmlString = nil
+        }
+    }
 }
 
 struct Picker {
@@ -283,7 +289,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     
     var mediaListGroupSort:MediaListGroupSort? {
         didSet {
-            scriptureIndex?.active = true
+//            scriptureIndex?.active = true
         }
     }
     
@@ -293,7 +299,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         }
         set {
             mediaListGroupSort?.scriptureIndex = newValue
-            scriptureIndex?.active = true
+//            scriptureIndex?.active = true
         }
     }
     
@@ -1020,7 +1026,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             }
         }
 
-        print(mediaItem?.booksChaptersVerses?.data)
+        print(mediaItem?.booksChaptersVerses?.data as Any)
         
         if (splitViewController != nil) && (splitViewController!.viewControllers.count > 1) {
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
@@ -1138,12 +1144,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         controller.dismiss(animated: true, completion: nil)
     }
     
-    func setupMediaItemsScriptureBody(_ mediaItems:[MediaItem]?) -> String?
-    {
-        return stripHTML(setupMediaItemsScriptureBodyHTML(mediaItems,includeURLs: false,includeColumns: false))
-    }
-    
-    func setupMediaItemsScriptureBodyHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String?
+    func setupMediaItemsHTMLScripture(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String?
     {
         guard (mediaItems != nil) else {
             return nil
@@ -1193,7 +1194,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             bodyString = bodyString! + "Collection: \(tag)<br/><br/>"
         }
         
-        if globals.searchActive, globals.searchText != nil, globals.searchText != Constants.EMPTY_STRING, let searchText = globals.searchText {
+        if globals.searchActive, globals.searchText != Constants.EMPTY_STRING, let searchText = globals.searchText {
             bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
         }
         
@@ -1203,131 +1204,76 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         
         let books = bodyItems.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
         
-        if books.count > 0 {
-            for book in books {
+        for book in books {
+            if includeColumns {
+                bodyString  = bodyString! + "<tr>"
+                bodyString  = bodyString! + "<td valign=\"top\" colspan=\"6\">"
+            }
+            
+            bodyString = bodyString! + book
+            
+            if let mediaItems = bodyItems[book] {
+                var speakerCounts = [String:Int]()
+                
+                for mediaItem in mediaItems {
+                    if mediaItem.speaker != nil {
+                        if speakerCounts[mediaItem.speaker!] == nil {
+                            speakerCounts[mediaItem.speaker!] = 1
+                        } else {
+                            speakerCounts[mediaItem.speaker!]! += 1
+                        }
+                    }
+                }
+                
+                let speakerCount = speakerCounts.keys.count
+                
+                let speakers = speakerCounts.keys.map({ (string:String) -> String in
+                    return string
+                }) as [String]
+                
+                if speakerCount == 1{
+                    bodyString = bodyString! + " by \(speakers[0])"
+                }
+                
+                if includeColumns {
+                    bodyString  = bodyString! + "</td>"
+                    bodyString  = bodyString! + "</tr>"
+                } else {
+                    bodyString = bodyString! + "<br/>"
+                }
+                
+                for mediaItem in mediaItems {
+                    var order = ["scripture","title","date"]
+                    
+                    if speakerCount > 1 {
+                        order.append("speaker")
+                    }
+                    
+                    if let string = mediaItem.bodyHTML(order: order, includeURLs: includeURLs, includeColumns: includeColumns) {
+                        bodyString = bodyString! + string
+                    }
+                    
+                    if !includeColumns {
+                        bodyString = bodyString! + "<br/>"
+                    }
+                }
+                
                 if includeColumns {
                     bodyString  = bodyString! + "<tr>"
-                    bodyString  = bodyString! + "<td colspan=\"5\">"
+                    bodyString  = bodyString! + "<td valign=\"top\" colspan=\"6\">"
                 }
                 
-                bodyString = bodyString! + book
+                bodyString = bodyString! + "<br/>"
                 
-                if let mediaItems = bodyItems[book] {
-                    var speakerCounts = [String:Int]()
-                    
-                    for mediaItem in mediaItems {
-                        if mediaItem.speaker != nil {
-                            if speakerCounts[mediaItem.speaker!] == nil {
-                                speakerCounts[mediaItem.speaker!] = 1
-                            } else {
-                                speakerCounts[mediaItem.speaker!]! += 1
-                            }
-                        }
-                    }
-                    
-                    let speakerCount = speakerCounts.keys.count
-                    
-                    let speakers = speakerCounts.keys.map({ (string:String) -> String in
-                        return string
-                    }) as [String]
-                    
-                    if speakerCount == 1{
-                        bodyString = bodyString! + " by \(speakers[0])"
-                    }
-                    
-                    if includeColumns {
-                        bodyString  = bodyString! + "</td>"
-                        bodyString  = bodyString! + "</tr>"
-                    } else {
-                        bodyString = bodyString! + "<br/>"
-                    }
-                    
-                    for mediaItem in mediaItems {
-                        var order = ["scripture","title","date"]
-                        
-                        if speakerCount > 1 {
-                            order.append("speaker")
-                        }
-
-                        if let string = mediaItem.bodyHTML(order: order, includeURLs: includeURLs, includeColumns: includeColumns) {
-                            bodyString = bodyString! + string
-                        }
-                        
-//                        if includeColumns {
-//                            bodyString  = bodyString! + "<tr>"
-//                        }
-//                        
-//                        if includeColumns {
-//                            bodyString  = bodyString! + "<td>"
-//                            bodyString = bodyString! + mediaItem.scripture!
-//                            bodyString  = bodyString! + "</td>"
-//                            
-//                            bodyString  = bodyString! + "<td>"
-//                            bodyString  = bodyString! + mediaItem.formattedDateMonth!
-//                            bodyString  = bodyString! + "</td>"
-//                            
-//                            bodyString  = bodyString! + "<td align=\"right\">"
-//                            bodyString  = bodyString! + mediaItem.formattedDateDay! + ","
-//                            bodyString  = bodyString! + "</td>"
-//                            
-//                            bodyString  = bodyString! + "<td align=\"right\">"
-//                            bodyString  = bodyString! + mediaItem.formattedDateYear!
-//                            bodyString  = bodyString! + "</td>"
-//                        } else {
-//                            bodyString = bodyString! + mediaItem.scripture!
-//                            bodyString = bodyString! + Constants.SINGLE_SPACE + mediaItem.formattedDate!
-//                        }
-//                        
-//                        if let title = mediaItem.title {
-//                            if includeColumns {
-//                                bodyString  = bodyString! + "<td>"
-//                            } else {
-//                                bodyString = bodyString! + Constants.SINGLE_SPACE
-//                            }
-//                            
-//                            if includeURLs, let websiteURL = mediaItem.websiteURL?.absoluteString {
-//                                bodyString = bodyString! + "<a href=\"" + websiteURL + "\">\(title)</a>"
-//                            } else {
-//                                bodyString = bodyString! + title
-//                            }
-//                            
-//                            if includeColumns {
-//                                bodyString  = bodyString! + "</td>"
-//                            }
-//                            
-//                            if let speaker = mediaItem.speaker, speakerCount > 1 {
-//                                if includeColumns {
-//                                    bodyString  = bodyString! + "<td>"
-//                                }
-//
-//                                if includeColumns {
-//                                    bodyString = bodyString! + speaker
-//                                } else {
-//                                    bodyString = bodyString! + " by \(speaker)"
-//                                }
-//                                
-//                                if includeColumns {
-//                                    bodyString  = bodyString! + "</td>"
-//                                }
-//                            }
-//                        }
-
-                        if !includeColumns {
-                            bodyString = bodyString! + "<br/>"
-                        }
-                    }
-
-                    if includeColumns {
-                        bodyString  = bodyString! + "<tr>"
-                        bodyString  = bodyString! + "<td colspan=\"5\">"
-                        bodyString  = bodyString! + "<br/>"
-                        bodyString  = bodyString! + "</td>"
-                        bodyString  = bodyString! + "</tr>"
-                    } else {
-                        bodyString = bodyString! + "<br/>"
-                    }
+                if includeColumns {
+                    bodyString  = bodyString! + "</td>"
+                    bodyString  = bodyString! + "</tr>"
                 }
             }
+        }
+        
+        if includeColumns {
+            bodyString  = bodyString! + "</table>"
         }
         
         bodyString = bodyString! + "<br/>"
@@ -1337,19 +1283,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         return insertHead(bodyString,fontSize:Constants.FONT_SIZE)
     }
 
-//    func showSendMailErrorAlert() {
-//        let alert = UIAlertController(title: "Could Not Send Email",
-//                                      message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",
-//                                      preferredStyle: UIAlertControllerStyle.alert)
-//        
-//        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-//            
-//        })
-//        alert.addAction(action)
-//        
-//        self.present(alert, animated: true, completion: nil)
-//    }
-    
     func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
         DispatchQueue.main.async(execute: { () -> Void in
             self.dismiss(animated: true, completion: nil)
@@ -1369,103 +1302,15 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             switch strings[index] {
             case Constants.View_List:
                 process(viewController: self, work: { () -> (Any?) in
-                    return self.setupMediaItemsScriptureBodyHTML(self.mediaItems, includeURLs: true, includeColumns: true)
+                    if self.scriptureIndex?.htmlString == nil {
+                        self.scriptureIndex?.htmlString = self.setupMediaItemsHTMLScripture(self.mediaItems, includeURLs: true, includeColumns: true)
+                    }
+
+                    return self.scriptureIndex?.htmlString
                 }, completion: { (data:Any?) in
                     presentHTMLModal(viewController: self, htmlString: data as? String)
-                    
                 })
-
-//                DispatchQueue.main.async(execute: { () -> Void in
-//                    let alert = UIAlertController(title: "Format into columns?",
-//                                                  message: "", // Columns may not display correctly on a small screen.
-//                                                  preferredStyle: UIAlertControllerStyle.alert)
-//                    
-//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-//                        process(viewController: self, work: { () -> (Any?) in
-//                            return self.setupMediaItemsScriptureBodyHTML(self.mediaItems, includeURLs: true, includeColumns: true)
-//                        }, completion: { (data:Any?) in
-//                            presentHTMLModal(viewController: self, htmlString: data as? String)
-//                        
-//                        })
-//                    })
-//                    alert.addAction(yesAction)
-//                    
-//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-//                        process(viewController: self, work: { () -> (Any?) in
-//                            return self.setupMediaItemsScriptureBodyHTML(self.mediaItems, includeURLs: true, includeColumns: false)
-//                        }, completion: { (data:Any?) in
-//                            presentHTMLModal(viewController: self, htmlString: data as? String)
-//                            
-//                        })
-//                    })
-//                    alert.addAction(noAction)
-//                    
-//                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-//                        
-//                    })
-//                    alert.addAction(cancelAction)
-//                    
-//                    self.present(alert, animated: true, completion: nil)
-//                })
                 break
-                
-//            case Constants.Print_All:
-//                DispatchQueue.main.async(execute: { () -> Void in
-//                    self.dismiss(animated: true, completion: nil)
-//                    
-//                    let alert = UIAlertController(title: "Format into columns?",
-//                                                  message: "Columns may not display correctly on a small screen.",
-//                                                  preferredStyle: UIAlertControllerStyle.alert)
-//                    
-//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-//                        printMediaItems(viewController: self,mediaItems: globals.active?.list,stringFunction: self.setupMediaItemsScriptureBodyHTML,links: false,columns: true, barButton: self.navigationItem.rightBarButtonItem)
-//                    })
-//                    alert.addAction(yesAction)
-//                    
-//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-//                        printMediaItems(viewController: self,mediaItems: globals.active?.list,stringFunction: self.setupMediaItemsScriptureBodyHTML,links: false,columns: false, barButton: self.navigationItem.rightBarButtonItem)
-//                    })
-//                    alert.addAction(noAction)
-//                    
-//                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-//                        
-//                    })
-//                    alert.addAction(cancelAction)
-//                    
-//                    self.present(alert, animated: true, completion: nil)
-//                })
-//                break
-//                
-//            case Constants.Email_All:
-//                DispatchQueue.main.async(execute: { () -> Void in
-//                    self.dismiss(animated: true, completion: nil)
-//                    
-//                    let alert = UIAlertController(title: "Format into columns?",
-//                                                  message: "Columns may not display correctly on a small screen.",
-//                                                  preferredStyle: UIAlertControllerStyle.alert)
-//                    
-//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-//                        mailMediaItems(viewController: self,mediaItems: globals.active?.list, stringFunction: self.setupMediaItemsScriptureBodyHTML,links: true,columns: true,attachments: false)
-//                    })
-//                    alert.addAction(yesAction)
-//                    
-//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-//                        mailMediaItems(viewController: self,mediaItems: globals.active?.list, stringFunction: self.setupMediaItemsScriptureBodyHTML,links: true,columns: false,attachments: false)
-//                    })
-//                    alert.addAction(noAction)
-//                    
-//                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-//                        
-//                    })
-//                    alert.addAction(cancelAction)
-//                    
-//                    self.present(alert, animated: true, completion: nil)
-//                })
-//                break
-//                
-//            case Constants.Share_All:
-//                shareMediaItems(viewController: self, mediaItems: mediaItems, stringFunction: setupMediaItemsScriptureBody, barButton: navigationItem.rightBarButtonItem)
-//                break
                 
             default:
                 break
@@ -1525,16 +1370,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             var actionMenu = [String]()
             
             actionMenu.append(Constants.View_List)
-            
-//            if UIPrintInteractionController.isPrintingAvailable {
-//                actionMenu.append(Constants.Print_All)
-//            }
-//
-//            if MFMailComposeViewController.canSendMail() {
-//                actionMenu.append(Constants.Email_All)
-//            }
-//
-//            actionMenu.append(Constants.Share_All)
             
             popover.strings = actionMenu
             
@@ -1659,418 +1494,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
 
         return list
     }
-    
-//    func sortMediaItemsBook(_ mediaItems:[MediaItem]?) -> [MediaItem]?
-//    {
-//        var list:[MediaItem]?
-//        
-//        list = mediaItems?.sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
-//            let firstBooksChaptersVerses   = first.booksAndChaptersAndVerses()
-//            let secondBooksChaptersVerses  = second.booksAndChaptersAndVerses()
-//            
-//            let firstBooks = firstBooksChaptersVerses?.data?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
-//            let secondBooks = secondBooksChaptersVerses?.data?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
-//            
-////            if (firstBooks?.count > 1) || (secondBooks?.count > 1) {
-////                print("stop")
-////            }
-//            
-////            print("First Books: ",firstBooks)
-////            print("Second Books: ",secondBooks)
-//            
-//            switch (firstBooks!.count,secondBooks!.count) {
-//            case (0,0):
-//                // Should never happen - neither has a book in the Scripture reference.
-//                return false
-//                
-//            default:
-//                for secondBook in secondBooks! {
-////                    print("Second Book: ",secondBook)
-//                    for firstBook in firstBooks! {
-////                        print("First Book: ",firstBook)
-//                        if bookNumberInBible(firstBook) == bookNumberInBible(secondBook) {
-//                            let firstChaps = first.chapters(firstBook)
-//                            let secondChaps = second.chapters(secondBook)
-//                            
-//                            if (firstChaps == nil) && (secondChaps == nil) {
-//                                if firstBooks?.count == secondBooks?.count {
-//                                    if first.fullDate!.isEqualTo(second.fullDate!) {
-//                                        return first.service < second.service
-//                                    } else {
-//                                        return first.fullDate!.isOlderThan(second.fullDate!)
-//                                    }
-//                                } else {
-//                                    return firstBooks?.count < secondBooks?.count
-//                                }
-//                            }
-//                            if (firstChaps == nil) {
-//                                return true
-//                            }
-//                            if (secondChaps == nil) {
-//                                return false
-//                            }
-//                            
-//                            let firstChapters = firstBooksChaptersVerses?[firstBook]?.keys.sorted()
-//                            let secondChapters = secondBooksChaptersVerses?[secondBook]?.keys.sorted()
-//
-////                            print("First Chapters: ",firstChapters)
-////                            print("Second Chapters: ",secondChapters)
-//
-//                            if (firstChapters!.count > 0) && (secondChapters!.count > 0) {
-//                                for secondChapter in secondChapters! {
-////                                    print("Second Chapter: ",secondChapter)
-//                                    for firstChapter in firstChapters! {
-////                                        print("First Chapter: ",firstChapter)
-//                                        if firstChapter == secondChapter {
-//                                            let firstVerses = firstBooksChaptersVerses?[firstBook]?[firstChapter]?.sorted()
-//                                            let secondVerses = secondBooksChaptersVerses?[secondBook]?[secondChapter]?.sorted()
-//                                            
-////                                            print("First Verses: ",firstVerses)
-////                                            print("Second Verses: ",secondVerses)
-//                                            
-//                                            if (firstVerses!.count > 0) && (secondVerses!.count > 0) {
-//                                                for secondVerse in secondVerses! {
-////                                                    print("Second Verse: ",secondVerse)
-//                                                    for firstVerse in firstVerses! {
-////                                                        print("First Verse: ",firstVerse)
-//                                                        if firstVerse == secondVerse {
-//                                                            if firstVerses!.count == secondVerses!.count {
-//                                                                if first.fullDate!.isEqualTo(second.fullDate!) {
-//                                                                    return first.service < second.service
-//                                                                } else {
-//                                                                    return first.fullDate!.isOlderThan(second.fullDate!)
-//                                                                }
-//                                                            } else {
-//                                                                return firstVerses!.count < secondVerses!.count
-//                                                            }
-//                                                        } else {
-//                                                            return firstVerse < secondVerse
-//                                                        }
-//                                                    }
-//                                                }
-//                                                if firstVerses!.count == secondVerses!.count {
-//                                                    if first.fullDate!.isEqualTo(second.fullDate!) {
-//                                                        return first.service < second.service
-//                                                    } else {
-//                                                        return first.fullDate!.isOlderThan(second.fullDate!)
-//                                                    }
-//                                                } else {
-//                                                    return firstVerses!.count < secondVerses!.count
-//                                                }
-//                                            } else {
-//                                                switch (firstVerses!.count,secondVerses!.count) {
-//                                                case (0,0):
-//                                                    if firstChapters!.count == secondChapters!.count {
-//                                                        if first.fullDate!.isEqualTo(second.fullDate!) {
-//                                                            return first.service < second.service
-//                                                        } else {
-//                                                            return first.fullDate!.isOlderThan(second.fullDate!)
-//                                                        }
-//                                                    } else {
-//                                                        return firstChapters!.count < secondChapters!.count
-//                                                    }
-//                                                    
-//                                                default:
-//                                                    if (firstVerses!.count == 0) {
-//                                                        return true
-//                                                    }
-//                                                    if (secondVerses!.count == 0) {
-//                                                        return false
-//                                                    }
-//                                                }
-//                                            }
-//                                        } else {
-//                                            return firstChapter < secondChapter
-//                                        }
-//                                    }
-//                                }
-//                                if firstChapters!.count == secondChapters!.count {
-//                                    if first.fullDate!.isEqualTo(second.fullDate!) {
-//                                        return first.service < second.service
-//                                    } else {
-//                                        return first.fullDate!.isOlderThan(second.fullDate!)
-//                                    }
-//                                } else {
-//                                    return firstChapters!.count < secondChapters!.count
-//                                }
-//                            } else {
-//                                switch (firstChapters!.count,secondChapters!.count) {
-//                                case (0,0):
-//                                    if firstBooks!.count == secondBooks!.count {
-//                                        if first.fullDate!.isEqualTo(second.fullDate!) {
-//                                            return first.service < second.service
-//                                        } else {
-//                                            return first.fullDate!.isOlderThan(second.fullDate!)
-//                                        }
-//                                    } else {
-//                                        return firstBooks!.count < secondBooks!.count
-//                                    }
-//                                    
-//                                default:
-//                                    if firstChapters!.count == secondChapters!.count {
-//                                        if first.fullDate!.isEqualTo(second.fullDate!) {
-//                                            return first.service < second.service
-//                                        } else {
-//                                            return first.fullDate!.isOlderThan(second.fullDate!)
-//                                        }
-//                                    } else {
-//                                        return firstChapters!.count < secondChapters!.count
-//                                    }
-//                                }
-//                            }
-//                        } else {
-//                            return bookNumberInBible(firstBook) < bookNumberInBible(secondBook)
-//                        }
-//                    }
-//                }
-//                if firstBooks!.count == secondBooks!.count {
-//                    if first.fullDate!.isEqualTo(second.fullDate!) {
-//                        return first.service < second.service
-//                    } else {
-//                        return first.fullDate!.isOlderThan(second.fullDate!)
-//                    }
-//                } else {
-//                    return firstBooks!.count < secondBooks!.count
-//                }
-//            }
-//        })
-//        
-////        for item in list! {
-////            print(item.scripture!,item.booksChaptersVerses)
-////        }
-//        return list
-//    }
-//    
-//    func sortMediaItemsChapter(_ mediaItems:[MediaItem]?,book:String) -> [MediaItem]?
-//    {
-//        var list:[MediaItem]?
-//        
-//        list = mediaItems?.sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
-//            let firstBooksChaptersVerses   = first.booksAndChaptersAndVerses()
-//            let secondBooksChaptersVerses  = second.booksAndChaptersAndVerses()
-//            
-//            let firstBooks = firstBooksChaptersVerses?.data?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
-//            let secondBooks = secondBooksChaptersVerses?.data?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
-//            
-////            if (firstBooks?.count > 1) || (secondBooks?.count > 1) {
-////                print("stop")
-////            }
-//            
-//            let firstChapters = firstBooksChaptersVerses?[book]?.keys.sorted()
-//            let secondChapters = secondBooksChaptersVerses?[book]?.keys.sorted()
-//            
-//            let firstChaps = first.chapters(book)
-//            let secondChaps = second.chapters(book)
-//            
-//            if (firstChaps == nil) && (secondChaps == nil) {
-//                if firstBooks?.count == secondBooks?.count {
-//                    if first.fullDate!.isEqualTo(second.fullDate!) {
-//                        return first.service < second.service
-//                    } else {
-//                        return first.fullDate!.isOlderThan(second.fullDate!)
-//                    }
-//                } else {
-//                    return firstBooks?.count < secondBooks?.count
-//                }
-//            }
-//            if (firstChaps == nil) {
-//                return true
-//            }
-//            if (secondChaps == nil) {
-//                return false
-//            }
-//            
-////            print("First Chapters: ",firstChapters)
-////            print("Second Chapters: ",secondChapters)
-//            
-//            switch (firstChapters!.count,secondChapters!.count) {
-//            case (0,0):
-//                if firstBooks!.count == secondBooks!.count {
-//                    return first.fullDate!.isOlderThan(second.fullDate!)
-//                } else {
-//                    return firstBooks!.count < secondBooks!.count
-//                }
-//                
-//            default:
-//                if (firstChapters!.count > 0) && (secondChapters!.count > 0) {
-//                    for secondChapter in secondChapters! {
-//                        for firstChapter in firstChapters! {
-//                            if firstChapter == secondChapter {
-//                                let firstVerses = firstBooksChaptersVerses?[book]?[firstChapter]?.sorted()
-//                                let secondVerses = secondBooksChaptersVerses?[book]?[secondChapter]?.sorted()
-//                                
-//                                //                            print("First Verses: ",firstVerses)
-//                                //                            print("Second Verses: ",secondVerses)
-//                                
-//                                if (firstVerses!.count > 0) && (secondVerses!.count > 0) {
-//                                    for secondVerse in secondVerses! {
-//                                        for firstVerse in firstVerses! {
-//                                            if firstVerse == secondVerse {
-//                                                if firstVerses!.count == secondVerses!.count {
-//                                                    if first.fullDate!.isEqualTo(second.fullDate!) {
-//                                                        return first.service < second.service
-//                                                    } else {
-//                                                        return first.fullDate!.isOlderThan(second.fullDate!)
-//                                                    }
-//                                                } else {
-//                                                    return firstVerses!.count < secondVerses!.count
-//                                                }
-//                                            } else {
-//                                                return firstVerse < secondVerse
-//                                            }
-//                                        }
-//                                    }
-//                                    if firstVerses!.count == secondVerses!.count {
-//                                        return first.fullDate!.isOlderThan(second.fullDate!)
-//                                    } else {
-//                                        return firstVerses!.count < secondVerses!.count
-//                                    }
-//                                } else {
-//                                    switch (firstVerses!.count,secondVerses!.count) {
-//                                    case (0,0):
-//                                        if firstChapters!.count == secondChapters!.count {
-//                                            if first.fullDate!.isEqualTo(second.fullDate!) {
-//                                                return first.service < second.service
-//                                            } else {
-//                                                return first.fullDate!.isOlderThan(second.fullDate!)
-//                                            }
-//                                        } else {
-//                                            return firstChapters!.count < secondChapters!.count
-//                                        }
-//                                        
-//                                    default:
-//                                        if (firstVerses!.count == 0) {
-//                                            return true
-//                                        }
-//                                        if (secondVerses!.count == 0) {
-//                                            return false
-//                                        }
-//                                    }
-//                                }
-//                            } else {
-//                                return firstChapter < secondChapter
-//                            }
-//                        }
-//                    }
-//                } else {
-//                    if firstChapters!.count == secondChapters!.count {
-//                        if first.fullDate!.isEqualTo(second.fullDate!) {
-//                            return first.service < second.service
-//                        } else {
-//                            return first.fullDate!.isOlderThan(second.fullDate!)
-//                        }
-//                    } else {
-//                        return firstChapters!.count < secondChapters!.count
-//                    }
-//                }
-//                if firstChapters!.count == secondChapters!.count {
-//                    if first.fullDate!.isEqualTo(second.fullDate!) {
-//                        return first.service < second.service
-//                    } else {
-//                        return first.fullDate!.isOlderThan(second.fullDate!)
-//                    }
-//                } else {
-//                    return firstChapters!.count < secondChapters!.count
-//                }
-//            }
-//        })
-//        
-//        return list
-//    }
-//    
-//    func sortMediaItemsVerse(_ mediaItems:[MediaItem]?,book:String,chapter:Int) -> [MediaItem]?
-//    {
-//        var list:[MediaItem]?
-//        
-//        list = mediaItems?.sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
-//            let firstBooksChaptersVerses   = first.booksAndChaptersAndVerses()
-//            let secondBooksChaptersVerses  = second.booksAndChaptersAndVerses()
-//            
-//            let firstBooks = firstBooksChaptersVerses?.data?.keys.sorted()
-//            let secondBooks = secondBooksChaptersVerses?.data?.keys.sorted()
-//            
-//            let firstChapters = firstBooksChaptersVerses?[book]?.keys.sorted()
-//            let secondChapters = secondBooksChaptersVerses?[book]?.keys.sorted()
-//            
-//            let firstVerses = firstBooksChaptersVerses?[book]?[chapter]?.sorted()
-//            let secondVerses = secondBooksChaptersVerses?[book]?[chapter]?.sorted()
-//            
-//            let firstChaps = first.chapters(book)
-//            let secondChaps = second.chapters(book)
-//            
-//            if (firstChaps == nil) && (secondChaps == nil) {
-//                if firstBooks?.count == secondBooks?.count {
-//                    if first.fullDate!.isEqualTo(second.fullDate!) {
-//                        return first.service < second.service
-//                    } else {
-//                        return first.fullDate!.isOlderThan(second.fullDate!)
-//                    }
-//                } else {
-//                    return firstBooks?.count < secondBooks?.count
-//                }
-//            }
-//            if (firstChaps == nil) {
-//                return true
-//            }
-//            if (secondChaps == nil) {
-//                return false
-//            }
-//
-//            if firstChapters?.first != secondChapters?.first {
-//                return firstChapters?.first < secondChapters?.first
-//            }
-//            
-//            switch (firstVerses!.count,secondVerses!.count) {
-//            case (0,0):
-//                if firstChapters!.count == secondChapters!.count {
-//                    return first.fullDate!.isOlderThan(second.fullDate!)
-//                } else {
-//                    return firstChapters!.count < secondChapters!.count
-//                }
-//                
-//            default:
-//                if (firstVerses!.count > 0) && (secondVerses!.count > 0) {
-//                    for secondVerse in secondVerses! {
-//                        for firstVerse in firstVerses! {
-//                            if firstVerse == secondVerse {
-//                                if firstVerses!.count == secondVerses!.count {
-//                                    if first.fullDate!.isEqualTo(second.fullDate!) {
-//                                        return first.service < second.service
-//                                    } else {
-//                                        return first.fullDate!.isOlderThan(second.fullDate!)
-//                                    }
-//                                } else {
-//                                    return firstVerses!.count < secondVerses!.count
-//                                }
-//                            } else {
-//                                return firstVerse < secondVerse
-//                            }
-//                        }
-//                    }
-//                    if firstVerses!.count == secondVerses!.count {
-//                        if first.fullDate!.isEqualTo(second.fullDate!) {
-//                            return first.service < second.service
-//                        } else {
-//                            return first.fullDate!.isOlderThan(second.fullDate!)
-//                        }
-//                    } else {
-//                        return firstVerses!.count < secondVerses!.count
-//                    }
-//                } else {
-//                    if (firstVerses!.count == 0) {
-//                        return true
-//                    }
-//                    if (secondVerses!.count == 0) {
-//                        return false
-//                    }
-//                    
-//                    return firstVerses!.count < secondVerses!.count
-//                }
-//            }
-//        })
-//        
-//        return list
-//    }
     
     func updateText()
     {
@@ -2232,10 +1655,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             if self.list != nil {
                 self.finished += Float(self.list!.count)
                 for mediaItem in self.list! {
-//                    if (mediaItem.scripture?.rangeOfString(" and ") != nil) {
-//                                            print(mediaItem.scripture!)
-//                        print("STOP")
-//                    }
                     let booksChaptersVerses = mediaItem.booksAndChaptersAndVerses()
                     if let books = booksChaptersVerses?.data?.keys {
                         self.finished += Float(mediaItem.books!.count)
@@ -2263,12 +1682,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                             if let chapters = booksChaptersVerses?[book]?.keys {
                                 self.finished += Float(chapters.count)
                                 for chapter in chapters {
-//                                    if (books.count > 1) {
-//                                        print("\(mediaItem.scripture!)")
-//                                        print("\(book)")
-//                                        print("\(mediaItem.chapters(book))")
-//                                        print("STOP")
-//                                    }
                                     if self.scriptureIndex?.byChapter[testament(book)] == nil {
                                         self.scriptureIndex?.byChapter[testament(book)] = [String:[Int:[MediaItem]]]()
                                     }
@@ -2286,12 +1699,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                                     if let verses = booksChaptersVerses?[book]?[chapter] {
                                         self.finished += Float(verses.count)
                                         for verse in verses {
-//                                            if (books.count > 1) {
-//                                                print("\(mediaItem.scripture!)")
-//                                                print("\(book)")
-//                                                print("\(mediaItem.chapters(book))")
-//                                                print("STOP")
-//                                            }
                                             if self.scriptureIndex?.byVerse[testament(book)] == nil {
                                                 self.scriptureIndex?.byVerse[testament(book)] = [String:[Int:[Int:[MediaItem]]]]()
                                             }
@@ -2325,54 +1732,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                 }
             }
             
-//                print(self.scriptureIndex?.byTestament,"\n\n")
-//                print(self.scriptureIndex?.byBook,"\n\n")
-//                print(self.scriptureIndex?.byChapter,"\n\n")
-//                print(self.scriptureIndex?.byVerse,"\n\n")
-            
-                // Sort
-//                if self.scriptureIndex != nil {
-//                    self.finished += Float(self.scriptureIndex!.byTestament.keys.count)
-//                    
-//                    for testament in self.scriptureIndex!.byTestament.keys {
-//                        self.scriptureIndex?.byTestament[testament] = self.sortMediaItemsBook(self.scriptureIndex?.byTestament[testament])
-//                        
-//                        if self.scriptureIndex?.byBook[testament] != nil {
-//                            self.finished += Float(self.scriptureIndex!.byBook[testament]!.keys.count)
-//                            
-//                            for book in self.scriptureIndex!.byBook[testament]!.keys {
-//                                self.scriptureIndex?.byBook[testament]![book] = self.sortMediaItemsChapter(self.scriptureIndex?.byBook[testament]![book],book: book)
-//                                
-//                                if self.scriptureIndex?.byChapter[testament]?[book] != nil {
-//                                    self.finished += Float(self.scriptureIndex!.byChapter[testament]![book]!.keys.count)
-//                                    
-//                                    for chapter in self.scriptureIndex!.byChapter[testament]![book]!.keys {
-//                                        self.scriptureIndex?.byChapter[testament]![book]![chapter] = self.sortMediaItemsVerse(self.scriptureIndex?.byChapter[testament]![book]![chapter],book: book,chapter: chapter)
-//                                        
-//                                            if self.scriptureIndex?.byVerse[testament]?[book]?[chapter] != nil {
-//                                                self.finished += Float(self.scriptureIndex!.byVerse[testament]![book]![chapter]!.keys.count)
-//
-//                                                for verse in self.scriptureIndex!.byVerse[testament]![book]![chapter]!.keys {
-//                                                    self.scriptureIndex?.byVerse[testament]?[book]?[chapter]?[verse] = self.sortMediaItemsVerse(self.scriptureIndex?.byVerse[testament]?[book]?[chapter]?[verse],book: book,chapter: chapter)
-//                                                    
-//                                                    self.progress += 1
-//                                                }
-//                                            }
-//                                        self.progress += 1
-//                                    }
-//                                }
-//                                self.progress += 1
-//                            }
-//                        }
-//                        self.progress += 1
-//                    }
-//                }
-
-//                print(self.scriptureIndex?.byTestament,"\n\n")
-//                print(self.scriptureIndex?.byBook,"\n\n")
-//                print(self.scriptureIndex?.byChapter,"\n\n")
-//                print(self.scriptureIndex?.byVerse,"\n\n")
-
             self.updateSearchResults()
         })
     }

@@ -88,23 +88,6 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
     return files.count > 0 ? files : nil
 }
 
-//    func removeTempFiles()
-//    {
-//        // Clean up temp directory for cancelled downloads
-//        let fileManager = NSFileManager.defaultManager()
-//        let path = NSTemporaryDirectory()
-//        do {
-//            let array = try fileManager.contentsOfDirectoryAtPath(path)
-//
-//            for string in array {
-//                print("Deleting: \(string)")
-//                try fileManager.removeItemAtPath(path + string)
-//            }
-//        } catch _ {
-//            print("failed to remove temp file")
-//        }
-//    }
-
 //func removeTempFiles()
 //{
 //    // Clean up temp directory for cancelled downloads
@@ -388,36 +371,6 @@ func stringWithoutPrefixes(_ fromString:String?) -> String?
     return sortString
 }
 
-//func sortMediaItems(_ mediaItems:[MediaItem]?, sorting:String?, grouping:String?) -> [MediaItem]?
-//{
-//    var result:[MediaItem]?
-//    
-//    switch grouping! {
-//    case Grouping.YEAR:
-//        result = sortMediaItemsByYear(mediaItems,sorting: sorting)
-//        break
-//        
-//    case Grouping.TITLE:
-//        result = sortMediaItemsBySeries(mediaItems,sorting: sorting)
-//        break
-//        
-//    case Grouping.BOOK:
-//        result = sortMediaItemsByBook(mediaItems,sorting: sorting)
-//        break
-//        
-//    case Grouping.SPEAKER:
-//        result = sortMediaItemsBySpeaker(mediaItems,sorting: sorting)
-//        break
-//        
-//    default:
-//        result = nil
-//        break
-//    }
-//    
-//    return result
-//}
-
-
 func mediaItemSections(_ mediaItems:[MediaItem]?,sorting:String?,grouping:String?) -> [String]?
 {
     var strings:[String]?
@@ -697,16 +650,16 @@ func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
         switch testament(book!) {
         case Constants.Old_Testament:
             let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!)
-            print(Constants.OLD_TESTAMENT_BOOKS.index(of: book!),Constants.OLD_TESTAMENT_VERSES.count,Constants.OLD_TESTAMENT_VERSES[index!].count)
+            print(Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!,Constants.OLD_TESTAMENT_VERSES.count,Constants.OLD_TESTAMENT_VERSES[index!].count)
             break
         case Constants.New_Testament:
             let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!)
-            print(Constants.NEW_TESTAMENT_BOOKS.index(of: book!),Constants.NEW_TESTAMENT_VERSES.count,Constants.NEW_TESTAMENT_VERSES[index!].count)
+            print(Constants.NEW_TESTAMENT_BOOKS.index(of: book!)!,Constants.NEW_TESTAMENT_VERSES.count,Constants.NEW_TESTAMENT_VERSES[index!].count)
             break
         default:
             break
         }
-        print(book,index,chapter)
+        print(book!,index,chapter)
     }
     
     return verses.count > 0 ? verses : nil
@@ -820,7 +773,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 chaptersAndVerses[currentChapter] = versesForBookChapter(book,currentChapter)
                                 
                                 if chaptersAndVerses[currentChapter] == nil {
-                                    print(book,reference)
+                                    print(book as Any,reference as Any)
                                 }
                             }
                         }
@@ -1319,7 +1272,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                         chaptersAndVerses[chapter] = versesForBookChapter(book,chapter)
                         
                         if chaptersAndVerses[chapter] == nil {
-                            print(book,reference)
+                            print(book as Any,reference as Any)
                         }
                     }
                 }
@@ -1327,7 +1280,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                 chaptersAndVerses[startChapter] = versesForBookChapter(book,startChapter)
                 
                 if chaptersAndVerses[startChapter] == nil {
-                    print(book,reference)
+                    print(book as Any,reference as Any)
                 }
             }
             startChapter = 0
@@ -1351,11 +1304,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
 //        print(book,reference,string,tokens)
         return chaptersAndVersesForBook(book)
     }
-
-//    if (book == "1 John") { //  && (reference == " - Revelation")
-//        print(book,reference,string,tokens)
-//        print(chaptersAndVerses)
-//    }
 
 //    print(chaptersAndVerses)
 
@@ -1501,12 +1449,6 @@ func chaptersFromScripture(_ scripture:String?) -> [Int]?
             }
         }
     }
-    
-    //    if (colonCount > 1) || (chapters.count > 1) {
-    //        print("\(scripture)")
-    //        print("\(chapters)")
-    ////        print("ERROR")
-    //    }
     
     //    print("\(scripture)")
     //    print("\(chapters)")
@@ -2069,78 +2011,6 @@ func sortMediaItemsBySpeaker(_ mediaItems:[MediaItem]?,sorting: String?) -> [Med
     }
 }
 
-//func sortMediaItemsByBook(_ mediaItems:[MediaItem]?, sorting:String?) -> [MediaItem]?
-//{
-//    return mediaItems?.sorted() {
-//        let firstBookSections = $0.bookSections
-//        let secondBookSections = $1.bookSections
-//        
-//        var result = false
-//        
-//        for firstBookSection in firstBookSections {
-//            for secondBookSection in secondBookSections {
-//                if bookNumberInBible(firstBookSection) == bookNumberInBible(secondBookSection) {
-//                    result = firstBookSection < secondBookSection
-//                } else {
-//                    result = bookNumberInBible(firstBookSection) < bookNumberInBible(secondBookSection)
-//                }
-//            }
-//        }
-//        
-//        return result
-//        
-////        let first = bookNumberInBible($0.book)
-////        let second = bookNumberInBible($1.book)
-////        
-////        var result = false
-////        
-////        if (first != nil) && (second != nil) {
-////            if (first != second) {
-////                result = first < second
-////            } else {
-////                result = compareMediaItemDates(first: $0,second: $1, sorting: sorting)
-////            }
-////        } else
-////            if (first != nil) && (second == nil) {
-////                result = true
-////            } else
-////                if (first == nil) && (second != nil) {
-////                    result = false
-////                } else
-////                    if (first == nil) && (second == nil) {
-////                        switch ($0.bookSections.count,$1.bookSections.count) {
-////                        case (0,0):
-////                            // Should NEVER happen
-////                            result = false
-////                            break
-////                            
-////                        case (1,1):
-////                            if ($0.bookSections.first == $1.bookSections.first) {
-////                                result = compareMediaItemDates(first: $0,second: $1, sorting: sorting)
-////                            } else {
-////                                result = $0.bookSections.first < $1.bookSections.first
-////                            }
-////                            break
-////                        
-////                        default:
-////                            for firstBookSection in $0.bookSections {
-////                                for secondBookSection in $1.bookSections {
-////                                    if (firstBookSection == secondBookSection) {
-////                                        result = compareMediaItemDates(first: $0,second: $1, sorting: sorting)
-////                                    } else {
-////                                        result = bookNumberInBible(firstBookSection) < bookNumberInBible(secondBookSection)
-////                                    }
-////                                }
-////                            }
-////                            break
-////                        }
-////        }
-////        
-////        return result
-//    }
-//}
-
-
 func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
 {
     var counter = 1
@@ -2277,21 +2147,6 @@ func testMediaItemsForSeries()
     print("Testing for mediaItems with \"(Part \" in the title but no series - end")
 }
 
-//func testMediaItemsBooksAndSeries()
-//{
-//    print("Testing for mediaItem series and book the same - start")
-//
-//    for mediaItem in globals.mediaRepository.list! {
-//        if (mediaItem.hasMultipleParts) && (mediaItem.hasBook) {
-//            if (mediaItem.multiPartName == mediaItem.book) {
-//                print("Multiple Part Name and Book the same in: \(mediaItem.title!) Multiple Part Name:\(mediaItem.multiPartName!) Book:\(mediaItem.book!)")
-//            }
-//        }
-//    }
-//
-//    print("Testing for mediaItem series and book the same - end")
-//}
-
 func tagsSetFromTagsString(_ tagsString:String?) -> Set<String>?
 {
     var tags = tagsString
@@ -2404,7 +2259,7 @@ func mailMediaItem(viewController:UIViewController, mediaItem:MediaItem?,stringF
     }
 }
 
-func presentHTMLModal(viewController:UIViewController, htmlString:String?)
+func presentHTMLModal(viewController:UIViewController, htmlString: String?)
 {
     guard (htmlString != nil) else {
         return
@@ -2522,12 +2377,8 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
     }
 }
 
-func mailHTML(viewController:UIViewController,dismiss:Bool,to: [String],subject: String, htmlString:String)
+func mailHTML(viewController:UIViewController,to: [String],subject: String, htmlString:String)
 {
-    if dismiss {
-        viewController.dismiss(animated: true, completion: nil)
-    }
-    
     let mailComposeViewController = MFMailComposeViewController()
     mailComposeViewController.mailComposeDelegate = viewController as? MFMailComposeViewControllerDelegate // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
     
@@ -2545,7 +2396,7 @@ func mailHTML(viewController:UIViewController,dismiss:Bool,to: [String],subject:
     }
 }
 
-func printHTML(viewController:UIViewController,dismiss:Bool,htmlString:String?)
+func printHTML(viewController:UIViewController,htmlString:String?)
 {
     guard UIPrintInteractionController.isPrintingAvailable && (htmlString != nil) else {
         return
@@ -2575,12 +2426,6 @@ func printHTML(viewController:UIViewController,dismiss:Bool,htmlString:String?)
         })
     }
 
-    if dismiss {
-        DispatchQueue.main.async(execute: { () -> Void in
-            viewController.dismiss(animated: true, completion: nil)
-        })
-    }
-    
     let alert = UIAlertController(title: "Page Orientation?",
                                   message: "",
                                   preferredStyle: UIAlertControllerStyle.alert)
@@ -2664,9 +2509,9 @@ func printMediaItem(viewController:UIViewController, mediaItem:MediaItem?,barBut
     })
 }
 
-func printMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?,Bool,Bool)->String?)?,links:Bool,columns:Bool,barButton:UIBarButtonItem?)
+func printMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?,Bool,Bool)->String?)?,links:Bool,columns:Bool)
 {
-    guard UIPrintInteractionController.isPrintingAvailable && (mediaItems != nil) && (stringFunction != nil) && (barButton != nil) else {
+    guard UIPrintInteractionController.isPrintingAvailable && (mediaItems != nil) && (stringFunction != nil) else {
         return
     }
     
@@ -2695,7 +2540,7 @@ func printMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,str
 
                 pic.printFormatter = formatter
                 
-                pic.present(from: barButton!, animated: true, completionHandler: nil)
+                pic.present(from: viewController.navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
             }
         })
     }
@@ -2741,7 +2586,9 @@ func showSendMailErrorAlert(viewController:UIViewController)
     })
     alert.addAction(action)
     
-    viewController.present(alert, animated: true, completion: nil)
+    DispatchQueue.main.async(execute: { () -> Void in
+        viewController.present(alert, animated: true, completion: nil)
+    })
 }
 
 
@@ -2754,31 +2601,31 @@ func mailMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stri
     
     process(viewController: viewController, work: {
         if let text = stringFunction?(mediaItems,links,columns) {
-            var itemsToMail:[Any] = [ text ]
+//            var itemsToMail:[Any] = [ text ]
 
             //If we ever want to attach slides and transcripts
-            if mediaItems?.count == 1 {
-                if attachments, let mediaItem = mediaItems?[0] {
-                    if let notesURL = mediaItem.notesURL {
-                        do {
-                            let notes = try Data(contentsOf: notesURL)
-                            itemsToMail.append(notes)
-                        } catch let error as NSError {
-                            NSLog(error.localizedDescription)
-                        }
-                    }
-                    if let slidesURL = mediaItem.slidesURL {
-                        do {
-                            let slides = try Data(contentsOf: slidesURL)
-                            itemsToMail.append(slides)
-                        } catch let error as NSError {
-                            NSLog(error.localizedDescription)
-                        }
-                    }
-                }
-            }
+//            if mediaItems?.count == 1 {
+//                if attachments, let mediaItem = mediaItems?[0] {
+//                    if let notesURL = mediaItem.notesURL {
+//                        do {
+//                            let notes = try Data(contentsOf: notesURL)
+//                            itemsToMail.append(notes)
+//                        } catch let error as NSError {
+//                            NSLog(error.localizedDescription)
+//                        }
+//                    }
+//                    if let slidesURL = mediaItem.slidesURL {
+//                        do {
+//                            let slides = try Data(contentsOf: slidesURL)
+//                            itemsToMail.append(slides)
+//                        } catch let error as NSError {
+//                            NSLog(error.localizedDescription)
+//                        }
+//                    }
+//                }
+//            }
             
-            return itemsToMail
+            return [text]
         }
         
         return nil
@@ -2793,35 +2640,31 @@ func mailMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stri
             mailComposeViewController.setMessageBody(itemsToMail[0] as! String, isHTML: true)
 
             //If we ever want to attach slides and transcripts
-            if attachments, mediaItems?.count == 1, itemsToMail.count > 1, let mediaItem = mediaItems?[0], let title = mediaItem.title {
-                if mediaItem.hasSlides && mediaItem.hasNotes {
-                    mailComposeViewController.addAttachmentData(itemsToMail[1] as! Data, mimeType: "application/pdf", fileName: title + " Slides")
-                    mailComposeViewController.addAttachmentData(itemsToMail[2] as! Data, mimeType: "application/pdf", fileName: title + " Transcript")
-                }
-                if !mediaItem.hasSlides && mediaItem.hasNotes {
-                    mailComposeViewController.addAttachmentData(itemsToMail[1] as! Data, mimeType: "application/pdf", fileName: title + " Transcript")
-                }
-                if mediaItem.hasSlides && !mediaItem.hasNotes {
-                    mailComposeViewController.addAttachmentData(itemsToMail[1] as! Data, mimeType: "application/pdf", fileName: title + " Slides")
-                }
-            }
+//            if attachments, mediaItems?.count == 1, itemsToMail.count > 1, let mediaItem = mediaItems?[0], let title = mediaItem.title {
+//                if mediaItem.hasSlides && mediaItem.hasNotes {
+//                    mailComposeViewController.addAttachmentData(itemsToMail[1] as! Data, mimeType: "application/pdf", fileName: title + " Slides")
+//                    mailComposeViewController.addAttachmentData(itemsToMail[2] as! Data, mimeType: "application/pdf", fileName: title + " Transcript")
+//                }
+//                if !mediaItem.hasSlides && mediaItem.hasNotes {
+//                    mailComposeViewController.addAttachmentData(itemsToMail[1] as! Data, mimeType: "application/pdf", fileName: title + " Transcript")
+//                }
+//                if mediaItem.hasSlides && !mediaItem.hasNotes {
+//                    mailComposeViewController.addAttachmentData(itemsToMail[1] as! Data, mimeType: "application/pdf", fileName: title + " Slides")
+//                }
+//            }
             
             viewController.present(mailComposeViewController, animated: true, completion: nil)
         }
     })
 }
 
-func shareHTML(viewController:UIViewController,dismiss:Bool,htmlString:String?)
+func shareHTML(viewController:UIViewController,htmlString:String?)
 {
     guard htmlString != nil else {
         return
     }
-    
-    if dismiss {
-        viewController.dismiss(animated: true, completion: nil)
-    }
-    
-    let activityItems = [ htmlString ]
+
+    let activityItems = [htmlString]
     
     let activityViewController = UIActivityViewController(activityItems:activityItems, applicationActivities: nil)
     
@@ -2831,124 +2674,26 @@ func shareHTML(viewController:UIViewController,dismiss:Bool,htmlString:String?)
     
     activityViewController.excludedActivityTypes = [ .addToReadingList ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
     
+    // present the view controller
     DispatchQueue.main.async(execute: { () -> Void in
-        // present the view controller
         viewController.present(activityViewController, animated: true, completion: nil)
     })
 }
 
-func shareMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?)->String?)?,barButton:UIBarButtonItem?)
+func shareMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?)->String?)?)
 {
-    guard (mediaItems != nil) && (stringFunction != nil) && (barButton != nil) else {
+    guard (mediaItems != nil) && (stringFunction != nil) else {
         return
     }
 
     process(viewController: viewController, work: {
-//        if let text = stringFunction?(mediaItems) {
-//            var itemsToShare:[Any] = [ text ]
-//            
-//            if mediaItems?.count == 1 {
-//                if let mediaItem = mediaItems?[0] {
-//                    if let notesURL = mediaItem.notesURL {
-//                        do {
-//                            let notes = try Data(contentsOf: notesURL)
-//                            itemsToShare.append(notes)
-//                        } catch let error as NSError {
-//                            NSLog(error.localizedDescription)
-//                        }
-//                    }
-//
-//                    if let slidesURL = mediaItem.slidesURL {
-//                        do {
-//                            let slides = try Data(contentsOf: slidesURL)
-//                            itemsToShare.append(slides)
-//                        } catch let error as NSError {
-//                            NSLog(error.localizedDescription)
-//                        }
-//                    }
-//                    
-//                    itemsToShare.append(mediaItem.websiteURL as Any)
-//                }
-//            }
-//            
-//            return itemsToShare
-//        }
-//
-//        return nil
-        
-        if let string = stringFunction?(mediaItems) {
-            return [string]
-        } else {
-            return nil
-        }
+        return stringFunction?(mediaItems)
     }, completion: { (data:Any?) in
-        if let activityItems = data as? [Any] {
-            let activityViewController = UIActivityViewController(activityItems:activityItems, applicationActivities: nil)
-            
-            activityViewController.popoverPresentationController?.barButtonItem = barButton
-            
-            // exclude some activity types from the list (optional)
-            
-            if activityItems.count > 2 {
-                activityViewController.excludedActivityTypes = [ .addToReadingList, .print ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
-            } else {
-                activityViewController.excludedActivityTypes = [ .addToReadingList ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
-            }
-            
-            viewController.present(activityViewController, animated: true, completion: nil)
-        }
+        shareHTML(viewController: viewController, htmlString: data as? String)
     })
 }
 
-//func shareMediaItem(viewController:UIViewController?,mediaItem:MediaItem?,stringFunction:((MediaItem?)->String?)?,barButton:UIBarButtonItem?)
-//{
-//    guard (viewController != nil) && (mediaItem != nil) && (stringFunction != nil) && (barButton != nil) else {
-//        return
-//    }
-//    
-//    // text to share
-//    let text = stringFunction?(mediaItem)
-//    
-//    // set up activity view controller
-//    let textToShare = [ text ]
-//    let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
-//    
-//    activityViewController.popoverPresentationController?.barButtonItem = barButton
-//    
-//    // exclude some activity types from the list (optional)
-//    activityViewController.excludedActivityTypes = [  ]
-//    
-//    DispatchQueue.main.async(execute: { () -> Void in
-//        // present the view controller
-//        viewController?.present(activityViewController, animated: true, completion: nil)
-//    })
-//}
-
-//func setupBody(_ mediaItem:MediaItem?) -> String? {
-//    var bodyString:String?
-//    
-//    if (mediaItem != nil) {
-//        bodyString = Constants.QUOTE + mediaItem!.title! + Constants.QUOTE + " by " + mediaItem!.speaker! + " from " + Constants.CBC.LONG
-//        
-//        bodyString = bodyString! + "\n\nAudio: " + mediaItem!.audioURL!.absoluteString
-//        
-//        if mediaItem!.hasVideo {
-//            bodyString = bodyString! + "\n\nVideo " + mediaItem!.externalVideo!
-//        }
-//        
-//        if mediaItem!.hasSlides {
-//            bodyString = bodyString! + "\n\nSlides: " + mediaItem!.slidesURL!.absoluteString
-//        }
-//        
-//        if mediaItem!.hasNotes {
-//            bodyString = bodyString! + "\n\nTranscript " + mediaItem!.notesURL!.absoluteString
-//        }
-//    }
-//    
-//    return bodyString
-//}
-
-func setupMediaItemsBody(_ mediaItems:[MediaItem]?) -> String?
+func setupMediaItemsHTML(_ mediaItems:[MediaItem]?) -> String?
 {
     return setupMediaItemsHTML(mediaItems,includeURLs:true,includeColumns:true)
 }
@@ -3025,10 +2770,6 @@ func stripHTML(_ string:String?) -> String?
         }
     }
     
-//    bodyString = bodyString?.replacingOccurrences(of: "<td>", with: "")
-//    bodyString = bodyString?.replacingOccurrences(of: "<td colspan=\"5\">", with: "")
-//    bodyString = bodyString?.replacingOccurrences(of: "<td align=\"right\">", with: "")
-    
     bodyString = bodyString?.replacingOccurrences(of: "</td>", with: Constants.SINGLE_SPACE)
     
     bodyString = bodyString?.replacingOccurrences(of: "</tr>", with: "\n")
@@ -3043,12 +2784,7 @@ func stripHTML(_ string:String?) -> String?
     return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
 }
 
-//func setupMediaItemsGlobalBody(_ mediaItems:[MediaItem]?) -> String?
-//{
-//    return stripHTML(setupMediaItemsGlobalHTML(mediaItems,includeURLs:false,includeColumns:false))
-//}
-
-func setupMediaItemsGlobalHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String?
+func setupMediaItemsHTMLGlobal(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String?
 {
     var bodyString:String?
     
@@ -3086,10 +2822,6 @@ func setupMediaItemsGlobalHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includ
         bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
     }
     
-//    let keys:[String] = mediaSortListGroup.groupSort![globals.grouping!]!.keys.map({ (string:String) -> String in
-//        return string
-//    })
-
     let keys = mediaListGroupSort.sectionIndexTitles
     
     if includeColumns {
@@ -3115,7 +2847,7 @@ func setupMediaItemsGlobalHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includ
             
             if includeColumns {
                 bodyString = bodyString! + "<tr>"
-                bodyString = bodyString! + "<td colspan=\"5\">"
+                bodyString = bodyString! + "<td valign=\"top\" colspan=\"6\">"
             }
             
             bodyString = bodyString! + name
@@ -3152,10 +2884,10 @@ func setupMediaItemsGlobalHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includ
         
         if includeColumns {
             bodyString = bodyString! + "<tr>"
-            bodyString = bodyString! + "<td colspan=\"5\">"
+            bodyString = bodyString! + "<td valign=\"top\" colspan=\"6\">"
         }
         
-        bodyString  = bodyString! + "<br/>"
+        bodyString = bodyString! + "<br/>"
         
         if includeColumns {
             bodyString = bodyString! + "</td>"
@@ -3221,8 +2953,6 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
 
     bodyString = "<html><body>"
     
-//    bodyString = bodyString! + "<font size=\"2\">"
-    
     bodyString = bodyString! + "The following media "
     
     if mediaItems!.count > 1 {
@@ -3272,7 +3002,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
                     
                     if includeColumns {
                         bodyString  = bodyString! + "<tr>"
-                        bodyString  = bodyString! + "<td colspan=\"5\">"
+                        bodyString  = bodyString! + "<td valign=\"top\" colspan=\"6\">"
                     }
                     
                     bodyString = bodyString! + "<br/>"
@@ -3288,7 +3018,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
                 if lastKey != nil, let count = mediaListSort[lastKey!]?.count, count == 1 {
                     if includeColumns {
                         bodyString  = bodyString! + "<tr>"
-                        bodyString  = bodyString! + "<td colspan=\"5\">"
+                        bodyString  = bodyString! + "<td valign=\"top\" colspan=\"6\">"
                     }
                     
                     bodyString = bodyString! + "<br/>"
@@ -3313,13 +3043,9 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
                 
                 let speakerCount = speakerCounts.keys.count
                 
-//                let speakers = speakerCounts.keys.map({ (string:String) -> String in
-//                    return string
-//                }) as [String]
-                
                 if includeColumns {
                     bodyString  = bodyString! + "<tr>"
-                    bodyString  = bodyString! + "<td colspan=\"5\">"
+                    bodyString  = bodyString! + "<td valign=\"top\" colspan=\"6\">"
                 }
                 
                 bodyString = bodyString! + key
@@ -3367,8 +3093,6 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
     }
     
     bodyString = bodyString! + "<br/>"
-    
-//    bodyString = bodyString! + "</font>"
     
     bodyString = bodyString! + "</body></html>"
     

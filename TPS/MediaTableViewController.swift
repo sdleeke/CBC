@@ -643,99 +643,15 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             case Constants.View_List:
                 DispatchQueue.main.async(execute: { () -> Void in
                     process(viewController: self, work: { () -> (Any?) in
-                        return setupMediaItemsGlobalHTML(globals.active?.list, includeURLs: true, includeColumns: true)
+                        if globals.active?.htmlString == nil {
+                            globals.active?.htmlString = setupMediaItemsHTMLGlobal(globals.active?.list, includeURLs: true, includeColumns: true)
+                        }
+                        return globals.active?.htmlString
                     }, completion: { (data:Any?) in
                         presentHTMLModal(viewController: self, htmlString: data as? String)
                     })
-                    
-//                    let alert = UIAlertController(title: "Format into columns?",
-//                                                  message: "", // Columns may not display correctly on a small screen.
-//                                                  preferredStyle: UIAlertControllerStyle.alert)
-//                    
-//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-//                        process(viewController: self, work: { () -> (Any?) in
-//                            return setupMediaItemsGlobalHTML(globals.active?.list, includeURLs: true, includeColumns: true)
-//                        }, completion: { (data:Any?) in
-//                            presentHTMLModal(viewController: self, htmlString: data as? String)
-//                        })
-//                    })
-//                    alert.addAction(yesAction)
-//                    
-//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-//                        process(viewController: self, work: { () -> (Any?) in
-//                            return setupMediaItemsGlobalHTML(globals.active?.list, includeURLs: true, includeColumns: false)
-//                        }, completion: { (data:Any?) in
-//                            presentHTMLModal(viewController: self, htmlString: data as? String)
-//                        })
-//                    })
-//                    alert.addAction(noAction)
-//                    
-//                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-//                        
-//                    })
-//                    alert.addAction(cancelAction)
-//                    
-//                    self.present(alert, animated: true, completion: nil)
                 })
                 break
-                
-//            case Constants.Print_All:
-//                DispatchQueue.main.async(execute: { () -> Void in
-//                    self.dismiss(animated: true, completion: nil)
-//                    
-//                    let alert = UIAlertController(title: "Format into columns?",
-//                                                  message: "Columns may not display correctly on a small screen.",
-//                                                  preferredStyle: UIAlertControllerStyle.alert)
-//                    
-//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-//                        printMediaItems(viewController: self,mediaItems: globals.active?.list,stringFunction: setupMediaItemsGlobalBodyHTML,links: false,columns: true, barButton: self.navigationItem.leftBarButtonItem)
-//                    })
-//                    alert.addAction(yesAction)
-//                    
-//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-//                        printMediaItems(viewController: self,mediaItems: globals.active?.list,stringFunction: setupMediaItemsGlobalBodyHTML,links: false,columns: false, barButton: self.navigationItem.leftBarButtonItem)
-//                    })
-//                    alert.addAction(noAction)
-//                    
-//                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-//                        
-//                    })
-//                    alert.addAction(cancelAction)
-//                    
-//                    self.present(alert, animated: true, completion: nil)
-//                })
-//                break
-//                
-//            case Constants.Email_All:
-//                DispatchQueue.main.async(execute: { () -> Void in
-//                    self.dismiss(animated: true, completion: nil)
-//                    
-//                    let alert = UIAlertController(title: "Format into columns?",
-//                                                  message: "Columns may not display correctly on a small screen.",
-//                                                  preferredStyle: UIAlertControllerStyle.alert)
-//                    
-//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-//                        mailMediaItems(viewController: self,mediaItems: globals.active?.list, stringFunction: setupMediaItemsGlobalBodyHTML,links: true,columns: true,attachments: false)
-//                    })
-//                    alert.addAction(yesAction)
-//                    
-//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-//                        mailMediaItems(viewController: self,mediaItems: globals.active?.list, stringFunction: setupMediaItemsGlobalBodyHTML,links: true,columns: false,attachments: false)
-//                    })
-//                    alert.addAction(noAction)
-//                    
-//                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-//                        
-//                    })
-//                    alert.addAction(cancelAction)
-//                
-//                    self.present(alert, animated: true, completion: nil)
-//                })
-//                break
-//                
-//            case Constants.Share_All:
-//                shareMediaItems(viewController: self, mediaItems: globals.active?.list, stringFunction: setupMediaItemsGlobalBody, barButton: navigationItem.leftBarButtonItem)
-//                break
                 
             case Constants.Current_Selection:
                 if let mediaItem = selectedMediaItem {
@@ -745,7 +661,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         dismiss(animated: true, completion: nil)
                         
                         let alert = UIAlertController(title:"Not in List",
-//                            message: "\"\(mediaItem.title!)\" is not in the list.",
                             message: "You are currently showing \"\(globals.tags.selected!)\" and \"\(mediaItem.title!)\" is not in that list.  Show \"All\" and try again.",
                             preferredStyle: UIAlertControllerStyle.alert)
                         
@@ -812,18 +727,15 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     popover.purpose = .selectingHistory
                     
                     var historyMenu = [String]()
-//                        var sections = [String]()
-                    
-//                        print(globals.history)
+
+//                    print(globals.history)
                     if let historyList = globals.history?.reversed() {
 //                            print(historyList)
                         for history in historyList {
                             var mediaItemID:String
-//                                var date:String
                             
                             if let range = history.range(of: Constants.TAGS_SEPARATOR) {
                                 mediaItemID = history.substring(from: range.upperBound)
-//                                    date = history.substringToIndex(range.startIndex)
                                 
                                 if let mediaItem = globals.mediaRepository.index![mediaItemID] {
                                     historyMenu.append(mediaItem.text!)
@@ -835,52 +747,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     popover.strings = historyMenu
                     
                     popover.showIndex = false
-                    popover.showSectionHeaders = false // true if the code below and related code above is used. 
+                    popover.showSectionHeaders = false
                     
-//                        var indexes = [Int]()
-//                        var counts = [Int]()
-//                        
-//                        var lastSection:String?
-//                        let sectionList = sections
-//                        var index = 0
-//                        
-//                        for sectionTitle in sectionList {
-//                            if sectionTitle == lastSection {
-//                                sections.removeAtIndex(index)
-//                            } else {
-//                                index++
-//                            }
-//                            lastSection = sectionTitle
-//                        }
-//                        
-//                        popover.section.titles = sections
-//
-//                        let historyList = globals.history?.reverse()
-//                        
-//                        for historyItem in historyList! {
-//                            var counter = 0
-//                            
-//                            if let range = historyItem.rangeOfString(Constants.TAGS_SEPARATOR) {
-//                                var date:String
-//
-//                                date = historyItem.substringToIndex(range.startIndex)
-//                                
-//                                for index in 0..<sections.count {
-//                                    if (sections[index] == date.substringToIndex(date.rangeOfString(Constants.SINGLE_SPACE)!.startIndex)) {
-//                                        if (counter == 0) {
-//                                            indexes.append(index)
-//                                        }
-//                                        counter++
-//                                    }
-//                                }
-//                                
-//                                counts.append(counter)
-//                            }
-//                        }
-//                        
-//                        popover.section.indexes = indexes.count > 0 ? indexes : nil
-//                        popover.section.counts = counts.count > 0 ? counts : nil
-
                     DispatchQueue.main.async(execute: { () -> Void in
                         self.present(navigationController, animated: true, completion: nil)
                     })
@@ -1864,17 +1732,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     {
         var url:String?
         
-//        if globals.mediaCategory.selected != "All Media" {
-//            url = Constants.JSON.URL.CATEGORY + globals.mediaCategory.selectedID!
-//        } else {
-//            url = Constants.JSON.URL.MEDIA
-//        }
-
         url = Constants.JSON.URL.MEDIA
 
         navigationItem.title = Constants.Title.Downloading_Media
         
-//        let jsonURL = "\(Constants.JSON_URL_PREFIX)\(Constants.CBC.SHORT.lowercaseString).\(Constants.SERMONS_JSON_FILENAME)"
         let downloadRequest = URLRequest(url: URL(string: url!)!)
         
         let configuration = URLSessionConfiguration.default
@@ -1899,10 +1760,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         if globals.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM) {
             globals.mediaPlayer.pause() // IfPlaying
-            
-//            DispatchQueue.main.async(execute: { () -> Void in
-//                globals.mediaPlayer.view?.isHidden = true
-//            })
         }
 
         globals.cancelAllDownloads()
@@ -1917,7 +1774,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
         if splitViewController != nil {
             DispatchQueue.main.async(execute: { () -> Void in
-//                self.performSegue(withIdentifier: Constants.SEGUE.SHOW_SERMON, sender: self)
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
             })
         }
@@ -2414,37 +2270,15 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             if let index = mediaItems!.index(of: mediaItem!) {
                 switch globals.grouping! {
                 case Grouping.YEAR:
-//                    let calendar = NSCalendar.currentCalendar()
-//                    let components = calendar.components(.Year, fromDate: mediaItems![index].fullDate!)
-//                    
-//                    switch globals.sorting! {
-//                    case Constants.REVERSE_CHRONOLOGICAL:
-//                        section = globals.active!.sectionTitles!.sort({ $1 < $0 }).indexOf("\(components.year)")!
-//                        break
-//                    case Constants.CHRONOLOGICAL:
-//                        section = globals.active!.sectionTitles!.sort({ $0 < $1 }).indexOf("\(components.year)")!
-//                        break
-//                        
-//                    default:
-//                        break
-//                    }
                     section = globals.active!.sectionTitles!.index(of: mediaItem!.yearSection!)!
                     break
                     
                 case Grouping.TITLE:
-//                    print(globals.active!.sectionIndexTitles)
-//                    print(mediaItem)
-//                    print(mediaItem?.seriesSectionSort)
-//                    print(globals.active!.sectionIndexTitles!.index(of: mediaItem!.seriesSectionSort!))
                     section = globals.active!.sectionIndexTitles!.index(of: mediaItem!.multiPartSectionSort!)!
                     break
                     
                 case Grouping.BOOK:
                     // For mediaItem.books.count > 1 this arbitrarily selects the first one, which may not be correct.
-//                    print(mediaItem)
-//                    print(mediaItem!.books)
-//                    print(mediaItem!.bookSections)
-//                    print(mediaItem!.bookSections.first)
                     section = globals.active!.sectionTitles!.index(of: mediaItem!.bookSections.first!)!
                     break
                     

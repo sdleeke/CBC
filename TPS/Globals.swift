@@ -1252,7 +1252,7 @@ class Globals : NSObject {
                     if let index = mediaPlayer.mediaItem?.multiPartMediaItems?.index(of: mediaPlayer.mediaItem!) {
                         nowPlayingInfo[MPMediaItemPropertyAlbumTrackNumber]  = index + 1
                     } else {
-                        print(mediaPlayer.mediaItem," not found in ",mediaPlayer.mediaItem?.multiPartMediaItems)
+                        print(mediaPlayer.mediaItem as Any," not found in ",mediaPlayer.mediaItem?.multiPartMediaItems as Any)
                     }
 
                     nowPlayingInfo[MPMediaItemPropertyAlbumTrackCount]   = mediaPlayer.mediaItem?.multiPartMediaItems?.count

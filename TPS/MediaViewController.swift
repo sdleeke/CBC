@@ -546,28 +546,12 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 
                 setupPlayPauseButton()
                 setupSpinner()
-//                if spinner.isAnimating {
-//                    spinner.stopAnimating()
-//                    spinner.isHidden = true
-//                }
                 break
                 
             case .paused:
 //                print("paused")
                 if globals.mediaPlayer.loaded && (globals.mediaPlayer.url == selectedMediaItem?.playingURL) {
                     playCurrentMediaItem(selectedMediaItem)
-//                    switch globals.mediaPlayer.mediaItem!.playing! {
-//                    case Playing.audio:
-//                        playCurrentMediaItem(selectedMediaItem)
-//                        break
-//                        
-//                    case Playing.video:
-//                        reloadCurrentMediaItem(selectedMediaItem)
-//                        break
-//                        
-//                    default:
-//                        break
-//                    }
                 } else {
                     playNewMediaItem(selectedMediaItem)
                 }
@@ -656,48 +640,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         return result
     }
 
-    //        if selectedMediaItem != nil {
-    //            switch selectedMediaItem!.showing! {
-    //            case Showing.video:
-    //                result = false
-    //                break
-    //
-    //            case Showing.notes:
-    //                result = ((mediaItemNotesWebView == nil) || (mediaItemNotesWebView!.hidden == true)) && progressIndicator.hidden
-    //                break
-    //
-    //            case Showing.slides:
-    //                result = ((mediaItemSlidesWebView == nil) || (mediaItemSlidesWebView!.hidden == true)) && progressIndicator.hidden
-    //                break
-    //
-    //            case Showing.none:
-    //                result = true
-    //                break
-    //
-    //            default:
-    //                result = false
-    //                break
-    //            }
-    //        } else {
-    //            result = true
-    //        }
-    //
-    //        if (mediaItemNotesWebView == nil) && (mediaItemSlidesWebView == nil) {
-    //            return true
-    //        }
-    //
-    //        if (mediaItemNotesWebView == nil) && ((mediaItemSlidesWebView != nil) && (mediaItemSlidesWebView!.hidden == true)) {
-    //            return progressIndicator.hidden
-    //        }
-    //
-    //        if (mediaItemSlidesWebView == nil) && ((mediaItemNotesWebView != nil) && (mediaItemNotesWebView!.hidden == true)) {
-    //            return progressIndicator.hidden
-    //        }
-    //
-    //        if ((mediaItemNotesWebView != nil) && (mediaItemNotesWebView!.hidden == true)) && ((mediaItemSlidesWebView != nil) && (mediaItemSlidesWebView!.hidden == true)) {
-    //            return progressIndicator.hidden
-    //        }
-    
     fileprivate func setMediaItemNotesAndSlidesConstraint(_ change:CGFloat)
     {
         let newConstraintConstant = mediaItemNotesAndSlidesConstraint.constant + change
@@ -847,10 +789,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     fileprivate func adjustAudioAfterUserMovedSlider()
     {
-//        if (globals.mediaPlayer.player == nil) { //  && Reachability.isConnectedToNetwork()
-//            globals.setupPlayer(selectedMediaItem)
-//        }
-//        
         if (globals.mediaPlayer.player != nil) {
             if (slider.value < 1.0) {
                 let length = globals.mediaPlayer.duration!.seconds
@@ -949,21 +887,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         })
     }
     
-//    func showSendMailErrorAlert() {
-//        let alert = UIAlertController(title: "Could Not Send Email",
-//                                      message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",
-//                                      preferredStyle: UIAlertControllerStyle.alert)
-//        
-//        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-//            
-//        })
-//        alert.addAction(action)
-//        
-//        DispatchQueue.main.async(execute: { () -> Void in
-//            self.present(alert, animated: true, completion: nil)
-//        })
-//    }
-    
     // MARK: MFMailComposeViewControllerDelegate Method
     func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
         controller.dismiss(animated: true, completion: nil)
@@ -987,100 +910,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             }
         }
     }
-    
-//    func twitter(mediaItem:MediaItem?)
-//    {
-//        assert(mediaItem != nil, "can't tweet about a nil mediaItem")
-//
-//        if SLComposeViewController.isAvailableForServiceType(SLServiceTypeTwitter) {
-//            var bodyString = String()
-//            
-//            bodyString = "Great mediaItem: \"\(mediaItem!.title!)\" by \(mediaItem!.speaker!).  " + Constants.BASE_AUDIO_URL + mediaItem!.audio!
-//            
-//            let twitterSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeTwitter)
-//            twitterSheet.setInitialText(bodyString)
-//            //                let str = Constants.BASE_AUDIO_URL + mediaItem!.audio!
-//            //                print("\(str)")
-//            //                twitterSheet.addURL(NSURL(string:str))
-//            self.presentViewController(twitterSheet, animated: true, completion: nil)
-//        } else {
-//            let alert = UIAlertController(title: "Accounts", message: "Please login to a Twitter account to share.", preferredStyle: UIAlertControllerStyle.Alert)
-//            alert.addAction(UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: nil))
-//            self.presentViewController(alert, animated: true, completion: nil)
-//        }
-//
-////        if Reachability.isConnectedToNetwork() {
-////            if SLComposeViewController.isAvailableForServiceType(SLServiceTypeTwitter) {
-////                var bodyString = String()
-////                
-////                bodyString = "Great mediaItem: \"\(mediaItem!.title!)\" by \(mediaItem!.speaker!).  " + Constants.BASE_AUDIO_URL + mediaItem!.audio!
-////                
-////                let twitterSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeTwitter)
-////                twitterSheet.setInitialText(bodyString)
-//////                let str = Constants.BASE_AUDIO_URL + mediaItem!.audio!
-//////                print("\(str)")
-//////                twitterSheet.addURL(NSURL(string:str))
-////                self.presentViewController(twitterSheet, animated: true, completion: nil)
-////            } else {
-////                let alert = UIAlertController(title: "Accounts", message: "Please login to a Twitter account to share.", preferredStyle: UIAlertControllerStyle.Alert)
-////                alert.addAction(UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: nil))
-////                self.presentViewController(alert, animated: true, completion: nil)
-////            }
-////        } else {
-////            networkUnavailable("Unable to reach the internet to tweet.")
-////        }
-//    }
-//    
-//    func facebook(mediaItem:MediaItem?)
-//    {
-//        assert(mediaItem != nil, "can't post about a nil mediaItem")
-//
-//        if SLComposeViewController.isAvailableForServiceType(SLServiceTypeFacebook){
-//            var bodyString = String()
-//            
-//            bodyString = "Great mediaItem: \"\(mediaItem!.title!)\" by \(mediaItem!.speaker!).  " + Constants.BASE_AUDIO_URL + mediaItem!.audio!
-//            
-//            //So the user can paste the initialText into the post dialog/view
-//            //This is because of the known bug that when the latest FB app is installed it prevents prefilling the post.
-//            UIPasteboard.generalPasteboard().string = bodyString
-//            
-//            let facebookSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeFacebook)
-//            facebookSheet.setInitialText(bodyString)
-//            //                let str = Constants.BASE_AUDIO_URL + mediaItem!.audio!
-//            //                print("\(str)")
-//            //                facebookSheet.addURL(NSURL(string: str))
-//            self.presentViewController(facebookSheet, animated: true, completion: nil)
-//        } else {
-//            let alert = UIAlertController(title: "Accounts", message: "Please login to a Facebook account to share.", preferredStyle: UIAlertControllerStyle.Alert)
-//            alert.addAction(UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: nil))
-//            self.presentViewController(alert, animated: true, completion: nil)
-//        }
-//
-////        if Reachability.isConnectedToNetwork() {
-////            if SLComposeViewController.isAvailableForServiceType(SLServiceTypeFacebook){
-////                var bodyString = String()
-////                
-////                bodyString = "Great mediaItem: \"\(mediaItem!.title!)\" by \(mediaItem!.speaker!).  " + Constants.BASE_AUDIO_URL + mediaItem!.audio!
-////
-////                //So the user can paste the initialText into the post dialog/view
-////                //This is because of the known bug that when the latest FB app is installed it prevents prefilling the post.
-////                UIPasteboard.generalPasteboard().string = bodyString
-////
-////                let facebookSheet:SLComposeViewController = SLComposeViewController(forServiceType: SLServiceTypeFacebook)
-////                facebookSheet.setInitialText(bodyString)
-//////                let str = Constants.BASE_AUDIO_URL + mediaItem!.audio!
-//////                print("\(str)")
-//////                facebookSheet.addURL(NSURL(string: str))
-////                self.presentViewController(facebookSheet, animated: true, completion: nil)
-////            } else {
-////                let alert = UIAlertController(title: "Accounts", message: "Please login to a Facebook account to share.", preferredStyle: UIAlertControllerStyle.Alert)
-////                alert.addAction(UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.Default, handler: nil))
-////                self.presentViewController(alert, animated: true, completion: nil)
-////            }
-////        } else {
-////            networkUnavailable("Unable to reach the internet to post to Facebook.")
-////        }
-//    }
     
     func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
         DispatchQueue.main.async(execute: { () -> Void in
@@ -1135,19 +964,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 }
                 break
                 
-            case Constants.Zoom:
-                if (selectedMediaItem!.hasVideo && selectedMediaItem!.playingVideo && selectedMediaItem!.showingVideo) {
-//                    zoomScreen()
-                }
-                
-                if document != nil {
-//                if (selectedMediaItem!.hasSlides() && selectedMediaItem!.showingSlides()) || (selectedMediaItem!.hasNotes() && selectedMediaItem!.showingNotes()) {
-//                    showScripture = false
-//                    zoomScreen()
-//                    performSegue(withIdentifier: Constants.SHOW_FULL_SCREEN_SEGUE, sender: selectedMediaItem)
-                }
-                break
-                
             case Constants.Open_on_CBC_Website:
                 if selectedMediaItem?.websiteURL != nil {
                     if (UIApplication.shared.canOpenURL(selectedMediaItem!.websiteURL! as URL)) { // Reachability.isConnectedToNetwork() &&
@@ -1167,11 +983,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     }
                 }
                 break
-                
-//            case Constants.Scripture_Full_Screen:
-//                showScripture = true
-//                performSegueWithIdentifier(Constants.SHOW_FULL_SCREEN_SEGUE_IDENTIFIER, sender: selectedMediaItem)
-//                break
                 
             case Constants.Scripture_in_Browser:
                 openMediaItemScripture(selectedMediaItem)
@@ -1207,49 +1018,16 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 }
                 break
                 
-            case Constants.Email_One:
-                if selectedMediaItem != nil {
-                    mailMediaItems(viewController: self,mediaItems: [selectedMediaItem!], stringFunction: setupMediaItemsHTML,links: true,columns: true,attachments: false)
-                }
-                break
-                
-            case Constants.Email_All:
-                mailMediaItems(viewController: self,mediaItems: self.mediaItems, stringFunction: setupMediaItemsHTML,links: true,columns: true,attachments: false)
-                
-//                DispatchQueue.main.async(execute: { () -> Void in
-//                    self.dismiss(animated: true, completion: nil)
-//                    
-//                    let alert = UIAlertController(title: "Format into columns?",
-//                                                  message: "", // Columns may not display correctly on a small screen.
-//                                                  preferredStyle: UIAlertControllerStyle.alert)
-//                    
-//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-//                        mailMediaItems(viewController: self,mediaItems: self.mediaItems, stringFunction: setupMediaItemsHTML,links: true,columns: true,attachments: false)
-//                    })
-//                    alert.addAction(yesAction)
-//                    
-//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-//                        mailMediaItems(viewController: self,mediaItems: self.mediaItems, stringFunction: setupMediaItemsHTML,links: true,columns: false,attachments: false)
-//                    })
-//                    alert.addAction(noAction)
-//                    
-//                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-//                        
-//                    })
-//                    alert.addAction(cancelAction)
-//                    
-//                    self.present(alert, animated: true, completion: nil)
-//                })
-                break
+            case Constants.Print:
+                process(viewController: self, work: {
+                    return setupMediaItemsHTML(self.mediaItems,includeURLs:false,includeColumns:true)
+                }, completion: { (data:Any?) in
+                    printHTML(viewController: self, htmlString: data as? String)
+                })
+               break
                 
             case Constants.Share:
-                if selectedMediaItem != nil {
-                    shareMediaItems(viewController: self, mediaItems: [selectedMediaItem!], stringFunction: setupMediaItemsBody, barButton: navigationItem.rightBarButtonItem)
-                }
-                break
-                
-            case Constants.Share_All:
-                shareMediaItems(viewController: self, mediaItems: mediaItems, stringFunction: setupMediaItemsBody, barButton: navigationItem.rightBarButtonItem)
+                shareMediaItems(viewController: self, mediaItems: mediaItems, stringFunction: setupMediaItemsHTML)
                 break
                 
             case Constants.Refresh_Document:
@@ -1444,20 +1222,14 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 }
             }
             
-            if MFMailComposeViewController.canSendMail() {
-                actionMenu.append(Constants.Email_One)
-                if (selectedMediaItem!.hasMultipleParts && (mediaItems?.count > 1)) {
-                    actionMenu.append(Constants.Email_All)
-                }
-            }
-
             if selectedMediaItem != nil {
+                actionMenu.append(Constants.Print)
                 actionMenu.append(Constants.Share)
             }
             
-            if mediaItems?.count > 1 {
-                actionMenu.append(Constants.Share_All)
-            }
+//            if mediaItems?.count > 1 {
+//                actionMenu.append(Constants.Share_All)
+//            }
             
             popover.strings = actionMenu
             
@@ -1517,15 +1289,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             view?.isHidden = true
             view?.removeFromSuperview()
             
-//            view?.gestureRecognizers = nil
-//            
-//            let tap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.zoomScreen))
-//            tap.numberOfTapsRequired = 2
-//            view?.addGestureRecognizer(tap)
-            
-//            let pinch = UIPinchGestureRecognizer(target: self, action: #selector(MediaViewController.zoomScreen))
-//            view?.addGestureRecognizer(pinch)
-
             view?.frame = mediaItemNotesAndSlides.bounds
 
             view?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
@@ -1557,9 +1320,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             wkWebView?.isMultipleTouchEnabled = true
             
             wkWebView?.scrollView.scrollsToTop = false
-            
-            //        print("\(mediaItemNotesAndSlides.frame)")
-            //        mediaItemNotesWebView?.UIDelegate = self
             
             wkWebView?.scrollView.delegate = self
             wkWebView?.navigationDelegate = self
@@ -2256,14 +2016,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             
 //            print("Row: \(indexPath.row) Section: \(indexPath.section)")
 
-            if (position == UITableViewScrollPosition.top) {
-//                var point = CGPointZero //tableView.bounds.origin
-//                point.y += tableView.rowHeight * CGFloat(indexPath.row)
-//                tableView.setContentOffset(point, animated: true)
-                tableView.scrollToRow(at: indexPath, at: position, animated: false)
-            } else {
-                tableView.scrollToRow(at: indexPath, at: position, animated: false)
-            }
+            tableView.scrollToRow(at: indexPath, at: position, animated: false)
         } else {
             //No mediaItem to scroll to.
             
@@ -2782,30 +2535,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         }
     }
     
-//    func setupZoom()
-//    {
-//        if (UIDeviceOrientationIsPortrait(UIDevice.current.orientation)) {
-//            if splitViewController != nil {
-//                navigationItem.setLeftBarButton(nil,animated: true)
-//            }
-//        } else {
-//            if splitViewController != nil {
-//                navigationItem.setLeftBarButton(UIBarButtonItem(title: Constants.Zoom, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.zoomScreen)),animated: true)
-//            }
-//        }
-//    }
-    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-//        print("viewDidAppear mediaItemNotesAndSlides.bounds: \(mediaItemNotesAndSlides.bounds)")
-//        print("viewDidAppear tableView.bounds: \(tableView.bounds)")
-
-//        setupSplitViewController()
-        
-//        setupZoom()
-        
-//        updateUI()
     }
     
     fileprivate func captureViewSplit()
@@ -3179,12 +2911,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             slider.isEnabled = globals.mediaPlayer.loaded
             setupPlayPauseButton()
             setupSpinner()
-//            if (!globals.mediaPlayer.loaded) {
-//                if !spinner.isAnimating {
-//                    spinner.isHidden = false
-//                    spinner.startAnimating()
-//                }
-//            }
             
             switch globals.mediaPlayer.state! {
             case .none:
@@ -3221,12 +2947,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 }
                 
                 setupSpinner()
-//                if globals.mediaPlayer.loaded || globals.mediaPlayer.loadFailed{
-//                    if spinner.isAnimating {
-//                        spinner.stopAnimating()
-//                        spinner.isHidden = true
-//                    }
-//                }
                 break
                 
             case .stopped:
@@ -3236,19 +2956,11 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             case .seekingForward:
 //                print("seekingForward")
                 setupSpinner()
-//                if !spinner.isAnimating {
-//                    spinner.isHidden = false
-//                    spinner.startAnimating()
-//                }
                 break
                 
             case .seekingBackward:
 //                print("seekingBackward")
                 setupSpinner()
-//                if !spinner.isAnimating {
-//                    spinner.isHidden = false
-//                    spinner.startAnimating()
-//                }
                 break
             }
             
@@ -3402,10 +3114,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         
         if (mediaItem != nil) && (mediaItem!.hasVideo || mediaItem!.hasAudio) {
             setupSpinner()
-//            if (!spinner.isAnimating) {
-//                spinner.isHidden = false
-//                spinner.startAnimating()
-//            }
             
             globals.mediaPlayer.mediaItem = mediaItem
             
@@ -3516,30 +3224,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         setupActionAndTagsButtons()
     }
     
-//    func webView(_ wkWebView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-//        
-//        if (navigationAction.request.url != nil) {
-////            print(navigationAction.request.URL!.absoluteString!)
-//            decisionHandler(WKNavigationActionPolicy.allow)
-//
-////            if (navigationAction.request.URL!.absoluteString!.endIndex < Constants.BASE_PDF_URL.endIndex) {
-////                decisionHandler(WKNavigationActionPolicy.Cancel)
-////            } else {
-////                if (navigationAction.request.URL!.absoluteString!.substringToIndex(Constants.BASE_PDF_URL.endIndex) == Constants.BASE_PDF_URL) {
-////                    decisionHandler(WKNavigationActionPolicy.Allow)
-////                } else {
-////                    if (navigationAction.request.URL!.path!.substringToIndex(cachesURL()!.path!.endIndex) == cachesURL()!.path!) {
-////                        decisionHandler(WKNavigationActionPolicy.Allow)
-////                    } else {
-////                        decisionHandler(WKNavigationActionPolicy.Cancel)
-////                    }
-////                }
-////            }
-//        } else {
-//            decisionHandler(WKNavigationActionPolicy.cancel)
-//        }
-//    }
-    
     func webView(_ webView: WKWebView, didFail didFailNavigation: WKNavigation!, withError: Error) {
         print("wkDidFailNavigation")
 //        if (splitViewController != nil) || (self == navigationController?.visibleViewController) {
@@ -3574,41 +3258,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //        let request = NSURLRequest(URL: wkWebView.URL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
 //        wkWebView.loadRequest(request) // NSURLRequest(URL: webView.URL!)
     }
-    
-//    func webView(_ webView: WKWebView, didFailProvisionalNavigation: WKNavigation!, withError: Error) {
-////        print(webView.URL)
-//        print("wkDidFailProvisionalNavigation")
-//        if (splitViewController != nil) || (self == navigationController?.visibleViewController) {
-////            stvControl.hidden = true
-//            
-//            webView.isHidden = true
-////            globals.mediaPlayer.view?.hidden = true
-//            
-//            if (selectedMediaItem != nil) && (documents[selectedMediaItem!.id] != nil) {
-//                for document in documents[selectedMediaItem!.id]!.values {
-//                    if (webView == document.wkWebView) {
-//                        document.wkWebView?.scrollView.delegate = nil
-//                        document.wkWebView = nil
-//                        if document.visible(selectedMediaItem) {
-//                            activityIndicator.stopAnimating()
-//                            activityIndicator.isHidden = true
-//
-//                            progressIndicator.isHidden = true
-//                            
-//                            logo.isHidden = !shouldShowLogo() // && roomForLogo()
-//                            
-//                            if (!logo.isHidden) {
-//                                mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
-//                            }
-//                            
-////                            networkUnavailable(withError.localizedDescription)
-//                              NSLog(withError.localizedDescription)
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
     
     func webView(_ wkWebView: WKWebView, didStartProvisionalNavigation: WKNavigation!) {
 //        print("wkDidStartProvisionalNavigation")

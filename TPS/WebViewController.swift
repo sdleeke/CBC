@@ -40,22 +40,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     var selectedMediaItem:MediaItem?
-    
-//    var showScripture = false
-    
-//    var url:NSURL? {
-//        get {
-//            if showScripture {
-//                var urlString = Constants.SCRIPTURE_URL_PREFIX + selectedMediaItem!.scripture! + Constants.SCRIPTURE_URL_POSTFIX
-//                
-//                urlString = urlString.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!
-//
-//                return NSURL(string:urlString)
-//            } else {
-//                return nil
-//            }
-//        }
-//    }
 
     override var canBecomeFirstResponder : Bool {
         return true //splitViewController == nil
@@ -126,38 +110,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         }
     }
     
-//    func webView(_ wkWebView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void)
-//    {
-////        if showScripture {
-////            if wkWebView.loading {
-////                decisionHandler(WKNavigationActionPolicy.Allow)
-////            } else {
-////                decisionHandler(WKNavigationActionPolicy.Cancel)
-////            }
-////            return
-////        }
-//    
-//        if (navigationAction.request.url != nil) {
-//            //            print("\(navigationAction.request.URL!.absoluteString)")
-//            
-//            if (navigationAction.request.url!.absoluteString.endIndex < Constants.BASE_PDF_URL.endIndex) {
-//                decisionHandler(WKNavigationActionPolicy.cancel)
-//            } else {
-//                if (navigationAction.request.url!.absoluteString.substring(to: Constants.BASE_PDF_URL.endIndex) == Constants.BASE_PDF_URL) {
-//                    decisionHandler(WKNavigationActionPolicy.allow)
-//                } else {
-//                    if (navigationAction.request.url!.path.substring(to: cachesURL()!.path.endIndex) == cachesURL()!.path) {
-//                        decisionHandler(WKNavigationActionPolicy.allow)
-//                    } else {
-//                        decisionHandler(WKNavigationActionPolicy.cancel)
-//                    }
-//                }
-//            }
-//        } else {
-//            decisionHandler(WKNavigationActionPolicy.cancel)
-//        }
-//    }
-    
     func webView(_ wkWebView: WKWebView, didFail didFailNavigation: WKNavigation!, withError: Error) {
         if (splitViewController != nil) || (self == navigationController?.visibleViewController) {
             print("wkDidFailNavigation")
@@ -222,35 +174,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         wkWebView?.superview?.setNeedsLayout()
     }
     
-//    func printHTML(htmlString:String,orientation:UIPrintInfoOrientation)
-//    {
-//        guard UIPrintInteractionController.isPrintingAvailable else {
-//            return
-//        }
-//
-//        let pi = UIPrintInfo.printInfo()
-//        pi.outputType = UIPrintInfoOutputType.general
-//        pi.jobName = Constants.Print;
-//        pi.orientation = UIPrintInfoOrientation.portrait
-//        pi.duplex = UIPrintInfoDuplex.longEdge
-//        
-//        pi.orientation = orientation
-//        
-//        let pic = UIPrintInteractionController.shared
-//        pic.printInfo = pi
-//        pic.showsPageRange = true
-//        pic.showsPaperSelectionForLoadedPapers = true
-//
-//        let formatter = UIMarkupTextPrintFormatter(markupText: htmlString)
-//        formatter.perPageContentInsets = UIEdgeInsets(top: 72, left: 54, bottom: 54, right: 54) // 72=1" margins
-//        
-//        pic.printFormatter = formatter
-//
-//        DispatchQueue.main.async(execute: { () -> Void in
-//            pic.present(from: self.navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
-//        })
-//    }
-    
     fileprivate func networkUnavailable(_ message:String?)
     {
         guard (UIApplication.shared.applicationState == UIApplicationState.active) else { //  && (self.view.window != nil)
@@ -287,41 +210,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
         controller.dismiss(animated: true, completion: nil)
     }
-    
-//    func mailHTML(htmlString:String)
-//    {
-//        let mailComposeViewController = MFMailComposeViewController()
-//        mailComposeViewController.mailComposeDelegate = self // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
-//        
-//        mailComposeViewController.setToRecipients([])
-//        mailComposeViewController.setSubject(selectedMediaItem!.title!)
-//        
-//        mailComposeViewController.setMessageBody(htmlString, isHTML: true)
-//        
-//        if MFMailComposeViewController.canSendMail() {
-//            DispatchQueue.main.async(execute: { () -> Void in
-//                self.present(mailComposeViewController, animated: true, completion: nil)
-//            })
-//        } else {
-//            showSendMailErrorAlert()
-//        }
-//    }
-    
-//    func showSendMailErrorAlert() {
-//        let alert = UIAlertController(title: "Could Not Send Email",
-//                                      message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",
-//                                      preferredStyle: UIAlertControllerStyle.alert)
-//        
-//        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-//            
-//        })
-//        alert.addAction(action)
-//        
-//        DispatchQueue.main.async(execute: { () -> Void in
-//            self.present(alert, animated: true, completion: nil)
-//        })
-//    }
-    
+   
     func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
         DispatchQueue.main.async(execute: { () -> Void in
             self.dismiss(animated: true, completion: nil)
@@ -331,7 +220,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         case .selectingAction:
             switch strings[index] {
             case Constants.Print:
-                
                 let alert = UIAlertController(title: "Remove Links?",
                                               message: "This can take some time.",
                                               preferredStyle: UIAlertControllerStyle.alert)
@@ -340,13 +228,13 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                     process(viewController: self, work: { () -> (Any?) in
                         return stripLinks(self.html.string)
                     }, completion: { (data:Any?) in
-                        printHTML(viewController: self, dismiss: false, htmlString: data as? String)
+                        printHTML(viewController: self, htmlString: data as? String)
                     })
                 })
                 alert.addAction(yesAction)
                 
                 let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                    printHTML(viewController: self, dismiss: false, htmlString: self.html.string)
+                    printHTML(viewController: self, htmlString: self.html.string)
                 })
                 alert.addAction(noAction)
                 
@@ -361,11 +249,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 break
                 
             case Constants.Share:
-                shareHTML(viewController: self, dismiss: false, htmlString: html.string!)
+                shareHTML(viewController: self, htmlString: html.string!)
                 break
                 
             case Constants.Email_One:
-                mailHTML(viewController: self, dismiss: false, to: [], subject: "", htmlString: html.string!)
+                mailHTML(viewController: self, to: [], subject: Constants.CBC.LONG + Constants.SINGLE_SPACE + navigationItem.title!, htmlString: html.string!)
                 break
                 
             case Constants.Open_in_Browser:
@@ -438,10 +326,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 actionMenu.append(Constants.Print)
             }
             
-            if MFMailComposeViewController.canSendMail() {
-                actionMenu.append(Constants.Email_One)
-            }
-            
             if html.string != nil {
                 actionMenu.append(Constants.Share)
             }
@@ -481,23 +365,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         
         navigationItem.setRightBarButtonItems([actionButton,plusButton,minusButton], animated: true)
         
-//        navigationItem.setRightBarButton(actionButton, animated: true)
-        
         navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
-
-//        if (selectedMediaItem != nil) {
-//            navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(WebViewController.actions)), animated: true)
-//
-//            navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
-//
-////            if htmlString != nil {
-////                navigationItem.setRightBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
-////            } else {
-////                navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(WebViewController.actions)), animated: true)
-////            }
-//        } else {
-//            self.navigationItem.rightBarButtonItem = nil
-//        }
     }
 
     func loading()
@@ -741,24 +609,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 }
             })
         }
-        
-//        switch UIApplication.sharedApplication().applicationState {
-//        case UIApplicationState.Active:
-//            setupSplitViewController()
-//            
-//            print("Before animateAlongsideTransition: \(wkWebView?.scrollView.contentOffset)")
-//            fallthrough
-//            
-//        case UIApplicationState.Background:
-//            coordinator.animateAlongsideTransition({ (UIViewControllerTransitionCoordinatorContext) -> Void in
-//                }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-//                    self.setupWKContentOffset(self.wkWebView)
-//            }
-//            break
-//            
-//        default:
-//            break
-//        }
     }
     
     override var prefersStatusBarHidden : Bool {
@@ -833,43 +683,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             }
             break
         }
-        
-        // This is all trying to catch download failures, but I'm afraid it is generating false positives.
-        //        if ((download?.totalBytesWritten == 0) && (download?.totalBytesExpectedToWrite == 0)) {
-        //            download?.state = .none
-        //        }
-        //
-        //        if (download?.state != .downloading) && (download?.state != .downloaded) {
-        //            downloadFailed()
-        //            loadTimer?.invalidate()
-        //            loadTimer = nil
-        //            activityIndicator.stopAnimating()
-        //            activityIndicator.hidden = true
-        //            progressIndicator.hidden = true
-        //        }
     }
-    
-//    func loadScripture()
-//    {
-//        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), { () -> Void in
-//            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                self.webView.bringSubviewToFront(self.activityIndicator)
-//                
-//                self.activityIndicator.hidden = false
-//                self.activityIndicator.startAnimating()
-//                
-//                self.progressIndicator.progress = 0.0
-//                self.progressIndicator.hidden = false
-//                
-//                if self.loadTimer == nil {
-//                    self.loadTimer = NSTimer.scheduledTimerWithTimeInterval(Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(WebViewController.loading), userInfo: nil, repeats: true)
-//                }
-//            })
-//
-//            let request = NSURLRequest(URL: self.url!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
-//            self.wkWebView?.loadRequest(request)
-//        })
-//    }
     
     func loadDocument()
     {
@@ -1008,12 +822,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             }
             break
         }
-        
-//        if showScripture {
-//            loadScripture()
-//        } else {
-//            loadDocument()
-//        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
