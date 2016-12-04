@@ -209,28 +209,6 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         }
     }
     
-    fileprivate func networkUnavailable(_ message:String?)
-    {
-        if (UIApplication.shared.applicationState == UIApplicationState.active) {
-            vc?.dismiss(animated: true, completion: nil)
-            
-            let alert = UIAlertController(title:Constants.Network_Error,
-                message: message,
-                preferredStyle: UIAlertControllerStyle.actionSheet)
-            
-            let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                
-            })
-            alert.addAction(action)
-            
-            alert.modalPresentationStyle = UIModalPresentationStyle.popover
-            alert.popoverPresentationController?.sourceView = self
-            alert.popoverPresentationController?.sourceRect = downloadButton.frame
-            
-            vc?.present(alert, animated: true, completion: nil)
-        }
-    }
-    
     func setupTagsButton()
     {
         if (tagsButton != nil) {

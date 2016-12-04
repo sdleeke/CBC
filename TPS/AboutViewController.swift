@@ -30,7 +30,9 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     
     // MARK: MFMailComposeViewControllerDelegate Method
     func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-        controller.dismiss(animated: true, completion: nil)
+        DispatchQueue.main.async(execute: { () -> Void in
+            controller.dismiss(animated: true, completion: nil)
+        })
     }
     
     fileprivate func openWebSite(_ urlString:String)
@@ -233,22 +235,6 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
         
         if (self.view.window == nil) {
             return
-        }
-    }
-
-    fileprivate func networkUnavailable(_ message:String?)
-    {
-        if (UIApplication.shared.applicationState == UIApplicationState.active) { //  && (self.view.window != nil)
-            let alert = UIAlertController(title:Constants.Network_Error,
-                message: message,
-                preferredStyle: UIAlertControllerStyle.alert)
-            
-            let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                
-            })
-            alert.addAction(action)
-            
-            present(alert, animated: true, completion: nil)
         }
     }
 }

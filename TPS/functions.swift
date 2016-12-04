@@ -2267,7 +2267,9 @@ func presentHTMLModal(viewController:UIViewController, htmlString: String?)
     
     if let navigationController = viewController.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
         let popover = navigationController.viewControllers[0] as? WebViewController {
-        viewController.dismiss(animated: true, completion: nil)
+        DispatchQueue.main.async(execute: { () -> Void in
+            viewController.dismiss(animated: true, completion: nil)
+        })
         
         navigationController.modalPresentationStyle = .overFullScreen
 //        navigationController.popoverPresentationController?.permittedArrowDirections = .any
@@ -2664,7 +2666,10 @@ func shareHTML(viewController:UIViewController,htmlString:String?)
         return
     }
 
-    let activityItems = [htmlString]
+    let formatter = UIMarkupTextPrintFormatter(markupText: htmlString!)
+    formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
+
+    let activityItems = [formatter,htmlString!] as [Any]
     
     let activityViewController = UIActivityViewController(activityItems:activityItems, applicationActivities: nil)
     
@@ -3113,4 +3118,27 @@ func addressString() -> String
     return addressString
 }
 
+func networkUnavailable(_ message:String?)
+{
+    if (UIApplication.shared.applicationState == UIApplicationState.active) {
+        DispatchQueue.main.async(execute: { () -> Void in
+            UIApplication.shared.keyWindow?.rootViewController?.dismiss(animated: true, completion: nil)
+        })
+        
+        let alert = UIAlertController(title:Constants.Network_Error,
+                                      message: message,
+                                      preferredStyle: UIAlertControllerStyle.alert)
+        
+        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+            
+        })
+        alert.addAction(action)
+        
+        //        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
+        })
+    }
+}
 

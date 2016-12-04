@@ -3017,46 +3017,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         })
     }
 
-    fileprivate func networkUnavailable(_ message:String?)
-    {
-        if (UIApplication.shared.applicationState == UIApplicationState.active) { // && (self.view.window != nil) 
-            dismiss(animated: true, completion: nil)
-            
-            let alert = UIAlertController(title: Constants.Network_Error,
-                message: message,
-                preferredStyle: UIAlertControllerStyle.alert)
-            
-            let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                
-            })
-            alert.addAction(action)
-            
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.present(alert, animated: true, completion: nil)
-            })
-        }
-    }
-    
-    fileprivate func failedToLoad()
-    {
-        if (UIApplication.shared.applicationState == UIApplicationState.active) {
-            dismiss(animated: true, completion: nil)
-
-            let alert = UIAlertController(title: Constants.Content_Failed_to_Load,
-                message: Constants.EMPTY_STRING,
-                preferredStyle: UIAlertControllerStyle.alert)
-            
-            let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                
-            })
-            alert.addAction(action)
-            
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.present(alert, animated: true, completion: nil)
-            })
-        }
-    }
-    
     func playCurrentMediaItem(_ mediaItem:MediaItem?)
     {
         assert(globals.mediaPlayer.mediaItem == mediaItem)

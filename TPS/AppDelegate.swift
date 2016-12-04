@@ -27,7 +27,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
     
     func downloadFailed()
     {
-        globals.networkUnavailable("Download failed.")
+        networkUnavailable("Download failed.")
     }
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {

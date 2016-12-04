@@ -1094,26 +1094,6 @@ class Globals : NSObject {
         }
     }
     
-    func networkUnavailable(_ message:String?)
-    {
-        if (UIApplication.shared.applicationState == UIApplicationState.active) {
-            UIApplication.shared.keyWindow?.rootViewController?.dismiss(animated: true, completion: nil)
-            
-            let alert = UIAlertController(title:Constants.Network_Error,
-                                          message: message,
-                                          preferredStyle: UIAlertControllerStyle.alert)
-            
-            let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                
-            })
-            alert.addAction(action)
-            
-            //        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
-            
-            UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
-        }
-    }
-    
 //    private var GlobalPlayerContext = 0
     
     override func observeValue(forKeyPath keyPath: String?,

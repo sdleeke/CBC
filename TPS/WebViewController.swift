@@ -174,28 +174,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         wkWebView?.superview?.setNeedsLayout()
     }
     
-    fileprivate func networkUnavailable(_ message:String?)
-    {
-        guard (UIApplication.shared.applicationState == UIApplicationState.active) else { //  && (self.view.window != nil)
-            return
-        }
-
-        dismiss(animated: true, completion: nil)
-        
-        let alert = UIAlertController(title:Constants.Network_Error,
-                                      message: message,
-                                      preferredStyle: UIAlertControllerStyle.alert)
-        
-        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-            
-        })
-        alert.addAction(action)
-        
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.present(alert, animated: true, completion: nil)
-        })
-    }
-    
     // Specifically for Plus size iPhones.
     func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
     {
