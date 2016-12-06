@@ -524,8 +524,6 @@ struct MediaCategory {
     // In that case it would need to be an array.  Not a big deal, just a change.
     var selected:String? {
         get {
-            //            print(UserDefaults.standard.object(forKey: Constants.CACHE_DOWNLOADS))
-            
             if UserDefaults.standard.object(forKey: Constants.MEDIA_CATEGORY) == nil {
                 UserDefaults.standard.set(Constants.Sermons, forKey: Constants.MEDIA_CATEGORY)
             }

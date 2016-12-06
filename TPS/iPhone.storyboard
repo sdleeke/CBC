@@ -896,7 +896,7 @@ Email: cbcstaff@countrysidebible.org</string>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4bl-Bk-XNX">
-                                                    <rect key="frame" x="235" y="48" width="81" height="31"/>
+                                                    <rect key="frame" x="234" y="44" width="82" height="33"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="18"/>
                                                     <state key="normal" title="Download"/>
                                                     <connections>
@@ -904,7 +904,7 @@ Email: cbcstaff@countrysidebible.org</string>
                                                     </connections>
                                                 </button>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7bR-cd-0Mf" userLabel="Icons">
-                                                    <rect key="frame" x="287" y="79" width="29" height="12"/>
+                                                    <rect key="frame" x="287" y="77" width="29" height="14"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
@@ -913,7 +913,7 @@ Email: cbcstaff@countrysidebible.org</string>
                                                     <rect key="frame" x="20" y="97" width="300" height="2"/>
                                                 </progressView>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ONB-ig-Eaf">
-                                                    <rect key="frame" x="235" y="19" width="39" height="31"/>
+                                                    <rect key="frame" x="234" y="13" width="38" height="33"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="6mU-94-xc0"/>
                                                     </constraints>
@@ -1742,7 +1742,7 @@ Web site: www.countrysidebible.org</string>
             <objects>
                 <navigationController storyboardIdentifier="PopoverTableView" automaticallyAdjustsScrollViewInsets="NO" id="AiN-7T-5Uv" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="szK-O4-wo7">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="szK-O4-wo7">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1806,7 +1806,6 @@ Web site: www.countrysidebible.org</string>
                             <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="q6t-Vn-zvL">
                                 <rect key="frame" x="156" y="256.5" width="51" height="31"/>
                                 <connections>
-                                    <action selector="autoAdvanceAction:" destination="ywx-Jw-hoS" eventType="valueChanged" id="jWF-kn-wyU"/>
                                     <action selector="cacheAction:" destination="ywx-Jw-hoS" eventType="valueChanged" id="bRN-pw-gIR"/>
                                 </connections>
                             </switch>

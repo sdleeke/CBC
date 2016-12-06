@@ -449,6 +449,7 @@ class Download {
     var purpose:String?
     
     var downloadURL:URL?
+    
     var fileSystemURL:URL? {
         didSet {
             state = isDownloaded() ? .downloaded : .none
@@ -489,17 +490,32 @@ class Download {
                     
                     DispatchQueue.main.async(execute: { () -> Void in
                         // The following must appear AFTER we change the state
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.mediaItem)
+//                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.mediaItem)
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                     })
                     break
                     
+                case Purpose.notes:
+                    fallthrough
+                case Purpose.slides:
+                    switch state {
+                    case .downloading:
+                        break
+                        
+                    case .downloaded:
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            // The following must appear AFTER we change the state
+                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.mediaItem)
+                            //                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+                        })
+                        break
+                        
+                    case .none:
+                        break
+                    }
+                    break
+                    
                 default:
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        // The following must appear AFTER we change the state
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.mediaItem)
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-                    })
                     break
                 }
             }
@@ -537,26 +553,28 @@ class Download {
     
     func download()
     {
+        guard (downloadURL != nil) else {
+            print("\(mediaItem?.title)")
+            print("\(purpose)")
+            print("\(fileSystemURL)")
+            return
+        }
+        
+        print(state)
         if (state == .none) {
             state = .downloading
             
-            if (downloadURL == nil) {
-                print("\(mediaItem?.title)")
-                print("\(purpose)")
-                print("\(fileSystemURL)")
-            }
-            
             let downloadRequest = URLRequest(url: downloadURL!)
             
-            // This allows the downloading to continue even if the app goes into the background or terminates.
-            let configuration = URLSessionConfiguration.background(withIdentifier: Constants.DOWNLOAD_IDENTIFIER + fileSystemURL!.lastPathComponent)
-            configuration.sessionSendsLaunchEvents = true
+            let configuration = URLSessionConfiguration.ephemeral
             
-            //        let configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
+            // This allows the downloading to continue even if the app goes into the background or terminates.
+//            let configuration = URLSessionConfiguration.background(withIdentifier: Constants.DOWNLOAD_IDENTIFIER + fileSystemURL!.lastPathComponent)
+//            configuration.sessionSendsLaunchEvents = true
             
             session = URLSession(configuration: configuration, delegate: mediaItem, delegateQueue: nil)
             
-            session?.sessionDescription = self.fileSystemURL!.lastPathComponent
+            session?.sessionDescription = fileSystemURL!.lastPathComponent
             
             task = session?.downloadTask(with: downloadRequest)
             task?.taskDescription = fileSystemURL?.lastPathComponent
@@ -609,6 +627,9 @@ class Download {
         if (active) {
             //            download.task?.cancelByProducingResumeData({ (data: NSData?) -> Void in
             //            })
+            
+//            session?.invalidateAndCancel()
+//            session = nil
             task?.cancel()
             task = nil
             
@@ -900,14 +921,12 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
     }
     
-    func searchNotesHTML(searchText:String?) -> Bool
+    func searchFullNotesHTML(searchText:String?) -> Bool
     {
         if searchText != nil {
             if hasNotesHTML {
-                if notesHTML == nil {
-                    loadNotesHTML()
-                }
-                return notesHTML?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+                loadNotesHTML()
+                return stripHead(fullNotesHTML)?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
             } else {
                 return false
             }
@@ -1174,10 +1193,12 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     
     func loadNotesHTML()
     {
-        if let mediaItemDict = self.loadSingleDict() {
-            self.dict![Field.notes_HTML] = mediaItemDict[Field.notes_HTML]
-        } else {
-            print("loadSingle failure")
+        if dict![Field.notes_HTML] == nil {
+            if let mediaItemDict = self.loadSingleDict() {
+                dict![Field.notes_HTML] = mediaItemDict[Field.notes_HTML]
+            } else {
+                print("loadSingle failure")
+            }
         }
     }
     
@@ -1621,9 +1642,9 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
     }
     
-    var searchMarkedNotesHTML:String? {
+    var searchMarkedFullNotesHTML:String? {
         get {
-            guard (notesHTML != nil) else {
+            guard (stripHead(fullNotesHTML) != nil) else {
                 return nil
             }
             
@@ -1634,11 +1655,11 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             var stringBefore:String = Constants.EMPTY_STRING
             var stringAfter:String = Constants.EMPTY_STRING
             var foundString:String = Constants.EMPTY_STRING
-            var string:String = notesHTML!
+            var string:String = stripHead(fullNotesHTML)!
             var newString:String = Constants.EMPTY_STRING
             
             while (string.lowercased().range(of: globals.searchText!.lowercased()) != nil) {
-                //                            print(string)
+//                print(string)
                 
                 if let range = string.lowercased().range(of: globals.searchText!.lowercased()) {
                     stringBefore = string.substring(to: range.lowerBound)
@@ -1648,7 +1669,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                     let newRange = foundString.lowercased().range(of: globals.searchText!.lowercased())
                     foundString = foundString.substring(to: newRange!.upperBound)
                     
-                    foundString = "<mark style=\"background-color:yellow;\">" + foundString + "</mark>"
+                    foundString = "<mark>" + foundString + "</mark>"
                     
                     newString = newString + stringBefore + foundString
                     
@@ -1658,7 +1679,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                 }
             }
             
-            return headerHTML! + newString + stringAfter
+            return insertHead(newString + stringAfter,fontSize: Constants.FONT_SIZE)
         }
     }
     
@@ -2477,6 +2498,10 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
 
         if (download != nil) {
+            DispatchQueue.main.async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: download)
+            })
+
             debug("URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:")
             
             debug("session: \(session.sessionDescription)")
@@ -2625,7 +2650,21 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         
         if (error != nil) {
             print("with error: \(error!.localizedDescription)")
-            download?.state = .none
+//            download?.state = .none
+            
+            switch download!.purpose! {
+            case Purpose.slides:
+                fallthrough
+            case Purpose.notes:
+                DispatchQueue.main.async(execute: { () -> Void in
+                    print(download?.mediaItem)
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: download)
+                })
+                break
+
+            default:
+                break
+            }
         }
         
         //        print("Download error: \(error)")

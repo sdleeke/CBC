@@ -198,32 +198,25 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         case .selectingAction:
             switch strings[index] {
             case Constants.Print:
-                let alert = UIAlertController(title: "Remove Links?",
-                                              message: "This can take some time.",
-                                              preferredStyle: UIAlertControllerStyle.alert)
-                
-                let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                    process(viewController: self, work: { () -> (Any?) in
-                        return stripLinks(self.html.string)
-                    }, completion: { (data:Any?) in
-                        printHTML(viewController: self, htmlString: data as? String)
-                    })
-                })
-                alert.addAction(yesAction)
-                
-                let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                if html.string != nil, html.string!.contains("<a href") {
+                    firstSecondCancel(viewController: self, title: "Remove Links?", message: "This can take some time.",
+                                      firstTitle: "Yes",
+                                      firstAction: {
+                                        process(viewController: self, work: { () -> (Any?) in
+                                            return stripLinks(self.html.string)
+                                        }, completion: { (data:Any?) in
+                                            printHTML(viewController: self, htmlString: data as? String)
+                                        })
+                    },
+                                      secondTitle: "No",
+                                      secondAction: {
+                                        printHTML(viewController: self, htmlString: self.html.string)
+                    },
+                                      cancelAction: {}
+                    )
+                } else {
                     printHTML(viewController: self, htmlString: self.html.string)
-                })
-                alert.addAction(noAction)
-                
-                let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                    
-                })
-                alert.addAction(cancelAction)
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.present(alert, animated: true, completion: nil)
-                })
+                }
                 break
                 
             case Constants.Share:
@@ -781,7 +774,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         progressIndicator.isHidden = content == .html
         
         if content == .html {
-            if let htmlString = selectedMediaItem?.searchMarkedNotesHTML {
+            if let htmlString = selectedMediaItem?.searchMarkedFullNotesHTML {
                 html.string = htmlString
             }
         }

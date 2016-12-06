@@ -144,6 +144,9 @@ struct Constants {
     }
 
     struct NOTIFICATION {
+        static let UPDATE_DOCUMENT          = "UPDATE DOCUMENT"
+        static let CANCEL_DOCUMENT          = "CANCEL DOCUMENT"
+        
         static let UPDATE_PLAY_PAUSE        = "UPDATE PLAY PAUSE"
         
         static let READY_TO_PLAY            = "READY TO PLAY"
@@ -337,7 +340,7 @@ struct Constants {
     
     struct USER_SETTINGS {
         static let SEARCH_TRANSCRIPTS = "SEARCH TRANSCRIPTS"
-        static let AUTO_ADVANCE = "AUTO_ADVANCE"
+        static let AUTO_ADVANCE = "AUTO ADVANCE"
         static let CACHE_DOWNLOADS = "CACHE DOWNLOADS"
     }
 

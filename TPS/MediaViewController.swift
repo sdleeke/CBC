@@ -56,7 +56,7 @@ class Document {
         }
     }
     
-    var sliderObserver:Timer?
+//    var sliderObserver:Timer?
     
     init(purpose:String,mediaItem:MediaItem?)
     {
@@ -64,7 +64,7 @@ class Document {
         self.mediaItem = mediaItem
     }
     
-    func visible(_ mediaItem:MediaItem?) -> Bool
+    func showing(_ mediaItem:MediaItem?) -> Bool
     {
         return (mediaItem == self.mediaItem) && (mediaItem?.showing == purpose)
     }
@@ -131,10 +131,27 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         }
     }
     
+    func updateNotesDocument()
+    {
+        print("updateNotesDocument")
+        updateDocument(document: notesDocument)
+    }
+    
+    func cancelNotesDocument()
+    {
+        print("cancelNotesDocument")
+        cancelDocument(document: notesDocument,message: "Transcript not available.")
+    }
+    
     var notesDocument:Document? {
         didSet {
             oldValue?.wkWebView?.removeFromSuperview()
             oldValue?.wkWebView?.scrollView.delegate = nil
+
+            if oldValue != nil {
+                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: oldValue?.download)
+                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: oldValue?.download)
+            }
             
             if (selectedMediaItem != nil) {
                 if (documents[selectedMediaItem!.id] == nil) {
@@ -142,10 +159,102 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 }
                 
                 if (notesDocument != nil) {
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateNotesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: self.notesDocument?.download)
+                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.cancelNotesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: self.notesDocument?.download)
+                    }
                     documents[selectedMediaItem!.id]![notesDocument!.purpose!] = notesDocument
                 }
             }
         }
+    }
+    
+    func updateDocument(document:Document?)
+    {
+        //        print(document)
+        //        print(download)
+        
+        guard document != nil else {
+            return
+        }
+        
+        guard document!.download != nil else {
+            return
+        }
+        
+        switch document!.download!.state {
+        case .none:
+            //                    print(".none")
+            break
+            
+        case .downloading:
+            //                    print(".downloading")
+            if document!.showing(selectedMediaItem) {
+                progressIndicator.progress = document!.download!.totalBytesExpectedToWrite > 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
+            }
+            break
+            
+        case .downloaded:
+            break
+        }
+    }
+    
+    func cancelDocument(document:Document?,message:String)
+    {
+        //        print(document)
+        //        print(download)
+        
+        guard document != nil else {
+            return
+        }
+        
+        guard document!.download != nil else {
+            return
+        }
+        
+        switch document!.download!.state {
+        case .none:
+            //                    print(".none")
+            break
+            
+        case .downloading:
+            //                    print(".downloading")
+            document?.download?.state = .none
+            if document!.showing(selectedMediaItem) {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.activityIndicator.stopAnimating()
+                    self.activityIndicator.isHidden = true
+                    
+                    self.progressIndicator.isHidden = true
+                    
+                    document?.wkWebView?.isHidden = true
+                    
+                    globals.mediaPlayer.view?.isHidden = true
+                    
+                    self.logo.isHidden = false
+                    self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+                    
+                    // Can't prevent this from getting called twice in succession.
+                    networkUnavailable(message)
+                })
+            }
+            break
+            
+        case .downloaded:
+            break
+        }
+    }
+    
+    func updateSlidesDocument()
+    {
+        print("updateSlidesDocument")
+        updateDocument(document: slidesDocument)
+    }
+    
+    func cancelSlidesDocument()
+    {
+        print("cancelSlidesDocument")
+        cancelDocument(document: slidesDocument,message: "Slides not available.")
     }
     
     var slidesDocument:Document? {
@@ -153,12 +262,21 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             oldValue?.wkWebView?.removeFromSuperview()
             oldValue?.wkWebView?.scrollView.delegate = nil
             
+            if oldValue != nil {
+                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: oldValue?.download)
+                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: oldValue?.download)
+            }
+            
             if (selectedMediaItem != nil) {
                 if (documents[selectedMediaItem!.id] == nil) {
                     documents[selectedMediaItem!.id] = [String:Document]()
                 }
                 
                 if (slidesDocument != nil) {
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateSlidesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: self.slidesDocument?.download)
+                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.cancelSlidesDocument), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: self.slidesDocument?.download)
+                    }
                     documents[selectedMediaItem!.id]?[slidesDocument!.purpose!] = slidesDocument
                 }
             }
@@ -257,7 +375,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 
                 globals.mediaCategory.selectedInDetail = selectedMediaItem?.id
                 
-                NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: selectedMediaItem) //
+                DispatchQueue.main.async {
+                    NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.selectedMediaItem) //
+                }
             } else {
                 // We always select, never deselect, so this should not be done.  If we set this to nil it is for some other reason, like clearing the UI.
                 //                defaults.removeObjectForKey(Constants.SELECTED_SERMON_DETAIL_KEY)
@@ -313,7 +433,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 setupSliderAndTimes()
 
                 selectedMediaItem?.playing = Playing.audio // Must come before setupNoteAndSlides()
-                setupDocumentsAndVideo() // Calls setupSTVControl()
+                setupSTVControl()
+//                setupDocumentsAndVideo() // Calls setupSTVControl()
                 break
                 
             default:
@@ -339,7 +460,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 setupSliderAndTimes()
                 
                 selectedMediaItem?.playing = Playing.video // Must come before setupNoteAndSlides()
-                setupDocumentsAndVideo() // Calls setupSTVControl()
+                setupSTVControl()
+//                setupDocumentsAndVideo() // Calls setupSTVControl()
                 break
                 
             case Playing.video:
@@ -382,25 +504,25 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         
         var toView:UIView?
         
-        var showing:String?
+//        var showing:String?
 
         if (sender.selectedSegmentIndex >= 0) && (sender.selectedSegmentIndex < sender.numberOfSegments){
             switch sender.titleForSegment(at: sender.selectedSegmentIndex)! {
             case Constants.STV_SEGMENT_TITLE.SLIDES:
-                showing = Showing.slides
-                toView = documents[selectedMediaItem!.id]?[Purpose.slides]?.wkWebView
+                selectedMediaItem?.showing = Showing.slides
+                toView = document?.wkWebView // s[selectedMediaItem!.id]?[Purpose.slides]
                 mediaItemNotesAndSlides.gestureRecognizers = nil
                 break
                 
             case Constants.STV_SEGMENT_TITLE.TRANSCRIPT:
-                showing = Showing.notes
-                toView = documents[selectedMediaItem!.id]?[Purpose.notes]?.wkWebView
+                selectedMediaItem?.showing = Showing.notes
+                toView = document?.wkWebView // s[selectedMediaItem!.id]?[Purpose.notes]
                 mediaItemNotesAndSlides.gestureRecognizers = nil
                 break
                 
             case Constants.STV_SEGMENT_TITLE.VIDEO:
                 toView = globals.mediaPlayer.view
-                showing = Showing.video
+                selectedMediaItem?.showing = Showing.video
                 mediaItemNotesAndSlides.gestureRecognizers = nil
                 let pan = UIPanGestureRecognizer(target: self, action: #selector(MediaViewController.showHideSlider(_:)))
                 mediaItemNotesAndSlides?.addGestureRecognizer(pan)
@@ -421,13 +543,18 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             toView?.isHidden = false
         }
 
-        self.mediaItemNotesAndSlides.bringSubview(toFront: toView!)
-        self.selectedMediaItem!.showing = showing
+        mediaItemNotesAndSlides.bringSubview(toFront: toView!)
+//        selectedMediaItem?.showing = showing
 
         if (fromView != toView) {
             fromView?.isHidden = true
         }
     
+        if (document != nil) && !document!.loaded {
+//            document!.loadTimer = nil
+            setupDocumentsAndVideo()
+        }
+
 //        UIView.transitionWithView(self.mediaItemNotesAndSlides, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {
 //            toView?.hidden = false
 //            self.mediaItemNotesAndSlides.bringSubviewToFront(toView!)
@@ -1032,8 +1159,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 
             case Constants.Refresh_Document:
                 // This only refreshes the visible document.
-                download?.deleteDownload()
+                download?.cancelOrDeleteDownload()
                 document?.loaded = false
+//                document?.loadTimer = nil
                 setupDocumentsAndVideo()
                 break
                 
@@ -1517,8 +1645,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         if (selectedMediaItem != nil) {
             viewSplit.isHidden = false
             
-            let hasNotes = selectedMediaItem!.hasNotes
-            let hasSlides = selectedMediaItem!.hasSlides
+            let hasNotes = selectedMediaItem!.hasNotes // && notesDocument!.loaded
+            let hasSlides = selectedMediaItem!.hasSlides // && slidesDocument!.loaded
             
             globals.mediaPlayer.view?.isHidden = true
             
@@ -1573,6 +1701,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     {
         let document = timer?.userInfo as? Document
         
+        print(document?.download?.purpose)
+        print(document?.download?.state)
+        print(document?.download?.downloadURL)
+        
         if (selectedMediaItem != nil) {
 //            print(selectedMediaItem)
             if (document?.download != nil) {
@@ -1585,9 +1717,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     document?.download?.task?.cancel()
                     
                     document?.loadTimer?.invalidate()
-//                    document?.loadTimer = nil
+                    document?.loadTimer = nil
                     
-                    if document!.visible(selectedMediaItem) {
+                    if document!.showing(selectedMediaItem) {
                         self.activityIndicator.stopAnimating()
                         self.activityIndicator.isHidden = true
                         
@@ -1599,14 +1731,25 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                         
                         self.logo.isHidden = false
                         self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+                        
+                        networkUnavailable("Download failed.")
                     }
                     break
                     
                 case .downloading:
 //                    print(".downloading")
-                    if document!.visible(selectedMediaItem) {
+                    if document!.showing(selectedMediaItem) {
                         progressIndicator.progress = document!.download!.totalBytesExpectedToWrite > 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
                     }
+//                    if document!.download!.totalBytesExpectedToWrite == 0 {
+//                        document?.download?.cancelDownload()
+//                        document?.loadTimer?.invalidate()
+//                        document?.loadTimer = nil
+//                        progressIndicator.isHidden = true
+//                        activityIndicator.isHidden = true
+//                        selectedMediaItem?.showing = Showing.none
+//                        setupDocumentsAndVideo()
+//                    }
                     break
                     
                 case .downloaded:
@@ -1656,7 +1799,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     {
         // Expected to be on the main thread
         if let document = timer?.userInfo as? Document {
-            if document.visible(selectedMediaItem) {
+            if document.showing(selectedMediaItem) {
                 if (document.wkWebView != nil) {
                     progressIndicator.progress = Float(document.wkWebView!.estimatedProgress)
 
@@ -1667,6 +1810,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             }
             
             if (document.wkWebView != nil) && !document.wkWebView!.isLoading {
+                activityIndicator.stopAnimating()
+                activityIndicator.isHidden = true
+                
                 document.loadTimer?.invalidate()
                 document.loadTimer = nil
             }
@@ -1700,7 +1846,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             if globals.cacheDownloads {
 //                print(document?.download?.state)
                 if (document?.download != nil) && (document?.download?.state != .downloaded){
-                    if document!.visible(selectedMediaItem) {
+                    if document!.showing(selectedMediaItem) {
                         mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
                         mediaItemNotesAndSlides.bringSubview(toFront: progressIndicator)
                         
@@ -1716,7 +1862,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     }
                     
                     if document?.loadTimer == nil {
-                        document?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.DOWNLOADING, target: self, selector: #selector(MediaViewController.downloading(_:)), userInfo: document, repeats: true)
+//                        document?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.DOWNLOADING, target: self, selector: #selector(MediaViewController.downloading(_:)), userInfo: document, repeats: true)
                     }
                     
                     document?.download?.download()
@@ -1726,7 +1872,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                         _ = document?.wkWebView?.loadFileURL(document!.download!.fileSystemURL! as URL, allowingReadAccessTo: document!.download!.fileSystemURL! as URL)
                         
                         DispatchQueue.main.async(execute: { () -> Void in
-                            if (document != nil) && document!.visible(self.selectedMediaItem) {
+                            if (document != nil) && document!.showing(self.selectedMediaItem) {
                                 self.activityIndicator.stopAnimating()
                                 self.activityIndicator.isHidden = true
                                 
@@ -1741,7 +1887,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             } else {
                 DispatchQueue.global(qos: .background).async(execute: { () -> Void in
                     DispatchQueue.main.async(execute: { () -> Void in
-                        if document!.visible(self.selectedMediaItem) {
+                        if document!.showing(self.selectedMediaItem) {
                             self.activityIndicator.isHidden = false
                             self.activityIndicator.startAnimating()
                             
@@ -1772,7 +1918,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         } else {
             DispatchQueue.global(qos: .background).async(execute: { () -> Void in
                 DispatchQueue.main.async(execute: { () -> Void in
-                    if document!.visible(self.selectedMediaItem) {
+                    if document!.showing(self.selectedMediaItem) {
                         self.activityIndicator.isHidden = false
                         self.activityIndicator.startAnimating()
                         
@@ -1796,7 +1942,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         if (selectedMediaItem != nil) {
             if (documents[selectedMediaItem!.id] != nil) {
                 for document in documents[selectedMediaItem!.id]!.values {
-                    if !document.visible(selectedMediaItem) {
+                    if !document.showing(selectedMediaItem) {
                         document.wkWebView?.isHidden = true
                     }
                 }
@@ -2478,17 +2624,19 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.showPlaying), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SHOW_PLAYING), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.paused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.failedToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.readyToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.setupPlayPauseButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
 
-        if (splitViewController != nil) {
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
+        DispatchQueue.main.async {
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.showPlaying), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SHOW_PLAYING), object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.paused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
+            
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.failedToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.readyToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.setupPlayPauseButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+            
+            if (self.splitViewController != nil) {
+                NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
+                NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
+            }
         }
 
         if (selectedMediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) && globals.mediaPlayer.isPaused && globals.mediaPlayer.mediaItem!.hasCurrentTime() {
@@ -2622,7 +2770,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 document.wkWebView?.removeFromSuperview()
                 document.wkWebView?.scrollView.delegate = nil
                 
-                if document.visible(selectedMediaItem) && (document.wkWebView != nil) && document.wkWebView!.scrollView.isDecelerating {
+                if document.showing(selectedMediaItem) && (document.wkWebView != nil) && document.wkWebView!.scrollView.isDecelerating {
                     captureContentOffset(document)
                 }
             }
@@ -3165,9 +3313,12 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     func tableView(_ tableView: UITableView, didSelectRowAtIndexPath indexPath: IndexPath) {
         if (selectedMediaItem != nil) &&  (documents[selectedMediaItem!.id] != nil) {
             for document in documents[selectedMediaItem!.id]!.values {
-                if document.visible(selectedMediaItem) && (document.wkWebView != nil) && document.wkWebView!.scrollView.isDecelerating {
+                if document.showing(selectedMediaItem) && (document.wkWebView != nil) && document.loaded && document.wkWebView!.scrollView.isDecelerating {
                     captureContentOffset(document)
                 }
+//                if !document.loaded && (document.loadTimer != nil) {
+//                    document.loadTimer = nil
+//                }
             }
         }
         
@@ -3195,7 +3346,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 if (webView == document.wkWebView) {
                     document.wkWebView?.scrollView.delegate = nil
                     document.wkWebView = nil
-                    if document.visible(selectedMediaItem) {
+                    if document.showing(selectedMediaItem) {
                         activityIndicator.stopAnimating()
                         activityIndicator.isHidden = true
                         
@@ -3220,8 +3371,39 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     }
     
     func webView(_ wkWebView: WKWebView, didStartProvisionalNavigation: WKNavigation!) {
-//        print("wkDidStartProvisionalNavigation")
-
+        print("wkDidStartProvisionalNavigation")
+        
+    }
+    
+    func webView(_ wkWebView: WKWebView, didFailProvisionalNavigation: WKNavigation!,withError: Error) {
+        print("didFailProvisionalNavigation")
+        
+        if !globals.cacheDownloads {
+            DispatchQueue.main.async(execute: { () -> Void in
+                for document in self.documents[self.selectedMediaItem!.id]!.values {
+                    if (document.wkWebView == wkWebView) && document.showing(self.selectedMediaItem) {
+                        self.document?.wkWebView?.isHidden = true
+                        self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+                        self.logo.isHidden = false
+                        
+                        if let purpose = document.download?.purpose {
+                            switch purpose {
+                            case Purpose.notes:
+                                networkUnavailable("Transcript not available.")
+                                break
+                                
+                            case Purpose.slides:
+                                networkUnavailable("Slides not available.")
+                                break
+                                
+                            default:
+                                break
+                            }
+                        }
+                    }
+                }
+            })
+        }
     }
     
     func wkSetZoomScaleThenContentOffset(_ wkWebView: WKWebView, scale:CGFloat, offset:CGPoint) {
@@ -3292,7 +3474,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     for document in documents[selectedMediaItem!.id]!.values {
                         if (webView == document.wkWebView) {
     //                        print("mediaItemNotesWebView")
-                            if document.visible(selectedMediaItem) {
+                            if document.showing(selectedMediaItem) {
                                 DispatchQueue.main.async(execute: { () -> Void in
                                     self.activityIndicator.stopAnimating()
                                     self.activityIndicator.isHidden = true

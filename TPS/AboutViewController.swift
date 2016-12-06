@@ -41,16 +41,7 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
             if (UIApplication.shared.canOpenURL(url)) { // Reachability.isConnectedToNetwork() &&
                 UIApplication.shared.openURL(url)
             } else {
-                let alert = UIAlertController(title: Constants.Network_Error,
-                    message: "Unable to open web site: \(urlString)",
-                    preferredStyle: UIAlertControllerStyle.alert)
-                
-                let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                    
-                })
-                alert.addAction(action)
-
-                present(alert, animated: true, completion: nil)
+                networkUnavailable("Unable to open web site: \(urlString)")
             }
         }
     }

@@ -99,7 +99,9 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             }
             
             if (mediaItem != nil) {
-                NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: mediaItem)
+                DispatchQueue.main.async {
+                    NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+                }
             }
 
             updateUI()

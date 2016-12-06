@@ -547,7 +547,7 @@ func versessFromScripture(_ scripture:String?) -> [Int]?
 
 func debug(_ string:String)
 {
-//    print(string)
+    print(string)
 }
 
 func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
@@ -2253,7 +2253,9 @@ func mailMediaItem(viewController:UIViewController, mediaItem:MediaItem?,stringF
     }
     
     if MFMailComposeViewController.canSendMail() {
-        viewController.present(mailComposeViewController, animated: true, completion: nil)
+        DispatchQueue.main.async(execute: { () -> Void in
+            viewController.present(mailComposeViewController, animated: true, completion: nil)
+        })
     } else {
         showSendMailErrorAlert(viewController: viewController)
     }
@@ -2398,116 +2400,108 @@ func mailHTML(viewController:UIViewController,to: [String],subject: String, html
     }
 }
 
+func printJob(viewController:UIViewController,htmlString:String?,orientation:UIPrintInfoOrientation)
+{
+    guard UIPrintInteractionController.isPrintingAvailable && (htmlString != nil) else {
+        return
+    }
+    
+    let pi = UIPrintInfo.printInfo()
+    pi.outputType = UIPrintInfoOutputType.general
+    pi.jobName = Constants.Print;
+    pi.duplex = UIPrintInfoDuplex.longEdge
+    
+    pi.orientation = orientation
+    
+    let pic = UIPrintInteractionController.shared
+    pic.printInfo = pi
+    pic.showsPageRange = true
+    pic.showsPaperSelectionForLoadedPapers = true
+    
+    let formatter = UIMarkupTextPrintFormatter(markupText: htmlString!)
+    formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
+    
+    pic.printFormatter = formatter
+    
+    DispatchQueue.main.async(execute: { () -> Void in
+        pic.present(from: viewController.navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
+    })
+}
+
 func printHTML(viewController:UIViewController,htmlString:String?)
 {
     guard UIPrintInteractionController.isPrintingAvailable && (htmlString != nil) else {
         return
     }
     
-    func printJob(orientation:UIPrintInfoOrientation)
-    {
-        let pi = UIPrintInfo.printInfo()
-        pi.outputType = UIPrintInfoOutputType.general
-        pi.jobName = Constants.Print;
-        pi.duplex = UIPrintInfoDuplex.longEdge
-        
-        pi.orientation = orientation
-        
-        let pic = UIPrintInteractionController.shared
-        pic.printInfo = pi
-        pic.showsPageRange = true
-        pic.showsPaperSelectionForLoadedPapers = true
-        
-        let formatter = UIMarkupTextPrintFormatter(markupText: htmlString!)
-        formatter.perPageContentInsets = UIEdgeInsets(top: 72, left: 54, bottom: 54, right: 54) // 72=1" margins
-        
-        pic.printFormatter = formatter
-        
-        DispatchQueue.main.async(execute: { () -> Void in
-            pic.present(from: viewController.navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
-        })
-    }
-
-    let alert = UIAlertController(title: "Page Orientation?",
-                                  message: "",
-                                  preferredStyle: UIAlertControllerStyle.alert)
-    
-    let yesAction = UIAlertAction(title: "Portrait", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-        printJob(orientation: .portrait)
-    })
-    alert.addAction(yesAction)
-    
-    let noAction = UIAlertAction(title: "Landscape", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-        printJob(orientation: .landscape)
-    })
-    alert.addAction(noAction)
-    
-    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-        
-    })
-    alert.addAction(cancelAction)
-    
-    DispatchQueue.main.async(execute: { () -> Void in
-        viewController.present(alert, animated: true, completion: nil)
-    })
+    pageOrientation(viewController: viewController,
+                    portrait: ({
+                        printJob(viewController: viewController,htmlString:htmlString,orientation:.portrait)
+                    }),
+                    landscape: ({
+                        printJob(viewController: viewController,htmlString:htmlString,orientation:.landscape)
+                    }),
+                    cancel: ({
+                    })
+    )
 }
 
-func printDocument(viewController:UIViewController?,documentURL:URL?)
+func printDocument(viewController:UIViewController,documentURL:URL?)
 {
-    guard UIPrintInteractionController.isPrintingAvailable && (viewController != nil) && (documentURL != nil) else { // && UIPrintInteractionController.canPrint(printURL!)  is too slow
+    guard UIPrintInteractionController.isPrintingAvailable && (documentURL != nil) else { // && UIPrintInteractionController.canPrint(printURL!)  is too slow
         return
     }
     
-    process(viewController: viewController!, work: {
+    process(viewController: viewController, work: {
         return NSData(contentsOf: documentURL!)
     }, completion: { (data:Any?) in
-        let pi = UIPrintInfo.printInfo()
-        pi.outputType = UIPrintInfoOutputType.general
-        pi.jobName = "Print";
-        pi.orientation = UIPrintInfoOrientation.portrait
-        pi.duplex = UIPrintInfoDuplex.longEdge
-        
-        let pic = UIPrintInteractionController.shared
-        pic.printInfo = pi
-        pic.showsPageRange = true
-        pic.showsPaperSelectionForLoadedPapers = true
-        
-        //Never could get this to work:
-        //            pic?.printFormatter = webView?.viewPrintFormatter()
-        
-        pic.printingItem = data
-        
-        pic.present(from: viewController!.navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
+        printJob(viewController: viewController, htmlString: data as? String, orientation: .portrait)
     })
 }
 
-func printMediaItem(viewController:UIViewController, mediaItem:MediaItem?,barButton:UIBarButtonItem?)
+func printMediaItem(viewController:UIViewController, mediaItem:MediaItem?)
 {
-    guard UIPrintInteractionController.isPrintingAvailable && (mediaItem != nil) && (barButton != nil) else {
+    guard UIPrintInteractionController.isPrintingAvailable && (mediaItem != nil) else {
         return
     }
     
     process(viewController: viewController, work: {
         return mediaItem?.contentsHTML
     }, completion: { (data:Any?) in
-        let pi = UIPrintInfo.printInfo()
-        pi.outputType = UIPrintInfoOutputType.general
-        pi.jobName = "Print";
-        pi.orientation = UIPrintInfoOrientation.portrait
-        pi.duplex = UIPrintInfoDuplex.longEdge
-        
-        let pic = UIPrintInteractionController.shared
-        pic.printInfo = pi
-        pic.showsPageRange = true
-        pic.showsPaperSelectionForLoadedPapers = true
-        
         if let bodyString = data as? String {
-            let formatter = UIMarkupTextPrintFormatter(markupText: bodyString)
-            formatter.perPageContentInsets = UIEdgeInsets(top: 72, left: 72, bottom: 72, right: 72) // 72=1" margins
-            
-            pic.printFormatter = formatter
-            pic.present(from: barButton!, animated: true, completionHandler: nil)
+            printJob(viewController: viewController, htmlString: data as? String, orientation: .portrait)
         }
+    })
+}
+
+func pageOrientation(viewController:UIViewController,portrait:((Void)->(Void))?,landscape:((Void)->(Void))?,cancel:((Void)->(Void))?)
+{
+    firstSecondCancel(viewController: viewController, title: "Page Orientation", message: "", firstTitle: "Portrait", firstAction: portrait, secondTitle: "Landscape", secondAction: landscape, cancelAction: cancel)
+}
+
+func firstSecondCancel(viewController:UIViewController,title:String,message:String,firstTitle:String,firstAction:((Void)->(Void))?,secondTitle:String,secondAction:((Void)->(Void))?,cancelAction:((Void)->(Void))?)
+{
+    let alert = UIAlertController(title: title,
+                                  message: message,
+                                  preferredStyle: UIAlertControllerStyle.alert)
+    
+    let yesAction = UIAlertAction(title: firstTitle, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+        firstAction?()
+    })
+    alert.addAction(yesAction)
+    
+    let noAction = UIAlertAction(title: secondTitle, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+        secondAction?()
+    })
+    alert.addAction(noAction)
+    
+    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+        cancelAction?()
+    })
+    alert.addAction(cancelAction)
+    
+    DispatchQueue.main.async(execute: { () -> Void in
+        viewController.present(alert, animated: true, completion: nil)
     })
 }
 
@@ -2517,64 +2511,25 @@ func printMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,str
         return
     }
     
-    var orientation:UIPrintInfoOrientation = .portrait
-    
-    func processMediaItems()
+    func processMediaItems(orientation:UIPrintInfoOrientation)
     {
         process(viewController: viewController, work: {
             return stringFunction?(mediaItems,links,columns)
         }, completion: { (data:Any?) in
-            let pi = UIPrintInfo.printInfo()
-            pi.outputType = UIPrintInfoOutputType.general
-            pi.jobName = "Print";
-            pi.duplex = UIPrintInfoDuplex.longEdge
-
-            pi.orientation = orientation
-            
-            let pic = UIPrintInteractionController.shared
-            pic.printInfo = pi
-            pic.showsPageRange = true
-            pic.showsPaperSelectionForLoadedPapers = true
-            
-            if let bodyString = data as? String {
-                let formatter = UIMarkupTextPrintFormatter(markupText: bodyString)
-                formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
-
-                pic.printFormatter = formatter
-                
-                pic.present(from: viewController.navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
-            }
+            printJob(viewController: viewController, htmlString: data as? String, orientation: orientation)
         })
     }
     
-    DispatchQueue.main.async(execute: { () -> Void in
-        viewController.dismiss(animated: true, completion: nil)
-    })
-    
-    let alert = UIAlertController(title: "Page Orientation?",
-                                  message: "",
-                                  preferredStyle: UIAlertControllerStyle.alert)
-    
-    let yesAction = UIAlertAction(title: "Portrait", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-        orientation = .portrait
-        processMediaItems()
-    })
-    alert.addAction(yesAction)
-    
-    let noAction = UIAlertAction(title: "Landscape", style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-        orientation = .landscape
-        processMediaItems()
-    })
-    alert.addAction(noAction)
-    
-    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-
-    })
-    alert.addAction(cancelAction)
-    
-    DispatchQueue.main.async(execute: { () -> Void in
-        viewController.present(alert, animated: true, completion: nil)
-    })
+    pageOrientation(viewController: viewController,
+                    portrait: ({
+                        processMediaItems(orientation:.portrait)
+                    }),
+                    landscape: ({
+                        processMediaItems(orientation:.landscape)
+                    }),
+                    cancel: ({
+                    })
+    )
 }
 
 func showSendMailErrorAlert(viewController:UIViewController)
@@ -2666,10 +2621,10 @@ func shareHTML(viewController:UIViewController,htmlString:String?)
         return
     }
 
-    let formatter = UIMarkupTextPrintFormatter(markupText: htmlString!)
-    formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
+//    let formatter = UIMarkupTextPrintFormatter(markupText: htmlString!)
+//    formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
 
-    let activityItems = [formatter,htmlString!] as [Any]
+    let activityItems = [htmlString] // as [Any]
     
     let activityViewController = UIActivityViewController(activityItems:activityItems, applicationActivities: nil)
     
@@ -2681,7 +2636,7 @@ func shareHTML(viewController:UIViewController,htmlString:String?)
     
     // present the view controller
     DispatchQueue.main.async(execute: { () -> Void in
-        viewController.present(activityViewController, animated: true, completion: nil)
+        viewController.present(activityViewController, animated: false, completion: nil)
     })
 }
 
@@ -2721,7 +2676,7 @@ func stripHead(_ string:String?) -> String?
 
 func insertHead(_ string:String?,fontSize:Int) -> String?
 {
-    let head = "<html><head><style>body{font: -apple-system-body;font-size:\(fontSize)pt;}td{font-size:\(fontSize)pt;}</style></head>"
+    let head = "<html><head><style>body{font: -apple-system-body;font-size:\(fontSize)pt;}td{font-size:\(fontSize)pt;}mark{background-color:silver}</style></head>" // ;font-weight: bold;text-decoration: underline;
     
     return string?.replacingOccurrences(of: "<html>", with: head)
 }
@@ -3121,9 +3076,9 @@ func addressString() -> String
 func networkUnavailable(_ message:String?)
 {
     if (UIApplication.shared.applicationState == UIApplicationState.active) {
-        DispatchQueue.main.async(execute: { () -> Void in
-            UIApplication.shared.keyWindow?.rootViewController?.dismiss(animated: true, completion: nil)
-        })
+//        DispatchQueue.main.async(execute: { () -> Void in
+//            UIApplication.shared.keyWindow?.rootViewController?.dismiss(animated: true, completion: nil)
+//        })
         
         let alert = UIAlertController(title:Constants.Network_Error,
                                       message: message,
