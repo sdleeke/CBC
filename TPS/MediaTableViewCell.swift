@@ -10,7 +10,7 @@ import UIKit
 
 class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate {
 
-    var downloadObserver:Timer?
+//    var downloadObserver:Timer?
 
     weak var vc:UIViewController?
     
@@ -52,14 +52,14 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         if (mediaItem != nil) {
             isHiddenUI(false)
 
-            if (mediaItem!.audioDownload?.state == .downloading) && (downloadObserver == nil) {
-                downloadObserver = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.DOWNLOADING, target: self, selector: #selector(MediaTableViewCell.updateUI), userInfo: nil, repeats: true)
-            }
-
-            if (mediaItem!.audioDownload?.state == .downloaded) && (downloadObserver != nil) {
-                downloadObserver?.invalidate()
-                downloadObserver = nil
-            }
+//            if (mediaItem!.audioDownload?.state == .downloading) && (downloadObserver == nil) {
+//                downloadObserver = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.DOWNLOADING, target: self, selector: #selector(MediaTableViewCell.updateUI), userInfo: nil, repeats: true)
+//            }
+//
+//            if (mediaItem!.audioDownload?.state == .downloaded) && (downloadObserver != nil) {
+//                downloadObserver?.invalidate()
+//                downloadObserver = nil
+//            }
             
             setupTagsButton()
 

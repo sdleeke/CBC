@@ -283,7 +283,21 @@ struct Picker {
 
 class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate, UIPopoverPresentationControllerDelegate, MFMailComposeViewControllerDelegate, PopoverTableViewControllerDelegate {
     var finished:Float = 0.0
-    var progress:Float = 0.0
+    var progress:Float = 0.0 {
+        didSet {
+            //            print(progress)
+            //            print(finished)
+
+            DispatchQueue.main.async(execute: { () -> Void in
+                if self.finished != 0 {
+                    self.progressIndicator.progress = self.progress / self.finished
+                }
+                if self.progressIndicator.progress == 1.0 {
+                    self.progressIndicator.isHidden = true
+                }
+            })
+        }
+    }
 
     var picker = Picker()
     
@@ -308,8 +322,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             return mediaListGroupSort?.list
         }
     }
-    
-    var timer:Timer?
     
     @IBOutlet weak var logo: UIImageView!
     @IBOutlet weak var directionLabel: UILabel!
@@ -1117,20 +1129,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         NotificationCenter.default.removeObserver(self)
     }
     
-    func working()
-    {
-        progressIndicator.progress = progress / finished
-        
-//        print(progress)
-//        print(finished)
-        
-        if progressIndicator.progress == 1.0 {
-            timer?.invalidate()
-            timer = nil
-            progressIndicator.isHidden = true
-        }
-    }
-    
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
@@ -1651,8 +1649,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
 
                 self.progressIndicator.progress = 0
                 self.progressIndicator.isHidden = false
-                
-                self.timer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.WORKING, target: self, selector: #selector(ScriptureIndexViewController.working), userInfo: nil, repeats: true)
             })
             
             if self.list != nil {

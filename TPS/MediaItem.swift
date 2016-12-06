@@ -506,7 +506,7 @@ class Download {
                         DispatchQueue.main.async(execute: { () -> Void in
                             // The following must appear AFTER we change the state
                             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.mediaItem)
-                            //                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+//                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                         })
                         break
                         
@@ -554,9 +554,9 @@ class Download {
     func download()
     {
         guard (downloadURL != nil) else {
-            print("\(mediaItem?.title)")
-            print("\(purpose)")
-            print("\(fileSystemURL)")
+            print(mediaItem?.title)
+            print(purpose)
+            print(fileSystemURL)
             return
         }
         
@@ -628,8 +628,6 @@ class Download {
             //            download.task?.cancelByProducingResumeData({ (data: NSData?) -> Void in
             //            })
             
-//            session?.invalidateAndCancel()
-//            session = nil
             task?.cancel()
             task = nil
             
@@ -2497,10 +2495,25 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             }
         }
 
-        if (download != nil) {
-            DispatchQueue.main.async(execute: { () -> Void in
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: download)
-            })
+        if (download?.purpose != nil) {
+            switch download!.purpose! {
+            case Purpose.audio:
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: download?.mediaItem)
+                })
+                break
+                
+            case Purpose.notes:
+                fallthrough
+            case Purpose.slides:
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: download)
+                })
+                break
+                
+            default:
+                break
+            }
 
             debug("URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:")
             
@@ -2657,7 +2670,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                 fallthrough
             case Purpose.notes:
                 DispatchQueue.main.async(execute: { () -> Void in
-                    print(download?.mediaItem)
+//                    print(download?.mediaItem)
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: download)
                 })
                 break

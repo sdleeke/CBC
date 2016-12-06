@@ -14,7 +14,7 @@ import WebKit
 import MediaPlayer
 
 class Document {
-    var loadTimer:Timer? // Why does each document have its own loadTimer?
+    var loadTimer:Timer? // Each document has its own loadTimer because each has its own WKWebView.  This is only used when a direct load is used, not when a document is cached and then loaded.
     
     var loaded = false
     
@@ -551,7 +551,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         }
     
         if (document != nil) && !document!.loaded {
-//            document!.loadTimer = nil
             setupDocumentsAndVideo()
         }
 
@@ -1161,7 +1160,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 // This only refreshes the visible document.
                 download?.cancelOrDeleteDownload()
                 document?.loaded = false
-//                document?.loadTimer = nil
                 setupDocumentsAndVideo()
                 break
                 
@@ -1697,103 +1695,103 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         }
     }
     
-    func downloading(_ timer:Timer?)
-    {
-        let document = timer?.userInfo as? Document
-        
-        print(document?.download?.purpose)
-        print(document?.download?.state)
-        print(document?.download?.downloadURL)
-        
-        if (selectedMediaItem != nil) {
-//            print(selectedMediaItem)
-            if (document?.download != nil) {
-                print("totalBytesWritten: \(document!.download!.totalBytesWritten)")
-                print("totalBytesExpectedToWrite: \(document!.download!.totalBytesExpectedToWrite)")
-                
-                switch document!.download!.state {
-                case .none:
-//                    print(".none")
-                    document?.download?.task?.cancel()
-                    
-                    document?.loadTimer?.invalidate()
-                    document?.loadTimer = nil
-                    
-                    if document!.showing(selectedMediaItem) {
-                        self.activityIndicator.stopAnimating()
-                        self.activityIndicator.isHidden = true
-                        
-                        self.progressIndicator.isHidden = true
-                        
-                        document?.wkWebView?.isHidden = true
-                        
-                        globals.mediaPlayer.view?.isHidden = true
-                        
-                        self.logo.isHidden = false
-                        self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
-                        
-                        networkUnavailable("Download failed.")
-                    }
-                    break
-                    
-                case .downloading:
-//                    print(".downloading")
-                    if document!.showing(selectedMediaItem) {
-                        progressIndicator.progress = document!.download!.totalBytesExpectedToWrite > 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
-                    }
-//                    if document!.download!.totalBytesExpectedToWrite == 0 {
-//                        document?.download?.cancelDownload()
+//    func downloading(_ timer:Timer?)
+//    {
+//        let document = timer?.userInfo as? Document
+//        
+//        print(document?.download?.purpose)
+//        print(document?.download?.state)
+//        print(document?.download?.downloadURL)
+//        
+//        if (selectedMediaItem != nil) {
+////            print(selectedMediaItem)
+//            if (document?.download != nil) {
+//                print("totalBytesWritten: \(document!.download!.totalBytesWritten)")
+//                print("totalBytesExpectedToWrite: \(document!.download!.totalBytesExpectedToWrite)")
+//                
+//                switch document!.download!.state {
+//                case .none:
+////                    print(".none")
+//                    document?.download?.task?.cancel()
+//                    
+//                    document?.loadTimer?.invalidate()
+//                    document?.loadTimer = nil
+//                    
+//                    if document!.showing(selectedMediaItem) {
+//                        self.activityIndicator.stopAnimating()
+//                        self.activityIndicator.isHidden = true
+//                        
+//                        self.progressIndicator.isHidden = true
+//                        
+//                        document?.wkWebView?.isHidden = true
+//                        
+//                        globals.mediaPlayer.view?.isHidden = true
+//                        
+//                        self.logo.isHidden = false
+//                        self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+//                        
+//                        networkUnavailable("Download failed.")
+//                    }
+//                    break
+//                    
+//                case .downloading:
+////                    print(".downloading")
+//                    if document!.showing(selectedMediaItem) {
+//                        progressIndicator.progress = document!.download!.totalBytesExpectedToWrite > 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
+//                    }
+////                    if document!.download!.totalBytesExpectedToWrite == 0 {
+////                        document?.download?.cancelDownload()
+////                        document?.loadTimer?.invalidate()
+////                        document?.loadTimer = nil
+////                        progressIndicator.isHidden = true
+////                        activityIndicator.isHidden = true
+////                        selectedMediaItem?.showing = Showing.none
+////                        setupDocumentsAndVideo()
+////                    }
+//                    break
+//                    
+//                case .downloaded:
+////                    print(".downloaded")
+//                    if #available(iOS 9.0, *) {
+//
 //                        document?.loadTimer?.invalidate()
 //                        document?.loadTimer = nil
-//                        progressIndicator.isHidden = true
-//                        activityIndicator.isHidden = true
-//                        selectedMediaItem?.showing = Showing.none
-//                        setupDocumentsAndVideo()
+//
+////                        DispatchQueue.global(qos: .background).async {
+////                            //                            print(document!.download!.fileSystemURL!)
+////                            _ = document?.wkWebView?.loadFileURL(document!.download!.fileSystemURL! as URL, allowingReadAccessTo: document!.download!.fileSystemURL! as URL)
+////                            
+////                            DispatchQueue.main.async(execute: { () -> Void in
+////                                if document!.visible(self.selectedMediaItem) {
+////                                    self.progressIndicator.progress = document!.download!.totalBytesExpectedToWrite > 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
+////                                }
+////                                
+////                                document?.loadTimer?.invalidate()
+////                                document?.loadTimer = nil
+////                            })
+////                        }
+//
+////                        DispatchQueue.global(priority: DispatchQueue.GlobalQueuePriority.default).async(execute: { () -> Void in
+//////                            print(document!.download!.fileSystemURL!)
+////                            document?.wkWebView?.loadFileURL(document!.download!.fileSystemURL! as URL, allowingReadAccessTo: document!.download!.fileSystemURL! as URL)
+////                            
+////                            DispatchQueue.main.async(execute: { () -> Void in
+////                                if document!.visible(self.selectedMediaItem) {
+////                                    self.progressIndicator.progress = document!.download!.totalBytesExpectedToWrite > 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
+////                                }
+////                                
+////                                document?.loadTimer?.invalidate()
+////                                document?.loadTimer = nil
+////                            })
+////                        })
+//                    } else {
+//                        // Fallback on earlier versions
 //                    }
-                    break
-                    
-                case .downloaded:
-//                    print(".downloaded")
-                    if #available(iOS 9.0, *) {
-
-                        document?.loadTimer?.invalidate()
-                        document?.loadTimer = nil
-
-//                        DispatchQueue.global(qos: .background).async {
-//                            //                            print(document!.download!.fileSystemURL!)
-//                            _ = document?.wkWebView?.loadFileURL(document!.download!.fileSystemURL! as URL, allowingReadAccessTo: document!.download!.fileSystemURL! as URL)
-//                            
-//                            DispatchQueue.main.async(execute: { () -> Void in
-//                                if document!.visible(self.selectedMediaItem) {
-//                                    self.progressIndicator.progress = document!.download!.totalBytesExpectedToWrite > 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
-//                                }
-//                                
-//                                document?.loadTimer?.invalidate()
-//                                document?.loadTimer = nil
-//                            })
-//                        }
-
-//                        DispatchQueue.global(priority: DispatchQueue.GlobalQueuePriority.default).async(execute: { () -> Void in
-////                            print(document!.download!.fileSystemURL!)
-//                            document?.wkWebView?.loadFileURL(document!.download!.fileSystemURL! as URL, allowingReadAccessTo: document!.download!.fileSystemURL! as URL)
-//                            
-//                            DispatchQueue.main.async(execute: { () -> Void in
-//                                if document!.visible(self.selectedMediaItem) {
-//                                    self.progressIndicator.progress = document!.download!.totalBytesExpectedToWrite > 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
-//                                }
-//                                
-//                                document?.loadTimer?.invalidate()
-//                                document?.loadTimer = nil
-//                            })
-//                        })
-                    } else {
-                        // Fallback on earlier versions
-                    }
-                    break
-                }
-            }
-        }
-    }
+//                    break
+//                }
+//            }
+//        }
+//    }
     
     func loading(_ timer:Timer?)
     {
@@ -1861,9 +1859,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                         mediaItemNotesAndSlides.bringSubview(toFront: progressIndicator)
                     }
                     
-                    if document?.loadTimer == nil {
+//                    if document?.loadTimer == nil {
 //                        document?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.DOWNLOADING, target: self, selector: #selector(MediaViewController.downloading(_:)), userInfo: document, repeats: true)
-                    }
+//                    }
                     
                     document?.download?.download()
                 } else {
@@ -1879,8 +1877,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                                 self.progressIndicator.progress = 0.0
                                 self.progressIndicator.isHidden = true
                             }
-                            document?.loadTimer?.invalidate()
-                            document?.loadTimer = nil
+//                            document?.loadTimer?.invalidate()
+//                            document?.loadTimer = nil
                         })
                     })
                 }
@@ -3316,9 +3314,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 if document.showing(selectedMediaItem) && (document.wkWebView != nil) && document.loaded && document.wkWebView!.scrollView.isDecelerating {
                     captureContentOffset(document)
                 }
-//                if !document.loaded && (document.loadTimer != nil) {
-//                    document.loadTimer = nil
-//                }
             }
         }
         
@@ -3467,43 +3462,49 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         
 //        print("Frame: \(webView.frame)")
 //        print("Bounds: \(webView.bounds)")
+        
+        guard self.view != nil else {
+            return
+        }
 
-        if (self.view != nil) {
-            if (selectedMediaItem != nil) {
-                if (documents[selectedMediaItem!.id] != nil) {
-                    for document in documents[selectedMediaItem!.id]!.values {
-                        if (webView == document.wkWebView) {
-    //                        print("mediaItemNotesWebView")
-                            if document.showing(selectedMediaItem) {
-                                DispatchQueue.main.async(execute: { () -> Void in
-                                    self.activityIndicator.stopAnimating()
-                                    self.activityIndicator.isHidden = true
-                                    
-                                    self.progressIndicator.isHidden = true
-                                    
-                                    self.setupSTVControl()
-                                    
-//                                    print("webView:hidden=panning")
-                                    webView.isHidden = false // self.panning
-                                })
-                            } else {
-                                DispatchQueue.main.async(execute: { () -> Void in
-//                                    print("webView:hidden=true")
-                                    webView.isHidden = true
-                                })
-                            }
-                            
-                            DispatchQueue.main.async(execute: { () -> Void in
-                                document.loadTimer?.invalidate()
-                                document.loadTimer = nil
-                            })
-                            
-                            setDocumentContentOffsetAndZoomScale(document)
-                            
-                            document.loaded = true
-                        }
-                    }
+        guard selectedMediaItem != nil else {
+            return
+        }
+        
+        guard documents[selectedMediaItem!.id] != nil else {
+            return
+        }
+        
+        for document in documents[selectedMediaItem!.id]!.values {
+            if (webView == document.wkWebView) {
+                //                        print("mediaItemNotesWebView")
+                if document.showing(selectedMediaItem) {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.activityIndicator.stopAnimating()
+                        self.activityIndicator.isHidden = true
+                        
+                        self.progressIndicator.isHidden = true
+                        
+                        self.setupSTVControl()
+                        
+                        //                            print("webView:hidden=panning")
+                        webView.isHidden = false // self.panning
+                    })
+                } else {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        //                            print("webView:hidden=true")
+                        webView.isHidden = true
+                    })
                 }
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    document.loadTimer?.invalidate()
+                    document.loadTimer = nil
+                })
+                
+                setDocumentContentOffsetAndZoomScale(document)
+                
+                document.loaded = true
             }
         }
     }

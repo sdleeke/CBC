@@ -105,7 +105,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2mr-qJ-uXH">
-                                                    <rect key="frame" x="298" y="44" width="18" height="33"/>
+                                                    <rect key="frame" x="298" y="48" width="18" height="31"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="9dN-PR-ji7"/>
                                                     </constraints>
@@ -116,7 +116,7 @@
                                                     </connections>
                                                 </button>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="IeR-9v-6I1" userLabel="Icons">
-                                                    <rect key="frame" x="287" y="77" width="29" height="14"/>
+                                                    <rect key="frame" x="287" y="79" width="29" height="12"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
@@ -830,7 +830,7 @@ Email: cbcstaff@countrysidebible.org</string>
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="T8F-64-B2A" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="S1h-nS-ZaR">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="S1h-nS-ZaR">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -896,7 +896,7 @@ Email: cbcstaff@countrysidebible.org</string>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4bl-Bk-XNX">
-                                                    <rect key="frame" x="234" y="44" width="82" height="33"/>
+                                                    <rect key="frame" x="235" y="48" width="81" height="31"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="18"/>
                                                     <state key="normal" title="Download"/>
                                                     <connections>
@@ -904,7 +904,7 @@ Email: cbcstaff@countrysidebible.org</string>
                                                     </connections>
                                                 </button>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7bR-cd-0Mf" userLabel="Icons">
-                                                    <rect key="frame" x="287" y="77" width="29" height="14"/>
+                                                    <rect key="frame" x="287" y="79" width="29" height="12"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
@@ -913,7 +913,7 @@ Email: cbcstaff@countrysidebible.org</string>
                                                     <rect key="frame" x="20" y="97" width="300" height="2"/>
                                                 </progressView>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ONB-ig-Eaf">
-                                                    <rect key="frame" x="234" y="13" width="38" height="33"/>
+                                                    <rect key="frame" x="235" y="19" width="39" height="31"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="6mU-94-xc0"/>
                                                     </constraints>
@@ -1074,13 +1074,26 @@ Email: cbcstaff@countrysidebible.org</string>
                                             <constraint firstAttribute="width" constant="150" id="FA9-Bu-8Zo"/>
                                         </constraints>
                                     </progressView>
+                                    <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="SWG-El-9IY">
+                                        <rect key="frame" x="20" y="216" width="279" height="72"/>
+                                        <accessibility key="accessibilityConfiguration">
+                                            <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
+                                        </accessibility>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="72" id="cNl-r3-XLo"/>
+                                            <constraint firstAttribute="width" constant="279" id="nvt-Pk-D31"/>
+                                        </constraints>
+                                    </imageView>
                                 </subviews>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstItem="32f-tz-uDW" firstAttribute="centerX" secondItem="fMW-fs-A1c" secondAttribute="centerX" id="K5F-6a-hKi"/>
                                     <constraint firstItem="s1B-pf-2oT" firstAttribute="centerY" secondItem="fMW-fs-A1c" secondAttribute="centerY" id="N46-fh-5b7"/>
                                     <constraint firstItem="s1B-pf-2oT" firstAttribute="centerX" secondItem="fMW-fs-A1c" secondAttribute="centerX" id="VZ1-dR-gIo"/>
+                                    <constraint firstItem="SWG-El-9IY" firstAttribute="width" secondItem="SWG-El-9IY" secondAttribute="height" multiplier="31:8" id="c0H-xO-GMj"/>
+                                    <constraint firstItem="SWG-El-9IY" firstAttribute="centerX" secondItem="s1B-pf-2oT" secondAttribute="centerX" id="haR-Nt-XLl"/>
                                     <constraint firstItem="32f-tz-uDW" firstAttribute="centerY" secondItem="fMW-fs-A1c" secondAttribute="centerY" id="k6j-80-xgO"/>
+                                    <constraint firstItem="SWG-El-9IY" firstAttribute="centerY" secondItem="32f-tz-uDW" secondAttribute="centerY" id="xNK-KX-KEn"/>
                                 </constraints>
                             </view>
                         </subviews>
@@ -1096,6 +1109,7 @@ Email: cbcstaff@countrysidebible.org</string>
                     <navigationItem key="navigationItem" id="kXw-S0-5lf"/>
                     <connections>
                         <outlet property="activityIndicator" destination="32f-tz-uDW" id="xim-gb-GPV"/>
+                        <outlet property="logo" destination="SWG-El-9IY" id="Lgo-Go-Qzu"/>
                         <outlet property="progressIndicator" destination="s1B-pf-2oT" id="yxg-yL-HMW"/>
                         <outlet property="webView" destination="fMW-fs-A1c" id="Dfx-6m-Ifd"/>
                     </connections>
@@ -1424,7 +1438,7 @@ Web site: www.countrysidebible.org</string>
             <objects>
                 <navigationController storyboardIdentifier="String Picker" automaticallyAdjustsScrollViewInsets="NO" id="UCl-zC-hJL" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="quz-IT-Y6p">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="quz-IT-Y6p">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1578,7 +1592,7 @@ Web site: www.countrysidebible.org</string>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wyR-cL-8vF">
-                                                    <rect key="frame" x="514" y="44" width="82" height="33"/>
+                                                    <rect key="frame" x="515" y="48" width="81" height="31"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="lCo-qy-nOu"/>
                                                     </constraints>
@@ -1594,7 +1608,7 @@ Web site: www.countrysidebible.org</string>
                                                     </connections>
                                                 </button>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UKd-is-tKJ">
-                                                    <rect key="frame" x="563" y="77" width="29" height="14"/>
+                                                    <rect key="frame" x="563" y="79" width="29" height="12"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
@@ -1742,7 +1756,7 @@ Web site: www.countrysidebible.org</string>
             <objects>
                 <navigationController storyboardIdentifier="PopoverTableView" automaticallyAdjustsScrollViewInsets="NO" id="AiN-7T-5Uv" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="szK-O4-wo7">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="szK-O4-wo7">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1928,7 +1942,7 @@ Web site: www.countrysidebible.org</string>
             <objects>
                 <navigationController storyboardIdentifier="Web View" automaticallyAdjustsScrollViewInsets="NO" id="acK-BN-UTQ" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="0sI-Ls-Scx">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="0sI-Ls-Scx">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>

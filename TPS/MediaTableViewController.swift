@@ -592,7 +592,20 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     self.disableBarButtons()
                     
                     DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                        globals.progress = 0
+                        globals.finished = 0
+                        
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.progressTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PROGRESS, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
+                        })
+                        
                         globals.setupDisplay()
+                        
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.progressTimer?.invalidate()
+                            self.progressTimer = nil
+                            self.progressIndicator.isHidden = true
+                        })
                         
                         DispatchQueue.main.async(execute: { () -> Void in
                             self.tableView.reloadData()

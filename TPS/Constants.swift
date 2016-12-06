@@ -191,11 +191,11 @@ struct Constants {
     struct TIMER_INTERVAL {
         static let SLIDER       = 0.1
         static let PLAYER       = 0.1
-        static let DOWNLOADING  = 0.2
+//        static let DOWNLOADING  = 0.2
         static let LOADING      = 0.2
         static let PROGRESS     = 0.1
-        static let WORKING      = 0.1
-        static let SEEKING      = 0.1
+//        static let WORKING      = 0.1
+//        static let SEEKING      = 0.1
     }
     
     static let MIN_PLAY_TIME = 15.0

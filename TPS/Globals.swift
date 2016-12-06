@@ -416,7 +416,7 @@ class MediaPlayer {
         loadFailed = false
     }
     
-    var observer: Timer?
+//    var observer: Timer?
     
     var mediaItem:MediaItem? {
         didSet {

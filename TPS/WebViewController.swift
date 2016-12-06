@@ -39,7 +39,82 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
-    var selectedMediaItem:MediaItem?
+    @IBOutlet weak var logo: UIImageView!
+    
+    func updateDownload()
+    {
+        //        print(document)
+        //        print(download)
+        
+        if let download = selectedMediaItem?.download {
+            switch download.state {
+            case .none:
+                //                    print(".none")
+                break
+                
+            case .downloading:
+                //                    print(".downloading")
+                progressIndicator.progress = download.totalBytesExpectedToWrite > 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
+                break
+                
+            case .downloaded:
+                break
+            }
+        }
+    }
+    
+    func cancelDownload()
+    {
+        //        print(document)
+        //        print(download)
+        
+        if let download = selectedMediaItem?.download {
+            switch download.state {
+            case .none:
+                //                    print(".none")
+                break
+                
+            case .downloading:
+                //                    print(".downloading")
+                download.state = .none
+
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.activityIndicator.stopAnimating()
+                    self.activityIndicator.isHidden = true
+                    
+                    self.progressIndicator.isHidden = true
+                    
+                    self.wkWebView?.isHidden = true
+                    
+                    self.logo.isHidden = false
+                    self.webView.bringSubview(toFront: self.logo)
+                    
+                    // Can't prevent this from getting called twice in succession.
+                    networkUnavailable("Document could not be loaded.")
+                })
+                break
+                
+            case .downloaded:
+                break
+            }
+    }
+    }
+    
+    var selectedMediaItem:MediaItem? {
+        didSet {
+            if oldValue != nil {
+                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: oldValue?.download)
+                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: oldValue?.download)
+            }
+
+            if selectedMediaItem != nil {
+                DispatchQueue.main.async {
+                    NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.updateDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: self.selectedMediaItem?.download)
+                    NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.cancelDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: self.selectedMediaItem?.download)
+                }
+            }
+        }
+    }
 
     override var canBecomeFirstResponder : Bool {
         return true //splitViewController == nil
@@ -600,61 +675,61 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         // Do any additional setup after loading the view.
     }
     
-    func downloading()
-    {
-        var download:Download?
-        
-        download = selectedMediaItem?.download
-
-//        if (download != nil) {
-//            print("totalBytesWritten: \(download!.totalBytesWritten)")
-//            print("totalBytesExpectedToWrite: \(download!.totalBytesExpectedToWrite)")
+//    func downloading()
+//    {
+//        var download:Download?
+//        
+//        download = selectedMediaItem?.download
+//
+////        if (download != nil) {
+////            print("totalBytesWritten: \(download!.totalBytesWritten)")
+////            print("totalBytesExpectedToWrite: \(download!.totalBytesExpectedToWrite)")
+////        }
+//
+//        switch download!.state {
+//        case .none:
+//            print(".none")
+//            self.loadTimer?.invalidate()
+//            self.loadTimer = nil
+//            
+//            self.activityIndicator.stopAnimating()
+//            self.activityIndicator.isHidden = true
+//            
+//            self.progressIndicator.progress = 0.0
+//            self.progressIndicator.isHidden = true
+//            break
+//        
+//        case .downloading:
+//            print(".downloading")
+//            progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
+//            break
+//
+//        case .downloaded:
+//            print(".downloaded")
+//            progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
+////            print(progressIndicator.progress)
+//
+//            if #available(iOS 9.0, *) {
+//                DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+//                    _ = self.wkWebView?.loadFileURL(download!.fileSystemURL! as URL, allowingReadAccessTo: download!.fileSystemURL! as URL)
+//                    
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                        self.loadTimer?.invalidate()
+//                        self.loadTimer = nil
+//                        
+//                        self.activityIndicator.stopAnimating()
+//                        self.activityIndicator.isHidden = true
+//                        
+//                        self.progressIndicator.progress = 0.0
+//                        self.progressIndicator.isHidden = true
+//                    })
+//                })
+//            } else {
+//                // Fallback on earlier versions
+//            }
+//            break
 //        }
-
-        switch download!.state {
-        case .none:
-            print(".none")
-            self.loadTimer?.invalidate()
-            self.loadTimer = nil
-            
-            self.activityIndicator.stopAnimating()
-            self.activityIndicator.isHidden = true
-            
-            self.progressIndicator.progress = 0.0
-            self.progressIndicator.isHidden = true
-            break
-        
-        case .downloading:
-            print(".downloading")
-            progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
-            break
-
-        case .downloaded:
-            print(".downloaded")
-            progressIndicator.progress = download!.totalBytesExpectedToWrite > 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
-//            print(progressIndicator.progress)
-
-            if #available(iOS 9.0, *) {
-                DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-                    _ = self.wkWebView?.loadFileURL(download!.fileSystemURL! as URL, allowingReadAccessTo: download!.fileSystemURL! as URL)
-                    
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.loadTimer?.invalidate()
-                        self.loadTimer = nil
-                        
-                        self.activityIndicator.stopAnimating()
-                        self.activityIndicator.isHidden = true
-                        
-                        self.progressIndicator.progress = 0.0
-                        self.progressIndicator.isHidden = true
-                    })
-                })
-            } else {
-                // Fallback on earlier versions
-            }
-            break
-        }
-    }
+//    }
     
     func loadDocument()
     {
@@ -688,9 +763,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                     progressIndicator.progress = download!.totalBytesExpectedToWrite != 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
                     progressIndicator.isHidden = false
                     
-                    if loadTimer == nil {
-                        loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.DOWNLOADING, target: self, selector: #selector(WebViewController.downloading), userInfo: nil, repeats: true)
-                    }
+//                    if loadTimer == nil {
+//                        loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.DOWNLOADING, target: self, selector: #selector(WebViewController.downloading), userInfo: nil, repeats: true)
+//                    }
 
                     download?.download()
                 }
@@ -764,6 +839,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         if let title = selectedMediaItem?.title {
             navigationItem.title = title
         }
+        
+        logo.isHidden = true
         
         setupActionButton()
 

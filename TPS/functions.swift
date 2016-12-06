@@ -547,7 +547,7 @@ func versessFromScripture(_ scripture:String?) -> [Int]?
 
 func debug(_ string:String)
 {
-    print(string)
+//    print(string)
 }
 
 func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
@@ -2468,9 +2468,7 @@ func printMediaItem(viewController:UIViewController, mediaItem:MediaItem?)
     process(viewController: viewController, work: {
         return mediaItem?.contentsHTML
     }, completion: { (data:Any?) in
-        if let bodyString = data as? String {
-            printJob(viewController: viewController, htmlString: data as? String, orientation: .portrait)
-        }
+        printJob(viewController: viewController, htmlString: data as? String, orientation: .portrait)
     })
 }
 
