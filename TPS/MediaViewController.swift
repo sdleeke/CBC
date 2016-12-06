@@ -550,8 +550,34 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             fromView?.isHidden = true
         }
     
-        if (document != nil) && !document!.loaded {
-            setupDocumentsAndVideo()
+        if let loaded = document?.loaded, let download = document?.download {
+            if !loaded {
+                if #available(iOS 9.0, *) {
+                    if globals.cacheDownloads {
+                        if (download.state != .downloading) {
+                            setupDocumentsAndVideo()
+                        }
+                    } else {
+                        if let isLoading = document?.wkWebView?.isLoading {
+                            if !isLoading {
+                                setupDocumentsAndVideo()
+                            }
+                        } else {
+                            // No WKWebView
+                            setupDocumentsAndVideo()
+                        }
+                    }
+                } else {
+                    if let isLoading = document?.wkWebView?.isLoading {
+                        if !isLoading {
+                            setupDocumentsAndVideo()
+                        }
+                    } else {
+                        // No WKWebView
+                        setupDocumentsAndVideo()
+                    }
+                }
+            }
         }
 
 //        UIView.transitionWithView(self.mediaItemNotesAndSlides, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {

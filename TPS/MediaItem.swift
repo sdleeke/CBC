@@ -490,7 +490,6 @@ class Download {
                     
                     DispatchQueue.main.async(execute: { () -> Void in
                         // The following must appear AFTER we change the state
-//                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.mediaItem)
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                     })
                     break
@@ -506,7 +505,6 @@ class Download {
                         DispatchQueue.main.async(execute: { () -> Void in
                             // The following must appear AFTER we change the state
                             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.mediaItem)
-//                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                         })
                         break
                         
