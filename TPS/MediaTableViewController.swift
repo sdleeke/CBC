@@ -92,11 +92,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             DispatchQueue.main.async(execute: { () -> Void in
                 self.searchBar.resignFirstResponder()
                 self.searchBar.placeholder = nil
-                self.mediaCategoryButton.setTitle(globals.mediaCategory.selected, for: UIControlState.normal)
-                self.listActivityIndicator.isHidden = false
-                self.listActivityIndicator.startAnimating()
-                self.disableBarButtons()
             })
+            
+            setupCategoryButton()
+            setupListActivityIndicator()
+            setupBarButtons()
             
             // This does not show the activityIndicator
             handleRefresh(refreshControl!)
@@ -278,38 +278,42 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func disableToolBarButtons()
     {
-        if let barButtons = toolbarItems {
-            for barButton in barButtons {
-                barButton.isEnabled = false
+        DispatchQueue.main.async(execute: { () -> Void in
+            if let barButtons = self.toolbarItems {
+                for barButton in barButtons {
+                    barButton.isEnabled = false
+                }
             }
-        }
+        })
     }
     
     func disableBarButtons()
     {
-        mediaCategoryButton.isEnabled = false
-
-        navigationItem.leftBarButtonItem?.isEnabled = false
-        navigationItem.rightBarButtonItem?.isEnabled = false
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.navigationItem.leftBarButtonItem?.isEnabled = false
+            self.navigationItem.rightBarButtonItem?.isEnabled = false
+        })
         
         disableToolBarButtons()
     }
     
     func enableToolBarButtons()
     {
-        if let barButtons = toolbarItems {
-            for barButton in barButtons {
-                barButton.isEnabled = true
+        DispatchQueue.main.async(execute: { () -> Void in
+            if let barButtons = self.toolbarItems {
+                for barButton in barButtons {
+                    barButton.isEnabled = true
+                }
             }
-        }
+        })
     }
     
     func enableBarButtons()
     {
-        mediaCategoryButton.isEnabled = true
-        
-        navigationItem.leftBarButtonItem?.isEnabled = true
-        navigationItem.rightBarButtonItem?.isEnabled = true
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.navigationItem.leftBarButtonItem?.isEnabled = true
+            self.navigationItem.rightBarButtonItem?.isEnabled = true
+        })
         
         enableToolBarButtons()
     }
@@ -1506,11 +1510,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 self.setupListActivityIndicator()
                 
-                if globals.searchComplete {
-                    self.enableBarButtons()
-                    self.setupCategoryButton()
-                }
-                
                 if globals.mediaRepository.list != nil {
                     if globals.isRefreshing {
                         DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
@@ -1521,27 +1520,34 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 }
 
                 completion?()
+
+                globals.isLoading = false
+
+                self.setupBarButtons()
+                self.setupCategoryButton()
+                self.setupListActivityIndicator()
             })
-            
-            globals.isLoading = false
         })
     }
     
     func setupCategoryButton()
     {
-        mediaCategoryButton.setTitle(globals.mediaCategory.selected, for: UIControlState.normal)
-        if globals.isLoading {
-            mediaCategoryButton.isEnabled = false
-        } else {
-            if (globals.mediaRepository.list != nil) &&  globals.searchComplete {
-                mediaCategoryButton.isEnabled = true
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.mediaCategoryButton.setTitle(globals.mediaCategory.selected, for: UIControlState.normal)
+            
+            if globals.isLoading || globals.isRefreshing || !globals.searchComplete {
+                self.mediaCategoryButton.isEnabled = false
+            } else {
+                if (globals.mediaRepository.list != nil) && globals.searchComplete {
+                    self.mediaCategoryButton.isEnabled = true
+                }
             }
-        }
+        })
     }
     
     func setupBarButtons()
     {
-        if globals.isLoading {
+        if globals.isLoading || globals.isRefreshing || !globals.searchComplete {
             disableBarButtons()
         } else {
             if (globals.mediaRepository.list != nil) &&  globals.searchComplete {
@@ -1552,14 +1558,22 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func setupListActivityIndicator()
     {
-        if globals.isLoading {
+        if globals.isLoading || (globals.searchActive && !globals.searchComplete) {
             if !globals.isRefreshing {
-                self.listActivityIndicator.startAnimating()
-                self.listActivityIndicator.isHidden = false
+                if !self.listActivityIndicator.isAnimating {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.listActivityIndicator.isHidden = false
+                        self.listActivityIndicator.startAnimating()
+                    })
+                }
             }
         } else {
-            self.listActivityIndicator.stopAnimating()
-            self.listActivityIndicator.isHidden = true
+            if self.listActivityIndicator.isAnimating {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.listActivityIndicator.stopAnimating()
+                    self.listActivityIndicator.isHidden = true
+                })
+            }
         }
     }
     
@@ -1737,6 +1751,16 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
     }
+
+    func setupSearchBar()
+    {
+        if globals.isLoading || globals.isRefreshing {
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.searchBar.resignFirstResponder()
+                self.searchBar.placeholder = nil
+            })
+        }
+    }
     
     func handleRefresh(_ refreshControl: UIRefreshControl) {
         globals.isRefreshing = true
@@ -1750,23 +1774,20 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         globals.cancelAllDownloads()
 
         globals.clearDisplay()
-        
-        searchBar.placeholder = nil
 
+        setupSearchBar()
+        
         DispatchQueue.main.async(execute: { () -> Void in
             self.tableView.reloadData()
-        })
-
-        if splitViewController != nil {
-            DispatchQueue.main.async(execute: { () -> Void in
+            
+            if self.splitViewController != nil {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
-            })
-        }
-
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.setupBarButtons()
+            }
         })
         
+        setupBarButtons()
+        setupCategoryButton()
+
         loadCategories()
         
         // loadMediaItems or downloadJSON
@@ -1791,14 +1812,15 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                                 globals.isRefreshing = false
                             })
                         } else {
-                            self.listActivityIndicator.isHidden = true
-                            self.listActivityIndicator.stopAnimating()
+                            self.setupListActivityIndicator()
                         }
                     })
                     alert.addAction(action)
                     
                     self.present(alert, animated: true, completion: nil)
                 } else {
+                    globals.isRefreshing = false
+                    
                     if globals.searchActive && globals.searchTranscripts && !globals.searchComplete {
                         self.updateSearchResults(globals.searchText,completion: {
                             DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
@@ -1893,8 +1915,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                                     globals.isRefreshing = false
                                 })
                             } else {
-                                self.listActivityIndicator.isHidden = true
-                                self.listActivityIndicator.stopAnimating()
+                                self.setupListActivityIndicator()
                             }
                         })
                         alert.addAction(action)
@@ -2041,12 +2062,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     
                     if globals.search?.list != nil {
                         for mediaItem in globals.search!.list! {
-                            if !self.listActivityIndicator.isAnimating {
-                                DispatchQueue.main.async(execute: { () -> Void in
-                                    self.listActivityIndicator.isHidden = false
-                                    self.listActivityIndicator.startAnimating()
-                                })
-                            }
+                            self.setupListActivityIndicator()
                             
                             let searchHit = mediaItem.search(searchText: globals.searchText)
                             
@@ -2121,12 +2137,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
                         if !abort && globals.searchTranscripts {
                             for mediaItem in globals.search!.list! {
-                                if !self.listActivityIndicator.isAnimating {
-                                    DispatchQueue.main.async(execute: { () -> Void in
-                                        self.listActivityIndicator.isHidden = false
-                                        self.listActivityIndicator.startAnimating()
-                                    })
-                                }
+                                self.setupListActivityIndicator()
                                 
                                 var searchHit = false
                                 
@@ -2221,14 +2232,15 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         } else {
                             self.changesPending = true
                         }
-                        self.listActivityIndicator.stopAnimating()
-                        self.listActivityIndicator.isHidden = true
-                        self.enableBarButtons()
 
                         completion?()
+                        
+                        globals.searchComplete = true
+                        
+                        self.setupListActivityIndicator()
+                        self.setupBarButtons()
+                        self.setupCategoryButton()
                     })
-                    
-                    globals.searchComplete = true
                 }
             })
         } else {
@@ -2238,7 +2250,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
     func selectOrScrollToMediaItem(_ mediaItem:MediaItem?, select:Bool, scroll:Bool, position: UITableViewScrollPosition)
     {
-        if (mediaItem != nil) && (globals.active?.mediaItems?.index(of: mediaItem!) != nil) {
+        if (mediaItem != nil) && (globals.active?.mediaItems?.index(of: mediaItem!) != nil) && refreshList {
             var indexPath = IndexPath(item: 0, section: 0)
             
             var section:Int = -1
@@ -2395,6 +2407,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         navigationController?.isToolbarHidden = false
         
         setupBarButtons()
+
         setupListActivityIndicator()
     }
 
@@ -2890,25 +2903,35 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 popover.strings = searchStrings
                 
                 if mediaItem.hasNotesHTML {
-                    if globals.searchTranscripts && globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
-                        popover.stringsFunction = {
-                            var strings = popover.strings
-                            
+                    if mediaItem.notesHTML != nil {
+                        if globals.searchTranscripts && globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
                             if mediaItem.searchFullNotesHTML(searchText: globals.searchText) {
-                                strings?.insert(Constants.Transcript,at: 0)
+                                popover.strings?.insert(Constants.Transcript,at: 0)
                             }
-                            
-                            return strings
+                        } else {
+                            popover.strings?.insert(Constants.Transcript,at: 0)
                         }
                     } else {
-                        popover.stringsFunction = {
-                            var strings = popover.strings
-                            
-                            mediaItem.loadNotesHTML()
-                            
-                            strings?.insert(Constants.Transcript,at: 0)
-                            
-                            return strings
+                        if globals.searchTranscripts && globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
+                            popover.stringsFunction = {
+                                var strings = popover.strings
+                                
+                                if mediaItem.searchFullNotesHTML(searchText: globals.searchText) { // this calls loadNotesHTML()
+                                    strings?.insert(Constants.Transcript,at: 0)
+                                }
+                                
+                                return strings
+                            }
+                        } else {
+                            popover.stringsFunction = {
+                                var strings = popover.strings
+                                
+                                mediaItem.loadNotesHTML()
+                                
+                                strings?.insert(Constants.Transcript,at: 0)
+                                
+                                return strings
+                            }
                         }
                     }
                 }
@@ -2949,20 +2972,32 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 popover.strings = nil
                 
                 if mediaItem.hasNotesHTML {
-                    popover.stringsFunction = {
-                        mediaItem.loadNotesHTML()
-                        
-                        var tokens = Set(searchTokens)
-                        
-                        if let notesTokens = tokensFromString(mediaItem.notesHTML) {
-                            tokens = tokens.union(Set(notesTokens))
-                        }
-                        
-                        let tokenArray = Array(tokens).sorted()
-                        
-//                        print(tokenArray)
+                    if mediaItem.notesTokens == nil {
+                        popover.stringsFunction = {
+                            mediaItem.loadNotesHTML()
+                            
+                            var tokens = Set(searchTokens)
+                            
+                            if let notesTokens = tokensFromString(mediaItem.notesHTML) {
+                                tokens = tokens.union(Set(notesTokens))
+                            }
+                            
+                            let tokenArray = Array(tokens).sorted()
+                            
+                            //                        print(tokenArray)
 
-                        return tokenArray
+                            mediaItem.notesTokens = tokenArray
+                            
+                            return tokenArray
+                        }
+                    } else {
+                        popover.strings = mediaItem.notesTokens
+
+                        let array = Array(Set(popover.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
+                        
+                        popover.indexStrings = array.map({ (string:String) -> String in
+                            return string.uppercased()
+                        })
                     }
                 }
                 

@@ -49,22 +49,8 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         return section
     }()
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        //This makes accurate scrolling to sections impossible but since we don't use scrollToRowAtIndexPath with
-        //the popover, this makes multi-line rows possible.
-
-        if purpose != .selectingHistory {
-            tableView.estimatedRowHeight = tableView.rowHeight
-            tableView.rowHeight = UITableViewAutomaticDimension
-        } else {
-            tableView.rowHeight = 100
-        }
-
-        tableView.allowsSelection = allowsSelection
-        tableView.allowsMultipleSelection = allowsMultipleSelection
-        
+    func setPreferredContentSize()
+    {
         if (strings != nil) {
             var max = 0
             
@@ -82,9 +68,9 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                         strings.append(newString.substring(to: newString.range(of: "\n")!.lowerBound))
                         newString = newString.substring(from: newString.range(of: "\n")!.upperBound)
                     }
-
+                    
                     strings.append(newString)
-
+                    
                     for string in strings {
                         if string.characters.count > max {
                             max = string.characters.count
@@ -97,9 +83,9 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                 }
             }
             
-    //        print("count: \(CGFloat(strings!.count)) rowHeight: \(tableView.rowHeight) height: \(height)")
+            //        print("count: \(CGFloat(strings!.count)) rowHeight: \(tableView.rowHeight) height: \(height)")
             
-            var width = CGFloat(max * 15)
+            var width = CGFloat(max * 16)
             if width < 200 {
                 width = 200
             }
@@ -119,8 +105,27 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                 height = 1.5*height
             }
             
-            self.preferredContentSize = CGSize(width: width, height: height)
+            preferredContentSize = CGSize(width: width, height: height)
         }
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        //This makes accurate scrolling to sections impossible but since we don't use scrollToRowAtIndexPath with
+        //the popover, this makes multi-line rows possible.
+
+        if purpose != .selectingHistory {
+            tableView.estimatedRowHeight = tableView.rowHeight
+            tableView.rowHeight = UITableViewAutomaticDimension
+        } else {
+            tableView.rowHeight = 100
+        }
+
+        tableView.allowsSelection = allowsSelection
+        tableView.allowsMultipleSelection = allowsMultipleSelection
+        
+        setPreferredContentSize()
         
 //        print("Strings: \(strings)")
 //        print("Sections: \(sections)")
@@ -195,16 +200,13 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                     
                     self.setupIndex()
                 }
-                
+
                 DispatchQueue.main.async(execute: { () -> Void in
+                    self.setPreferredContentSize()
+                    
                     self.tableView.reloadData()
                     self.activityIndicator.stopAnimating()
                     self.activityIndicator?.isHidden = true
-//                    DispatchQueue.global(qos: .background).async {
-//                        DispatchQueue.main.async(execute: { () -> Void in
-//                            self.view.sizeToFit()
-//                        })
-//                    }
                 })
             }
         } else {

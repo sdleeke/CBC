@@ -296,7 +296,7 @@
                                         </connections>
                                     </segmentedControl>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IOJ-ni-wmp" userLabel="Play Pause">
-                                        <rect key="frame" x="66" y="3" width="20" height="40"/>
+                                        <rect key="frame" x="66" y="5" width="20" height="36"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="lessThanOrEqual" constant="20" id="fRb-bR-VJr"/>
                                         </constraints>
@@ -815,10 +815,9 @@ Web site: www.countrysidebible.org</string>
                                         </constraints>
                                     </mapView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="k4e-hy-Vam">
-                                        <rect key="frame" x="550" y="1075" width="42" height="21"/>
+                                        <rect key="frame" x="561" y="1075" width="31" height="21"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="21" id="Y5R-r6-Qxo"/>
-                                            <constraint firstAttribute="width" constant="42" id="ikg-fZ-cVg"/>
                                         </constraints>
                                         <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>

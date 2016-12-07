@@ -571,6 +571,7 @@ class Download {
 //            configuration.sessionSendsLaunchEvents = true
             
             session = URLSession(configuration: configuration, delegate: mediaItem, delegateQueue: nil)
+            session?.reset() {}
             
             session?.sessionDescription = fileSystemURL!.lastPathComponent
             
@@ -641,6 +642,8 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     var dict:[String:String]?
     
     var booksChaptersVerses:BooksChaptersVerses?
+    
+    var notesTokens:[String]?
     
     var singleLoaded = false
 

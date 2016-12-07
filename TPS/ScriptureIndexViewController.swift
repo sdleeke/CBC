@@ -227,7 +227,42 @@ class BooksChaptersVerses : Swift.Comparable {
 class ScriptureIndex {
 //    var active = false
     
-    var htmlString:String?
+    var htmlStrings = [String:String]()
+    
+    var htmlString:String? {
+        get {
+            return index != nil ? htmlStrings[index!] : nil
+        }
+        set {
+            if index != nil {
+                htmlStrings[index!] = newValue
+            }
+        }
+    }
+    
+    var index:String? {
+        get {
+            var index:String?
+            
+            if let selectedTestament = self.selectedTestament {
+                index = selectedTestament
+            }
+            
+            if index != nil, let selectedBook = self.selectedBook {
+                index = index! + ":" + selectedBook
+            }
+            
+            if index != nil, selectedChapter > 0 {
+                index = index! + ":\(selectedChapter)"
+            }
+            
+            if index != nil, selectedVerse > 0 {
+                index = index! + ":\(selectedVerse)"
+            }
+            
+            return index
+        }
+    }
     
     var sorted = [String:Bool]()
     
@@ -243,15 +278,10 @@ class ScriptureIndex {
                     //Test  //Book  //Ch#/Verse#
     var byVerse = [String:[String:[Int:[Int:[MediaItem]]]]]()
 
-    var selectedTestament:String? = Constants.OT {
-        didSet {
-            htmlString = nil
-        }
-    }
+    var selectedTestament:String? = Constants.OT
     
     var selectedBook:String? {
         didSet {
-            htmlString = nil
             if selectedBook == nil {
                 selectedChapter = 0
                 selectedVerse = 0
@@ -261,18 +291,13 @@ class ScriptureIndex {
     
     var selectedChapter:Int = 0 {
         didSet {
-            htmlString = nil
             if selectedChapter == 0 {
                 selectedVerse = 0
             }
         }
     }
     
-    var selectedVerse:Int = 0 {
-        didSet {
-            htmlString = nil
-        }
-    }
+    var selectedVerse:Int = 0
 }
 
 struct Picker {

@@ -1233,9 +1233,8 @@ Web site: www.countrysidebible.org</string>
                                         </variation>
                                     </mapView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gA6-LE-HQU">
-                                        <rect key="frame" x="550" y="1101" width="42" height="21"/>
+                                        <rect key="frame" x="561" y="1101" width="31" height="21"/>
                                         <constraints>
-                                            <constraint firstAttribute="width" constant="42" id="mzR-rn-Lim"/>
                                             <constraint firstAttribute="height" constant="21" id="wqo-LN-jT5"/>
                                         </constraints>
                                         <fontDescription key="fontDescription" type="system" pointSize="12"/>

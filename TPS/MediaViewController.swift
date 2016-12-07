@@ -433,8 +433,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 setupSliderAndTimes()
 
                 selectedMediaItem?.playing = Playing.audio // Must come before setupNoteAndSlides()
-                setupSTVControl()
-//                setupDocumentsAndVideo() // Calls setupSTVControl()
+                
+                // If video was playing we need to show slides or transcript and adjust the STV control to hide the video segment and show the other(s).
+                setupDocumentsAndVideo() // Calls setupSTVControl()
                 break
                 
             default:
@@ -460,8 +461,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 setupSliderAndTimes()
                 
                 selectedMediaItem?.playing = Playing.video // Must come before setupNoteAndSlides()
-                setupSTVControl()
-//                setupDocumentsAndVideo() // Calls setupSTVControl()
+                
+                // Don't need to change the documents (they are already showing) or hte STV control as that will change when the video starts playing.
                 break
                 
             case Playing.video:
@@ -1863,6 +1864,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     fileprivate func loadDocument(_ document:Document?)
     {
+        if let loading = document?.wkWebView?.isLoading, loading {
+            return
+        }
+        
         document?.wkWebView?.isHidden = true
         document?.wkWebView?.stopLoading()
         
