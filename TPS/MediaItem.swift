@@ -920,6 +920,8 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
     }
     
+    
+    
     func searchFullNotesHTML(searchText:String?) -> Bool
     {
         if searchText != nil {
@@ -1471,7 +1473,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                 globals.media.tagged = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
                 
                 DispatchQueue.main.async(execute: { () -> Void in
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: globals.media.tagged)
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
                 })
             }
             
@@ -1504,7 +1506,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                     globals.media.tagged = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
                     
                     DispatchQueue.main.async(execute: { () -> Void in
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: globals.media.tagged)
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
                     })
                 }
                 
@@ -1641,45 +1643,87 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
     }
     
-    var searchMarkedFullNotesHTML:String? {
-        get {
-            guard (stripHead(fullNotesHTML) != nil) else {
-                return nil
-            }
-            
-            guard globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) else {
-                return nil
-            }
-            
-            var stringBefore:String = Constants.EMPTY_STRING
-            var stringAfter:String = Constants.EMPTY_STRING
-            var foundString:String = Constants.EMPTY_STRING
-            var string:String = stripHead(fullNotesHTML)!
-            var newString:String = Constants.EMPTY_STRING
-            
-            while (string.lowercased().range(of: globals.searchText!.lowercased()) != nil) {
-//                print(string)
-                
-                if let range = string.lowercased().range(of: globals.searchText!.lowercased()) {
-                    stringBefore = string.substring(to: range.lowerBound)
-                    stringAfter = string.substring(from: range.upperBound)
-                    
-                    foundString = string.substring(from: range.lowerBound)
-                    let newRange = foundString.lowercased().range(of: globals.searchText!.lowercased())
-                    foundString = foundString.substring(to: newRange!.upperBound)
-                    
-                    foundString = "<mark>" + foundString + "</mark>"
-                    
-                    newString = newString + stringBefore + foundString
-                    
-                    stringBefore = stringBefore + foundString
-                    
-                    string = stringAfter
-                }
-            }
-            
-            return insertHead(newString + stringAfter,fontSize: Constants.FONT_SIZE)
+    var searchMarkedFullNotesHTML = CachedString(index: globals.index)
+    
+    func searchMarkedFullNotesHTML(index:Bool) -> String?
+    {
+        guard (stripHead(fullNotesHTML) != nil) else {
+            return nil
         }
+        
+        guard globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) else {
+            return nil
+        }
+        
+        if searchMarkedFullNotesHTML.string != nil {
+            return searchMarkedFullNotesHTML.string
+        }
+        
+        var stringBefore:String = Constants.EMPTY_STRING
+        var stringAfter:String = Constants.EMPTY_STRING
+        var foundString:String = Constants.EMPTY_STRING
+        var string:String = stripHead(fullNotesHTML)!
+        var newString:String = Constants.EMPTY_STRING
+        
+        var markCounter = 0
+        
+        while (string.lowercased().range(of: globals.searchText!.lowercased()) != nil) {
+//                print(string)
+            
+            if let range = string.lowercased().range(of: globals.searchText!.lowercased()) {
+                stringBefore = string.substring(to: range.lowerBound)
+                stringAfter = string.substring(from: range.upperBound)
+                
+                foundString = string.substring(from: range.lowerBound)
+                let newRange = foundString.lowercased().range(of: globals.searchText!.lowercased())
+                foundString = foundString.substring(to: newRange!.upperBound)
+                
+                markCounter += 1
+                foundString = "<mark id=\"\(markCounter)\">" + foundString + "</mark><a href=\"#index\"><sup>\(markCounter)</sup></a>"
+                
+                newString = newString + stringBefore + foundString
+                
+                stringBefore = stringBefore + foundString
+                
+                string = stringAfter
+            }
+        }
+
+        // If we want an index of links to the occurences of the searchText.
+        if index, markCounter > 0 {
+            var indexString = "<p id=\"index\">Occurences of \"\(globals.searchText!)\": \(markCounter)</p>"
+            
+            indexString = indexString + "<div id=\"locations\">Locations: "
+            
+            for counter in 1...markCounter {
+                if counter > 1 {
+                    indexString = indexString + ", "
+                }
+                indexString = indexString + "<a href=\"#\(counter)\">\(counter)</a>"
+            }
+            
+            indexString = indexString + "<br/><br/></div>"
+            
+            newString = newString.replacingOccurrences(of: "<body>", with: "<body>"+indexString)
+        }
+        
+        newString = newString + stringAfter
+        
+        searchMarkedFullNotesHTML.string = insertHead(newString,fontSize: Constants.FONT_SIZE)
+        
+        return searchMarkedFullNotesHTML.string
+        
+//            var menuString = "<div class=\"dropdown\"><button onclick=\"myFunction()\" class=\"dropbtn\">Search</button><div id=\"myDropdown\" class=\"dropdown-content\">"
+//            
+//            for counter in 1...markCounter {
+//                menuString = menuString + "<a href=\"#\(counter)\">\(counter)</a>"
+//            }
+//
+//            menuString = menuString + "</div></div><br/>"
+//
+//            newString = newString.replacingOccurrences(of: "<body>", with: "<body>"+menuString)
+//
+//            return insertMenuHead(newString,fontSize: Constants.FONT_SIZE)
     }
     
     var headerHTML:String? {

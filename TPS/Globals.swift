@@ -10,6 +10,59 @@ import Foundation
 import MediaPlayer
 import AVKit
 
+struct CachedString {
+    var index:(()->String?)?
+    
+    var cache = [String:String]()
+    
+    // if index DOES NOT produce the full key
+    subscript(key:String?) -> String? {
+        get {
+            guard key != nil else {
+                return nil
+            }
+            
+            if let index = self.index?() {
+                return cache[index+":"+key!]
+            } else {
+                return cache[key!]
+            }
+        }
+        set {
+            guard key != nil else {
+                return
+            }
+
+            if let index = self.index?() {
+                cache[index+":"+key!] = newValue
+            } else {
+                cache[key!] = newValue
+            }
+        }
+    }
+    
+    // if index DOES produce the full key
+    var string:String? {
+        get {
+            if let index = self.index?() {
+                return cache[index]
+            } else {
+                return nil
+            }
+        }
+        set {
+            if let index = self.index?() {
+                cache[index] = newValue
+            }
+        }
+    }
+    
+    init(index:@escaping (()->String?))
+    {
+        self.index = index
+    }
+}
+
 enum PlayerState {
     case none
     
@@ -826,6 +879,50 @@ class Globals : NSObject {
         }
     }
     
+    var contextTitle:String? {
+        get {
+            var string:String?
+            
+            if let mediaCategory = globals.mediaCategory.selected {
+                string = mediaCategory // Category:
+                
+                if let tag = globals.tags.selected {
+                    string = string! + ", " + tag  // Collection:
+                }
+                
+                if globals.searchActive, globals.searchText != Constants.EMPTY_STRING, let search = globals.searchText {
+                    string = string! + ", \"\(search)\""  // Search:
+                }
+            }
+            
+            return string
+        }
+    }
+    
+    func index() -> String? {
+        return context
+    }
+    
+    var context:String? {
+        get {
+            var string:String?
+            
+            if let mediaCategory = globals.mediaCategory.selected {
+                string = mediaCategory
+                
+                if let tag = globals.tags.selected {
+                    string = string! + ":" + tag
+                }
+                
+                if globals.searchActive, globals.searchText != Constants.EMPTY_STRING, let search = globals.searchText {
+                    string = string! + ":" + search
+                }
+            }
+            
+            return string
+        }
+    }
+    
     var gotoPlayingPaused:Bool = false
     var showingAbout:Bool = false
 
@@ -906,6 +1003,8 @@ class Globals : NSObject {
             media.all?.searches = nil
             media.tagged?.searches = nil
         }
+        
+        // Free all cached strings.
         
         URLCache.shared.removeAllCachedResponses()
     }

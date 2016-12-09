@@ -2261,7 +2261,7 @@ func mailMediaItem(viewController:UIViewController, mediaItem:MediaItem?,stringF
     }
 }
 
-func presentHTMLModal(viewController:UIViewController, htmlString: String?)
+func presentHTMLModal(viewController:UIViewController, title: String?, htmlString: String?)
 {
     guard (htmlString != nil) else {
         return
@@ -2277,7 +2277,7 @@ func presentHTMLModal(viewController:UIViewController, htmlString: String?)
 //        navigationController.popoverPresentationController?.permittedArrowDirections = .any
         navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
         
-        popover.navigationItem.title = globals.mediaCategory.selected! + Constants.SINGLE_SPACE + Constants.List
+        popover.navigationItem.title = title
         
         popover.selectedMediaItem = nil
         
@@ -2400,9 +2400,9 @@ func mailHTML(viewController:UIViewController,to: [String],subject: String, html
     }
 }
 
-func printJob(viewController:UIViewController,htmlString:String?,orientation:UIPrintInfoOrientation)
+func printJob(viewController:UIViewController,data:Data?,html:String?,orientation:UIPrintInfoOrientation)
 {
-    guard UIPrintInteractionController.isPrintingAvailable && (htmlString != nil) else {
+    guard UIPrintInteractionController.isPrintingAvailable, !((html != nil) && (data != nil)), (html != nil) || (data != nil) else {
         return
     }
     
@@ -2411,17 +2411,23 @@ func printJob(viewController:UIViewController,htmlString:String?,orientation:UIP
     pi.jobName = Constants.Print;
     pi.duplex = UIPrintInfoDuplex.longEdge
     
-    pi.orientation = orientation
-    
     let pic = UIPrintInteractionController.shared
     pic.printInfo = pi
     pic.showsPageRange = true
     pic.showsPaperSelectionForLoadedPapers = true
-    
-    let formatter = UIMarkupTextPrintFormatter(markupText: htmlString!)
-    formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
-    
-    pic.printFormatter = formatter
+
+    if html != nil {
+        let formatter = UIMarkupTextPrintFormatter(markupText: html!)
+        formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
+        
+        pic.printFormatter = formatter
+        
+        pi.orientation = orientation
+    }
+
+    if data != nil {
+        pic.printingItem = data
+    }
     
     DispatchQueue.main.async(execute: { () -> Void in
         pic.present(from: viewController.navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
@@ -2436,10 +2442,10 @@ func printHTML(viewController:UIViewController,htmlString:String?)
     
     pageOrientation(viewController: viewController,
                     portrait: ({
-                        printJob(viewController: viewController,htmlString:htmlString,orientation:.portrait)
+                        printJob(viewController: viewController,data:nil,html:htmlString,orientation:.portrait)
                     }),
                     landscape: ({
-                        printJob(viewController: viewController,htmlString:htmlString,orientation:.landscape)
+                        printJob(viewController: viewController,data:nil,html:htmlString,orientation:.landscape)
                     }),
                     cancel: ({
                     })
@@ -2455,7 +2461,7 @@ func printDocument(viewController:UIViewController,documentURL:URL?)
     process(viewController: viewController, work: {
         return NSData(contentsOf: documentURL!)
     }, completion: { (data:Any?) in
-        printJob(viewController: viewController, htmlString: data as? String, orientation: .portrait)
+        printJob(viewController: viewController, data: data as? Data, html: nil, orientation: .portrait)
     })
 }
 
@@ -2468,7 +2474,7 @@ func printMediaItem(viewController:UIViewController, mediaItem:MediaItem?)
     process(viewController: viewController, work: {
         return mediaItem?.contentsHTML
     }, completion: { (data:Any?) in
-        printJob(viewController: viewController, htmlString: data as? String, orientation: .portrait)
+        printJob(viewController:viewController,data:nil,html:(data as? String),orientation:.portrait)
     })
 }
 
@@ -2514,7 +2520,7 @@ func printMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,str
         process(viewController: viewController, work: {
             return stringFunction?(mediaItems,links,columns)
         }, completion: { (data:Any?) in
-            printJob(viewController: viewController, htmlString: data as? String, orientation: orientation)
+            printJob(viewController:viewController,data:nil,html:(data as? String),orientation:orientation)
         })
     }
     
@@ -2672,9 +2678,22 @@ func stripHead(_ string:String?) -> String?
     return bodyString
 }
 
+func insertMenuHead(_ string:String?,fontSize:Int) -> String?
+{
+    let filePath = Bundle.main.resourcePath!
+
+    let headContent = try! String(contentsOfFile: filePath + "/head.txt", encoding: String.Encoding.utf8)
+
+    let styleContent = try! String(contentsOfFile: filePath + "/style.txt", encoding: String.Encoding.utf8)
+    
+    let head = "<html><head><style>body{font: -apple-system-body;font-size:\(fontSize)pt;}td{font-size:\(fontSize)pt;}mark{background-color:silver}\(styleContent)</style>\(headContent)</head>"
+    
+    return string?.replacingOccurrences(of: "<html>", with: head)
+}
+
 func insertHead(_ string:String?,fontSize:Int) -> String?
 {
-    let head = "<html><head><style>body{font: -apple-system-body;font-size:\(fontSize)pt;}td{font-size:\(fontSize)pt;}mark{background-color:silver}</style></head>" // ;font-weight: bold;text-decoration: underline;
+    let head = "<html><head><style>body{font: -apple-system-body;font-size:\(fontSize)pt;}td{font-size:\(fontSize)pt;}mark{background-color:silver}</style></head>"
     
     return string?.replacingOccurrences(of: "<html>", with: head)
 }
@@ -2683,6 +2702,15 @@ func stripLinks(_ string:String?) -> String?
 {
     var bodyString = string
     
+    while bodyString?.range(of: "<div id=\"locations\">") != nil {
+        if let startRange = bodyString?.range(of: "<div id=\"locations\">") {
+            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: "</div>") {
+                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
+                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+            }
+        }
+    }
+
     while bodyString?.range(of: "<a href") != nil {
         if let startRange = bodyString?.range(of: "<a href") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {

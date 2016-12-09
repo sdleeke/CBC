@@ -457,6 +457,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             self.loadTimer = nil
             self.progressIndicator.isHidden = true
             
+            self.barButtonItems(isEnabled: true)
+           
             wkWebView.isHidden = false
         })
     }
@@ -505,7 +507,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     {
         // This used in transition to size to set the content offset.
         
-        print("Before setContentOffset: \(wkWebView?.scrollView.contentOffset)")
+//        print("Before setContentOffset: \(wkWebView?.scrollView.contentOffset)")
         
         if (wkWebView != nil) && (selectedMediaItem != nil) { // !showScripture &&
             var contentOffsetXRatioStr:String?
@@ -542,7 +544,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     {
         // This used in transition to size to set the content offset.
         
-        print("Before setContentOffset: \(wkWebView?.scrollView.contentOffset)")
+//        print("Before setContentOffset: \(wkWebView?.scrollView.contentOffset)")
         
         if (wkWebView != nil) && (selectedMediaItem != nil) { // !showScripture &&
             let contentOffset = CGPoint(x: CGFloat(html.xRatio * Double(wkWebView!.scrollView.contentSize.width)), //
@@ -829,7 +831,23 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         if (navigationAction.navigationType == .other) {
             decisionHandler(WKNavigationActionPolicy.allow)
         } else {
-            decisionHandler(WKNavigationActionPolicy.cancel)
+//            print(navigationAction.request.url?.absoluteString)
+            if let url = navigationAction.request.url?.absoluteString, let range = url.range(of: "%23") {
+                let tag = url.substring(from: range.upperBound)
+                switch tag.lowercased() {
+                case "index":
+                    decisionHandler(WKNavigationActionPolicy.allow)
+                    break
+                    
+                default:
+                    if Int(tag) != nil {
+                        decisionHandler(WKNavigationActionPolicy.allow)
+                    }
+                    break
+                }
+            } else {
+                decisionHandler(WKNavigationActionPolicy.cancel)
+            }
         }
     }
 
@@ -851,7 +869,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         progressIndicator.isHidden = content == .html
         
         if content == .html {
-            if let htmlString = selectedMediaItem?.searchMarkedFullNotesHTML {
+            if let htmlString = selectedMediaItem?.searchMarkedFullNotesHTML(index: false) {
                 html.string = htmlString
             }
         }
@@ -870,8 +888,31 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             }
             break
         }
+        
+        barButtonItems(isEnabled: false)
     }
 
+    func barButtonItems(isEnabled:Bool)
+    {
+        if let toolbarItems = self.navigationItem.rightBarButtonItems {
+            for toolbarItem in toolbarItems {
+                toolbarItem.isEnabled = isEnabled
+            }
+        }
+        
+        if let toolbarItems = self.navigationItem.leftBarButtonItems {
+            for toolbarItem in toolbarItems {
+                toolbarItem.isEnabled = isEnabled
+            }
+        }
+        
+        if let toolbarItems = self.toolbarItems {
+            for toolbarItem in toolbarItems {
+                toolbarItem.isEnabled = isEnabled
+            }
+        }
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 

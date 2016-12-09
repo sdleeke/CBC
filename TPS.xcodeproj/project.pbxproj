@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		1712CD701C77449B005E09D6 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1712CD6F1C77449B005E09D6 /* SettingsViewController.swift */; };
+		1713B1851DF8DB0900BE3EDF /* head.txt in Resources */ = {isa = PBXBuildFile; fileRef = 1713B1841DF8DB0900BE3EDF /* head.txt */; };
+		1713B1871DF8DD8900BE3EDF /* style.txt in Resources */ = {isa = PBXBuildFile; fileRef = 1713B1861DF8DD8900BE3EDF /* style.txt */; };
 		171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171A6ED41BF2172100E3323C /* WebViewController.swift */; };
 		1749C4571DAAAE8A00FC90E0 /* PopoverPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */; };
 		174EEE6D1B74C0DD004F6942 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 174EEE6C1B74C0DD004F6942 /* Images.xcassets */; };
@@ -56,6 +58,8 @@
 
 /* Begin PBXFileReference section */
 		1712CD6F1C77449B005E09D6 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		1713B1841DF8DB0900BE3EDF /* head.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = head.txt; sourceTree = "<group>"; };
+		1713B1861DF8DD8900BE3EDF /* style.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = style.txt; sourceTree = "<group>"; };
 		171A6ED41BF2172100E3323C /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
 		1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PopoverPickerViewController.swift; sourceTree = "<group>"; };
 		174EEE601B74C0DD004F6942 /* TPS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TPS.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -166,6 +170,8 @@
 				1798C74F1CA93BF600CED4A5 /* LiveViewController.swift */,
 				174EEE6C1B74C0DD004F6942 /* Images.xcassets */,
 				174EEE951B74C1B1004F6942 /* LaunchScreen.xib */,
+				1713B1841DF8DB0900BE3EDF /* head.txt */,
+				1713B1861DF8DD8900BE3EDF /* style.txt */,
 				17D9AA061BE0EDF700ED5090 /* fontawesome-webfont.ttf */,
 				174EEE631B74C0DD004F6942 /* Supporting Files */,
 			);
@@ -332,9 +338,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				17F2E5BC1BE0F5C300FD146A /* fontawesome-webfont.ttf in Resources */,
+				1713B1871DF8DD8900BE3EDF /* style.txt in Resources */,
 				174EEE961B74C1B1004F6942 /* LaunchScreen.xib in Resources */,
 				174EEE8E1B74C11E004F6942 /* iPad.storyboard in Resources */,
 				174EEE8F1B74C11E004F6942 /* iPhone.storyboard in Resources */,
+				1713B1851DF8DB0900BE3EDF /* head.txt in Resources */,
 				174EEE6D1B74C0DD004F6942 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

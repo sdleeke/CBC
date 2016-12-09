@@ -133,13 +133,13 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     func updateNotesDocument()
     {
-        print("updateNotesDocument")
+//        print("updateNotesDocument")
         updateDocument(document: notesDocument)
     }
     
     func cancelNotesDocument()
     {
-        print("cancelNotesDocument")
+//        print("cancelNotesDocument")
         cancelDocument(document: notesDocument,message: "Transcript not available.")
     }
     
@@ -1184,6 +1184,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 break
                 
             case Constants.Refresh_Document:
+                fallthrough
+            case Constants.Refresh_Transcript:
+                fallthrough
+            case Constants.Refresh_Slides:
                 // This only refreshes the visible document.
                 download?.cancelOrDeleteDownload()
                 document?.loaded = false
@@ -1223,21 +1227,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             popover.purpose = .selectingAction
             
             var actionMenu = [String]()
-            
-            if UIPrintInteractionController.isPrintingAvailable, let purpose = document?.purpose  {
-                switch purpose {
-                case Purpose.notes:
-                    actionMenu.append(Constants.Print_Transcript)
-                    break
-                    
-                case Purpose.slides:
-                    actionMenu.append(Constants.Print_Slides)
-                    break
-                    
-                default:
-                    break
-                }
-            }
 
             if selectedMediaItem!.hasFavoritesTag {
                 actionMenu.append(Constants.Remove_From_Favorites)
@@ -1285,15 +1274,43 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 }
             }
             
-            actionMenu.append(Constants.Open_on_CBC_Website)
-            
-            if (document != nil) && globals.cacheDownloads {
-                actionMenu.append(Constants.Refresh_Document)
+            if UIPrintInteractionController.isPrintingAvailable, let purpose = document?.purpose  {
+                switch purpose {
+                case Purpose.notes:
+                    actionMenu.append(Constants.Print_Transcript)
+                    break
+                    
+                case Purpose.slides:
+                    actionMenu.append(Constants.Print_Slides)
+                    break
+                    
+                default:
+                    break
+                }
             }
 
-            if document != nil {
-                actionMenu.append(Constants.Open_in_Browser)
+            if document != nil, globals.cacheDownloads, let purpose = document?.purpose {
+//                actionMenu.append(Constants.Refresh_Document)
+                switch purpose {
+                case Purpose.notes:
+                    actionMenu.append(Constants.Refresh_Transcript)
+                    break
+                    
+                case Purpose.slides:
+                    actionMenu.append(Constants.Refresh_Slides)
+                    break
+                    
+                default:
+                    break
+                }
             }
+
+            // Not needed any more because the CBC Website now has a page for this media w/ any documents
+//            if document != nil {
+//                actionMenu.append(Constants.Open_in_Browser)
+//            }
+            
+            actionMenu.append(Constants.Open_on_CBC_Website)
             
             if (selectedMediaItem!.hasScripture && (selectedMediaItem?.scripture != Constants.Selected_Scriptures)) {
                 actionMenu.append(Constants.Scripture_in_Browser)
@@ -1902,8 +1919,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                         
                         DispatchQueue.main.async(execute: { () -> Void in
                             if (document != nil) && document!.showing(self.selectedMediaItem) {
-                                self.activityIndicator.stopAnimating()
-                                self.activityIndicator.isHidden = true
+                                self.activityIndicator.startAnimating()
+                                self.activityIndicator.isHidden = false
                                 
                                 self.progressIndicator.progress = 0.0
                                 self.progressIndicator.isHidden = true

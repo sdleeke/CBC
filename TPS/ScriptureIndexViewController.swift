@@ -227,42 +227,71 @@ class BooksChaptersVerses : Swift.Comparable {
 class ScriptureIndex {
 //    var active = false
     
-    var htmlStrings = [String:String]()
-    
-    var htmlString:String? {
-        get {
-            return index != nil ? htmlStrings[index!] : nil
-        }
-        set {
-            if index != nil {
-                htmlStrings[index!] = newValue
-            }
-        }
+    init()
+    {
+        html = CachedString(index:self.index)
     }
     
-    var index:String? {
-        get {
-            var index:String?
-            
-            if let selectedTestament = self.selectedTestament {
-                index = selectedTestament
-            }
-            
-            if index != nil, let selectedBook = self.selectedBook {
-                index = index! + ":" + selectedBook
-            }
-            
-            if index != nil, selectedChapter > 0 {
-                index = index! + ":\(selectedChapter)"
-            }
-            
-            if index != nil, selectedVerse > 0 {
-                index = index! + ":\(selectedVerse)"
-            }
-            
-            return index
+    var html:CachedString!
+    
+    func index() -> String? {
+        var index:String?
+        
+        if let selectedTestament = self.selectedTestament {
+            index = selectedTestament
         }
+        
+        if index != nil, let selectedBook = self.selectedBook {
+            index = index! + ":" + selectedBook
+        }
+        
+        if index != nil, selectedChapter > 0 {
+            index = index! + ":\(selectedChapter)"
+        }
+        
+        if index != nil, selectedVerse > 0 {
+            index = index! + ":\(selectedVerse)"
+        }
+        
+        return index
     }
+    
+//    var htmlStrings = [String:String]()
+//
+//    var htmlString:String? {
+//        get {
+//            return index != nil ? htmlStrings[index!] : nil
+//        }
+//        set {
+//            if index != nil {
+//                htmlStrings[index!] = newValue
+//            }
+//        }
+//    }
+//    
+//    var index:String? {
+//        get {
+//            var index:String?
+//            
+//            if let selectedTestament = self.selectedTestament {
+//                index = selectedTestament
+//            }
+//            
+//            if index != nil, let selectedBook = self.selectedBook {
+//                index = index! + ":" + selectedBook
+//            }
+//            
+//            if index != nil, selectedChapter > 0 {
+//                index = index! + ":\(selectedChapter)"
+//            }
+//            
+//            if index != nil, selectedVerse > 0 {
+//                index = index! + ":\(selectedVerse)"
+//            }
+//            
+//            return index
+//        }
+//    }
     
     var sorted = [String:Bool]()
     
@@ -1224,6 +1253,24 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
         }
         
+        if let selectedTestament = self.scriptureIndex?.selectedTestament {
+            var indexFor = translateTestament(selectedTestament)
+
+            if let selectedBook = self.scriptureIndex?.selectedBook {
+                indexFor = indexFor + Constants.SINGLE_SPACE + selectedBook
+                
+                if let chapter = self.scriptureIndex?.selectedChapter, chapter > 0 {
+                    indexFor = indexFor + " \(chapter)"
+                    
+                    if let verse = self.scriptureIndex?.selectedVerse, verse > 0 {
+                        indexFor = indexFor + ":\(verse)"
+                    }
+                }
+            }
+            
+            bodyString = bodyString! + "Scripture Index For: \(indexFor)<br/><br/>"
+        }
+        
         if includeColumns {
             bodyString  = bodyString! + "<table>"
         }
@@ -1328,13 +1375,13 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             switch strings[index] {
             case Constants.View_List:
                 process(viewController: self, work: { () -> (Any?) in
-                    if self.scriptureIndex?.htmlString == nil {
-                        self.scriptureIndex?.htmlString = self.setupMediaItemsHTMLScripture(self.mediaItems, includeURLs: true, includeColumns: true)
+                    if self.scriptureIndex?.html.string == nil {
+                        self.scriptureIndex?.html.string = self.setupMediaItemsHTMLScripture(self.mediaItems, includeURLs: true, includeColumns: true)
                     }
 
-                    return self.scriptureIndex?.htmlString
+                    return self.scriptureIndex?.html.string
                 }, completion: { (data:Any?) in
-                    presentHTMLModal(viewController: self, htmlString: data as? String)
+                    presentHTMLModal(viewController: self, title: globals.contextTitle, htmlString: data as? String)
                 })
                 break
                 

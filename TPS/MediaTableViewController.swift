@@ -95,11 +95,68 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             })
             
             setupCategoryButton()
-            setupListActivityIndicator()
-            setupBarButtons()
             
-            // This does not show the activityIndicator
-            handleRefresh(refreshControl!)
+
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.tableView.isHidden = true
+            })
+            
+            loadMediaItems()
+                {
+                    if globals.mediaRepository.list == nil {
+                        let alert = UIAlertController(title: "No media available.",
+                                                      message: "Please check your network connection and try again.",
+                                                      preferredStyle: UIAlertControllerStyle.alert)
+                        
+                        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                            if globals.isRefreshing {
+                                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+
+                                })
+                            } else {
+                                self.setupListActivityIndicator()
+                            }
+                        })
+                        alert.addAction(action)
+                        
+                        self.present(alert, animated: true, completion: nil)
+                    } else {
+                        if let selectedMediaItemKey = UserDefaults.standard.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER) {
+                            self.selectedMediaItem = globals.mediaRepository.list?.filter({ (mediaItem:MediaItem) -> Bool in
+                                return mediaItem.id == selectedMediaItemKey
+                            }).first
+                        }
+                        
+                        if globals.searchActive && globals.searchTranscripts && !globals.searchComplete {
+                            self.updateSearchResults(globals.searchText,completion: {
+                                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                                    DispatchQueue.main.async(execute: { () -> Void in
+                                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                                    })
+                                })
+                            })
+                            
+                        } else {
+                            // Reload the table
+                            self.tableView.reloadData()
+                            
+                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                                DispatchQueue.main.async(execute: { () -> Void in
+                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                                })
+                            })
+                        }
+                    }
+                    
+                    self.tableView.isHidden = false
+            }
+
+            
+//            setupListActivityIndicator()
+//            setupBarButtons()
+//            
+//            // This does not show the activityIndicator
+//            handleRefresh(refreshControl!)
         }
     }
 
@@ -157,7 +214,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             navigationController.popoverPresentationController?.barButtonItem = button
             
-//                popover.navigationItem.title = Constants.Show
+//            popover.navigationItem.title = Constants.Show
             
             popover.navigationController?.isNavigationBarHidden = true
             
@@ -255,7 +312,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             popover.showIndex = false //(globals.grouping == .series)
             popover.showSectionHeaders = false
             
-            present(navigationController, animated: true, completion: nil)
+            present(navigationController, animated: true, completion: {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+                    navigationController.popoverPresentationController?.passthroughViews = nil
+                })
+            })
         }
     }
     
@@ -338,12 +400,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     process(viewController: self, work: { () -> (Any?) in
                         mediaItem?.loadNotesHTML()
                         if globals.searchActive && (globals.searchText != nil) {
-                            return mediaItem?.searchMarkedFullNotesHTML
+                            return mediaItem?.searchMarkedFullNotesHTML(index: true)
                         } else {
                             return mediaItem?.fullNotesHTML
                         }
                     }, completion: { (data:Any?) in
-                        presentHTMLModal(viewController: self, htmlString: data as? String)
+                        presentHTMLModal(viewController: self,title: globals.contextTitle, htmlString: data as? String) //
                     })
                 }
                 break
@@ -542,7 +604,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             dismiss(animated: true, completion: nil)
             globals.grouping = Constants.groupings[index]
             
-            if (globals.mediaNeed.grouping) {
+            if globals.mediaNeed.grouping {
                 globals.clearDisplay()
 
                 DispatchQueue.main.async(execute: { () -> Void in
@@ -571,8 +633,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         
                         DispatchQueue.main.async(execute: { () -> Void in
                             self.tableView.reloadData()
+                            
                             self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
+                            
                             self.listActivityIndicator.stopAnimating()
+                            self.listActivityIndicator.isHidden = true
+                            
                             self.enableBarButtons()
                         })
                     })
@@ -613,8 +679,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         
                         DispatchQueue.main.async(execute: { () -> Void in
                             self.tableView.reloadData()
+                            
                             self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
+                            
                             self.listActivityIndicator.stopAnimating()
+                            self.listActivityIndicator.isHidden = true
+
                             self.enableBarButtons()
                         })
                     })
@@ -637,7 +707,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         }
                         return globals.active?.htmlString
                     }, completion: { (data:Any?) in
-                        presentHTMLModal(viewController: self, htmlString: data as? String)
+                        presentHTMLModal(viewController: self, title: globals.contextTitle, htmlString: data as? String)
                     })
                 })
                 break
@@ -1376,6 +1446,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
             globals.isLoading = true
 
+            self.setupListActivityIndicator()
+
             DispatchQueue.main.async(execute: { () -> Void in
                 self.navigationItem.title = Constants.Title.Loading_Media
             })
@@ -1851,13 +1923,17 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     func updateList()
     {
         globals.setupDisplay()
-        tableView.reloadData()
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.tableView.reloadData()
+        })
     }
     
     func editing()
     {
         refreshList = false
-        searchBar.resignFirstResponder()
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.searchBar.resignFirstResponder()
+        })
     }
     
     func notEditing()
@@ -1875,10 +1951,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         super.viewDidLoad()
         
         DispatchQueue.main.async {
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: globals.media.tagged)
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
             
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.editing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.EDITING), object: globals.media.tagged)
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.notEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_EDITING), object: globals.media.tagged)
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.editing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.EDITING), object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.notEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_EDITING), object: nil)
         }
         
         refreshControl = UIRefreshControl()
@@ -2036,6 +2112,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     {
 //        print(searchText)
         
+        globals.searchComplete = false
+
         refreshList = true
         
         var abort = false
@@ -2047,9 +2125,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
             DispatchQueue.main.async(execute: { () -> Void in
                 self.tableView.reloadData()
-                self.disableBarButtons()
             })
-            
+
+            self.setupBarButtons()
+
             DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                 //                print("1: ",searchText,Constants.EMPTY_STRING)
                 
@@ -2250,45 +2329,53 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
     func selectOrScrollToMediaItem(_ mediaItem:MediaItem?, select:Bool, scroll:Bool, position: UITableViewScrollPosition)
     {
-        if (mediaItem != nil) && (globals.active?.mediaItems?.index(of: mediaItem!) != nil) && refreshList {
-            var indexPath = IndexPath(item: 0, section: 0)
-            
-            var section:Int = -1
-            var row:Int = -1
-            
-            let mediaItems = globals.active?.mediaItems
-
-            if let index = mediaItems!.index(of: mediaItem!) {
-                switch globals.grouping! {
-                case Grouping.YEAR:
-                    section = globals.active!.sectionTitles!.index(of: mediaItem!.yearSection!)!
-                    break
-                    
-                case Grouping.TITLE:
-                    section = globals.active!.sectionIndexTitles!.index(of: mediaItem!.multiPartSectionSort!)!
-                    break
-                    
-                case Grouping.BOOK:
-                    // For mediaItem.books.count > 1 this arbitrarily selects the first one, which may not be correct.
-                    section = globals.active!.sectionTitles!.index(of: mediaItem!.bookSections.first!)!
-                    break
-                    
-                case Grouping.SPEAKER:
-                    section = globals.active!.sectionTitles!.index(of: mediaItem!.speakerSection!)!
-                    break
-                    
-                default:
-                    break
-                }
-
-                row = index - globals.active!.sectionIndexes![section]
-            }
-
-//            print(section)
-            
-            if (section > -1) && (row > -1) {
-                indexPath = IndexPath(item: row,section: section)
+        guard mediaItem != nil else {
+            return
+        }
+        
+        guard globals.active?.mediaItems?.index(of: mediaItem!) != nil else {
+            return
+        }
+        
+        var indexPath = IndexPath(item: 0, section: 0)
+        
+        var section:Int = -1
+        var row:Int = -1
+        
+        let mediaItems = globals.active?.mediaItems
+        
+        if let index = mediaItems!.index(of: mediaItem!) {
+            switch globals.grouping! {
+            case Grouping.YEAR:
+                section = globals.active!.sectionTitles!.index(of: mediaItem!.yearSection!)!
+                break
                 
+            case Grouping.TITLE:
+                section = globals.active!.sectionIndexTitles!.index(of: mediaItem!.multiPartSectionSort!)!
+                break
+                
+            case Grouping.BOOK:
+                // For mediaItem.books.count > 1 this arbitrarily selects the first one, which may not be correct.
+                section = globals.active!.sectionTitles!.index(of: mediaItem!.bookSections.first!)!
+                break
+                
+            case Grouping.SPEAKER:
+                section = globals.active!.sectionTitles!.index(of: mediaItem!.speakerSection!)!
+                break
+                
+            default:
+                break
+            }
+            
+            row = index - globals.active!.sectionIndexes![section]
+        }
+        
+        //            print(section)
+        
+        if (section > -1) && (row > -1) {
+            indexPath = IndexPath(row: row,section: section)
+            
+            if let _ = tableView.cellForRow(at: indexPath) {
                 //            print("\(globals.mediaItemSelected?.title)")
                 //            print("Row: \(indexPath.item)")
                 //            print("Section: \(indexPath.section)")
@@ -2923,15 +3010,16 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                                 return strings
                             }
                         } else {
-                            popover.stringsFunction = {
-                                var strings = popover.strings
-                                
-                                mediaItem.loadNotesHTML()
-                                
-                                strings?.insert(Constants.Transcript,at: 0)
-                                
-                                return strings
-                            }
+                            popover.strings?.insert(Constants.Transcript,at: 0)
+//                            popover.stringsFunction = {
+//                                var strings = popover.strings
+//                                
+//                                mediaItem.loadNotesHTML()
+//                                
+//                                strings?.insert(Constants.Transcript,at: 0)
+//                                
+//                                return strings
+//                            }
                         }
                     }
                 }
@@ -2940,7 +3028,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 popover.showSectionHeaders = false
                 
                 DispatchQueue.main.async(execute: { () -> Void in
-                    self.present(navigationController, animated: true, completion: nil)
+                    self.present(navigationController, animated: true, completion:nil)
                 })
             }
         }
