@@ -86,16 +86,17 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         if (globals.mediaCategory.selected != string) {
             globals.mediaCategory.selected = string
+            setupCategoryButton()
+            
             globals.tags.selected = nil
+            
             globals.searchActive = false
+            globals.searchText = nil
             
             DispatchQueue.main.async(execute: { () -> Void in
                 self.searchBar.resignFirstResponder()
                 self.searchBar.placeholder = nil
             })
-            
-            setupCategoryButton()
-            
 
             DispatchQueue.main.async(execute: { () -> Void in
                 self.tableView.isHidden = true
@@ -411,7 +412,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             default:
-                globals.searchActive = true
                 globals.searchText = searchText
                 searchBar.text = searchText
                 searchBar.showsCancelButton = true
@@ -1081,13 +1081,17 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
 //        print("searchBar:textDidChange:")
         //Unstable results from incremental search
-//        print(searchText)
+//        print("\"\(searchText)\"")
+        globals.searchText = searchText
+
         if (searchText != Constants.EMPTY_STRING) { //
-            globals.searchText = searchText
             updateSearchResults(searchText,completion: nil)
         } else {
+            print("clearDisplay 2")
             globals.clearDisplay()
-            tableView.reloadData()
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.tableView.reloadData()
+            })
         }
     }
 
@@ -1099,8 +1103,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             globals.searchText = searchBar.text
             updateSearchResults(searchBar.text,completion: nil)
         } else {
+            print("clearDisplay 3")
             globals.clearDisplay()
-            tableView.reloadData()
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.tableView.reloadData()
+            })
             enableBarButtons()
         }
     }
@@ -1113,7 +1120,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
 //        print("searchBarTextDidBeginEditing:")
         globals.searchActive = true
-        searchBar.showsCancelButton = true
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            searchBar.showsCancelButton = true
+        })
 
 //        print(searchBar.text)
         if (searchBar.text != nil) && (searchBar.text != Constants.EMPTY_STRING) { //
@@ -1121,8 +1131,13 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             updateSearchResults(searchBar.text,completion: nil)
         }
         
+        print("clearDisplay 4")
         globals.clearDisplay()
-        tableView.reloadData()
+
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.tableView.reloadData()
+        })
+
         disableBarButtons()
     }
     
@@ -1132,16 +1147,14 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
 //        print("searchBarCancelButtonClicked:")
-        searchBar.showsCancelButton = false
-        searchBar.resignFirstResponder()
-        searchBar.text = nil
         
-//        if (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
-//            _ = globals.search?.searches?.removeValue(forKey: globals.searchText!)
-//        }
-
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.searchBar.showsCancelButton = false
+            self.searchBar.resignFirstResponder()
+            self.searchBar.text = nil
+        })
+        
         globals.searchActive = false
-        globals.searchText = nil
         
         didDismissSearch()
     }
@@ -1150,7 +1163,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     {
         setupTag()
         
-        tableView.reloadData()
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.tableView.reloadData()
+        })
         
         setupTitle()
         
@@ -1441,8 +1456,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         globals.progress = 0
         globals.finished = 0
         
-        progressTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PROGRESS, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
-        
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.progressTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PROGRESS, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
+        })
+
         DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
             globals.isLoading = true
 
@@ -2108,16 +2125,58 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         updateSearchResults(globals.searchText,completion: nil)
     }
     
+    func updateDisplay(searchText:String?)
+    {
+        if !globals.searchActive || (globals.searchText == searchText) {
+            print(globals.searchText,searchText)
+            print("setupDisplay")
+            globals.setupDisplay()
+        } else {
+            print("clearDisplay 1")
+            globals.clearDisplay()
+        }
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            if self.refreshList {
+                self.tableView.reloadData()
+            } else {
+                self.changesPending = true
+            }
+        })
+    }
+
+    func updateSearch(searchText:String?,mediaItems: [MediaItem]?)
+    {
+        guard searchText != nil else {
+            return
+        }
+        
+        self.showProgress = false
+        
+        if globals.search?.searches == nil {
+            globals.search?.searches = [String:MediaListGroupSort]()
+        }
+        
+        globals.search?.searches?[searchText!] = MediaListGroupSort(mediaItems: mediaItems)
+        
+        self.showProgress = true
+    }
+    
     func updateSearchResults(_ searchText:String?,completion: (() -> Void)?)
     {
 //        print(searchText)
+        
+        var abort = false
+        
+        func shouldAbort() -> Bool
+        {
+            return globals.searchText != searchText
+        }
         
         globals.searchComplete = false
 
         refreshList = true
         
-        var abort = false
-
         if (searchText != nil) && (searchText != Constants.EMPTY_STRING) {
 //            print(searchText!)
 
@@ -2135,9 +2194,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 if (globals.search?.searches?[searchText!] == nil) || !globals.searchComplete {
                     var searchMediaItems:[MediaItem]?
                     
-                    //                    let searchMediaItems = globals.mediaToSearch?.filter({ (mediaItem:MediaItem) -> Bool in
-                    //                        return mediaItem.search(searchText: searchText)
-                    //                    })
+//                    let searchMediaItems = globals.mediaToSearch?.filter({ (mediaItem:MediaItem) -> Bool in
+//                        return mediaItem.search(searchText: searchText)
+//                    })
                     
                     if globals.search?.list != nil {
                         for mediaItem in globals.search!.list! {
@@ -2153,31 +2212,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                                 }
                                 
                                 if ((searchMediaItems!.count % Constants.SEARCH_RESULTS_BETWEEN_UPDATES) == 0) {
-                                    //                                print("2: ",searchText,searchMediaItems?.count)
-                                    //                                print(searchText!)
-                                    //                                print(searchMediaItems?.count)
+//                                    print("2: ",searchText,searchMediaItems?.count)
+//                                    print(searchText!)
+//                                    print(searchMediaItems?.count)
                                     
-                                    if globals.search?.searches == nil {
-                                        globals.search?.searches = [String:MediaListGroupSort]()
-                                    }
-                                    
-                                    self.showProgress = false
-                                    globals.search?.searches?[searchText!] = MediaListGroupSort(mediaItems: searchMediaItems)
-                                    self.showProgress = true
-                                    
-                                    if !globals.searchActive || ((self.searchBar.text != nil) && (self.searchBar.text != Constants.EMPTY_STRING)) {
-                                        globals.setupDisplay()
-                                    } else {
-                                        globals.clearDisplay()
-                                    }
-                                    
-                                    DispatchQueue.main.async(execute: { () -> Void in
-                                        if self.refreshList {
-                                            self.tableView.reloadData()
-                                        } else {
-                                            self.changesPending = true
-                                        }
-                                    })
+                                    self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
+                                    self.updateDisplay(searchText:searchText)
                                 }
                             }
                             
@@ -2188,28 +2228,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             }
                         }
 
-                        if globals.search?.searches == nil {
-                            globals.search?.searches = [String:MediaListGroupSort]()
-                        }
-                        
                         if !abort {
-                            self.showProgress = false
-                            globals.search?.searches?[searchText!] = MediaListGroupSort(mediaItems: searchMediaItems)
-                            self.showProgress = true
-                            
-                            if !globals.searchActive || ((self.searchBar.text != nil) && (self.searchBar.text != Constants.EMPTY_STRING)) {
-                                globals.setupDisplay()
-                            } else {
-                                globals.clearDisplay()
-                            }
-                            
-                            DispatchQueue.main.async(execute: { () -> Void in
-                                if self.refreshList {
-                                    self.tableView.reloadData()
-                                } else {
-                                    self.changesPending = true
-                                }
-                            })
+                            self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
+                            self.updateDisplay(searchText:searchText)
                         } else {
                             globals.search?.searches?[searchText!] = nil
                         }
@@ -2231,54 +2252,24 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                                         searchMediaItems?.append(mediaItem)
                                     }
 
-                                    if globals.search?.searches == nil {
-                                        globals.search?.searches = [String:MediaListGroupSort]()
+                                    if !shouldAbort() {
+                                        self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
+                                        self.updateDisplay(searchText:searchText)
                                     }
-                                    
-                                    self.showProgress = false
-                                    globals.search?.searches?[searchText!] = MediaListGroupSort(mediaItems: searchMediaItems)
-                                    self.showProgress = true
-                                    
-                                    if !globals.searchActive || ((self.searchBar.text != nil) && (self.searchBar.text != Constants.EMPTY_STRING)) {
-                                        globals.setupDisplay()
-                                    } else {
-                                        globals.clearDisplay()
-                                    }
-                                    
-                                    DispatchQueue.main.async(execute: { () -> Void in
-                                        if self.refreshList {
-                                            self.tableView.reloadData()
-                                        } else {
-                                            self.changesPending = true
-                                        }
-                                    })
                                 }
                                 
-                                if (globals.searchText != searchText) {
+                                if shouldAbort() {
                                     globals.search?.searches?[searchText!] = nil
                                     abort = true
                                     break
                                 }
                             }
 
+                            abort = abort || shouldAbort()
+                            
                             if !abort {
-                                self.showProgress = false
-                                globals.search?.searches?[searchText!] = MediaListGroupSort(mediaItems: searchMediaItems)
-                                self.showProgress = true
-                                
-                                if !globals.searchActive || ((self.searchBar.text != nil) && (self.searchBar.text != Constants.EMPTY_STRING)) {
-                                    globals.setupDisplay()
-                                } else {
-                                    globals.clearDisplay()
-                                }
-                                
-                                DispatchQueue.main.async(execute: { () -> Void in
-                                    if self.refreshList {
-                                        self.tableView.reloadData()
-                                    } else {
-                                        self.changesPending = true
-                                    }
-                                })
+                                self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
+                                self.updateDisplay(searchText:searchText)
                             } else {
                                 globals.search?.searches?[searchText!] = nil
                             }
@@ -2287,40 +2278,24 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     
                     // Final search update since we're only doing them in batches of Constants.SEARCH_RESULTS_BETWEEN_UPDATES
                     
-                    if globals.search?.searches == nil {
-                        globals.search?.searches = [String:MediaListGroupSort]()
-                    }
-                    
                     if !abort {
-                        self.showProgress = false
-                        globals.search?.searches?[searchText!] = MediaListGroupSort(mediaItems: searchMediaItems)
-                        self.showProgress = true
+                        self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
                     }
                 }
                 
                 if !abort {
-                    if !globals.searchActive || ((self.searchBar.text != nil) && (self.searchBar.text != Constants.EMPTY_STRING)) {
-                        globals.setupDisplay()
-                    } else {
-                        globals.clearDisplay()
-                    }
-                    
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        if self.refreshList {
-                            self.tableView.reloadData()
-                        } else {
-                            self.changesPending = true
-                        }
-
-                        completion?()
-                        
-                        globals.searchComplete = true
-                        
-                        self.setupListActivityIndicator()
-                        self.setupBarButtons()
-                        self.setupCategoryButton()
-                    })
+                    self.updateDisplay(searchText:searchText)
                 }
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    completion?()
+                    
+                    globals.searchComplete = true
+                    
+                    self.setupListActivityIndicator()
+                    self.setupBarButtons()
+                    self.setupCategoryButton()
+                })
             })
         } else {
 //            print(searchText)
@@ -2375,7 +2350,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         if (section > -1) && (row > -1) {
             indexPath = IndexPath(row: row,section: section)
             
-            print(tableView.numberOfSections,tableView.numberOfRows(inSection: section),indexPath)
+//            print(tableView.numberOfSections,tableView.numberOfRows(inSection: section),indexPath)
 
             //            print("\(globals.mediaItemSelected?.title)")
             //            print("Row: \(indexPath.item)")
