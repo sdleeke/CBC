@@ -2375,23 +2375,27 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         if (section > -1) && (row > -1) {
             indexPath = IndexPath(row: row,section: section)
             
-            if let _ = tableView.cellForRow(at: indexPath) {
-                //            print("\(globals.mediaItemSelected?.title)")
-                //            print("Row: \(indexPath.item)")
-                //            print("Section: \(indexPath.section)")
-                
-                if (select) {
-                    DispatchQueue.main.async(execute: { () -> Void in
+            print(tableView.numberOfSections,tableView.numberOfRows(inSection: section),indexPath)
+
+            //            print("\(globals.mediaItemSelected?.title)")
+            //            print("Row: \(indexPath.item)")
+            //            print("Section: \(indexPath.section)")
+            
+            if (select) {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    if (section < self.tableView.numberOfSections) && (row < self.tableView.numberOfRows(inSection: section)) {
                         self.tableView.selectRow(at: indexPath, animated: false, scrollPosition: UITableViewScrollPosition.none)
-                    })
-                }
-                
-                if (scroll) {
-                    //Scrolling when the user isn't expecting it can be jarring.
-                    DispatchQueue.main.async(execute: { () -> Void in
+                    }
+                })
+            }
+            
+            if (scroll) {
+                //Scrolling when the user isn't expecting it can be jarring.
+                DispatchQueue.main.async(execute: { () -> Void in
+                    if (section < self.tableView.numberOfSections) && (row < self.tableView.numberOfRows(inSection: section)) {
                         self.tableView.scrollToRow(at: indexPath, at: position, animated: false)
-                    })
-                }
+                    }
+                })
             }
         }
     }

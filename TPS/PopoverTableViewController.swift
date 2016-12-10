@@ -57,42 +57,35 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             return
         }
         
-//            self.tableView.isHidden = true
-//            self.tableView.reloadData()
-
         self.tableView.sizeToFit()
-        
-//        DispatchQueue.global(qos: .background).async(execute: { () -> Void in
         
         var height:CGFloat = 0.0
         var width:CGFloat = 0.0
 
-        var maxSize = CGRect()
-        
-        let size: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 44.0)
-
 //        print(strings)
         
         for string in strings! {
-            maxSize = string.boundingRect(with: size, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
-
+            let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 44.0)
+            let maxWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
+            
+            let heightSize: CGSize = CGSize(width: view.bounds.width - 30, height: .greatestFiniteMagnitude)
+            let maxHeight = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
+            
 //            print(string)
 //            print(maxSize)
 
-            if maxSize.width > width {
-                print(string)
-                width = maxSize.width
+            if maxWidth.width > width {
+//                print(string)
+                width = maxWidth.width
             }
 
             height += 44
+            
+//            print(maxHeight.height, (Int(maxHeight.height) / 16) - 1)
+            height += CGFloat(((Int(maxHeight.height) / 16) - 1) * 16)
         }
         
-        width += 40
-
-//        if width < 125 {
-//            print(width)
-//            width = 125
-//        }
+        width += 2*20
         
         switch purpose! {
         case .selectingTags:
@@ -112,140 +105,17 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             height += tableView.sectionHeaderHeight * CGFloat(indexStrings!.count)
         }
         
-        print(width)
-        print(view.bounds.width)
-        
-        if width > presentingViewController?.view.bounds.width {
-            height += 16.0
-        }
+//        print(width)
+//        print(view.bounds.width)
+//        
+//        if width > view.bounds.width {
+//            height += 16.0
+//        }
         
 //        print(height)
 //        print(width)
         
         self.preferredContentSize = CGSize(width: width, height: height)
-        
-//        return
-//
-//        if let cell = self.tableView.cellForRow(at: IndexPath(row: 0, section: 0)) {
-//            for string in strings! {
-//                let text = cell.textLabel?.text
-//                
-//                cell.textLabel?.text = string.replacingOccurrences(of: " ", with: "\u{00a0}")
-//                
-////                cell.textLabel?.lineBreakMode = .byTruncatingTail
-//                cell.textLabel?.numberOfLines = 1
-//                
-//                cell.textLabel?.sizeToFit()
-//                
-////                print(cell.textLabel?.frame.width)
-//                
-//                if let cellWidth = cell.textLabel?.frame.width, cellWidth > width {
-//                    width = cellWidth * 1.5
-//                }
-//
-////                cell.textLabel?.lineBreakMode = .byWordWrapping
-//                cell.textLabel?.numberOfLines = 0
-//
-//                let cellHeight = cell.frame.height
-//
-////                print(cellHeight)
-//
-//                height += cellHeight
-//                
-//                cell.textLabel?.text = text
-//            }
-//        }
-//
-//        switch purpose! {
-//        case .selectingTags:
-//            fallthrough
-//        case .selectingSection:
-//            fallthrough
-//        case .selectingGrouping:
-//            fallthrough
-//        case .selectingSorting:
-//            width += 44
-//            break
-//            
-//        default:
-//            break
-//        }
-//
-//        if showIndex {
-//            width += 44
-//            height += tableView.sectionHeaderHeight * CGFloat(indexStrings!.count)
-//        }
-//        
-//        if let isHidden = navigationController?.navigationBar.isHidden {
-//            if !isHidden {
-////                height += navigationController!.navigationBar.bounds.height
-//            }
-//        }
-//
-////            DispatchQueue.main.async(execute: { () -> Void in
-//                self.preferredContentSize = CGSize(width: width, height: height)
-////            })
-////        })
-//        
-//
-////            self.tableView.isHidden = false
-////            self.tableView.reloadData()
-//
-//        
-////        var max = 0
-////        
-////        if (navigationItem.title != nil) {
-////            max = navigationItem.title!.characters.count
-////        }
-////        
-////        for string in strings! {
-////            if string.characters.contains("\n") {
-////                var newString = string
-////                
-////                var strings = [String]()
-////                
-////                while newString.characters.contains("\n") {
-////                    strings.append(newString.substring(to: newString.range(of: "\n")!.lowerBound))
-////                    newString = newString.substring(from: newString.range(of: "\n")!.upperBound)
-////                }
-////                
-////                strings.append(newString)
-////                
-////                for string in strings {
-////                    if string.characters.count > max {
-////                        max = string.characters.count
-////                    }
-////                }
-////            } else {
-////                if string.characters.count > max {
-////                    max = string.characters.count
-////                }
-////            }
-////        }
-////        
-////        //        print("count: \(CGFloat(strings!.count)) rowHeight: \(tableView.rowHeight) height: \(height)")
-////        
-////        var width = CGFloat(max * 20)
-////        if width < 200 {
-////            width = 200
-////        }
-////        
-////        var height:CGFloat = 0
-////        
-////        if purpose != .selectingHistory {
-////            height = 45 * CGFloat(strings!.count) //35 tableView.rowHeight was -1 which I don't understand
-////            if height < 150 {
-////                height = 150
-////            }
-////        } else {
-////            height = 100 * CGFloat(strings!.count)
-////        }
-////        
-////        if showSectionHeaders {
-////            height = 1.5*height
-////        }
-////        
-////        preferredContentSize = CGSize(width: width, height: height)
     }
     
     override func viewDidLoad() {
