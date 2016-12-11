@@ -144,6 +144,8 @@ struct Constants {
     }
 
     struct NOTIFICATION {
+        static let FREE_MEMORY              = "FREE MEMORY"
+
         static let UPDATE_DOCUMENT          = "UPDATE DOCUMENT"
         static let CANCEL_DOCUMENT          = "CANCEL DOCUMENT"
         

@@ -88,10 +88,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             globals.mediaCategory.selected = string
             setupCategoryButton()
             
-            globals.tags.selected = nil
+            globals.media.tags.selected = nil
             
-            globals.searchActive = false
-            globals.searchText = nil
+//            globals.search.active = false
+            globals.search.text = nil
             
             DispatchQueue.main.async(execute: { () -> Void in
                 self.searchBar.resignFirstResponder()
@@ -128,8 +128,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             }).first
                         }
                         
-                        if globals.searchActive && globals.searchTranscripts && !globals.searchComplete {
-                            self.updateSearchResults(globals.searchText,completion: {
+                        if globals.search.active && !globals.search.complete { //  && globals.search.transcripts
+                            self.updateSearchResults(globals.search.text,completion: {
                                 DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                                     DispatchQueue.main.async(execute: { () -> Void in
                                         self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
@@ -400,7 +400,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 if mediaItem!.hasNotesHTML {
                     process(viewController: self, work: { () -> (Any?) in
                         mediaItem?.loadNotesHTML()
-                        if globals.searchActive && (globals.searchText != nil) {
+                        if globals.search.active && (globals.search.text != nil) {
                             return mediaItem?.searchMarkedFullNotesHTML(index: true)
                         } else {
                             return mediaItem?.fullNotesHTML
@@ -412,13 +412,14 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             default:
-                globals.searchText = searchText
+//                globals.search.active = true
+                globals.search.text = searchText
                 searchBar.text = searchText
                 searchBar.showsCancelButton = true
                 updateSearchResults(searchText,completion: nil)
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.tableView.reloadData()
-                })
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    self.tableView.reloadData()
+//                })
                 break
             }
             break
@@ -430,11 +431,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             case Constants.Delete_Audio_Download:
-                mediaItem?.audioDownload?.deleteDownload()
+                mediaItem?.audioDownload?.delete()
                 break
                 
             case Constants.Cancel_Audio_Download:
-                mediaItem?.audioDownload?.cancelOrDeleteDownload()
+                mediaItem?.audioDownload?.cancelOrDelete()
                 break
                 
             case Constants.Download_Audio:
@@ -454,13 +455,13 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 mediaItemID = globals.history!.reversed()[index]
             }
             if let mediaItem = globals.mediaRepository.index![mediaItemID] {
-                if globals.active!.mediaItems!.contains(mediaItem) {
+                if globals.media.active!.mediaItems!.contains(mediaItem) {
                     selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top) // was Middle
                 } else {
                     dismiss(animated: true, completion: nil)
                     
                     let alert = UIAlertController(title:"Not in List",
-                        message: "You are currently showing \"\(globals.tags.selected!)\" and \"\(mediaItem.title!)\" is not in that list.  Show \"All\" and try again.",
+                        message: "You are currently showing \"\(globals.media.tags.selected!)\" and \"\(mediaItem.title!)\" is not in that list.  Show \"All\" and try again.",
                         preferredStyle: UIAlertControllerStyle.alert)
                     
                     let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
@@ -492,7 +493,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
         case .selectingTags:
             
-            // Should we be showing globals.active!.mediaItemTags instead?  That would be the equivalent of drilling down.
+            // Should we be showing globals.media.active!.mediaItemTags instead?  That would be the equivalent of drilling down.
 
             DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                 //                    if (index >= 0) && (index <= globals.media.all!.mediaItemTags!.count) {
@@ -501,10 +502,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     
                     switch strings[index] {
                     case Constants.All:
-                        if (globals.tags.showing != Constants.ALL) {
+                        if (globals.media.tags.showing != Constants.ALL) {
                             new = true
-                            globals.tags.showing = Constants.ALL
-                            globals.tags.selected = nil
+                            globals.media.tags.showing = Constants.ALL
+                            globals.media.tags.selected = nil
                         }
                         break
                         
@@ -513,14 +514,14 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         
                         let tagSelected = strings[index]
                         
-                        new = (globals.tags.showing != Constants.TAGGED) || (globals.tags.selected != tagSelected)
+                        new = (globals.media.tags.showing != Constants.TAGGED) || (globals.media.tags.selected != tagSelected)
                         
                         if (new) {
-                            //                                print("\(globals.active!.mediaItemTags)")
+                            //                                print("\(globals.media.active!.mediaItemTags)")
                             
-                            globals.tags.selected = tagSelected
+                            globals.media.tags.selected = tagSelected
                             
-                            globals.tags.showing = Constants.TAGGED
+                            globals.media.tags.showing = Constants.TAGGED
                         }
                         break
                     }
@@ -537,8 +538,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             self.disableBarButtons()
                         })
                         
-                        if (globals.searchActive) {
-                            self.updateSearchResults(globals.searchText,completion: nil)
+                        if (globals.search.active) {
+                            self.updateSearchResults(globals.search.text,completion: nil)
                         }
                         
                         DispatchQueue.main.async(execute: { () -> Void in
@@ -574,7 +575,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             //
             //                        var mediaItems = [MediaItem]()
             //
-            //                        for mediaItem in globals.activeMediaItems! {
+            //                        for mediaItem in globals.media.activeMediaItems! {
             //                            if !mediaItem.hasMultiParts {
             //                                mediaItems.append(mediaItem)
             //                            }
@@ -588,7 +589,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             //
             //                        indexPath = NSIndexPath(forRow: row!, inSection: index!)
             //                    } else {
-            //                        let sections = seriesFromMediaItems(globals.activeMediaItems,withTitles: false)
+            //                        let sections = seriesFromMediaItems(globals.media.activeMediaItems,withTitles: false)
             //                        let section = sections?.indexOf(string)
             //                        indexPath = NSIndexPath(forRow: 0, inSection: section!)
             //                    }
@@ -604,7 +605,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             dismiss(animated: true, completion: nil)
             globals.grouping = Constants.groupings[index]
             
-            if globals.mediaNeed.grouping {
+            if globals.media.need.grouping {
                 globals.clearDisplay()
 
                 DispatchQueue.main.async(execute: { () -> Void in
@@ -650,7 +651,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             dismiss(animated: true, completion: nil)
             globals.sorting = Constants.sortings[index]
             
-            if (globals.mediaNeed.sorting) {
+            if (globals.media.need.sorting) {
                 globals.clearDisplay()
                 
                 DispatchQueue.main.async(execute: { () -> Void in
@@ -702,10 +703,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             case Constants.View_List:
                 DispatchQueue.main.async(execute: { () -> Void in
                     process(viewController: self, work: { () -> (Any?) in
-                        if globals.active?.htmlString == nil {
-                            globals.active?.htmlString = setupMediaItemsHTMLGlobal(globals.active?.list, includeURLs: true, includeColumns: true)
+                        if globals.media.active?.html?.string == nil {
+                            globals.media.active?.html?.string = setupMediaItemsHTMLGlobal(globals.media.active?.list, includeURLs: true, includeColumns: true)
                         }
-                        return globals.active?.htmlString
+                        return globals.media.active?.html?.string
                     }, completion: { (data:Any?) in
                         presentHTMLModal(viewController: self, title: globals.contextTitle, htmlString: data as? String)
                     })
@@ -714,13 +715,13 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
             case Constants.Current_Selection:
                 if let mediaItem = selectedMediaItem {
-                    if globals.active!.mediaItems!.contains(mediaItem) {
+                    if globals.media.active!.mediaItems!.contains(mediaItem) {
                         selectOrScrollToMediaItem(selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
                     } else {
                         dismiss(animated: true, completion: nil)
                         
                         let alert = UIAlertController(title:"Not in List",
-                            message: "You are currently showing \"\(globals.tags.selected!)\" and \"\(mediaItem.title!)\" is not in that list.  Show \"All\" and try again.",
+                            message: "You are currently showing \"\(globals.media.tags.selected!)\" and \"\(mediaItem.title!)\" is not in that list.  Show \"All\" and try again.",
                             preferredStyle: UIAlertControllerStyle.alert)
                         
                         let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
@@ -761,7 +762,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             case Constants.Scripture_Index:
                 if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SCRIPTURE_INDEX) as? ScriptureIndexViewController {
 
-                    viewController.mediaListGroupSort = globals.active
+                    viewController.mediaListGroupSort = globals.media.active
 
                     self.navigationController?.pushViewController(viewController, animated: true)
                 }
@@ -820,7 +821,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 defaults.removeObject(forKey: Constants.HISTORY)
                 defaults.synchronize()
                 break
-                
+
             case Constants.Live:
                 performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: nil)
                 break
@@ -841,12 +842,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func willPresentSearchController(_ searchController: UISearchController) {
 //        print("willPresentSearchController")
-        globals.searchActive = true
+        globals.search.active = true
     }
     
     func willDismissSearchController(_ searchController: UISearchController)
     {
-        globals.searchActive = false
+        globals.search.active = false
     }
     
     func didDismissSearchController(_ searchController: UISearchController)
@@ -905,20 +906,20 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
             switch globals.grouping! {
             case Grouping.TITLE:
-                popover.strings = globals.active?.sectionTitles
-                popover.indexStrings = globals.active?.sectionIndexTitles
+                popover.strings = globals.media.active?.section?.titles
+                popover.indexStrings = globals.media.active?.section?.indexTitles
                 popover.showIndex = true
                 popover.showSectionHeaders = true
                 break
                 
             case Grouping.BOOK:
-                if let books = globals.active?.sectionTitles?.filter({ (string:String) -> Bool in
+                if let books = globals.media.active?.section?.titles?.filter({ (string:String) -> Bool in
                     return bookNumberInBible(string) != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
                 }) {
 //                        print(books)
                     popover.strings = books
 
-                    if let other = globals.active?.sectionTitles?.filter({ (string:String) -> Bool in
+                    if let other = globals.media.active?.section?.titles?.filter({ (string:String) -> Bool in
                         return bookNumberInBible(string) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
                     }) {
                         popover.strings?.append(contentsOf: other)
@@ -934,8 +935,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             case Grouping.SPEAKER:
-                popover.strings = globals.active?.sectionTitles
-                popover.indexStrings = globals.active?.sectionIndexTitles
+                popover.strings = globals.media.active?.section?.titles
+                popover.indexStrings = globals.media.active?.section?.indexTitles
                 
 //                    popover.transform = lastNameFromName
 
@@ -944,8 +945,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             default:
-                popover.strings = globals.active?.sectionTitles
-                popover.indexStrings = globals.active?.sectionIndexTitles
+                popover.strings = globals.media.active?.section?.titles
+                popover.indexStrings = globals.media.active?.section?.indexTitles
                 popover.showIndex = false
                 popover.showSectionHeaders = false
                 break
@@ -956,7 +957,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
         // Too slow
 //        if (globals.grouping == Constants.SERIES) {
-//            let strings = seriesFromMediaItems(globals.activeMediaItems,withTitles: true)
+//            let strings = seriesFromMediaItems(globals.media.activeMediaItems,withTitles: true)
 //            popover?.strings = strings
 //        } else {
 //            popover?.strings = globals.mediaItemSections
@@ -1082,7 +1083,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        print("searchBar:textDidChange:")
         //Unstable results from incremental search
 //        print("\"\(searchText)\"")
-        globals.searchText = searchText
+        globals.search.text = searchText
 
         if (searchText != Constants.EMPTY_STRING) { //
             updateSearchResults(searchText,completion: nil)
@@ -1092,6 +1093,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             DispatchQueue.main.async(execute: { () -> Void in
                 self.tableView.reloadData()
             })
+            disableBarButtons()
         }
     }
 
@@ -1100,7 +1102,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         searchBar.resignFirstResponder()
 //        print(searchBar.text)
         if (searchBar.text != nil) && (searchBar.text != Constants.EMPTY_STRING) { //
-            globals.searchText = searchBar.text
+            globals.search.text = searchBar.text
             updateSearchResults(searchBar.text,completion: nil)
         } else {
             print("clearDisplay 3")
@@ -1119,7 +1121,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
 //        print("searchBarTextDidBeginEditing:")
-        globals.searchActive = true
+        globals.search.active = true
         
         DispatchQueue.main.async(execute: { () -> Void in
             searchBar.showsCancelButton = true
@@ -1127,18 +1129,20 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
 //        print(searchBar.text)
         if (searchBar.text != nil) && (searchBar.text != Constants.EMPTY_STRING) { //
-            globals.searchText = searchBar.text
-            updateSearchResults(searchBar.text,completion: nil)
+            if globals.search.text != searchBar.text {
+                globals.search.text = searchBar.text
+                updateSearchResults(searchBar.text,completion: nil)
+            }
+        } else {
+            print("clearDisplay 4")
+            globals.clearDisplay()
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.tableView.reloadData()
+            })
+            
+            disableBarButtons()
         }
-        
-        print("clearDisplay 4")
-        globals.clearDisplay()
-
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.tableView.reloadData()
-        })
-
-        disableBarButtons()
     }
     
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
@@ -1153,8 +1157,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             self.searchBar.resignFirstResponder()
             self.searchBar.text = nil
         })
-        
-        globals.searchActive = false
+
+        globals.search.text = nil
+//        globals.search.active = false
         
         didDismissSearch()
     }
@@ -1566,21 +1571,21 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //            print(globals.mediaRepository.list?.count)
 //            print(globals.media.all?.list?.count)
             
-            if globals.searchActive {
+            if globals.search.active {
                 DispatchQueue.main.async(execute: { () -> Void in
-                    self.searchBar.text = globals.searchText
+                    self.searchBar.text = globals.search.text
                     self.searchBar.showsCancelButton = (self.searchBar.text != nil) && (self.searchBar.text != Constants.EMPTY_STRING)
                 })
 
-                let searchMediaItems = globals.search?.list?.filter({ (mediaItem:MediaItem) -> Bool in
-                    return mediaItem.search(searchText: globals.searchText)
-                })
-                
-                if globals.search?.searches == nil {
-                    globals.search?.searches = [String:MediaListGroupSort]()
-                }
-                globals.search?.searches?[globals.searchText!] = MediaListGroupSort(mediaItems: searchMediaItems)
-                globals.searchComplete = false
+//                let searchMediaItems = globals.media.toSearch?.list?.filter({ (mediaItem:MediaItem) -> Bool in
+//                    return mediaItem.search(searchText: globals.search.text)
+//                })
+//                
+//                if globals.media.toSearch?.searches == nil {
+//                    globals.media.toSearch?.searches = [String:MediaListGroupSort]()
+//                }
+//                globals.media.toSearch?.searches?[globals.search.text!] = MediaListGroupSort(mediaItems: searchMediaItems)
+                globals.search.complete = false
             }
 
             globals.setupDisplay()
@@ -1624,10 +1629,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         DispatchQueue.main.async(execute: { () -> Void in
             self.mediaCategoryButton.setTitle(globals.mediaCategory.selected, for: UIControlState.normal)
             
-            if globals.isLoading || globals.isRefreshing || !globals.searchComplete {
+            if globals.isLoading || globals.isRefreshing || !globals.search.complete {
                 self.mediaCategoryButton.isEnabled = false
             } else {
-                if (globals.mediaRepository.list != nil) && globals.searchComplete {
+                if (globals.mediaRepository.list != nil) && globals.search.complete {
                     self.mediaCategoryButton.isEnabled = true
                 }
             }
@@ -1636,10 +1641,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func setupBarButtons()
     {
-        if globals.isLoading || globals.isRefreshing || !globals.searchComplete {
+        if globals.isLoading || globals.isRefreshing || !globals.search.complete {
             disableBarButtons()
         } else {
-            if (globals.mediaRepository.list != nil) &&  globals.searchComplete {
+            if (globals.mediaRepository.list != nil) &&  globals.search.complete {
                 enableBarButtons()
             }
         }
@@ -1647,7 +1652,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func setupListActivityIndicator()
     {
-        if globals.isLoading || (globals.searchActive && !globals.searchComplete) {
+        if globals.isLoading || (globals.search.active && !globals.search.complete) {
             if !globals.isRefreshing {
                 if !self.listActivityIndicator.isAnimating {
                     DispatchQueue.main.async(execute: { () -> Void in
@@ -1910,8 +1915,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 } else {
                     globals.isRefreshing = false
                     
-                    if globals.searchActive && globals.searchTranscripts && !globals.searchComplete {
-                        self.updateSearchResults(globals.searchText,completion: {
+                    if globals.search.active && !globals.search.complete { //  && globals.search.transcripts
+                        self.updateSearchResults(globals.search.text,completion: {
                             DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                                 DispatchQueue.main.async(execute: { () -> Void in
                                     self.selectOrScrollToMediaItem(self.selectedMediaItem, select: false, scroll: false, position: UITableViewScrollPosition.top)
@@ -2021,8 +2026,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             }).first
                         }
                         
-                        if globals.searchActive && globals.searchTranscripts && !globals.searchComplete {
-                            self.updateSearchResults(globals.searchText,completion: {
+                        if globals.search.active && !globals.search.complete { // && globals.search.transcripts
+                            self.updateSearchResults(globals.search.text,completion: {
                                 DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                                     DispatchQueue.main.async(execute: { () -> Void in
                                         self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
@@ -2122,18 +2127,18 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func updateSearchResults(for searchController: UISearchController)
     {
-        updateSearchResults(globals.searchText,completion: nil)
+        updateSearchResults(globals.search.text,completion: nil)
     }
     
     func updateDisplay(searchText:String?)
     {
-        if !globals.searchActive || (globals.searchText == searchText) {
-            print(globals.searchText,searchText)
+        if !globals.search.active || (globals.search.text == searchText) {
+            print(globals.search.text,searchText)
             print("setupDisplay")
             globals.setupDisplay()
         } else {
-            print("clearDisplay 1")
-            globals.clearDisplay()
+//            print("clearDisplay 1")
+//            globals.clearDisplay()
         }
         
         DispatchQueue.main.async(execute: { () -> Void in
@@ -2153,11 +2158,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         self.showProgress = false
         
-        if globals.search?.searches == nil {
-            globals.search?.searches = [String:MediaListGroupSort]()
+        if globals.media.toSearch?.searches == nil {
+            globals.media.toSearch?.searches = [String:MediaListGroupSort]()
         }
         
-        globals.search?.searches?[searchText!] = MediaListGroupSort(mediaItems: mediaItems)
+        globals.media.toSearch?.searches?[searchText!] = MediaListGroupSort(mediaItems: mediaItems)
         
         self.showProgress = true
     }
@@ -2165,141 +2170,142 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     func updateSearchResults(_ searchText:String?,completion: (() -> Void)?)
     {
 //        print(searchText)
+
+        guard (searchText != nil) else {
+            return
+        }
+        
+        guard (searchText != Constants.EMPTY_STRING) else {
+            return
+        }
+        
+        guard (globals.media.toSearch?.searches?[searchText!] == nil) else {
+            updateDisplay(searchText:searchText)
+            setupListActivityIndicator()
+            setupBarButtons()
+            return
+        }
         
         var abort = false
         
         func shouldAbort() -> Bool
         {
-            return globals.searchText != searchText
+            return globals.search.text != searchText
         }
         
-        globals.searchComplete = false
+        globals.search.complete = false
 
         refreshList = true
         
-        if (searchText != nil) && (searchText != Constants.EMPTY_STRING) {
 //            print(searchText!)
 
-            globals.clearDisplay()
+        globals.clearDisplay()
 
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.tableView.reloadData()
-            })
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.tableView.reloadData()
+        })
 
-            self.setupBarButtons()
+        self.setupBarButtons()
 
-            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                //                print("1: ",searchText,Constants.EMPTY_STRING)
-                
-                if (globals.search?.searches?[searchText!] == nil) || !globals.searchComplete {
-                    var searchMediaItems:[MediaItem]?
+        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+            //                print("1: ",searchText,Constants.EMPTY_STRING)
+            
+            var searchMediaItems:[MediaItem]?
+            
+            //                    let searchMediaItems = globals.mediaToSearch?.filter({ (mediaItem:MediaItem) -> Bool in
+            //                        return mediaItem.search(searchText: searchText)
+            //                    })
+            
+            if globals.media.toSearch?.list != nil {
+                for mediaItem in globals.media.toSearch!.list! {
+                    self.setupListActivityIndicator()
                     
-//                    let searchMediaItems = globals.mediaToSearch?.filter({ (mediaItem:MediaItem) -> Bool in
-//                        return mediaItem.search(searchText: searchText)
-//                    })
+                    let searchHit = mediaItem.search(searchText: globals.search.text)
                     
-                    if globals.search?.list != nil {
-                        for mediaItem in globals.search!.list! {
-                            self.setupListActivityIndicator()
-                            
-                            let searchHit = mediaItem.search(searchText: globals.searchText)
-                            
-                            if searchHit {
-                                if searchMediaItems == nil {
-                                    searchMediaItems = [mediaItem]
-                                } else {
-                                    searchMediaItems?.append(mediaItem)
-                                }
-                                
-                                if ((searchMediaItems!.count % Constants.SEARCH_RESULTS_BETWEEN_UPDATES) == 0) {
-//                                    print("2: ",searchText,searchMediaItems?.count)
-//                                    print(searchText!)
-//                                    print(searchMediaItems?.count)
-                                    
-                                    self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
-                                    self.updateDisplay(searchText:searchText)
-                                }
-                            }
-                            
-                            if (globals.searchText != searchText) {
-                                globals.search?.searches?[searchText!] = nil
-                                abort = true
-                                break
-                            }
-                        }
-
-                        if !abort {
-                            self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
-                            self.updateDisplay(searchText:searchText)
+                    if searchHit {
+                        if searchMediaItems == nil {
+                            searchMediaItems = [mediaItem]
                         } else {
-                            globals.search?.searches?[searchText!] = nil
+                            searchMediaItems?.append(mediaItem)
                         }
-
-                        if !abort && globals.searchTranscripts {
-                            for mediaItem in globals.search!.list! {
-                                self.setupListActivityIndicator()
+                        
+                        abort = abort || shouldAbort()
+                        
+                        if !abort {
+                            if ((searchMediaItems!.count % Constants.SEARCH_RESULTS_BETWEEN_UPDATES) == 0) {
+                                //                                    print("2: ",searchText,searchMediaItems?.count)
+                                //                                    print(searchText!)
+                                //                                    print(searchMediaItems?.count)
                                 
-                                var searchHit = false
-                                
-                                if (searchMediaItems == nil) || !searchMediaItems!.contains(mediaItem) {
-                                    searchHit = mediaItem.searchFullNotesHTML(searchText: globals.searchText)
-                                }
-                                
-                                if searchHit {
-                                    if searchMediaItems == nil {
-                                        searchMediaItems = [mediaItem]
-                                    } else {
-                                        searchMediaItems?.append(mediaItem)
-                                    }
-
-                                    if !shouldAbort() {
-                                        self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
-                                        self.updateDisplay(searchText:searchText)
-                                    }
-                                }
-                                
-                                if shouldAbort() {
-                                    globals.search?.searches?[searchText!] = nil
-                                    abort = true
-                                    break
-                                }
+                                self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
+                                self.updateDisplay(searchText:searchText)
                             }
-
+                        } else {
+                            globals.media.toSearch?.searches?[searchText!] = nil
+                            break
+                        }
+                    }
+                }
+                
+                if !abort {
+                    self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
+                    self.updateDisplay(searchText:searchText)
+                } else {
+                    globals.media.toSearch?.searches?[searchText!] = nil
+                }
+                
+                if !abort && globals.search.transcripts {
+                    for mediaItem in globals.media.toSearch!.list! {
+                        self.setupListActivityIndicator()
+                        
+                        var searchHit = false
+                        
+                        if (searchMediaItems == nil) || !searchMediaItems!.contains(mediaItem) {
+                            searchHit = mediaItem.searchFullNotesHTML(searchText: globals.search.text)
+                        }
+                        
+                        if searchHit {
+                            if searchMediaItems == nil {
+                                searchMediaItems = [mediaItem]
+                            } else {
+                                searchMediaItems?.append(mediaItem)
+                            }
+                            
                             abort = abort || shouldAbort()
                             
                             if !abort {
                                 self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
                                 self.updateDisplay(searchText:searchText)
                             } else {
-                                globals.search?.searches?[searchText!] = nil
+                                globals.media.toSearch?.searches?[searchText!] = nil
+                                break
                             }
                         }
                     }
-                    
-                    // Final search update since we're only doing them in batches of Constants.SEARCH_RESULTS_BETWEEN_UPDATES
-                    
-                    if !abort {
-                        self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
-                    }
                 }
+            }
+            
+            // Final search update since we're only doing them in batches of Constants.SEARCH_RESULTS_BETWEEN_UPDATES
+            
+            abort = abort || shouldAbort()
+            
+            if !abort {
+                self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
+                self.updateDisplay(searchText:searchText)
+            } else {
+                globals.media.toSearch?.searches?[searchText!] = nil
+            }
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                completion?()
                 
-                if !abort {
-                    self.updateDisplay(searchText:searchText)
-                }
+                globals.search.complete = true
                 
-                DispatchQueue.main.async(execute: { () -> Void in
-                    completion?()
-                    
-                    globals.searchComplete = true
-                    
-                    self.setupListActivityIndicator()
-                    self.setupBarButtons()
-                    self.setupCategoryButton()
-                })
+                self.setupListActivityIndicator()
+                self.setupBarButtons()
+                self.setupCategoryButton()
             })
-        } else {
-//            print(searchText)
-        }
+        })
     }
 
     func selectOrScrollToMediaItem(_ mediaItem:MediaItem?, select:Bool, scroll:Bool, position: UITableViewScrollPosition)
@@ -2308,7 +2314,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             return
         }
         
-        guard globals.active?.mediaItems?.index(of: mediaItem!) != nil else {
+        guard globals.media.active?.mediaItems?.index(of: mediaItem!) != nil else {
             return
         }
         
@@ -2317,32 +2323,32 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         var section:Int = -1
         var row:Int = -1
         
-        let mediaItems = globals.active?.mediaItems
+        let mediaItems = globals.media.active?.mediaItems
         
         if let index = mediaItems!.index(of: mediaItem!) {
             switch globals.grouping! {
             case Grouping.YEAR:
-                section = globals.active!.sectionTitles!.index(of: mediaItem!.yearSection!)!
+                section = globals.media.active!.section!.titles!.index(of: mediaItem!.yearSection!)!
                 break
                 
             case Grouping.TITLE:
-                section = globals.active!.sectionIndexTitles!.index(of: mediaItem!.multiPartSectionSort!)!
+                section = globals.media.active!.section!.indexTitles!.index(of: mediaItem!.multiPartSectionSort!)!
                 break
                 
             case Grouping.BOOK:
                 // For mediaItem.books.count > 1 this arbitrarily selects the first one, which may not be correct.
-                section = globals.active!.sectionTitles!.index(of: mediaItem!.bookSections.first!)!
+                section = globals.media.active!.section!.titles!.index(of: mediaItem!.bookSections.first!)!
                 break
                 
             case Grouping.SPEAKER:
-                section = globals.active!.sectionTitles!.index(of: mediaItem!.speakerSection!)!
+                section = globals.media.active!.section!.titles!.index(of: mediaItem!.speakerSection!)!
                 break
                 
             default:
                 break
             }
             
-            row = index - globals.active!.sectionIndexes![section]
+            row = index - globals.media.active!.sectionIndexes![section]
         }
         
         //            print(section)
@@ -2378,13 +2384,13 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     fileprivate func setupTag()
     {
-        switch globals.tags.showing! {
+        switch globals.media.tags.showing! {
         case Constants.ALL:
             searchBar.placeholder = Constants.All
             break
             
         case Constants.TAGGED:
-            searchBar.placeholder = globals.tags.selected
+            searchBar.placeholder = globals.media.tags.selected
             break
             
         default:
@@ -2604,7 +2610,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         if (selectedMediaItem != myCell.mediaItem) || (globals.history == nil) {
                             globals.addToHistory(myCell.mediaItem)
                         }
-                        selectedMediaItem = myCell.mediaItem //globals.activeMediaItems![index]
+                        selectedMediaItem = myCell.mediaItem //globals.media.activeMediaItems![index]
 
                         if selectedMediaItem != nil {
                             if let destination = dvc as? MediaViewController {
@@ -2798,7 +2804,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     func numberOfSectionsInTableView(_ TableView: UITableView) -> Int {
         //#warning Incomplete method implementation -- Return the number of sections
         //return series.count
-        return globals.display.sectionTitles != nil ? globals.display.sectionTitles!.count : 0
+        return globals.display.section.titles != nil ? globals.display.section.titles!.count : 0
     }
 
     func sectionIndexTitlesForTableView(_ tableView: UITableView) -> [AnyObject]! {
@@ -2814,9 +2820,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if globals.display.sectionTitles != nil {
-            if section < globals.display.sectionTitles!.count {
-                return globals.display.sectionTitles![section]
+        if globals.display.section.titles != nil {
+            if section < globals.display.section.titles!.count {
+                return globals.display.section.titles![section]
             } else {
                 return nil
             }
@@ -2827,9 +2833,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func tableView(_ TableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         //#warning Incomplete method implementation -- Return the number of items in the section
-        if globals.display.sectionCounts != nil {
-            if section < globals.display.sectionCounts!.count {
-                return globals.display.sectionCounts![section]
+        if globals.display.section.counts != nil {
+            if section < globals.display.section.counts!.count {
+                return globals.display.section.counts![section]
             } else {
                 return 0
             }
@@ -2871,9 +2877,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //                          context: nil) // &GlobalPlayerContext
 
         // Configure the cell
-        if (globals.display.sectionIndexes != nil) && (globals.display.mediaItems != nil) {
-            if indexPath.section < globals.display.sectionIndexes!.count {
-                if let section = globals.display.sectionIndexes?[indexPath.section] {
+        if (globals.display.section.indexes != nil) && (globals.display.mediaItems != nil) {
+            if indexPath.section < globals.display.section.indexes!.count {
+                if let section = globals.display.section.indexes?[indexPath.section] {
                     if section + indexPath.row < globals.display.mediaItems!.count {
                         cell.mediaItem = globals.display.mediaItems?[section + indexPath.row]
                     }
@@ -2970,19 +2976,19 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 if mediaItem.hasNotesHTML {
                     if mediaItem.notesHTML != nil {
-                        if globals.searchTranscripts && globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
-                            if mediaItem.searchFullNotesHTML(searchText: globals.searchText) {
+                        if globals.search.transcripts && globals.search.active && (globals.search.text != nil) && (globals.search.text != Constants.EMPTY_STRING) {
+                            if mediaItem.searchFullNotesHTML(searchText: globals.search.text) {
                                 popover.strings?.insert(Constants.Transcript,at: 0)
                             }
                         } else {
                             popover.strings?.insert(Constants.Transcript,at: 0)
                         }
                     } else {
-                        if globals.searchTranscripts && globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
+                        if globals.search.transcripts && globals.search.active && (globals.search.text != nil) && (globals.search.text != Constants.EMPTY_STRING) {
                             popover.stringsFunction = {
                                 var strings = popover.strings
                                 
-                                if mediaItem.searchFullNotesHTML(searchText: globals.searchText) { // this calls loadNotesHTML()
+                                if mediaItem.searchFullNotesHTML(searchText: globals.search.text) { // this calls loadNotesHTML()
                                     strings?.insert(Constants.Transcript,at: 0)
                                 }
                                 

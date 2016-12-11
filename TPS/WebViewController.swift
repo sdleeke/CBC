@@ -313,8 +313,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 break
 
             case Constants.Refresh_Document:
-                selectedMediaItem?.download?.deleteDownload()
-
+                selectedMediaItem?.download?.delete()
+                
                 wkWebView?.isHidden = true
                 wkWebView?.removeFromSuperview()
                 
@@ -389,6 +389,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     {
         html.fontSize += 1
         
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
+        
         html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
         _ = wkWebView?.loadHTMLString(html.string!, baseURL: nil)
     }
@@ -396,6 +399,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     func decreaseFontSize()
     {
         html.fontSize -= 1
+        
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
         
         html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
         _ = wkWebView?.loadHTMLString(html.string!, baseURL: nil)
@@ -455,6 +461,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             
             self.loadTimer?.invalidate()
             self.loadTimer = nil
+            
             self.progressIndicator.isHidden = true
             
             self.barButtonItems(isEnabled: true)
@@ -846,6 +853,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                     break
                 }
             } else {
+                if let url = navigationAction.request.url {
+                    if UIApplication.shared.canOpenURL(url) { // Reachability.isConnectedToNetwork() &&
+                        UIApplication.shared.openURL(url)
+                    }
+                }
                 decisionHandler(WKNavigationActionPolicy.cancel)
             }
         }

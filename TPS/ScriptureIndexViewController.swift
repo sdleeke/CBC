@@ -227,12 +227,10 @@ class BooksChaptersVerses : Swift.Comparable {
 class ScriptureIndex {
 //    var active = false
     
-    init()
-    {
-        html = CachedString(index:self.index)
-    }
-    
-    var html:CachedString!
+    lazy var html:CachedString? = {
+        [unowned self] in
+        return CachedString(index:self.index)
+    }()
     
     func index() -> String? {
         var index:String?
@@ -984,7 +982,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     if (selectedMediaItem != myCell.mediaItem) || (globals.history == nil) {
                         globals.addToHistory(myCell.mediaItem)
                     }
-                    selectedMediaItem = myCell.mediaItem //globals.activeMediaItems![index]
+                    selectedMediaItem = myCell.mediaItem //globals.media.activeMediaItems![index]
                     
                     if selectedMediaItem != nil {
                         if let destination = dvc as? MediaViewController {
@@ -1245,11 +1243,11 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             bodyString = bodyString! + "Category: \(category)<br/><br/>"
         }
         
-        if globals.tags.showing == Constants.TAGGED, let tag = globals.tags.selected {
+        if globals.media.tags.showing == Constants.TAGGED, let tag = globals.media.tags.selected {
             bodyString = bodyString! + "Collection: \(tag)<br/><br/>"
         }
         
-        if globals.searchActive, globals.searchText != Constants.EMPTY_STRING, let searchText = globals.searchText {
+        if globals.search.active, globals.search.text != Constants.EMPTY_STRING, let searchText = globals.search.text {
             bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
         }
         
@@ -1375,11 +1373,11 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             switch strings[index] {
             case Constants.View_List:
                 process(viewController: self, work: { () -> (Any?) in
-                    if self.scriptureIndex?.html.string == nil {
-                        self.scriptureIndex?.html.string = self.setupMediaItemsHTMLScripture(self.mediaItems, includeURLs: true, includeColumns: true)
+                    if self.scriptureIndex?.html?.string == nil {
+                        self.scriptureIndex?.html?.string = self.setupMediaItemsHTMLScripture(self.mediaItems, includeURLs: true, includeColumns: true)
                     }
 
-                    return self.scriptureIndex?.html.string
+                    return self.scriptureIndex?.html?.string
                 }, completion: { (data:Any?) in
                     presentHTMLModal(viewController: self, title: globals.contextTitle, htmlString: data as? String)
                 })
@@ -1397,11 +1395,11 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                 break
                 
             case Constants.Delete_Audio_Download:
-                mediaItem?.audioDownload?.deleteDownload()
+                mediaItem?.audioDownload?.delete()
                 break
                 
             case Constants.Cancel_Audio_Download:
-                mediaItem?.audioDownload?.cancelOrDeleteDownload()
+                mediaItem?.audioDownload?.cancelOrDelete()
                 break
                 
             case Constants.Download_Audio:

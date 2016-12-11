@@ -2483,7 +2483,10 @@ func pageOrientation(viewController:UIViewController,portrait:((Void)->(Void))?,
     firstSecondCancel(viewController: viewController, title: "Page Orientation", message: "", firstTitle: "Portrait", firstAction: portrait, secondTitle: "Landscape", secondAction: landscape, cancelAction: cancel)
 }
 
-func firstSecondCancel(viewController:UIViewController,title:String,message:String,firstTitle:String,firstAction:((Void)->(Void))?,secondTitle:String,secondAction:((Void)->(Void))?,cancelAction:((Void)->(Void))?)
+func firstSecondCancel(viewController:UIViewController,title:String,message:String,
+                       firstTitle:String,   firstAction:((Void)->(Void))?,
+                       secondTitle:String,  secondAction:((Void)->(Void))?,
+                       cancelAction:((Void)->(Void))?)
 {
     let alert = UIAlertController(title: title,
                                   message: message,
@@ -2800,15 +2803,15 @@ func setupMediaItemsHTMLGlobal(_ mediaItems:[MediaItem]?,includeURLs:Bool,includ
         bodyString = bodyString! + "Category: \(category)<br/><br/>"
     }
 
-    if globals.tags.showing == Constants.TAGGED, let tag = globals.tags.selected {
+    if globals.media.tags.showing == Constants.TAGGED, let tag = globals.media.tags.selected {
         bodyString = bodyString! + "Collection: \(tag)<br/><br/>"
     }
     
-    if globals.searchActive, let searchText = globals.searchText, searchText != Constants.EMPTY_STRING {
+    if globals.search.active, let searchText = globals.search.text, searchText != Constants.EMPTY_STRING {
         bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
     }
     
-    let keys = mediaListGroupSort.sectionIndexTitles
+    let keys = mediaListGroupSort.section?.indexTitles
     
     if includeColumns {
         bodyString = bodyString! + "<table>"
@@ -2957,11 +2960,11 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
         bodyString = bodyString! + "Category: \(category)<br/><br/>"
     }
     
-    if globals.tags.showing == Constants.TAGGED, let tag = globals.tags.selected {
+    if globals.media.tags.showing == Constants.TAGGED, let tag = globals.media.tags.selected {
         bodyString = bodyString! + "Collection: \(tag)<br/><br/>"
     }
     
-    if globals.searchActive, let searchText = globals.searchText, searchText != Constants.EMPTY_STRING {
+    if globals.search.active, let searchText = globals.search.text, searchText != Constants.EMPTY_STRING {
         bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
     }
     

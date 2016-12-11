@@ -13,14 +13,13 @@ protocol PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index:Int, strings:[String], purpose:PopoverPurpose, mediaItem:MediaItem?)
 }
 
-struct Section {
-    var titles:[String]?
-    var counts:[Int]?
-    var indexes:[Int]?
-}
-
 class PopoverTableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-
+    struct Section {
+        var titles:[String]?
+        var counts:[Int]?
+        var indexes:[Int]?
+    }
+    
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     @IBOutlet weak var tableView: UITableView!
@@ -101,16 +100,9 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         }
         
         if showIndex {
-            width += 16
+            width += 24
             height += tableView.sectionHeaderHeight * CGFloat(indexStrings!.count)
         }
-        
-//        print(width)
-//        print(view.bounds.width)
-//        
-//        if width > view.bounds.width {
-//            height += 16.0
-//        }
         
 //        print(height)
 //        print(width)
@@ -374,9 +366,9 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             //            print("strings: \(strings[indexPath.row]) mediaItemTag: \(globals.mediaItemTag)")
             let string = strings![index]
             
-            switch globals.tags.showing! {
+            switch globals.media.tags.showing! {
             case Constants.TAGGED:
-                if (tagsArrayFromTagsString(globals.tags.selected)!.index(of: string) != nil) {
+                if (tagsArrayFromTagsString(globals.media.tags.selected)!.index(of: string) != nil) {
                     cell.accessoryType = UITableViewCellAccessoryType.checkmark
                 } else {
                     cell.accessoryType = UITableViewCellAccessoryType.none
@@ -384,7 +376,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                 break
             
             case Constants.ALL:
-                if ((globals.tags.selected == nil) && (strings![index] == Constants.All)) {
+                if ((globals.media.tags.selected == nil) && (strings![index] == Constants.All)) {
                     cell.accessoryType = UITableViewCellAccessoryType.checkmark
                 } else {
                     cell.accessoryType = UITableViewCellAccessoryType.none

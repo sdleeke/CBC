@@ -112,17 +112,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
             }
         }
         
-        if (globals.mediaPlayer.url != nil) {
-            switch globals.mediaPlayer.url!.absoluteString {
-            case Constants.URL.LIVE_STREAM:
-                globals.setupLivePlayingInfoCenter()
-                break
-                
-            default:
-                globals.setupPlayingInfoCenter()
-                break
-            }
-        }
+        globals.mediaPlayer.setupPlayingInfoCenter()
+        
+//        
+//        if (globals.mediaPlayer.url != nil) {
+//            switch globals.mediaPlayer.url!.absoluteString {
+//            case Constants.URL.LIVE_STREAM:
+//                globals.setupLivePlayingInfoCenter()
+//                break
+//                
+//            default:
+//                globals.setupPlayingInfoCenter()
+//                break
+//            }
+//        }
     }
     
     func applicationDidBecomeActive(_ application: UIApplication) {

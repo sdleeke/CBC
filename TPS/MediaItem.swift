@@ -17,8 +17,33 @@ typealias MediaGroupSort = [String:[String:[String:[MediaItem]]]]
 typealias MediaGroupNames = [String:[String:String]]
 
 class MediaListGroupSort {
-    var htmlString:String?
-    
+    @objc func freeMemory()
+    {
+        guard searches != nil else {
+            return
+        }
+
+        if !globals.search.active {
+            searches = nil
+        } else {
+            // Is this risky, to try and delete all but the current search?
+            if let keys = searches?.keys {
+                for key in keys {
+//                    print(key,globals.search.text)
+                    if key != globals.search.text {
+                        searches?[key] = nil
+                    } else {
+//                        print(key,globals.search.text)
+                    }
+                }
+            }
+        }
+    }
+
+    lazy var html:CachedString? = {
+        return CachedString(index: globals.index)
+    }()
+
     var list:[MediaItem]? { //Not in any specific order
         didSet {
             if (list != nil) {
@@ -231,17 +256,62 @@ class MediaListGroupSort {
         return groupedSortedMediaItems
     }
     
-    var sectionIndexTitles:[String]? {
-        get {
-            return sectionIndexTitles(grouping: globals.grouping,sorting: globals.sorting)
+    struct Section {
+        weak var mlgs:MediaListGroupSort?
+        
+        init(mlgs:MediaListGroupSort?)
+        {
+            self.mlgs = mlgs
+        }
+        
+        var titles:[String]? {
+            get {
+                return mlgs?.sectionTitles(grouping: globals.grouping,sorting: globals.sorting)
+            }
+        }
+        
+        var counts:[Int]? {
+            get {
+                return mlgs?.sectionCounts(grouping: globals.grouping,sorting: globals.sorting)
+            }
+        }
+        
+        var indexes:[Int]? {
+            get {
+                return mlgs?.sectionIndexes(grouping: globals.grouping,sorting: globals.sorting)
+            }
+        }
+        
+        var indexTitles:[String]? {
+            get {
+                return mlgs?.sectionIndexTitles(grouping: globals.grouping,sorting: globals.sorting)
+            }
         }
     }
     
-    var sectionTitles:[String]? {
-        get {
-            return sectionTitles(grouping: globals.grouping,sorting: globals.sorting)
-        }
-    }
+    lazy var section:Section? = {
+        [unowned self] in
+        var section = Section(mlgs:self)
+        return section
+    }()
+
+//    var sectionIndexTitles:[String]? {
+//        get {
+//            return sectionIndexTitles(grouping: globals.grouping,sorting: globals.sorting)
+//        }
+//    }
+//    
+//    var sectionTitles:[String]? {
+//        get {
+//            return sectionTitles(grouping: globals.grouping,sorting: globals.sorting)
+//        }
+//    }
+//    
+//    var sectionCounts:[Int]? {
+//        get {
+//            return sectionCounts(grouping: globals.grouping,sorting: globals.sorting)
+//        }
+//    }
     
     func sectionIndexTitles(grouping:String?,sorting:String?) -> [String]?
     {
@@ -312,13 +382,7 @@ class MediaListGroupSort {
             return groupNames![grouping!]![string]!
         })
     }
-    
-    var sectionCounts:[Int]? {
-        get {
-            return sectionCounts(grouping: globals.grouping,sorting: globals.sorting)
-        }
-    }
-    
+
     func sectionCounts(grouping:String?,sorting:String?) -> [Int]?
     {
         return groupSort?[grouping!]?.keys.sorted(by: {
@@ -401,38 +465,43 @@ class MediaListGroupSort {
     
     init(mediaItems:[MediaItem]?)
     {
-        if (mediaItems != nil) {
-            globals.finished = 0
-            globals.progress = 0
-            
-            list = mediaItems
-            
-            groupNames = MediaGroupNames()
-            groupSort = MediaGroupSort()
-            tagMediaItems = [String:[MediaItem]]()
-            tagNames = [String:String]()
-            
-            sortGroup(globals.grouping)
+        DispatchQueue.main.async {
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaListGroupSort.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
+        }
+        
+        guard (mediaItems != nil) else {
+//            globals.finished = 1
+//            globals.progress = 1
+            return
+        }
 
-            globals.finished += list!.count
-            
-            for mediaItem in list! {
-                if let tags =  mediaItem.tagsSet {
-                    for tag in tags {
-                        let sortTag = stringWithoutPrefixes(tag)
-                        if tagMediaItems?[sortTag!] == nil {
-                            tagMediaItems?[sortTag!] = [mediaItem]
-                        } else {
-                            tagMediaItems?[sortTag!]?.append(mediaItem)
-                        }
-                        tagNames?[sortTag!] = tag
+        globals.finished = 0
+        globals.progress = 0
+        
+        list = mediaItems
+        
+        groupNames = MediaGroupNames()
+        groupSort = MediaGroupSort()
+        tagMediaItems = [String:[MediaItem]]()
+        tagNames = [String:String]()
+        
+        sortGroup(globals.grouping)
+        
+        globals.finished += list!.count
+        
+        for mediaItem in list! {
+            if let tags =  mediaItem.tagsSet {
+                for tag in tags {
+                    let sortTag = stringWithoutPrefixes(tag)
+                    if tagMediaItems?[sortTag!] == nil {
+                        tagMediaItems?[sortTag!] = [mediaItem]
+                    } else {
+                        tagMediaItems?[sortTag!]?.append(mediaItem)
                     }
+                    tagNames?[sortTag!] = tag
                 }
-                globals.progress += 1
             }
-        } else {
-            globals.finished = 1
-            globals.progress = 1
+            globals.progress += 1
         }
     }
 }
@@ -586,7 +655,7 @@ class Download {
         }
     }
     
-    func deleteDownload()
+    func delete()
     {
         if (state == .downloaded) {
             // Check if file exists and if so, delete it.
@@ -605,15 +674,15 @@ class Download {
         }
     }
 
-    func cancelOrDeleteDownload()
+    func cancelOrDelete()
     {
         switch state {
         case .downloading:
-            cancelDownload()
+            cancel()
             break
             
         case .downloaded:
-            deleteDownload()
+            delete()
             break
             
         default:
@@ -621,7 +690,7 @@ class Download {
         }
     }
     
-    func cancelDownload()
+    func cancel()
     {
         if (active) {
             //            download.task?.cancelByProducingResumeData({ (data: NSData?) -> Void in
@@ -1469,7 +1538,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                 globals.media.all!.tagNames![sortTag!] = tag
             }
             
-            if (globals.tags.selected == tag) {
+            if (globals.media.tags.selected == tag) {
                 globals.media.tagged = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
                 
                 DispatchQueue.main.async(execute: { () -> Void in
@@ -1502,7 +1571,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                     _ = globals.media.all?.tagMediaItems?.removeValue(forKey: sortTag!)
                 }
                 
-                if (globals.tags.selected == tag) {
+                if (globals.media.tags.selected == tag) {
                     globals.media.tagged = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
                     
                     DispatchQueue.main.async(execute: { () -> Void in
@@ -1643,7 +1712,9 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
     }
     
-    var searchMarkedFullNotesHTML = CachedString(index: globals.index)
+    lazy var searchMarkedFullNotesHTML:CachedString? = {
+        return CachedString(index: globals.index)
+    }()
     
     func searchMarkedFullNotesHTML(index:Bool) -> String?
     {
@@ -1651,12 +1722,12 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             return nil
         }
         
-        guard globals.searchActive && (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) else {
+        guard globals.search.active && (globals.search.text != nil) && (globals.search.text != Constants.EMPTY_STRING) else {
             return nil
         }
         
-        if searchMarkedFullNotesHTML.string != nil {
-            return searchMarkedFullNotesHTML.string
+        if searchMarkedFullNotesHTML?.string != nil {
+            return searchMarkedFullNotesHTML?.string
         }
         
         var stringBefore:String = Constants.EMPTY_STRING
@@ -1667,15 +1738,15 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         
         var markCounter = 0
         
-        while (string.lowercased().range(of: globals.searchText!.lowercased()) != nil) {
+        while (string.lowercased().range(of: globals.search.text!.lowercased()) != nil) {
 //                print(string)
             
-            if let range = string.lowercased().range(of: globals.searchText!.lowercased()) {
+            if let range = string.lowercased().range(of: globals.search.text!.lowercased()) {
                 stringBefore = string.substring(to: range.lowerBound)
                 stringAfter = string.substring(from: range.upperBound)
                 
                 foundString = string.substring(from: range.lowerBound)
-                let newRange = foundString.lowercased().range(of: globals.searchText!.lowercased())
+                let newRange = foundString.lowercased().range(of: globals.search.text!.lowercased())
                 foundString = foundString.substring(to: newRange!.upperBound)
                 
                 markCounter += 1
@@ -1691,7 +1762,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
 
         // If we want an index of links to the occurences of the searchText.
         if index, markCounter > 0 {
-            var indexString = "<p id=\"index\">Occurences of \"\(globals.searchText!)\": \(markCounter)</p>"
+            var indexString = "<p id=\"index\">Occurences of \"\(globals.search.text!)\": \(markCounter)</p>"
             
             indexString = indexString + "<div id=\"locations\">Locations: "
             
@@ -1709,9 +1780,9 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         
         newString = newString + stringAfter
         
-        searchMarkedFullNotesHTML.string = insertHead(newString,fontSize: Constants.FONT_SIZE)
+        searchMarkedFullNotesHTML?.string = insertHead(newString,fontSize: Constants.FONT_SIZE)
         
-        return searchMarkedFullNotesHTML.string
+        return searchMarkedFullNotesHTML?.string
         
 //            var menuString = "<div class=\"dropdown\"><button onclick=\"myFunction()\" class=\"dropbtn\">Search</button><div id=\"myDropdown\" class=\"dropdown-content\">"
 //            

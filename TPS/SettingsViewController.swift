@@ -14,7 +14,7 @@ class SettingsViewController: UIViewController {
     @IBOutlet weak var searchTranscriptsSwitch: UISwitch!
     
     @IBAction func searchTranscriptsAction(_ sender: UISwitch) {
-        globals.searchTranscripts = sender.isOn
+        globals.search.transcripts = sender.isOn
     }
     
     @IBOutlet weak var autoAdvanceSwitch: UISwitch!
@@ -36,8 +36,8 @@ class SettingsViewController: UIViewController {
                 globals.loadSingles = false
                 
                 for mediaItem in globals.mediaRepository.list! {
-                    mediaItem.notesDownload?.deleteDownload()
-                    mediaItem.slidesDownload?.deleteDownload()
+                    mediaItem.notesDownload?.delete()
+                    mediaItem.slidesDownload?.delete()
                 }
                 
                 globals.loadSingles = true
@@ -56,7 +56,7 @@ class SettingsViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        searchTranscriptsSwitch.isOn = globals.searchTranscripts
+        searchTranscriptsSwitch.isOn = globals.search.transcripts
         autoAdvanceSwitch.isOn = globals.autoAdvance
         cacheSwitch.isOn = globals.cacheDownloads
     }

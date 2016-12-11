@@ -247,13 +247,13 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     func updateSlidesDocument()
     {
-        print("updateSlidesDocument")
+//        print("updateSlidesDocument")
         updateDocument(document: slidesDocument)
     }
     
     func cancelSlidesDocument()
     {
-        print("cancelSlidesDocument")
+//        print("cancelSlidesDocument")
         cancelDocument(document: slidesDocument,message: "Slides not available.")
     }
     
@@ -1077,11 +1077,11 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 break
                 
             case Constants.Delete_Audio_Download:
-                mediaItem?.audioDownload?.deleteDownload()
+                mediaItem?.audioDownload?.delete()
                 break
                 
             case Constants.Cancel_Audio_Download:
-                mediaItem?.audioDownload?.cancelOrDeleteDownload()
+                mediaItem?.audioDownload?.cancelOrDelete()
                 break
                 
             default:
@@ -1152,22 +1152,22 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 break
                 
             case Constants.Cancel_Audio_Download:
-                selectedMediaItem?.audioDownload?.cancelOrDeleteDownload()
+                selectedMediaItem?.audioDownload?.cancelOrDelete()
                 break
                 
             case Constants.Cancel_All_Audio_Downloads:
                 for mediaItem in mediaItems! {
-                    mediaItem.audioDownload?.cancelDownload()
+                    mediaItem.audioDownload?.cancel()
                 }
                 break
                 
             case Constants.Delete_Audio_Download:
-                selectedMediaItem?.audioDownload?.deleteDownload()
+                selectedMediaItem?.audioDownload?.delete()
                 break
                 
             case Constants.Delete_All_Audio_Downloads:
                 for mediaItem in mediaItems! {
-                    mediaItem.audioDownload?.deleteDownload()
+                    mediaItem.audioDownload?.delete()
                 }
                 break
                 
@@ -1189,7 +1189,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 fallthrough
             case Constants.Refresh_Slides:
                 // This only refreshes the visible document.
-                download?.cancelOrDeleteDownload()
+                download?.cancelOrDelete()
                 document?.loaded = false
                 setupDocumentsAndVideo()
                 break

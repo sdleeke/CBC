@@ -10,7 +10,12 @@ import Foundation
 import MediaPlayer
 import AVKit
 
-struct CachedString {
+class CachedString {
+    @objc func freeMemory()
+    {
+        cache = [String:String]()
+    }
+    
     var index:(()->String?)?
     
     var cache = [String:String]()
@@ -60,6 +65,10 @@ struct CachedString {
     init(index:@escaping (()->String?))
     {
         self.index = index
+
+        DispatchQueue.main.async {
+            NotificationCenter.default.addObserver(self, selector: #selector(CachedString.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
+        }
     }
 }
 
@@ -233,11 +242,11 @@ class MediaPlayer {
                 })
                 
                 player?.play()
-                
-                globals.setupPlayingInfoCenter()
             }
             break
         }
+
+        setupPlayingInfoCenter()
     }
     
     func pause()
@@ -266,10 +275,10 @@ class MediaPlayer {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
             })
-            
-            globals.setupPlayingInfoCenter()
             break
         }
+
+        setupPlayingInfoCenter()
     }
     
     func stop()
@@ -300,10 +309,10 @@ class MediaPlayer {
                 
                 self.mediaItem = nil // This is unique to stop()
             })
-            
-            globals.setupPlayingInfoCenter()
             break
         }
+
+        setupPlayingInfoCenter()
     }
     
     func updateCurrentTimeExactWhilePlaying()
@@ -380,7 +389,7 @@ class MediaPlayer {
                 mediaItem?.currentTime = seek.description
                 stateTime?.startTime = seek.description
                 
-                globals.setupPlayingInfoCenter()
+                setupPlayingInfoCenter()
             }
             break
         }
@@ -487,6 +496,71 @@ class MediaPlayer {
     {
         stateTime?.log()
     }
+    
+    func setupPlayingInfoCenter()
+    {
+        if url == URL(string: Constants.URL.LIVE_STREAM) {
+            var nowPlayingInfo = [String:Any]()
+            
+            nowPlayingInfo[MPMediaItemPropertyTitle]         = "Live Broadcast"
+            
+            nowPlayingInfo[MPMediaItemPropertyArtist]        = "Countryside Bible Church"
+            
+            nowPlayingInfo[MPMediaItemPropertyAlbumTitle]    = "Live Broadcast"
+            
+            nowPlayingInfo[MPMediaItemPropertyAlbumArtist]   = "Countryside Bible Church"
+            
+            if let image = UIImage(named:Constants.COVER_ART_IMAGE) {
+                nowPlayingInfo[MPMediaItemPropertyArtwork]   = MPMediaItemArtwork(image: image)
+            }
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+            })
+        } else {
+            if let mediaItem = self.mediaItem {
+                var nowPlayingInfo = [String:Any]()
+                
+                nowPlayingInfo[MPMediaItemPropertyTitle]     = mediaItem.title
+                nowPlayingInfo[MPMediaItemPropertyArtist]    = mediaItem.speaker
+                
+                if let image = UIImage(named:Constants.COVER_ART_IMAGE) {
+                    nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(image: image)
+                } else {
+                    print("no artwork!")
+                }
+                
+                if mediaItem.hasMultipleParts {
+                    nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = mediaItem.multiPartName
+                    nowPlayingInfo[MPMediaItemPropertyAlbumArtist] = mediaItem.speaker
+                    
+                    if let index = mediaItem.multiPartMediaItems?.index(of: mediaItem) {
+                        nowPlayingInfo[MPMediaItemPropertyAlbumTrackNumber]  = index + 1
+                    } else {
+                        print(mediaItem as Any," not found in ",mediaItem.multiPartMediaItems as Any)
+                    }
+                    
+                    nowPlayingInfo[MPMediaItemPropertyAlbumTrackCount]   = mediaItem.multiPartMediaItems?.count
+                }
+                
+                nowPlayingInfo[MPMediaItemPropertyPlaybackDuration]          = duration?.seconds
+                nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime]  = currentTime?.seconds
+                nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate]         = rate
+                
+                //    print("\(mediaItemInfo.count)")
+                
+                //                print(nowPlayingInfo)
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+                })
+            } else {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+                })
+            }
+        }
+    }
 }
 
 struct MediaNeed {
@@ -494,12 +568,15 @@ struct MediaNeed {
     var grouping:Bool = true
 }
 
+struct Section {
+    var titles:[String]?
+    var counts:[Int]?
+    var indexes:[Int]?
+}
+
 struct Display {
     var mediaItems:[MediaItem]?
-    
-    var sectionTitles:[String]?
-    var sectionCounts:[Int]?
-    var sectionIndexes:[Int]?
+    var section = Section()
 }
 
 struct MediaRepository {
@@ -520,17 +597,6 @@ struct MediaRepository {
     }
 
     var index:[String:MediaItem]?
-}
-
-struct Media {
-    //All mediaItems
-    var all:MediaListGroupSort?
-    
-    //The mediaItems from a search, by search
-//    var searches:[String:MediaListGroupSort]?
-    
-    //The mediaItems with the selected tags, although now we only support one tag being selected
-    var tagged:MediaListGroupSort?
 }
 
 struct Tags {
@@ -558,6 +624,66 @@ struct Tags {
                 defaults.removeObject(forKey: Constants.SETTINGS.KEY.COLLECTION)
             }
             defaults.synchronize()
+        }
+    }
+}
+
+struct Media {
+    var need = MediaNeed()
+
+    //All mediaItems
+    var all:MediaListGroupSort?
+    
+    //The mediaItems with the selected tags, although now we only support one tag being selected
+    var tagged:MediaListGroupSort?
+    
+    var tags = Tags()
+    
+    var toSearch:MediaListGroupSort? {
+        get {
+            var mediaItems:MediaListGroupSort?
+            
+            switch tags.showing! {
+            case Constants.TAGGED:
+                mediaItems = tagged
+                break
+                
+            case Constants.ALL:
+                mediaItems = all
+                break
+                
+            default:
+                break
+            }
+            
+            return mediaItems
+        }
+    }
+    
+    var active:MediaListGroupSort? {
+        get {
+            var mediaItems:MediaListGroupSort?
+            
+            switch tags.showing! {
+            case Constants.TAGGED:
+                mediaItems = tagged
+                break
+                
+            case Constants.ALL:
+                mediaItems = all
+                break
+                
+            default:
+                break
+            }
+            
+            if globals.search.active {
+                if (globals.search.text != nil) && (globals.search.text != Constants.EMPTY_STRING) {
+                    mediaItems = mediaItems?.searches?[globals.search.text!]
+                }
+            }
+            
+            return mediaItems
         }
     }
 }
@@ -726,6 +852,43 @@ struct SelectedMediaItem {
     }
 }
 
+struct Search {
+    var complete:Bool = true
+    var active:Bool = false
+    
+    var text:String? {
+        didSet {
+            if (text != nil) {
+                active = (active && (text == Constants.EMPTY_STRING)) || (text != Constants.EMPTY_STRING)
+            } else {
+                active = false
+            }
+            
+            if (text != oldValue) {
+                if (text != nil) && (text != Constants.EMPTY_STRING) {
+                    UserDefaults.standard.set(text, forKey: Constants.SEARCH_TEXT)
+                    UserDefaults.standard.synchronize()
+                } else {
+                    UserDefaults.standard.removeObject(forKey: Constants.SEARCH_TEXT)
+                    UserDefaults.standard.synchronize()
+                }
+            }
+        }
+    }
+    
+    var transcripts:Bool {
+        get {
+            return UserDefaults.standard.bool(forKey: Constants.USER_SETTINGS.SEARCH_TRANSCRIPTS)
+        }
+        set {
+            globals.media.toSearch?.searches = nil
+            
+            UserDefaults.standard.set(newValue, forKey: Constants.USER_SETTINGS.SEARCH_TRANSCRIPTS)
+            UserDefaults.standard.synchronize()
+        }
+    }
+}
+
 var globals:Globals!
 
 class Globals : NSObject {
@@ -790,7 +953,11 @@ class Globals : NSObject {
     
     var grouping:String? = Grouping.YEAR {
         didSet {
-            mediaNeed.grouping = (grouping != oldValue)
+            media.need.grouping = (grouping != oldValue)
+            
+//            if (grouping != oldValue) {
+//                media.active?.html.string = nil
+//            }
             
             let defaults = UserDefaults.standard
             if (grouping != nil) {
@@ -805,7 +972,11 @@ class Globals : NSObject {
     
     var sorting:String? = Constants.REVERSE_CHRONOLOGICAL {
         didSet {
-            mediaNeed.sorting = (sorting != oldValue)
+            media.need.sorting = (sorting != oldValue)
+            
+//            if (sorting != oldValue) {
+//                media.active?.html.string = nil
+//            }
             
             let defaults = UserDefaults.standard
             if (sorting != nil) {
@@ -815,18 +986,6 @@ class Globals : NSObject {
                 defaults.removeObject(forKey: Constants.SETTINGS.KEY.SORTING)
             }
             defaults.synchronize()
-        }
-    }
-    
-    var searchTranscripts:Bool {
-        get {
-            return UserDefaults.standard.bool(forKey: Constants.USER_SETTINGS.SEARCH_TRANSCRIPTS)
-        }
-        set {
-            globals.search?.searches = nil
-            
-            UserDefaults.standard.set(newValue, forKey: Constants.USER_SETTINGS.SEARCH_TRANSCRIPTS)
-            UserDefaults.standard.synchronize()
         }
     }
     
@@ -863,21 +1022,29 @@ class Globals : NSObject {
     var isRefreshing:Bool   = false
     var isLoading:Bool      = false
     
-    var searchComplete:Bool = true
-    var searchActive:Bool = false
-    var searchText:String? {
-        didSet {
-            if (searchText != oldValue) {
-                if (searchText != nil) && (searchText != Constants.EMPTY_STRING) {
-                    UserDefaults.standard.set(searchText, forKey: Constants.SEARCH_TEXT)
-                    UserDefaults.standard.synchronize()
-                } else {
-                    UserDefaults.standard.removeObject(forKey: Constants.SEARCH_TEXT)
-                    UserDefaults.standard.synchronize()
-                }
-            }
-        }
-    }
+    var search = Search()
+    
+//    var searchComplete:Bool = true
+//    var searchActive:Bool = false
+//    var searchText:String? {
+//        didSet {
+//            if (searchText != nil) {
+//                searchActive = (searchActive && (searchText == Constants.EMPTY_STRING)) || (searchText != Constants.EMPTY_STRING)
+//            } else {
+//                searchActive = false
+//            }
+//            
+//            if (searchText != oldValue) {
+//                if (searchText != nil) && (searchText != Constants.EMPTY_STRING) {
+//                    UserDefaults.standard.set(searchText, forKey: Constants.SEARCH_TEXT)
+//                    UserDefaults.standard.synchronize()
+//                } else {
+//                    UserDefaults.standard.removeObject(forKey: Constants.SEARCH_TEXT)
+//                    UserDefaults.standard.synchronize()
+//                }
+//            }
+//        }
+//    }
     
     var contextTitle:String? {
         get {
@@ -886,11 +1053,11 @@ class Globals : NSObject {
             if let mediaCategory = globals.mediaCategory.selected {
                 string = mediaCategory // Category:
                 
-                if let tag = globals.tags.selected {
+                if let tag = globals.media.tags.selected {
                     string = string! + ", " + tag  // Collection:
                 }
                 
-                if globals.searchActive, globals.searchText != Constants.EMPTY_STRING, let search = globals.searchText {
+                if globals.search.active, globals.search.text != Constants.EMPTY_STRING, let search = globals.search.text {
                     string = string! + ", \"\(search)\""  // Search:
                 }
             }
@@ -910,11 +1077,11 @@ class Globals : NSObject {
             if let mediaCategory = globals.mediaCategory.selected {
                 string = mediaCategory
                 
-                if let tag = globals.tags.selected {
+                if let tag = globals.media.tags.selected {
                     string = string! + ":" + tag
                 }
                 
-                if globals.searchActive, globals.searchText != Constants.EMPTY_STRING, let search = globals.searchText {
+                if globals.search.active, globals.search.text != Constants.EMPTY_STRING, let search = globals.search.text {
                     string = string! + ":" + search
                 }
             }
@@ -943,69 +1110,15 @@ class Globals : NSObject {
     
     var media = Media()
     
-    var tags = Tags()
-    
-    var active:MediaListGroupSort? {
-        get {
-            var mediaItems:MediaListGroupSort?
-            
-            switch tags.showing! {
-            case Constants.TAGGED:
-                mediaItems = self.media.tagged
-                break
-                
-            case Constants.ALL:
-                mediaItems = self.media.all
-                break
-                
-            default:
-                break
-            }
-            
-            if globals.searchActive {
-                if (globals.searchText != nil) && (globals.searchText != Constants.EMPTY_STRING) {
-                    mediaItems = mediaItems?.searches?[globals.searchText!]
-                }
-            }
-            
-            return mediaItems
-        }
-    }
-    
-    var search:MediaListGroupSort? {
-        get {
-            var mediaItems:MediaListGroupSort?
-            
-            switch tags.showing! {
-            case Constants.TAGGED:
-                mediaItems = self.media.tagged
-                break
-                
-            case Constants.ALL:
-                mediaItems = self.media.all
-                break
-                
-            default:
-                break
-            }
-            
-            return mediaItems
-        }
-    }
-    
-    var mediaNeed = MediaNeed()
-    
     var display = Display()
     
     func freeMemory()
     {
-        if !searchActive {
-            media.all?.searches = nil
-            media.tagged?.searches = nil
+        // Free memory in classes
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
-        
-        // Free all cached strings.
-        
+
         URLCache.shared.removeAllCachedResponses()
     }
     
@@ -1013,20 +1126,20 @@ class Globals : NSObject {
     {
         display.mediaItems = nil
 
-        display.sectionTitles = nil
-        display.sectionIndexes = nil
-        display.sectionCounts = nil
+        display.section.titles = nil
+        display.section.indexes = nil
+        display.section.counts = nil
     }
     
     func setupDisplay()
     {
 //        print("setupDisplay")
 
-        display.mediaItems = active?.mediaItems
+        display.mediaItems = media.active?.mediaItems
         
-        display.sectionTitles = active?.sectionTitles
-        display.sectionIndexes = active?.sectionIndexes
-        display.sectionCounts = active?.sectionCounts
+        display.section.titles = media.active?.section?.titles
+        display.section.indexes = media.active?.section?.indexes
+        display.section.counts = media.active?.section?.counts
     }
     
     func saveSettingsBackground()
@@ -1096,29 +1209,29 @@ class Globals : NSObject {
                     grouping = Grouping.YEAR
                 }
                 
-                tags.selected = defaults.string(forKey: Constants.SETTINGS.KEY.COLLECTION)
+                media.tags.selected = defaults.string(forKey: Constants.SETTINGS.KEY.COLLECTION)
                 
-                if (tags.selected == Constants.New) {
-                    tags.selected = nil
+                if (media.tags.selected == Constants.New) {
+                    media.tags.selected = nil
                 }
                 
-                if (tags.selected != nil) {
-                    switch tags.selected! {
+                if (media.tags.selected != nil) {
+                    switch media.tags.selected! {
                     case Constants.All:
-                        tags.selected = nil
-                        tags.showing = Constants.ALL
+                        media.tags.selected = nil
+                        media.tags.showing = Constants.ALL
                         break
                         
                     default:
-                        tags.showing = Constants.TAGGED
+                        media.tags.showing = Constants.TAGGED
                         break
                     }
                 } else {
-                    tags.showing = Constants.ALL
+                    media.tags.showing = Constants.ALL
                 }
 
-                searchText = defaults.string(forKey: Constants.SEARCH_TEXT)
-                searchActive = searchText != nil
+                search.text = defaults.string(forKey: Constants.SEARCH_TEXT)
+                search.active = search.text != nil
 
                 mediaPlayer.mediaItem = mediaCategory.playing != nil ? mediaRepository.index?[mediaCategory.playing!] : nil
 
@@ -1251,18 +1364,20 @@ class Globals : NSObject {
                         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil)
                     })
                 }
+//                
+//                if (mediaPlayer.url != nil) {
+//                    switch mediaPlayer.url!.absoluteString {
+//                    case Constants.URL.LIVE_STREAM:
+//                        setupLivePlayingInfoCenter()
+//                        break
+//                        
+//                    default:
+//                        setupPlayingInfoCenter()
+//                        break
+//                    }
+//                }
                 
-                if (mediaPlayer.url != nil) {
-                    switch mediaPlayer.url!.absoluteString {
-                    case Constants.URL.LIVE_STREAM:
-                        setupLivePlayingInfoCenter()
-                        break
-                        
-                    default:
-                        setupPlayingInfoCenter()
-                        break
-                    }
-                }
+                mediaPlayer.setupPlayingInfoCenter()
                 break
                 
             case .failed:
@@ -1282,74 +1397,6 @@ class Globals : NSObject {
                     // Fallback on earlier versions
                 }
                 break
-            }
-        }
-    }
-    
-    func setupLivePlayingInfoCenter()
-    {
-        if mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM) {
-            var nowPlayingInfo = [String:Any]()
-            
-            nowPlayingInfo[MPMediaItemPropertyTitle]         = "Live Broadcast"
-            
-            nowPlayingInfo[MPMediaItemPropertyArtist]        = "Countryside Bible Church"
-            
-            nowPlayingInfo[MPMediaItemPropertyAlbumTitle]    = "Live Broadcast"
-            
-            nowPlayingInfo[MPMediaItemPropertyAlbumArtist]   = "Countryside Bible Church"
-            
-            if let image = UIImage(named:Constants.COVER_ART_IMAGE) {
-                nowPlayingInfo[MPMediaItemPropertyArtwork]   = MPMediaItemArtwork(image: image)
-            }
-            
-            MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-        }
-    }
-    
-    func setupPlayingInfoCenter()
-    {
-        if mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM) { //  && (mediaPlayer.mediaItem?.playing == Playing.audio)
-            if (mediaPlayer.mediaItem != nil) {
-                var nowPlayingInfo = [String:Any]()
-                
-                nowPlayingInfo[MPMediaItemPropertyTitle]     = mediaPlayer.mediaItem?.title
-                nowPlayingInfo[MPMediaItemPropertyArtist]    = mediaPlayer.mediaItem?.speaker
-                
-                if let image = UIImage(named:Constants.COVER_ART_IMAGE) {
-                    nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(image: image)
-                } else {
-                    print("no artwork!")
-                }
-                
-                if mediaPlayer.mediaItem!.hasMultipleParts {
-                    nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = mediaPlayer.mediaItem?.multiPartName
-                    nowPlayingInfo[MPMediaItemPropertyAlbumArtist] = mediaPlayer.mediaItem?.speaker
-
-                    if let index = mediaPlayer.mediaItem?.multiPartMediaItems?.index(of: mediaPlayer.mediaItem!) {
-                        nowPlayingInfo[MPMediaItemPropertyAlbumTrackNumber]  = index + 1
-                    } else {
-                        print(mediaPlayer.mediaItem as Any," not found in ",mediaPlayer.mediaItem?.multiPartMediaItems as Any)
-                    }
-
-                    nowPlayingInfo[MPMediaItemPropertyAlbumTrackCount]   = mediaPlayer.mediaItem?.multiPartMediaItems?.count
-                }
-                
-                nowPlayingInfo[MPMediaItemPropertyPlaybackDuration]          = mediaPlayer.duration?.seconds
-                nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime]  = mediaPlayer.currentTime?.seconds
-                nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate]         = mediaPlayer.rate
-                
-                //    print("\(mediaItemInfo.count)")
-                
-//                print(nowPlayingInfo)
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-                })
-            } else {
-                DispatchQueue.main.async(execute: { () -> Void in
-                    MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-                })
             }
         }
     }
@@ -1402,25 +1449,27 @@ class Globals : NSObject {
 //            self.playerObserver = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PLAYER, target: self, selector: #selector(Globals.playerTimer), userInfo: nil, repeats: true)
 //        })
         
-        if (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
-            unobservePlayer()
-            
-            mediaPlayer.player?.currentItem?.addObserver(self,
-                                                         forKeyPath: #keyPath(AVPlayerItem.status),
-                                                         options: [.old, .new],
-                                                         context: nil) // &GlobalPlayerContext
-            mediaPlayer.observerActive = true
-            
-            mediaPlayer.playerTimerReturn = mediaPlayer.player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1,Constants.CMTime_Resolution), queue: DispatchQueue.main, using: { [weak self] (time:CMTime) in
-                self?.playerTimer()
-            })
-
-            DispatchQueue.main.async {
-                NotificationCenter.default.addObserver(self, selector: #selector(Globals.didPlayToEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
-            }
-
-            mediaPlayer.pause()
+        guard (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) else {
+            return
         }
+        
+        unobservePlayer()
+        
+        mediaPlayer.player?.currentItem?.addObserver(self,
+                                                     forKeyPath: #keyPath(AVPlayerItem.status),
+                                                     options: [.old, .new],
+                                                     context: nil) // &GlobalPlayerContext
+        mediaPlayer.observerActive = true
+        
+        mediaPlayer.playerTimerReturn = mediaPlayer.player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1,Constants.CMTime_Resolution), queue: DispatchQueue.main, using: { [weak self] (time:CMTime) in
+            self?.playerTimer()
+        })
+        
+        DispatchQueue.main.async {
+            NotificationCenter.default.addObserver(self, selector: #selector(Globals.didPlayToEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
+        }
+        
+        mediaPlayer.pause()
     }
     
     func unobservePlayer()
@@ -1469,31 +1518,33 @@ class Globals : NSObject {
     
     func setupPlayer(url:URL?,playOnLoad:Bool)
     {
-        if (url != nil) {
-            mediaPlayer.unload()
-            
-            mediaPlayer.playOnLoad = playOnLoad
-            mediaPlayer.showsPlaybackControls = false
-
-            unobservePlayer()
-            
-            mediaPlayer.player = AVPlayer(url: url!)
-
-            // Just replacing the item will not cause a timeout when the player can't load.
-//            if mediaPlayer.player == nil {
-//                mediaPlayer.player = AVPlayer(url: url!)
-//            } else {
-//                mediaPlayer.player?.replaceCurrentItem(with: AVPlayerItem(url: url!))
-//            }
-            
-            mediaPlayer.player?.actionAtItemEnd = .pause
-            
-            observePlayer()
-            
-            MPRemoteCommandCenter.shared().playCommand.isEnabled = (mediaPlayer.player != nil) && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM))
-            MPRemoteCommandCenter.shared().skipForwardCommand.isEnabled = (mediaPlayer.player != nil) && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM))
-            MPRemoteCommandCenter.shared().skipBackwardCommand.isEnabled = (mediaPlayer.player != nil) && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM))
+        guard (url != nil) else {
+            return
         }
+        
+        mediaPlayer.unload()
+        
+        mediaPlayer.playOnLoad = playOnLoad
+        mediaPlayer.showsPlaybackControls = false
+        
+        unobservePlayer()
+        
+        mediaPlayer.player = AVPlayer(url: url!)
+        
+        // Just replacing the item will not cause a timeout when the player can't load.
+        //            if mediaPlayer.player == nil {
+        //                mediaPlayer.player = AVPlayer(url: url!)
+        //            } else {
+        //                mediaPlayer.player?.replaceCurrentItem(with: AVPlayerItem(url: url!))
+        //            }
+        
+        mediaPlayer.player?.actionAtItemEnd = .pause
+        
+        observePlayer()
+        
+        MPRemoteCommandCenter.shared().playCommand.isEnabled = (mediaPlayer.player != nil) && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM))
+        MPRemoteCommandCenter.shared().skipForwardCommand.isEnabled = (mediaPlayer.player != nil) && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM))
+        MPRemoteCommandCenter.shared().skipBackwardCommand.isEnabled = (mediaPlayer.player != nil) && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM))
     }
     
     func setupPlayer(_ mediaItem:MediaItem?,playOnLoad:Bool)

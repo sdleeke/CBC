@@ -26,6 +26,10 @@ class LiveViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
+        // Chage spaces before am/pm to be unbreakable
+        textView.text = textView.text.replacingOccurrences(of: " am", with: "\u{00a0}am")
+        textView.text = textView.text.replacingOccurrences(of: " pm", with: "\u{00a0}pm")
+        
         setupLivePlayerView()
     }
 
@@ -94,7 +98,7 @@ class LiveViewController: UIViewController {
             globals.mediaPlayer.pause() // IfPlaying
 
             globals.setupPlayer(url: URL(string:Constants.URL.LIVE_STREAM),playOnLoad:true)
-            globals.setupLivePlayingInfoCenter()
+            globals.mediaPlayer.setupPlayingInfoCenter()
         }
         
         globals.mediaPlayer.showsPlaybackControls = true
