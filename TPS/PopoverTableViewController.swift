@@ -61,13 +61,16 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         var height:CGFloat = 0.0
         var width:CGFloat = 0.0
 
+        let heightSize: CGSize = CGSize(width: view.frame.width - 30, height: .greatestFiniteMagnitude)
+        let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
+
+//        let baseHeight = "A".boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil).height
+        
 //        print(strings)
         
         for string in strings! {
-            let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 44.0)
             let maxWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
-            
-            let heightSize: CGSize = CGSize(width: view.bounds.width - 30, height: .greatestFiniteMagnitude)
+
             let maxHeight = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
             
 //            print(string)
@@ -77,11 +80,13 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
 //                print(string)
                 width = maxWidth.width
             }
+            
+//            print(string,maxHeight.height) // baseHeight
 
-            height += 44
+            height += 16 + maxHeight.height // - baseHeight
             
 //            print(maxHeight.height, (Int(maxHeight.height) / 16) - 1)
-            height += CGFloat(((Int(maxHeight.height) / 16) - 1) * 16)
+//            height += CGFloat(((Int(maxHeight.height) / 16) - 1) * 16)
         }
         
         width += 2*20
@@ -116,12 +121,13 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         //This makes accurate scrolling to sections impossible but since we don't use scrollToRowAtIndexPath with
         //the popover, this makes multi-line rows possible.
 
-        if purpose != .selectingHistory {
-            tableView.estimatedRowHeight = tableView.rowHeight
-            tableView.rowHeight = UITableViewAutomaticDimension
-        } else {
-            tableView.rowHeight = 100
-        }
+        tableView.estimatedRowHeight = tableView.rowHeight
+        tableView.rowHeight = UITableViewAutomaticDimension
+
+//        if purpose != .selectingHistory {
+//        } else {
+//            tableView.rowHeight = 100
+//        }
 
         tableView.allowsSelection = allowsSelection
         tableView.allowsMultipleSelection = allowsMultipleSelection
@@ -142,42 +148,52 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     
     func setupIndex()
     {
-        if showIndex && (strings != nil) && (indexStrings != nil) {
-            let a = "A"
-            
-            var indexes = [Int]()
-            var counts = [Int]()
-            
-            section.titles = Array(Set(indexStrings!.map({ (string:String) -> String in
-                if string.endIndex >= a.endIndex {
-                    return stringWithoutPrefixes(string)!.substring(to: a.endIndex).uppercased()
-                } else {
-                    return string
-                }
-            }))).sorted() { $0 < $1 }
-            
-            var stringIndex = [String:[String]]()
-            
-            for indexString in indexStrings! {
-                if stringIndex[indexString.substring(to: a.endIndex)] == nil {
-                    stringIndex[indexString.substring(to: a.endIndex)] = [String]()
-                }
-//                print(testString,string)
-                stringIndex[indexString.substring(to: a.endIndex)]?.append(indexString)
-            }
-            
-            var counter = 0
-            
-            for key in stringIndex.keys.sorted() {
-//                print(stringIndex[key]!)
-                indexes.append(counter)
-                counts.append(stringIndex[key]!.count)
-                counter += stringIndex[key]!.count
-            }
-            
-            section.indexes = indexes.count > 0 ? indexes : nil
-            section.counts = counts.count > 0 ? counts : nil
+        guard showIndex else {
+            return
         }
+        
+        guard (strings != nil) else {
+            return
+        }
+        
+        guard (indexStrings != nil) else {
+            return
+        }
+        
+        let a = "A"
+        
+        var indexes = [Int]()
+        var counts = [Int]()
+        
+        section.titles = Array(Set(indexStrings!.map({ (string:String) -> String in
+            if string.endIndex >= a.endIndex {
+                return stringWithoutPrefixes(string)!.substring(to: a.endIndex).uppercased()
+            } else {
+                return string
+            }
+        }))).sorted() { $0 < $1 }
+        
+        var stringIndex = [String:[String]]()
+        
+        for indexString in indexStrings! {
+            if stringIndex[indexString.substring(to: a.endIndex)] == nil {
+                stringIndex[indexString.substring(to: a.endIndex)] = [String]()
+            }
+            //                print(testString,string)
+            stringIndex[indexString.substring(to: a.endIndex)]?.append(indexString)
+        }
+        
+        var counter = 0
+        
+        for key in stringIndex.keys.sorted() {
+            //                print(stringIndex[key]!)
+            indexes.append(counter)
+            counts.append(stringIndex[key]!.count)
+            counter += stringIndex[key]!.count
+        }
+        
+        section.indexes = indexes.count > 0 ? indexes : nil
+        section.counts = counts.count > 0 ? counts : nil
     }
     
     override func viewWillAppear(_ animated: Bool)
@@ -229,6 +245,8 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     {
         super.viewDidAppear(animated)
 
+        setPreferredContentSize()
+        
         DispatchQueue.global(qos: .background).async {
             self.setupIndex()
             DispatchQueue.main.async(execute: { () -> Void in
@@ -322,7 +340,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.POPOVER_CELL, for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.POPOVER_CELL, for: indexPath) as! PopoverTableViewCell
 
         var index = -1
         
@@ -418,7 +436,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         }
 
 //        print(strings)
-        cell.textLabel?.text = strings![index]
+        cell.title.text = strings![index]
 
         return cell
     }

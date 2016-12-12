@@ -677,10 +677,8 @@ struct Media {
                 break
             }
             
-            if globals.search.active {
-                if (globals.search.text != nil) && (globals.search.text != Constants.EMPTY_STRING) {
-                    mediaItems = mediaItems?.searches?[globals.search.text!]
-                }
+            if globals.search.valid {
+                mediaItems = mediaItems?.searches?[globals.search.text!]
             }
             
             return mediaItems
@@ -856,6 +854,12 @@ struct Search {
     var complete:Bool = true
     var active:Bool = false
     
+    var valid:Bool {
+        get {
+            return active && (text != nil) && (text != Constants.EMPTY_STRING)
+        }
+    }
+    
     var text:String? {
         didSet {
             if (text != nil) {
@@ -865,7 +869,7 @@ struct Search {
             }
             
             if (text != oldValue) {
-                if (text != nil) && (text != Constants.EMPTY_STRING) {
+                if valid {
                     UserDefaults.standard.set(text, forKey: Constants.SEARCH_TEXT)
                     UserDefaults.standard.synchronize()
                 } else {
@@ -1057,7 +1061,7 @@ class Globals : NSObject {
                     string = string! + ", " + tag  // Collection:
                 }
                 
-                if globals.search.active, globals.search.text != Constants.EMPTY_STRING, let search = globals.search.text {
+                if globals.search.valid, let search = globals.search.text {
                     string = string! + ", \"\(search)\""  // Search:
                 }
             }
@@ -1066,11 +1070,11 @@ class Globals : NSObject {
         }
     }
     
-    func index() -> String? {
-        return context
+    func context() -> String? {
+        return contextString
     }
     
-    var context:String? {
+    var contextString:String? {
         get {
             var string:String?
             
@@ -1078,12 +1082,42 @@ class Globals : NSObject {
                 string = mediaCategory
                 
                 if let tag = globals.media.tags.selected {
-                    string = string! + ":" + tag
+                    string = (string != nil) ? string! + ":" + tag : tag
                 }
                 
-                if globals.search.active, globals.search.text != Constants.EMPTY_STRING, let search = globals.search.text {
-                    string = string! + ":" + search
+                if globals.search.valid, let search = globals.search.text {
+                    string = (string != nil) ? string! + ":" + search : search
                 }
+            }
+            
+            return string
+        }
+    }
+
+    func contextOrder() -> String? {
+        var string:String?
+        
+        if let context = contextString {
+            string = (string != nil) ? string! + ":" + context : context
+        }
+        
+        if let order = orderString {
+            string = (string != nil) ? string! + ":" + order : order
+        }
+        
+        return string
+    }
+
+    var orderString:String? {
+        get {
+            var string:String?
+            
+            if let sorting = globals.sorting {
+                string = (string != nil) ? string! + ":" + sorting : sorting
+            }
+            
+            if let grouping = globals.grouping {
+                string = (string != nil) ? string! + ":" + grouping : grouping
             }
             
             return string
@@ -1105,6 +1139,30 @@ class Globals : NSObject {
     var mediaItemSettings:[String:[String:String]]?
     
     var history:[String]?
+    
+    var historyList:[String]? {
+        get {
+            var list = [String]()
+            
+            //                    print(globals.history)
+            if let historyList = globals.history?.reversed() {
+                //                            print(historyList)
+                for history in historyList {
+                    var mediaItemID:String
+                    
+                    if let range = history.range(of: Constants.TAGS_SEPARATOR) {
+                        mediaItemID = history.substring(from: range.upperBound)
+                        
+                        if let mediaItem = globals.mediaRepository.index![mediaItemID] {
+                            list.append(mediaItem.text!)
+                        }
+                    }
+                }
+            }
+            
+            return list.count > 0 ? list : nil
+        }
+    }
 
     var mediaRepository = MediaRepository()
     

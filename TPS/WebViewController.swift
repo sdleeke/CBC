@@ -840,18 +840,28 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         } else {
 //            print(navigationAction.request.url?.absoluteString)
             if let url = navigationAction.request.url?.absoluteString, let range = url.range(of: "%23") {
-                let tag = url.substring(from: range.upperBound)
-                switch tag.lowercased() {
-                case "index":
+                let tag = url.substring(to: range.lowerBound)
+                
+                if tag == "about:blank" {
                     decisionHandler(WKNavigationActionPolicy.allow)
-                    break
-                    
-                default:
-                    if Int(tag) != nil {
-                        decisionHandler(WKNavigationActionPolicy.allow)
-                    }
-                    break
+                } else {
+                    decisionHandler(WKNavigationActionPolicy.cancel)
                 }
+                
+//                switch tag.lowercased() {
+//                case "index":
+//                    fallthrough
+//                    
+//                case "locations":
+//                    decisionHandler(WKNavigationActionPolicy.allow)
+//                    break
+//                
+//                default:
+//                    if Int(tag) != nil {
+//                        decisionHandler(WKNavigationActionPolicy.allow)
+//                    }
+//                    break
+//                }
             } else {
                 if let url = navigationAction.request.url {
                     if UIApplication.shared.canOpenURL(url) { // Reachability.isConnectedToNetwork() &&

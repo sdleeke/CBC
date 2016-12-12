@@ -704,7 +704,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 DispatchQueue.main.async(execute: { () -> Void in
                     process(viewController: self, work: { () -> (Any?) in
                         if globals.media.active?.html?.string == nil {
-                            globals.media.active?.html?.string = setupMediaItemsHTMLGlobal(globals.media.active?.list, includeURLs: true, includeColumns: true)
+                            globals.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs: true, includeColumns: true)
                         }
                         return globals.media.active?.html?.string
                     }, completion: { (data:Any?) in
@@ -764,54 +764,53 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
                     viewController.mediaListGroupSort = globals.media.active
 
-                    self.navigationController?.pushViewController(viewController, animated: true)
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.navigationController?.pushViewController(viewController, animated: true)
+                    })
                 }
 
 //                performSegue(withIdentifier: Constants.SEGUE.SHOW_SCRIPTURE_INDEX, sender: nil)
                 break
                 
             case Constants.History:
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                    navigationController.modalPresentationStyle = .popover
-                    //            popover?.preferredContentSize = CGSizeMake(300, 500)
+                if globals.historyList == nil {
+                    let alert = UIAlertController(title: "History is empty.",
+                                                  message: nil,
+                                                  preferredStyle: UIAlertControllerStyle.alert)
                     
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                    navigationController.popoverPresentationController?.delegate = self
-                    
-                    navigationController.popoverPresentationController?.barButtonItem = showButton
-                    
-                    popover.navigationItem.title = Constants.History
-                    
-                    popover.delegate = self
-                    popover.purpose = .selectingHistory
-                    
-                    var historyMenu = [String]()
+                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
 
-//                    print(globals.history)
-                    if let historyList = globals.history?.reversed() {
-//                            print(historyList)
-                        for history in historyList {
-                            var mediaItemID:String
-                            
-                            if let range = history.range(of: Constants.TAGS_SEPARATOR) {
-                                mediaItemID = history.substring(from: range.upperBound)
-                                
-                                if let mediaItem = globals.mediaRepository.index![mediaItemID] {
-                                    historyMenu.append(mediaItem.text!)
-                                }
-                            }
-                        }
-                    }
-                    
-                    popover.strings = historyMenu
-                    
-                    popover.showIndex = false
-                    popover.showSectionHeaders = false
+                    })
+                    alert.addAction(cancelAction)
                     
                     DispatchQueue.main.async(execute: { () -> Void in
-                        self.present(navigationController, animated: true, completion: nil)
+                        self.present(alert, animated: true, completion: nil)
                     })
+                } else {
+                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                        let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                        navigationController.modalPresentationStyle = .popover
+                        //            popover?.preferredContentSize = CGSizeMake(300, 500)
+                        
+                        navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                        navigationController.popoverPresentationController?.delegate = self
+                        
+                        navigationController.popoverPresentationController?.barButtonItem = showButton
+                        
+                        popover.navigationItem.title = Constants.History
+                        
+                        popover.delegate = self
+                        popover.purpose = .selectingHistory
+                        
+                        popover.strings = globals.historyList
+                        
+                        popover.showIndex = false
+                        popover.showSectionHeaders = false
+                        
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.present(navigationController, animated: true, completion: nil)
+                        })
+                    }
                 }
                 break
                 
@@ -1088,7 +1087,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         if (searchText != Constants.EMPTY_STRING) { //
             updateSearchResults(searchText,completion: nil)
         } else {
-            print("clearDisplay 2")
+//            print("clearDisplay 2")
             globals.clearDisplay()
             DispatchQueue.main.async(execute: { () -> Void in
                 self.tableView.reloadData()
@@ -1101,11 +1100,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        print("searchBarSearchButtonClicked:")
         searchBar.resignFirstResponder()
 //        print(searchBar.text)
-        if (searchBar.text != nil) && (searchBar.text != Constants.EMPTY_STRING) { //
-            globals.search.text = searchBar.text
+        globals.search.text = searchBar.text
+        if globals.search.valid {
             updateSearchResults(searchBar.text,completion: nil)
         } else {
-            print("clearDisplay 3")
+//            print("clearDisplay 3")
             globals.clearDisplay()
             DispatchQueue.main.async(execute: { () -> Void in
                 self.tableView.reloadData()
@@ -1128,13 +1127,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         })
 
 //        print(searchBar.text)
-        if (searchBar.text != nil) && (searchBar.text != Constants.EMPTY_STRING) { //
-            if globals.search.text != searchBar.text {
-                globals.search.text = searchBar.text
-                updateSearchResults(searchBar.text,completion: nil)
-            }
+        globals.search.text = searchBar.text
+        if globals.search.valid { //
+            updateSearchResults(searchBar.text,completion: nil)
         } else {
-            print("clearDisplay 4")
+//            print("clearDisplay 4")
             globals.clearDisplay()
             
             DispatchQueue.main.async(execute: { () -> Void in
@@ -1571,10 +1568,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //            print(globals.mediaRepository.list?.count)
 //            print(globals.media.all?.list?.count)
             
-            if globals.search.active {
+            if globals.search.valid {
                 DispatchQueue.main.async(execute: { () -> Void in
                     self.searchBar.text = globals.search.text
-                    self.searchBar.showsCancelButton = (self.searchBar.text != nil) && (self.searchBar.text != Constants.EMPTY_STRING)
+                    self.searchBar.showsCancelButton = true
                 })
 
 //                let searchMediaItems = globals.media.toSearch?.list?.filter({ (mediaItem:MediaItem) -> Bool in
@@ -2133,8 +2130,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     func updateDisplay(searchText:String?)
     {
         if !globals.search.active || (globals.search.text == searchText) {
-            print(globals.search.text,searchText)
-            print("setupDisplay")
+//            print(globals.search.text,searchText)
+//            print("setupDisplay")
             globals.setupDisplay()
         } else {
 //            print("clearDisplay 1")
@@ -2976,7 +2973,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 if mediaItem.hasNotesHTML {
                     if mediaItem.notesHTML != nil {
-                        if globals.search.transcripts && globals.search.active && (globals.search.text != nil) && (globals.search.text != Constants.EMPTY_STRING) {
+                        if globals.search.transcripts && globals.search.valid {
                             if mediaItem.searchFullNotesHTML(searchText: globals.search.text) {
                                 popover.strings?.insert(Constants.Transcript,at: 0)
                             }
@@ -2984,7 +2981,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             popover.strings?.insert(Constants.Transcript,at: 0)
                         }
                     } else {
-                        if globals.search.transcripts && globals.search.active && (globals.search.text != nil) && (globals.search.text != Constants.EMPTY_STRING) {
+                        if globals.search.transcripts && globals.search.valid {
                             popover.stringsFunction = {
                                 var strings = popover.strings
                                 

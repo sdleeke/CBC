@@ -1225,7 +1225,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         
         bodyString = "<html><body>"
         
-        bodyString = bodyString! + "The following media "
+        bodyString = bodyString! + "<div id=\"top\"></div>The following media "
         
         if mediaItems!.count > 1 {
             bodyString = bodyString! + "are"
@@ -1247,8 +1247,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             bodyString = bodyString! + "Collection: \(tag)<br/><br/>"
         }
         
-        if globals.search.active, globals.search.text != Constants.EMPTY_STRING, let searchText = globals.search.text {
-            bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
+        if globals.search.valid, let text = globals.search.text {
+            bodyString = bodyString! + "Search: \(text)<br/><br/>"
         }
         
         if let selectedTestament = self.scriptureIndex?.selectedTestament {
@@ -1269,11 +1269,15 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             bodyString = bodyString! + "Scripture Index For: \(indexFor)<br/><br/>"
         }
         
+        let books = bodyItems.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
+        
+        if includeURLs, (books.count > 0) {
+            bodyString = bodyString! + "<a href=\"#index\">Index</a><br/><br/>"
+        }
+        
         if includeColumns {
             bodyString  = bodyString! + "<table>"
         }
-        
-        let books = bodyItems.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
         
         for book in books {
             if includeColumns {
@@ -1281,8 +1285,12 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                 bodyString  = bodyString! + "<td valign=\"top\" colspan=\"6\">"
             }
             
-            bodyString = bodyString! + book
-            
+            if includeURLs && (books.count > 0) {
+                bodyString = bodyString! + "<a id=\"\(book.replacingOccurrences(of: " ", with: ""))\" href=\"#index\">" + book + "</a>"
+            } else {
+                bodyString = bodyString! + book
+            }
+
             if let mediaItems = bodyItems[book] {
                 var speakerCounts = [String:Int]()
                 
@@ -1348,6 +1356,16 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         }
         
         bodyString = bodyString! + "<br/>"
+        
+        if includeURLs, (books.count > 0) {
+            bodyString = bodyString! + "<div id=\"index\"><a href=\"#top\">Index</a><br/><br/>"
+            
+            for book in books {
+                bodyString = bodyString! + "<a href=\"#\(book.replacingOccurrences(of: " ", with: ""))\">\(book)</a><br/>"
+            }
+            
+            bodyString = bodyString! + "</div>"
+        }
         
         bodyString = bodyString! + "</body></html>"
         

@@ -41,7 +41,7 @@ class MediaListGroupSort {
     }
 
     lazy var html:CachedString? = {
-        return CachedString(index: globals.index)
+        return CachedString(index: globals.contextOrder)
     }()
 
     var list:[MediaItem]? { //Not in any specific order
@@ -716,11 +716,23 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     
     var singleLoaded = false
 
+    func freeMemory()
+    {
+        notesHTML = nil
+        notesTokens = nil
+        
+        booksChaptersVerses = nil
+    }
+    
     init(dict:[String:String]?)
     {
         super.init()
 //        print("\(dict)")
         self.dict = dict
+        
+        DispatchQueue.main.async {
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaItem.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
+        }
     }
     
     var downloads = [String:Download]()
@@ -808,70 +820,78 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     }
     
     var classCode:String {
-        var chars = Constants.EMPTY_STRING
-        
-        for char in id.characters {
-            if Int(String(char)) != nil {
-                break
+        get {
+            var chars = Constants.EMPTY_STRING
+            
+            for char in id.characters {
+                if Int(String(char)) != nil {
+                    break
+                }
+                chars.append(char)
             }
-            chars.append(char)
+            
+            return chars
         }
-        
-        return chars
     }
     
     var serviceCode:String {
-        let afterClassCode = id.substring(from: classCode.endIndex)
-        
-        let ymd = "YYMMDD"
-        
-        let afterDate = afterClassCode.substring(from: ymd.endIndex)
-        
-        let code = afterDate.substring(to: "x".endIndex)
-        
-//        print(code)
-        
-        return code
+        get {
+            let afterClassCode = id.substring(from: classCode.endIndex)
+            
+            let ymd = "YYMMDD"
+            
+            let afterDate = afterClassCode.substring(from: ymd.endIndex)
+            
+            let code = afterDate.substring(to: "x".endIndex)
+            
+            //        print(code)
+            
+            return code
+        }
     }
     
     var conferenceCode:String? {
-        if serviceCode == "s" {
+        get {
+            if serviceCode == "s" {
+                let afterClassCode = id.substring(from: classCode.endIndex)
+                
+                var string = id.substring(to: classCode.endIndex)
+                
+                let ymd = "YYMMDD"
+                
+                string = string + afterClassCode.substring(to: ymd.endIndex)
+                
+                let s = "s"
+                
+                let code = string + s
+                
+                //            print(code)
+                
+                return code
+            }
+            
+            return nil
+        }
+    }
+    
+    var repeatCode:String? {
+        get {
             let afterClassCode = id.substring(from: classCode.endIndex)
             
             var string = id.substring(to: classCode.endIndex)
             
             let ymd = "YYMMDD"
             
-            string = string + afterClassCode.substring(to: ymd.endIndex)
+            string = string + afterClassCode.substring(to: ymd.endIndex) + serviceCode
             
-            let s = "s"
+            let code = id.substring(from: string.endIndex)
             
-            let code = string + s
-            
-//            print(code)
-            
-            return code
-        }
-        
-        return nil
-    }
-    
-    var repeatCode:String? {
-        let afterClassCode = id.substring(from: classCode.endIndex)
-        
-        var string = id.substring(to: classCode.endIndex)
-        
-        let ymd = "YYMMDD"
-        
-        string = string + afterClassCode.substring(to: ymd.endIndex) + serviceCode
-        
-        let code = id.substring(from: string.endIndex)
-
-        if code != Constants.EMPTY_STRING  {
-//            print(code)
-            return code
-        } else {
-            return nil
+            if code != Constants.EMPTY_STRING  {
+                //            print(code)
+                return code
+            } else {
+                return nil
+            }
         }
     }
     
@@ -1200,14 +1220,18 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     
     var yearSection:String!
     {
-        return yearString
+        get {
+            return yearString
+        }
     }
     
     var yearString:String! {
-        if (year != nil) {
-            return "\(year!)"
-        } else {
-            return "None"
+        get {
+            if (year != nil) {
+                return "\(year!)"
+            } else {
+                return "None"
+            }
         }
     }
 
@@ -1368,7 +1392,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                                 speakerSort = lastName
                             }
                             if let firstName = firstNameFromName(speaker) {
-                                speakerSort = speakerSort! + "," + firstName
+                                speakerSort = (speakerSort != nil) ? speakerSort! + "," + firstName : firstName
                             }
                         } else {
                             speakerSort = speaker
@@ -1713,7 +1737,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     }
     
     lazy var searchMarkedFullNotesHTML:CachedString? = {
-        return CachedString(index: globals.index)
+        return CachedString(index: globals.context)
     }()
     
     func searchMarkedFullNotesHTML(index:Bool) -> String?
@@ -1722,7 +1746,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             return nil
         }
         
-        guard globals.search.active && (globals.search.text != nil) && (globals.search.text != Constants.EMPTY_STRING) else {
+        guard globals.search.valid else {
             return nil
         }
         
@@ -1750,7 +1774,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                 foundString = foundString.substring(to: newRange!.upperBound)
                 
                 markCounter += 1
-                foundString = "<mark id=\"\(markCounter)\">" + foundString + "</mark><a href=\"#index\"><sup>\(markCounter)</sup></a>"
+                foundString = "<mark id=\"\(markCounter)\">" + foundString + "</mark><a href=\"#locations\"><sup>\(markCounter)</sup></a>"
                 
                 newString = newString + stringBefore + foundString
                 
@@ -1850,6 +1874,9 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         get {
             //            print(dict![Field.notes])
             return dict![Field.notes_HTML]
+        }
+        set {
+            dict![Field.notes_HTML] = newValue
         }
     }
     
@@ -1998,15 +2025,17 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     
     var bookSections:[String]
     {
-        if books == nil {
-//            print(scripture)
-//            if hasScripture {
-//                print([scripture!.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)])
-//            } else {
-//                print([Constants.None])
-//            }
+        get {
+            if books == nil {
+//                print(scripture)
+//                if hasScripture {
+//                    print([scripture!.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)])
+//                } else {
+//                    print([Constants.None])
+//                }
+            }
+            return books != nil ? books! : (hasScripture ? [scripture!.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)] : [Constants.None])
         }
-        return books != nil ? books! : (hasScripture ? [scripture!.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)] : [Constants.None])
     }
     
 

@@ -2705,17 +2705,28 @@ func stripLinks(_ string:String?) -> String?
 {
     var bodyString = string
     
-    while bodyString?.range(of: "<div id=\"locations\">") != nil {
-        if let startRange = bodyString?.range(of: "<div id=\"locations\">") {
+    while bodyString?.range(of: "<div id=") != nil {
+        if let startRange = bodyString?.range(of: "<div id=") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: "</div>") {
                 let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
                 bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
             }
         }
     }
+    
+//    while bodyString?.range(of: "<div id=\"index\">") != nil {
+//        if let startRange = bodyString?.range(of: "<div id=\"locations\">") {
+//            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: "</div>") {
+//                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
+//                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+//            }
+//        }
+//    }
 
-    while bodyString?.range(of: "<a href") != nil {
-        if let startRange = bodyString?.range(of: "<a href") {
+    bodyString = bodyString?.replacingOccurrences(of: "<a href=\"#index\">Index</a><br/><br/>", with: "")
+
+    while bodyString?.range(of: "<a ") != nil {
+        if let startRange = bodyString?.range(of: "<a ") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
                 let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
                 bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
@@ -2773,21 +2784,19 @@ func stripHTML(_ string:String?) -> String?
     return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
 }
 
-func setupMediaItemsHTMLGlobal(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String?
+func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
 {
     var bodyString:String?
     
-    guard (mediaItems != nil) else {
+    guard (globals.media.active?.list != nil) else {
         return nil
     }
     
-    let mediaListGroupSort = MediaListGroupSort(mediaItems: mediaItems)
-    
     bodyString = "<html><body>"
     
-    bodyString = bodyString! + "The following media "
+    bodyString = bodyString! + "<div id=\"top\"></div>The following media "
     
-    if mediaItems!.count > 1 {
+    if globals.media.active?.list?.count > 1 {
         bodyString = bodyString! + "are"
     } else {
         bodyString = bodyString! + "is"
@@ -2807,80 +2816,88 @@ func setupMediaItemsHTMLGlobal(_ mediaItems:[MediaItem]?,includeURLs:Bool,includ
         bodyString = bodyString! + "Collection: \(tag)<br/><br/>"
     }
     
-    if globals.search.active, let searchText = globals.search.text, searchText != Constants.EMPTY_STRING {
+    if globals.search.valid, let searchText = globals.search.text {
         bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
     }
     
-    let keys = mediaListGroupSort.section?.indexTitles
+    if includeURLs, (globals.media.active?.section?.indexTitles != nil) {
+        bodyString = bodyString! + "<a href=\"#index\">Index</a><br/><br/>"
+    }
     
     if includeColumns {
         bodyString = bodyString! + "<table>"
     }
-
-    for key in keys! {
-        if let name = mediaListGroupSort.groupNames?[globals.grouping!]?[key],
-            let mediaItems = mediaListGroupSort.groupSort?[globals.grouping!]?[key]?[globals.sorting!] {
-            var speakerCounts = [String:Int]()
-            
-            for mediaItem in mediaItems {
-                if mediaItem.speaker != nil {
-                    if speakerCounts[mediaItem.speaker!] == nil {
-                        speakerCounts[mediaItem.speaker!] = 1
-                    } else {
-                        speakerCounts[mediaItem.speaker!]! += 1
+    
+    if let keys = globals.media.active?.section?.indexTitles {
+        for key in keys {
+            if let name = globals.media.active?.groupNames?[globals.grouping!]?[key],
+                let mediaItems = globals.media.active?.groupSort?[globals.grouping!]?[key]?[globals.sorting!] {
+                var speakerCounts = [String:Int]()
+                
+                for mediaItem in mediaItems {
+                    if mediaItem.speaker != nil {
+                        if speakerCounts[mediaItem.speaker!] == nil {
+                            speakerCounts[mediaItem.speaker!] = 1
+                        } else {
+                            speakerCounts[mediaItem.speaker!]! += 1
+                        }
+                    }
+                }
+                
+                let speakerCount = speakerCounts.keys.count
+                
+                if includeColumns {
+                    bodyString = bodyString! + "<tr>"
+                    bodyString = bodyString! + "<td valign=\"top\" colspan=\"6\">"
+                }
+                
+                if includeURLs, (globals.media.active?.section?.indexTitles != nil) {
+                    bodyString = bodyString! + "<a id=\"\(key.replacingOccurrences(of: " ", with: ""))\" href=\"#index\(key.replacingOccurrences(of: " ", with: ""))\">" + name + "</a>"
+                } else {
+                    bodyString = bodyString! + name
+                }
+                
+                if speakerCount == 1 {
+                    if let speaker = mediaItems[0].speaker, name != speaker {
+                        bodyString = bodyString! + " by " + speaker
+                    }
+                }
+                
+                if includeColumns {
+                    bodyString = bodyString! + "</td>"
+                    bodyString = bodyString! + "</tr>"
+                } else {
+                    bodyString = bodyString! + "<br/>"
+                }
+                
+                for mediaItem in mediaItems {
+                    var order = ["date","title","scripture"]
+                    
+                    if speakerCount > 1 {
+                        order.append("speaker")
+                    }
+                    
+                    if let string = mediaItem.bodyHTML(order: order, includeURLs: includeURLs, includeColumns: includeColumns) {
+                        bodyString = bodyString! + string
+                    }
+                    
+                    if !includeColumns {
+                        bodyString = bodyString! + "<br/>"
                     }
                 }
             }
-            
-            let speakerCount = speakerCounts.keys.count
             
             if includeColumns {
                 bodyString = bodyString! + "<tr>"
                 bodyString = bodyString! + "<td valign=\"top\" colspan=\"6\">"
             }
             
-            bodyString = bodyString! + name
-
-            if speakerCount == 1 {
-                if let speaker = mediaItems[0].speaker, name != speaker {
-                    bodyString = bodyString! + " by " + speaker
-                }
-            }
-
+            bodyString = bodyString! + "<br/>"
+            
             if includeColumns {
                 bodyString = bodyString! + "</td>"
                 bodyString = bodyString! + "</tr>"
-            } else {
-                bodyString = bodyString! + "<br/>"
             }
-
-            for mediaItem in mediaItems {
-                var order = ["date","title","scripture"]
-                
-                if speakerCount > 1 {
-                    order.append("speaker")
-                }
-                
-                if let string = mediaItem.bodyHTML(order: order, includeURLs: includeURLs, includeColumns: includeColumns) {
-                    bodyString = bodyString! + string
-                }
-                
-                if !includeColumns {
-                    bodyString = bodyString! + "<br/>"
-                }
-            }
-        }
-        
-        if includeColumns {
-            bodyString = bodyString! + "<tr>"
-            bodyString = bodyString! + "<td valign=\"top\" colspan=\"6\">"
-        }
-        
-        bodyString = bodyString! + "<br/>"
-        
-        if includeColumns {
-            bodyString = bodyString! + "</td>"
-            bodyString = bodyString! + "</tr>"
         }
     }
     
@@ -2889,6 +2906,96 @@ func setupMediaItemsHTMLGlobal(_ mediaItems:[MediaItem]?,includeURLs:Bool,includ
     }
     
     bodyString = bodyString! + "<br/>"
+    
+    if includeURLs, let keys = globals.media.active?.section?.indexTitles {
+        bodyString = bodyString! + "<div id=\"index\"><a href=\"#top\">Index</a><br/><br/>"
+        
+        switch globals.grouping! {
+        case Grouping.SPEAKER:
+            fallthrough
+        case Grouping.TITLE:
+            let a = "A"
+            
+//            var indexes = [Int]()
+//            var counts = [Int]()
+            
+//            var counter = 0
+//            
+//            for key in stringIndex.keys.sorted() {
+//                //                print(stringIndex[key]!)
+//                indexes.append(counter)
+//                counts.append(stringIndex[key]!.count)
+//                counter += stringIndex[key]!.count
+//            }
+//            
+//            print(stringIndex)
+            
+            if let indexTitles = globals.media.active?.section?.indexTitles {
+                let titles = Array(Set(indexTitles.map({ (string:String) -> String in
+                    if string.endIndex >= a.endIndex {
+                        return stringWithoutPrefixes(string)!.substring(to: a.endIndex).uppercased()
+                    } else {
+                        return string
+                    }
+                }))).sorted() { $0 < $1 }
+                
+                var stringIndex = [String:[String]]()
+                
+                for indexString in globals.media.active!.section!.indexTitles! {
+                    let key = indexString.substring(to: a.endIndex).uppercased()
+                    
+                    if stringIndex[key] == nil {
+                        stringIndex[key] = [String]()
+                    }
+                    //                print(testString,string)
+                    stringIndex[key]?.append(indexString)
+                }
+                
+                print(stringIndex)
+                
+                var index:String?
+                
+                for title in titles {
+                    let link = "<a href=\"#\(title)\">\(title)</a>"
+                    index = (index != nil) ? index! + " " + link : link
+                }
+                
+                bodyString = bodyString! + "<div id=\"sections\">Sections "
+
+                if index != nil {
+                    bodyString = bodyString! + index! + "<br/><br/>"
+                }
+                
+                for title in titles {
+                    bodyString = bodyString! + "<a id=\"\(title)\" href=\"#index\">\(title)</a><br/>"
+                    
+                    if let keys = stringIndex[title] {
+                        for key in keys {
+                            if let title = globals.media.active?.groupNames?[globals.grouping!]?[key] {
+                                let tag = key.replacingOccurrences(of: " ", with: "")
+                                bodyString = bodyString! + "<a id=\"index\(tag)\" href=\"#\(tag)\">\(title)</a><br/>"
+                            }
+                        }
+                        bodyString = bodyString! + "<br/>"
+                    }
+                }
+
+                bodyString = bodyString! + "</div>"
+            }
+            break
+            
+        default:
+            for key in keys {
+                if let title = globals.media.active?.groupNames?[globals.grouping!]?[key] {
+                    let tag = key.replacingOccurrences(of: " ", with: "")
+                    bodyString = bodyString! + "<a id=\"index\(tag)\" href=\"#\(tag)\">\(title)</a><br/>"
+                }
+            }
+            break
+        }
+        
+        bodyString = bodyString! + "</div>"
+    }
     
     bodyString = bodyString! + "</body></html>"
     
@@ -2964,7 +3071,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
         bodyString = bodyString! + "Collection: \(tag)<br/><br/>"
     }
     
-    if globals.search.active, let searchText = globals.search.text, searchText != Constants.EMPTY_STRING {
+    if globals.search.valid, let searchText = globals.search.text {
         bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
     }
     
@@ -2972,6 +3079,10 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
         return string
     }).sorted() {
         stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
+    }
+    
+    if includeURLs, (keys.count > 0) {
+        bodyString = bodyString! + "<a href=\"#index\">Index</a><br/><br/>"
     }
     
     var lastKey:String?
@@ -3037,8 +3148,12 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
                     bodyString  = bodyString! + "<td valign=\"top\" colspan=\"6\">"
                 }
                 
-                bodyString = bodyString! + key
-                
+                if includeURLs, (keys.count > 0) {
+                    bodyString = bodyString! + "<a id=\"\(key.replacingOccurrences(of: " ", with: ""))\" href=\"#index\">" + key + "</a>"
+                } else {
+                    bodyString = bodyString! + key
+                }
+
                 if speakerCount == 1, let speaker = mediaItems[0].speaker, key != speaker {
                     bodyString = bodyString! + " by " + speaker
                 }
@@ -3083,6 +3198,16 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
     
     bodyString = bodyString! + "<br/>"
     
+    if includeURLs, (keys.count > 0) {
+        bodyString = bodyString! + "<div id=\"index\">Index<br/><br/>"
+        
+        for key in keys {
+            bodyString = bodyString! + "<a href=\"#\(key.replacingOccurrences(of: " ", with: ""))\">\(key)</a><br/>"
+        }
+    
+        bodyString = bodyString! + "</div>"
+    }
+
     bodyString = bodyString! + "</body></html>"
     
     return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
