@@ -445,13 +445,16 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
 //        let cell = tableView.cellForRow(at: indexPath)
 
         var index = -1
+        
         if (showIndex) {
-            index = self.section.indexes != nil ? self.section.indexes![indexPath.section] + indexPath.row : -1
+            index = section.indexes != nil ? section.indexes![indexPath.section] + indexPath.row : -1
         } else {
             index = indexPath.row
         }
 
-        delegate?.rowClickedAtIndex(index, strings: self.strings!, purpose: self.purpose!, mediaItem: self.selectedMediaItem)
+//        print(index,strings![index])
+        
+        delegate?.rowClickedAtIndex(index, strings: strings!, purpose: purpose!, mediaItem: selectedMediaItem)
     }
 
     /*

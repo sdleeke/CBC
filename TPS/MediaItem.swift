@@ -2456,17 +2456,21 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             var string:String?
             
             if hasDate() {
-                string = date
+                string = formattedDate
             } else {
                 string = "No Date"
             }
             
-            if hasSpeaker {
-                string = string! + " \(speaker!)"
+            if let service = service {
+                string = string! + " \(service)"
+            }
+            
+            if let speaker = speaker {
+                string = string! + " \(speaker)"
             }
             
             if hasTitle() {
-                if (title!.range(of: ", Part ") != nil) {
+                if (title!.range(of: " (Part ") != nil) {
                     let first = title!.substring(to: (title!.range(of: " (Part")?.upperBound)!)
                     let second = title!.substring(from: (title!.range(of: " (Part ")?.upperBound)!)
                     let combined = first + "\u{00a0}" + second // replace the space with an unbreakable one

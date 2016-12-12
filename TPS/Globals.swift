@@ -1140,13 +1140,24 @@ class Globals : NSObject {
     
     var history:[String]?
     
-    var historyList:[String]? {
+    var relevantHistory:[String]? {
+        get {
+            return globals.history?.reversed().filter({ (string:String) -> Bool in
+                if let range = string.range(of: Constants.TAGS_SEPARATOR) {
+                    let mediaItemID = string.substring(from: range.upperBound)
+                    return globals.mediaRepository.index![mediaItemID] != nil
+                } else {
+                    return false
+                }
+            })
+        }
+    }
+    
+    var relevantHistoryList:[String]? {
         get {
             var list = [String]()
             
-            //                    print(globals.history)
-            if let historyList = globals.history?.reversed() {
-                //                            print(historyList)
+            if let historyList = relevantHistory {
                 for history in historyList {
                     var mediaItemID:String
                     
@@ -1154,10 +1165,20 @@ class Globals : NSObject {
                         mediaItemID = history.substring(from: range.upperBound)
                         
                         if let mediaItem = globals.mediaRepository.index![mediaItemID] {
-                            list.append(mediaItem.text!)
+                            if let text = mediaItem.text {
+                                list.append(text)
+                            } else {
+                                print(mediaItem.text)
+                            }
+                        } else {
+                            print(mediaItemID)
                         }
+                    } else {
+                        print("no range")
                     }
                 }
+            } else {
+                print("no historyList")
             }
             
             return list.count > 0 ? list : nil
@@ -1646,25 +1667,26 @@ class Globals : NSObject {
     
     func addToHistory(_ mediaItem:MediaItem?)
     {
-        if (mediaItem != nil) {
-            let entry = "\(Date())" + Constants.TAGS_SEPARATOR + mediaItem!.id!
-            
-            if history == nil {
-                history = [entry]
-            } else {
-                history?.append(entry)
-            }
-            
-            //        print(history)
-            
-            let defaults = UserDefaults.standard
-            defaults.set(history, forKey: Constants.HISTORY)
-            defaults.synchronize()
-        } else {
+        guard (mediaItem != nil) else {
             print("mediaItem NIL!")
+            return
         }
+
+        let entry = "\(Date())" + Constants.TAGS_SEPARATOR + mediaItem!.id!
+        
+        if history == nil {
+            history = [entry]
+        } else {
+            history?.append(entry)
+        }
+        
+        //        print(history)
+        
+        let defaults = UserDefaults.standard
+        defaults.set(history, forKey: Constants.HISTORY)
+        defaults.synchronize()
     }
-    
+
     func totalCacheSize() -> Int64
     {
         return cacheSize(Purpose.audio) + cacheSize(Purpose.video) + cacheSize(Purpose.notes) + cacheSize(Purpose.slides)

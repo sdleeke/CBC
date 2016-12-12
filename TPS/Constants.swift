@@ -176,6 +176,8 @@ struct Constants {
         static let POPOVER_CELL             = "PopoverCell"
         static let POPOVER_TABLEVIEW        = "PopoverTableView"
         
+        static let SETTINGS_NAVCON          = "Settings NavCon"
+        
         static let WEB_VIEW                 = "Web View"
         
         static let MEDIAITEM                = "MediaItem"

@@ -290,9 +290,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             showMenu.append(Constants.View_List)
             
-            showMenu.append(Constants.History)
-            
-            showMenu.append(Constants.Clear_History)
+            if globals.history != nil {
+                showMenu.append(Constants.History)
+                showMenu.append(Constants.Clear_History)
+            }
             
             showMenu.append(Constants.Live)
             
@@ -448,21 +449,42 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             break
 
         case .selectingHistory:
-            var mediaItemID:String
-            if let range = globals.history!.reversed()[index].range(of: Constants.TAGS_SEPARATOR) {
-                mediaItemID = globals.history!.reversed()[index].substring(from: range.upperBound)
-            } else {
-                mediaItemID = globals.history!.reversed()[index]
-            }
-            if let mediaItem = globals.mediaRepository.index![mediaItemID] {
-                if globals.media.active!.mediaItems!.contains(mediaItem) {
-                    selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top) // was Middle
+            if let history = globals.relevantHistory {
+                var mediaItemID:String
+                
+                if let range = history[index].range(of: Constants.TAGS_SEPARATOR) {
+                    mediaItemID = history[index].substring(from: range.upperBound)
                 } else {
-                    dismiss(animated: true, completion: nil)
+                    mediaItemID = history[index]
+                }
+                
+                if let mediaItem = globals.mediaRepository.index![mediaItemID] {
+                    if mediaItem.text != strings[index] {
+                        print(mediaItem.text!,strings[index])
+                    }
                     
-                    let alert = UIAlertController(title:"Not in List",
-                        message: "You are currently showing \"\(globals.media.tags.selected!)\" and \"\(mediaItem.title!)\" is not in that list.  Show \"All\" and try again.",
-                        preferredStyle: UIAlertControllerStyle.alert)
+                    if globals.media.active!.mediaItems!.contains(mediaItem) {
+                        selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top) // was Middle
+                    } else {
+                        dismiss(animated: true, completion: nil)
+                        
+                        let alert = UIAlertController(title:"Not in List",
+                                                      message: "\"\(mediaItem.title!)\" is not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",
+                            preferredStyle: UIAlertControllerStyle.alert)
+                        
+                        let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                            
+                        })
+                        alert.addAction(action)
+                        
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.present(alert, animated: true, completion: nil)
+                        })
+                    }
+                } else {
+                    let alert = UIAlertController(title:"Media Item Not Found!",
+                                                  message: "Oops, this should never happen!",
+                                                  preferredStyle: UIAlertControllerStyle.alert)
                     
                     let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
                         
@@ -473,21 +495,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         self.present(alert, animated: true, completion: nil)
                     })
                 }
-            } else {
-                dismiss(animated: true, completion: nil)
-                
-                let alert = UIAlertController(title:"Media Item Not Found!",
-                    message: "Yep, a genuine error - this should never happen!",
-                    preferredStyle: UIAlertControllerStyle.alert)
-                
-                let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                    
-                })
-                alert.addAction(action)
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.present(alert, animated: true, completion: nil)
-                })
             }
             break
             
@@ -721,7 +728,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         dismiss(animated: true, completion: nil)
                         
                         let alert = UIAlertController(title:"Not in List",
-                            message: "You are currently showing \"\(globals.media.tags.selected!)\" and \"\(mediaItem.title!)\" is not in that list.  Show \"All\" and try again.",
+                                                      message: "\"\(mediaItem.title!)\" is not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",
                             preferredStyle: UIAlertControllerStyle.alert)
                         
                         let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
@@ -737,7 +744,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     dismiss(animated: true, completion: nil)
                     
                     let alert = UIAlertController(title:"Media Item Not Found!",
-                        message: "Yep, a genuine error - this should never happen!",
+                        message: "Oops, this should never happen!",
                         preferredStyle: UIAlertControllerStyle.alert)
                     
                     let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
@@ -773,7 +780,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             case Constants.History:
-                if globals.historyList == nil {
+                if globals.relevantHistoryList == nil {
                     let alert = UIAlertController(title: "History is empty.",
                                                   message: nil,
                                                   preferredStyle: UIAlertControllerStyle.alert)
@@ -802,7 +809,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         popover.delegate = self
                         popover.purpose = .selectingHistory
                         
-                        popover.strings = globals.historyList
+                        popover.strings = globals.relevantHistoryList
                         
                         popover.showIndex = false
                         popover.showSectionHeaders = false
@@ -815,10 +822,26 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             case Constants.Clear_History:
-                globals.history = nil
-                let defaults = UserDefaults.standard
-                defaults.removeObject(forKey: Constants.HISTORY)
-                defaults.synchronize()
+                let alert = UIAlertController(title: "Delete History?",
+                                              message: nil,
+                                              preferredStyle: UIAlertControllerStyle.alert)
+                
+                let deleteAction = UIAlertAction(title: "Delete", style: UIAlertActionStyle.destructive, handler: { (UIAlertAction) -> Void in
+                    globals.history = nil
+                    let defaults = UserDefaults.standard
+                    defaults.removeObject(forKey: Constants.HISTORY)
+                    defaults.synchronize()
+                })
+                alert.addAction(deleteAction)
+                
+                let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                    
+                })
+                alert.addAction(cancelAction)
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.present(alert, animated: true, completion: nil)
+                })
                 break
 
             case Constants.Live:
@@ -826,7 +849,21 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             case Constants.Settings:
-                performSegue(withIdentifier: Constants.SEGUE.SHOW_SETTINGS, sender: nil)
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SETTINGS_NAVCON) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? SettingsViewController {
+                    navigationController.modalPresentationStyle = .popover
+                    
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.barButtonItem = showButton
+
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.present(navigationController, animated: true, completion: nil)
+                    })
+                }
+
+//                performSegue(withIdentifier: Constants.SEGUE.SHOW_SETTINGS, sender: nil)
                 break
                 
             default:

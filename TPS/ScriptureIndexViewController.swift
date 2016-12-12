@@ -1271,7 +1271,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         
         let books = bodyItems.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
         
-        if includeURLs, (books.count > 0) {
+        if includeURLs, (books.count > 1) {
             bodyString = bodyString! + "<a href=\"#index\">Index</a><br/><br/>"
         }
         
@@ -1285,7 +1285,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                 bodyString  = bodyString! + "<td valign=\"top\" colspan=\"6\">"
             }
             
-            if includeURLs && (books.count > 0) {
+            if includeURLs && (books.count > 1) {
                 bodyString = bodyString! + "<a id=\"\(book.replacingOccurrences(of: " ", with: ""))\" href=\"#index\">" + book + "</a>"
             } else {
                 bodyString = bodyString! + book
@@ -1357,7 +1357,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         
         bodyString = bodyString! + "<br/>"
         
-        if includeURLs, (books.count > 0) {
+        if includeURLs, (books.count > 1) {
             bodyString = bodyString! + "<div id=\"index\"><a href=\"#top\">Index</a><br/><br/>"
             
             for book in books {

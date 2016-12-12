@@ -1455,18 +1455,22 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     fileprivate func setupPlayerView(_ view:UIView?)
     {
-        if (view != nil) {
-            view?.isHidden = true
-            view?.removeFromSuperview()
-            
-            view?.frame = mediaItemNotesAndSlides.bounds
+        guard (view != nil) else {
+            return
+        }
 
+        view?.isHidden = true
+        view?.removeFromSuperview()
+        
+        if mediaItemNotesAndSlides != nil {
+            view?.frame = mediaItemNotesAndSlides.bounds
+            
             view?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
             
             mediaItemNotesAndSlides.addSubview(view!)
             
-//            print(view)
-//            print(view?.superview)            
+            //            print(view)
+            //            print(view?.superview)
             
             let centerX = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
             mediaItemNotesAndSlides.addConstraint(centerX)
