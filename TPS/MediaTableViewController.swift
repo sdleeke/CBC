@@ -33,6 +33,7 @@ enum PopoverPurpose {
     case selectingSection
     
     case selectingHistory
+    case selectingLexicon
     
     case selectingCellAction
     case selectingCellSearch
@@ -290,6 +291,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             showMenu.append(Constants.View_List)
             
+            showMenu.append(Constants.Lexicon)
+            
             if globals.history != nil {
                 showMenu.append(Constants.History)
                 showMenu.append(Constants.Clear_History)
@@ -447,7 +450,30 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
             }
             break
+            
+        case .selectingLexicon:
+            if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.MEDIA_TABLEVIEW) as? MediaTableViewController {
 
+                viewController.navigationItem.title = strings[index]
+
+                if let list = globals.media.active?.lexicon?[strings[index]] {
+                    var mediaItems = [MediaItem]()
+                    
+                    for item in list {
+                        mediaItems.append(item.0)
+                    }
+                    
+                    process(viewController: self, work: { () -> (Any?) in
+                        return MediaListGroupSort(mediaItems: mediaItems)
+                    }, completion: { (data:Any?) in
+                        globals.setupDisplay(data as? MediaListGroupSort)
+                        self.navigationController?.isToolbarHidden = false
+                        self.navigationController?.pushViewController(viewController, animated: true)
+                    })
+                }
+            }
+            break
+            
         case .selectingHistory:
             if let history = globals.relevantHistory {
                 var mediaItemID:String
@@ -550,7 +576,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         }
                         
                         DispatchQueue.main.async(execute: { () -> Void in
-                            globals.setupDisplay()
+                            globals.setupDisplay(globals.media.active)
                             
                             self.tableView.reloadData()
                             self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
@@ -573,6 +599,22 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             dismiss(animated: true, completion: nil)
             let indexPath = IndexPath(row: 0, section: index)
             
+            if !(indexPath.section < tableView.numberOfSections) {
+                NSLog("indexPath section ERROR in MTVC .selectingSection")
+                NSLog("Section: \(indexPath.section)")
+                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+                break
+            }
+            
+            if !(indexPath.row < tableView.numberOfRows(inSection: indexPath.section)) {
+                NSLog("indexPath row ERROR in MTVC .selectingSection")
+                NSLog("Section: \(indexPath.section)")
+                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+                NSLog("Row: \(indexPath.row)")
+                NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
+                break
+            }
+
             //Too slow
             //                if (globals.grouping == Constants.SERIES) {
             //                    let string = strings[index]
@@ -631,7 +673,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             self.progressTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PROGRESS, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
                         })
                         
-                        globals.setupDisplay()
+                        globals.setupDisplay(globals.media.active)
                         
                         DispatchQueue.main.async(execute: { () -> Void in
                             self.progressTimer?.invalidate()
@@ -677,7 +719,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             self.progressTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PROGRESS, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
                         })
                         
-                        globals.setupDisplay()
+                        globals.setupDisplay(globals.media.active)
                         
                         DispatchQueue.main.async(execute: { () -> Void in
                             self.progressTimer?.invalidate()
@@ -705,19 +747,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             switch strings[index] {
             case Constants.About:
                 about()
-                break
-                
-            case Constants.View_List:
-                DispatchQueue.main.async(execute: { () -> Void in
-                    process(viewController: self, work: { () -> (Any?) in
-                        if globals.media.active?.html?.string == nil {
-                            globals.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs: true, includeColumns: true)
-                        }
-                        return globals.media.active?.html?.string
-                    }, completion: { (data:Any?) in
-                        presentHTMLModal(viewController: self, title: globals.contextTitle, htmlString: data as? String)
-                    })
-                })
                 break
                 
             case Constants.Current_Selection:
@@ -777,6 +806,53 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 }
 
 //                performSegue(withIdentifier: Constants.SEGUE.SHOW_SCRIPTURE_INDEX, sender: nil)
+                break
+                
+            case Constants.Lexicon:
+                process(viewController: self, work: { () -> (Any?) in
+                    globals.media.active?.loadLexicon()
+                    return nil
+                }, completion: { (data:Any?) in
+                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                        let viewController = navigationController.viewControllers[0] as? PopoverTableViewController {
+                        //                    navigationController.modalPresentationStyle = .popover
+                        //                    //            popover?.preferredContentSize = CGSizeMake(300, 500)
+                        //
+                        //                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                        //                    navigationController.popoverPresentationController?.delegate = self
+                        //
+                        //                    navigationController.popoverPresentationController?.barButtonItem = showButton
+                        
+                        viewController.navigationItem.title = Constants.Lexicon
+                        
+                        viewController.delegate = self
+                        viewController.purpose = .selectingLexicon
+                        
+                        viewController.strings = globals.media.active?.lexicon?.keys.sorted()
+                        
+                        viewController.indexStrings = viewController.strings
+                        
+                        viewController.showIndex = true
+                        viewController.showSectionHeaders = true
+                        
+                        self.navigationController?.isToolbarHidden = true
+                        
+                        self.navigationController?.pushViewController(viewController, animated: true)
+                    }
+                })
+                break
+                
+            case Constants.View_List:
+                DispatchQueue.main.async(execute: { () -> Void in
+                    process(viewController: self, work: { () -> (Any?) in
+                        if globals.media.active?.html?.string == nil {
+                            globals.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs: true, includeColumns: true)
+                        }
+                        return globals.media.active?.html?.string
+                    }, completion: { (data:Any?) in
+                        presentHTMLModal(viewController: self, title: globals.contextTitle, htmlString: data as? String)
+                    })
+                })
                 break
                 
             case Constants.History:
@@ -850,7 +926,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
             case Constants.Settings:
                 if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SETTINGS_NAVCON) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? SettingsViewController {
+                    let _ = navigationController.viewControllers[0] as? SettingsViewController {
                     navigationController.modalPresentationStyle = .popover
                     
                     navigationController.popoverPresentationController?.permittedArrowDirections = .up
@@ -901,7 +977,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         disableBarButtons()
         
         DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-            globals.setupDisplay()
+            globals.setupDisplay(globals.media.active)
             
             DispatchQueue.main.async(execute: { () -> Void in
                 self.tableView.reloadData()
@@ -1541,7 +1617,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     break
                 }
             }
-
+            
+//            globals.printLexicon()
+//
 //            var tokens = Set<String>()
 //            
 //            for mediaItem in globals.mediaRepository.list! {
@@ -1622,7 +1700,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 globals.search.complete = false
             }
 
-            globals.setupDisplay()
+            globals.setupDisplay(globals.media.active)
             
             DispatchQueue.main.async(execute: { () -> Void in
                 self.navigationItem.title = Constants.Title.Setting_up_Player
@@ -1813,7 +1891,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 self.refreshControl!.endRefreshing()
                 UIApplication.shared.isNetworkActivityIndicatorVisible = false
                 
-                globals.setupDisplay()
+                globals.setupDisplay(globals.media.active)
                 self.tableView.reloadData()
                 
                 globals.isRefreshing = false
@@ -1978,7 +2056,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func updateList()
     {
-        globals.setupDisplay()
+        globals.setupDisplay(globals.media.active)
         DispatchQueue.main.async(execute: { () -> Void in
             self.tableView.reloadData()
         })
@@ -2169,7 +2247,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         if !globals.search.active || (globals.search.text == searchText) {
 //            print(globals.search.text,searchText)
 //            print("setupDisplay")
-            globals.setupDisplay()
+            globals.setupDisplay(globals.media.active)
         } else {
 //            print("clearDisplay 1")
 //            globals.clearDisplay()
@@ -2396,20 +2474,33 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             //            print("Row: \(indexPath.item)")
             //            print("Section: \(indexPath.section)")
             
+            guard (indexPath.section < tableView.numberOfSections) else {
+                NSLog("indexPath section ERROR in selectOrScrollToMediaItem")
+                NSLog("Section: \(indexPath.section)")
+                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+                return
+            }
+            
+            guard indexPath.row < tableView.numberOfRows(inSection: indexPath.section) else {
+                NSLog("indexPath row ERROR in selectOrScrollToMediaItem")
+                NSLog("Section: \(indexPath.section)")
+                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+                NSLog("Row: \(indexPath.row)")
+                NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
+                return
+            }
+            
+
             if (select) {
                 DispatchQueue.main.async(execute: { () -> Void in
-                    if (section < self.tableView.numberOfSections) && (row < self.tableView.numberOfRows(inSection: section)) {
-                        self.tableView.selectRow(at: indexPath, animated: false, scrollPosition: UITableViewScrollPosition.none)
-                    }
+                    self.tableView.selectRow(at: indexPath, animated: false, scrollPosition: UITableViewScrollPosition.none)
                 })
             }
             
             if (scroll) {
                 //Scrolling when the user isn't expecting it can be jarring.
                 DispatchQueue.main.async(execute: { () -> Void in
-                    if (section < self.tableView.numberOfSections) && (row < self.tableView.numberOfRows(inSection: section)) {
-                        self.tableView.scrollToRow(at: indexPath, at: position, animated: false)
-                    }
+                    self.tableView.scrollToRow(at: indexPath, at: position, animated: false)
                 })
             }
         }
@@ -2704,7 +2795,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        let isFullScreen = UIApplication.shared.delegate!.window!!.frame.equalTo(UIApplication.shared.delegate!.window!!.screen.bounds);
 //            print(isFullScreen)
         
-        if (splitViewController != nil) && (splitViewController!.viewControllers.count > 1) { //  && isFullScreen
+        if (splitViewController?.viewControllers.count > 1) { //  && isFullScreen
             switch splitViewController!.displayMode {
             case .automatic:
                 navigationItem.setRightBarButton(UIBarButtonItem(title: "Hide", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.showHide)),animated: true)
@@ -2782,10 +2873,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             let beforeSVCC = splitViewController!.viewControllers.count
             let beforeNVCC = navigationController!.viewControllers.count
             
-            let sivc = self.navigationController?.visibleViewController as? ScriptureIndexViewController
+            let vvc = self.navigationController?.visibleViewController
             
-            if (beforeSVCC == 1) && (beforeNVCC > beforeSVCC) && (sivc != nil) {
-                // Keeps scripture index from showing up in the MVC rather than the MTVC hierarchy.
+            if (beforeSVCC == 1) && (beforeNVCC > beforeSVCC) && ((vvc as? MediaTableViewController) == nil) {
+                // Keeps any none MTVC vc from showing up in the MVC rather than the MTVC hierarchy.
                 _ = self.navigationController?.popToRootViewController(animated: false)
             }
 
@@ -2800,10 +2891,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 let afterSVCC = self.splitViewController!.viewControllers.count
                 let afterNVCC = self.navigationController!.viewControllers.count
 
-                if (afterNVCC == 1) && (sivc != nil) { //
+                if (afterNVCC == 1) && ((vvc as? MediaTableViewController) == nil) { //
                     if (afterSVCC == 1) || (afterNVCC < afterSVCC) { //
                         DispatchQueue.main.async(execute: { () -> Void in
-                            self.navigationController?.pushViewController(sivc!, animated: false)
+                            self.navigationController?.pushViewController(vvc!, animated: false)
                         })
                     }
                 }

@@ -352,34 +352,6 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         
         // Configure the cell...
         switch purpose! {
-        case .selectingHistory:
-            cell.accessoryType = UITableViewCellAccessoryType.none
-            break
-            
-        case .selectingAction:
-            cell.accessoryType = UITableViewCellAccessoryType.none
-            break
-            
-        case .selectingCellAction:
-            cell.accessoryType = UITableViewCellAccessoryType.none
-            break
-            
-        case .selectingCellSearch:
-            cell.accessoryType = UITableViewCellAccessoryType.none
-            break
-            
-        case .showingTags:
-            //            print("strings: \(strings[indexPath.row]) mediaItemTag: \(mediaItemSelected?.tags)")
-            
-            cell.accessoryType = UITableViewCellAccessoryType.none
-            
-//            if (selectedMediaItem?.tagsArray?.indexOf(strings![index]) != nil) {
-//                    cell.accessoryType = UITableViewCellAccessoryType.Checkmark
-//            } else {
-//                cell.accessoryType = UITableViewCellAccessoryType.None
-//            }
-            break
-            
         case .selectingTags:
             //            print("strings: \(strings[indexPath.row]) mediaItemTag: \(globals.mediaItemTag)")
             let string = strings![index]
@@ -406,10 +378,6 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             }
             break
             
-        case .selectingSection:
-            cell.accessoryType = UITableViewCellAccessoryType.none
-            break
-            
         case .selectingGrouping:
             if (Constants.groupings[index] == globals.grouping) {
                 cell.accessoryType = UITableViewCellAccessoryType.checkmark
@@ -426,10 +394,6 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             }
             break
             
-        case .selectingShow:
-            cell.accessoryType = UITableViewCellAccessoryType.none
-            break
-        
         default:
             cell.accessoryType = UITableViewCellAccessoryType.none
             break

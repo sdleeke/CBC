@@ -1074,6 +1074,10 @@ class Globals : NSObject {
         return contextString
     }
     
+    func searchText() -> String? {
+        return globals.search.text
+    }
+    
     var contextString:String? {
         get {
             var string:String?
@@ -1210,15 +1214,15 @@ class Globals : NSObject {
         display.section.counts = nil
     }
     
-    func setupDisplay()
+    func setupDisplay(_ active:MediaListGroupSort?)
     {
 //        print("setupDisplay")
 
-        display.mediaItems = media.active?.mediaItems
+        display.mediaItems = active?.mediaItems
         
-        display.section.titles = media.active?.section?.titles
-        display.section.indexes = media.active?.section?.indexes
-        display.section.counts = media.active?.section?.counts
+        display.section.titles = active?.section?.titles
+        display.section.indexes = active?.section?.indexes
+        display.section.counts = active?.section?.counts
     }
     
     func saveSettingsBackground()

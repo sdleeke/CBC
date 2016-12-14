@@ -16,6 +16,10 @@ typealias MediaGroupSort = [String:[String:[String:[MediaItem]]]]
                              //Group//String//Name
 typealias MediaGroupNames = [String:[String:String]]
 
+
+typealias Lexicon = [String:[(MediaItem,Int)]]
+
+
 class MediaListGroupSort {
     @objc func freeMemory()
     {
@@ -53,10 +57,76 @@ class MediaListGroupSort {
                     index![mediaItem.id!] = mediaItem
                 }
             }
+
+            lexicon = nil
         }
     }
     var index:[String:MediaItem]? //MediaItems indexed by ID.
     
+    var lexicon:Lexicon?
+    
+    func printLexicon()
+    {
+        loadLexicon()
+
+        if let keys = lexicon?.keys.sorted() {
+            for key in keys {
+                print(key)
+                if let mediaItems = lexicon?[key]?.sorted(by: { (first, second) -> Bool in
+                    if first.1 == second.1 {
+                        return first.0.fullDate!.isOlderThan(second.0.fullDate!)
+                    } else {
+                        return first.1 > second.1
+                    }
+                }) {
+                    for mediaItem in mediaItems {
+                        print(mediaItem.0,mediaItem.1)
+                    }
+                    print("")
+                }
+            }
+        }
+    }
+    
+    func loadLexicon()
+    {
+        guard (lexicon == nil) else {
+            return
+        }
+
+        var dict = Lexicon()
+        
+        if let list = list {
+            for mediaItem in list {
+                mediaItem.loadNotesTokens()
+                
+                if let notesTokens = mediaItem.notesTokens {
+                    for token in notesTokens {
+                        var count = 0
+                        var string = mediaItem.notesHTML
+                        
+                        while let range = string?.range(of: token, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) {
+                            count += 1
+                            string = string?.substring(from: range.upperBound)
+                        }
+                        
+                        if count > 0 {
+                            if dict[token] == nil {
+                                dict[token] = [(mediaItem,count)]
+                            } else {
+                                dict[token]?.append((mediaItem,count))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        print(dict)
+        
+        lexicon = dict.count > 0 ? dict : nil
+    }
+
     var searches:[String:MediaListGroupSort]? // Hierarchical means we could search within searches - but not right now.
     
     var scriptureIndex:ScriptureIndex?
@@ -1287,6 +1357,10 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     
     func loadNotesHTML()
     {
+        guard hasNotesHTML else {
+            return
+        }
+        
         if dict![Field.notes_HTML] == nil {
             if let mediaItemDict = self.loadSingleDict() {
                 dict![Field.notes_HTML] = mediaItemDict[Field.notes_HTML]
@@ -1294,6 +1368,31 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                 print("loadSingle failure")
             }
         }
+    }
+    
+    func loadNotesTokens()
+    {
+        guard hasNotesHTML else {
+            return
+        }
+        
+        loadNotesHTML()
+
+        var tokens = Set<String>()
+   
+//        if let searchTokens = searchTokens() {
+//            tokens = tokens.union(Set(searchTokens))
+//        }
+        
+        if let notesTokens = tokensFromString(notesHTML) {
+            tokens = tokens.union(Set(notesTokens))
+        }
+        
+        let tokenArray = Array(tokens).sorted()
+        
+        //                        print(tokenArray)
+        
+        notesTokens = tokenArray.count > 0 ? tokenArray : nil
     }
     
     func formatDate(_ format:String?) -> String? {
@@ -1737,7 +1836,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     }
     
     lazy var searchMarkedFullNotesHTML:CachedString? = {
-        return CachedString(index: globals.context)
+        return CachedString(index: globals.searchText)
     }()
     
     func searchMarkedFullNotesHTML(index:Bool) -> String?
@@ -1754,41 +1853,108 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             return searchMarkedFullNotesHTML?.string
         }
         
-        var stringBefore:String = Constants.EMPTY_STRING
-        var stringAfter:String = Constants.EMPTY_STRING
-        var foundString:String = Constants.EMPTY_STRING
-        var string:String = stripHead(fullNotesHTML)!
-        var newString:String = Constants.EMPTY_STRING
-        
+//        var stringBefore:String = Constants.EMPTY_STRING
+//        var stringAfter:String = Constants.EMPTY_STRING
+
         var markCounter = 0
-        
-        while (string.lowercased().range(of: globals.search.text!.lowercased()) != nil) {
-//                print(string)
+
+        func mark(_ input:String) -> String
+        {
+            var string = input
+
+            var stringBefore:String = Constants.EMPTY_STRING
+            var stringAfter:String = Constants.EMPTY_STRING
+            var newString:String = Constants.EMPTY_STRING
+            var foundString:String = Constants.EMPTY_STRING
+
+            while (string.lowercased().range(of: globals.search.text!.lowercased()) != nil) {
+                //                print(string)
+                
+                if let range = string.lowercased().range(of: globals.search.text!.lowercased()) {
+                    stringBefore = string.substring(to: range.lowerBound)
+                    stringAfter = string.substring(from: range.upperBound)
+                    
+                    foundString = string.substring(from: range.lowerBound)
+                    let newRange = foundString.lowercased().range(of: globals.search.text!.lowercased())
+                    foundString = foundString.substring(to: newRange!.upperBound)
+                    
+                    markCounter += 1
+                    foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
+                    
+                    newString = newString + stringBefore + foundString
+                    
+                    stringBefore = stringBefore + foundString
+                    
+                    string = stringAfter
+                }
+            }
             
-            if let range = string.lowercased().range(of: globals.search.text!.lowercased()) {
-                stringBefore = string.substring(to: range.lowerBound)
-                stringAfter = string.substring(from: range.upperBound)
+            newString = newString + stringAfter
+            
+            return newString == Constants.EMPTY_STRING ? string : newString
+        }
+
+        var newString:String = Constants.EMPTY_STRING
+        var string:String = stripHead(fullNotesHTML)!
+        
+        while let searchRange = string.range(of: "<") {
+            let searchString = string.substring(to: searchRange.lowerBound)
+//            print(searchString)
+            
+            // mark search string
+            newString = newString + mark(searchString)
+            
+            let remainder = string.substring(from: searchRange.lowerBound)
+
+            if let htmlRange = remainder.range(of: ">") {
+                let html = remainder.substring(to: htmlRange.upperBound)
+//                print(html)
                 
-                foundString = string.substring(from: range.lowerBound)
-                let newRange = foundString.lowercased().range(of: globals.search.text!.lowercased())
-                foundString = foundString.substring(to: newRange!.upperBound)
+                newString = newString + html
                 
-                markCounter += 1
-                foundString = "<mark id=\"\(markCounter)\">" + foundString + "</mark><a href=\"#locations\"><sup>\(markCounter)</sup></a>"
-                
-                newString = newString + stringBefore + foundString
-                
-                stringBefore = stringBefore + foundString
-                
-                string = stringAfter
+                string = remainder.substring(from: htmlRange.upperBound)
             }
         }
+        
+//        string = stripHead(fullNotesHTML)!
+//        
+//        if newString == string {
+//            print("The same!")
+//        } else {
+//            print("Different!")
+//            print("\n\nORIGINAL\n\n",string)
+//            print("\n\nNEWSTRING\n\n",newString)
+//        }
+//        
+//        newString = Constants.EMPTY_STRING
+//        
+//        while (string.lowercased().range(of: globals.search.text!.lowercased()) != nil) {
+////                print(string)
+//            
+//            if let range = string.lowercased().range(of: globals.search.text!.lowercased()) {
+//                stringBefore = string.substring(to: range.lowerBound)
+//                stringAfter = string.substring(from: range.upperBound)
+//                
+//                foundString = string.substring(from: range.lowerBound)
+//                let newRange = foundString.lowercased().range(of: globals.search.text!.lowercased())
+//                foundString = foundString.substring(to: newRange!.upperBound)
+//                
+//                markCounter += 1
+//                foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
+//                
+//                newString = newString + stringBefore + foundString
+//                
+//                stringBefore = stringBefore + foundString
+//                
+//                string = stringAfter
+//            }
+//        }
 
         // If we want an index of links to the occurences of the searchText.
         if index, markCounter > 0 {
-            var indexString = "<p id=\"index\">Occurences of \"\(globals.search.text!)\": \(markCounter)</p>"
+            var indexString = "<a id=\"locations\" name=\"locations\">Occurences</a> of \"\(globals.search.text!)\": \(markCounter)<br/>"
             
-            indexString = indexString + "<div id=\"locations\">Locations: "
+            indexString = indexString + "<div>Locations: "
             
             for counter in 1...markCounter {
                 if counter > 1 {
@@ -1802,7 +1968,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             newString = newString.replacingOccurrences(of: "<body>", with: "<body>"+indexString)
         }
         
-        newString = newString + stringAfter
+//        newString = newString + stringAfter
         
         searchMarkedFullNotesHTML?.string = insertHead(newString,fontSize: Constants.FONT_SIZE)
         
@@ -1866,7 +2032,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                 return nil
             }
 
-            return insertHead("<html><body>" + headerHTML! + notesHTML! + "</body></html>",fontSize: Constants.FONT_SIZE)
+            return insertHead("<!DOCTYPE html><html><body>" + headerHTML! + notesHTML! + "</body></html>",fontSize: Constants.FONT_SIZE)
         }
     }
     
@@ -2309,7 +2475,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
 
     var contentsHTML:String? {
         get {
-            var bodyString = "<html><body>"
+            var bodyString = "<!DOCTYPE html><html><body>"
             
             if let string = bodyHTML(order: ["date","title","scripture","speaker"], includeURLs: true, includeColumns: true) {
                 bodyString = bodyString + string

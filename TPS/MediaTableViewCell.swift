@@ -61,9 +61,15 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 //                downloadObserver = nil
 //            }
             
-            setupTagsButton()
-
-            setupDownloadButtonForAudio()
+//            setNeedsLayout()
+//
+//            DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+//                DispatchQueue.main.async(execute: { () -> Void in
+                    self.setupTagsButton()
+                    self.setupDownloadButtonForAudio()
+//                })
+//            })
+            
             setupProgressBarForAudio()
     
             setupIcons()
@@ -128,8 +134,12 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                     navigationController.popoverPresentationController?.permittedArrowDirections = .any
                     navigationController.popoverPresentationController?.delegate = self
                     
-                    navigationController.popoverPresentationController?.sourceView = self
-                    navigationController.popoverPresentationController?.sourceRect = downloadButton.frame
+                    if let barButtonItem = downloadToolbar?.items?.first {
+                        navigationController.popoverPresentationController?.barButtonItem = barButtonItem
+                    } else {
+                        navigationController.popoverPresentationController?.sourceView = self
+                        navigationController.popoverPresentationController?.sourceRect = downloadButton.frame
+                    }
                     
 //                        popover.navigationItem.title = Constants.Actions
 //                        popover.preferredContentSize = CGSizeMake(300, 500)
@@ -183,8 +193,15 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     @IBOutlet weak var tagsButton: UIButton!
     @IBAction func tagsAction(_ sender: UIButton)
     {
-        if mediaItem != nil, mediaItem!.hasTags,
-            let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+        guard (mediaItem != nil) else {
+            return
+        }
+        
+        guard mediaItem!.hasTags else {
+            return
+        }
+        
+        if let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             vc?.dismiss(animated: true, completion: nil)
             
@@ -192,8 +209,12 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             navigationController.popoverPresentationController?.permittedArrowDirections = .any
             navigationController.popoverPresentationController?.delegate = self
             
-            navigationController.popoverPresentationController?.sourceView = self
-            navigationController.popoverPresentationController?.sourceRect = tagsButton.frame
+            if let barButtonItem = tagsToolbar?.items?.first {
+                navigationController.popoverPresentationController?.barButtonItem = barButtonItem
+            } else {
+                navigationController.popoverPresentationController?.sourceView = self
+                navigationController.popoverPresentationController?.sourceRect = tagsButton.frame
+            }
             
             popover.navigationItem.title = Constants.Show // Show MediaItems Tagged With
             //                        popover.preferredContentSize = CGSizeMake(300, 500)
@@ -213,39 +234,105 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     
     func setupTagsButton()
     {
-        if (tagsButton != nil) {
-            if (mediaItem!.hasTags) {
-                tagsButton.isHidden = false
-                
-                if (mediaItem?.tagsSet?.count > 1) {
-                    tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState())
-                } else {
-                    tagsButton.setTitle(Constants.FA.TAG, for: UIControlState())
-                }
+        guard (mediaItem != nil) else {
+            return
+        }
+        
+        guard (tagsButton != nil) else {
+            return
+        }
+        
+        tagsToolbar = UIToolbar(frame: tagsButton.frame)
+        tagsToolbar?.setItems([UIBarButtonItem(title: nil, style: .plain, target: self, action: nil)], animated: false)
+        tagsToolbar?.isHidden = true
+
+        tagsToolbar?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+        
+        self.addSubview(tagsToolbar!)
+        
+        let first = tagsToolbar
+        let second = tagsButton
+        
+        let centerX = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
+        self.addConstraint(centerX)
+        
+        let centerY = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+        self.addConstraint(centerY)
+        
+//        let width = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: second!, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
+//        self.addConstraint(width)
+//        
+//        let height = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: second!, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
+//        self.addConstraint(height)
+        
+        self.setNeedsLayout()
+        
+        if (mediaItem!.hasTags) {
+            tagsButton.isHidden = false
+            
+            if (mediaItem?.tagsSet?.count > 1) {
+                tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState())
             } else {
-                tagsButton.isHidden = true
+                tagsButton.setTitle(Constants.FA.TAG, for: UIControlState())
             }
+        } else {
+            tagsButton.isHidden = true
         }
     }
     
     func setupDownloadButtonForAudio()
     {
-        if mediaItem != nil {
-            switch mediaItem!.audioDownload!.state {
-            case .none:
-                downloadButton.setTitle(Constants.FA.DOWNLOAD, for: UIControlState())
-                break
-                
-            case .downloaded:
-                downloadButton.setTitle(Constants.FA.DOWNLOADED, for: UIControlState())
-                break
-                
-            case .downloading:
-                downloadButton.setTitle(Constants.FA.DOWNLOADING, for: UIControlState())
-                break
-            }
+        guard (mediaItem?.audioDownload != nil) else {
+            return
+        }
+
+        guard (downloadButton != nil) else {
+            return
+        }
+        
+        downloadToolbar = UIToolbar(frame: downloadButton.frame)
+        downloadToolbar?.setItems([UIBarButtonItem(title: nil, style: .plain, target: self, action: nil)], animated: false)
+        downloadToolbar?.isHidden = true
+        
+        downloadToolbar?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+        
+        self.addSubview(downloadToolbar!)
+
+        let first = downloadToolbar
+        let second = downloadButton
+        
+        let centerX = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
+        self.addConstraint(centerX)
+        
+        let centerY = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+        self.addConstraint(centerY)
+        
+//        let width = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: second!, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
+//        self.addConstraint(width)
+//        
+//        let height = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: second!, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
+//        self.addConstraint(height)
+        
+        self.setNeedsLayout()
+        
+        switch mediaItem!.audioDownload!.state {
+        case .none:
+            downloadButton.setTitle(Constants.FA.DOWNLOAD, for: UIControlState())
+            break
+            
+        case .downloaded:
+            downloadButton.setTitle(Constants.FA.DOWNLOADED, for: UIControlState())
+            break
+            
+        case .downloading:
+            downloadButton.setTitle(Constants.FA.DOWNLOADING, for: UIControlState())
+            break
         }
     }
+    
+    var tagsToolbar: UIToolbar?
+    
+    var downloadToolbar: UIToolbar?
     
     func setupIcons()
     {

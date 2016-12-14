@@ -2705,8 +2705,8 @@ func stripLinks(_ string:String?) -> String?
 {
     var bodyString = string
     
-    while bodyString?.range(of: "<div id=") != nil {
-        if let startRange = bodyString?.range(of: "<div id=") {
+    while bodyString?.range(of: "<div") != nil {
+        if let startRange = bodyString?.range(of: "<div") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: "</div>") {
                 let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
                 bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
@@ -2725,8 +2725,8 @@ func stripLinks(_ string:String?) -> String?
 
     bodyString = bodyString?.replacingOccurrences(of: "<a href=\"#index\">Index</a><br/><br/>", with: "")
 
-    while bodyString?.range(of: "<a ") != nil {
-        if let startRange = bodyString?.range(of: "<a ") {
+    while bodyString?.range(of: "<a") != nil {
+        if let startRange = bodyString?.range(of: "<a") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
                 let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
                 bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
@@ -2743,6 +2743,7 @@ func stripHTML(_ string:String?) -> String?
 {
     var bodyString = stripLinks(stripHead(string))
     
+    bodyString = bodyString?.replacingOccurrences(of: "<!DOCTYPE html>", with: "")
     bodyString = bodyString?.replacingOccurrences(of: "<html>", with: "")
     bodyString = bodyString?.replacingOccurrences(of: "<body>", with: "")
 
@@ -2792,9 +2793,9 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
         return nil
     }
     
-    bodyString = "<html><body>"
+    bodyString = "<!DOCTYPE html><html><body>"
     
-    bodyString = bodyString! + "<div id=\"top\"></div>The following media "
+    bodyString = bodyString! + "The following media "
     
     if globals.media.active?.list?.count > 1 {
         bodyString = bodyString! + "are"
@@ -2803,7 +2804,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
     }
     
     if includeURLs {
-        bodyString = bodyString! + " from <a href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+        bodyString = bodyString! + " from <a id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
     } else {
         bodyString = bodyString! + " from " + Constants.CBC.LONG + "<br/><br/>"
     }
@@ -2852,7 +2853,8 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                 }
                 
                 if includeURLs, (keys.count > 1) {
-                    bodyString = bodyString! + "<a id=\"\(key.replacingOccurrences(of: " ", with: ""))\" href=\"#index\(key.replacingOccurrences(of: " ", with: ""))\">" + name + "</a>"
+                    let tag = key.replacingOccurrences(of: " ", with: "")
+                    bodyString = bodyString! + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + "</a>"
                 } else {
                     bodyString = bodyString! + name
                 }
@@ -2907,7 +2909,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
         bodyString = bodyString! + "<br/>"
         
         if includeURLs, keys.count > 1 {
-            bodyString = bodyString! + "<div id=\"index\"><a href=\"#top\">Index</a><br/><br/>"
+            bodyString = bodyString! + "<div><a id=\"index\" name=\"index\" href=\"#top\">Index</a><br/><br/>"
             
             switch globals.grouping! {
             case Grouping.SPEAKER:
@@ -2950,7 +2952,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                         stringIndex[key]?.append(indexString)
                     }
                     
-                    print(stringIndex)
+//                    print(stringIndex)
                     
                     var index:String?
                     
@@ -2959,20 +2961,20 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                         index = (index != nil) ? index! + " " + link : link
                     }
                     
-                    bodyString = bodyString! + "<div id=\"sections\">Sections "
+                    bodyString = bodyString! + "<div><a id=\"sections\" name=\"sections\">Sections</a> "
                     
                     if index != nil {
                         bodyString = bodyString! + index! + "<br/><br/>"
                     }
                     
                     for title in titles {
-                        bodyString = bodyString! + "<a id=\"\(title)\" href=\"#index\">\(title)</a><br/>"
+                        bodyString = bodyString! + "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a><br/>"
                         
                         if let keys = stringIndex[title] {
                             for key in keys {
                                 if let title = globals.media.active?.groupNames?[globals.grouping!]?[key] {
                                     let tag = key.replacingOccurrences(of: " ", with: "")
-                                    bodyString = bodyString! + "<a id=\"index\(tag)\" href=\"#\(tag)\">\(title)</a><br/>"
+                                    bodyString = bodyString! + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title)</a><br/>"
                                 }
                             }
                             bodyString = bodyString! + "<br/>"
@@ -2987,7 +2989,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                 for key in keys {
                     if let title = globals.media.active?.groupNames?[globals.grouping!]?[key] {
                         let tag = key.replacingOccurrences(of: " ", with: "")
-                        bodyString = bodyString! + "<a id=\"index\(tag)\" href=\"#\(tag)\">\(title)</a><br/>"
+                        bodyString = bodyString! + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title)</a><br/>"
                     }
                 }
                 break
@@ -3047,7 +3049,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
         }
     }
 
-    bodyString = "<html><body>"
+    bodyString = "<!DOCTYPE html><html><body>"
     
     bodyString = bodyString! + "The following media "
     
@@ -3149,7 +3151,8 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
                 }
                 
                 if includeURLs, (keys.count > 1) {
-                    bodyString = bodyString! + "<a id=\"\(key.replacingOccurrences(of: " ", with: ""))\" href=\"#index\">" + key + "</a>"
+                    let tag = key.replacingOccurrences(of: " ", with: "")
+                    bodyString = bodyString! + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">" + key + "</a>"
                 } else {
                     bodyString = bodyString! + key
                 }
@@ -3199,7 +3202,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
     bodyString = bodyString! + "<br/>"
     
     if includeURLs, (keys.count > 1) {
-        bodyString = bodyString! + "<div id=\"index\">Index<br/><br/>"
+        bodyString = bodyString! + "<div><a id=\"index\" name=\"index\">Index</a><br/><br/>"
         
         for key in keys {
             bodyString = bodyString! + "<a href=\"#\(key.replacingOccurrences(of: " ", with: ""))\">\(key)</a><br/>"

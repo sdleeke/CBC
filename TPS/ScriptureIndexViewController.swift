@@ -1223,9 +1223,9 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             }
         }
         
-        bodyString = "<html><body>"
+        bodyString = "<!DOCTYPE html><html><body>"
         
-        bodyString = bodyString! + "<div id=\"top\"></div>The following media "
+        bodyString = bodyString! + "The following media "
         
         if mediaItems!.count > 1 {
             bodyString = bodyString! + "are"
@@ -1234,7 +1234,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         }
         
         if includeURLs {
-            bodyString = bodyString! + " from <a href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+            bodyString = bodyString! + " from <a id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
         } else {
             bodyString = bodyString! + " from " + Constants.CBC.LONG + "<br/><br/>"
         }
@@ -1286,7 +1286,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             }
             
             if includeURLs && (books.count > 1) {
-                bodyString = bodyString! + "<a id=\"\(book.replacingOccurrences(of: " ", with: ""))\" href=\"#index\">" + book + "</a>"
+                let tag = book.replacingOccurrences(of: " ", with: "")
+                bodyString = bodyString! + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">" + book + "</a>"
             } else {
                 bodyString = bodyString! + book
             }
@@ -1358,7 +1359,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         bodyString = bodyString! + "<br/>"
         
         if includeURLs, (books.count > 1) {
-            bodyString = bodyString! + "<div id=\"index\"><a href=\"#top\">Index</a><br/><br/>"
+            bodyString = bodyString! + "<div><a id=\"index\" name=\"index\" href=\"#top\">Index</a><br/><br/>"
             
             for book in books {
                 bodyString = bodyString! + "<a href=\"#\(book.replacingOccurrences(of: " ", with: ""))\">\(book)</a><br/>"
@@ -1381,6 +1382,23 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         case .selectingSection:
             dismiss(animated: true, completion: nil)
             let indexPath = IndexPath(row: 0, section: index)
+            
+            if !(indexPath.section < tableView.numberOfSections) {
+                NSLog("indexPath section ERROR in ScriptureIndex .selectingSection")
+                NSLog("Section: \(indexPath.section)")
+                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+                break
+            }
+            
+            if !(indexPath.row < tableView.numberOfRows(inSection: indexPath.section)) {
+                NSLog("indexPath row ERROR in ScriptureIndex .selectingSection")
+                NSLog("Section: \(indexPath.section)")
+                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+                NSLog("Row: \(indexPath.row)")
+                NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
+                break
+            }
+            
             //Can't use this reliably w/ variable row heights.
             DispatchQueue.main.async(execute: { () -> Void in
                 self.tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.top, animated: true)

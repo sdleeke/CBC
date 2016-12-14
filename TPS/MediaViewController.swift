@@ -2196,27 +2196,40 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     func scrollToMediaItem(_ mediaItem:MediaItem?,select:Bool,position:UITableViewScrollPosition)
     {
-        if (mediaItem != nil) {
-            var indexPath = IndexPath(row: 0, section: 0)
-            
-            if mediaItems?.count > 0, let mediaItemIndex = mediaItems?.index(of: mediaItem!) {
-                //                    print("\(mediaItemIndex)")
-                indexPath = IndexPath(row: mediaItemIndex, section: 0)
-            }
-            
-//            print("\(tableView.bounds)")
-            
-            if (select) {
-                tableView.selectRow(at: indexPath, animated: true, scrollPosition: position)
-            }
-            
-//            print("Row: \(indexPath.row) Section: \(indexPath.section)")
-
-            tableView.scrollToRow(at: indexPath, at: position, animated: false)
-        } else {
-            //No mediaItem to scroll to.
-            
+        guard (mediaItem != nil) else {
+            return
         }
+
+        var indexPath = IndexPath(row: 0, section: 0)
+        
+        if mediaItems?.count > 0, let mediaItemIndex = mediaItems?.index(of: mediaItem!) {
+            //                    print("\(mediaItemIndex)")
+            indexPath = IndexPath(row: mediaItemIndex, section: 0)
+        }
+        
+        //            print("\(tableView.bounds)")
+        
+        guard (indexPath.section < tableView.numberOfSections) else {
+            NSLog("indexPath section ERROR in scrollToMediaItem")
+            NSLog("Section: \(indexPath.section)")
+            NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+            return
+        }
+        
+        guard indexPath.row < tableView.numberOfRows(inSection: indexPath.section) else {
+            NSLog("indexPath row ERROR in scrollToMediaItem")
+            NSLog("Section: \(indexPath.section)")
+            NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+            NSLog("Row: \(indexPath.row)")
+            NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
+            return
+        }
+        
+        if select {
+            tableView.selectRow(at: indexPath, animated: true, scrollPosition: position)
+        }
+
+        tableView.scrollToRow(at: indexPath, at: position, animated: false)
     }
     
     func setupPlayPauseButton()

@@ -176,6 +176,8 @@ struct Constants {
         static let POPOVER_CELL             = "PopoverCell"
         static let POPOVER_TABLEVIEW        = "PopoverTableView"
         
+        static let MEDIA_TABLEVIEW          = "Media Table View"
+        
         static let SETTINGS_NAVCON          = "Settings NavCon"
         
         static let WEB_VIEW                 = "Web View"
@@ -184,7 +186,10 @@ struct Constants {
         static let MULTIPART_MEDIAITEM      = "MultiPartMediaItem"
         
         static let STRING_PICKER            = "String Picker"
+        
         static let SCRIPTURE_INDEX          = "Scripture Index"
+        
+        static let LEXICON                  = "Lexicon"
         
         static let INDEX_MEDIA_ITEM         = "IndexMediaItem"
         
@@ -404,7 +409,10 @@ struct Constants {
         static let PLAY_PLAUSE_FONT_SIZE = CGFloat(24.0)
         static let PLAY = "\u{f04b}"
         static let PAUSE = "\u{f04c}"
-
+        
+        static let LARGER = "\u{f0d8}"
+        static let SMALLER = "\u{f0d7}"
+        
         static let PLAYING = "\u{f028}"
 
         static let ICONS_FONT_SIZE = CGFloat(12.0)
@@ -536,8 +544,10 @@ struct Constants {
     static let Email_All = "E-mail All"
     
     static let FONT_SIZE = 12
-    static let Increase_Font_Size = "Increase Font Size"
-    static let Decrease_Font_Size = "Decrease Font Size"
+//    static let Increase_Font_Size = "Increase Font Size"
+//    static let Decrease_Font_Size = "Decrease Font Size"
+    
+    static let Lexicon = "Lexicon"
     
     static let View_List = "View List"
     static let List = "List"

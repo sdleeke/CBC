@@ -411,11 +411,17 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     {
         let actionButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(WebViewController.actions))
 
-        let plusButton = UIBarButtonItem(title: "Larger", style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.increaseFontSize))
+        let plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.increaseFontSize))
         
-        let minusButton = UIBarButtonItem(title: "Smaller", style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.decreaseFontSize))
+        //        plusButton?.title = Constants.FA.CARET_DOWN
+        plusButton.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
         
-        navigationItem.setRightBarButtonItems([actionButton,plusButton,minusButton], animated: true)
+        let minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.decreaseFontSize))
+        
+//        minusButton?.title = Constants.FA.CARET_DOWN
+        minusButton.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
+        
+        navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton], animated: true)
         
         navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
     }
