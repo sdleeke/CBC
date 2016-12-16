@@ -12,8 +12,12 @@
 		1713B1871DF8DD8900BE3EDF /* style.txt in Resources */ = {isa = PBXBuildFile; fileRef = 1713B1861DF8DD8900BE3EDF /* style.txt */; };
 		171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171A6ED41BF2172100E3323C /* WebViewController.swift */; };
 		1749C4571DAAAE8A00FC90E0 /* PopoverPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */; };
+		174A14A51E020A0500736CEC /* CachedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174A14A41E020A0500736CEC /* CachedString.swift */; };
+		174A14A71E02122200736CEC /* MediaPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174A14A61E02122100736CEC /* MediaPlayer.swift */; };
+		174A14A91E02128700736CEC /* MediaListGroupSort.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174A14A81E02128700736CEC /* MediaListGroupSort.swift */; };
+		174A14AB1E02A6F100736CEC /* Download.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174A14AA1E02A6F100736CEC /* Download.swift */; };
 		174EEE6D1B74C0DD004F6942 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 174EEE6C1B74C0DD004F6942 /* Images.xcassets */; };
-		174EEE7C1B74C0DE004F6942 /* TPSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE7B1B74C0DE004F6942 /* TPSTests.swift */; };
+		174EEE7C1B74C0DE004F6942 /* CBCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE7B1B74C0DE004F6942 /* CBCTests.swift */; };
 		174EEE8D1B74C11E004F6942 /* MediaTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174EEE861B74C11E004F6942 /* MediaTableViewController.swift */; };
 		174EEE8E1B74C11E004F6942 /* iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 174EEE871B74C11E004F6942 /* iPad.storyboard */; };
 		174EEE8F1B74C11E004F6942 /* iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 174EEE881B74C11E004F6942 /* iPhone.storyboard */; };
@@ -30,7 +34,7 @@
 		1780A7B81B7759FC0003FD39 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1780A7B71B7759FC0003FD39 /* MapKit.framework */; };
 		1798C74E1CA93BC900CED4A5 /* Globals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C74D1CA93BC900CED4A5 /* Globals.swift */; };
 		1798C7501CA93BF600CED4A5 /* LiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C74F1CA93BF600CED4A5 /* LiveViewController.swift */; };
-		1798C7581CA93CC700CED4A5 /* TPSUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C7571CA93CC700CED4A5 /* TPSUITests.swift */; };
+		1798C7581CA93CC700CED4A5 /* CBCUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1798C7571CA93CC700CED4A5 /* CBCUITests.swift */; };
 		17BBEDD71BBF631F0070BF89 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17BBEDD61BBF631F0070BF89 /* SwiftyJSON.swift */; };
 		17D4641C1C8E135800519C98 /* ScriptureIndexViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */; };
 		17E75ECA1B835FC600AE8ED5 /* functions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E75EC91B835FC600AE8ED5 /* functions.swift */; };
@@ -63,11 +67,15 @@
 		1713B1861DF8DD8900BE3EDF /* style.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = style.txt; sourceTree = "<group>"; };
 		171A6ED41BF2172100E3323C /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
 		1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PopoverPickerViewController.swift; sourceTree = "<group>"; };
-		174EEE601B74C0DD004F6942 /* TPS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TPS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		174A14A41E020A0500736CEC /* CachedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CachedString.swift; sourceTree = "<group>"; };
+		174A14A61E02122100736CEC /* MediaPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MediaPlayer.swift; path = ../MediaPlayer.swift; sourceTree = "<group>"; };
+		174A14A81E02128700736CEC /* MediaListGroupSort.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaListGroupSort.swift; sourceTree = "<group>"; };
+		174A14AA1E02A6F100736CEC /* Download.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Download.swift; sourceTree = "<group>"; };
+		174EEE601B74C0DD004F6942 /* CBC.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CBC.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		174EEE6C1B74C0DD004F6942 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
-		174EEE751B74C0DE004F6942 /* TPSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TPSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		174EEE751B74C0DE004F6942 /* CBCTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CBCTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		174EEE7A1B74C0DE004F6942 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		174EEE7B1B74C0DE004F6942 /* TPSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TPSTests.swift; sourceTree = "<group>"; };
+		174EEE7B1B74C0DE004F6942 /* CBCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBCTests.swift; sourceTree = "<group>"; };
 		174EEE861B74C11E004F6942 /* MediaTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = MediaTableViewController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		174EEE871B74C11E004F6942 /* iPad.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = iPad.storyboard; sourceTree = "<group>"; };
 		174EEE881B74C11E004F6942 /* iPhone.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = iPhone.storyboard; sourceTree = "<group>"; };
@@ -85,8 +93,8 @@
 		1780A7B71B7759FC0003FD39 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		1798C74D1CA93BC900CED4A5 /* Globals.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Globals.swift; sourceTree = "<group>"; };
 		1798C74F1CA93BF600CED4A5 /* LiveViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveViewController.swift; sourceTree = "<group>"; };
-		1798C7551CA93CC700CED4A5 /* TPSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TPSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		1798C7571CA93CC700CED4A5 /* TPSUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TPSUITests.swift; sourceTree = "<group>"; };
+		1798C7551CA93CC700CED4A5 /* CBCUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CBCUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1798C7571CA93CC700CED4A5 /* CBCUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBCUITests.swift; sourceTree = "<group>"; };
 		1798C7591CA93CC700CED4A5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		17BBEDD61BBF631F0070BF89 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
 		17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScriptureIndexViewController.swift; sourceTree = "<group>"; };
@@ -127,9 +135,9 @@
 		174EEE571B74C0DD004F6942 = {
 			isa = PBXGroup;
 			children = (
-				174EEE621B74C0DD004F6942 /* TPS */,
-				174EEE781B74C0DE004F6942 /* TPSTests */,
-				1798C7561CA93CC700CED4A5 /* TPSUITests */,
+				174EEE621B74C0DD004F6942 /* CBC */,
+				174EEE781B74C0DE004F6942 /* CBCTests */,
+				1798C7561CA93CC700CED4A5 /* CBCUITests */,
 				174EEE611B74C0DD004F6942 /* Products */,
 				1780A7B71B7759FC0003FD39 /* MapKit.framework */,
 				17F549231DBADA25008B5051 /* Frameworks */,
@@ -139,20 +147,23 @@
 		174EEE611B74C0DD004F6942 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				174EEE601B74C0DD004F6942 /* TPS.app */,
-				174EEE751B74C0DE004F6942 /* TPSTests.xctest */,
-				1798C7551CA93CC700CED4A5 /* TPSUITests.xctest */,
+				174EEE601B74C0DD004F6942 /* CBC.app */,
+				174EEE751B74C0DE004F6942 /* CBCTests.xctest */,
+				1798C7551CA93CC700CED4A5 /* CBCUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		174EEE621B74C0DD004F6942 /* TPS */ = {
+		174EEE621B74C0DD004F6942 /* CBC */ = {
 			isa = PBXGroup;
 			children = (
 				174EEE931B74C145004F6942 /* AppDelegate.swift */,
 				1798C74D1CA93BC900CED4A5 /* Globals.swift */,
+				174A14A61E02122100736CEC /* MediaPlayer.swift */,
 				17763BE21BEA329400BB5556 /* Constants.swift */,
+				174A14A81E02128700736CEC /* MediaListGroupSort.swift */,
 				17763BE41BEA32C700BB5556 /* MediaItem.swift */,
+				174A14AA1E02A6F100736CEC /* Download.swift */,
 				175EDA251BAC80F600942E6D /* Reachability.swift */,
 				17BBEDD61BBF631F0070BF89 /* SwiftyJSON.swift */,
 				177FBA941C5CF36400AFBB50 /* OBSlider.swift */,
@@ -160,6 +171,7 @@
 				174EEE8B1B74C11E004F6942 /* MediaTableViewCell.swift */,
 				17F8EAB31DFE221A00FA2A99 /* PopoverTableViewCell.swift */,
 				174EEE861B74C11E004F6942 /* MediaTableViewController.swift */,
+				174A14A41E020A0500736CEC /* CachedString.swift */,
 				17579DDF1B84706500F1424F /* PopoverTableViewController.swift */,
 				1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */,
 				174EEE871B74C11E004F6942 /* iPad.storyboard */,
@@ -178,7 +190,7 @@
 				17D9AA061BE0EDF700ED5090 /* fontawesome-webfont.ttf */,
 				174EEE631B74C0DD004F6942 /* Supporting Files */,
 			);
-			path = TPS;
+			path = CBC;
 			sourceTree = "<group>";
 		};
 		174EEE631B74C0DD004F6942 /* Supporting Files */ = {
@@ -189,13 +201,13 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		174EEE781B74C0DE004F6942 /* TPSTests */ = {
+		174EEE781B74C0DE004F6942 /* CBCTests */ = {
 			isa = PBXGroup;
 			children = (
-				174EEE7B1B74C0DE004F6942 /* TPSTests.swift */,
+				174EEE7B1B74C0DE004F6942 /* CBCTests.swift */,
 				174EEE791B74C0DE004F6942 /* Supporting Files */,
 			);
-			path = TPSTests;
+			path = CBCTests;
 			sourceTree = "<group>";
 		};
 		174EEE791B74C0DE004F6942 /* Supporting Files */ = {
@@ -206,13 +218,13 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		1798C7561CA93CC700CED4A5 /* TPSUITests */ = {
+		1798C7561CA93CC700CED4A5 /* CBCUITests */ = {
 			isa = PBXGroup;
 			children = (
-				1798C7571CA93CC700CED4A5 /* TPSUITests.swift */,
+				1798C7571CA93CC700CED4A5 /* CBCUITests.swift */,
 				1798C7591CA93CC700CED4A5 /* Info.plist */,
 			);
-			path = TPSUITests;
+			path = CBCUITests;
 			sourceTree = "<group>";
 		};
 		17F549231DBADA25008B5051 /* Frameworks */ = {
@@ -226,9 +238,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		174EEE5F1B74C0DD004F6942 /* TPS */ = {
+		174EEE5F1B74C0DD004F6942 /* CBC */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 174EEE7F1B74C0DE004F6942 /* Build configuration list for PBXNativeTarget "TPS" */;
+			buildConfigurationList = 174EEE7F1B74C0DE004F6942 /* Build configuration list for PBXNativeTarget "CBC" */;
 			buildPhases = (
 				174EEE5C1B74C0DD004F6942 /* Sources */,
 				174EEE5D1B74C0DD004F6942 /* Frameworks */,
@@ -238,14 +250,14 @@
 			);
 			dependencies = (
 			);
-			name = TPS;
+			name = CBC;
 			productName = TPS;
-			productReference = 174EEE601B74C0DD004F6942 /* TPS.app */;
+			productReference = 174EEE601B74C0DD004F6942 /* CBC.app */;
 			productType = "com.apple.product-type.application";
 		};
-		174EEE741B74C0DE004F6942 /* TPSTests */ = {
+		174EEE741B74C0DE004F6942 /* CBCTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 174EEE821B74C0DE004F6942 /* Build configuration list for PBXNativeTarget "TPSTests" */;
+			buildConfigurationList = 174EEE821B74C0DE004F6942 /* Build configuration list for PBXNativeTarget "CBCTests" */;
 			buildPhases = (
 				174EEE711B74C0DE004F6942 /* Sources */,
 				174EEE721B74C0DE004F6942 /* Frameworks */,
@@ -256,14 +268,14 @@
 			dependencies = (
 				174EEE771B74C0DE004F6942 /* PBXTargetDependency */,
 			);
-			name = TPSTests;
+			name = CBCTests;
 			productName = TPSTests;
-			productReference = 174EEE751B74C0DE004F6942 /* TPSTests.xctest */;
+			productReference = 174EEE751B74C0DE004F6942 /* CBCTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		1798C7541CA93CC700CED4A5 /* TPSUITests */ = {
+		1798C7541CA93CC700CED4A5 /* CBCUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1798C75C1CA93CC800CED4A5 /* Build configuration list for PBXNativeTarget "TPSUITests" */;
+			buildConfigurationList = 1798C75C1CA93CC800CED4A5 /* Build configuration list for PBXNativeTarget "CBCUITests" */;
 			buildPhases = (
 				1798C7511CA93CC700CED4A5 /* Sources */,
 				1798C7521CA93CC700CED4A5 /* Frameworks */,
@@ -274,9 +286,9 @@
 			dependencies = (
 				1798C75B1CA93CC700CED4A5 /* PBXTargetDependency */,
 			);
-			name = TPSUITests;
+			name = CBCUITests;
 			productName = TPSUITests;
-			productReference = 1798C7551CA93CC700CED4A5 /* TPSUITests.xctest */;
+			productReference = 1798C7551CA93CC700CED4A5 /* CBCUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -305,17 +317,19 @@
 					};
 					174EEE741B74C0DE004F6942 = {
 						CreatedOnToolsVersion = 6.4;
+						DevelopmentTeam = 35U7HMB59T;
 						LastSwiftMigration = 0800;
 						TestTargetID = 174EEE5F1B74C0DD004F6942;
 					};
 					1798C7541CA93CC700CED4A5 = {
 						CreatedOnToolsVersion = 7.3;
+						DevelopmentTeam = 35U7HMB59T;
 						LastSwiftMigration = 0800;
 						TestTargetID = 174EEE5F1B74C0DD004F6942;
 					};
 				};
 			};
-			buildConfigurationList = 174EEE5B1B74C0DD004F6942 /* Build configuration list for PBXProject "TPS" */;
+			buildConfigurationList = 174EEE5B1B74C0DD004F6942 /* Build configuration list for PBXProject "CBC" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -328,9 +342,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				174EEE5F1B74C0DD004F6942 /* TPS */,
-				174EEE741B74C0DE004F6942 /* TPSTests */,
-				1798C7541CA93CC700CED4A5 /* TPSUITests */,
+				174EEE5F1B74C0DD004F6942 /* CBC */,
+				174EEE741B74C0DE004F6942 /* CBCTests */,
+				1798C7541CA93CC700CED4A5 /* CBCUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -376,9 +390,11 @@
 				17763BE31BEA329400BB5556 /* Constants.swift in Sources */,
 				17F8EAB41DFE221A00FA2A99 /* PopoverTableViewCell.swift in Sources */,
 				17579DE01B84706500F1424F /* PopoverTableViewController.swift in Sources */,
+				174A14A51E020A0500736CEC /* CachedString.swift in Sources */,
 				174EEE941B74C145004F6942 /* AppDelegate.swift in Sources */,
 				17BBEDD71BBF631F0070BF89 /* SwiftyJSON.swift in Sources */,
 				1798C74E1CA93BC900CED4A5 /* Globals.swift in Sources */,
+				174A14AB1E02A6F100736CEC /* Download.swift in Sources */,
 				174EEE901B74C11E004F6942 /* MediaViewController.swift in Sources */,
 				1798C7501CA93BF600CED4A5 /* LiveViewController.swift in Sources */,
 				17E893541BA83FCE00D5D2FB /* ViewSplit.swift in Sources */,
@@ -387,8 +403,10 @@
 				174EEE8D1B74C11E004F6942 /* MediaTableViewController.swift in Sources */,
 				175EDA261BAC80F600942E6D /* Reachability.swift in Sources */,
 				17D4641C1C8E135800519C98 /* ScriptureIndexViewController.swift in Sources */,
+				174A14A91E02128700736CEC /* MediaListGroupSort.swift in Sources */,
 				174EEE921B74C11E004F6942 /* MediaTableViewCell.swift in Sources */,
 				177FBA951C5CF36400AFBB50 /* OBSlider.swift in Sources */,
+				174A14A71E02122200736CEC /* MediaPlayer.swift in Sources */,
 				171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */,
 				17763BE51BEA32C700BB5556 /* MediaItem.swift in Sources */,
 			);
@@ -398,7 +416,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				174EEE7C1B74C0DE004F6942 /* TPSTests.swift in Sources */,
+				174EEE7C1B74C0DE004F6942 /* CBCTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -406,7 +424,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1798C7581CA93CC700CED4A5 /* TPSUITests.swift in Sources */,
+				1798C7581CA93CC700CED4A5 /* CBCUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -415,12 +433,12 @@
 /* Begin PBXTargetDependency section */
 		174EEE771B74C0DE004F6942 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 174EEE5F1B74C0DD004F6942 /* TPS */;
+			target = 174EEE5F1B74C0DD004F6942 /* CBC */;
 			targetProxy = 174EEE761B74C0DE004F6942 /* PBXContainerItemProxy */;
 		};
 		1798C75B1CA93CC700CED4A5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 174EEE5F1B74C0DD004F6942 /* TPS */;
+			target = 174EEE5F1B74C0DD004F6942 /* CBC */;
 			targetProxy = 1798C75A1CA93CC700CED4A5 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -465,7 +483,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -506,7 +524,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -522,7 +540,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = 35U7HMB59T;
 				ENABLE_BITCODE = NO;
-				INFOPLIST_FILE = TPS/Info.plist;
+				INFOPLIST_FILE = CBC/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.countrysidebible.CBC;
@@ -539,7 +557,7 @@
 				DEVELOPMENT_TEAM = 35U7HMB59T;
 				ENABLE_BITCODE = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				INFOPLIST_FILE = TPS/Info.plist;
+				INFOPLIST_FILE = CBC/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.countrysidebible.CBC;
@@ -553,6 +571,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = 35U7HMB59T;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
@@ -561,12 +580,12 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = TPSTests/Info.plist;
+				INFOPLIST_FILE = CBCTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.leeke.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TPS.app/TPS";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CBC.app/CBC";
 			};
 			name = Debug;
 		};
@@ -574,16 +593,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = 35U7HMB59T;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = TPSTests/Info.plist;
+				INFOPLIST_FILE = CBCTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.leeke.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TPS.app/TPS";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CBC.app/CBC";
 			};
 			name = Release;
 		};
@@ -592,10 +612,11 @@
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				INFOPLIST_FILE = TPSUITests/Info.plist;
+				DEVELOPMENT_TEAM = 35U7HMB59T;
+				INFOPLIST_FILE = CBCUITests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.leeke.TPSUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.leeke.CBCUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 				TEST_TARGET_NAME = TPS;
@@ -606,10 +627,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
-				INFOPLIST_FILE = TPSUITests/Info.plist;
+				DEVELOPMENT_TEAM = 35U7HMB59T;
+				INFOPLIST_FILE = CBCUITests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.leeke.TPSUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.leeke.CBCUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 				TEST_TARGET_NAME = TPS;
@@ -619,7 +641,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		174EEE5B1B74C0DD004F6942 /* Build configuration list for PBXProject "TPS" */ = {
+		174EEE5B1B74C0DD004F6942 /* Build configuration list for PBXProject "CBC" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				174EEE7D1B74C0DE004F6942 /* Debug */,
@@ -628,7 +650,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		174EEE7F1B74C0DE004F6942 /* Build configuration list for PBXNativeTarget "TPS" */ = {
+		174EEE7F1B74C0DE004F6942 /* Build configuration list for PBXNativeTarget "CBC" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				174EEE801B74C0DE004F6942 /* Debug */,
@@ -637,7 +659,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		174EEE821B74C0DE004F6942 /* Build configuration list for PBXNativeTarget "TPSTests" */ = {
+		174EEE821B74C0DE004F6942 /* Build configuration list for PBXNativeTarget "CBCTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				174EEE831B74C0DE004F6942 /* Debug */,
@@ -646,7 +668,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1798C75C1CA93CC800CED4A5 /* Build configuration list for PBXNativeTarget "TPSUITests" */ = {
+		1798C75C1CA93CC800CED4A5 /* Build configuration list for PBXNativeTarget "CBCUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1798C75D1CA93CC800CED4A5 /* Debug */,
