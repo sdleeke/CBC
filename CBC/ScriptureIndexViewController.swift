@@ -227,33 +227,54 @@ class BooksChaptersVerses : Swift.Comparable {
 class ScriptureIndex {
 //    var active = false
     
+    var sectionsIndex = [String:[String:[MediaItem]]]()
+    
+    var sections:[String:[MediaItem]]?
+        {
+        get {
+            return context != nil ? sectionsIndex[context!] : nil
+        }
+        set {
+            guard (context != nil) else {
+                return
+            }
+            sectionsIndex[context!] = newValue
+        }
+    }
+
     lazy var html:CachedString? = {
         [unowned self] in
         return CachedString(index:self.index)
     }()
     
     func index() -> String? {
-        var index:String?
-        
-        if let selectedTestament = self.selectedTestament {
-            index = selectedTestament
-        }
-        
-        if index != nil, let selectedBook = self.selectedBook {
-            index = index! + ":" + selectedBook
-        }
-        
-        if index != nil, selectedChapter > 0 {
-            index = index! + ":\(selectedChapter)"
-        }
-        
-        if index != nil, selectedVerse > 0 {
-            index = index! + ":\(selectedVerse)"
-        }
-        
-        return index
+        return context
     }
-    
+
+    var context:String? {
+        get {
+            var index:String?
+            
+            if let selectedTestament = self.selectedTestament {
+                index = selectedTestament
+            }
+            
+            if index != nil, let selectedBook = self.selectedBook {
+                index = index! + ":" + selectedBook
+            }
+            
+            if index != nil, selectedChapter > 0 {
+                index = index! + ":\(selectedChapter)"
+            }
+            
+            if index != nil, selectedVerse > 0 {
+                index = index! + ":\(selectedVerse)"
+            }
+            
+            return index
+        }
+    }
+
 //    var htmlStrings = [String:String]()
 //
 //    var htmlString:String? {
@@ -442,13 +463,11 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     
     var sections:[String:[MediaItem]]?
     {
-        didSet {
-            if let books = sections {
-                for book in books.keys {
-//                    print(book)
-                    sections?[book] = sortMediaItems(sections?[book],book:book)
-                }
-            }
+        get {
+            return scriptureIndex?.sections
+        }
+        set {
+            scriptureIndex?.sections = newValue
         }
     }
 
@@ -461,29 +480,36 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     var mediaItems:[MediaItem]?
     {
         didSet {
-            var sections = [String:[MediaItem]]()
-            
-            if mediaItems != nil {
-                for mediaItem in mediaItems! {
-                    if let books = mediaItem.books {
-                        for book in books {
-                            if let selectedTestament = scriptureIndex?.selectedTestament {
-                                if translateTestament(selectedTestament) == testament(book) {
-                                    if sections[book] == nil {
-                                        sections[book] = [mediaItem]
+            if sections == nil {
+                var sections = [String:[MediaItem]]()
+                
+                if mediaItems != nil {
+                    for mediaItem in mediaItems! {
+                        if let books = mediaItem.books {
+                            for book in books {
+                                if let selectedTestament = scriptureIndex?.selectedTestament {
+                                    if translateTestament(selectedTestament) == testament(book) {
+                                        if sections[book] == nil {
+                                            sections[book] = [mediaItem]
+                                        } else {
+                                            sections[book]?.append(mediaItem)
+                                        }
                                     } else {
-                                        sections[book]?.append(mediaItem)
+                                        // THIS SHOULD NEVER HAPPEN
                                     }
-                                } else {
-                                    // THIS SHOULD NEVER HAPPEN
                                 }
                             }
                         }
                     }
                 }
+                
+                for book in sections.keys {
+                    //                    print(book)
+                    sections[book] = sortMediaItems(sections[book],book:book)
+                }
+                
+                self.sections = sections
             }
-            
-            self.sections = sections
         }
     }
     var selectedMediaItem:MediaItem?
@@ -1437,7 +1463,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
 
                     return self.scriptureIndex?.html?.string
                 }, completion: { (data:Any?) in
-                    presentHTMLModal(viewController: self, title: globals.contextTitle, htmlString: data as? String)
+                    presentHTMLModal(viewController: self, medaiItem: nil, title: globals.contextTitle, htmlString: data as? String)
                 })
                 break
                 
@@ -1505,6 +1531,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             popover.showIndex = false //(globals.grouping == .series)
             popover.showSectionHeaders = false
             
+            popover.vc = self
+            
             present(navigationController, animated: true, completion: nil)
         }
     }
@@ -1548,7 +1576,9 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             popover.strings = sectionTitles
             popover.showIndex = false
             popover.showSectionHeaders = true
-
+            
+            popover.vc = self
+            
             present(navigationController, animated: true, completion: nil)
         }
     }

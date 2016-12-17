@@ -103,6 +103,13 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         }
     }
     
+//    func endEdit()
+//    {
+//        DispatchQueue.main.async {
+//            self.setEditing(false, animated: true)
+//        }
+//    }
+    
     var mediaItem:MediaItem? {
         didSet {
             if (oldValue != nil) {
@@ -178,6 +185,8 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                     popover.showIndex = false
                     popover.showSectionHeaders = false
                     
+                    popover.vc = vc
+                    
                     vc?.present(navigationController, animated: true, completion: nil)
                 }
 
@@ -233,6 +242,8 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             popover.showIndex = false
             popover.showSectionHeaders = false
             
+            popover.vc = vc
+
             vc?.present(navigationController, animated: true, completion: nil)
         }
     }

@@ -40,6 +40,8 @@ enum PopoverPurpose {
     
     case selectingAction
     
+    case selectingWord
+    
     case selectingTags
 
     case showingTags
@@ -112,7 +114,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             }
         })
         
-        globals.media.tags.selected = nil
+        tagLabel.text = nil
+//        globals.media.tags.selected = nil
         
         //            globals.search.active = false
         globals.search.text = nil
@@ -335,6 +338,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             popover.showIndex = false //(globals.grouping == .series)
             popover.showSectionHeaders = false
             
+            popover.vc = self
+
             present(navigationController, animated: true, completion: {
                 DispatchQueue.main.async(execute: { () -> Void in
                     // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
@@ -423,12 +428,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     process(viewController: self, work: { () -> (Any?) in
                         mediaItem?.loadNotesHTML()
                         if globals.search.active && (globals.search.text != nil) {
-                            return mediaItem?.searchMarkedFullNotesHTML(index: true)
+                            return mediaItem?.markedFullNotesHTML(searchText:globals.search.text,index: true)
                         } else {
                             return mediaItem?.fullNotesHTML
                         }
                     }, completion: { (data:Any?) in
-                        presentHTMLModal(viewController: self,title: globals.contextTitle, htmlString: data as? String) //
+                        presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
                     })
                 }
                 break
@@ -685,6 +690,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             //                    }
             //                }
             
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.tableView.isEditing = false
+            })
+
             //Can't use this reliably w/ variable row heights.
             DispatchQueue.main.async(execute: { () -> Void in
                 self.tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.top, animated: true)
@@ -850,73 +859,79 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             case Constants.Lexicon:
-                process(viewController: self, work: { () -> (Any?) in
-                    globals.media.all?.loadLexicon()
-                    return nil
-                }, completion: { (data:Any?) in
-                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                        let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                        navigationController.modalPresentationStyle = .popover
-                        //            popover?.preferredContentSize = CGSizeMake(300, 500)
-                        
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                        navigationController.popoverPresentationController?.delegate = self
-                        
-                        navigationController.popoverPresentationController?.barButtonItem = self.showButton
-                        
-                        popover.navigationItem.title = Constants.Lexicon
-                        
-                        popover.delegate = self
-                        popover.purpose = .selectingLexicon
-                        
-                        var strings = [String]()
-                        
-                        if let words = globals.media.all?.lexicon?.keys.sorted() {
-                            for word in words {
-                                if let count = globals.media.all?.lexicon?[word]?.count {
-                                    strings.append("\(word) (\(count))")
-                                }
-                            }
-                        }
-                        
-                        popover.strings = strings
-                        popover.indexStrings = strings
-                        
-                        popover.showIndex = true
-                        popover.showSectionHeaders = true
-
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            self.present(navigationController, animated: true, completion: nil)
-                        })
-                    }
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                    navigationController.modalPresentationStyle = .popover
+                    //            popover?.preferredContentSize = CGSizeMake(300, 500)
                     
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.barButtonItem = self.showButton
+                    
+                    popover.navigationItem.title = Constants.Lexicon
+                    
+                    popover.delegate = self
+                    popover.purpose = .selectingLexicon
+                    
+                    popover.mediaListGroupSort = globals.media.all
+                    
+                    popover.showIndex = true
+                    popover.showSectionHeaders = true
+                    
+                    popover.vc = self
+                    
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.present(navigationController, animated: true, completion: {
+                            DispatchQueue.main.async(execute: { () -> Void in
+                                // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+                                navigationController.popoverPresentationController?.passthroughViews = nil
+                            })
+                        })
+                    })
+                }
+//                process(viewController: self, work: { () -> (Any?) in
+//                    globals.media.all?.loadLexicon()
+//                    return nil
+//                }, completion: { (data:Any?) in
 //                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-//                        let viewController = navigationController.viewControllers[0] as? PopoverTableViewController {
-//                        //                    navigationController.modalPresentationStyle = .popover
-//                        //                    //            popover?.preferredContentSize = CGSizeMake(300, 500)
-//                        //
-//                        //                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
-//                        //                    navigationController.popoverPresentationController?.delegate = self
-//                        //
-//                        //                    navigationController.popoverPresentationController?.barButtonItem = showButton
+//                        let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                        navigationController.modalPresentationStyle = .popover
+//                        //            popover?.preferredContentSize = CGSizeMake(300, 500)
 //                        
-//                        viewController.navigationItem.title = Constants.Lexicon
+//                        navigationController.popoverPresentationController?.permittedArrowDirections = .up
+//                        navigationController.popoverPresentationController?.delegate = self
 //                        
-//                        viewController.delegate = self
-//                        viewController.purpose = .selectingLexicon
+//                        navigationController.popoverPresentationController?.barButtonItem = self.showButton
 //                        
-//                        viewController.strings = globals.media.active?.lexicon?.keys.sorted()
+//                        popover.navigationItem.title = Constants.Lexicon
 //                        
-//                        viewController.indexStrings = viewController.strings
+//                        popover.delegate = self
+//                        popover.purpose = .selectingLexicon
 //                        
-//                        viewController.showIndex = true
-//                        viewController.showSectionHeaders = true
+//                        var strings = [String]()
+//                        
+//                        if let words = globals.media.all?.lexicon?.keys.sorted() {
+//                            for word in words {
+//                                if let count = globals.media.all?.lexicon?[word]?.count {
+//                                    strings.append("\(word) (\(count))")
+//                                }
+//                            }
+//                        }
+//                        
+//                        popover.strings = strings
+//                        popover.indexStrings = strings
+//                        
+//                        popover.showIndex = true
+//                        popover.showSectionHeaders = true
 //
-//                        self.navigationController?.isToolbarHidden = true
+//                        popover.vc = self
 //                        
-//                        self.navigationController?.pushViewController(viewController, animated: true)
+//                        DispatchQueue.main.async(execute: { () -> Void in
+//                            self.present(navigationController, animated: true, completion: nil)
+//                        })
 //                    }
-                })
+//                })
                 break
                 
             case Constants.View_List:
@@ -927,7 +942,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         }
                         return globals.media.active?.html?.string
                     }, completion: { (data:Any?) in
-                        presentHTMLModal(viewController: self, title: globals.contextTitle, htmlString: data as? String)
+                        presentHTMLModal(viewController: self, medaiItem: nil, title: globals.contextTitle, htmlString: data as? String)
                     })
                 })
                 break
@@ -967,8 +982,15 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         popover.showIndex = false
                         popover.showSectionHeaders = false
                         
+                        popover.vc = self
+                        
                         DispatchQueue.main.async(execute: { () -> Void in
-                            self.present(navigationController, animated: true, completion: nil)
+                            self.present(navigationController, animated: true, completion: {
+                                DispatchQueue.main.async(execute: { () -> Void in
+                                    // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+                                    navigationController.popoverPresentationController?.passthroughViews = nil
+                                })
+                            })
                         })
                     }
                 }
@@ -1012,7 +1034,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     navigationController.popoverPresentationController?.barButtonItem = showButton
 
                     DispatchQueue.main.async(execute: { () -> Void in
-                        self.present(navigationController, animated: true, completion: nil)
+                        self.present(navigationController, animated: true, completion: {
+                            DispatchQueue.main.async(execute: { () -> Void in
+                                // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+                                navigationController.popoverPresentationController?.passthroughViews = nil
+                            })
+                        })
                     })
                 }
 
@@ -1141,6 +1168,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
             }
             
+            popover.vc = self
+            
             present(navigationController, animated: true, completion: nil)
         }
 
@@ -1183,6 +1212,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             popover.showIndex = false
             popover.showSectionHeaders = false
             
+            popover.vc = self
+            
             present(navigationController, animated: true, completion: nil)
         }
     }
@@ -1216,6 +1247,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             popover.showIndex = false
             popover.showSectionHeaders = false
+            
+            popover.vc = self
             
             present(navigationController, animated: true, completion: nil)
         }
@@ -2404,6 +2437,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             popover.showIndex = true
             popover.showSectionHeaders = true
             
+            popover.vc = self
+            
             DispatchQueue.main.async(execute: { () -> Void in
                 self.present(navigationController, animated: true, completion: nil)
             })
@@ -2663,7 +2698,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
                 return
             }
-            
+
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.tableView.isEditing = false
+            })
 
             if (select) {
                 DispatchQueue.main.async(execute: { () -> Void in
@@ -3233,6 +3271,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
             return nil
         }
+        
         guard let mediaItem = cell.mediaItem else {
             return nil
         }
@@ -3313,6 +3352,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 popover.showIndex = false
                 popover.showSectionHeaders = false
                 
+                popover.vc = self
+                
                 DispatchQueue.main.async(execute: { () -> Void in
                     self.present(navigationController, animated: true, completion:nil)
                 })
@@ -3385,6 +3426,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 popover.showIndex = true
                 popover.showSectionHeaders = true
+                
+                popover.vc = self
                 
                 DispatchQueue.main.async(execute: { () -> Void in
                     self.present(navigationController, animated: true, completion: nil)

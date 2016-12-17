@@ -47,14 +47,23 @@ struct MediaRepository {
 }
 
 struct Tags {
-    var showing:String? = Constants.ALL
+    var showing:String? {
+        get {
+            return selected == nil ? Constants.ALL : Constants.TAGGED
+        }
+    }
     
     var selected:String? {
-        didSet {
-            if (selected != nil) {
-                showing = Constants.TAGGED
+        get {
+            return globals.mediaCategory.tag
+        }
+        set {
+            globals.mediaCategory.tag = newValue
+            
+            if (newValue != nil) {
+                //                showing = Constants.TAGGED
                 
-                if (selected != oldValue) || (globals.media.tagged == nil) {
+                if (newValue != globals.mediaCategory.tag) || (globals.media.tagged == nil) {
                     if globals.media.all == nil {
                         //This is filtering, i.e. searching all mediaItems => s/b in background
                         globals.media.tagged = MediaListGroupSort(mediaItems: mediaItemsWithTag(globals.mediaRepository.list, tag: selected))
@@ -64,16 +73,16 @@ struct Tags {
                 }
             } else {
                 globals.media.tagged = nil
-                showing = Constants.ALL
+                //                showing = Constants.ALL
             }
-
-            let defaults = UserDefaults.standard
-            if selected != nil {
-                defaults.set(selected, forKey: Constants.SETTINGS.KEY.COLLECTION)
-            } else {
-                defaults.removeObject(forKey: Constants.SETTINGS.KEY.COLLECTION)
-            }
-            defaults.synchronize()
+            
+            //            let defaults = UserDefaults.standard
+            //            if selected != nil {
+            //                defaults.set(selected, forKey: Constants.SETTINGS.KEY.COLLECTION)
+            //            } else {
+            //                defaults.removeObject(forKey: Constants.SETTINGS.KEY.COLLECTION)
+            //            }
+            //            defaults.synchronize()
         }
     }
 }
@@ -234,13 +243,18 @@ struct MediaCategory {
         }
     }
     
+    var tag:String? {
+        get {
+            return self[Constants.SETTINGS.KEY.COLLECTION]
+        }
+        set {
+            self[Constants.SETTINGS.KEY.COLLECTION] = newValue
+        }
+    }
+    
     var playing:String? {
         get {
-            if selected != nil {
-                return self[Constants.SETTINGS.MEDIA_PLAYING]
-            } else {
-                return nil
-            }
+            return self[Constants.SETTINGS.MEDIA_PLAYING]
         }
         set {
             self[Constants.SETTINGS.MEDIA_PLAYING] = newValue
@@ -249,11 +263,7 @@ struct MediaCategory {
 
     var selectedInMaster:String? {
         get {
-            if selected != nil {
-                return self[Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER]
-            } else {
-                return nil
-            }
+            return self[Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER]
         }
         set {
             self[Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER] = newValue
@@ -262,11 +272,7 @@ struct MediaCategory {
     
     var selectedInDetail:String? {
         get {
-            if selected != nil {
-                return self[Constants.SETTINGS.KEY.SELECTED_MEDIA.DETAIL]
-            } else {
-                return nil
-            }
+            return self[Constants.SETTINGS.KEY.SELECTED_MEDIA.DETAIL]
         }
         set {
             self[Constants.SETTINGS.KEY.SELECTED_MEDIA.DETAIL] = newValue
@@ -742,26 +748,56 @@ class Globals : NSObject {
                     grouping = Grouping.YEAR
                 }
                 
-                media.tags.selected = defaults.string(forKey: Constants.SETTINGS.KEY.COLLECTION)
-                
+//                media.tags.selected = mediaCategory.tag
+
                 if (media.tags.selected == Constants.New) {
                     media.tags.selected = nil
                 }
-                
-                if (media.tags.selected != nil) {
-                    switch media.tags.selected! {
-                    case Constants.All:
-                        media.tags.selected = nil
-                        media.tags.showing = Constants.ALL
-                        break
-                        
-                    default:
-                        media.tags.showing = Constants.TAGGED
-                        break
+
+                if media.tags.showing == Constants.TAGGED, media.tagged == nil {
+                    if media.all == nil {
+                        //This is filtering, i.e. searching all mediaItems => s/b in background
+                        media.tagged = MediaListGroupSort(mediaItems: mediaItemsWithTag(mediaRepository.list, tag: media.tags.selected))
+                    } else {
+                        media.tagged = MediaListGroupSort(mediaItems: media.all?.tagMediaItems?[stringWithoutPrefixes(media.tags.selected!)!])
                     }
-                } else {
-                    media.tags.showing = Constants.ALL
                 }
+                
+//                if (media.tags.selected != nil) {
+//                    switch media.tags.selected! {
+//                    case Constants.All:
+//                        media.tags.selected = nil
+////                        media.tags.showing = Constants.ALL
+//                        break
+//                        
+//                    default:
+////                        media.tags.showing = Constants.TAGGED
+//                        break
+//                    }
+//                } else {
+////                    media.tags.showing = Constants.ALL
+//                }
+
+//                media.tags.selected = defaults.string(forKey: Constants.SETTINGS.KEY.COLLECTION)
+//                
+//                if (media.tags.selected == Constants.New) {
+//                    media.tags.selected = nil
+//                }
+//                
+//                if (media.tags.selected != nil) {
+//                    switch media.tags.selected! {
+//                    case Constants.All:
+//                        media.tags.selected = nil
+//                        media.tags.showing = Constants.ALL
+//                        break
+//                        
+//                    default:
+//                        media.tags.showing = Constants.TAGGED
+//                        break
+//                    }
+//                } else {
+//                    media.tags.showing = Constants.ALL
+//                }
 
                 search.text = defaults.string(forKey: Constants.SEARCH_TEXT)
                 search.active = search.text != nil

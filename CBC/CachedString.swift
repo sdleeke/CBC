@@ -60,7 +60,7 @@ class CachedString {
         }
     }
     
-    init(index:@escaping (()->String?))
+    init(index:(()->String?)?)
     {
         self.index = index
         

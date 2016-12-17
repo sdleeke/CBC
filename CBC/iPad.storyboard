@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11542" systemVersion="16B2555" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="Xai-Yi-pif">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11762" systemVersion="16C67" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="Xai-Yi-pif">
     <device id="ipad9_7" orientation="landscape">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11524"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
         <capability name="Alignment constraints with different attributes" minToolsVersion="5.1"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
@@ -52,7 +52,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5VA-jO-Uu5">
-                                <rect key="frame" x="273" y="65" width="39" height="31"/>
+                                <rect key="frame" x="273" y="67" width="39" height="31"/>
                                 <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="18"/>
                                 <state key="normal" title="Tags"/>
                                 <connections>
@@ -220,6 +220,7 @@
                             <constraint firstAttribute="trailing" secondItem="5VA-jO-Uu5" secondAttribute="trailing" constant="8" id="E74-QY-iPq"/>
                             <constraint firstItem="Hkg-p6-JKj" firstAttribute="leading" secondItem="NpF-M6-DhB" secondAttribute="leading" id="Ff0-rb-dvR"/>
                             <constraint firstItem="VIx-eq-98g" firstAttribute="top" secondItem="TA6-b3-HPP" secondAttribute="bottom" id="Gmd-mz-JWI"/>
+                            <constraint firstItem="5VA-jO-Uu5" firstAttribute="bottom" secondItem="UID-2k-GxM" secondAttribute="top" id="HAD-9c-V2h"/>
                             <constraint firstItem="JeO-c3-71m" firstAttribute="centerX" secondItem="UJe-f8-3w6" secondAttribute="centerX" id="KbV-gK-5LN"/>
                             <constraint firstAttribute="trailing" secondItem="VIx-eq-98g" secondAttribute="trailing" id="KxI-ow-z9l"/>
                             <constraint firstItem="KAY-ks-SIC" firstAttribute="top" secondItem="VIx-eq-98g" secondAttribute="bottom" id="PhN-wb-2kh"/>
@@ -231,7 +232,6 @@
                             <constraint firstItem="VOM-jg-qMI" firstAttribute="centerY" secondItem="NpF-M6-DhB" secondAttribute="centerYWithinMargins" id="p5n-Wy-tV7"/>
                             <constraint firstItem="VOM-jg-qMI" firstAttribute="centerX" secondItem="NpF-M6-DhB" secondAttribute="centerXWithinMargins" id="pEK-5w-slC"/>
                             <constraint firstItem="JeO-c3-71m" firstAttribute="width" secondItem="NpF-M6-DhB" secondAttribute="width" multiplier="0.75" id="q24-xA-Fsh"/>
-                            <constraint firstItem="5VA-jO-Uu5" firstAttribute="baseline" secondItem="VOM-jg-qMI" secondAttribute="baseline" id="tad-MC-NSL"/>
                             <constraint firstItem="UID-2k-GxM" firstAttribute="centerX" secondItem="VOM-jg-qMI" secondAttribute="centerX" id="twV-tu-0e5"/>
                         </constraints>
                         <variation key="default">
@@ -341,7 +341,7 @@
                                         </connections>
                                     </slider>
                                     <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="B3S-Ru-eDq">
-                                        <rect key="frame" x="345.5" y="13" width="20" height="20"/>
+                                        <rect key="frame" x="345" y="13" width="20" height="20"/>
                                     </activityIndicatorView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="00:00" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="S9f-5O-zMH" userLabel="Time Remaining">
                                         <rect key="frame" x="576.5" y="15" width="39" height="17"/>
@@ -398,7 +398,7 @@
                                 <rect key="frame" x="0.0" y="64" width="678.5" height="404"/>
                                 <subviews>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="Ay8-yt-A6W">
-                                        <rect key="frame" x="200.5" y="166" width="279" height="72"/>
+                                        <rect key="frame" x="200" y="166" width="279" height="72"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>
@@ -409,10 +409,10 @@
                                         </constraints>
                                     </imageView>
                                     <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="NEp-ku-QG6">
-                                        <rect key="frame" x="329.5" y="192" width="20" height="20"/>
+                                        <rect key="frame" x="330" y="192" width="20" height="20"/>
                                     </activityIndicatorView>
                                     <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="CSL-J3-OFX">
-                                        <rect key="frame" x="264.5" y="201" width="150" height="2"/>
+                                        <rect key="frame" x="265" y="201" width="150" height="2"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="150" id="eJT-tl-zGY"/>
                                         </constraints>
@@ -1083,16 +1083,16 @@ Web site: www.countrysidebible.org</string>
                                 <rect key="frame" x="0.0" y="0.0" width="702.5" height="704"/>
                                 <subviews>
                                     <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="ti8-5g-rcB">
-                                        <rect key="frame" x="341.5" y="342" width="20" height="20"/>
+                                        <rect key="frame" x="342" y="342" width="20" height="20"/>
                                     </activityIndicatorView>
                                     <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="Vr4-5d-HKg">
-                                        <rect key="frame" x="276.5" y="351" width="150" height="2"/>
+                                        <rect key="frame" x="277" y="351" width="150" height="2"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="150" id="CAL-gT-V8z"/>
                                         </constraints>
                                     </progressView>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="fEx-M0-kF0">
-                                        <rect key="frame" x="212.5" y="316" width="279" height="72"/>
+                                        <rect key="frame" x="213" y="316" width="279" height="72"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>
@@ -1759,7 +1759,7 @@ Web site: www.countrysidebible.org</string>
             <objects>
                 <navigationController storyboardIdentifier="PopoverTableView" automaticallyAdjustsScrollViewInsets="NO" id="yT6-xg-1Zh" userLabel="Popover TVC NavBar" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="aCW-cS-M3H">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="aCW-cS-M3H">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>

@@ -1406,6 +1406,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             popover.showIndex = false //(globals.grouping == .series)
             popover.showSectionHeaders = false
             
+            popover.vc = self
+            
             DispatchQueue.main.async(execute: { () -> Void in
                 self.present(navigationController, animated: true, completion: nil)
             })
@@ -2308,6 +2310,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             
             popover.allowsSelection = false
             popover.selectedMediaItem = selectedMediaItem
+            
+            popover.vc = self
             
             present(navigationController, animated: true, completion: nil)
         }

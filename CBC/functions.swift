@@ -2284,7 +2284,7 @@ func mailMediaItem(viewController:UIViewController, mediaItem:MediaItem?,stringF
     }
 }
 
-func presentHTMLModal(viewController:UIViewController, title: String?, htmlString: String?)
+func presentHTMLModal(viewController:UIViewController, medaiItem:MediaItem?, title: String?, htmlString: String?)
 {
     guard (htmlString != nil) else {
         return
@@ -2302,7 +2302,7 @@ func presentHTMLModal(viewController:UIViewController, title: String?, htmlStrin
         
         popover.navigationItem.title = title
         
-        popover.selectedMediaItem = nil
+        popover.selectedMediaItem = medaiItem
         
         popover.html.string = htmlString!
         popover.content = .html
@@ -2394,7 +2394,7 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
                     }
                 }
                 
-                if let buttons = viewController.navigationController?.toolbarItems {
+                if let buttons = viewController.toolbarItems {
                     for button in buttons {
                         button.isEnabled = true
                     }

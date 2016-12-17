@@ -112,22 +112,6 @@ class MediaListGroupSort {
                         } else {
                             dict[token.0]?.append((mediaItem,token.1))
                         }
-                        
-//                        var count = 0
-//                        var string = mediaItem.notesHTML
-//                        
-//                        while let range = string?.range(of: token, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) {
-//                            count += 1
-//                            string = string?.substring(from: range.upperBound)
-//                        }
-//                        
-//                        if count > 0 {
-//                            if dict[token] == nil {
-//                                dict[token] = [(mediaItem,count)]
-//                            } else {
-//                                dict[token]?.append((mediaItem,count))
-//                            }
-//                        }
                     }
                 }
             }
@@ -428,37 +412,6 @@ class MediaListGroupSort {
     
     func sectionTitles(grouping:String?,sorting:String?) -> [String]?
     {
-        //        return groupSort?[grouping!]?.keys.sorted(by: {
-        //            switch grouping! {
-        //            case Grouping.YEAR:
-        //                switch sorting! {
-        //                case Constants.CHRONOLOGICAL:
-        //                    return $0 < $1
-        //
-        //                case Constants.REVERSE_CHRONOLOGICAL:
-        //                    return $1 < $0
-        //
-        //                default:
-        //                    break
-        //                }
-        //                break
-        //
-        //            case Grouping.BOOK:
-        //                if (bookNumberInBible($0) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (bookNumberInBible($1) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
-        //                    return stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
-        //                } else {
-        //                    return bookNumberInBible($0) < bookNumberInBible($1)
-        //                }
-        //
-        //            default:
-        //                break
-        //            }
-        //
-        //            return $0 < $1
-        //        }).map({ (string:String) -> String in
-        //            return groupNames![grouping!]![string]!
-        //        })
-        
         return sectionIndexTitles(grouping: grouping,sorting: sorting)?.map({ (string:String) -> String in
             return groupNames![grouping!]![string]!
         })

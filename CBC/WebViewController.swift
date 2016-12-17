@@ -270,6 +270,27 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         })
         
         switch purpose {
+        case .selectingWord:
+            var searchText = strings[index]
+            
+            if let range = searchText.range(of: " (") {
+                searchText = searchText.substring(to: range.lowerBound)
+            }
+
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.wkWebView?.isHidden = true
+                
+                self.activityIndicator.isHidden = false
+                self.activityIndicator.startAnimating()
+            })
+
+            html.string = selectedMediaItem?.markedFullNotesHTML(searchText:searchText, index: true)
+
+            DispatchQueue.main.async(execute: { () -> Void in
+                _ = self.wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
+            })
+            break
+            
         case .selectingAction:
             switch strings[index] {
             case Constants.Print:
@@ -296,6 +317,118 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 
             case Constants.Share:
                 shareHTML(viewController: self, htmlString: html.string!)
+                break
+                
+            case Constants.Search:
+                let alert = UIAlertController(title: "Search",
+                                              message: Constants.EMPTY_STRING,
+                                              preferredStyle: .alert)
+                
+                alert.addTextField(configurationHandler: { (textField:UITextField) in
+                    textField.placeholder = "search string"
+                })
+                
+                let searchAction = UIAlertAction(title: "Search", style: UIAlertActionStyle.default, handler: {
+                    alertItem -> Void in
+                    let searchText = (alert.textFields![0] as UITextField).text
+                    
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.wkWebView?.isHidden = true
+                        
+                        self.activityIndicator.isHidden = false
+                        self.activityIndicator.startAnimating()
+                    })
+                    
+                    self.html.string = self.selectedMediaItem?.markedFullNotesHTML(searchText:searchText, index: true)
+                    
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        _ = self.wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
+                    })
+                })
+                alert.addAction(searchAction)
+                
+                let cancelAction = UIAlertAction(title: "Cancel", style: .default, handler: {
+                    (action : UIAlertAction!) -> Void in
+                    
+                })
+                alert.addAction(cancelAction)
+                
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.present(alert, animated: true, completion: nil)
+                })
+                break
+                
+            case Constants.Tokens:
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                    navigationController.modalPresentationStyle = .popover
+                    //            popover?.preferredContentSize = CGSizeMake(300, 500)
+                    
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+                    
+                    //                popover.navigationItem.title = Constants.Actions
+                    
+                    popover.navigationController?.isNavigationBarHidden = true
+                    
+                    popover.delegate = self
+                    popover.purpose = .selectingWord
+                    
+                    if mediaItem!.hasNotesHTML {
+                        if mediaItem?.notesTokens == nil {
+                            popover.stringsFunction = {
+                                mediaItem?.loadNotesHTML()
+                                
+                                //                            var tokens = Set<String>() // searchTokens
+                                
+                                if let notesTokens = tokenCountsFromString(mediaItem?.notesHTML) {
+                                    //                                tokens = tokens.union(Set(notesTokens.map({ (string:String, count:Int) -> String in
+                                    //                                    return string
+                                    //                                })))
+                                    
+                                    //                                let tokenArray = Array(tokens).sorted()
+                                    
+                                    //                        print(tokenArray)
+                                    
+                                    mediaItem?.notesTokens = notesTokens // tokenArray
+                                    
+                                    return notesTokens.map({ (string:String,count:Int) -> String in
+                                        return "\(string) (\(count))"
+                                    })
+                                } else {
+                                    return nil
+                                }
+                            }
+                        } else {
+                            popover.strings = mediaItem?.notesTokens?.map({ (string:String,count:Int) -> String in
+                                return "\(string) (\(count))"
+                            })
+                            
+                            let array = Array(Set(popover.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
+                            
+                            popover.indexStrings = array.map({ (string:String) -> String in
+                                return string.uppercased()
+                            })
+                        }
+                    }
+                    
+                    popover.showIndex = true //(globals.grouping == .series)
+                    popover.showSectionHeaders = true
+                    
+                    popover.vc = self
+                    
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.present(navigationController, animated: true, completion: {
+                            DispatchQueue.main.async(execute: { () -> Void in
+                                // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+                                navigationController.popoverPresentationController?.passthroughViews = nil
+                            })
+                        })
+                    })
+                }
                 break
                 
             case Constants.Email_One:
@@ -366,8 +499,15 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             popover.delegate = self
             popover.purpose = .selectingAction
             
+            popover.selectedMediaItem = selectedMediaItem
+            
             var actionMenu = [String]()
 
+            if (html.string != nil) && (selectedMediaItem != nil) {
+                actionMenu.append(Constants.Tokens)
+                actionMenu.append(Constants.Search)
+            }
+            
             if UIPrintInteractionController.isPrintingAvailable {
                 actionMenu.append(Constants.Print)
             }
@@ -381,7 +521,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             popover.showIndex = false //(globals.grouping == .series)
             popover.showSectionHeaders = false
             
-            present(navigationController, animated: true, completion: nil)
+            popover.vc = self
+            
+            present(navigationController, animated: true, completion: {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+                    navigationController.popoverPresentationController?.passthroughViews = nil
+                })
+            })
         }
     }
     
@@ -471,8 +618,13 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             self.progressIndicator.isHidden = true
             
             self.barButtonItems(isEnabled: true)
-           
-            wkWebView.isHidden = false
+            
+            DispatchQueue.global(qos: .background).async {
+                Thread.sleep(forTimeInterval: 0.1)
+                DispatchQueue.main.async(execute: { () -> Void in
+                    wkWebView.isHidden = false
+                })
+            }
         })
     }
     
@@ -604,7 +756,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             
             html.zoomScale = Double(wkWebView!.scrollView.zoomScale)
             
-            print(html)
+//            print(html)
         }
     }
     
@@ -897,7 +1049,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         progressIndicator.isHidden = content == .html
         
         if content == .html {
-            if let htmlString = selectedMediaItem?.searchMarkedFullNotesHTML(index: false) {
+            if let htmlString = selectedMediaItem?.markedFullNotesHTML(searchText:globals.search.text,index: false) {
                 html.string = htmlString
             }
         }

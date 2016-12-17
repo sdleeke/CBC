@@ -609,6 +609,10 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             return
         }
         
+        guard (notesTokens == nil) else {
+            return
+        }
+        
         loadNotesHTML()
 
         notesTokens = tokenCountsFromString(notesHTML)
@@ -1087,21 +1091,21 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
     }
     
     lazy var searchMarkedFullNotesHTML:CachedString? = {
-        return CachedString(index: globals.searchText)
+        return CachedString(index: nil)
     }()
     
-    func searchMarkedFullNotesHTML(index:Bool) -> String?
+    func markedFullNotesHTML(searchText:String?,index:Bool) -> String?
     {
         guard (stripHead(fullNotesHTML) != nil) else {
             return nil
         }
         
-        guard globals.search.valid else {
+        guard (searchText != nil) && (searchText != Constants.EMPTY_STRING) else {
             return nil
         }
         
-        if searchMarkedFullNotesHTML?.string != nil {
-            return searchMarkedFullNotesHTML?.string
+        if searchMarkedFullNotesHTML?[searchText] != nil {
+            return searchMarkedFullNotesHTML?[searchText]
         }
         
 //        var stringBefore:String = Constants.EMPTY_STRING
@@ -1118,15 +1122,15 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             var newString:String = Constants.EMPTY_STRING
             var foundString:String = Constants.EMPTY_STRING
 
-            while (string.lowercased().range(of: globals.search.text!.lowercased()) != nil) {
+            while (string.lowercased().range(of: searchText!.lowercased()) != nil) {
                 //                print(string)
                 
-                if let range = string.lowercased().range(of: globals.search.text!.lowercased()) {
+                if let range = string.lowercased().range(of: searchText!.lowercased()) {
                     stringBefore = string.substring(to: range.lowerBound)
                     stringAfter = string.substring(from: range.upperBound)
                     
                     foundString = string.substring(from: range.lowerBound)
-                    let newRange = foundString.lowercased().range(of: globals.search.text!.lowercased())
+                    let newRange = foundString.lowercased().range(of: searchText!.lowercased())
                     foundString = foundString.substring(to: newRange!.upperBound)
                     
                     markCounter += 1
@@ -1203,7 +1207,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
 
         // If we want an index of links to the occurences of the searchText.
         if index, markCounter > 0 {
-            var indexString = "<a id=\"locations\" name=\"locations\">Occurences</a> of \"\(globals.search.text!)\": \(markCounter)<br/>"
+            var indexString = "<a id=\"locations\" name=\"locations\">Occurences</a> of \"\(searchText!)\": \(markCounter)<br/>"
             
             indexString = indexString + "<div>Locations: "
             
@@ -1221,9 +1225,9 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         
 //        newString = newString + stringAfter
         
-        searchMarkedFullNotesHTML?.string = insertHead(newString,fontSize: Constants.FONT_SIZE)
+        searchMarkedFullNotesHTML?[searchText] = insertHead(newString,fontSize: Constants.FONT_SIZE)
         
-        return searchMarkedFullNotesHTML?.string
+        return searchMarkedFullNotesHTML?[searchText]
         
 //            var menuString = "<div class=\"dropdown\"><button onclick=\"myFunction()\" class=\"dropbtn\">Search</button><div id=\"myDropdown\" class=\"dropdown-content\">"
 //            
