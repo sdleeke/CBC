@@ -324,6 +324,8 @@ struct Constants {
     static let PLUS = "+"
 
     static let SINGLE_SPACE = " "
+    static let UNBREAKABLE_SPACE = "\u{00a0}"
+    
     static let SINGLE_UNDERSCORE = "_"
     
     static let QUESTION_MARK = "?"

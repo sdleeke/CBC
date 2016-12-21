@@ -749,8 +749,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     //            print(mediaItems)
                     
                     DispatchQueue.main.async(execute: { () -> Void in
-                        self.updateUI()
                         self.enableBarButtons()
+                        self.updateUI()
                     })
                 } else {
                     DispatchQueue.main.async(execute: { () -> Void in
@@ -765,8 +765,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     //            print(mediaItems)
                     
                     DispatchQueue.main.async(execute: { () -> Void in
-                        self.updateUI()
                         self.enableBarButtons()
+                        self.updateUI()
                     })
                 }
             })
@@ -796,8 +796,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     //            print(mediaItems)
                     
                     DispatchQueue.main.async(execute: { () -> Void in
-                        self.updateUI()
                         self.enableBarButtons()
+                        self.updateUI()
                     })
                 } else {
                     DispatchQueue.main.async(execute: { () -> Void in
@@ -812,8 +812,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     //            print(mediaItems)
                     
                     DispatchQueue.main.async(execute: { () -> Void in
-                        self.updateUI()
                         self.enableBarButtons()
+                        self.updateUI()
                     })
                 }
             })
@@ -845,8 +845,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     //            print(mediaItems)
                     
                     DispatchQueue.main.async(execute: { () -> Void in
-                        self.updateUI()
                         self.enableBarButtons()
+                        self.updateUI()
                     })
                 } else {
                     DispatchQueue.main.async(execute: { () -> Void in
@@ -862,8 +862,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     //            print(mediaItems)
                     
                     DispatchQueue.main.async(execute: { () -> Void in
-                        self.updateUI()
                         self.enableBarButtons()
+                        self.updateUI()
                     })
                 }
             })
@@ -897,8 +897,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                 //            print(self.mediaItems)
                 
                 DispatchQueue.main.async(execute: { () -> Void in
-                    self.updateUI()
                     self.enableBarButtons()
+                    self.updateUI()
                 })
             } else {
                 self.mediaItems = nil
@@ -909,8 +909,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                 //            print(self.mediaItems)
                 
                 DispatchQueue.main.async(execute: { () -> Void in
-                    self.updateUI()
                     self.enableBarButtons()
+                    self.updateUI()
                 })
             }
         })
@@ -1575,7 +1575,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
 
             popover.strings = sectionTitles
             popover.showIndex = false
-            popover.showSectionHeaders = true
+            popover.showSectionHeaders = false
             
             popover.vc = self
             
@@ -1673,7 +1673,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             
             if chapter > 0 {
                 if mediaItems != nil {
-                    numberOfMediaItems.text = "\(mediaItems!.count) from chapter \(chapter) of \(book!) in the \(testament))"
+                    numberOfMediaItems.text = "\(mediaItems!.count) from chapter \(chapter) of \(book!) in the \(testament)"
                 } else {
                     numberOfMediaItems.text = "0 from chapter \(chapter) of \(book!) in the \(testament)"
                 }
@@ -1752,7 +1752,12 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     func updateSwitches()
     {
         bookSwitch.isOn = scriptureIndex?.selectedBook != nil
-        bookSwitch.isEnabled = scriptureIndex != nil
+        
+        if let selectedTestament = scriptureIndex?.selectedTestament {
+            bookSwitch.isEnabled = (scriptureIndex?.byTestament[translateTestament(selectedTestament)] != nil)
+        } else {
+            bookSwitch.isEnabled = false
+        }
 
         chapterSwitch.isOn = scriptureIndex?.selectedChapter > 0
         chapterSwitch.isEnabled = bookSwitch.isOn
@@ -1765,6 +1770,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     
     func updateUI()
     {
+        navigationController?.toolbar.items?[1].isEnabled = mediaItems?.count > 0
+            
         navigationController?.isToolbarHidden = scriptureIndex?.selectedBook != nil
 
         spinner.isHidden = true

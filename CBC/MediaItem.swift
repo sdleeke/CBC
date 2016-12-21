@@ -1894,7 +1894,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
                 if (title!.range(of: " (Part ") != nil) {
                     let first = title!.substring(to: (title!.range(of: " (Part")?.upperBound)!)
                     let second = title!.substring(from: (title!.range(of: " (Part ")?.upperBound)!)
-                    let combined = first + "\u{00a0}" + second // replace the space with an unbreakable one
+                    let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
                     string = string! + "\n\(combined)"
                 } else {
                     string = string! + "\n\(title!)"

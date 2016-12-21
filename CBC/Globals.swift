@@ -58,23 +58,23 @@ struct Tags {
             return globals.mediaCategory.tag
         }
         set {
-            globals.mediaCategory.tag = newValue
-            
             if (newValue != nil) {
                 //                showing = Constants.TAGGED
                 
                 if (newValue != globals.mediaCategory.tag) || (globals.media.tagged == nil) {
                     if globals.media.all == nil {
                         //This is filtering, i.e. searching all mediaItems => s/b in background
-                        globals.media.tagged = MediaListGroupSort(mediaItems: mediaItemsWithTag(globals.mediaRepository.list, tag: selected))
+                        globals.media.tagged = MediaListGroupSort(mediaItems: mediaItemsWithTag(globals.mediaRepository.list, tag: newValue))
                     } else {
-                        globals.media.tagged = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[stringWithoutPrefixes(selected!)!])
+                        globals.media.tagged = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[stringWithoutPrefixes(newValue!)!])
                     }
                 }
             } else {
                 globals.media.tagged = nil
                 //                showing = Constants.ALL
             }
+            
+            globals.mediaCategory.tag = newValue
             
             //            let defaults = UserDefaults.standard
             //            if selected != nil {

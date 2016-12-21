@@ -104,13 +104,15 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
 
         if let title = navigationItem.title {
-            width = title.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil).width
+            let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+            
+            width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0)], context: nil).width
         }
 
 //        print(strings)
         
         for string in strings! {
-            let string = string.replacingOccurrences(of: " (", with: "\u{00a0}(")
+            let string = string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
 
             let maxWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
 
@@ -127,7 +129,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             
 //            print(string,maxHeight.height) // baseHeight
 
-            height += 16 + maxHeight.height // - baseHeight
+            height += 2*8 + maxHeight.height // - baseHeight
             
 //            print(maxHeight.height, (Int(maxHeight.height) / 16) - 1)
 //            height += CGFloat(((Int(maxHeight.height) / 16) - 1) * 16)
@@ -246,6 +248,10 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
 
         if strings != nil {
             setupIndex()
+
+            if showIndex && (section.titles?.count == 1) {
+                showIndex = false
+            }
             
             tableView.reloadData()
             
@@ -488,7 +494,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if showSectionHeaders, self.section != nil { // showIndex &&
+        if showIndex, showSectionHeaders, self.section != nil { // showIndex &&
             return self.section.titles != nil ? self.section.titles![section] : nil
         } else {
             return nil

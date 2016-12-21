@@ -52,23 +52,8 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         if (mediaItem != nil) {
             isHiddenUI(false)
 
-//            if (mediaItem!.audioDownload?.state == .downloading) && (downloadObserver == nil) {
-//                downloadObserver = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.DOWNLOADING, target: self, selector: #selector(MediaTableViewCell.updateUI), userInfo: nil, repeats: true)
-//            }
-//
-//            if (mediaItem!.audioDownload?.state == .downloaded) && (downloadObserver != nil) {
-//                downloadObserver?.invalidate()
-//                downloadObserver = nil
-//            }
-            
-//            setNeedsLayout()
-//
-//            DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-//                DispatchQueue.main.async(execute: { () -> Void in
-                    self.setupTagsButton()
-                    self.setupDownloadButtonForAudio()
-//                })
-//            })
+            self.setupTagsButton()
+            self.setupDownloadButtonForAudio()
             
             setupProgressBarForAudio()
     
@@ -82,7 +67,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                 if (mediaItem?.title?.range(of: " (Part ") != nil) {
                     let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
                     let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
-                    let combined = first + "\u{00a0}" + second // replace the space with an unbreakable one
+                    let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
                     detail.text = "\(combined)\n\(mediaItem!.scripture!)"
                 } else {
                     detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scripture!)"
@@ -133,65 +118,70 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     @IBOutlet weak var downloadButton: UIButton!
     @IBAction func downloadAction(_ sender: UIButton)
     {
+        guard (mediaItem != nil) else {
+            return
+        }
+        
+        guard !self.isEditing else {
+            return
+        }
+        
 //        print("Download!")
 //        if (Reachability.isConnectedToNetwork()) {
         
-            if (mediaItem != nil) {
-                
-                if let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                    vc?.dismiss(animated: true, completion: nil)
-                    
-                    navigationController.modalPresentationStyle = .popover
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                    navigationController.popoverPresentationController?.delegate = self
-                    
-                    if let barButtonItem = downloadToolbar?.items?.first {
-                        navigationController.popoverPresentationController?.barButtonItem = barButtonItem
-                    } else {
-                        navigationController.popoverPresentationController?.sourceView = self
-                        navigationController.popoverPresentationController?.sourceRect = downloadButton.frame
-                    }
-                    
-//                        popover.navigationItem.title = Constants.Actions
-//                        popover.preferredContentSize = CGSizeMake(300, 500)
-                    
-                    popover.navigationController?.isNavigationBarHidden = true
-
-                    popover.delegate = self.vc as? PopoverTableViewControllerDelegate
-                    popover.purpose = .selectingCellAction
-
-                    popover.selectedMediaItem = mediaItem
-                    
-                    var strings = [String]()
-                    
-                    if mediaItem!.hasAudio {
-                        switch mediaItem!.audioDownload!.state {
-                        case .none:
-                            strings.append(Constants.Download_Audio)
-                            break
-                            
-                        case .downloading:
-                            strings.append(Constants.Cancel_Audio_Download)
-                            break
-                        case .downloaded:
-                            strings.append(Constants.Delete_Audio_Download)
-                            break
-                        }
-                    }
-                    
-                    popover.strings = strings
-                    
-                    popover.showIndex = false
-                    popover.showSectionHeaders = false
-                    
-                    popover.vc = vc
-                    
-                    vc?.present(navigationController, animated: true, completion: nil)
-                }
-
-                updateUI()
+        if let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            vc?.dismiss(animated: true, completion: nil)
+            
+            navigationController.modalPresentationStyle = .popover
+            navigationController.popoverPresentationController?.permittedArrowDirections = .any
+            navigationController.popoverPresentationController?.delegate = self
+            
+            if let barButtonItem = downloadToolbar?.items?.first {
+                navigationController.popoverPresentationController?.barButtonItem = barButtonItem
+            } else {
+                navigationController.popoverPresentationController?.sourceView = self
+                navigationController.popoverPresentationController?.sourceRect = downloadButton.frame
             }
+            
+            //                        popover.navigationItem.title = Constants.Actions
+            //                        popover.preferredContentSize = CGSizeMake(300, 500)
+            
+            popover.navigationController?.isNavigationBarHidden = true
+            
+            popover.delegate = self.vc as? PopoverTableViewControllerDelegate
+            popover.purpose = .selectingCellAction
+            
+            popover.selectedMediaItem = mediaItem
+            
+            var strings = [String]()
+            
+            if mediaItem!.hasAudio {
+                switch mediaItem!.audioDownload!.state {
+                case .none:
+                    strings.append(Constants.Download_Audio)
+                    break
+                    
+                case .downloading:
+                    strings.append(Constants.Cancel_Audio_Download)
+                    break
+                case .downloaded:
+                    strings.append(Constants.Delete_Audio_Download)
+                    break
+                }
+            }
+            
+            popover.strings = strings
+            
+            popover.showIndex = false
+            popover.showSectionHeaders = false
+            
+            popover.vc = vc
+            
+            vc?.present(navigationController, animated: true, completion: nil)
+        }
+        
+        updateUI()
     }
     
     // Specifically for Plus size iPhones.
@@ -212,6 +202,10 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         }
         
         guard mediaItem!.hasTags else {
+            return
+        }
+        
+        guard !self.isEditing else {
             return
         }
         
