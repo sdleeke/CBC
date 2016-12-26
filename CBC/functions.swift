@@ -2304,7 +2304,7 @@ func presentHTMLModal(viewController:UIViewController, medaiItem:MediaItem?, tit
         
         popover.selectedMediaItem = medaiItem
         
-        popover.html.string = htmlString!
+        popover.html.string = htmlString
         popover.content = .html
 
         popover.navigationController?.isNavigationBarHidden = false
@@ -2780,7 +2780,16 @@ func stripHTML(_ string:String?) -> String?
             }
         }
     }
-
+    
+    while bodyString?.range(of: "<sup") != nil {
+        if let startRange = bodyString?.range(of: "<sup") {
+            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: "</sup>") {
+                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
+                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+            }
+        }
+    }
+    
     bodyString = bodyString?.replacingOccurrences(of: "<br/>", with: "\n")
     
     bodyString = bodyString?.replacingOccurrences(of: "<table>", with: "")

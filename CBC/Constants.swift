@@ -303,6 +303,7 @@ struct Constants {
     
     static let Slides = "Slides"
     static let Transcript = "Transcript"
+    static let Scripture = "Scripture"
     
     static let EMAIL_SUBJECT = CBC.LONG
     static let EMAIL_ONE_SUBJECT = CBC.LONG + " Media"
@@ -410,6 +411,11 @@ struct Constants {
 
     struct FA {
         static let name = "FontAwesome"
+        
+        static let SEARCH = "\u{f002}"
+        static let WORDS = "\u{f00e}"
+        static let SCRIPTURE = "\u{f02d}"
+        static let ACTION_ICONS_FONT_SIZE = CGFloat(24.0)
         
         static let PLAY_PLAUSE_FONT_SIZE = CGFloat(24.0)
         static let PLAY = "\u{f04b}"

@@ -1612,7 +1612,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         isHiddenUI(true)
         progressIndicator.isHidden = true
 
-        navigationController?.setToolbarHidden(true, animated: true)
 //        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
         navigationItem.leftItemsSupplementBackButton = true
   
@@ -1773,7 +1772,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         navigationController?.toolbar.items?[1].isEnabled = mediaItems?.count > 0
             
         navigationController?.isToolbarHidden = scriptureIndex?.selectedBook != nil
-
+        
         spinner.isHidden = true
         spinner.stopAnimating()
         progressIndicator.isHidden = true
@@ -1898,6 +1897,135 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             
             self.updateSearchResults()
         })
+    }
+    
+    func tableView(_ tableView: UITableView, canEditRowAtIndexPath indexPath: IndexPath) -> Bool
+    {
+        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+            return false
+        }
+        
+        guard let mediaItem = cell.mediaItem else {
+            return false
+        }
+        
+        return mediaItem.hasNotesHTML || (mediaItem.scripture != Constants.Selected_Scriptures)
+    }
+    
+    func tableView(_ tableView: UITableView, editActionsForRowAtIndexPath indexPath: IndexPath) -> [UITableViewRowAction]?
+    {
+        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+            return nil
+        }
+        
+        guard let mediaItem = cell.mediaItem else {
+            return nil
+        }
+        
+        var actions = [UITableViewRowAction]()
+        
+        var transcript:UITableViewRowAction!
+        var scripture:UITableViewRowAction!
+        
+        transcript = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
+            process(viewController: self, work: { () -> (Any?) in
+                mediaItem.loadNotesHTML()
+                return mediaItem.fullNotesHTML
+
+//                if globals.search.active && (globals.search.text != nil) {
+//                    return mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
+//                } else {
+//                    return mediaItem.fullNotesHTML
+//                }
+            }, completion: { (data:Any?) in
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? WebViewController {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.dismiss(animated: true, completion: nil)
+                    })
+                    
+                    navigationController.modalPresentationStyle = .popover
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: transcript)!].frame
+                    
+                    popover.navigationItem.title = self.selectedMediaItem?.title
+                    
+                    //                    popover.selectedMediaItem = mediaItem
+                    
+                    if let htmlString = data as? String {
+                        popover.html.fontSize = 36
+                        popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
+                    }
+                    
+                    popover.selectedMediaItem = mediaItem
+                    
+                    popover.content = .html
+                    
+                    popover.navigationController?.isNavigationBarHidden = false
+                    
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.present(navigationController, animated: true, completion: nil)
+                    })
+                }
+                
+                //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
+            })
+        }
+        transcript.backgroundColor = UIColor.purple
+        
+        scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
+            process(viewController: self, work: { () -> (Any?) in
+                mediaItem.loadScriptureText()
+                return mediaItem.scriptureTextHTML
+            }, completion: { (data:Any?) in
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? WebViewController {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.dismiss(animated: true, completion: nil)
+                    })
+                    
+                    navigationController.modalPresentationStyle = .popover
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: scripture)!].frame
+                    
+                    popover.navigationItem.title = "Scripture"
+                    
+                    //                    popover.selectedMediaItem = mediaItem
+                    
+                    if let htmlString = data as? String {
+                        popover.html.fontSize = 36
+                        popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
+                    }
+                    
+                    popover.content = .html
+                    
+                    popover.navigationController?.isNavigationBarHidden = false
+                    
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.present(navigationController, animated: true, completion: nil)
+                    })
+                }
+                
+                //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
+            })
+        }
+        scripture.backgroundColor = UIColor.orange
+        
+        if mediaItem.scripture != Constants.Selected_Scriptures {
+            actions.append(scripture)
+        }
+        
+        if mediaItem.hasNotesHTML {
+            actions.append(transcript)
+        }
+        
+        return actions
     }
     
     override func didReceiveMemoryWarning() {

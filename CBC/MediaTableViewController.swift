@@ -183,7 +183,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
     @IBOutlet weak var mediaCategoryButton: UIButton!
     @IBAction func mediaCategoryButtonAction(_ button: UIButton) {
-        print("categoryButtonAction")
+//        print("categoryButtonAction")
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
             navigationController.modalPresentationStyle = .popover
@@ -422,25 +422,27 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         case .selectingCellSearch:
             var searchText = strings[index]
             
-            switch searchText {
-            case Constants.Transcript:
-                if mediaItem!.hasNotesHTML {
-                    process(viewController: self, work: { () -> (Any?) in
-                        mediaItem?.loadNotesHTML()
-                        if globals.search.active && (globals.search.text != nil) {
-                            return mediaItem?.markedFullNotesHTML(searchText:globals.search.text,index: true)
-                        } else {
-                            return mediaItem?.fullNotesHTML
-                        }
-                    }, completion: { (data:Any?) in
-                        presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
-                    })
-                }
-                break
-                
-            default:
-//                globals.search.active = true
-                
+//            switch searchText {
+//            case Constants.Transcript:
+//                if mediaItem!.hasNotesHTML {
+//                    process(viewController: self, work: { () -> (Any?) in
+//                        mediaItem?.loadNotesHTML()
+//                        if globals.search.active && (globals.search.text != nil) {
+//                            return mediaItem?.markedFullNotesHTML(searchText:globals.search.text,index: true)
+//                        } else {
+//                            return mediaItem?.fullNotesHTML
+//                        }
+//                    }, completion: { (data:Any?) in
+//                        presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
+//                    })
+//                }
+//                break
+//                
+//            default:
+////                globals.search.active = true
+            
+            globals.search.transcripts = true
+
                 if let range = searchText.range(of: " (") {
                     searchText = searchText.substring(to: range.lowerBound)
                 }
@@ -449,11 +451,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 searchBar.text = searchText
                 searchBar.showsCancelButton = true
                 updateSearchResults(searchText,completion: nil)
+            
 //                DispatchQueue.main.async(execute: { () -> Void in
 //                    self.tableView.reloadData()
 //                })
-                break
-            }
+//                break
+//            }
             break
         
         case .selectingCellAction:
@@ -1573,7 +1576,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 for (key,value) in mediaItems[i] {
 //                    print(key,value)
-                    dict[key] = "\(value)"
+                    dict[key] = "\(value)".trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
                 }
                 
                 mediaItemDicts.append(dict)
@@ -3263,9 +3266,32 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //            
 //        }
     }
+    
+//    func setupRowActionFont()
+//    {
+//        if #available(iOS 9.0, *) {
+//            print(NSClassFromString("UITableViewCellDeleteConfirmationView"))
+//            
+//            let appearanceButton = UIButton.appearance(whenContainedInInstancesOf: [NSClassFromString("UITableViewCellDeleteConfirmationView") as! UIAppearanceContainer.Type])
+//
+//            let attributes = [NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.ICONS_FONT_SIZE)!]
+//            
+//            let attributedString = NSAttributedString(string: "", attributes: attributes)
+//            
+//            appearanceButton.setAttributedTitle(attributedString, for: UIControlState.normal)
+//            
+//            appearanceButton.set
+//            
+////            appearanceButton.setTitleTextAttributes(attributes, for: UIControlState())
+//        } else {
+//            // Fallback on earlier versions
+//        }
+//    }
 
     func tableView(_ tableView: UITableView, editActionsForRowAtIndexPath indexPath: IndexPath) -> [UITableViewRowAction]?
     {
+//        setupRowActionFont()
+        
         refreshList = false
         
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
@@ -3276,7 +3302,14 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             return nil
         }
         
-        let search = UITableViewRowAction(style: .normal, title: Constants.Search) { action, index in
+        var search:UITableViewRowAction!
+        var transcript:UITableViewRowAction!
+        var words:UITableViewRowAction!
+        var scripture:UITableViewRowAction!
+        
+        var actions = [UITableViewRowAction]()
+        
+        search = UITableViewRowAction(style: .normal, title: Constants.FA.SEARCH) { action, index in
             if let searchStrings = mediaItem.searchStrings(),
                 let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -3286,19 +3319,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 navigationController.popoverPresentationController?.permittedArrowDirections = .any
                 navigationController.popoverPresentationController?.delegate = self
                 
-                let sourceView = cell.subviews[0].subviews[0]
-                
-                var rect:CGRect
-                
-                if mediaItem.hasNotesHTML {
-                    let modView = cell.subviews[0].subviews[1]
-                    rect = CGRect(x: sourceView.frame.origin.x - modView.frame.width, y: sourceView.frame.origin.y, width: sourceView.frame.width, height: sourceView.frame.height)
-                } else {
-                    rect = sourceView.frame
-                }
-
-                navigationController.popoverPresentationController?.sourceView = sourceView
-                navigationController.popoverPresentationController?.sourceRect = rect
+                navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+                navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: search)!].frame
                 
                 popover.navigationItem.title = Constants.Search
                 
@@ -3314,41 +3336,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 popover.strings = searchStrings
                 
-                if mediaItem.hasNotesHTML {
-                    if mediaItem.notesHTML != nil {
-                        if globals.search.transcripts && globals.search.valid {
-                            if mediaItem.searchFullNotesHTML(searchText: globals.search.text) {
-                                popover.strings?.insert(Constants.Transcript,at: 0)
-                            }
-                        } else {
-                            popover.strings?.insert(Constants.Transcript,at: 0)
-                        }
-                    } else {
-                        if globals.search.transcripts && globals.search.valid {
-                            popover.stringsFunction = {
-                                var strings = popover.strings
-                                
-                                if mediaItem.searchFullNotesHTML(searchText: globals.search.text) { // this calls loadNotesHTML()
-                                    strings?.insert(Constants.Transcript,at: 0)
-                                }
-                                
-                                return strings
-                            }
-                        } else {
-                            popover.strings?.insert(Constants.Transcript,at: 0)
-//                            popover.stringsFunction = {
-//                                var strings = popover.strings
-//                                
-//                                mediaItem.loadNotesHTML()
-//                                
-//                                strings?.insert(Constants.Transcript,at: 0)
-//                                
-//                                return strings
-//                            }
-                        }
-                    }
-                }
-            
                 popover.showIndex = false
                 popover.showSectionHeaders = false
                 
@@ -3361,7 +3348,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         }
         search.backgroundColor = UIColor.controlBlue()
         
-        let words = UITableViewRowAction(style: .normal, title: Constants.Tokens) { action, index in
+        words = UITableViewRowAction(style: .normal, title: Constants.FA.WORDS) { action, index in
             // let searchTokens = mediaItem.searchTokens(),
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -3371,9 +3358,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 navigationController.popoverPresentationController?.permittedArrowDirections = .any
                 navigationController.popoverPresentationController?.delegate = self
                 
-                let sourceView = cell.subviews[0].subviews[1]
-                navigationController.popoverPresentationController?.sourceView = sourceView
-                navigationController.popoverPresentationController?.sourceRect = sourceView.frame
+                navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+                navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: words)!].frame
                 
                 popover.navigationItem.title = Constants.Search
                 
@@ -3391,17 +3377,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         popover.stringsFunction = {
                             mediaItem.loadNotesHTML()
                             
-//                            var tokens = Set<String>() // searchTokens
-                            
                             if let notesTokens = tokenCountsFromString(mediaItem.notesHTML) {
-//                                tokens = tokens.union(Set(notesTokens.map({ (string:String, count:Int) -> String in
-//                                    return string
-//                                })))
-                                
-//                                let tokenArray = Array(tokens).sorted()
-                                
-                                //                        print(tokenArray)
-                                
                                 mediaItem.notesTokens = notesTokens // tokenArray
                                 
                                 return notesTokens.map({ (string:String,count:Int) -> String in
@@ -3436,11 +3412,106 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         }
         words.backgroundColor = UIColor.blue
         
-        if mediaItem.hasNotesHTML {
-            return [search, words]
-        } else {
-            return [search]
+        transcript = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
+            process(viewController: self, work: { () -> (Any?) in
+                mediaItem.loadNotesHTML()
+                if globals.search.active && (globals.search.text != nil) {
+                    return mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
+                } else {
+                    return mediaItem.fullNotesHTML
+                }
+            }, completion: { (data:Any?) in
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? WebViewController {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.dismiss(animated: true, completion: nil)
+                    })
+                    
+                    navigationController.modalPresentationStyle = .popover
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: transcript)!].frame
+                    
+                    popover.navigationItem.title = self.selectedMediaItem?.title
+                    
+                    //                    popover.selectedMediaItem = mediaItem
+                    
+                    if let htmlString = data as? String {
+                        popover.html.fontSize = 36
+                        popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
+                    }
+                    
+                    popover.selectedMediaItem = mediaItem
+                    
+                    popover.content = .html
+                    
+                    popover.navigationController?.isNavigationBarHidden = false
+                    
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.present(navigationController, animated: true, completion: nil)
+                    })
+                }
+
+//                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
+            })
         }
+        transcript.backgroundColor = UIColor.purple
+        
+        scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
+            process(viewController: self, work: { () -> (Any?) in
+                mediaItem.loadScriptureText()
+                return mediaItem.scriptureTextHTML
+            }, completion: { (data:Any?) in
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? WebViewController {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.dismiss(animated: true, completion: nil)
+                    })
+                    
+                    navigationController.modalPresentationStyle = .popover
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                    navigationController.popoverPresentationController?.delegate = self
+
+                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: scripture)!].frame
+
+                    popover.navigationItem.title = "Scripture"
+                    
+//                    popover.selectedMediaItem = mediaItem
+                    
+                    if let htmlString = data as? String {
+                        popover.html.fontSize = 36
+                        popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
+                    }
+
+                    popover.content = .html
+                    
+                    popover.navigationController?.isNavigationBarHidden = false
+                    
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.present(navigationController, animated: true, completion: nil)
+                    })
+                }
+                
+//                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
+            })
+        }
+        scripture.backgroundColor = UIColor.orange
+
+        if mediaItem.scripture != Constants.Selected_Scriptures {
+            actions.append(scripture)
+        }
+
+        actions.append(search)
+
+        if mediaItem.hasNotesHTML {
+            actions.append(words)
+            actions.append(transcript)
+        }
+
+        return actions
     }
     
     /*

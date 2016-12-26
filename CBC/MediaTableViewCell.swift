@@ -242,6 +242,24 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         }
     }
     
+    override func addSubview(_ view: UIView) {
+        super.addSubview(view)
+        
+        let buttonFont = UIFont(name: Constants.FA.name, size: Constants.FA.ACTION_ICONS_FONT_SIZE)
+        let confirmationClass: AnyClass = NSClassFromString("UITableViewCellDeleteConfirmationView")!
+        
+        // replace default font in swipe buttons
+        let s = subviews.flatMap({$0}).filter { $0.isKind(of: confirmationClass) }
+        
+        for sub in s {
+            for button in sub.subviews {
+                if let b = button as? UIButton {
+                    b.titleLabel?.font = buttonFont
+                }
+            }
+        }
+    }
+
     func setupTagsButton()
     {
         guard (mediaItem != nil) else {
@@ -355,6 +373,10 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         if (globals.mediaPlayer.mediaItem == mediaItem) && (globals.mediaPlayer.state == .playing) {
             tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.PLAYING
         }
+        
+//        if (mediaItem!.scripture != Constants.Selected_Scriptures) {
+//            tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.BOOK
+//        }
         
         if (mediaItem!.hasTags) {
             if (mediaItem?.tagsSet?.count > 1) {

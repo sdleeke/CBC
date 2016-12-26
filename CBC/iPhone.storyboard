@@ -823,10 +823,11 @@ Email: cbcstaff@countrysidebible.org</string>
             </objects>
             <point key="canvasLocation" x="2323" y="1672"/>
         </scene>
-        <!--Navigation Controller-->
+        <!--CBC Media Navigation Controller-->
         <scene sceneID="P8h-Gh-TYp">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="T8F-64-B2A" sceneMemberID="viewController">
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="T8F-64-B2A" userLabel="CBC Media Navigation Controller" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="S1h-nS-ZaR">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
@@ -1461,10 +1462,11 @@ Web site: www.countrysidebible.org</string>
             </objects>
             <point key="canvasLocation" x="7726.875" y="189.08450704225353"/>
         </scene>
-        <!--Navigation Controller-->
+        <!--PPVC Navigation Controller-->
         <scene sceneID="1P8-Dm-fo1">
             <objects>
-                <navigationController storyboardIdentifier="String Picker" automaticallyAdjustsScrollViewInsets="NO" id="UCl-zC-hJL" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="String Picker" automaticallyAdjustsScrollViewInsets="NO" id="UCl-zC-hJL" userLabel="PPVC Navigation Controller" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="quz-IT-Y6p">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
@@ -1756,6 +1758,7 @@ Web site: www.countrysidebible.org</string>
                             </mask>
                         </variation>
                     </view>
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" title="Scripture Index" id="CqY-iE-HfT"/>
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
                     <size key="freeformSize" width="600" height="600"/>
@@ -1779,10 +1782,11 @@ Web site: www.countrysidebible.org</string>
             </objects>
             <point key="canvasLocation" x="5542.5" y="188.02816901408451"/>
         </scene>
-        <!--Navigation Controller-->
+        <!--PTVC Navigation Controller-->
         <scene sceneID="CgE-Ky-rpu">
             <objects>
-                <navigationController storyboardIdentifier="PopoverTableView" automaticallyAdjustsScrollViewInsets="NO" id="AiN-7T-5Uv" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="PopoverTableView" automaticallyAdjustsScrollViewInsets="NO" id="AiN-7T-5Uv" userLabel="PTVC Navigation Controller" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="szK-O4-wo7">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
@@ -1797,12 +1801,13 @@ Web site: www.countrysidebible.org</string>
             </objects>
             <point key="canvasLocation" x="699.375" y="2494.0140845070423"/>
         </scene>
-        <!--Navigation Controller-->
+        <!--WebView Navigation Controller-->
         <scene sceneID="QiM-Bl-xm8">
             <objects>
-                <navigationController storyboardIdentifier="Web View" automaticallyAdjustsScrollViewInsets="NO" id="acK-BN-UTQ" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="Web View" automaticallyAdjustsScrollViewInsets="NO" id="acK-BN-UTQ" userLabel="WebView Navigation Controller" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="0sI-Ls-Scx">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="0sI-Ls-Scx">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1972,10 +1977,11 @@ Web site: www.countrysidebible.org</string>
             </objects>
             <point key="canvasLocation" x="7727" y="1123"/>
         </scene>
-        <!--Navigation Controller-->
+        <!--Settings Navigation Controller-->
         <scene sceneID="P80-6x-g66">
             <objects>
-                <navigationController storyboardIdentifier="Settings NavCon" automaticallyAdjustsScrollViewInsets="NO" id="1aA-YO-3xp" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="Settings NavCon" automaticallyAdjustsScrollViewInsets="NO" id="1aA-YO-3xp" userLabel="Settings Navigation Controller" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <value key="contentSizeForViewInPopover" type="size" width="250" height="475"/>
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>

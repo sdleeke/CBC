@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 import AVKit
 
-class MediaItem : NSObject, URLSessionDownloadDelegate {
+class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
     var dict:[String:String]?
     
     var booksChaptersVerses:BooksChaptersVerses?
@@ -695,6 +695,146 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
     }
     
+    func parserDidStartDocument(_ parser: XMLParser) {
+        
+    }
+    
+    func parserDidEndDocument(_ parser: XMLParser) {
+        
+    }
+    
+    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
+        print(parseError.localizedDescription)
+    }
+    
+    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
+        
+//        print(elementName)
+    }
+
+    var book:String?
+    var chapter:String?
+    var verse:String?
+    
+    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
+//        print(elementName)
+        
+        if scriptureText == nil {
+            scriptureText = [String:[String:[String:String]]]()
+        }
+        
+        switch elementName {
+        case "bookname":
+            book = xmlString
+
+            if scriptureText?[book!] == nil {
+                scriptureText?[book!] = [String:[String:String]]()
+            }
+            break
+            
+        case "chapter":
+            chapter = xmlString
+
+            if scriptureText?[book!]?[chapter!] == nil {
+                scriptureText?[book!]?[chapter!] = [String:String]()
+            }
+            break
+            
+        case "verse":
+            verse = xmlString
+            break
+            
+        case "text":
+            scriptureText?[book!]?[chapter!]?[verse!] = xmlString
+//            print(scriptureText)
+            break
+            
+        default:
+            break
+        }
+
+        xmlString = nil
+    }
+
+    func parser(_ parser: XMLParser, foundElementDeclarationWithName elementName: String, model: String) {
+//        print(elementName)
+    }
+    
+    func parser(_ parser: XMLParser, foundCharacters string: String) {
+//        print(string)
+        xmlString = (xmlString != nil ? xmlString! + string : string).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    }
+
+    var xmlParser:XMLParser?
+    var xmlString:String?
+    
+    var scriptureTextHTML:String? {
+        get {
+            guard scriptureText != nil else {
+                return nil
+            }
+            
+            var bodyString:String?
+            
+            bodyString = "<!DOCTYPE html><html><body>"
+
+            if let books = scriptureText?.keys.sorted(by: {
+                bookNumberInBible($0) < bookNumberInBible($1)
+            }) {
+                for book in books {
+                    bodyString = bodyString! + book + "<br/>"
+                    if let chapters = scriptureText?[book]?.keys.sorted(by: { Int($0) < Int($1) }) {
+                        for chapter in chapters {
+                            bodyString = bodyString! + "Chapter " + chapter + "<br/>"
+                            if let verses = scriptureText?[book]?[chapter]?.keys.sorted(by: { Int($0) < Int($1) }) {
+                                for verse in verses {
+                                    if let text = scriptureText?[book]?[chapter]?[verse] {
+                                        bodyString = bodyString! + "<sup>" + verse + "</sup>" + text + " "
+                                    } // <font size=\"-1\"></font>
+                                }
+                                bodyString = bodyString! + "<br/>"
+                            }
+                        }
+                    }
+                }
+            }
+            
+            bodyString = bodyString! + "</html></body>"
+
+            return bodyString
+        }
+    }
+    
+    func loadScriptureText()
+    {
+        guard scripture != Constants.Selected_Scriptures else {
+            return
+        }
+        
+        guard scriptureText == nil else {
+            return
+        }
+        
+        guard xmlParser == nil else {
+            return
+        }
+        
+        if let scripture = scripture?.replacingOccurrences(of: "Psalm", with: "Psalms") {
+            let urlString = "https://api.preachingcentral.com/bible.php?passage=\(scripture)&version=nasb".replacingOccurrences(of: " ", with: "%20")
+
+            if let url = URL(string: urlString) {
+                self.xmlParser = XMLParser(contentsOf: url)
+                
+                self.xmlParser?.delegate = self
+                
+                self.xmlParser?.parse()
+            }
+        }
+    }
+    
+                       //Book //Chap  //Verse //Text
+    var scriptureText:[String:[String:[String:String]]]?
+    
     var className:String? {
         get {
             return dict![Field.className]
@@ -1100,13 +1240,20 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             return nil
         }
         
-        guard (searchText != nil) && (searchText != Constants.EMPTY_STRING) else {
-            return nil
+        if (searchText != nil) && (searchText != Constants.EMPTY_STRING) {
+            if searchMarkedFullNotesHTML?[searchText] != nil {
+                return searchMarkedFullNotesHTML?[searchText]
+            }
+        } else {
+            let string = "No Occurences of \"\(searchText!)\" were found.<br/>"
+            
+            if let newString = fullNotesHTML?.replacingOccurrences(of: "<body>", with: "<body>" + string) {
+                return newString
+            } else {
+                return nil
+            }
         }
         
-        if searchMarkedFullNotesHTML?[searchText] != nil {
-            return searchMarkedFullNotesHTML?[searchText]
-        }
         
 //        var stringBefore:String = Constants.EMPTY_STRING
 //        var stringAfter:String = Constants.EMPTY_STRING
@@ -1205,20 +1352,28 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
 //            }
 //        }
 
+        var indexString:String!
+            
+        if markCounter > 0 {
+            indexString = "<a id=\"locations\" name=\"locations\">Occurences</a> of \"\(searchText!)\": \(markCounter)<br/>"
+        } else {
+            indexString = "<a id=\"locations\" name=\"locations\">No occurences</a> of \"\(searchText!)\" were found.<br/>"
+        }
+        
         // If we want an index of links to the occurences of the searchText.
-        if index, markCounter > 0 {
-            var indexString = "<a id=\"locations\" name=\"locations\">Occurences</a> of \"\(searchText!)\": \(markCounter)<br/>"
-            
-            indexString = indexString + "<div>Locations: "
-            
-            for counter in 1...markCounter {
-                if counter > 1 {
-                    indexString = indexString + ", "
+        if index {
+            if markCounter > 0 {
+                indexString = indexString + "<div>Locations: "
+                
+                for counter in 1...markCounter {
+                    if counter > 1 {
+                        indexString = indexString + ", "
+                    }
+                    indexString = indexString + "<a href=\"#\(counter)\">\(counter)</a>"
                 }
-                indexString = indexString + "<a href=\"#\(counter)\">\(counter)</a>"
+                
+                indexString = indexString + "<br/><br/></div>"
             }
-            
-            indexString = indexString + "<br/><br/></div>"
             
             newString = newString.replacingOccurrences(of: "<body>", with: "<body>"+indexString)
         }
@@ -2066,19 +2221,32 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
         }
 
         if (download?.purpose != nil) {
+//            print(totalBytesWritten,totalBytesExpectedToWrite,Float(totalBytesWritten) / Float(totalBytesExpectedToWrite),Int(Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) * 100))
+            
+            let progress = totalBytesExpectedToWrite > 0 ? Int((Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)) * 100) % 100 : 0
+            
+            let current = download!.totalBytesExpectedToWrite > 0 ? Int((Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite)) * 100) % 100 : 0
+            
+//            print(progress,current)
+            
             switch download!.purpose! {
             case Purpose.audio:
-                DispatchQueue.main.async(execute: { () -> Void in
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: download?.mediaItem)
-                })
+                if progress > current {
+//                    print(Constants.NOTIFICATION.MEDIA_UPDATE_CELL)
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: download?.mediaItem)
+                    })
+                }
                 break
                 
             case Purpose.notes:
                 fallthrough
             case Purpose.slides:
-                DispatchQueue.main.async(execute: { () -> Void in
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: download)
-                })
+                if progress > current {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: download)
+                    })
+                }
                 break
                 
             default:
@@ -2103,7 +2271,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate {
             
             debug("bytes written: \(totalBytesWritten)")
             debug("bytes expected to write: \(totalBytesExpectedToWrite)")
-            
+
             if (download?.state == .downloading) {
                 download?.totalBytesWritten = totalBytesWritten
                 download?.totalBytesExpectedToWrite = totalBytesExpectedToWrite

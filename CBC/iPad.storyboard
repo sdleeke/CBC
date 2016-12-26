@@ -969,11 +969,11 @@ Web site: www.countrysidebible.org</string>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="z2d-eT-0hV" userLabel="Web View">
-                                <rect key="frame" x="0.0" y="0.0" width="703" height="671"/>
+                                <rect key="frame" x="0.0" y="0.0" width="702.5" height="671"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </view>
                             <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="Countryside broadcasts live on Sundays at 9:30 am, 11:05 am, and 6:00 pm." textAlignment="center" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jso-Nw-Fui">
-                                <rect key="frame" x="0.0" y="671" width="703" height="33"/>
+                                <rect key="frame" x="0.0" y="671" width="702.5" height="33"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="lessThanOrEqual" constant="60" id="0NZ-dK-ch7"/>
@@ -1017,6 +1017,7 @@ Web site: www.countrysidebible.org</string>
         <scene sceneID="Oav-a5-rHl">
             <objects>
                 <navigationController storyboardIdentifier="Show MediaItem NavCon" automaticallyAdjustsScrollViewInsets="NO" id="oQN-d3-XYK" userLabel="Series NavBar" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="Q0j-il-YcR">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
@@ -1035,6 +1036,7 @@ Web site: www.countrysidebible.org</string>
         <scene sceneID="Ii3-N6-vUG">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="BMJ-Z1-LlI" userLabel="About NavBar" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="RNv-hO-i4N">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
@@ -1053,6 +1055,7 @@ Web site: www.countrysidebible.org</string>
         <scene sceneID="Qah-Wm-eTT">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="OGZ-rL-hkS" userLabel="Master NavBar" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="QMJ-T8-Buh">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
@@ -1080,7 +1083,7 @@ Web site: www.countrysidebible.org</string>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1ps-Wb-dVz" userLabel="WebView">
-                                <rect key="frame" x="0.0" y="0.0" width="703" height="704"/>
+                                <rect key="frame" x="0.0" y="0.0" width="702.5" height="704"/>
                                 <subviews>
                                     <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="ti8-5g-rcB">
                                         <rect key="frame" x="342" y="342" width="20" height="20"/>
@@ -1138,6 +1141,7 @@ Web site: www.countrysidebible.org</string>
         <scene sceneID="zZf-A3-vr5">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="HZ4-Wg-0bg" userLabel="About 2 NavBar" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="gez-mL-Sw6">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
@@ -1180,7 +1184,7 @@ Web site: www.countrysidebible.org</string>
                                         </connections>
                                     </switch>
                                     <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" verticalHuggingPriority="1000" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="Searching the text of transcripts (where available) may take longer." textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Tn4-h0-vPl" userLabel="Search Transcripts Text View">
-                                        <rect key="frame" x="20" y="59" width="210" height="67"/>
+                                        <rect key="frame" x="20" y="59" width="210" height="66.5"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="70" id="aLu-fl-HRb"/>
@@ -1194,49 +1198,49 @@ Web site: www.countrysidebible.org</string>
                                         </variation>
                                     </textView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Auto Advance" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gnT-dw-7zS">
-                                        <rect key="frame" x="20" y="140" width="101" height="20"/>
+                                        <rect key="frame" x="20" y="139.5" width="101" height="20"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="y4M-HY-Dah">
-                                        <rect key="frame" x="181" y="134" width="51" height="31"/>
+                                        <rect key="frame" x="181" y="133.5" width="51" height="31"/>
                                         <connections>
                                             <action selector="autoAdvanceAction:" destination="2PY-rw-Zwl" eventType="valueChanged" id="azT-R1-wnB"/>
                                         </connections>
                                     </switch>
                                     <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" verticalHuggingPriority="1000" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="If Auto Advance is on and  another part is available, it will automatically play from the beginning.  (Audio only)" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hlW-97-eSd" userLabel="Auto Advance Text View">
-                                        <rect key="frame" x="20" y="173" width="210" height="83"/>
+                                        <rect key="frame" x="20" y="172.5" width="210" height="83"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                     </textView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Use Cache" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5Gu-Cg-PFQ">
-                                        <rect key="frame" x="20" y="270" width="79" height="20"/>
+                                        <rect key="frame" x="20" y="269.5" width="79" height="20"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Cache Size" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3SF-aq-otG">
-                                        <rect key="frame" x="20" y="288" width="54" height="12"/>
+                                        <rect key="frame" x="20" y="287.5" width="54" height="12"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="10"/>
                                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0Sn-mJ-Y8T">
-                                        <rect key="frame" x="181" y="264" width="51" height="31"/>
+                                        <rect key="frame" x="181" y="263.5" width="51" height="31"/>
                                         <connections>
                                             <action selector="cacheAction:" destination="2PY-rw-Zwl" eventType="valueChanged" id="Wvg-H1-QjW"/>
                                         </connections>
                                     </switch>
                                     <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" verticalHuggingPriority="1000" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="When on, documents are downloaded and stored on the device.  (iOS 9 or later)" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="u50-19-12r" userLabel="Cache Text View">
-                                        <rect key="frame" x="20" y="303" width="210" height="67"/>
+                                        <rect key="frame" x="20" y="302.5" width="210" height="66.5"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                     </textView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Audio Download Size" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pLU-YE-rdr">
-                                        <rect key="frame" x="20" y="378" width="102" height="12"/>
+                                        <rect key="frame" x="20" y="377" width="102" height="12"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="10"/>
                                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <nil key="highlightedColor"/>
@@ -1560,6 +1564,7 @@ Web site: www.countrysidebible.org</string>
                             </mask>
                         </variation>
                     </view>
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <navigationItem key="navigationItem" title="Scripture Index" id="Ux0-Un-1xb"/>
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
                     <size key="freeformSize" width="600" height="600"/>
@@ -1607,7 +1612,7 @@ Web site: www.countrysidebible.org</string>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gxs-R4-h4B">
-                                                    <rect key="frame" x="8" y="8" width="808" height="19"/>
+                                                    <rect key="frame" x="8" y="8" width="969" height="19"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -1655,10 +1660,11 @@ Web site: www.countrysidebible.org</string>
             </objects>
             <point key="canvasLocation" x="5183.7890625" y="-2120.3125"/>
         </scene>
-        <!--Navigation Controller-->
+        <!--SI Navigation Controller-->
         <scene sceneID="FFA-lZ-XLc">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="790-lj-eYq" sceneMemberID="viewController">
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="790-lj-eYq" userLabel="SI Navigation Controller" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationItem key="navigationItem" id="4uc-8a-zXE"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="Gvh-Gc-vL7">
@@ -1678,6 +1684,7 @@ Web site: www.countrysidebible.org</string>
         <scene sceneID="WnK-t9-Bzg">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="pf8-KW-lh5" userLabel="Live NavBar" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="OfT-c7-OZU">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
@@ -1740,6 +1747,7 @@ Web site: www.countrysidebible.org</string>
         <scene sceneID="LOy-P8-8dW">
             <objects>
                 <navigationController storyboardIdentifier="String Picker" automaticallyAdjustsScrollViewInsets="NO" id="icr-bO-25n" userLabel="Popover Picker NavBar" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="5DQ-Us-xdI">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
@@ -1758,6 +1766,7 @@ Web site: www.countrysidebible.org</string>
         <scene sceneID="IeW-h8-gT0">
             <objects>
                 <navigationController storyboardIdentifier="PopoverTableView" automaticallyAdjustsScrollViewInsets="NO" id="yT6-xg-1Zh" userLabel="Popover TVC NavBar" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="aCW-cS-M3H">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
@@ -1844,6 +1853,7 @@ Web site: www.countrysidebible.org</string>
         <scene sceneID="VhB-bd-2P2">
             <objects>
                 <navigationController storyboardIdentifier="Web View" automaticallyAdjustsScrollViewInsets="NO" id="wJk-md-wo6" userLabel="WebView NavBar" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="Fw4-67-qAB">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
@@ -1858,10 +1868,10 @@ Web site: www.countrysidebible.org</string>
             </objects>
             <point key="canvasLocation" x="1818.75" y="-296.484375"/>
         </scene>
-        <!--Navigation Controller-->
+        <!--Settings Navigation Controller-->
         <scene sceneID="P0e-f4-mkI">
             <objects>
-                <navigationController storyboardIdentifier="Settings NavCon" autoresizesArchivedViewToFullSize="NO" automaticallyAdjustsScrollViewInsets="NO" id="YSz-cb-SVT" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="Settings NavCon" automaticallyAdjustsScrollViewInsets="NO" id="YSz-cb-SVT" userLabel="Settings Navigation Controller" sceneMemberID="viewController">
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <value key="contentSizeForViewInPopover" type="size" width="250" height="475"/>

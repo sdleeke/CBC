@@ -328,19 +328,21 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             }
             
             if (selectedMediaItem != nil) && (selectedMediaItem != globals.mediaPlayer.mediaItem) {
-                switch selectedMediaItem!.playing! {
-                case Playing.video:
-                    if selectedMediaItem!.hasVideo {
-                        playerURL(url: selectedMediaItem?.videoURL)
-                    }
-                    break
+                playerURL(url: selectedMediaItem?.playingURL!)
 
-                default:
-                    if selectedMediaItem!.hasAudio {
-                        playerURL(url: selectedMediaItem?.audioURL!)
-                    }
-                    break
-                }
+//                switch selectedMediaItem!.playing! {
+//                case Playing.video:
+//                    if selectedMediaItem!.hasVideo {
+//                        playerURL(url: selectedMediaItem?.videoURL)
+//                    }
+//                    break
+//
+//                default:
+//                    if selectedMediaItem!.hasAudio {
+//                        playerURL(url: selectedMediaItem?.audioURL!)
+//                    }
+//                    break
+//                }
             } else {
                 removePlayerObserver()
 //                addSliderObserver() // Crashes because it uses UI and this is done before viewWillAppear when the mediaItemSelected is set in prepareForSegue, but it only happens on an iPhone because the MVC isn't setup already.
@@ -429,11 +431,11 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     setupSliderAndTimes()
                 }
 
-                playerURL(url: selectedMediaItem?.audioURL)
-                setupSliderAndTimes()
-
                 selectedMediaItem?.playing = Playing.audio // Must come before setupNoteAndSlides()
                 
+                playerURL(url: selectedMediaItem?.playingURL)
+                setupSliderAndTimes()
+
                 // If video was playing we need to show slides or transcript and adjust the STV control to hide the video segment and show the other(s).
                 setupDocumentsAndVideo() // Calls setupSTVControl()
                 break
@@ -457,10 +459,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     setupSliderAndTimes()
                 }
 
-                playerURL(url: selectedMediaItem?.videoURL)
-                setupSliderAndTimes()
-                
                 selectedMediaItem?.playing = Playing.video // Must come before setupNoteAndSlides()
+                
+                playerURL(url: selectedMediaItem?.playingURL)
+                setupSliderAndTimes()
                 
                 // Don't need to change the documents (they are already showing) or hte STV control as that will change when the video starts playing.
                 break
@@ -2661,7 +2663,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     func updateUI()
     {
-        if (selectedMediaItem != nil) && (selectedMediaItem == globals.mediaPlayer.mediaItem) && ((globals.mediaPlayer.url != selectedMediaItem?.videoURL) && (globals.mediaPlayer.url != selectedMediaItem?.audioURL)) {
+        if (selectedMediaItem != nil),
+            (selectedMediaItem == globals.mediaPlayer.mediaItem),
+            (globals.mediaPlayer.url != selectedMediaItem?.playingURL) {
+//            ((globals.mediaPlayer.url != selectedMediaItem?.videoURL) && (globals.mediaPlayer.url != selectedMediaItem?.audioURL)) {
             globals.mediaPlayer.pause()
             globals.setupPlayer(selectedMediaItem,playOnLoad:false)
         }
@@ -3578,6 +3583,134 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         }
     }
     
+    func tableView(_ tableView: UITableView, canEditRowAtIndexPath indexPath: IndexPath) -> Bool
+    {
+        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+            return false
+        }
+        
+        guard let mediaItem = cell.mediaItem else {
+            return false
+        }
+        
+        return mediaItem.hasNotesHTML || (mediaItem.scripture != Constants.Selected_Scriptures)
+    }
+    
+    func tableView(_ tableView: UITableView, editActionsForRowAtIndexPath indexPath: IndexPath) -> [UITableViewRowAction]?
+    {
+        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+            return nil
+        }
+        
+        guard let mediaItem = cell.mediaItem else {
+            return nil
+        }
+        
+        var actions = [UITableViewRowAction]()
+        
+        var transcript:UITableViewRowAction!
+        var scripture:UITableViewRowAction!
+        
+        transcript = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
+            process(viewController: self, work: { () -> (Any?) in
+                mediaItem.loadNotesHTML()
+                return mediaItem.fullNotesHTML
+
+//                if globals.search.active && (globals.search.text != nil) {
+//                    return mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
+//                } else {
+//                    return mediaItem.fullNotesHTML
+//                }
+            }, completion: { (data:Any?) in
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? WebViewController {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.dismiss(animated: true, completion: nil)
+                    })
+                    
+                    navigationController.modalPresentationStyle = .popover
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: transcript)!].frame
+                    
+                    popover.navigationItem.title = self.selectedMediaItem?.title
+                    
+                    //                    popover.selectedMediaItem = mediaItem
+                    
+                    if let htmlString = data as? String {
+                        popover.html.fontSize = 36
+                        popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
+                    }
+                    
+                    popover.selectedMediaItem = mediaItem
+                    
+                    popover.content = .html
+                    
+                    popover.navigationController?.isNavigationBarHidden = false
+                    
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.present(navigationController, animated: true, completion: nil)
+                    })
+                }
+                
+                //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
+            })
+        }
+        transcript.backgroundColor = UIColor.purple//controlBlue()
+        
+        scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
+            process(viewController: self, work: { () -> (Any?) in
+                mediaItem.loadScriptureText()
+                return mediaItem.scriptureTextHTML
+            }, completion: { (data:Any?) in
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? WebViewController {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.dismiss(animated: true, completion: nil)
+                    })
+                    
+                    navigationController.modalPresentationStyle = .popover
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: scripture)!].frame
+                    
+                    popover.navigationItem.title = "Scripture"
+                    
+                    //                    popover.selectedMediaItem = mediaItem
+                    
+                    if let htmlString = data as? String {
+                        popover.html.fontSize = 36
+                        popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
+                    }
+                    
+                    popover.content = .html
+                    
+                    popover.navigationController?.isNavigationBarHidden = false
+                    
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.present(navigationController, animated: true, completion: nil)
+                    })
+                }
+                
+                //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
+            })
+        }
+        scripture.backgroundColor = UIColor.orange
+        
+        if mediaItem.scripture != Constants.Selected_Scriptures {
+            actions.append(scripture)
+        }
+        
+        if mediaItem.hasNotesHTML {
+            actions.append(transcript)
+        }
+
+        return actions
+    }
     
     /*
     // Override to support conditional editing of the table view.
