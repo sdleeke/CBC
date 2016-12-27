@@ -1151,7 +1151,9 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                 viewController.selectedMediaItem = mediaItem
                 
                 self.navigationController?.navigationItem.hidesBackButton = false
-                self.navigationController?.isToolbarHidden = true
+                
+                self.navigationController?.setToolbarHidden(true, animated: true)
+                
                 self.navigationController?.pushViewController(viewController, animated: true)
             }
         }
@@ -1212,6 +1214,9 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         }
         
         navigationItem.hidesBackButton = false
+        
+        navigationController?.setToolbarHidden(true, animated: false)
+
 //        navigationController?.isToolbarHidden = true
     
         updateSwitches()
@@ -1770,8 +1775,10 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     func updateUI()
     {
         navigationController?.toolbar.items?[1].isEnabled = mediaItems?.count > 0
-            
-        navigationController?.isToolbarHidden = scriptureIndex?.selectedBook != nil
+        
+        navigationController?.setToolbarHidden(scriptureIndex?.selectedBook != nil, animated: true)
+        
+//        navigationController?.isToolbarHidden =
         
         spinner.isHidden = true
         spinner.stopAnimating()
@@ -1956,7 +1963,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     //                    popover.selectedMediaItem = mediaItem
                     
                     if let htmlString = data as? String {
-                        popover.html.fontSize = 36
+                        popover.html.fontSize = 12
                         popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
                     }
                     
@@ -1994,12 +2001,12 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
                     navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: scripture)!].frame
                     
-                    popover.navigationItem.title = "Scripture"
+                    popover.navigationItem.title = mediaItem.scripture
                     
                     //                    popover.selectedMediaItem = mediaItem
                     
                     if let htmlString = data as? String {
-                        popover.html.fontSize = 36
+                        popover.html.fontSize = 12
                         popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
                     }
                     

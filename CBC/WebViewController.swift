@@ -297,15 +297,16 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             case Constants.Full_Screen:
                 if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? WebViewController {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.dismiss(animated: true, completion: nil)
-                    })
+                    // Had to take out the lines below or the searchBar would become unresponsive. No idea why.
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                        self.dismiss(animated: true, completion: nil)
+//                    })
                     
                     navigationController.modalPresentationStyle = .overFullScreen
                     navigationController.popoverPresentationController?.permittedArrowDirections = .any
                     navigationController.popoverPresentationController?.delegate = self
                     
-                    popover.navigationItem.title = self.selectedMediaItem?.title
+                    popover.navigationItem.title = self.navigationItem.title
                     
                     //                    popover.selectedMediaItem = mediaItem
                     
@@ -325,7 +326,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 break
                 
             case Constants.Print:
-                if html.string != nil, html.string!.contains("<a href") {
+                if html.string != nil, html.string!.contains(" href=") {
                     firstSecondCancel(viewController: self, title: "Remove Links?", message: "This can take some time.",
                                       firstTitle: "Yes",
                                       firstAction: {
@@ -540,7 +541,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 actionMenu.append(Constants.Search)
             }
 
-            actionMenu.append(Constants.Full_Screen)
+            if self.navigationController?.modalPresentationStyle == .popover {
+                actionMenu.append(Constants.Full_Screen)
+            }
 
             if UIPrintInteractionController.isPrintingAvailable {
                 actionMenu.append(Constants.Print)
@@ -664,9 +667,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 Thread.sleep(forTimeInterval: 0.1)
                 DispatchQueue.main.async(execute: { () -> Void in
                     wkWebView.isHidden = false
-                    self.view.sizeToFit()
-//                    self.preferredContentSize = CGSize(width: wkWebView.scrollView.contentSize.width,
-//                                                       height: wkWebView.scrollView.contentSize.height * (1 - wkWebView.scrollView.zoomScale))
+                    self.preferredContentSize = CGSize(width: wkWebView.scrollView.contentSize.width,height: wkWebView.scrollView.contentSize.height)
                 })
             }
         })
@@ -859,17 +860,12 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             return
         }
 
-        let beforeWidth = wkWebView?.scrollView.contentSize.width
-        
         switch self.content {
         case .document:
             captureContentOffsetAndZoomScale()
             break
             
         case .html:
-//            DispatchQueue.main.async(execute: { () -> Void in
-//                self.webView.isHidden = true
-//            })
             captureHTMLContentOffsetAndZoomScale()
             break
         }
@@ -889,7 +885,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                     
                 case .html:
                     self.setupHTMLWKZoomScaleAndContentOffset(self.wkWebView)
-//                    _ = self.wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
                     break
                 }
             })
@@ -1108,6 +1103,16 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
 
         if let title = selectedMediaItem?.title {
             navigationItem.title = title
+        }
+        
+        if let title = navigationItem.title {
+            let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+            
+            let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
+
+            let width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0)], context: nil).width + 150
+
+            preferredContentSize = CGSize(width: width,height: 44)
         }
         
         logo.isHidden = true

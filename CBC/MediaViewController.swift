@@ -3640,7 +3640,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     //                    popover.selectedMediaItem = mediaItem
                     
                     if let htmlString = data as? String {
-                        popover.html.fontSize = 36
+                        popover.html.fontSize = 12
                         popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
                     }
                     
@@ -3678,12 +3678,12 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
                     navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: scripture)!].frame
                     
-                    popover.navigationItem.title = "Scripture"
+                    popover.navigationItem.title = mediaItem.scripture
                     
                     //                    popover.selectedMediaItem = mediaItem
                     
                     if let htmlString = data as? String {
-                        popover.html.fontSize = 36
+                        popover.html.fontSize = 12
                         popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
                     }
                     

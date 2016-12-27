@@ -2660,12 +2660,12 @@ func shareHTML(viewController:UIViewController,htmlString:String?)
     
     let activityViewController = UIActivityViewController(activityItems:activityItems, applicationActivities: nil)
     
-    activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
-    
     // exclude some activity types from the list (optional)
     
     activityViewController.excludedActivityTypes = [ .addToReadingList ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
     
+    activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
+
     // present the view controller
     DispatchQueue.main.async(execute: { () -> Void in
         viewController.present(activityViewController, animated: false, completion: nil)
@@ -2721,7 +2721,7 @@ func insertMenuHead(_ string:String?,fontSize:Int) -> String?
 
 func insertHead(_ string:String?,fontSize:Int) -> String?
 {
-    let head = "<html><head><style>body{font: -apple-system-body;font-size:\(fontSize)pt;}td{font-size:\(fontSize)pt;}mark{background-color:silver}</style></head>"
+    let head = "<html><head><meta name=\"viewport\" content=\"initial-scale=1.0\"/><style>body{font: -apple-system-body;font-size:\(fontSize)pt;}td{font-size:\(fontSize)pt;}mark{background-color:silver}</style></head>"
     
     return string?.replacingOccurrences(of: "<html>", with: head)
 }
@@ -2783,7 +2783,7 @@ func stripHTML(_ string:String?) -> String?
     
     while bodyString?.range(of: "<sup") != nil {
         if let startRange = bodyString?.range(of: "<sup") {
-            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: "</sup>") {
+            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
                 let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
                 bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
             }
@@ -2812,6 +2812,8 @@ func stripHTML(_ string:String?) -> String?
     bodyString = bodyString?.replacingOccurrences(of: "</table>", with: "")
 
     bodyString = bodyString?.replacingOccurrences(of: "</font>", with: "")
+    
+    bodyString = bodyString?.replacingOccurrences(of: "</sup>", with: "")
     
     bodyString = bodyString?.replacingOccurrences(of: "</body>", with: "")
     bodyString = bodyString?.replacingOccurrences(of: "</html>", with: "")

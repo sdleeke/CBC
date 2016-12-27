@@ -778,6 +778,8 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
             
             bodyString = "<!DOCTYPE html><html><body>"
 
+            bodyString = bodyString! + "Scripture: " + scripture! + "<br/>"
+
             if let books = scriptureText?.keys.sorted(by: {
                 bookNumberInBible($0) < bookNumberInBible($1)
             }) {

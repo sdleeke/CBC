@@ -115,70 +115,55 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         })
         
         tagLabel.text = nil
-//        globals.media.tags.selected = nil
-        
-        //            globals.search.active = false
-        globals.search.text = nil
-        
-//        DispatchQueue.main.async(execute: { () -> Void in
-//            self.tableView.isHidden = true
-//        })
         
         loadMediaItems()
-            {
-                if globals.mediaRepository.list == nil {
-                    let alert = UIAlertController(title: "No media available.",
-                                                  message: "Please check your network connection and try again.",
-                                                  preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                        if globals.isRefreshing {
-                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                                
-                            })
-                        } else {
-                            self.setupListActivityIndicator()
-                        }
-                    })
-                    alert.addAction(action)
-                    
-                    self.present(alert, animated: true, completion: nil)
-                } else {
-                    if let selectedMediaItemKey = UserDefaults.standard.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER) {
-                        self.selectedMediaItem = globals.mediaRepository.list?.filter({ (mediaItem:MediaItem) -> Bool in
-                            return mediaItem.id == selectedMediaItemKey
-                        }).first
-                    }
-                    
-                    if globals.search.active && !globals.search.complete { //  && globals.search.transcripts
-                        self.updateSearchResults(globals.search.text,completion: {
-                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                                DispatchQueue.main.async(execute: { () -> Void in
-                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                                })
-                            })
+        {
+            if globals.mediaRepository.list == nil {
+                let alert = UIAlertController(title: "No media available.",
+                                              message: "Please check your network connection and try again.",
+                                              preferredStyle: UIAlertControllerStyle.alert)
+                
+                let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                    if globals.isRefreshing {
+                        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                            
                         })
                     } else {
-                        // Reload the table
-                        self.tableView.reloadData()
-                        
+                        self.setupListActivityIndicator()
+                    }
+                })
+                alert.addAction(action)
+                
+                self.present(alert, animated: true, completion: nil)
+            } else {
+                if let selectedMediaItemKey = UserDefaults.standard.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER) {
+                    self.selectedMediaItem = globals.mediaRepository.list?.filter({ (mediaItem:MediaItem) -> Bool in
+                        return mediaItem.id == selectedMediaItemKey
+                    }).first
+                }
+                
+                if globals.search.active && !globals.search.complete {
+                    self.updateSearchResults(globals.search.text,completion: {
                         DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                             DispatchQueue.main.async(execute: { () -> Void in
                                 self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
                             })
                         })
-                    }
+                    })
+                } else {
+                    // Reload the table
+                    self.tableView.reloadData()
+                    
+                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                        })
+                    })
                 }
-                
-                self.tableView.isHidden = false
+            }
+            
+            self.tableView.isHidden = false
         }
-        
-        
-        //            setupListActivityIndicator()
-        //            setupBarButtons()
-        //
-        //            // This does not show the activityIndicator
-        //            handleRefresh(refreshControl!)
     }
 
     @IBOutlet weak var mediaCategoryButton: UIButton!
@@ -2269,7 +2254,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                                     })
                                 })
                             })
-                            
                         } else {
                             // Reload the table
                             self.tableView.reloadData()
@@ -2634,6 +2618,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
     func selectOrScrollToMediaItem(_ mediaItem:MediaItem?, select:Bool, scroll:Bool, position: UITableViewScrollPosition)
     {
+        guard refreshList else {
+            return
+        }
+        
         guard mediaItem != nil else {
             return
         }
@@ -3439,7 +3427,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     //                    popover.selectedMediaItem = mediaItem
                     
                     if let htmlString = data as? String {
-                        popover.html.fontSize = 36
+                        popover.html.fontSize = 12
                         popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
                     }
                     
@@ -3477,12 +3465,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
                     navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: scripture)!].frame
 
-                    popover.navigationItem.title = "Scripture"
+                    popover.navigationItem.title = mediaItem.scripture
                     
 //                    popover.selectedMediaItem = mediaItem
                     
                     if let htmlString = data as? String {
-                        popover.html.fontSize = 36
+                        popover.html.fontSize = 12
                         popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
                     }
 
