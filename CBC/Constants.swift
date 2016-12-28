@@ -452,6 +452,19 @@ struct Constants {
         static let VIDEO        = FA.VIDEO
     }
 
+    struct SEGUE {
+        static let SHOW_LIVE                = "Show Live"
+        static let SHOW_ABOUT               = "Show About"
+        static let SHOW_ABOUT2              = "Show About2"
+        static let SHOW_MEDIAITEM           = "Show MediaItem"
+        static let SHOW_SETTINGS            = "Show Settings"
+        static let SHOW_FULL_SCREEN         = "Show Full Screen"
+        static let SHOW_INDEX_MEDIAITEM     = "Show Index MediaItem"
+        static let SHOW_SCRIPTURE_INDEX     = "Show Scripture Index"
+    }
+
+    static let HTML_MIN_FONT_SIZE = 4
+    
     static let Actions = "Actions"
     
     static let Download = "Download"
@@ -522,17 +535,6 @@ struct Constants {
     static let Clear_History = "Clear History"
     
     static let Scripture_Index = "Scripture Index"
-    
-    struct SEGUE {
-        static let SHOW_LIVE                = "Show Live"
-        static let SHOW_ABOUT               = "Show About"
-        static let SHOW_ABOUT2              = "Show About2"
-        static let SHOW_MEDIAITEM           = "Show MediaItem"
-        static let SHOW_SETTINGS            = "Show Settings"
-        static let SHOW_FULL_SCREEN         = "Show Full Screen"
-        static let SHOW_INDEX_MEDIAITEM     = "Show Index MediaItem"
-        static let SHOW_SCRIPTURE_INDEX     = "Show Scripture Index"
-    }
     
     static let Print = "Print"
     static let Print_All = "Print All"

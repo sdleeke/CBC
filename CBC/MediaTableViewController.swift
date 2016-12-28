@@ -679,7 +679,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             //                }
             
             DispatchQueue.main.async(execute: { () -> Void in
-                self.tableView.isEditing = false
+                self.tableView.setEditing(false, animated: true)
             })
 
             //Can't use this reliably w/ variable row heights.
@@ -790,7 +790,17 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             case Constants.Current_Selection:
                 if let mediaItem = selectedMediaItem {
                     if globals.media.active!.mediaItems!.contains(mediaItem) {
-                        selectOrScrollToMediaItem(selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                        if self.tableView.isEditing {
+                            DispatchQueue.main.async(execute: { () -> Void in
+                                self.tableView.setEditing(false, animated: true)
+                                DispatchQueue.global(qos: .background).async {
+                                    Thread.sleep(forTimeInterval: 0.1)
+                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                                }
+                            })
+                        } else {
+                            selectOrScrollToMediaItem(selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                        }
                     } else {
                         dismiss(animated: true, completion: nil)
                         
@@ -847,7 +857,19 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             case Constants.Lexicon:
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                var mlgs:MediaListGroupSort?
+                
+                if (globals.media.all?.lexicon != nil) {
+                    mlgs = globals.media.all
+                } else {
+                    if globals.reachability.isReachable {
+                        mlgs = globals.media.all
+                    } else {
+                        networkUnavailable("Lexicon unavailable.")
+                    }
+                }
+                
+                if mlgs != nil, let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                     navigationController.modalPresentationStyle = .popover
                     //            popover?.preferredContentSize = CGSizeMake(300, 500)
@@ -862,7 +884,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     popover.delegate = self
                     popover.purpose = .selectingLexicon
                     
-                    popover.mediaListGroupSort = globals.media.all
+                    popover.mediaListGroupSort = mlgs
                     
                     popover.showIndex = true
                     popover.showSectionHeaders = true
@@ -878,48 +900,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         })
                     })
                 }
-//                process(viewController: self, work: { () -> (Any?) in
-//                    globals.media.all?.loadLexicon()
-//                    return nil
-//                }, completion: { (data:Any?) in
-//                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-//                        let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-//                        navigationController.modalPresentationStyle = .popover
-//                        //            popover?.preferredContentSize = CGSizeMake(300, 500)
-//                        
-//                        navigationController.popoverPresentationController?.permittedArrowDirections = .up
-//                        navigationController.popoverPresentationController?.delegate = self
-//                        
-//                        navigationController.popoverPresentationController?.barButtonItem = self.showButton
-//                        
-//                        popover.navigationItem.title = Constants.Lexicon
-//                        
-//                        popover.delegate = self
-//                        popover.purpose = .selectingLexicon
-//                        
-//                        var strings = [String]()
-//                        
-//                        if let words = globals.media.all?.lexicon?.keys.sorted() {
-//                            for word in words {
-//                                if let count = globals.media.all?.lexicon?[word]?.count {
-//                                    strings.append("\(word) (\(count))")
-//                                }
-//                            }
-//                        }
-//                        
-//                        popover.strings = strings
-//                        popover.indexStrings = strings
-//                        
-//                        popover.showIndex = true
-//                        popover.showSectionHeaders = true
-//
-//                        popover.vc = self
-//                        
-//                        DispatchQueue.main.async(execute: { () -> Void in
-//                            self.present(navigationController, animated: true, completion: nil)
-//                        })
-//                    }
-//                })
                 break
                 
             case Constants.View_List:
@@ -2691,7 +2671,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             }
 
             DispatchQueue.main.async(execute: { () -> Void in
-                self.tableView.isEditing = false
+                self.tableView.setEditing(false, animated: true)
             })
 
             if (select) {
@@ -3338,6 +3318,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         words = UITableViewRowAction(style: .normal, title: Constants.FA.WORDS) { action, index in
             // let searchTokens = mediaItem.searchTokens(),
+            
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 self.dismiss(animated: true, completion: nil)
@@ -3362,17 +3343,19 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 if mediaItem.hasNotesHTML {
                     if mediaItem.notesTokens == nil {
-                        popover.stringsFunction = {
-                            mediaItem.loadNotesHTML()
-                            
-                            if let notesTokens = tokenCountsFromString(mediaItem.notesHTML) {
-                                mediaItem.notesTokens = notesTokens // tokenArray
+                        if globals.reachability.isReachable {
+                            popover.stringsFunction = {
+                                mediaItem.loadNotesHTML()
                                 
-                                return notesTokens.map({ (string:String,count:Int) -> String in
-                                    return "\(string) (\(count))"
-                                })
-                            } else {
-                                return nil
+                                if let notesTokens = tokenCountsFromString(mediaItem.notesHTML) {
+                                    mediaItem.notesTokens = notesTokens // tokenArray
+                                    
+                                    return notesTokens.map({ (string:String,count:Int) -> String in
+                                        return "\(string) (\(count))"
+                                    })
+                                } else {
+                                    return nil
+                                }
                             }
                         }
                     } else {
@@ -3392,10 +3375,14 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 popover.showSectionHeaders = true
                 
                 popover.vc = self
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.present(navigationController, animated: true, completion: nil)
-                })
+
+                if (popover.strings != nil) || (popover.stringsFunction != nil) {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.present(navigationController, animated: true, completion: nil)
+                    })
+                } else {
+                    networkUnavailable("HTML transcript vocabulary unavailable.")
+                }
             }
         }
         words.backgroundColor = UIColor.blue
@@ -3409,37 +3396,73 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     return mediaItem.fullNotesHTML
                 }
             }, completion: { (data:Any?) in
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? WebViewController {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.dismiss(animated: true, completion: nil)
-                    })
-                    
-                    navigationController.modalPresentationStyle = .popover
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                    navigationController.popoverPresentationController?.delegate = self
-                    
-                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
-                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: transcript)!].frame
-                    
-                    popover.navigationItem.title = self.selectedMediaItem?.title
-                    
-                    //                    popover.selectedMediaItem = mediaItem
-                    
-                    if let htmlString = data as? String {
+                if let htmlString = data as? String {
+                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                        let popover = navigationController.viewControllers[0] as? WebViewController {
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.dismiss(animated: true, completion: nil)
+                        })
+
+                        let sourceView = cell.subviews[0]
+                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: transcript)!]
+                        
+                        var style:UIModalPresentationStyle = .popover
+                        var direction:UIPopoverArrowDirection = .any
+                        
+                        if UIDevice.current.model != "iPad" {
+                            direction = .down
+                            
+//                            print(self.navigationController!.view.convert(sourceRectView.frame.origin, from: sourceRectView),
+//                                  self.navigationController!.view.frame.origin,
+//                                  self.prefersStatusBarHidden,
+//                                  UIApplication.shared.statusBarFrame.height,
+//                                  self.navigationController!.navigationBar.frame.height)
+//                            
+//                            print(  self.view.convert(sourceRectView.frame.origin, from: sourceRectView).y -
+//                                    self.view.frame.origin.y)
+                            
+                            let gap =   self.navigationController!.view.convert(sourceRectView.frame.origin, from: sourceRectView).y -
+                                        self.navigationController!.view.frame.origin.y -
+                                        self.navigationController!.navigationBar.frame.height -
+                                        UIApplication.shared.statusBarFrame.height
+                            
+//                            print(gap)
+                            
+                            if gap < 139 { // Ugh, a magic number.
+                                style = .overFullScreen
+                            }
+                        }
+
+                        navigationController.modalPresentationStyle = style
+                        navigationController.popoverPresentationController?.permittedArrowDirections = direction
+                        navigationController.popoverPresentationController?.delegate = self
+                        
+                        navigationController.popoverPresentationController?.sourceView = sourceView
+                        navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
+
+//                        if UIDevice.current.model == "iPad" {
+//                        } else {
+//                            navigationController.modalPresentationStyle = .overFullScreen
+//                            navigationController.popoverPresentationController?.delegate = self
+//                        }
+                        
+                        popover.navigationItem.title = self.selectedMediaItem?.title
+                        
                         popover.html.fontSize = 12
                         popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
+                        
+                        popover.selectedMediaItem = mediaItem
+                        
+                        popover.content = .html
+                        
+                        popover.navigationController?.isNavigationBarHidden = false
+                        
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.present(navigationController, animated: true, completion: nil)
+                        })
                     }
-                    
-                    popover.selectedMediaItem = mediaItem
-                    
-                    popover.content = .html
-                    
-                    popover.navigationController?.isNavigationBarHidden = false
-                    
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.present(navigationController, animated: true, completion: nil)
-                    })
+                } else {
+                    networkUnavailable("HTML transcript unavailable.")
                 }
 
 //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
@@ -3452,35 +3475,37 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 mediaItem.loadScriptureText()
                 return mediaItem.scriptureTextHTML
             }, completion: { (data:Any?) in
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? WebViewController {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.dismiss(animated: true, completion: nil)
-                    })
-                    
-                    navigationController.modalPresentationStyle = .popover
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                    navigationController.popoverPresentationController?.delegate = self
+                if let htmlString = data as? String {
+                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                        let popover = navigationController.viewControllers[0] as? WebViewController {
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.dismiss(animated: true, completion: nil)
+                        })
+                        
+                        navigationController.modalPresentationStyle = .popover
+                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                        navigationController.popoverPresentationController?.delegate = self
 
-                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
-                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: scripture)!].frame
+                        navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+                        navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: scripture)!].frame
 
-                    popover.navigationItem.title = mediaItem.scripture
-                    
-//                    popover.selectedMediaItem = mediaItem
-                    
-                    if let htmlString = data as? String {
+                        popover.navigationItem.title = mediaItem.scripture
+                        
+    //                    popover.selectedMediaItem = mediaItem
+                        
                         popover.html.fontSize = 12
                         popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
-                    }
 
-                    popover.content = .html
-                    
-                    popover.navigationController?.isNavigationBarHidden = false
-                    
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.present(navigationController, animated: true, completion: nil)
-                    })
+                        popover.content = .html
+                        
+                        popover.navigationController?.isNavigationBarHidden = false
+                        
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.present(navigationController, animated: true, completion: nil)
+                        })
+                    }
+                } else {
+                    networkUnavailable("Scripture text is unavailable.")
                 }
                 
 //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //

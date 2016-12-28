@@ -3637,8 +3637,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     
                     popover.navigationItem.title = self.selectedMediaItem?.title
                     
-                    //                    popover.selectedMediaItem = mediaItem
-                    
                     if let htmlString = data as? String {
                         popover.html.fontSize = 12
                         popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)

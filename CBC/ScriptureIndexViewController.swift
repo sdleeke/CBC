@@ -1938,12 +1938,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             process(viewController: self, work: { () -> (Any?) in
                 mediaItem.loadNotesHTML()
                 return mediaItem.fullNotesHTML
-
-//                if globals.search.active && (globals.search.text != nil) {
-//                    return mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
-//                } else {
-//                    return mediaItem.fullNotesHTML
-//                }
             }, completion: { (data:Any?) in
                 if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? WebViewController {
@@ -1959,8 +1953,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: transcript)!].frame
                     
                     popover.navigationItem.title = self.selectedMediaItem?.title
-                    
-                    //                    popover.selectedMediaItem = mediaItem
                     
                     if let htmlString = data as? String {
                         popover.html.fontSize = 12

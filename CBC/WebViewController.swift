@@ -25,6 +25,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         case html
     }
     
+    var actionButton:UIBarButtonItem?
+    var minusButton:UIBarButtonItem?
+    var plusButton:UIBarButtonItem?
+    
     var wkWebView:WKWebView?
 
     var content:Content = .document
@@ -222,6 +226,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         wkWebView?.isHidden = true
 
         wkWebView?.isMultipleTouchEnabled = true
+        wkWebView?.isUserInteractionEnabled = true
         
 //        wkWebView?.scrollView.scrollsToTop = false
         
@@ -288,6 +293,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
 
             DispatchQueue.main.async(execute: { () -> Void in
+//                self.preferredContentSize = CGSize(width: self.wkWebView!.scrollView.contentSize.width,height: 44)
                 _ = self.wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
             })
             break
@@ -303,12 +309,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
 //                    })
                     
                     navigationController.modalPresentationStyle = .overFullScreen
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                    navigationController.popoverPresentationController?.delegate = self
+                    navigationController.popoverPresentationController?.delegate = popover
                     
                     popover.navigationItem.title = self.navigationItem.title
-                    
-                    //                    popover.selectedMediaItem = mediaItem
                     
                     popover.html.fontSize = self.html.fontSize
                     popover.html.string = self.html.string
@@ -371,9 +374,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                         self.activityIndicator.startAnimating()
                     })
                     
-                    self.html.string = self.selectedMediaItem?.markedFullNotesHTML(searchText:searchText, index: true)
-                    self.html.string = insertHead(stripHead(self.html.string),fontSize: self.html.fontSize)
-
+                    self.html.string = insertHead(stripHead(self.selectedMediaItem?.markedFullNotesHTML(searchText:searchText, index: true)),fontSize: self.html.fontSize)
+                    
                     DispatchQueue.main.async(execute: { () -> Void in
                         _ = self.wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
                     })
@@ -382,10 +384,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 
                 let cancelAction = UIAlertAction(title: "Cancel", style: .default, handler: {
                     (action : UIAlertAction!) -> Void in
-                    
                 })
                 alert.addAction(cancelAction)
-                
                 
                 DispatchQueue.main.async(execute: { () -> Void in
                     self.present(alert, animated: true, completion: nil)
@@ -396,8 +396,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                 if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                     navigationController.modalPresentationStyle = .popover
-                    //            popover?.preferredContentSize = CGSizeMake(300, 500)
-                    
+
                     navigationController.popoverPresentationController?.permittedArrowDirections = .up
                     navigationController.popoverPresentationController?.delegate = self
                     
@@ -415,18 +414,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                             popover.stringsFunction = {
                                 mediaItem?.loadNotesHTML()
                                 
-                                //                            var tokens = Set<String>() // searchTokens
-                                
                                 if let notesTokens = tokenCountsFromString(mediaItem?.notesHTML) {
-                                    //                                tokens = tokens.union(Set(notesTokens.map({ (string:String, count:Int) -> String in
-                                    //                                    return string
-                                    //                                })))
-                                    
-                                    //                                let tokenArray = Array(tokens).sorted()
-                                    
-                                    //                        print(tokenArray)
-                                    
-                                    mediaItem?.notesTokens = notesTokens // tokenArray
+                                    mediaItem?.notesTokens = notesTokens
                                     
                                     return notesTokens.map({ (string:String,count:Int) -> String in
                                         return "\(string) (\(count))"
@@ -518,7 +507,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             navigationController.modalPresentationStyle = .popover
-            //            popover?.preferredContentSize = CGSizeMake(300, 500)
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
@@ -544,7 +532,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             if self.navigationController?.modalPresentationStyle == .popover {
                 actionMenu.append(Constants.Full_Screen)
             }
-
+            
             if UIPrintInteractionController.isPrintingAvailable {
                 actionMenu.append(Constants.Print)
             }
@@ -573,43 +561,55 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
     {
         html.fontSize += 1
         
-        activityIndicator.isHidden = false
-        activityIndicator.startAnimating()
-        
         captureHTMLContentOffsetAndZoomScale()
         
+        DispatchQueue.main.async(execute: { () -> Void in
+            if self.html.fontSize > Constants.HTML_MIN_FONT_SIZE {
+                self.minusButton?.isEnabled = true
+            }
+            
+            self.activityIndicator.isHidden = false
+            self.activityIndicator.startAnimating()
+        })
+
         html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
         _ = wkWebView?.loadHTMLString(html.string!, baseURL: nil)
     }
     
     func decreaseFontSize()
     {
-        html.fontSize -= 1
-        
-        activityIndicator.isHidden = false
-        activityIndicator.startAnimating()
-        
-        captureHTMLContentOffsetAndZoomScale()
-        
-        html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
-        _ = wkWebView?.loadHTMLString(html.string!, baseURL: nil)
+        if html.fontSize > Constants.HTML_MIN_FONT_SIZE {
+            html.fontSize -= 1
+            
+            captureHTMLContentOffsetAndZoomScale()
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                if self.html.fontSize <= Constants.HTML_MIN_FONT_SIZE {
+                    self.minusButton?.isEnabled = false
+                }
+                
+                self.activityIndicator.isHidden = false
+                self.activityIndicator.startAnimating()
+            })
+            
+            html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
+            _ = wkWebView?.loadHTMLString(html.string!, baseURL: nil)
+        }
     }
     
     fileprivate func setupActionButton()
     {
-        let actionButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(WebViewController.actions))
+        actionButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(WebViewController.actions))
 
-        let plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.increaseFontSize))
+        plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.increaseFontSize))
         
-        //        plusButton?.title = Constants.FA.CARET_DOWN
-        plusButton.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
+        plusButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
         
-        let minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.decreaseFontSize))
+        minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.decreaseFontSize))
         
-//        minusButton?.title = Constants.FA.CARET_DOWN
-        minusButton.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
+        minusButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
         
-        navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton], animated: true)
+        navigationItem.setRightBarButtonItems([actionButton!,minusButton!,plusButton!], animated: true)
         
         if navigationController?.modalPresentationStyle == .overFullScreen {
             navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
@@ -665,8 +665,12 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
 
             DispatchQueue.global(qos: .background).async {
                 Thread.sleep(forTimeInterval: 0.1)
+                
                 DispatchQueue.main.async(execute: { () -> Void in
                     wkWebView.isHidden = false
+                    
+//                    print(wkWebView.scrollView.contentSize.width,wkWebView.scrollView.contentSize.height)
+
                     self.preferredContentSize = CGSize(width: wkWebView.scrollView.contentSize.width,height: wkWebView.scrollView.contentSize.height)
                 })
             }
@@ -887,6 +891,19 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                     self.setupHTMLWKZoomScaleAndContentOffset(self.wkWebView)
                     break
                 }
+
+                var width:CGFloat = 0
+                
+                if let title = self.navigationItem.title {
+                    let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+                    
+                    let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
+                    
+                    width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0)], context: nil).width + 150
+                }
+                
+                self.navigationController?.preferredContentSize = CGSize(width: max(width,self.wkWebView!.scrollView.contentSize.width),
+                                                                         height: self.wkWebView!.scrollView.contentSize.height)
             })
         }
     }

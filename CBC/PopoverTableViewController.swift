@@ -280,16 +280,16 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                     })
                     
                     self.setupIndex()
+                    
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.tableView.reloadData()
+                        
+                        self.setPreferredContentSize()
+                        
+                        self.activityIndicator.stopAnimating()
+                        self.activityIndicator?.isHidden = true
+                    })
                 }
-
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.tableView.reloadData()
-                    
-                    self.setPreferredContentSize()
-                    
-                    self.activityIndicator.stopAnimating()
-                    self.activityIndicator?.isHidden = true
-                })
             }
         }
         

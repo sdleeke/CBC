@@ -829,7 +829,9 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                 
                 self.xmlParser?.delegate = self
                 
-                self.xmlParser?.parse()
+                if let success = self.xmlParser?.parse(), !success {
+                    xmlParser = nil
+                }
             }
         }
     }
