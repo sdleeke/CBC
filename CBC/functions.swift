@@ -3049,25 +3049,27 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
     
     var mediaListSort = [String:[MediaItem]]()
     
-    var mediaItemList:[MediaItem]?
+    // DO NOT sort them, they are expected to come in sorted order. 
     
-    mediaItemList = mediaItems?.sorted() {
-        if stringWithoutPrefixes($0.title) == stringWithoutPrefixes($1.title) {
-            if ($0.fullDate!.isEqualTo($1.fullDate!)) {
-                return $0.service < $1.service
-            } else {
-                return $0.fullDate!.isOlderThan($1.fullDate!)
-            }
-        } else {
-            return stringWithoutPrefixes($0.title) < stringWithoutPrefixes($1.title)
-        }
-    }
+//    var mediaItemList:[MediaItem]?
+//    
+//    mediaItemList = mediaItems?.sorted() {
+//        if stringWithoutPrefixes($0.title) == stringWithoutPrefixes($1.title) {
+//            if ($0.fullDate!.isEqualTo($1.fullDate!)) {
+//                return $0.service < $1.service
+//            } else {
+//                return $0.fullDate!.isOlderThan($1.fullDate!)
+//            }
+//        } else {
+//            return stringWithoutPrefixes($0.title) < stringWithoutPrefixes($1.title)
+//        }
+//    }
+//    
+//    guard (mediaItemList != nil) else {
+//        return nil
+//    }
     
-    guard (mediaItemList != nil) else {
-        return nil
-    }
-    
-    for mediaItem in mediaItemList! {
+    for mediaItem in mediaItems! {
         if let multiPartName = mediaItem.multiPartName {
             if mediaListSort[multiPartName] == nil {
                 mediaListSort[multiPartName] = [mediaItem]
