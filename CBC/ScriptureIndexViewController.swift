@@ -1303,12 +1303,12 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         if globals.search.valid, let text = globals.search.text {
             bodyString = bodyString! + "Search: \(text)<br/><br/>"
         }
-        
+
         if let selectedTestament = self.scriptureIndex?.selectedTestament {
             var indexFor = translateTestament(selectedTestament)
 
             if let selectedBook = self.scriptureIndex?.selectedBook {
-                indexFor = indexFor + Constants.SINGLE_SPACE + selectedBook
+                indexFor = selectedBook // indexFor + Constants.SINGLE_SPACE +
                 
                 if let chapter = self.scriptureIndex?.selectedChapter, chapter > 0 {
                     indexFor = indexFor + " \(chapter)"
@@ -1319,9 +1319,11 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                 }
             }
             
-            bodyString = bodyString! + "Scripture Index For: \(indexFor)<br/><br/>"
+            bodyString = bodyString! + "\(indexFor) Scripture Index<br/>"
         }
         
+        bodyString = bodyString! + "Items are grouped and sorted by Scripture reference.<br/><br/>"
+
         let books = bodyItems.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
         
         if includeURLs, (books.count > 1) {

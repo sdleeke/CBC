@@ -92,6 +92,17 @@ struct Grouping {
     static let TITLE = "title"
 }
 
+struct Sorting {
+    static let CHRONOLOGICAL = "chronological"
+    //    static let Chronological = "Chronological"
+    
+    static let REVERSE_CHRONOLOGICAL = "reverse chronological"
+    //    static let Reverse_Chronological = "Reverse Chronological"
+    
+    static let Newest_to_Oldest = "Newest to Oldest"
+    static let Oldest_to_Newest = "Oldest to Newest"
+}
+
 struct Constants {
     struct JSON {
         static let MEDIA_PATH = "media" //
@@ -592,17 +603,8 @@ struct Constants {
         static let PDF  = ".pdf"
     }
 
-    static let CHRONOLOGICAL = "chronological"
-    static let Chronological = "Chronological"
-    
-    static let REVERSE_CHRONOLOGICAL = "reverse chronological"
-    static let Reverse_Chronological = "Reverse Chronological"
-
-    static let Newest_to_Oldest = "Newest to Oldest"
-    static let Oldest_to_Newest = "Oldest to Newest"
-    
-    static let sortings = [CHRONOLOGICAL, REVERSE_CHRONOLOGICAL]
-    static let Sortings = [Oldest_to_Newest, Newest_to_Oldest]
+    static let sortings = [Sorting.CHRONOLOGICAL, Sorting.REVERSE_CHRONOLOGICAL]
+    static let Sortings = [Sorting.Oldest_to_Newest, Sorting.Newest_to_Oldest]
     
     static let groupings = [Grouping.YEAR, Grouping.TITLE, Grouping.BOOK, Grouping.SPEAKER]
     static let Groupings = [Grouping.Year, Grouping.Title, Grouping.Book, Grouping.Speaker]

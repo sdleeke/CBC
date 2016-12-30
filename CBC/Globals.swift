@@ -430,7 +430,7 @@ class Globals : NSObject {
         }
     }
     
-    var sorting:String? = Constants.REVERSE_CHRONOLOGICAL {
+    var sorting:String? = Sorting.REVERSE_CHRONOLOGICAL {
         didSet {
             media.need.sorting = (sorting != oldValue)
             
@@ -739,7 +739,7 @@ class Globals : NSObject {
                 if let sortingString = defaults.string(forKey: Constants.SETTINGS.KEY.SORTING) {
                     sorting = sortingString
                 } else {
-                    sorting = Constants.REVERSE_CHRONOLOGICAL
+                    sorting = Sorting.REVERSE_CHRONOLOGICAL
                 }
                 
                 if let groupingString = defaults.string(forKey: Constants.SETTINGS.KEY.GROUPING) {

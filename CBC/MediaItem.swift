@@ -203,13 +203,13 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
             if (hasMultipleParts) {
                 var mediaItemParts:[MediaItem]?
 //                print(multiPartSort)
-                if (globals.media.all?.groupSort?[Grouping.TITLE]?[multiPartSort!]?[Constants.CHRONOLOGICAL] == nil) {
+                if (globals.media.all?.groupSort?[Grouping.TITLE]?[multiPartSort!]?[Sorting.CHRONOLOGICAL] == nil) {
                     mediaItemParts = globals.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
                         return (testMediaItem.multiPartName == multiPartName) && (testMediaItem.category == category)
                     })
 
                 } else {
-                    mediaItemParts = globals.media.all?.groupSort?[Grouping.TITLE]?[multiPartSort!]?[Constants.CHRONOLOGICAL]?.filter({ (testMediaItem:MediaItem) -> Bool in
+                    mediaItemParts = globals.media.all?.groupSort?[Grouping.TITLE]?[multiPartSort!]?[Sorting.CHRONOLOGICAL]?.filter({ (testMediaItem:MediaItem) -> Bool in
                         return (testMediaItem.multiPartName == multiPartName) && (testMediaItem.category == category)
                     })
                 }
@@ -222,12 +222,12 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                 if conferenceCode != nil {
                     return sortMediaItemsByYear(mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
                         return testMediaItem.conferenceCode == conferenceCode
-                    }),sorting: Constants.CHRONOLOGICAL)
+                    }),sorting: Sorting.CHRONOLOGICAL)
                 } else {
                     return sortMediaItemsByYear(mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
                         //                        print(classCode,testMediaItem.classCode)
                         return testMediaItem.classCode == classCode
-                    }),sorting: Constants.CHRONOLOGICAL)
+                    }),sorting: Sorting.CHRONOLOGICAL)
                 }
             } else {
                 return [self]

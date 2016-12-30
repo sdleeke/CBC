@@ -419,10 +419,10 @@ func yearsFromMediaItems(_ mediaItems:[MediaItem]?, sorting: String?) -> [Int]?
             )
             ).sorted(by: { (first:Int, second:Int) -> Bool in
                 switch sorting! {
-                case Constants.CHRONOLOGICAL:
+                case Sorting.CHRONOLOGICAL:
                     return first < second
                     
-                case Constants.REVERSE_CHRONOLOGICAL:
+                case Sorting.REVERSE_CHRONOLOGICAL:
                     return first > second
                     
                 default:
@@ -1558,13 +1558,13 @@ func multiPartMediaItems(_ mediaItem:MediaItem?) -> [MediaItem]?
     
     if (mediaItem != nil) {
         if (mediaItem!.hasMultipleParts) {
-            if (globals.media.all?.groupSort?[Grouping.TITLE]?[mediaItem!.multiPartSort!]?[Constants.CHRONOLOGICAL] == nil) {
+            if (globals.media.all?.groupSort?[Grouping.TITLE]?[mediaItem!.multiPartSort!]?[Sorting.CHRONOLOGICAL] == nil) {
                 let seriesMediaItems = globals.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
                     return mediaItem!.hasMultipleParts ? (testMediaItem.multiPartName == mediaItem!.multiPartName) : (testMediaItem.id == mediaItem!.id)
                 })
-                multiPartMediaItems = sortMediaItemsByYear(seriesMediaItems, sorting: Constants.CHRONOLOGICAL)
+                multiPartMediaItems = sortMediaItemsByYear(seriesMediaItems, sorting: Sorting.CHRONOLOGICAL)
             } else {
-                multiPartMediaItems = globals.media.all?.groupSort?[Grouping.TITLE]?[mediaItem!.multiPartSort!]?[Constants.CHRONOLOGICAL]
+                multiPartMediaItems = globals.media.all?.groupSort?[Grouping.TITLE]?[mediaItem!.multiPartSort!]?[Sorting.CHRONOLOGICAL]
             }
         } else {
             multiPartMediaItems = [mediaItem!]
@@ -1957,11 +1957,11 @@ func sortMediaItemsByYear(_ mediaItems:[MediaItem]?,sorting:String?) -> [MediaIt
     var sortedMediaItems:[MediaItem]?
 
     switch sorting! {
-    case Constants.CHRONOLOGICAL:
+    case Sorting.CHRONOLOGICAL:
         sortedMediaItems = sortMediaItemsChronologically(mediaItems)
         break
         
-    case Constants.REVERSE_CHRONOLOGICAL:
+    case Sorting.REVERSE_CHRONOLOGICAL:
         sortedMediaItems = sortMediaItemsReverseChronologically(mediaItems)
         break
         
@@ -1977,7 +1977,7 @@ func compareMediaItemDates(first:MediaItem, second:MediaItem, sorting:String?) -
     var result = false
 
     switch sorting! {
-    case Constants.CHRONOLOGICAL:
+    case Sorting.CHRONOLOGICAL:
         if (first.fullDate!.isEqualTo(second.fullDate!)) {
             result = (first.service < second.service)
         } else {
@@ -1985,7 +1985,7 @@ func compareMediaItemDates(first:MediaItem, second:MediaItem, sorting:String?) -
         }
         break
     
-    case Constants.REVERSE_CHRONOLOGICAL:
+    case Sorting.REVERSE_CHRONOLOGICAL:
         if (first.fullDate!.isEqualTo(second.fullDate!)) {
             result = (first.service > second.service)
         } else {
@@ -2846,16 +2846,21 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
     }
 
     if let category = globals.mediaCategory.selected {
-        bodyString = bodyString! + "Category: \(category)<br/><br/>"
+        bodyString = bodyString! + "Category: \(category)<br/>"
     }
 
     if globals.media.tags.showing == Constants.TAGGED, let tag = globals.media.tags.selected {
-        bodyString = bodyString! + "Collection: \(tag)<br/><br/>"
+        bodyString = bodyString! + "Collection: \(tag)<br/>"
     }
     
     if globals.search.valid, let searchText = globals.search.text {
-        bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
+        bodyString = bodyString! + "Search: \(searchText)<br/>"
     }
+
+    bodyString = bodyString! + "Grouped: By \(translate(globals.grouping)!)<br/>"
+    bodyString = bodyString! + "Sorted: \(translate(globals.sorting)!)<br/>"
+    
+    bodyString = bodyString! + "<br/>"
     
     if let keys = globals.media.active?.section?.indexTitles {
         if includeURLs, (keys.count > 1) {
@@ -3038,6 +3043,36 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
     bodyString = bodyString! + "</body></html>"
     
     return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
+}
+
+func translate(_ string:String?) -> String?
+{
+    guard (string != nil) else {
+        return nil
+    }
+    
+    switch string! {
+    case Sorting.CHRONOLOGICAL:
+        return Sorting.Oldest_to_Newest
+        
+    case Sorting.REVERSE_CHRONOLOGICAL:
+        return Sorting.Newest_to_Oldest
+
+    case Grouping.YEAR:
+        return Grouping.Year
+        
+    case Grouping.TITLE:
+        return Grouping.Title
+        
+    case Grouping.BOOK:
+        return Grouping.Book
+        
+    case Grouping.SPEAKER:
+        return Grouping.Speaker
+        
+    default:
+        return nil
+    }
 }
 
 func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String? {

@@ -345,6 +345,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                             }
                             
                             DispatchQueue.main.async(execute: { () -> Void in
+                                self.setPreferredContentSize()
                                 self.tableView.reloadData()
                             })
                         }

@@ -241,11 +241,11 @@ class MediaListGroupSort {
                     let array = sortMediaItemsChronologically(groupedMediaItems[grouping!]?[string])
                     
                     switch sort {
-                    case Constants.CHRONOLOGICAL:
+                    case Sorting.CHRONOLOGICAL:
                         groupSort?[grouping!]?[string]?[sort] = array
                         break
                         
-                    case Constants.REVERSE_CHRONOLOGICAL:
+                    case Sorting.REVERSE_CHRONOLOGICAL:
                         groupSort?[grouping!]?[string]?[sort] = array?.reversed()
                         break
                         
@@ -278,10 +278,10 @@ class MediaListGroupSort {
                     switch grouping! {
                     case Grouping.YEAR:
                         switch sorting! {
-                        case Constants.CHRONOLOGICAL:
+                        case Sorting.CHRONOLOGICAL:
                             return $0 < $1
                             
-                        case Constants.REVERSE_CHRONOLOGICAL:
+                        case Sorting.REVERSE_CHRONOLOGICAL:
                             return $1 < $0
                             
                         default:
@@ -384,10 +384,10 @@ class MediaListGroupSort {
             switch grouping! {
             case Grouping.YEAR:
                 switch sorting! {
-                case Constants.CHRONOLOGICAL:
+                case Sorting.CHRONOLOGICAL:
                     return $0 < $1
                     
-                case Constants.REVERSE_CHRONOLOGICAL:
+                case Sorting.REVERSE_CHRONOLOGICAL:
                     return $1 < $0
                     
                 default:
@@ -423,10 +423,10 @@ class MediaListGroupSort {
             switch grouping! {
             case Grouping.YEAR:
                 switch sorting! {
-                case Constants.CHRONOLOGICAL:
+                case Sorting.CHRONOLOGICAL:
                     return $0 < $1
                     
-                case Constants.REVERSE_CHRONOLOGICAL:
+                case Sorting.REVERSE_CHRONOLOGICAL:
                     return $1 < $0
                     
                 default:
@@ -465,10 +465,10 @@ class MediaListGroupSort {
             switch grouping! {
             case Grouping.YEAR:
                 switch sorting! {
-                case Constants.CHRONOLOGICAL:
+                case Sorting.CHRONOLOGICAL:
                     return $0 < $1
                     
-                case Constants.REVERSE_CHRONOLOGICAL:
+                case Sorting.REVERSE_CHRONOLOGICAL:
                     return $1 < $0
                     
                 default:

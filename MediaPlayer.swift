@@ -422,6 +422,11 @@ class MediaPlayer {
         didSet {
             globals.mediaCategory.playing = mediaItem?.id
             
+            // Remove playing icon if the previous mediaItem was playing. 
+            DispatchQueue.main.async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
+            })
+            
             if mediaItem == nil {
                 MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
                 player = nil

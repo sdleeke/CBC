@@ -859,14 +859,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             case Constants.Lexicon:
                 var mlgs:MediaListGroupSort?
                 
-                if (globals.media.all?.lexicon != nil) {
+                if (globals.media.all?.lexicon != nil) || globals.reachability.isReachable {
                     mlgs = globals.media.all
                 } else {
-                    if globals.reachability.isReachable {
-                        mlgs = globals.media.all
-                    } else {
-                        networkUnavailable("Lexicon unavailable.")
-                    }
+                    networkUnavailable("Lexicon unavailable.")
                 }
                 
                 if mlgs != nil, let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
