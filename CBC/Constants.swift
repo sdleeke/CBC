@@ -300,6 +300,8 @@ struct Constants {
     static let CBC_in_Apple_Maps = CBC.SHORT + " in Apple Maps"
     static let CBC_in_Google_Maps = CBC.SHORT + " in Google Maps"
 
+    static let Share_This_App = "Share This App"
+    
     static let Show = "Show"
     static let Select_Category = "Select Category"
     

@@ -1322,7 +1322,9 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             bodyString = bodyString! + "\(indexFor) Scripture Index<br/>"
         }
         
-        bodyString = bodyString! + "Items are grouped and sorted by Scripture reference.<br/><br/>"
+        bodyString = bodyString! + "Items are grouped and sorted by Scripture reference.<br/>"
+
+        bodyString = bodyString! + "Total: \(mediaItems!.count)<br/><br/>"
 
         let books = bodyItems.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
         
@@ -1339,15 +1341,15 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                 bodyString  = bodyString! + "<tr>"
                 bodyString  = bodyString! + "<td valign=\"top\" colspan=\"6\">"
             }
-            
-            if includeURLs && (books.count > 1) {
-                let tag = book.replacingOccurrences(of: " ", with: "")
-                bodyString = bodyString! + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">" + book + "</a>"
-            } else {
-                bodyString = bodyString! + book
-            }
 
             if let mediaItems = bodyItems[book] {
+                if includeURLs && (books.count > 1) {
+                    let tag = book.replacingOccurrences(of: " ", with: "")
+                    bodyString = bodyString! + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">" + book + " (\(mediaItems.count))" + "</a>"
+                } else {
+                    bodyString = bodyString! + book
+                }
+
                 var speakerCounts = [String:Int]()
                 
                 for mediaItem in mediaItems {
@@ -1417,7 +1419,9 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             bodyString = bodyString! + "<div><a id=\"index\" name=\"index\" href=\"#top\">Index</a><br/><br/>"
             
             for book in books {
-                bodyString = bodyString! + "<a href=\"#\(book.replacingOccurrences(of: " ", with: ""))\">\(book)</a><br/>"
+                if let count = bodyItems[book]?.count {
+                    bodyString = bodyString! + "<a href=\"#\(book.replacingOccurrences(of: " ", with: ""))\">\(book) (\(count))</a><br/>"
+                }
             }
             
             bodyString = bodyString! + "</div>"

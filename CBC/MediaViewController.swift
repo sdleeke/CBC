@@ -1179,9 +1179,13 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 }, completion: { (data:Any?) in
                     printHTML(viewController: self, htmlString: data as? String)
                 })
-               break
+                break
                 
             case Constants.Share:
+                shareHTML(viewController: self, htmlString: mediaItem?.webLink)
+                break
+                
+            case Constants.Share_All:
                 shareMediaItems(viewController: self, mediaItems: mediaItems, stringFunction: setupMediaItemsHTML)
                 break
                 
@@ -1227,6 +1231,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             
             popover.delegate = self
             popover.purpose = .selectingAction
+            
+            popover.selectedMediaItem = selectedMediaItem
             
             var actionMenu = [String]()
 
@@ -1399,9 +1405,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 actionMenu.append(Constants.Share)
             }
             
-//            if mediaItems?.count > 1 {
-//                actionMenu.append(Constants.Share_All)
-//            }
+            if mediaItems?.count > 1 {
+                actionMenu.append(Constants.Share_All)
+            }
             
             popover.strings = actionMenu
             

@@ -2677,7 +2677,7 @@ func shareMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,str
     guard (mediaItems != nil) && (stringFunction != nil) else {
         return
     }
-
+    
     process(viewController: viewController, work: {
         return stringFunction?(mediaItems)
     }, completion: { (data:Any?) in
@@ -2860,9 +2860,18 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
     bodyString = bodyString! + "Grouped: By \(translate(globals.grouping)!)<br/>"
     bodyString = bodyString! + "Sorted: \(translate(globals.sorting)!)<br/>"
     
-    bodyString = bodyString! + "<br/>"
-    
     if let keys = globals.media.active?.section?.indexTitles {
+        var count = 0
+        for key in keys {
+            if let mediaItems = globals.media.active?.groupSort?[globals.grouping!]?[key]?[globals.sorting!] {
+                count += mediaItems.count
+            }
+        }
+
+        bodyString = bodyString! + "Total: \(count)<br/>"
+        
+        bodyString = bodyString! + "<br/>"
+        
         if includeURLs, (keys.count > 1) {
             bodyString = bodyString! + "<a href=\"#index\">Index</a><br/><br/>"
         }
@@ -2872,7 +2881,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
         }
         
         for key in keys {
-            if let name = globals.media.active?.groupNames?[globals.grouping!]?[key],
+            if  let name = globals.media.active?.groupNames?[globals.grouping!]?[key],
                 let mediaItems = globals.media.active?.groupSort?[globals.grouping!]?[key]?[globals.sorting!] {
                 var speakerCounts = [String:Int]()
                 
@@ -2895,9 +2904,9 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                 
                 if includeURLs, (keys.count > 1) {
                     let tag = key.replacingOccurrences(of: " ", with: "")
-                    bodyString = bodyString! + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + "</a>"
+                    bodyString = bodyString! + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + " (\(mediaItems.count))" + "</a>"
                 } else {
-                    bodyString = bodyString! + name
+                    bodyString = bodyString! + name + " (\(mediaItems.count))"
                 }
                 
                 if speakerCount == 1 {
@@ -3013,9 +3022,10 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                         
                         if let keys = stringIndex[title] {
                             for key in keys {
-                                if let title = globals.media.active?.groupNames?[globals.grouping!]?[key] {
+                                if let title = globals.media.active?.groupNames?[globals.grouping!]?[key],
+                                    let count = globals.media.active?.groupSort?[globals.grouping!]?[key]?[globals.sorting!]?.count {
                                     let tag = key.replacingOccurrences(of: " ", with: "")
-                                    bodyString = bodyString! + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title)</a><br/>"
+                                    bodyString = bodyString! + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
                                 }
                             }
                             bodyString = bodyString! + "<br/>"
@@ -3028,9 +3038,10 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                 
             default:
                 for key in keys {
-                    if let title = globals.media.active?.groupNames?[globals.grouping!]?[key] {
+                    if let title = globals.media.active?.groupNames?[globals.grouping!]?[key],
+                        let count = globals.media.active?.groupSort?[globals.grouping!]?[key]?[globals.sorting!]?.count {
                         let tag = key.replacingOccurrences(of: " ", with: "")
-                        bodyString = bodyString! + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title)</a><br/>"
+                        bodyString = bodyString! + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
                     }
                 }
                 break

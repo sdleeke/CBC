@@ -459,6 +459,17 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         }
     }
     
+    var webLink : String? {
+        get {
+            
+            if let body = bodyHTML(order: ["title","scripture","speaker"], includeURLs: false, includeColumns: false), let urlString = websiteURL?.absoluteString {
+                return body + "\n\n" + urlString
+            } else {
+                return nil
+            }
+        }
+    }
+    
     var websiteURL:URL? {
         get {
             return URL(string: Constants.CBC.SINGLE_WEBSITE + id)
@@ -1917,7 +1928,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
             return bodyString
         }
     }
-
+    
     func bodyHTML(order:[String],includeURLs:Bool,includeColumns:Bool) -> String?
     {
         var bodyString:String?

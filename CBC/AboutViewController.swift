@@ -105,6 +105,8 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
             actionMenu.append(Constants.CBC_in_Apple_Maps)
             actionMenu.append(Constants.CBC_in_Google_Maps)
             
+            actionMenu.append(Constants.Share_This_App)
+            
             popover.strings = actionMenu
             
             popover.showIndex = false //(globals.grouping == .series)
@@ -147,6 +149,10 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
                 
             case Constants.CBC_in_Google_Maps:
                 openInGoogleMaps()
+                break
+                
+            case Constants.Share_This_App:
+                shareHTML(viewController: self, htmlString: "Countryside Bible Church Media app\n\nhttps://itunes.apple.com/us/app/countryside-bible-church-media/id1166303807?ls=1&mt=8")
                 break
                 
             default:

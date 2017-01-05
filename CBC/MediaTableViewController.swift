@@ -62,7 +62,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
     var showProgress = true
     
-    var refreshList = true
+//    var refreshList = true
     var changesPending = false
     
     var jsonSource:JSONSource = .direct
@@ -2145,7 +2145,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func editing()
     {
-        refreshList = false
+//        refreshList = false
         DispatchQueue.main.async(execute: { () -> Void in
             self.searchBar.resignFirstResponder()
         })
@@ -2158,7 +2158,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 self.tableView.reloadData()
             })
         }
-        refreshList = true
+//        refreshList = true
         changesPending = false
     }
     
@@ -2425,7 +2425,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         }
         
         DispatchQueue.main.async(execute: { () -> Void in
-            if self.refreshList {
+            if !self.tableView.isEditing {
                 self.tableView.reloadData()
             } else {
                 self.changesPending = true
@@ -2478,7 +2478,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         globals.search.complete = false
 
-        refreshList = true
+//        refreshList = true
         
 //            print(searchText!)
 
@@ -2594,7 +2594,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
     func selectOrScrollToMediaItem(_ mediaItem:MediaItem?, select:Bool, scroll:Bool, position: UITableViewScrollPosition)
     {
-        guard refreshList else {
+        guard !tableView.isEditing else {
             return
         }
         
@@ -3256,7 +3256,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     {
 //        setupRowActionFont()
         
-        refreshList = false
+//        refreshList = false
         
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
             return nil
