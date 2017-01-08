@@ -2647,11 +2647,16 @@ func mailMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stri
     })
 }
 
-func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:String?,sourceView:UIView!,sourceRectView:UIView!,htmlString:String?)
+func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:String?,barButtonItem:UIBarButtonItem?,sourceView:UIView?,sourceRectView:UIView?,htmlString:String?)
 {
     guard htmlString != nil else {
         return
     }
+    
+    guard (barButtonItem != nil) || ((sourceView != nil) && (sourceRectView != nil)) else {
+        return
+    }
+    
     
     if let navigationController = viewController.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
         let popover = navigationController.viewControllers[0] as? WebViewController {
@@ -2673,16 +2678,18 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
             //
             //                            print(  self.view.convert(sourceRectView.frame.origin, from: sourceRectView).y -
             //                                    self.view.frame.origin.y)
-            
-            let gap =   viewController.navigationController!.view.convert(sourceRectView.frame.origin, from: sourceRectView).y -
-                viewController.navigationController!.view.frame.origin.y -
-                viewController.navigationController!.navigationBar.frame.height -
-                UIApplication.shared.statusBarFrame.height
-            
-            //                            print(gap)
-            
-            if gap < 139 { // Ugh, a magic number.
-                style = .overFullScreen
+
+            if let frame = sourceRectView?.frame {
+                let gap =   viewController.navigationController!.view.convert(frame.origin, from: sourceRectView).y -
+                    viewController.navigationController!.view.frame.origin.y -
+                    viewController.navigationController!.navigationBar.frame.height -
+                    UIApplication.shared.statusBarFrame.height
+                
+                //                            print(gap)
+                
+                if gap < 139 { // Ugh, a magic number.
+                    style = .overFullScreen
+                }
             }
         }
         
@@ -2690,14 +2697,23 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
         navigationController.popoverPresentationController?.permittedArrowDirections = direction
         navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
         
-        navigationController.popoverPresentationController?.sourceView = sourceView
-        navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
+        if sourceView != nil {
+            navigationController.popoverPresentationController?.sourceView = sourceView
+            
+            if let frame = sourceRectView?.frame {
+                navigationController.popoverPresentationController?.sourceRect = frame
+            }
+        }
+
+        if barButtonItem != nil {
+            navigationController.popoverPresentationController?.barButtonItem = barButtonItem
+        }
         
-        //                        if UIDevice.current.model == "iPad" {
-        //                        } else {
-        //                            navigationController.modalPresentationStyle = .overFullScreen
-        //                            navigationController.popoverPresentationController?.delegate = self
-        //                        }
+//        if UIDevice.current.model == "iPad" {
+//        } else {
+//            navigationController.modalPresentationStyle = .overFullScreen
+//            navigationController.popoverPresentationController?.delegate = self
+//        }
         
         popover.navigationItem.title = mediaItem?.title
         

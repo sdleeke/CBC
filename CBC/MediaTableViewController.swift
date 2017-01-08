@@ -295,10 +295,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             showMenu.append(Constants.Scripture_Index)
             
-            showMenu.append(Constants.View_List)
-            
-            if globals.search.transcripts {
+            if globals.media.active?.list?.count > 0 {
+                showMenu.append(Constants.View_List)
             }
+            
             showMenu.append(Constants.Lexicon)
             
             if globals.history != nil {
@@ -3438,7 +3438,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     htmlString = mediaItem.fullNotesHTML
                 }
 
-                popoverHTML(self,mediaItem:mediaItem,title:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
@@ -3449,7 +3449,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     }
                 }, completion: { (data:Any?) in
                     if let htmlString = data as? String {
-                        popoverHTML(self,mediaItem:mediaItem,title:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                        popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
                     } else {
                         networkUnavailable("HTML transcript unavailable.")
                     }
@@ -3465,14 +3465,14 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             let sourceRectView = cell.subviews[0].subviews[actions.index(of: scripture)!]
 
             if mediaItem.scriptureTextHTML != nil {
-                popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scriptureTextHTML)
+                popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scriptureTextHTML)
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadScriptureText()
                     return mediaItem.scriptureTextHTML
                 }, completion: { (data:Any?) in
                     if let htmlString = data as? String {
-                        popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                        popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
                         
 //                        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
 //                            let popover = navigationController.viewControllers[0] as? WebViewController {

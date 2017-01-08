@@ -354,7 +354,7 @@ struct Picker {
     var verses:[Int]?
 }
 
-class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate, UIPopoverPresentationControllerDelegate, MFMailComposeViewControllerDelegate, PopoverTableViewControllerDelegate {
+class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate, UIPopoverPresentationControllerDelegate, MFMailComposeViewControllerDelegate, XMLParserDelegate, PopoverTableViewControllerDelegate {
     var finished:Float = 0.0
     var progress:Float = 0.0 {
         didSet {
@@ -718,6 +718,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     
     func updateSearchResults()
     {
+        scriptureText = nil
+        
         guard (scriptureIndex?.selectedTestament != nil) else {
             mediaItems = nil
             
@@ -1432,6 +1434,170 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         return insertHead(bodyString,fontSize:Constants.FONT_SIZE)
     }
 
+    var xmlParser:XMLParser?
+    var xmlString:String?
+
+    var scripture:String? {
+        get {
+            guard scriptureIndex?.selectedTestament != nil else {
+                return nil
+            }
+            
+            var reference:String?
+            
+            if let selectedBook = scriptureIndex?.selectedBook {
+                reference = selectedBook
+            }
+            
+            if reference != nil, let selectedChapter = scriptureIndex?.selectedChapter, selectedChapter > 0 {
+                reference = reference! + " \(selectedChapter)"
+            }
+            
+            if reference != nil, let selectedVerse = scriptureIndex?.selectedVerse, selectedVerse > 0 {
+                reference = reference! + ":\(selectedVerse)"
+            }
+            
+            return reference
+        }
+    }
+    
+                        //Book //Chap  //Verse //Text
+    var scriptureText:[String:[String:[String:String]]]?
+    
+    var book:String?
+    var chapter:String?
+    var verse:String?
+    
+    func parserDidStartDocument(_ parser: XMLParser) {
+        
+    }
+    
+    func parserDidEndDocument(_ parser: XMLParser) {
+        
+    }
+    
+    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
+        print(parseError.localizedDescription)
+    }
+    
+    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
+        
+        //        print(elementName)
+    }
+    
+    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
+        //        print(elementName)
+        
+        if scriptureText == nil {
+            scriptureText = [String:[String:[String:String]]]()
+        }
+        
+        switch elementName {
+        case "bookname":
+            book = xmlString
+            
+            if scriptureText?[book!] == nil {
+                scriptureText?[book!] = [String:[String:String]]()
+            }
+            break
+            
+        case "chapter":
+            chapter = xmlString
+            
+            if scriptureText?[book!]?[chapter!] == nil {
+                scriptureText?[book!]?[chapter!] = [String:String]()
+            }
+            break
+            
+        case "verse":
+            verse = xmlString
+            break
+            
+        case "text":
+            scriptureText?[book!]?[chapter!]?[verse!] = xmlString
+            //            print(scriptureText)
+            break
+            
+        default:
+            break
+        }
+        
+        xmlString = nil
+    }
+    
+    func parser(_ parser: XMLParser, foundElementDeclarationWithName elementName: String, model: String) {
+        //        print(elementName)
+    }
+    
+    func parser(_ parser: XMLParser, foundCharacters string: String) {
+        //        print(string)
+        xmlString = (xmlString != nil ? xmlString! + string : string).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    }
+    
+    var scriptureTextHTML:String? {
+        get {
+            guard scriptureText != nil else {
+                return nil
+            }
+            
+            var bodyString:String?
+            
+            bodyString = "<!DOCTYPE html><html><body>"
+            
+            bodyString = bodyString! + "Scripture: " + scripture! + "<br/>"
+            
+            if let books = scriptureText?.keys.sorted(by: {
+                bookNumberInBible($0) < bookNumberInBible($1)
+            }) {
+                for book in books {
+                    bodyString = bodyString! + book + "<br/>"
+                    if let chapters = scriptureText?[book]?.keys.sorted(by: { Int($0) < Int($1) }) {
+                        for chapter in chapters {
+                            bodyString = bodyString! + "Chapter " + chapter + "<br/>"
+                            if let verses = scriptureText?[book]?[chapter]?.keys.sorted(by: { Int($0) < Int($1) }) {
+                                for verse in verses {
+                                    if let text = scriptureText?[book]?[chapter]?[verse] {
+                                        bodyString = bodyString! + "<sup>" + verse + "</sup>" + text + " "
+                                    } // <font size=\"-1\"></font>
+                                }
+                                bodyString = bodyString! + "<br/>"
+                            }
+                        }
+                    }
+                }
+            }
+            
+            bodyString = bodyString! + "</html></body>"
+            
+            return bodyString
+        }
+    }
+    
+    func loadScriptureText()
+    {
+        guard xmlParser == nil else {
+            return
+        }
+        
+        guard scriptureText == nil else {
+            return
+        }
+        
+        if let scripture = scripture?.replacingOccurrences(of: "Psalm", with: "Psalms") {
+            let urlString = "https://api.preachingcentral.com/bible.php?passage=\(scripture)&version=nasb".replacingOccurrences(of: " ", with: "%20")
+            
+            if let url = URL(string: urlString) {
+                self.xmlParser = XMLParser(contentsOf: url)
+                
+                self.xmlParser?.delegate = self
+                
+                if let success = self.xmlParser?.parse(), success {
+                    xmlParser = nil
+                }
+            }
+        }
+    }
+    
     func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
         DispatchQueue.main.async(execute: { () -> Void in
             self.dismiss(animated: true, completion: nil)
@@ -1478,6 +1644,23 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                 })
                 break
                 
+            case "View Scripture":
+                if scriptureTextHTML != nil {
+                    popoverHTML(self,mediaItem:nil,title:self.scripture,barButtonItem:self.navigationItem.rightBarButtonItem,sourceView:nil,sourceRectView:nil,htmlString:scriptureTextHTML)
+                } else {
+                    process(viewController: self, work: { () -> (Any?) in
+                        self.loadScriptureText()
+                        return self.scriptureTextHTML
+                    }, completion: { (data:Any?) in
+                        if let htmlString = data as? String {
+                            popoverHTML(self,mediaItem:nil,title:self.scripture,barButtonItem:self.navigationItem.rightBarButtonItem,sourceView:nil,sourceRectView:nil,htmlString:htmlString)
+                        } else {
+                            networkUnavailable("Scripture text is unavailable.")
+                        }
+                    })
+                }
+                break
+                
             default:
                 break
             }
@@ -1511,6 +1694,21 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         }
     }
     
+    func actionMenuItems() -> [String]?
+    {
+        var actionMenu = [String]()
+        
+        if mediaItems?.count > 0 {
+            actionMenu.append(Constants.View_List)
+        }
+        
+        if let scripture = scripture, scripture != scriptureIndex?.selectedBook {
+            actionMenu.append("View Scripture")
+        }
+
+        return actionMenu.count > 0 ? actionMenu : nil
+    }
+    
     func actions()
     {
         //In case we have one already showing
@@ -1533,11 +1731,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             popover.delegate = self
             popover.purpose = .selectingAction
             
-            var actionMenu = [String]()
-            
-            actionMenu.append(Constants.View_List)
-            
-            popover.strings = actionMenu
+            popover.strings = actionMenuItems()
             
             popover.showIndex = false //(globals.grouping == .series)
             popover.showSectionHeaders = false
@@ -1778,6 +1972,11 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         }
     }
     
+    func updateActionMenu()
+    {
+        navigationItem.rightBarButtonItem?.isEnabled = actionMenuItems()?.count > 0
+    }
+    
     func updateUI()
     {
         navigationController?.toolbar.items?[1].isEnabled = mediaItems?.count > 0
@@ -1792,6 +1991,8 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
 
         updateSwitches()
  
+        updateActionMenu()
+        
         isHiddenUI(false)
         progressIndicator.isHidden = true
 
@@ -1953,7 +2154,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     htmlString = mediaItem.fullNotesHTML
                 }
                 
-                popoverHTML(self,mediaItem:mediaItem,title:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
@@ -1964,7 +2165,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     }
                 }, completion: { (data:Any?) in
                     if let htmlString = data as? String {
-                        popoverHTML(self,mediaItem:mediaItem,title:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                        popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
                     } else {
                         networkUnavailable("HTML transcript unavailable.")
                     }
@@ -2017,14 +2218,14 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             let sourceRectView = cell.subviews[0].subviews[actions.index(of: scripture)!]
             
             if mediaItem.scriptureTextHTML != nil {
-                popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scriptureTextHTML)
+                popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scriptureTextHTML)
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadScriptureText()
                     return mediaItem.scriptureTextHTML
                 }, completion: { (data:Any?) in
                     if let htmlString = data as? String {
-                        popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                        popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
                         
 //                        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
 //                            let popover = navigationController.viewControllers[0] as? WebViewController {

@@ -3630,7 +3630,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     htmlString = mediaItem.fullNotesHTML
                 }
                 
-                popoverHTML(self,mediaItem:mediaItem,title:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
@@ -3641,7 +3641,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     }
                 }, completion: { (data:Any?) in
                     if let htmlString = data as? String {
-                        popoverHTML(self,mediaItem:mediaItem,title:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                        popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
                     } else {
                         networkUnavailable("HTML transcript unavailable.")
                     }
@@ -3700,14 +3700,14 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             let sourceRectView = cell.subviews[0].subviews[actions.index(of: scripture)!]
             
             if mediaItem.scriptureTextHTML != nil {
-                popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scriptureTextHTML)
+                popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scriptureTextHTML)
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadScriptureText()
                     return mediaItem.scriptureTextHTML
                 }, completion: { (data:Any?) in
                     if let htmlString = data as? String {
-                        popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                        popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
                         
 //                        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
 //                            let popover = navigationController.viewControllers[0] as? WebViewController {
