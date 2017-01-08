@@ -291,6 +291,10 @@ struct SelectedMediaItem {
             
             return selectedMediaItem
         }
+        
+        set {
+            globals.mediaCategory.selectedInMaster = newValue?.id
+        }
     }
     
     var detail:MediaItem? {
@@ -302,6 +306,10 @@ struct SelectedMediaItem {
             }
 
             return selectedMediaItem
+        }
+        
+        set {
+            globals.mediaCategory.selectedInDetail = newValue?.id
         }
     }
 }

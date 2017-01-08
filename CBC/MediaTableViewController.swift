@@ -136,11 +136,13 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 self.present(alert, animated: true, completion: nil)
             } else {
-                if let selectedMediaItemKey = UserDefaults.standard.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER) {
-                    self.selectedMediaItem = globals.mediaRepository.list?.filter({ (mediaItem:MediaItem) -> Bool in
-                        return mediaItem.id == selectedMediaItemKey
-                    }).first
-                }
+                self.selectedMediaItem = globals.selectedMediaItem.master
+                
+//                if let selectedMediaItemKey = UserDefaults.standard.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER) {
+//                    self.selectedMediaItem = globals.mediaRepository.list?.filter({ (mediaItem:MediaItem) -> Bool in
+//                        return mediaItem.id == selectedMediaItemKey
+//                    }).first
+//                }
                 
                 if globals.search.active && !globals.search.complete {
                     self.updateSearchResults(globals.search.text,completion: {
@@ -345,7 +347,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //            }
 //            defaults.synchronize()
             
-            globals.mediaCategory.selectedInMaster = selectedMediaItem?.id
+            globals.selectedMediaItem.master = selectedMediaItem
         }
     }
     
@@ -899,7 +901,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             case Constants.View_List:
-                DispatchQueue.main.async(execute: { () -> Void in
+                if let string = globals.media.active?.html?.string {
+                    presentHTMLModal(viewController: self, medaiItem: nil, title: globals.contextTitle, htmlString: string)
+                } else {
                     process(viewController: self, work: { () -> (Any?) in
                         if globals.media.active?.html?.string == nil {
                             globals.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs: true, includeColumns: true)
@@ -908,7 +912,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     }, completion: { (data:Any?) in
                         presentHTMLModal(viewController: self, medaiItem: nil, title: globals.contextTitle, htmlString: data as? String)
                     })
-                })
+                }
                 break
                 
             case Constants.History:
@@ -2060,7 +2064,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         globals.clearDisplay()
 
         setupSearchBar()
-        
+
         DispatchQueue.main.async(execute: { () -> Void in
             self.tableView.reloadData()
             
@@ -2073,6 +2077,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         setupCategoryButton()
         setupTagsButton()
 
+        // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
+        globals.media = Media()
+        
         loadCategories()
         
         // loadMediaItems or downloadJSON
@@ -2104,15 +2111,54 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 } else {
                     globals.isRefreshing = false
                     
-                    if globals.search.active && !globals.search.complete { //  && globals.search.transcripts
+                    self.selectedMediaItem = globals.selectedMediaItem.master
+                    
+                    //                if let selectedMediaItemKey = UserDefaults.standard.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER) {
+                    //                    self.selectedMediaItem = globals.mediaRepository.list?.filter({ (mediaItem:MediaItem) -> Bool in
+                    //                        return mediaItem.id == selectedMediaItemKey
+                    //                    }).first
+                    //                }
+                    
+                    if globals.search.active && !globals.search.complete {
                         self.updateSearchResults(globals.search.text,completion: {
                             DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                                 DispatchQueue.main.async(execute: { () -> Void in
-                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: false, scroll: false, position: UITableViewScrollPosition.top)
+                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
                                 })
                             })
                         })
+                    } else {
+                        // Reload the table
+                        self.tableView.reloadData()
+                        
+                        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                            DispatchQueue.main.async(execute: { () -> Void in
+                                self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                            })
+                        })
                     }
+
+//                    if let selectedMediaItemKey = UserDefaults.standard.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER) {
+//                        self.selectedMediaItem = globals.mediaRepository.list?.filter({ (mediaItem:MediaItem) -> Bool in
+//                            return mediaItem.id == selectedMediaItemKey
+//                        }).first
+//                        
+//                        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+//                            DispatchQueue.main.async(execute: { () -> Void in
+//                                self.selectOrScrollToMediaItem(self.selectedMediaItem, select: false, scroll: false, position: UITableViewScrollPosition.top)
+//                            })
+//                        })
+//                    }
+//                    
+//                    if globals.search.active && !globals.search.complete { //  && globals.search.transcripts
+//                        self.updateSearchResults(globals.search.text,completion: {
+//                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+//                                DispatchQueue.main.async(execute: { () -> Void in
+//                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: false, scroll: false, position: UITableViewScrollPosition.top)
+//                                })
+//                            })
+//                        })
+//                    }
                 }
             }
             break
@@ -2216,11 +2262,13 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         
                         self.present(alert, animated: true, completion: nil)
                     } else {
-                        if let selectedMediaItemKey = UserDefaults.standard.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER) {
-                            self.selectedMediaItem = globals.mediaRepository.list?.filter({ (mediaItem:MediaItem) -> Bool in
-                                return mediaItem.id == selectedMediaItemKey
-                            }).first
-                        }
+                        self.selectedMediaItem = globals.selectedMediaItem.master
+                        
+//                        if let selectedMediaItemKey = UserDefaults.standard.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER) {
+//                            self.selectedMediaItem = globals.mediaRepository.list?.filter({ (mediaItem:MediaItem) -> Bool in
+//                                return mediaItem.id == selectedMediaItemKey
+//                            }).first
+//                        }
                         
                         if globals.search.active && !globals.search.complete { // && globals.search.transcripts
                             self.updateSearchResults(globals.search.text,completion: {
@@ -2248,12 +2296,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             }
         }
         
-        if let selectedMediaItemKey = UserDefaults.standard.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER) {
-            selectedMediaItem = globals.mediaRepository.list?.filter({ (mediaItem:MediaItem) -> Bool in
-                return mediaItem.id == selectedMediaItemKey
-            }).first
-        }
-
         // Reload the table
         tableView.reloadData()
         
@@ -3251,7 +3293,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //            // Fallback on earlier versions
 //        }
 //    }
-
+    
     func tableView(_ tableView: UITableView, editActionsForRowAtIndexPath indexPath: IndexPath) -> [UITableViewRowAction]?
     {
 //        setupRowActionFont()
@@ -3384,129 +3426,90 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         words.backgroundColor = UIColor.blue
         
         transcript = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
-            process(viewController: self, work: { () -> (Any?) in
-                mediaItem.loadNotesHTML()
+            let sourceView = cell.subviews[0]
+            let sourceRectView = cell.subviews[0].subviews[actions.index(of: transcript)!]
+            
+            if mediaItem.notesHTML != nil {
+                var htmlString:String?
+                
                 if globals.search.active && (globals.search.text != nil) {
-                    return mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
+                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
                 } else {
-                    return mediaItem.fullNotesHTML
+                    htmlString = mediaItem.fullNotesHTML
                 }
-            }, completion: { (data:Any?) in
-                if let htmlString = data as? String {
-                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
-                        let popover = navigationController.viewControllers[0] as? WebViewController {
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            self.dismiss(animated: true, completion: nil)
-                        })
 
-                        let sourceView = cell.subviews[0]
-                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: transcript)!]
-                        
-                        var style:UIModalPresentationStyle = .popover
-                        var direction:UIPopoverArrowDirection = .any
-                        
-                        if UIDevice.current.model != "iPad" {
-                            direction = .down
-                            
-//                            print(self.navigationController!.view.convert(sourceRectView.frame.origin, from: sourceRectView),
-//                                  self.navigationController!.view.frame.origin,
-//                                  self.prefersStatusBarHidden,
-//                                  UIApplication.shared.statusBarFrame.height,
-//                                  self.navigationController!.navigationBar.frame.height)
-//                            
-//                            print(  self.view.convert(sourceRectView.frame.origin, from: sourceRectView).y -
-//                                    self.view.frame.origin.y)
-                            
-                            let gap =   self.navigationController!.view.convert(sourceRectView.frame.origin, from: sourceRectView).y -
-                                        self.navigationController!.view.frame.origin.y -
-                                        self.navigationController!.navigationBar.frame.height -
-                                        UIApplication.shared.statusBarFrame.height
-                            
-//                            print(gap)
-                            
-                            if gap < 139 { // Ugh, a magic number.
-                                style = .overFullScreen
-                            }
-                        }
-
-                        navigationController.modalPresentationStyle = style
-                        navigationController.popoverPresentationController?.permittedArrowDirections = direction
-                        navigationController.popoverPresentationController?.delegate = self
-                        
-                        navigationController.popoverPresentationController?.sourceView = sourceView
-                        navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
-
-//                        if UIDevice.current.model == "iPad" {
-//                        } else {
-//                            navigationController.modalPresentationStyle = .overFullScreen
-//                            navigationController.popoverPresentationController?.delegate = self
-//                        }
-                        
-                        popover.navigationItem.title = self.selectedMediaItem?.title
-                        
-                        popover.html.fontSize = 12
-                        popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
-                        
-                        popover.selectedMediaItem = mediaItem
-                        
-                        popover.content = .html
-                        
-                        popover.navigationController?.isNavigationBarHidden = false
-                        
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            self.present(navigationController, animated: true, completion: nil)
-                        })
+                popoverHTML(self,mediaItem:mediaItem,title:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+            } else {
+                process(viewController: self, work: { () -> (Any?) in
+                    mediaItem.loadNotesHTML()
+                    if globals.search.active && (globals.search.text != nil) {
+                        return mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
+                    } else {
+                        return mediaItem.fullNotesHTML
                     }
-                } else {
-                    networkUnavailable("HTML transcript unavailable.")
-                }
-
-//                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
-            })
+                }, completion: { (data:Any?) in
+                    if let htmlString = data as? String {
+                        popoverHTML(self,mediaItem:mediaItem,title:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                    } else {
+                        networkUnavailable("HTML transcript unavailable.")
+                    }
+                    
+                    //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
+                })
+            }
         }
         transcript.backgroundColor = UIColor.purple
         
         scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
-            process(viewController: self, work: { () -> (Any?) in
-                mediaItem.loadScriptureText()
-                return mediaItem.scriptureTextHTML
-            }, completion: { (data:Any?) in
-                if let htmlString = data as? String {
-                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
-                        let popover = navigationController.viewControllers[0] as? WebViewController {
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            self.dismiss(animated: true, completion: nil)
-                        })
-                        
-                        navigationController.modalPresentationStyle = .popover
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                        navigationController.popoverPresentationController?.delegate = self
+            let sourceView = cell.subviews[0]
+            let sourceRectView = cell.subviews[0].subviews[actions.index(of: scripture)!]
 
-                        navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
-                        navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: scripture)!].frame
-
-                        popover.navigationItem.title = mediaItem.scripture
+            if mediaItem.scriptureTextHTML != nil {
+                popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scriptureTextHTML)
+            } else {
+                process(viewController: self, work: { () -> (Any?) in
+                    mediaItem.loadScriptureText()
+                    return mediaItem.scriptureTextHTML
+                }, completion: { (data:Any?) in
+                    if let htmlString = data as? String {
+                        popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
                         
-    //                    popover.selectedMediaItem = mediaItem
-                        
-                        popover.html.fontSize = 12
-                        popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
-
-                        popover.content = .html
-                        
-                        popover.navigationController?.isNavigationBarHidden = false
-                        
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            self.present(navigationController, animated: true, completion: nil)
-                        })
+//                        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+//                            let popover = navigationController.viewControllers[0] as? WebViewController {
+//                            DispatchQueue.main.async(execute: { () -> Void in
+//                                self.dismiss(animated: true, completion: nil)
+//                            })
+//
+//                            navigationController.modalPresentationStyle = .popover
+//                            navigationController.popoverPresentationController?.permittedArrowDirections = .any
+//                            navigationController.popoverPresentationController?.delegate = self
+//
+//                            navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+//                            navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: scripture)!].frame
+//
+//                            popover.navigationItem.title = mediaItem.scripture
+//
+//        //                    popover.selectedMediaItem = mediaItem
+//
+//                            popover.html.fontSize = 12
+//                            popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
+//
+//                            popover.content = .html
+//                            
+//                            popover.navigationController?.isNavigationBarHidden = false
+//                            
+//                            DispatchQueue.main.async(execute: { () -> Void in
+//                                self.present(navigationController, animated: true, completion: nil)
+//                            })
+//                        }
+                    } else {
+                        networkUnavailable("Scripture text is unavailable.")
                     }
-                } else {
-                    networkUnavailable("Scripture text is unavailable.")
-                }
-                
 //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
-            })
+                })
+            }
         }
+        
         scripture.backgroundColor = UIColor.orange
 
         if mediaItem.scripture != Constants.Selected_Scriptures {

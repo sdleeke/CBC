@@ -664,14 +664,13 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             self.barButtonItems(isEnabled: true)
 
             DispatchQueue.global(qos: .background).async {
-                Thread.sleep(forTimeInterval: 0.1)
+                Thread.sleep(forTimeInterval: 0.1) // This is ESSENTIAL to allow the preferred content size to be set correctly.
                 
                 DispatchQueue.main.async(execute: { () -> Void in
-                    wkWebView.isHidden = false
-                    
 //                    print(wkWebView.scrollView.contentSize.width,wkWebView.scrollView.contentSize.height)
-
+                    
                     self.preferredContentSize = CGSize(width: wkWebView.scrollView.contentSize.width,height: wkWebView.scrollView.contentSize.height)
+                    wkWebView.isHidden = false
                 })
             }
         })

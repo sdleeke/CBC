@@ -2647,6 +2647,79 @@ func mailMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stri
     })
 }
 
+func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:String?,sourceView:UIView!,sourceRectView:UIView!,htmlString:String?)
+{
+    guard htmlString != nil else {
+        return
+    }
+    
+    if let navigationController = viewController.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+        let popover = navigationController.viewControllers[0] as? WebViewController {
+        DispatchQueue.main.async(execute: { () -> Void in
+            viewController.dismiss(animated: true, completion: nil)
+        })
+        
+        var style:UIModalPresentationStyle = .popover
+        var direction:UIPopoverArrowDirection = .any
+        
+        if UIDevice.current.model != "iPad" {
+            direction = .down
+            
+            //                            print(self.navigationController!.view.convert(sourceRectView.frame.origin, from: sourceRectView),
+            //                                  self.navigationController!.view.frame.origin,
+            //                                  self.prefersStatusBarHidden,
+            //                                  UIApplication.shared.statusBarFrame.height,
+            //                                  self.navigationController!.navigationBar.frame.height)
+            //
+            //                            print(  self.view.convert(sourceRectView.frame.origin, from: sourceRectView).y -
+            //                                    self.view.frame.origin.y)
+            
+            let gap =   viewController.navigationController!.view.convert(sourceRectView.frame.origin, from: sourceRectView).y -
+                viewController.navigationController!.view.frame.origin.y -
+                viewController.navigationController!.navigationBar.frame.height -
+                UIApplication.shared.statusBarFrame.height
+            
+            //                            print(gap)
+            
+            if gap < 139 { // Ugh, a magic number.
+                style = .overFullScreen
+            }
+        }
+        
+        navigationController.modalPresentationStyle = style
+        navigationController.popoverPresentationController?.permittedArrowDirections = direction
+        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+        
+        navigationController.popoverPresentationController?.sourceView = sourceView
+        navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
+        
+        //                        if UIDevice.current.model == "iPad" {
+        //                        } else {
+        //                            navigationController.modalPresentationStyle = .overFullScreen
+        //                            navigationController.popoverPresentationController?.delegate = self
+        //                        }
+        
+        popover.navigationItem.title = mediaItem?.title
+        
+        if title != nil {
+            popover.navigationItem.title = title
+        }
+        
+        popover.html.fontSize = 12
+        popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
+        
+        popover.selectedMediaItem = mediaItem
+        
+        popover.content = .html
+        
+        popover.navigationController?.isNavigationBarHidden = false
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            viewController.present(navigationController, animated: true, completion: nil)
+        })
+    }
+}
+
 func shareHTML(viewController:UIViewController,htmlString:String?)
 {
     guard htmlString != nil else {
