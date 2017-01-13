@@ -33,8 +33,36 @@ class LiveViewController: UIViewController {
         setupLivePlayerView()
     }
 
+    func clearView()
+    {
+        DispatchQueue.main.async {
+            globals.mediaPlayer.view?.isHidden = true
+            self.textView.isHidden = true
+            self.logo.isHidden = false
+        }
+    }
+    
+    func liveView()
+    {
+        DispatchQueue.main.async {
+            self.setupLivePlayerView()
+            
+            globals.mediaPlayer.view?.isHidden = false
+            self.textView.isHidden = false
+            self.logo.isHidden = true
+        }
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        logo.isHidden = true
+        
+        DispatchQueue.main.async {
+            NotificationCenter.default.addObserver(self, selector: #selector(LiveViewController.clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(LiveViewController.liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
+        }
+
         navigationController?.isToolbarHidden = true
     }
     
@@ -52,6 +80,8 @@ class LiveViewController: UIViewController {
         globals.freeMemory()
     }
 
+    @IBOutlet weak var logo: UIImageView!
+    
     @IBOutlet weak var webView: UIView!
 
     @IBOutlet weak var textView: UITextView!
@@ -139,7 +169,10 @@ class LiveViewController: UIViewController {
 
             view?.isHidden = false
 
-            globals.mediaPlayer.play()
+            DispatchQueue.global(qos: .background).async {
+                Thread.sleep(forTimeInterval: 0.1)
+                globals.mediaPlayer.play()
+            }
         }
     }
 }

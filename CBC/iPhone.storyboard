@@ -4,7 +4,6 @@
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
-        <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
         <capability name="Alignment constraints with different attributes" minToolsVersion="5.1"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
@@ -47,7 +46,7 @@
                                 <rect key="frame" x="0.0" y="64" width="296" height="204"/>
                                 <subviews>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="ZIR-LB-dI1">
-                                        <rect key="frame" x="8.5" y="66" width="279" height="72"/>
+                                        <rect key="frame" x="9" y="66" width="279" height="72"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="72" id="TZh-7m-j1a"/>
                                             <constraint firstAttribute="width" secondItem="ZIR-LB-dI1" secondAttribute="height" multiplier="31:8" id="WjW-JL-I37"/>
@@ -219,7 +218,7 @@
                                         </connections>
                                     </segmentedControl>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="M7W-zJ-CBC" userLabel="Play Pause">
-                                        <rect key="frame" x="66" y="5.5" width="20" height="36"/>
+                                        <rect key="frame" x="66" y="5" width="20" height="36"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="20" id="zH0-7Q-jyh"/>
                                         </constraints>
@@ -230,7 +229,7 @@
                                         </connections>
                                     </button>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="00:00" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="rSQ-EM-moJ" userLabel="Time Elapsed">
-                                        <rect key="frame" x="90" y="14.5" width="39" height="17"/>
+                                        <rect key="frame" x="90" y="15" width="39" height="17"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="lessThanOrEqual" constant="50" id="IiN-2g-Dw8"/>
@@ -253,10 +252,10 @@
                                         </connections>
                                     </slider>
                                     <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="61B-t5-5F5">
-                                        <rect key="frame" x="153.5" y="13.5" width="20" height="20"/>
+                                        <rect key="frame" x="154" y="13" width="20" height="20"/>
                                     </activityIndicatorView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="00:00" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="2o9-Jp-WbC" userLabel="Time Remaining">
-                                        <rect key="frame" x="198" y="14.5" width="39" height="17"/>
+                                        <rect key="frame" x="198" y="15" width="39" height="17"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="lessThanOrEqual" constant="50" id="XRs-hl-Rtj"/>
@@ -461,6 +460,16 @@
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
+                            <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="0kV-YB-x4E">
+                                <rect key="frame" x="20" y="216" width="279" height="72"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
+                                </accessibility>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="279" id="4Mz-GB-Kkk"/>
+                                    <constraint firstAttribute="height" constant="72" id="lYn-QN-hBE"/>
+                                </constraints>
+                            </imageView>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -470,9 +479,11 @@
                             <constraint firstItem="4c2-R2-KTG" firstAttribute="centerX" secondItem="c2Z-FM-joi" secondAttribute="centerX" id="8gV-uB-QN5"/>
                             <constraint firstItem="nCV-BS-j1l" firstAttribute="leading" secondItem="c2Z-FM-joi" secondAttribute="leading" id="Aan-gV-Gxt"/>
                             <constraint firstItem="nCV-BS-j1l" firstAttribute="top" secondItem="iDj-J4-PQ7" secondAttribute="bottom" id="E7M-Hz-ZKz"/>
+                            <constraint firstItem="0kV-YB-x4E" firstAttribute="centerX" secondItem="c2Z-FM-joi" secondAttribute="centerX" id="GqG-Ds-AXR"/>
                             <constraint firstAttribute="trailing" secondItem="4c2-R2-KTG" secondAttribute="trailing" id="Jkn-Wa-2y8"/>
                             <constraint firstAttribute="trailing" secondItem="nCV-BS-j1l" secondAttribute="trailing" id="TCv-wJ-g3C"/>
                             <constraint firstAttribute="bottomMargin" secondItem="4c2-R2-KTG" secondAttribute="bottom" id="Z7M-uy-nAQ"/>
+                            <constraint firstItem="0kV-YB-x4E" firstAttribute="centerY" secondItem="c2Z-FM-joi" secondAttribute="centerY" id="ZiM-k1-aJt"/>
                             <constraint firstItem="4c2-R2-KTG" firstAttribute="width" secondItem="c2Z-FM-joi" secondAttribute="width" id="oVJ-Th-RgQ"/>
                             <constraint firstItem="nCV-BS-j1l" firstAttribute="width" secondItem="c2Z-FM-joi" secondAttribute="width" id="vs5-CV-1Zs"/>
                             <constraint firstItem="nCV-BS-j1l" firstAttribute="centerX" secondItem="c2Z-FM-joi" secondAttribute="centerX" id="yCQ-3j-axN"/>
@@ -482,6 +493,7 @@
                     <toolbarItems/>
                     <navigationItem key="navigationItem" title="CBC Live" id="RtM-V6-am9"/>
                     <connections>
+                        <outlet property="logo" destination="0kV-YB-x4E" id="1T7-HW-on0"/>
                         <outlet property="textView" destination="4c2-R2-KTG" id="8q4-Af-NiH"/>
                         <outlet property="textViewHeight" destination="XZe-5X-EOl" id="rVZ-5c-cmM"/>
                         <outlet property="webView" destination="nCV-BS-j1l" id="Tb0-w3-7LK"/>
@@ -855,14 +867,14 @@ Email: cbcstaff@countrysidebible.org</string>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fg5-Hs-nZk" userLabel="Category Button">
-                                <rect key="frame" x="128.5" y="0.0" width="63" height="30"/>
+                                <rect key="frame" x="129" y="0.0" width="63" height="30"/>
                                 <state key="normal" title="Category"/>
                                 <connections>
                                     <action selector="mediaCategoryButtonAction:" destination="4xA-dz-LhV" eventType="touchUpInside" id="a5P-hM-fZk"/>
                                 </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="XoU-Mk-gWs" userLabel="Tag Label">
-                                <rect key="frame" x="142.5" y="30" width="35.5" height="17"/>
+                                <rect key="frame" x="142" y="30" width="36" height="17"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
@@ -1081,23 +1093,23 @@ Email: cbcstaff@countrysidebible.org</string>
                         <viewControllerLayoutGuide type="bottom" id="B9d-oL-eyL"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="iEh-1k-NWu">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="432"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fMW-fs-A1c" userLabel="WebView">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="432"/>
                                 <subviews>
                                     <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="32f-tz-uDW">
-                                        <rect key="frame" x="150" y="242" width="20" height="20"/>
+                                        <rect key="frame" x="290" y="206" width="20" height="20"/>
                                     </activityIndicatorView>
                                     <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="s1B-pf-2oT">
-                                        <rect key="frame" x="85" y="251" width="150" height="2"/>
+                                        <rect key="frame" x="225" y="215" width="150" height="2"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="150" id="FA9-Bu-8Zo"/>
                                         </constraints>
                                     </progressView>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="SWG-El-9IY">
-                                        <rect key="frame" x="20" y="216" width="279" height="72"/>
+                                        <rect key="frame" x="160" y="180" width="279" height="72"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>
@@ -1460,7 +1472,7 @@ Web site: www.countrysidebible.org</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="3zS-fs-C8N" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="7726.875" y="189.08450704225353"/>
+            <point key="canvasLocation" x="8724.375" y="189.08450704225353"/>
         </scene>
         <!--PPVC Navigation Controller-->
         <scene sceneID="1P8-Dm-fo1">
@@ -1479,7 +1491,7 @@ Web site: www.countrysidebible.org</string>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="PMU-ZB-fi4" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="6892.5" y="190.14084507042253"/>
+            <point key="canvasLocation" x="7890" y="190.14084507042253"/>
         </scene>
         <!--Scripture Index-->
         <scene sceneID="HrE-gG-gnW">
@@ -1679,10 +1691,10 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </tableView>
                             <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="Jsz-cR-imf">
-                                <rect key="frame" x="290" y="136.5" width="20" height="20"/>
+                                <rect key="frame" x="290" y="137" width="20" height="20"/>
                             </activityIndicatorView>
                             <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="Byh-AN-CtX">
-                                <rect key="frame" x="225" y="145.5" width="150" height="2"/>
+                                <rect key="frame" x="225" y="146" width="150" height="2"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="150" id="clY-ce-cKz"/>
                                 </constraints>
@@ -1780,7 +1792,7 @@ Web site: www.countrysidebible.org</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ZIc-Af-31k" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="5542.5" y="188.02816901408451"/>
+            <point key="canvasLocation" x="6540" y="188.02816901408451"/>
         </scene>
         <!--PTVC Navigation Controller-->
         <scene sceneID="CgE-Ky-rpu">
@@ -1999,9 +2011,98 @@ Web site: www.countrysidebible.org</string>
             </objects>
             <point key="canvasLocation" x="6893" y="1123"/>
         </scene>
+        <!--Scripture-->
+        <scene sceneID="Yuy-MQ-LJL">
+            <objects>
+                <viewController title="Scripture Index" id="D8A-wr-v6O" userLabel="Scripture" customClass="ScriptureViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="PO1-dU-Eil"/>
+                        <viewControllerLayoutGuide type="bottom" id="OgH-bP-map"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="bAU-dr-Jrk">
+                        <rect key="frame" x="0.0" y="64" width="600" height="536"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Select the New or Old Testament, then a book, then chapter." textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="FYa-C1-QYs" userLabel="Scripture Directions">
+                                <rect key="frame" x="20" y="8" width="560" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <pickerView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="75r-S0-opt">
+                                <rect key="frame" x="0.0" y="29" width="600" height="75"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="75" id="AWN-es-u4Z"/>
+                                </constraints>
+                                <connections>
+                                    <outlet property="dataSource" destination="D8A-wr-v6O" id="yu7-kl-p13"/>
+                                    <outlet property="delegate" destination="D8A-wr-v6O" id="MQt-eK-neu"/>
+                                </connections>
+                            </pickerView>
+                            <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ajm-uD-axq">
+                                <rect key="frame" x="0.0" y="104" width="600" height="432"/>
+                                <connections>
+                                    <segue destination="LQa-Js-QIy" kind="embed" identifier="Show Web View" id="a3l-pm-T8G"/>
+                                </connections>
+                            </containerView>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="75r-S0-opt" firstAttribute="leading" secondItem="bAU-dr-Jrk" secondAttribute="leading" id="HTU-uW-OJW"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="FYa-C1-QYs" secondAttribute="trailing" id="Jbs-Ry-nsi"/>
+                            <constraint firstAttribute="trailing" secondItem="ajm-uD-axq" secondAttribute="trailing" id="O5u-Rb-XNN"/>
+                            <constraint firstItem="ajm-uD-axq" firstAttribute="leading" secondItem="bAU-dr-Jrk" secondAttribute="leading" id="Rab-Ct-hcd"/>
+                            <constraint firstItem="FYa-C1-QYs" firstAttribute="top" secondItem="bAU-dr-Jrk" secondAttribute="top" constant="8" id="crg-LR-Cum"/>
+                            <constraint firstItem="ajm-uD-axq" firstAttribute="top" secondItem="75r-S0-opt" secondAttribute="bottom" id="hxp-yb-8Kz"/>
+                            <constraint firstAttribute="trailing" secondItem="75r-S0-opt" secondAttribute="trailing" id="mBQ-Ey-IAX"/>
+                            <constraint firstItem="ajm-uD-axq" firstAttribute="bottom" secondItem="OgH-bP-map" secondAttribute="top" id="pfe-Ys-Cck"/>
+                            <constraint firstItem="FYa-C1-QYs" firstAttribute="leading" secondItem="bAU-dr-Jrk" secondAttribute="leadingMargin" id="xNT-3w-qSu"/>
+                            <constraint firstItem="75r-S0-opt" firstAttribute="top" secondItem="FYa-C1-QYs" secondAttribute="bottom" id="yka-h1-P0R"/>
+                            <constraint firstItem="75r-S0-opt" firstAttribute="top" secondItem="FYa-C1-QYs" secondAttribute="bottom" constant="8" symbolic="YES" id="ysz-M8-bYl"/>
+                        </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="ysz-M8-bYl"/>
+                            </mask>
+                        </variation>
+                    </view>
+                    <extendedEdge key="edgesForExtendedLayout"/>
+                    <navigationItem key="navigationItem" title="Scripture" id="KoC-d7-mt1"/>
+                    <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+                    <size key="freeformSize" width="600" height="600"/>
+                    <connections>
+                        <outlet property="directionLabel" destination="FYa-C1-QYs" id="JJb-Lq-jWY"/>
+                        <outlet property="scripturePicker" destination="75r-S0-opt" id="ahb-U6-pjv"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="3hS-U0-OE0" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="4471.875" y="-204.92957746478874"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="9di-BN-2mk">
+            <objects>
+                <navigationController storyboardIdentifier="Scripture View" automaticallyAdjustsScrollViewInsets="NO" id="8ke-NK-hQz" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="VVL-5j-j6J">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="D8A-wr-v6O" kind="relationship" relationship="rootViewController" id="Jka-QL-kHQ"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="2Tz-cE-5KV" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3472.5" y="-205.98591549295776"/>
+        </scene>
     </scenes>
     <resources>
         <image name="CBC_logo" width="279" height="72"/>
         <image name="tom_pennington" width="800" height="800"/>
     </resources>
+    <inferredMetricsTieBreakers>
+        <segue reference="a3l-pm-T8G"/>
+    </inferredMetricsTieBreakers>
 </document>

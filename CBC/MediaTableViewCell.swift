@@ -68,9 +68,9 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                     let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
                     let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
                     let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
-                    detail.text = "\(combined)\n\(mediaItem!.scripture!)"
+                    detail.text = "\(combined)\n\(mediaItem!.scriptureReference!)"
                 } else {
-                    detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scripture!)"
+                    detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scriptureReference!)"
                 }
                 
                 if let className = mediaItem?.className {
@@ -374,7 +374,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.PLAYING
         }
         
-//        if (mediaItem!.scripture != Constants.Selected_Scriptures) {
+//        if (mediaItem!.scriptureReference != Constants.Selected_Scriptures) {
 //            tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.BOOK
 //        }
         

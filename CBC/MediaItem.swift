@@ -298,11 +298,11 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
     func search(searchText:String?) -> Bool
     {
         if searchText != nil {
-            return  ((title?.range(of:      searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
-                    ((date?.range(of:       searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
-                    ((speaker?.range(of:    searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
-                    ((scripture?.range(of:  searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
-                    ((tags?.range(of:       searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil)
+            return  ((title?.range(of:              searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
+                    ((date?.range(of:               searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
+                    ((speaker?.range(of:            searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
+                    ((scriptureReference?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
+                    ((tags?.range(of:               searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil)
 
 //            ((id?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
 //            ((multiPartName?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
@@ -700,155 +700,123 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         }
     }
     
-    var scripture:String? {
+    var scriptureReference:String? {
         get {
             return dict![Field.scripture]
         }
     }
     
-    func parserDidStartDocument(_ parser: XMLParser) {
-        
-    }
+//    func parserDidStartDocument(_ parser: XMLParser) {
+//        
+//    }
+//    
+//    func parserDidEndDocument(_ parser: XMLParser) {
+//        
+//    }
+//    
+//    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
+//        print(parseError.localizedDescription)
+//    }
+//    
+//    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
+//        
+////        print(elementName)
+//    }
+//
+//    var book:String?
+//    var chapter:String?
+//    var verse:String?
+//    
+//    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
+////        print(elementName)
+//        
+//        if scriptureText == nil {
+//            scriptureText = [String:[String:[String:String]]]()
+//        }
+//        
+//        switch elementName {
+//        case "bookname":
+//            book = xmlString
+//
+//            if scriptureText?[book!] == nil {
+//                scriptureText?[book!] = [String:[String:String]]()
+//            }
+//            break
+//            
+//        case "chapter":
+//            chapter = xmlString
+//
+//            if scriptureText?[book!]?[chapter!] == nil {
+//                scriptureText?[book!]?[chapter!] = [String:String]()
+//            }
+//            break
+//            
+//        case "verse":
+//            verse = xmlString
+//            break
+//            
+//        case "text":
+//            scriptureText?[book!]?[chapter!]?[verse!] = xmlString
+////            print(scriptureText)
+//            break
+//            
+//        default:
+//            break
+//        }
+//
+//        xmlString = nil
+//    }
+//
+//    func parser(_ parser: XMLParser, foundElementDeclarationWithName elementName: String, model: String) {
+////        print(elementName)
+//    }
+//    
+//    func parser(_ parser: XMLParser, foundCharacters string: String) {
+////        print(string)
+//        xmlString = (xmlString != nil ? xmlString! + string : string).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+//    }
+//
+//    var xmlParser:XMLParser?
+//    var xmlString:String?
+//    
+//    var scriptureTextHTML:String? {
+//        get {
+//            return scriptureTextToHTML(scriptureReference:scripture,scriptureText:scriptureText)
+//        }
+//    }
+//    
+//    func loadScriptureText()
+//    {
+//        guard scripture != Constants.Selected_Scriptures else {
+//            return
+//        }
+//        
+//        guard scriptureText == nil else {
+//            return
+//        }
+//        
+//        guard xmlParser == nil else {
+//            return
+//        }
+//        
+//        if let scripture = scripture?.replacingOccurrences(of: "Psalm", with: "Psalms") {
+//            let urlString = "https://api.preachingcentral.com/bible.php?passage=\(scripture)&version=nasb".replacingOccurrences(of: " ", with: "%20")
+//
+//            if let url = URL(string: urlString) {
+//                self.xmlParser = XMLParser(contentsOf: url)
+//                
+//                self.xmlParser?.delegate = self
+//                
+//                if let success = self.xmlParser?.parse(), !success {
+//                    xmlParser = nil
+//                }
+//            }
+//        }
+//    }
     
-    func parserDidEndDocument(_ parser: XMLParser) {
-        
-    }
-    
-    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
-        print(parseError.localizedDescription)
-    }
-    
-    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
-        
-//        print(elementName)
-    }
-
-    var book:String?
-    var chapter:String?
-    var verse:String?
-    
-    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
-//        print(elementName)
-        
-        if scriptureText == nil {
-            scriptureText = [String:[String:[String:String]]]()
-        }
-        
-        switch elementName {
-        case "bookname":
-            book = xmlString
-
-            if scriptureText?[book!] == nil {
-                scriptureText?[book!] = [String:[String:String]]()
-            }
-            break
-            
-        case "chapter":
-            chapter = xmlString
-
-            if scriptureText?[book!]?[chapter!] == nil {
-                scriptureText?[book!]?[chapter!] = [String:String]()
-            }
-            break
-            
-        case "verse":
-            verse = xmlString
-            break
-            
-        case "text":
-            scriptureText?[book!]?[chapter!]?[verse!] = xmlString
-//            print(scriptureText)
-            break
-            
-        default:
-            break
-        }
-
-        xmlString = nil
-    }
-
-    func parser(_ parser: XMLParser, foundElementDeclarationWithName elementName: String, model: String) {
-//        print(elementName)
-    }
-    
-    func parser(_ parser: XMLParser, foundCharacters string: String) {
-//        print(string)
-        xmlString = (xmlString != nil ? xmlString! + string : string).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-    }
-
-    var xmlParser:XMLParser?
-    var xmlString:String?
-    
-    var scriptureTextHTML:String? {
-        get {
-            guard scriptureText != nil else {
-                return nil
-            }
-            
-            var bodyString:String?
-            
-            bodyString = "<!DOCTYPE html><html><body>"
-
-            bodyString = bodyString! + "Scripture: " + scripture! + "<br/>"
-
-            if let books = scriptureText?.keys.sorted(by: {
-                bookNumberInBible($0) < bookNumberInBible($1)
-            }) {
-                for book in books {
-                    bodyString = bodyString! + book + "<br/>"
-                    if let chapters = scriptureText?[book]?.keys.sorted(by: { Int($0) < Int($1) }) {
-                        for chapter in chapters {
-                            bodyString = bodyString! + "Chapter " + chapter + "<br/>"
-                            if let verses = scriptureText?[book]?[chapter]?.keys.sorted(by: { Int($0) < Int($1) }) {
-                                for verse in verses {
-                                    if let text = scriptureText?[book]?[chapter]?[verse] {
-                                        bodyString = bodyString! + "<sup>" + verse + "</sup>" + text + " "
-                                    } // <font size=\"-1\"></font>
-                                }
-                                bodyString = bodyString! + "<br/>"
-                            }
-                        }
-                    }
-                }
-            }
-            
-            bodyString = bodyString! + "</html></body>"
-
-            return bodyString
-        }
-    }
-    
-    func loadScriptureText()
-    {
-        guard scripture != Constants.Selected_Scriptures else {
-            return
-        }
-        
-        guard scriptureText == nil else {
-            return
-        }
-        
-        guard xmlParser == nil else {
-            return
-        }
-        
-        if let scripture = scripture?.replacingOccurrences(of: "Psalm", with: "Psalms") {
-            let urlString = "https://api.preachingcentral.com/bible.php?passage=\(scripture)&version=nasb".replacingOccurrences(of: " ", with: "%20")
-
-            if let url = URL(string: urlString) {
-                self.xmlParser = XMLParser(contentsOf: url)
-                
-                self.xmlParser?.delegate = self
-                
-                if let success = self.xmlParser?.parse(), !success {
-                    xmlParser = nil
-                }
-            }
-        }
-    }
-    
-                       //Book //Chap  //Verse //Text
-    var scriptureText:[String:[String:[String:String]]]?
+    lazy var scripture:Scripture? = {
+        return Scripture(reference:self.scriptureReference)
+    }()
     
     var className:String? {
         get {
@@ -1420,7 +1388,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                 header = header + string + "</br>"
             }
             
-            if let string = scripture {
+            if let string = scriptureReference {
                 header = header + string + "</br>"
             }
             
@@ -1625,7 +1593,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
 //                    print([Constants.None])
 //                }
             }
-            return books != nil ? books! : (hasScripture ? [scripture!.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)] : [Constants.None])
+            return books != nil ? books! : (hasScripture ? [scriptureReference!.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)] : [Constants.None])
         }
     }
     
@@ -1687,7 +1655,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         
         let booksAndChaptersAndVerses = BooksChaptersVerses()
         
-        let books = booksFromScripture(scripture)
+        let books = booksFromScriptureReference(scriptureReference)
         
         guard (books != nil) else {
             return nil
@@ -1695,7 +1663,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
 
         var scriptures = [String]()
         
-        var string = scripture!
+        var string = scriptureReference!
         
         let separator = ";"
         
@@ -1737,7 +1705,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         
         var chaptersForBook:[Int]?
         
-        let books = booksFromScripture(scripture)
+        let books = booksFromScriptureReference(scriptureReference)
         
         guard (books != nil) else {
             return nil
@@ -1752,10 +1720,10 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                 if Constants.NO_CHAPTER_BOOKS.contains(thisBook) {
                     chaptersForBook = [1]
                 } else {
-                    var string = scripture!
+                    var string = scriptureReference!
                     
                     if (string.range(of: ";") == nil) {
-                        chaptersForBook = chaptersFromScripture(string.substring(from: scripture!.range(of: thisBook)!.upperBound))
+                        chaptersForBook = chaptersFromScriptureReference(string.substring(from: scriptureReference!.range(of: thisBook)!.upperBound))
                     } else {
                         while (string.range(of: ";") != nil) {
                             var subString = string.substring(to: string.range(of: ";")!.lowerBound)
@@ -1763,7 +1731,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                             if (subString.range(of: thisBook) != nil) {
                                 subString = subString.substring(from: subString.range(of: thisBook)!.upperBound)
                             }
-                            if let chapters = chaptersFromScripture(subString) {
+                            if let chapters = chaptersFromScriptureReference(subString) {
                                 chaptersForBook?.append(contentsOf: chapters)
                             }
                             
@@ -1774,7 +1742,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                         if (string.range(of: thisBook) != nil) {
                             string = string.substring(from: string.range(of: thisBook)!.upperBound)
                         }
-                        if let chapters = chaptersFromScripture(string) {
+                        if let chapters = chaptersFromScriptureReference(string) {
                             chaptersForBook?.append(contentsOf: chapters)
                         }
                     }
@@ -1787,7 +1755,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         default:
             var scriptures = [String]()
             
-            var string = scripture!
+            var string = scriptureReference!
             
             let separator = ";"
             
@@ -1800,7 +1768,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
             
             for scripture in scriptures {
                 if (scripture.range(of: thisBook) != nil) {
-                    if let chapters = chaptersFromScripture(scripture.substring(from: scripture.range(of: thisBook)!.upperBound)) {
+                    if let chapters = chaptersFromScriptureReference(scripture.substring(from: scripture.range(of: thisBook)!.upperBound)) {
                         if chaptersForBook == nil {
                             chaptersForBook = chapters
                         } else {
@@ -1822,7 +1790,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
     
     var books:[String]? {
         get {
-            return booksFromScripture(scripture)
+            return booksFromScriptureReference(scriptureReference)
         }
     } //Derived from scripture
     
@@ -1978,8 +1946,8 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
 
                 case "scripture":
                     bodyString = bodyString! + "<td valign=\"top\">"
-                    if let scripture = self.scripture {
-                        bodyString = bodyString! + scripture
+                    if let scriptureReference = self.scriptureReference {
+                        bodyString = bodyString! + scriptureReference
                     }
                     bodyString = bodyString! + "</td>"
                     break
@@ -2022,8 +1990,8 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                     break
 
                 case "scripture":
-                    if let scripture = self.scripture {
-                        bodyString  = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + scripture
+                    if let scriptureReference = self.scriptureReference {
+                        bodyString  = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + scriptureReference
                     }
                     break
                     
@@ -2072,7 +2040,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
             }
             
             if hasScripture {
-                string = string! + "\n\(scripture!)"
+                string = string! + "\n\(scriptureReference!)"
             }
             
             return string
@@ -2549,7 +2517,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
     var hasScripture:Bool
         {
         get {
-            return (self.scripture != nil) && (self.scripture != Constants.EMPTY_STRING)
+            return (self.scriptureReference != nil) && (self.scriptureReference != Constants.EMPTY_STRING)
         }
     }
     

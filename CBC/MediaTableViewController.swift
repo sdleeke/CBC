@@ -988,7 +988,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
 
             case Constants.Live:
-                performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: nil)
+                performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: self)
                 break
                 
             case Constants.Settings:
@@ -2055,24 +2055,28 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         globals.unobservePlayer()
         
-        if globals.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM) {
-            globals.mediaPlayer.pause() // IfPlaying
-        }
+        let liveStream = globals.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM)
+
+        globals.mediaPlayer.pause() // IfPlaying
 
         globals.cancelAllDownloads()
 
         globals.clearDisplay()
 
         setupSearchBar()
+        
+//        if (splitViewController != nil) && (splitViewController!.viewControllers.count > 1) {
+////            DispatchQueue.global(qos: .background).async {
+////            }
+//            if globals.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM) {
+//            }
+//        }
 
         DispatchQueue.main.async(execute: { () -> Void in
             self.tableView.reloadData()
-            
-            if self.splitViewController != nil {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
-            }
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
         })
-        
+
         setupBarButtons()
         setupCategoryButton()
         setupTagsButton()
@@ -2092,6 +2096,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         case .direct:
             loadMediaItems()
             {
+                if liveStream {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
+                    })
+                }
+
                 if globals.mediaRepository.list == nil {
                     let alert = UIAlertController(title: "No media available.",
                                                   message: "Please check your network connection and try again.",
@@ -2131,11 +2141,19 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         // Reload the table
                         self.tableView.reloadData()
                         
-                        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                            DispatchQueue.main.async(execute: { () -> Void in
-                                self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                        if self.selectedMediaItem != nil {
+                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                                DispatchQueue.main.async(execute: { () -> Void in
+                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                                })
                             })
-                        })
+                        } else {
+                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                                DispatchQueue.main.async(execute: { () -> Void in
+                                    self.tableView.scrollToRow(at: IndexPath(row:0,section:0), at: UITableViewScrollPosition.top, animated: false)
+                                })
+                            })
+                        }
                     }
 
 //                    if let selectedMediaItemKey = UserDefaults.standard.string(forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.MASTER) {
@@ -3464,55 +3482,28 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             let sourceView = cell.subviews[0]
             let sourceRectView = cell.subviews[0].subviews[actions.index(of: scripture)!]
 
-            if mediaItem.scriptureTextHTML != nil {
-                popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scriptureTextHTML)
-            } else {
-                process(viewController: self, work: { () -> (Any?) in
-                    mediaItem.loadScriptureText()
-                    return mediaItem.scriptureTextHTML
-                }, completion: { (data:Any?) in
-                    if let htmlString = data as? String {
-                        popoverHTML(self,mediaItem:nil,title:mediaItem.scripture,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-                        
-//                        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
-//                            let popover = navigationController.viewControllers[0] as? WebViewController {
-//                            DispatchQueue.main.async(execute: { () -> Void in
-//                                self.dismiss(animated: true, completion: nil)
-//                            })
-//
-//                            navigationController.modalPresentationStyle = .popover
-//                            navigationController.popoverPresentationController?.permittedArrowDirections = .any
-//                            navigationController.popoverPresentationController?.delegate = self
-//
-//                            navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
-//                            navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: scripture)!].frame
-//
-//                            popover.navigationItem.title = mediaItem.scripture
-//
-//        //                    popover.selectedMediaItem = mediaItem
-//
-//                            popover.html.fontSize = 12
-//                            popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
-//
-//                            popover.content = .html
-//                            
-//                            popover.navigationController?.isNavigationBarHidden = false
-//                            
-//                            DispatchQueue.main.async(execute: { () -> Void in
-//                                self.present(navigationController, animated: true, completion: nil)
-//                            })
-//                        }
-                    } else {
-                        networkUnavailable("Scripture text is unavailable.")
-                    }
-//                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
-                })
+            if let reference = mediaItem.scriptureReference {
+                if mediaItem.scripture?.html?[reference] != nil {
+                    popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
+                } else {
+                    process(viewController: self, work: { () -> (Any?) in
+                        mediaItem.scripture?.load(mediaItem.scripture?.reference)
+                        return mediaItem.scripture?.html?[reference]
+                    }, completion: { (data:Any?) in
+                        if let htmlString = data as? String {
+                            popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                        } else {
+                            networkUnavailable("Scripture text unavailable.")
+                        }
+                        //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
+                    })
+                }
             }
         }
         
         scripture.backgroundColor = UIColor.orange
 
-        if mediaItem.scripture != Constants.Selected_Scriptures {
+        if mediaItem.scriptureReference != Constants.Selected_Scriptures {
             actions.append(scripture)
         }
 

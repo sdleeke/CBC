@@ -174,6 +174,8 @@ struct Constants {
         static let UPDATE_VIEW              = "UPDATE VIEW"
         static let CLEAR_VIEW               = "CLEAR VIEW"
         
+        static let LIVE_VIEW                = "LIVE VIEW"
+        
         static let MEDIA_UPDATE_CELL        = "MEDIA UPDATE CELL"
         
         static let MEDIA_UPDATE_UI          = "MEDIA UPDATE UI"
@@ -331,6 +333,8 @@ struct Constants {
 
 //    static let Scripture_Full_Screen = "Scripture Full Screen"
     static let Scripture_in_Browser = "Scripture in Browser"
+    
+    static let Scripture_Viewer = "Scripture Viewer"
     
     static let EMPTY_STRING = ""
 
@@ -578,6 +582,8 @@ struct Constants {
     static let View_List = "View List"
     static let List = "List"
     
+    static let View_Scripture = "View Scripture"
+    
     static let Share = "Share"
     static let Share_All = "Share All"
     
@@ -656,7 +662,7 @@ struct Constants {
         "Nehemiah",
         "Esther",
         "Job",
-        "Psalm",
+        "Psalms",
         "Proverbs",
         "Ecclesiastes",
         "Song of Solomon",

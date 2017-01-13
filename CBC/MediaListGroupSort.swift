@@ -183,8 +183,8 @@ class MediaListGroupSort {
                     }
                 }
                 if entries == nil {
-                    if let scripture = mediaItem.scripture?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) {
-                        entries = [(scripture,scripture)]
+                    if let scriptureReference = mediaItem.scriptureReference?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) {
+                        entries = [(scriptureReference,scriptureReference)]
                     } else {
                         entries = [(Constants.None,Constants.None)]
                     }

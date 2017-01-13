@@ -7,9 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		17074CB11E25A92B00332F0A /* Scripture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17074CB01E25A92B00332F0A /* Scripture.swift */; };
 		1712CD701C77449B005E09D6 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1712CD6F1C77449B005E09D6 /* SettingsViewController.swift */; };
 		1713B1851DF8DB0900BE3EDF /* head.txt in Resources */ = {isa = PBXBuildFile; fileRef = 1713B1841DF8DB0900BE3EDF /* head.txt */; };
 		1713B1871DF8DD8900BE3EDF /* style.txt in Resources */ = {isa = PBXBuildFile; fileRef = 1713B1861DF8DD8900BE3EDF /* style.txt */; };
+		17196DB21E22EBFD00A7DD00 /* ScriptureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17196DB11E22EBFD00A7DD00 /* ScriptureViewController.swift */; };
 		171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171A6ED41BF2172100E3323C /* WebViewController.swift */; };
 		1749C4571DAAAE8A00FC90E0 /* PopoverPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */; };
 		174A14A51E020A0500736CEC /* CachedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174A14A41E020A0500736CEC /* CachedString.swift */; };
@@ -62,9 +64,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		17074CB01E25A92B00332F0A /* Scripture.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Scripture.swift; sourceTree = "<group>"; };
 		1712CD6F1C77449B005E09D6 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		1713B1841DF8DB0900BE3EDF /* head.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = head.txt; sourceTree = "<group>"; };
 		1713B1861DF8DD8900BE3EDF /* style.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = style.txt; sourceTree = "<group>"; };
+		17196DB11E22EBFD00A7DD00 /* ScriptureViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScriptureViewController.swift; sourceTree = "<group>"; };
 		171A6ED41BF2172100E3323C /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
 		1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PopoverPickerViewController.swift; sourceTree = "<group>"; };
 		174A14A41E020A0500736CEC /* CachedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CachedString.swift; sourceTree = "<group>"; };
@@ -179,6 +183,8 @@
 				17E893531BA83FCE00D5D2FB /* ViewSplit.swift */,
 				174EEE891B74C11E004F6942 /* MediaViewController.swift */,
 				17D4641B1C8E135800519C98 /* ScriptureIndexViewController.swift */,
+				17196DB11E22EBFD00A7DD00 /* ScriptureViewController.swift */,
+				17074CB01E25A92B00332F0A /* Scripture.swift */,
 				171A6ED41BF2172100E3323C /* WebViewController.swift */,
 				174EEE8A1B74C11E004F6942 /* AboutViewController.swift */,
 				1712CD6F1C77449B005E09D6 /* SettingsViewController.swift */,
@@ -387,6 +393,7 @@
 			files = (
 				1749C4571DAAAE8A00FC90E0 /* PopoverPickerViewController.swift in Sources */,
 				17E75ECA1B835FC600AE8ED5 /* functions.swift in Sources */,
+				17196DB21E22EBFD00A7DD00 /* ScriptureViewController.swift in Sources */,
 				17763BE31BEA329400BB5556 /* Constants.swift in Sources */,
 				17F8EAB41DFE221A00FA2A99 /* PopoverTableViewCell.swift in Sources */,
 				17579DE01B84706500F1424F /* PopoverTableViewController.swift in Sources */,
@@ -407,6 +414,7 @@
 				174EEE921B74C11E004F6942 /* MediaTableViewCell.swift in Sources */,
 				177FBA951C5CF36400AFBB50 /* OBSlider.swift in Sources */,
 				174A14A71E02122200736CEC /* MediaPlayer.swift in Sources */,
+				17074CB11E25A92B00332F0A /* Scripture.swift in Sources */,
 				171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */,
 				17763BE51BEA32C700BB5556 /* MediaItem.swift in Sources */,
 			);

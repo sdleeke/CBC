@@ -14,7 +14,7 @@ class CachedString {
         cache = [String:String]()
     }
     
-    var index:(()->String?)?
+    var index:((Void)->String?)?
     
     var cache = [String:String]()
     

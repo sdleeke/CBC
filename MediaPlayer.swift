@@ -352,12 +352,12 @@ class MediaPlayer {
         set {
             globals.unobservePlayer()
             
-            if sliderTimerReturn != nil {
-                player?.removeTimeObserver(sliderTimerReturn!)
-                sliderTimerReturn = nil
+            if self.sliderTimerReturn != nil {
+                self.player?.removeTimeObserver(self.sliderTimerReturn!)
+                self.sliderTimerReturn = nil
             }
             
-            controller?.player = newValue
+            self.controller?.player = newValue
         }
     }
     
