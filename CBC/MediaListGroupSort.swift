@@ -70,25 +70,49 @@ class MediaListGroupSort {
         }
     }
     
+    var lexiconEntries:[MediaItem]? {
+        get {
+            var mediaItemSet = Set<MediaItem>()
+            
+            if let list:[[MediaItem]] = lexicon?.values.map({ (array:[(MediaItem,Int)]) -> [MediaItem] in
+                return array.map({ (tuple:(MediaItem,Int)) -> MediaItem in
+                    return tuple.0
+                })
+            }) {
+                for mediaItemList in list {
+                    mediaItemSet = mediaItemSet.union(Set(mediaItemList))
+                }
+            }
+
+            return mediaItemSet.count > 0 ? Array(mediaItemSet) : nil
+        }
+    }
+    
+    var lexiconList:[MediaItem]? {
+        get {
+            return list?.filter({ (mediaItem:MediaItem) -> Bool in
+                return mediaItem.hasNotesHTML
+            })
+        }
+    }
+    
     var creatingLexicon = false
     
     func createLexicon()
     {
-        if !creatingLexicon, lexicon == nil, let list = list {
+        guard !creatingLexicon else {
+            return
+        }
+        
+        guard (lexicon == nil) else {
+            return
+        }
+        
+        if let list = list {
             creatingLexicon = true
             
             DispatchQueue.global(qos: .background).async {
                 var dict = Lexicon()
-                
-//                var count = 0
-                
-                var total = 0
-                
-                for mediaItem in list {
-                    if mediaItem.hasNotesHTML {
-                        total += 1
-                    }
-                }
                 
                 for mediaItem in list {
                     if mediaItem.hasNotesHTML {
@@ -117,8 +141,6 @@ class MediaListGroupSort {
                             }
                         }
                         
-//                        count += 1
-
                         self.lexicon = dict.count > 0 ? dict : nil
 
                         DispatchQueue.main.async(execute: { () -> Void in

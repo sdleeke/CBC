@@ -483,7 +483,14 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 searchBar.text = searchText
                 searchBar.showsCancelButton = true
                 
-                updateSearchResults(searchText,completion: nil)
+                if let list:[MediaItem]? = globals.media.all?.lexicon?[searchText]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
+                    return tuple.0
+                }) {
+                    updateSearch(searchText:searchText,mediaItems: list)
+                    updateDisplay(searchText:searchText)
+                }
+
+//                updateSearchResults(searchText,completion: nil)
             }
             
             

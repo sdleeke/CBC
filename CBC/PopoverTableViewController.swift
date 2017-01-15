@@ -286,6 +286,9 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             self.setupIndex()
             
             DispatchQueue.main.async(execute: { () -> Void in
+                if let count = self.mediaListGroupSort?.lexiconEntries?.count, let total = self.mediaListGroupSort?.lexiconList?.count {
+                    self.navigationItem.title = "Lexicon \(count) of \(total)"
+                }
                 self.tableView.reloadData()
                 self.setPreferredContentSize()
             })
@@ -352,6 +355,8 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             self.setupIndex()
             
             DispatchQueue.main.async(execute: { () -> Void in
+                self.navigationItem.title = "Lexicon"
+
                 self.tableView.reloadData()
                 self.setPreferredContentSize()
 
@@ -423,8 +428,6 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         }
         
         if mediaListGroupSort != nil {
-            // Add lexicon observers.
-
             // Start lexicon creation if it isn't already being created.
             if (mediaListGroupSort?.lexicon == nil) {
                 mediaListGroupSort?.createLexicon()
