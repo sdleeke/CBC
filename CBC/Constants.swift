@@ -159,8 +159,14 @@ struct Constants {
     struct NOTIFICATION {
         static let FREE_MEMORY              = "FREE MEMORY"
 
+        static let SET_PREFERRED_CONTENT_SIZE = "SET PREFERRED CONTENT SIZE"
+        
         static let UPDATE_DOCUMENT          = "UPDATE DOCUMENT"
         static let CANCEL_DOCUMENT          = "CANCEL DOCUMENT"
+        
+        static let LEXICON_STARTED          = "LEXICON STARTED"
+        static let LEXICON_UPDATED          = "LEXICON UPDATED"
+        static let LEXICON_FINISHED         = "LEXICON FINISHED"
         
         static let UPDATE_PLAY_PAUSE        = "UPDATE PLAY PAUSE"
         

@@ -215,7 +215,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             navigationController.modalPresentationStyle = .popover
-            //            popover?.preferredContentSize = CGSizeMake(300, 500)
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
@@ -870,7 +869,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 if mlgs != nil, let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                     navigationController.modalPresentationStyle = .popover
-                    //            popover?.preferredContentSize = CGSizeMake(300, 500)
                     
                     navigationController.popoverPresentationController?.permittedArrowDirections = .up
                     navigationController.popoverPresentationController?.delegate = self
@@ -933,7 +931,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                         let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                         navigationController.modalPresentationStyle = .popover
-                        //            popover?.preferredContentSize = CGSizeMake(300, 500)
                         
                         navigationController.popoverPresentationController?.permittedArrowDirections = .up
                         navigationController.popoverPresentationController?.delegate = self
@@ -1075,7 +1072,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             let button = object as? UIBarButtonItem
             
             navigationController.modalPresentationStyle = .popover
-            //            popover?.preferredContentSize = CGSizeMake(300, 500)
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .down
             navigationController.popoverPresentationController?.delegate = self
@@ -1163,7 +1159,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             let button = object as? UIBarButtonItem
             
             navigationController.modalPresentationStyle = .popover
-            //            popover?.preferredContentSize = CGSizeMake(300, 500)
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .down
             navigationController.popoverPresentationController?.delegate = self
@@ -1199,7 +1194,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             let button = object as? UIBarButtonItem
             
             navigationController.modalPresentationStyle = .popover
-            //            popover?.preferredContentSize = CGSizeMake(300, 500)
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .down
             navigationController.popoverPresentationController?.delegate = self
@@ -2428,7 +2422,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             navigationController.modalPresentationStyle = .popover
-            //            popover?.preferredContentSize = CGSizeMake(300, 500)
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
@@ -3372,9 +3365,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         }
         search.backgroundColor = UIColor.controlBlue()
         
-        words = UITableViewRowAction(style: .normal, title: Constants.FA.WORDS) { action, index in
-            // let searchTokens = mediaItem.searchTokens(),
-            
+        func transcriptTokens()
+        {
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 self.dismiss(animated: true, completion: nil)
@@ -3397,42 +3389,22 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 popover.strings = nil
                 
-                if mediaItem.hasNotesHTML {
-                    if mediaItem.notesTokens == nil {
-                        if globals.reachability.isReachable {
-                            popover.stringsFunction = {
-                                mediaItem.loadNotesHTML()
-                                
-                                if let notesTokens = tokenCountsFromString(mediaItem.notesHTML) {
-                                    mediaItem.notesTokens = notesTokens // tokenArray
-                                    
-                                    return notesTokens.map({ (string:String,count:Int) -> String in
-                                        return "\(string) (\(count))"
-                                    })
-                                } else {
-                                    return nil
-                                }
-                            }
-                        }
-                    } else {
-                        popover.strings = mediaItem.notesTokens?.map({ (string:String,count:Int) -> String in
-                            return "\(string) (\(count))"
-                        })
-
-                        let array = Array(Set(popover.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
-                        
-                        popover.indexStrings = array.map({ (string:String) -> String in
-                            return string.uppercased()
-                        })
-                    }
-                }
+                popover.strings = mediaItem.notesTokens?.map({ (string:String,count:Int) -> String in
+                    return "\(string) (\(count))"
+                })
                 
-                popover.showIndex = true
-                popover.showSectionHeaders = true
-                
-                popover.vc = self
-
-                if (popover.strings != nil) || (popover.stringsFunction != nil) {
+                if (popover.strings != nil) {
+                    let array = Array(Set(popover.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
+                    
+                    popover.indexStrings = array.map({ (string:String) -> String in
+                        return string.uppercased()
+                    })
+                    
+                    popover.showIndex = true
+                    popover.showSectionHeaders = true
+                    
+                    popover.vc = self
+                    
                     DispatchQueue.main.async(execute: { () -> Void in
                         self.present(navigationController, animated: true, completion: nil)
                     })
@@ -3440,6 +3412,90 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     networkUnavailable("HTML transcript vocabulary unavailable.")
                 }
             }
+        }
+        
+        words = UITableViewRowAction(style: .normal, title: Constants.FA.WORDS) { action, index in
+            // let searchTokens = mediaItem.searchTokens(),
+            
+            if mediaItem.hasNotesHTML {
+                if mediaItem.notesTokens == nil {
+                    process(viewController: self, work: { () -> (Any?) in
+                        mediaItem.loadNotesTokens()
+                    }, completion: { (data:Any?) in
+                        transcriptTokens()
+                    })
+                } else {
+                    transcriptTokens()
+                }
+            }
+            
+//            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                self.dismiss(animated: true, completion: nil)
+//                
+//                navigationController.modalPresentationStyle = .popover
+//                navigationController.popoverPresentationController?.permittedArrowDirections = .any
+//                navigationController.popoverPresentationController?.delegate = self
+//                
+//                navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+//                navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: words)!].frame
+//                
+//                popover.navigationItem.title = Constants.Search
+//                
+//                popover.navigationController?.isNavigationBarHidden = false
+//                
+//                popover.delegate = self
+//                popover.purpose = .selectingCellSearch
+//                
+//                popover.selectedMediaItem = mediaItem
+//                
+//                popover.strings = nil
+//                
+//                if mediaItem.hasNotesHTML {
+//                    if mediaItem.notesTokens == nil {
+//                        if globals.reachability.isReachable {
+//                            popover.stringsFunction = {
+//                                mediaItem.loadNotesHTML()
+//                                
+//                                if let notesTokens = tokenCountsFromString(mediaItem.notesHTML) {
+//                                    mediaItem.notesTokens = notesTokens // tokenArray
+//                                    
+//                                    return notesTokens.map({ (string:String,count:Int) -> String in
+//                                        return "\(string) (\(count))"
+//                                    })
+//                                }
+//                                
+//                                networkUnavailable("HTML transcript vocabulary unavailable.")
+//
+//                                return nil
+//                            }
+//                        }
+//                    } else {
+//                        popover.strings = mediaItem.notesTokens?.map({ (string:String,count:Int) -> String in
+//                            return "\(string) (\(count))"
+//                        })
+//
+//                        let array = Array(Set(popover.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
+//                        
+//                        popover.indexStrings = array.map({ (string:String) -> String in
+//                            return string.uppercased()
+//                        })
+//                    }
+//                }
+//                
+//                popover.showIndex = true
+//                popover.showSectionHeaders = true
+//                
+//                popover.vc = self
+//
+//                if (popover.strings != nil) || (popover.stringsFunction != nil) {
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                        self.present(navigationController, animated: true, completion: nil)
+//                    })
+//                } else {
+//                    networkUnavailable("HTML transcript vocabulary unavailable.")
+//                }
+//            }
         }
         words.backgroundColor = UIColor.blue
         

@@ -1149,20 +1149,21 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "Scripture View") as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? ScriptureViewController  {
                     
-                    popover.scripture = scripture
+                    popover.scripture = self.scripture
+                    
+                    popover.vc = self
                     
                     navigationController.modalPresentationStyle = .popover
-                    //            popover?.preferredContentSize = CGSizeMake(300, 500)
                     
                     navigationController.popoverPresentationController?.permittedArrowDirections = .up
                     navigationController.popoverPresentationController?.delegate = self
                     
-                    navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+                    navigationController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
                     
-//                    popover.navigationItem.title = title
-
+                    //                    popover.navigationItem.title = title
+                    
                     popover.navigationController?.isNavigationBarHidden = false
-
+                    
                     DispatchQueue.main.async(execute: { () -> Void in
                         self.present(navigationController, animated: true, completion: nil)
                     })
@@ -1248,7 +1249,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             navigationController.modalPresentationStyle = .popover
-            //            popover?.preferredContentSize = CGSizeMake(300, 500)
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
@@ -2328,7 +2328,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             let button = object as? UIBarButtonItem
             
             navigationController.modalPresentationStyle = .popover
-            //            popover?.preferredContentSize = CGSizeMake(300, 500)
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
 

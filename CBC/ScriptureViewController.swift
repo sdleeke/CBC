@@ -15,6 +15,8 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
     var minusButton:UIBarButtonItem?
     var plusButton:UIBarButtonItem?
 
+    var vc:UIViewController?
+    
     var webViewController:WebViewController?
     
     var scripture:Scripture?
@@ -50,12 +52,6 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
                     webViewController?.html.string = ""
                     webViewController?.content = .html
                 }
-                break
-                
-            case Constants.SEGUE.SHOW_SETTINGS:
-                navCon?.modalPresentationStyle = .popover
-                navCon?.popoverPresentationController?.delegate = self
-                navCon?.popoverPresentationController?.barButtonItem = navigationItem.leftBarButtonItem
                 break
                 
             default:
@@ -354,23 +350,33 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
         })
     }
     
-    //    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
-    //    {
-    //        super.viewWillTransition(to: size, with: coordinator)
-    //
-    //        if (self.view.window == nil) {
-    //            return
-    //        }
-    //
-    //        //        print("Size: \(size)")
-    //
-    //        setupSplitViewController()
-    //
-    //        coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
-    //        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-    //
-    //        }
-    //    }
+    func setPreferredContentSize()
+    {
+        preferredContentSize = CGSize(width:  view.frame.width,//webViewController!.wkWebView!.scrollView.contentSize.width,
+                                      height: webViewController!.wkWebView!.scrollView.contentSize.height + scripturePicker.frame.height + 60)
+    }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
+    {
+        super.viewWillTransition(to: size, with: coordinator)
+
+        if (self.view.window == nil) {
+            return
+        }
+
+        //        print("Size: \(size)")
+
+        coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
+        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
+//            print(self.view.frame.width,self.vc!.view!.frame.height)
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+//                self.preferredContentSize = CGSize(width:  self.view.frame.width,
+//                                                   height: self.vc!.view!.frame.height)
+                self.setPreferredContentSize()
+            })
+        }
+    }
     
     func showScripture()
     {
@@ -573,11 +579,63 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
         
         navigationController?.setToolbarHidden(true, animated: false)
         
+        preferredContentSize = CGSize(width:  view.frame.width,
+                                      height: scripturePicker.frame.height + 60)
+        
         setupBarButtons()
         
-        updatePicker()
-
-        showScripture()
+        if scripture?.selected.reference == nil, let reference = scripture?.reference, reference != Constants.Selected_Scriptures {
+            DispatchQueue.global(qos: .background).async {
+                self.scripture?.load(reference)
+                
+                // Take the first one in the Scripture reference?
+                if let books:[String] = self.scripture?.xml.text?.keys.map({ (string:String) -> String in
+                    return string
+                }).sorted(by: { reference.range(of: $0)?.lowerBound < reference.range(of: $1)?.lowerBound }), books.count > 0 {
+                    let book = books[0]
+                    
+                    self.scripture?.selected.testament = self.testament(book)
+                    self.scripture?.selected.book = book
+                    
+                    if let chapters:[Int] = self.scripture?.xml.text?[book]?.keys.map({ (string:String) -> Int in
+                        return Int(string)!
+                    }).sorted(), chapters.count > 0 {
+                        self.scripture?.selected.chapter = chapters[0]
+                    }
+                }
+                
+                // Sort by book and take the first one?
+                //                if let books:[String] = scripture?.xml.text?.keys.map({ (string:String) -> String in
+                //                    return string
+                //                }).sorted(by: { bookNumberInBible($0) < bookNumberInBible($1) }), books.count > 0 {
+                //                    let book = books[0].replacingOccurrences(of: "Psalms", with: "Psalm")
+                //
+                //                    scripture?.selected.testament = testament(book)
+                //                    scripture?.selected.book = book
+                //
+                //                    if let chapters:[Int] = scripture?.xml.text?[book]?.keys.map({ (string:String) -> Int in
+                //                        return Int(string)!
+                //                    }).sorted(), chapters.count > 0 {
+                //                        scripture?.selected.chapter = chapters[0]
+                //                    }
+                //                }
+                
+                // Below we are taking the LAST one.
+                //                if let book = scripture?.xml.book?.replacingOccurrences(of: "Psalms", with: "Psalm") {
+                //                    scripture?.selected.testament = testament(book)
+                //                    scripture?.selected.book = book
+                //                }
+                //                scripture?.selected.chapter = Int(scripture!.xml.chapter!)!
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.updatePicker()
+                    self.showScripture()
+                })
+            }
+        } else {
+            updatePicker()
+            showScripture()
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -589,7 +647,10 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
-        
+
+//        navigationController?.preferredContentSize = CGSize(width:  view.frame.width,
+//                                                            height: vc!.view.frame.height)
+
         // Seems like the following should work but doesn't.
         //        navigationItem.backBarButtonItem?.title = Constants.Back
         
@@ -626,51 +687,10 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        if scripture?.selected.reference == nil, let reference = scripture?.reference, reference != Constants.Selected_Scriptures {
-            scripture?.load(reference)
-            
-            // Take the first one in the Scripture reference?
-            if let books:[String] = scripture?.xml.text?.keys.map({ (string:String) -> String in
-                return string
-            }).sorted(by: { reference.range(of: $0)?.lowerBound < reference.range(of: $1)?.lowerBound }), books.count > 0 {
-                let book = books[0]
-                
-                scripture?.selected.testament = testament(book)
-                scripture?.selected.book = book
-                
-                if let chapters:[Int] = scripture?.xml.text?[book]?.keys.map({ (string:String) -> Int in
-                    return Int(string)!
-                }).sorted(), chapters.count > 0 {
-                    scripture?.selected.chapter = chapters[0]
-                }
-            }
-            
-            // Sort by book and take the first one?
-//            if let books:[String] = scripture?.xml.text?.keys.map({ (string:String) -> String in
-//                return string
-//            }).sorted(by: { bookNumberInBible($0) < bookNumberInBible($1) }), books.count > 0 {
-//                let book = books[0].replacingOccurrences(of: "Psalms", with: "Psalm")
-//
-//                scripture?.selected.testament = testament(book)
-//                scripture?.selected.book = book
-//
-//                if let chapters:[Int] = scripture?.xml.text?[book]?.keys.map({ (string:String) -> Int in
-//                    return Int(string)!
-//                }).sorted(), chapters.count > 0 {
-//                    scripture?.selected.chapter = chapters[0]
-//                }
-//            }
-            
-            // Below we are taking the LAST one.
-//            if let book = scripture?.xml.book?.replacingOccurrences(of: "Psalms", with: "Psalm") {
-//                scripture?.selected.testament = testament(book)
-//                scripture?.selected.book = book
-//            }
-//            scripture?.selected.chapter = Int(scripture!.xml.chapter!)!
-        }
         
-        updatePicker()
+        DispatchQueue.main.async {
+            NotificationCenter.default.addObserver(self, selector: #selector(ScriptureViewController.setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
+        }
         
         //        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
         navigationItem.leftItemsSupplementBackButton = true

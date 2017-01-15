@@ -47,7 +47,7 @@ class PopoverPickerViewController: UIViewController, UIPickerViewDataSource, UIP
             picker.selectRow(index, inComponent: 0, animated: false)
         }
         
-        self.preferredContentSize = CGSize(width: 300, height: 300)
+        preferredContentSize = CGSize(width: 300, height: 300)
     }
     
     override func viewDidAppear(_ animated: Bool) {

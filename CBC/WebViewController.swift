@@ -293,7 +293,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
             html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
 
             DispatchQueue.main.async(execute: { () -> Void in
-//                self.preferredContentSize = CGSize(width: self.wkWebView!.scrollView.contentSize.width,height: 44)
                 _ = self.wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
             })
             break
@@ -670,7 +669,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
 //                    print(wkWebView.scrollView.contentSize.width,wkWebView.scrollView.contentSize.height)
                     
                     self.preferredContentSize = CGSize(width: wkWebView.scrollView.contentSize.width,height: wkWebView.scrollView.contentSize.height)
+                    
                     wkWebView.isHidden = false
+
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
                 })
             }
         })
@@ -891,18 +893,16 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                     break
                 }
 
-                var width:CGFloat = 0
-                
                 if let title = self.navigationItem.title {
                     let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
                     
                     let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
                     
-                    width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0)], context: nil).width + 150
+                    let width:CGFloat = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0)], context: nil).width + 150
+                    
+                    self.navigationController?.preferredContentSize = CGSize(width: max(width,self.wkWebView!.scrollView.contentSize.width),
+                                                                             height: self.wkWebView!.scrollView.contentSize.height)
                 }
-                
-                self.navigationController?.preferredContentSize = CGSize(width: max(width,self.wkWebView!.scrollView.contentSize.width),
-                                                                         height: self.wkWebView!.scrollView.contentSize.height)
             })
         }
     }

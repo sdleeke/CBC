@@ -158,12 +158,20 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
 //        print(height)
 //        print(width)
         
-        self.preferredContentSize = CGSize(width: width, height: height)
+        preferredContentSize = CGSize(width: width, height: height)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        if mediaListGroupSort != nil {
+            DispatchQueue.main.async {
+                NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconStarted), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: nil)
+                NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconUpdated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: nil)
+                NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconFinished), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_FINISHED), object: nil)
+            }
+        }
+
         //This makes accurate scrolling to sections impossible but since we don't use scrollToRowAtIndexPath with
         //the popover, this makes multi-line rows possible.
 
@@ -242,6 +250,127 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         section.counts = counts.count > 0 ? counts : nil
     }
     
+    func lexiconStarted()
+    {
+        self.activityIndicator.startAnimating()
+        self.activityIndicator?.isHidden = false
+    }
+    
+    func lexiconUpdated()
+    {
+        DispatchQueue.global(qos: .background).async {
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.activityIndicator.startAnimating()
+                self.activityIndicator?.isHidden = false
+            })
+            
+            var strings = [String]()
+            
+            if let words = self.mediaListGroupSort?.lexicon?.keys.sorted() {
+                for word in words {
+                    if let count = self.mediaListGroupSort?.lexicon?[word]?.count {
+                        strings.append("\(word) (\(count))")
+                    }
+                }
+            }
+            
+            self.strings = strings
+            self.indexStrings = strings
+            
+            let array = Array(Set(self.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
+            
+            self.indexStrings = array.map({ (string:String) -> String in
+                return string.uppercased()
+            })
+            
+            self.setupIndex()
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.tableView.reloadData()
+                self.setPreferredContentSize()
+            })
+        }
+
+//        var strings = [String]()
+//
+//        if let words = mediaListGroupSort?.lexicon?.keys.sorted() {
+//            for word in words {
+//                if let count = mediaListGroupSort?.lexicon?[word]?.count {
+//                    strings.append("\(word) (\(count))")
+//                }
+//            }
+//        }
+//        
+//        self.strings = strings
+//        self.indexStrings = strings
+//        
+//        if self.strings != nil {
+//            let array = Array(Set(self.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
+//            
+//            self.indexStrings = array.map({ (string:String) -> String in
+//                return string.uppercased()
+//            })
+//            
+//            self.setupIndex()
+//        }
+//        
+////        count += 1
+//        
+////        self.navigationItem.title = "Lexicon \(count) of \(total)"
+//        
+//        setPreferredContentSize()
+//        tableView.reloadData()
+    }
+    
+    func lexiconFinished()
+    {
+        DispatchQueue.global(qos: .background).async {
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.activityIndicator.startAnimating()
+                self.activityIndicator?.isHidden = false
+            })
+            
+            var strings = [String]()
+            
+            if let words = self.mediaListGroupSort?.lexicon?.keys.sorted() {
+                for word in words {
+                    if let count = self.mediaListGroupSort?.lexicon?[word]?.count {
+                        strings.append("\(word) (\(count))")
+                    }
+                }
+            }
+            
+            self.strings = strings
+            self.indexStrings = strings
+            
+            let array = Array(Set(self.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
+            
+            self.indexStrings = array.map({ (string:String) -> String in
+                return string.uppercased()
+            })
+            
+            self.setupIndex()
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.tableView.reloadData()
+                self.setPreferredContentSize()
+
+                self.activityIndicator?.stopAnimating()
+                self.activityIndicator?.isHidden = true
+            })
+        }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+    
+        if mediaListGroupSort != nil {
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: nil)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: nil)
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_FINISHED), object: nil)
+        }
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -294,111 +423,137 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         }
         
         if mediaListGroupSort != nil {
-            if (self.mediaListGroupSort?.lexicon == nil), let list = self.mediaListGroupSort?.list {
-                DispatchQueue.global(qos: .background).async {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.activityIndicator.startAnimating()
-                        self.activityIndicator?.isHidden = false
-                    })
-                    
-                    var dict = Lexicon()
-                    
-                    for mediaItem in list {
-                        if mediaItem.hasNotesHTML {
-                            DispatchQueue.main.async(execute: { () -> Void in
-                                self.activityIndicator.startAnimating()
-                                self.activityIndicator?.isHidden = false
-                            })
-                            
-                            mediaItem.loadNotesTokens()
-                            
-                            if let notesTokens = mediaItem.notesTokens {
-                                for token in notesTokens {
-                                    if dict[token.0] == nil {
-                                        dict[token.0] = [(mediaItem,token.1)]
-                                    } else {
-                                        dict[token.0]?.append((mediaItem,token.1))
-                                    }
-                                }
-                            }
-                            
-                            var strings = [String]()
-                            
-                            let words = dict.keys.sorted()
-                            for word in words {
-                                if let count = dict[word]?.count {
-                                    strings.append("\(word) (\(count))")
-                                }
-                            }
-                            
-                            self.strings = strings
-                            self.indexStrings = strings
-                            
-                            if self.strings != nil {
-                                let array = Array(Set(self.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
-                                
-                                self.indexStrings = array.map({ (string:String) -> String in
-                                    return string.uppercased()
-                                })
-                                
-                                self.setupIndex()
-                            }
-                            
-                            DispatchQueue.main.async(execute: { () -> Void in
-                                self.setPreferredContentSize()
-                                self.tableView.reloadData()
-                            })
-                        }
-                    }
-                    
-                    //        print(dict)
-                    
-                    self.mediaListGroupSort?.lexicon = dict.count > 0 ? dict : nil
-                    
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.setPreferredContentSize()
-                        self.activityIndicator.stopAnimating()
-                        self.activityIndicator?.isHidden = true
-                    })
-                }
+            // Add lexicon observers.
+
+            // Start lexicon creation if it isn't already being created.
+            if (mediaListGroupSort?.lexicon == nil) {
+                mediaListGroupSort?.createLexicon()
             } else {
-                DispatchQueue.global(qos: .background).async {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.activityIndicator.startAnimating()
-                        self.activityIndicator?.isHidden = false
-                    })
-                    
-                    var strings = [String]()
-                    
-                    if let words = self.mediaListGroupSort?.lexicon?.keys.sorted() {
-                        for word in words {
-                            if let count = self.mediaListGroupSort?.lexicon?[word]?.count {
-                                strings.append("\(word) (\(count))")
-                            }
-                        }
-                    }
-                    
-                    self.strings = strings
-                    self.indexStrings = strings
-                    
-                    let array = Array(Set(self.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
-                    
-                    self.indexStrings = array.map({ (string:String) -> String in
-                        return string.uppercased()
-                    })
-                    
-                    self.setupIndex()
-                    
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.tableView.reloadData()
-                        
-                        self.setPreferredContentSize()
-                        
-                        self.activityIndicator?.stopAnimating()
-                        self.activityIndicator?.isHidden = true
-                    })
+                if mediaListGroupSort!.creatingLexicon {
+                    lexiconUpdated()
+                } else {
+                    lexiconFinished()
                 }
             }
+            
+//            if (self.mediaListGroupSort?.lexicon == nil), let list = self.mediaListGroupSort?.list {
+//                DispatchQueue.global(qos: .background).async {
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                        self.activityIndicator.startAnimating()
+//                        self.activityIndicator?.isHidden = false
+//                    })
+//                    
+//                    var dict = Lexicon()
+//                    
+//                    var count = 0
+//                    var total = 0
+//                    
+//                    for mediaItem in list {
+//                        if mediaItem.hasNotesHTML {
+//                            total += 1
+//                        }
+//                    }
+//                    
+//                    for mediaItem in list {
+//                        if mediaItem.hasNotesHTML {
+//                            DispatchQueue.main.async(execute: { () -> Void in
+//                                self.activityIndicator.startAnimating()
+//                                self.activityIndicator?.isHidden = false
+//                            })
+//                            
+//                            mediaItem.loadNotesTokens()
+//                            
+//                            if let notesTokens = mediaItem.notesTokens {
+//                                for token in notesTokens {
+//                                    if dict[token.0] == nil {
+//                                        dict[token.0] = [(mediaItem,token.1)]
+//                                    } else {
+//                                        dict[token.0]?.append((mediaItem,token.1))
+//                                    }
+//                                }
+//                            }
+//                            
+//                            var strings = [String]()
+//                            
+//                            let words = dict.keys.sorted()
+//                            for word in words {
+//                                if let count = dict[word]?.count {
+//                                    strings.append("\(word) (\(count))")
+//                                }
+//                            }
+//                            
+//                            self.strings = strings
+//                            self.indexStrings = strings
+//                            
+//                            if self.strings != nil {
+//                                let array = Array(Set(self.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
+//                                
+//                                self.indexStrings = array.map({ (string:String) -> String in
+//                                    return string.uppercased()
+//                                })
+//                                
+//                                self.setupIndex()
+//                            }
+//
+//                            count += 1
+//
+//                            DispatchQueue.main.async(execute: { () -> Void in
+//                                self.navigationItem.title = "Lexicon \(count) of \(total)"
+//                                self.setPreferredContentSize()
+//                                self.tableView.reloadData()
+//                            })
+//                        }
+//                    }
+//                    
+//                    //        print(dict)
+//                    
+//                    self.mediaListGroupSort?.lexicon = dict.count > 0 ? dict : nil
+//                    
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                        self.navigationItem.title = "Lexicon"
+//                        self.setPreferredContentSize()
+//                        self.activityIndicator.stopAnimating()
+//                        self.activityIndicator?.isHidden = true
+//                    })
+//                }
+//            } else {
+//                DispatchQueue.global(qos: .background).async {
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                        self.activityIndicator.startAnimating()
+//                        self.activityIndicator?.isHidden = false
+//                    })
+//                    
+//                    var strings = [String]()
+//                    
+//                    if let words = self.mediaListGroupSort?.lexicon?.keys.sorted() {
+//                        for word in words {
+//                            if let count = self.mediaListGroupSort?.lexicon?[word]?.count {
+//                                strings.append("\(word) (\(count))")
+//                            }
+//                        }
+//                    }
+//                    
+//                    self.strings = strings
+//                    self.indexStrings = strings
+//                    
+//                    let array = Array(Set(self.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
+//                    
+//                    self.indexStrings = array.map({ (string:String) -> String in
+//                        return string.uppercased()
+//                    })
+//                    
+//                    self.setupIndex()
+//                    
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                        self.tableView.reloadData()
+//                        
+//                        self.setPreferredContentSize()
+//                        
+//                        self.activityIndicator?.stopAnimating()
+//                        self.activityIndicator?.isHidden = true
+//                    })
+//                }
+//            }
         }
     }
 

@@ -1702,7 +1702,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             navigationController.modalPresentationStyle = .popover
-            //            popover?.preferredContentSize = CGSizeMake(300, 500)
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
@@ -1750,7 +1749,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             let button = object as? UIBarButtonItem
             
             navigationController.modalPresentationStyle = .popover
-            //            popover?.preferredContentSize = CGSizeMake(300, 500)
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .down
             navigationController.popoverPresentationController?.delegate = self

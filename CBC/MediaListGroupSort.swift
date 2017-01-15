@@ -70,6 +70,75 @@ class MediaListGroupSort {
         }
     }
     
+    var creatingLexicon = false
+    
+    func createLexicon()
+    {
+        if !creatingLexicon, lexicon == nil, let list = list {
+            creatingLexicon = true
+            
+            DispatchQueue.global(qos: .background).async {
+                var dict = Lexicon()
+                
+//                var count = 0
+                
+                var total = 0
+                
+                for mediaItem in list {
+                    if mediaItem.hasNotesHTML {
+                        total += 1
+                    }
+                }
+                
+                for mediaItem in list {
+                    if mediaItem.hasNotesHTML {
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: nil)
+                        })
+                        
+                        mediaItem.loadNotesTokens()
+                        
+                        if let notesTokens = mediaItem.notesTokens {
+                            for token in notesTokens {
+                                if dict[token.0] == nil {
+                                    dict[token.0] = [(mediaItem,token.1)]
+                                } else {
+                                    dict[token.0]?.append((mediaItem,token.1))
+                                }
+                            }
+                        }
+                        
+                        var strings = [String]()
+                        
+                        let words = dict.keys.sorted()
+                        for word in words {
+                            if let count = dict[word]?.count {
+                                strings.append("\(word) (\(count))")
+                            }
+                        }
+                        
+//                        count += 1
+
+                        self.lexicon = dict.count > 0 ? dict : nil
+
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: nil)
+                        })
+                    }
+                }
+                
+                self.lexicon = dict.count > 0 ? dict : nil
+                
+                //        print(dict)
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_FINISHED), object: nil)
+                })
+                
+                self.creatingLexicon = false
+            }
+        }
+    }
+    
     func printLexicon()
     {
         loadLexicon()

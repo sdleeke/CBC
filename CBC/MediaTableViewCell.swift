@@ -145,7 +145,6 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             }
             
             //                        popover.navigationItem.title = Constants.Actions
-            //                        popover.preferredContentSize = CGSizeMake(300, 500)
             
             popover.navigationController?.isNavigationBarHidden = true
             
@@ -225,7 +224,6 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             }
             
             popover.navigationItem.title = Constants.Show // Show MediaItems Tagged With
-            //                        popover.preferredContentSize = CGSizeMake(300, 500)
             
             popover.delegate = self.vc as? MediaTableViewController
             popover.purpose = .selectingTags

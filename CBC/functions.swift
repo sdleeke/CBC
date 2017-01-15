@@ -1826,7 +1826,7 @@ func tokensFromString(_ string:String?) -> [String]?
                 }
             }
             
-            token = token.trimmingCharacters(in: CharacterSet(charactersIn: "'"))
+            token = token.trimmingCharacters(in: CharacterSet(charactersIn: "‘“'"))
 
             if token != Constants.EMPTY_STRING {
                 tokens.insert(token.uppercased())
