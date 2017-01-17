@@ -33,6 +33,8 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
 //        print("\(dict)")
         self.dict = dict
         
+        self.searchHit = SearchHit(mediaItem: self)
+        
         DispatchQueue.main.async {
             NotificationCenter.default.addObserver(self, selector: #selector(MediaItem.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
@@ -295,34 +297,59 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
             }).sorted() : nil
     }
     
-    func search(searchText:String?) -> Bool
-    {
-        if searchText != nil {
-            return  ((title?.range(of:              searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
-                    ((date?.range(of:               searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
-                    ((speaker?.range(of:            searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
-                    ((scriptureReference?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
-                    ((tags?.range(of:               searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil)
-
-//            ((id?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
-//            ((multiPartName?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil)) != nil) ||
-
-        } else {
-            return false
+    struct SearchHit {
+        weak var mediaItem:MediaItem?
+        
+        init(mediaItem:MediaItem?)
+        {
+            self.mediaItem = mediaItem
+        }
+        
+        var title:Bool {
+            get {
+                return mediaItem?.title?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            }
+        }
+        var formattedDate:Bool {
+            get {
+                return mediaItem?.formattedDate?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            }
+        }
+        var speaker:Bool {
+            get {
+                return mediaItem?.speaker?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            }
+        }
+        var scriptureReference:Bool {
+            get {
+                return mediaItem?.scriptureReference?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            }
+        }
+        var tags:Bool {
+            get {
+                return mediaItem?.tags?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            }
+        }
+        var transcriptHTML:Bool {
+            get {
+                return mediaItem?.notesHTML?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            }
         }
     }
     
+    var searchHit:SearchHit?
     
-    
-    func searchFullNotesHTML(searchText:String?) -> Bool
+    func search() -> Bool
     {
-        if searchText != nil {
-            if hasNotesHTML {
-                loadNotesHTML()
-                return stripHead(fullNotesHTML)?.range(of: searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
-            } else {
-                return false
-            }
+        return searchHit!.title || searchHit!.formattedDate || searchHit!.speaker || searchHit!.scriptureReference || searchHit!.tags
+    }
+        
+    func searchFullNotesHTML() -> Bool
+    {
+        if hasNotesHTML {
+            loadNotesHTML()
+            
+            return searchHit!.transcriptHTML
         } else {
             return false
         }
@@ -605,12 +632,14 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
             return
         }
         
-        if dict![Field.notes_HTML] == nil {
-            if let mediaItemDict = self.loadSingleDict() {
-                dict![Field.notes_HTML] = mediaItemDict[Field.notes_HTML]
-            } else {
-                print("loadSingle failure")
-            }
+        guard (dict![Field.notes_HTML] == nil) else {
+            return
+        }
+        
+        if let mediaItemDict = self.loadSingleDict() {
+            dict![Field.notes_HTML] = mediaItemDict[Field.notes_HTML]
+        } else {
+            print("loadSingle failure")
         }
     }
     
@@ -627,22 +656,6 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         loadNotesHTML()
 
         notesTokens = tokenCountsFromString(notesHTML)
-        
-//        var tokens = Set<String>()
-   
-//        if let searchTokens = searchTokens() {
-//            tokens = tokens.union(Set(searchTokens))
-//        }
-        
-//        if let notesTokens = tokensFromString(notesHTML) {
-//            tokens = tokens.union(Set(notesTokens))
-//        }
-//        
-//        let tokenArray = Array(tokens).sorted()
-        
-        //                        print(tokenArray)
-        
-//        notesTokens = tokenArray.count > 0 ? tokenArray : nil
     }
     
     func formatDate(_ format:String?) -> String? {
@@ -706,114 +719,6 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         }
     }
     
-//    func parserDidStartDocument(_ parser: XMLParser) {
-//        
-//    }
-//    
-//    func parserDidEndDocument(_ parser: XMLParser) {
-//        
-//    }
-//    
-//    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
-//        print(parseError.localizedDescription)
-//    }
-//    
-//    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
-//        
-////        print(elementName)
-//    }
-//
-//    var book:String?
-//    var chapter:String?
-//    var verse:String?
-//    
-//    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
-////        print(elementName)
-//        
-//        if scriptureText == nil {
-//            scriptureText = [String:[String:[String:String]]]()
-//        }
-//        
-//        switch elementName {
-//        case "bookname":
-//            book = xmlString
-//
-//            if scriptureText?[book!] == nil {
-//                scriptureText?[book!] = [String:[String:String]]()
-//            }
-//            break
-//            
-//        case "chapter":
-//            chapter = xmlString
-//
-//            if scriptureText?[book!]?[chapter!] == nil {
-//                scriptureText?[book!]?[chapter!] = [String:String]()
-//            }
-//            break
-//            
-//        case "verse":
-//            verse = xmlString
-//            break
-//            
-//        case "text":
-//            scriptureText?[book!]?[chapter!]?[verse!] = xmlString
-////            print(scriptureText)
-//            break
-//            
-//        default:
-//            break
-//        }
-//
-//        xmlString = nil
-//    }
-//
-//    func parser(_ parser: XMLParser, foundElementDeclarationWithName elementName: String, model: String) {
-////        print(elementName)
-//    }
-//    
-//    func parser(_ parser: XMLParser, foundCharacters string: String) {
-////        print(string)
-//        xmlString = (xmlString != nil ? xmlString! + string : string).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-//    }
-//
-//    var xmlParser:XMLParser?
-//    var xmlString:String?
-//    
-//    var scriptureTextHTML:String? {
-//        get {
-//            return scriptureTextToHTML(scriptureReference:scripture,scriptureText:scriptureText)
-//        }
-//    }
-//    
-//    func loadScriptureText()
-//    {
-//        guard scripture != Constants.Selected_Scriptures else {
-//            return
-//        }
-//        
-//        guard scriptureText == nil else {
-//            return
-//        }
-//        
-//        guard xmlParser == nil else {
-//            return
-//        }
-//        
-//        if let scripture = scripture?.replacingOccurrences(of: "Psalm", with: "Psalms") {
-//            let urlString = "https://api.preachingcentral.com/bible.php?passage=\(scripture)&version=nasb".replacingOccurrences(of: " ", with: "%20")
-//
-//            if let url = URL(string: urlString) {
-//                self.xmlParser = XMLParser(contentsOf: url)
-//                
-//                self.xmlParser?.delegate = self
-//                
-//                if let success = self.xmlParser?.parse(), !success {
-//                    xmlParser = nil
-//                }
-//            }
-//        }
-//    }
-    
     lazy var scripture:Scripture? = {
         return Scripture(reference:self.scriptureReference)
     }()
@@ -870,16 +775,6 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
 //                    print(speakerSort)
                     
                     dict![Field.speaker_sort] = speakerSort != nil ? speakerSort : Constants.None
-
-//                    if var speakerSort = speaker {
-//                        while (speakerSort.range(of: Constants.SINGLE_SPACE) != nil) {
-//                            speakerSort = speakerSort.substring(from: speakerSort.range(of: Constants.SINGLE_SPACE)!.upperBound)
-//                        }
-//                        dict![Field.speaker_sort] = speakerSort
-////                        settings?[Field.speaker_sort] = speakerSort
-//                    } else {
-//                        print("NO SPEAKER")
-//                    }
                 }
             }
             if dict![Field.speaker_sort] == nil {
@@ -921,9 +816,6 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
     }
     
     var multiPartName:String? {
-        //        get {
-        //            return dict![Field.series]
-        //        }
         get {
             if (dict![Field.multi_part_name] == nil) {
                 if (title?.range(of: Constants.PART_INDICATOR_SINGULAR, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil) {
@@ -938,9 +830,6 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
     }
     
     var part:String? {
-        //        get {
-        //            return dict![Field.series]
-        //        }
         get {
             if hasMultipleParts && (dict![Field.part] == nil) {
                 if (title?.range(of: Constants.PART_INDICATOR_SINGULAR, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil) {
@@ -1236,10 +1125,6 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                 return nil
             }
         }
-        
-        
-//        var stringBefore:String = Constants.EMPTY_STRING
-//        var stringAfter:String = Constants.EMPTY_STRING
 
         var markCounter = 0
 
@@ -1301,40 +1186,6 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
             }
         }
         
-//        string = stripHead(fullNotesHTML)!
-//        
-//        if newString == string {
-//            print("The same!")
-//        } else {
-//            print("Different!")
-//            print("\n\nORIGINAL\n\n",string)
-//            print("\n\nNEWSTRING\n\n",newString)
-//        }
-//        
-//        newString = Constants.EMPTY_STRING
-//        
-//        while (string.lowercased().range(of: globals.search.text!.lowercased()) != nil) {
-////                print(string)
-//            
-//            if let range = string.lowercased().range(of: globals.search.text!.lowercased()) {
-//                stringBefore = string.substring(to: range.lowerBound)
-//                stringAfter = string.substring(from: range.upperBound)
-//                
-//                foundString = string.substring(from: range.lowerBound)
-//                let newRange = foundString.lowercased().range(of: globals.search.text!.lowercased())
-//                foundString = foundString.substring(to: newRange!.upperBound)
-//                
-//                markCounter += 1
-//                foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
-//                
-//                newString = newString + stringBefore + foundString
-//                
-//                stringBefore = stringBefore + foundString
-//                
-//                string = stringAfter
-//            }
-//        }
-
         var indexString:String!
             
         if markCounter > 0 {
@@ -1366,18 +1217,6 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         searchMarkedFullNotesHTML?[searchText] = insertHead(newString,fontSize: Constants.FONT_SIZE)
         
         return searchMarkedFullNotesHTML?[searchText]
-        
-//            var menuString = "<div class=\"dropdown\"><button onclick=\"myFunction()\" class=\"dropbtn\">Search</button><div id=\"myDropdown\" class=\"dropdown-content\">"
-//            
-//            for counter in 1...markCounter {
-//                menuString = menuString + "<a href=\"#\(counter)\">\(counter)</a>"
-//            }
-//
-//            menuString = menuString + "</div></div><br/>"
-//
-//            newString = newString.replacingOccurrences(of: "<body>", with: "<body>"+menuString)
-//
-//            return insertMenuHead(newString,fontSize: Constants.FONT_SIZE)
     }
     
     var headerHTML:String? {
@@ -1597,28 +1436,6 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         }
     }
     
-
-//    var bookSection:String! {
-//        get {
-//            return hasBook ? book! : hasScripture ? scripture! : Constants.None
-//        }
-//    }
-    
-//    var testament:String? {
-//        if (hasBook) {
-//            if (Constants.OLD_TESTAMENT_BOOKS.contains(book!)) {
-//                return Constants.Old_Testament
-//            }
-//            if (Constants.NEW_TESTAMENT_BOOKS.contains(book!)) {
-//                return Constants.New_Testament
-//            }
-//        } else {
-//            return nil
-//        }
-//        
-//        return nil
-//    }
-    
     func verses(book:String,chapter:Int) -> [Int]
     {
         var versesForChapter = [Int]()
@@ -1793,46 +1610,6 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
             return booksFromScriptureReference(scriptureReference)
         }
     } //Derived from scripture
-    
-//    var book:String? {
-//        get {
-//            if (dict![Field.book] == nil) {
-//                if let bookTitle = mediaItemSettings?[Field.book] {
-//                    dict![Field.book] = bookTitle
-//                } else {
-//                    if (scripture == Constants.Selected_Scriptures) {
-////                        dict![Field.book] = Constants.Selected_Scriptures
-//                    } else {
-//                        if scripture != nil {
-//                            if (dict![Field.book] == nil) {
-//                                for bookTitle in Constants.OLD_TESTAMENT_BOOKS {
-//                                    if (scripture!.endIndex >= bookTitle.endIndex) &&
-//                                        (scripture!.substring(to: bookTitle.endIndex) == bookTitle) {
-//                                            dict![Field.book] = bookTitle
-//                                            break
-//                                    }
-//                                }
-//                            }
-//                            if (dict![Field.book] == nil) {
-//                                for bookTitle in Constants.NEW_TESTAMENT_BOOKS {
-//                                    if (scripture!.endIndex >= bookTitle.endIndex) &&
-//                                        (scripture!.substring(to: bookTitle.endIndex) == bookTitle) {
-//                                            dict![Field.book] = bookTitle
-//                                            break
-//                                    }
-//                                }
-//                            }
-//                            if (dict![Field.book] != nil) {
-////                                settings?[Field.book] = dict![Field.book]
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            
-//            return dict![Field.book]
-//        }
-//    }//Derived from scripture
     
     lazy var fullDate:Date?  = {
         [unowned self] in
@@ -2556,16 +2333,6 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         }
     }
     
-//    func hasNotesOrSlides() -> (hasNotes:Bool,hasSlides:Bool)
-//    {
-//        return (hasNotes(),hasSlides())
-//    }
-    
-//    func hasNotes() -> Bool
-//    {
-//        return (self.notes != nil) && (self.notes != Constants.EMPTY_STRING)
-//    }
-    
     var showingNotes:Bool
     {
         get {
@@ -2573,22 +2340,12 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         }
     }
     
-//    func hasSlides() -> Bool
-//    {
-//        return (self.slides != nil) && (self.slides != Constants.EMPTY_STRING)
-//    }
-    
     var showingSlides:Bool
     {
         get {
             return (showing == Showing.slides)
         }
     }
-    
-//    func hasNotesOrSlides(check:Bool) -> (hasNotes:Bool,hasSlides:Bool)
-//    {
-//        return (hasNotes(check),hasSlides(check))
-//    }
     
     func checkNotes() -> Bool
     {

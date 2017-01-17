@@ -58,29 +58,141 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             setupProgressBarForAudio()
     
             setupIcons()
-            
-            title.text = "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)"
-            
-//            print(mediaItem?.title)
-            
-            if (mediaItem?.title != nil) {
+
+            if globals.search.active && ((vc as? MediaTableViewController) != nil) {
+                var attrString = NSMutableAttributedString()
+                
+                let normal = [ NSFontAttributeName: UIFont.systemFont(ofSize: 18.0) ]
+                
+                let bold = [ NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0) ]
+                
+                let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+                                    NSFontAttributeName: UIFont.systemFont(ofSize: 18.0) ]
+                
+                let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+                                    NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0) ]
+                
+                if mediaItem!.searchHit!.formattedDate {
+                    var string:String?
+                    var before:String?
+                    var after:String?
+                    
+                    if let range = mediaItem?.formattedDate?.lowercased().range(of: globals.search.text!.lowercased()) {
+                        before = mediaItem?.formattedDate?.substring(to: range.lowerBound)
+                        string = mediaItem?.formattedDate?.substring(with: range)
+                        after = mediaItem?.formattedDate?.substring(from: range.upperBound)
+                        
+                        attrString.append(NSAttributedString(string: before!,   attributes: bold))
+                        attrString.append(NSAttributedString(string: string!,   attributes: boldHighlighted))
+                        attrString.append(NSAttributedString(string: after!,    attributes: bold))
+                    }
+                } else {
+                    attrString.append(NSAttributedString(string:mediaItem!.formattedDate!, attributes: bold))
+                }
+
+                attrString.append(NSAttributedString(string:Constants.SINGLE_SPACE + mediaItem!.service!, attributes: bold))
+
+                if mediaItem!.searchHit!.speaker {
+                    var string:String?
+                    var before:String?
+                    var after:String?
+                    
+                    if let range = mediaItem?.speaker?.lowercased().range(of: globals.search.text!.lowercased()) {
+                        before = mediaItem?.speaker?.substring(to: range.lowerBound)
+                        string = mediaItem?.speaker?.substring(with: range)
+                        after = mediaItem?.speaker?.substring(from: range.upperBound)
+                        
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + before!,   attributes: bold))
+                        attrString.append(NSAttributedString(string: string!,   attributes: boldHighlighted))
+                        attrString.append(NSAttributedString(string: after!,    attributes: bold))
+                    }
+                } else {
+                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + mediaItem!.speaker!, attributes: bold))
+                }
+
+                title.attributedText = attrString // NSAttributedString(string: "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)", attributes: normal)
+
+                attrString = NSMutableAttributedString()
+                
+                var titleString:String?
+                
                 if (mediaItem?.title?.range(of: " (Part ") != nil) {
                     let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
                     let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
-                    let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
-                    detail.text = "\(combined)\n\(mediaItem!.scriptureReference!)"
+                    titleString = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
                 } else {
-                    detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scriptureReference!)"
+                    titleString = mediaItem?.title
+                }
+
+                if mediaItem!.searchHit!.title {
+                    var string:String?
+                    var before:String?
+                    var after:String?
+                    
+                    if let range = titleString?.lowercased().range(of: globals.search.text!.lowercased()) {
+                        before = titleString?.substring(to: range.lowerBound)
+                        string = titleString?.substring(with: range)
+                        after = titleString?.substring(from: range.upperBound)
+                        
+                        attrString.append(NSAttributedString(string: before!,   attributes: normal))
+                        attrString.append(NSAttributedString(string: string!,   attributes: highlighted))
+                        attrString.append(NSAttributedString(string: after!,    attributes: normal))
+                    }
+                } else {
+                    attrString.append(NSAttributedString(string: titleString!, attributes: normal))
                 }
                 
-                if let className = mediaItem?.className {
-                    detail.text = detail.text! + "\n" + className
+                if mediaItem!.searchHit!.scriptureReference {
+                    var string:String?
+                    var before:String?
+                    var after:String?
+                    
+                    if let range = mediaItem?.scriptureReference?.lowercased().range(of: globals.search.text!.lowercased()) {
+                        before = mediaItem?.scriptureReference?.substring(to: range.lowerBound)
+                        string = mediaItem?.scriptureReference?.substring(with: range)
+                        after = mediaItem?.scriptureReference?.substring(from: range.upperBound)
+                        
+                        attrString.append(NSAttributedString(string: "\n" + before!,   attributes: normal))
+                        attrString.append(NSAttributedString(string: string!,   attributes: highlighted))
+                        attrString.append(NSAttributedString(string: after!,    attributes: normal))
+                    }
+                } else {
+                    attrString.append(NSAttributedString(string: "\n" + mediaItem!.scriptureReference!, attributes: normal))
                 }
+
+                detail.attributedText = attrString
                 
-//                
-//                if globals.mediaCategory.selected == "All Media" {
-//                    detail.text = "\(mediaItem!.category!)\n" + detail.text!
+//                if (mediaItem?.title?.range(of: " (Part ") != nil) {
+//                    let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
+//                    let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
+//                    let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
+//                    detail.text = "\(combined)\n\(mediaItem!.scriptureReference!)"
+//                } else {
+//                    detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scriptureReference!)"
 //                }
+            } else {
+                title.text = "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)"
+                
+                //            print(mediaItem?.title)
+                
+                if (mediaItem?.title != nil) {
+                    if (mediaItem?.title?.range(of: " (Part ") != nil) {
+                        let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
+                        let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
+                        let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
+                        detail.text = "\(combined)\n\(mediaItem!.scriptureReference!)"
+                    } else {
+                        detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scriptureReference!)"
+                    }
+                    
+                    if let className = mediaItem?.className {
+                        detail.text = detail.text! + "\n" + className
+                    }
+                    
+//                    if globals.mediaCategory.selected == "All Media" {
+//                        detail.text = "\(mediaItem!.category!)\n" + detail.text!
+//                    }
+                }
             }
         } else {
             isHiddenUI(true)
@@ -366,41 +478,92 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     
     func setupIcons()
     {
-        var tsva = String()
-        
-        if (globals.mediaPlayer.mediaItem == mediaItem) && (globals.mediaPlayer.state == .playing) {
-            tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.PLAYING
-        }
-        
-//        if (mediaItem!.scriptureReference != Constants.Selected_Scriptures) {
-//            tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.BOOK
-//        }
-        
-        if (mediaItem!.hasTags) {
-            if (mediaItem?.tagsSet?.count > 1) {
-                tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.TAGS
-            } else {
-                tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.TAG
+        if globals.search.active && ((vc as? MediaTableViewController) != nil) {
+            let attrString = NSMutableAttributedString()
+            
+            let normal = [ NSFontAttributeName: UIFont(name: "FontAwesome", size: 12.0)! ]
+            
+            let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+                                NSFontAttributeName: UIFont(name: "FontAwesome", size: 12.0)! ]
+            
+            if (globals.mediaPlayer.mediaItem == mediaItem) && (globals.mediaPlayer.state == .playing) {
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAYING, attributes: normal))
             }
+
+            if (mediaItem!.hasTags) {
+                if (mediaItem?.tagsSet?.count > 1) {
+                    if mediaItem!.searchHit!.tags {
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: highlighted))
+                    } else {
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: normal))
+                    }
+                } else {
+                    if mediaItem!.searchHit!.tags {
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: highlighted))
+                    } else {
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: normal))
+                    }
+                }
+            }
+
+            if (mediaItem!.hasNotes) {
+                if mediaItem!.searchHit!.transcriptHTML {
+                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: highlighted))
+                } else {
+                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: normal))
+                }
+            }
+            
+            if (mediaItem!.hasSlides) {
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.SLIDES, attributes: normal))
+            }
+            
+            if (mediaItem!.hasVideo) {
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.VIDEO, attributes: normal))
+            }
+            
+            if (mediaItem!.hasAudio) {
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.AUDIO, attributes: normal))
+            }
+            
+            icons.attributedText = attrString
+        } else {
+            var string = String()
+            
+            if (globals.mediaPlayer.mediaItem == mediaItem) && (globals.mediaPlayer.state == .playing) {
+                string = string + Constants.SINGLE_SPACE + Constants.FA.PLAYING
+            }
+            
+            //        if (mediaItem!.scriptureReference != Constants.Selected_Scriptures) {
+            //            string = string + Constants.SINGLE_SPACE + Constants.FA.BOOK
+            //        }
+            
+            if (mediaItem!.hasTags) {
+                if (mediaItem?.tagsSet?.count > 1) {
+                    string = string + Constants.SINGLE_SPACE + Constants.FA.TAGS
+                } else {
+                    string = string + Constants.SINGLE_SPACE + Constants.FA.TAG
+                }
+            }
+            
+            if (mediaItem!.hasNotes) {
+                string = string + Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT
+            }
+            
+            if (mediaItem!.hasSlides) {
+                string = string + Constants.SINGLE_SPACE + Constants.FA.SLIDES
+            }
+            
+            if (mediaItem!.hasVideo) {
+                string = string + Constants.SINGLE_SPACE + Constants.FA.VIDEO
+            }
+            
+            if (mediaItem!.hasAudio) {
+                string = string + Constants.SINGLE_SPACE + Constants.FA.AUDIO
+            }
+            
+            icons.text = string
         }
-        
-        if (mediaItem!.hasNotes) {
-            tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT
-        }
-        
-        if (mediaItem!.hasSlides) {
-            tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.SLIDES
-        }
-        
-        if (mediaItem!.hasVideo) {
-            tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.VIDEO
-        }
-        
-        if (mediaItem!.hasAudio) {
-            tsva = tsva + Constants.SINGLE_SPACE + Constants.FA.AUDIO
-        }
-  
-        icons.text = tsva
     }
     
     func setupProgressBarForAudio()

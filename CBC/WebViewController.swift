@@ -671,6 +671,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                     self.preferredContentSize = CGSize(width: wkWebView.scrollView.contentSize.width,height: wkWebView.scrollView.contentSize.height)
                     
                     wkWebView.isHidden = false
+                    wkWebView.scrollView.contentOffset = CGPoint(x: 0, y: 0)
 
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
                 })
