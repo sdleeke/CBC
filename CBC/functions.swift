@@ -1767,6 +1767,10 @@ func bookNumberInBible(_ book:String?) -> Int?
 
 func tokenCountsFromString(_ string:String?) -> [(String,Int)]?
 {
+    guard !globals.isRefreshing else {
+        return nil
+    }
+    
     var tokenCounts = [(String,Int)]()
 
     if let tokens = tokensFromString(string) {
@@ -1780,6 +1784,10 @@ func tokenCountsFromString(_ string:String?) -> [(String,Int)]?
             }
             
             tokenCounts.append((token,count))
+            
+            if globals.isRefreshing {
+                break
+            }
         }
     }
     
@@ -1788,6 +1796,10 @@ func tokenCountsFromString(_ string:String?) -> [(String,Int)]?
 
 func tokensFromString(_ string:String?) -> [String]?
 {
+    guard !globals.isRefreshing else {
+        return nil
+    }
+    
     guard (string != nil) else {
         return nil
     }
@@ -1847,6 +1859,10 @@ func tokensFromString(_ string:String?) -> [String]?
                     token.append(char)
                 }
             }
+        }
+        
+        if globals.isRefreshing {
+            break
         }
     }
     

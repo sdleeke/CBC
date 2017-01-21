@@ -2131,7 +2131,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
                 
-                if globals.search.active && (globals.search.text != nil) {
+                if globals.search.valid && (globals.search.transcripts || globals.search.lexicon) {
                     htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
                 } else {
                     htmlString = mediaItem.fullNotesHTML
@@ -2141,7 +2141,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
-                    if globals.search.active && (globals.search.text != nil) {
+                    if globals.search.valid && (globals.search.transcripts || globals.search.lexicon) {
                         return mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
                     } else {
                         return mediaItem.fullNotesHTML

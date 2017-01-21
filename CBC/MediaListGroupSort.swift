@@ -97,6 +97,7 @@ class MediaListGroupSort {
     }
     
     var creatingLexicon = false
+    var pauseLexiconUpdates = false
     
     func createLexicon()
     {
@@ -129,34 +130,48 @@ class MediaListGroupSort {
                                 } else {
                                     dict[token.0]?.append((mediaItem,token.1))
                                 }
+                                
+                                if globals.isRefreshing {
+                                    break
+                                }
                             }
                         }
                         
-                        var strings = [String]()
-                        
-                        let words = dict.keys.sorted()
-                        for word in words {
-                            if let count = dict[word]?.count {
-                                strings.append("\(word) (\(count))")
-                            }
+                        if globals.isRefreshing {
+                            break
                         }
                         
-                        self.lexicon = dict.count > 0 ? dict : nil
-
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: nil)
-                        })
+//                        var strings = [String]()
+//                        
+//                        let words = dict.keys.sorted()
+//                        for word in words {
+//                            if let count = dict[word]?.count {
+//                                strings.append("\(word) (\(count))")
+//                            }
+//                        }
+                        
+                        if !self.pauseLexiconUpdates {
+                            self.lexicon = dict.count > 0 ? dict : nil
+                            
+                            DispatchQueue.main.async(execute: { () -> Void in
+                                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: nil)
+                            })
+                        }
+                    }
+                    
+                    if globals.isRefreshing {
+                        break
                     }
                 }
                 
                 self.lexicon = dict.count > 0 ? dict : nil
-                
+
+                self.creatingLexicon = false
+
                 //        print(dict)
                 DispatchQueue.main.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_FINISHED), object: nil)
                 })
-                
-                self.creatingLexicon = false
             }
         }
     }

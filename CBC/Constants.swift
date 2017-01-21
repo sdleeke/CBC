@@ -184,6 +184,8 @@ struct Constants {
         
         static let MEDIA_UPDATE_CELL        = "MEDIA UPDATE CELL"
         
+//        static let UPDATE_CELL_TAG          = "UPDATE CELL TAG"
+        
         static let MEDIA_UPDATE_UI          = "MEDIA UPDATE UI"
         static let MEDIA_DOWNLOAD_FAILED    = "MEDIA DOWNLOAD FAILED"
         

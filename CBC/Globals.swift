@@ -316,7 +316,15 @@ struct SelectedMediaItem {
 
 struct Search {
     var complete:Bool = true
-    var active:Bool = false
+    var lexicon:Bool = false
+    var active:Bool = false {
+        didSet {
+            if !active {
+                complete = true
+                lexicon = false
+            }
+        }
+    }
     
     var valid:Bool {
         get {
@@ -333,7 +341,7 @@ struct Search {
             }
             
             if (text != oldValue) {
-                if valid {
+                if valid && !lexicon {
                     UserDefaults.standard.set(text, forKey: Constants.SEARCH_TEXT)
                     UserDefaults.standard.synchronize()
                 } else {
@@ -491,28 +499,6 @@ class Globals : NSObject {
     var isLoading:Bool      = false
     
     var search = Search()
-    
-//    var searchComplete:Bool = true
-//    var searchActive:Bool = false
-//    var searchText:String? {
-//        didSet {
-//            if (searchText != nil) {
-//                searchActive = (searchActive && (searchText == Constants.EMPTY_STRING)) || (searchText != Constants.EMPTY_STRING)
-//            } else {
-//                searchActive = false
-//            }
-//            
-//            if (searchText != oldValue) {
-//                if (searchText != nil) && (searchText != Constants.EMPTY_STRING) {
-//                    UserDefaults.standard.set(searchText, forKey: Constants.SEARCH_TEXT)
-//                    UserDefaults.standard.synchronize()
-//                } else {
-//                    UserDefaults.standard.removeObject(forKey: Constants.SEARCH_TEXT)
-//                    UserDefaults.standard.synchronize()
-//                }
-//            }
-//        }
-//    }
     
     var contextTitle:String? {
         get {

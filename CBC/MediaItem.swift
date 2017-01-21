@@ -307,32 +307,50 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         
         var title:Bool {
             get {
+                guard globals.search.text != nil else {
+                    return false
+                }
                 return mediaItem?.title?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
             }
         }
         var formattedDate:Bool {
             get {
+                guard globals.search.text != nil else {
+                    return false
+                }
                 return mediaItem?.formattedDate?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
             }
         }
         var speaker:Bool {
             get {
+                guard globals.search.text != nil else {
+                    return false
+                }
                 return mediaItem?.speaker?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
             }
         }
         var scriptureReference:Bool {
             get {
+                guard globals.search.text != nil else {
+                    return false
+                }
                 return mediaItem?.scriptureReference?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
             }
         }
         var tags:Bool {
             get {
+                guard globals.search.text != nil else {
+                    return false
+                }
                 return mediaItem?.tags?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
             }
         }
         var transcriptHTML:Bool {
             get {
-                return mediaItem?.notesHTML?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+                guard globals.search.text != nil else {
+                    return false
+                }
+                return (globals.search.transcripts || globals.search.lexicon) && mediaItem?.notesHTML?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
             }
         }
     }
@@ -628,6 +646,10 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
     
     func loadNotesHTML()
     {
+        guard !globals.isRefreshing else {
+            return
+        }
+
         guard hasNotesHTML else {
             return
         }

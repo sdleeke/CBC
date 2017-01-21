@@ -49,119 +49,122 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     
     func updateUI()
     {
-        if (mediaItem != nil) {
-            isHiddenUI(false)
+        guard (mediaItem != nil) else {
+            isHiddenUI(true)
+            print("No mediaItem for cell!")
+            return
+        }
 
-            self.setupTagsButton()
-            self.setupDownloadButtonForAudio()
+        updateTagsButton()
+        
+        setupProgressBarForAudio()
+
+        setupIcons()
+
+        if globals.search.active && ((vc as? MediaTableViewController) != nil) {
+            var attrString = NSMutableAttributedString()
             
-            setupProgressBarForAudio()
-    
-            setupIcons()
-
-            if globals.search.active && ((vc as? MediaTableViewController) != nil) {
-                var attrString = NSMutableAttributedString()
+            let normal = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
+            
+            let bold = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
+//            let bold = [ NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0) ]
+            
+            let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+                                NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
+            
+            let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+                                NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
+            
+            if mediaItem!.searchHit!.formattedDate {
+                var string:String?
+                var before:String?
+                var after:String?
                 
-                let normal = [ NSFontAttributeName: UIFont.systemFont(ofSize: 18.0) ]
-                
-                let bold = [ NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0) ]
-                
-                let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-                                    NSFontAttributeName: UIFont.systemFont(ofSize: 18.0) ]
-                
-                let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-                                    NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0) ]
-                
-                if mediaItem!.searchHit!.formattedDate {
-                    var string:String?
-                    var before:String?
-                    var after:String?
+                if let range = mediaItem?.formattedDate?.lowercased().range(of: globals.search.text!.lowercased()) {
+                    before = mediaItem?.formattedDate?.substring(to: range.lowerBound)
+                    string = mediaItem?.formattedDate?.substring(with: range)
+                    after = mediaItem?.formattedDate?.substring(from: range.upperBound)
                     
-                    if let range = mediaItem?.formattedDate?.lowercased().range(of: globals.search.text!.lowercased()) {
-                        before = mediaItem?.formattedDate?.substring(to: range.lowerBound)
-                        string = mediaItem?.formattedDate?.substring(with: range)
-                        after = mediaItem?.formattedDate?.substring(from: range.upperBound)
-                        
-                        attrString.append(NSAttributedString(string: before!,   attributes: bold))
-                        attrString.append(NSAttributedString(string: string!,   attributes: boldHighlighted))
-                        attrString.append(NSAttributedString(string: after!,    attributes: bold))
-                    }
-                } else {
-                    attrString.append(NSAttributedString(string:mediaItem!.formattedDate!, attributes: bold))
+                    attrString.append(NSAttributedString(string: before!,   attributes: bold))
+                    attrString.append(NSAttributedString(string: string!,   attributes: boldHighlighted))
+                    attrString.append(NSAttributedString(string: after!,    attributes: bold))
                 }
+            } else {
+                attrString.append(NSAttributedString(string:mediaItem!.formattedDate!, attributes: bold))
+            }
 
-                attrString.append(NSAttributedString(string:Constants.SINGLE_SPACE + mediaItem!.service!, attributes: bold))
+            attrString.append(NSAttributedString(string:Constants.SINGLE_SPACE + mediaItem!.service!, attributes: bold))
 
-                if mediaItem!.searchHit!.speaker {
-                    var string:String?
-                    var before:String?
-                    var after:String?
+            if mediaItem!.searchHit!.speaker {
+                var string:String?
+                var before:String?
+                var after:String?
+                
+                if let range = mediaItem?.speaker?.lowercased().range(of: globals.search.text!.lowercased()) {
+                    before = mediaItem?.speaker?.substring(to: range.lowerBound)
+                    string = mediaItem?.speaker?.substring(with: range)
+                    after = mediaItem?.speaker?.substring(from: range.upperBound)
                     
-                    if let range = mediaItem?.speaker?.lowercased().range(of: globals.search.text!.lowercased()) {
-                        before = mediaItem?.speaker?.substring(to: range.lowerBound)
-                        string = mediaItem?.speaker?.substring(with: range)
-                        after = mediaItem?.speaker?.substring(from: range.upperBound)
-                        
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + before!,   attributes: bold))
-                        attrString.append(NSAttributedString(string: string!,   attributes: boldHighlighted))
-                        attrString.append(NSAttributedString(string: after!,    attributes: bold))
-                    }
-                } else {
-                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + mediaItem!.speaker!, attributes: bold))
+                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + before!,   attributes: bold))
+                    attrString.append(NSAttributedString(string: string!,   attributes: boldHighlighted))
+                    attrString.append(NSAttributedString(string: after!,    attributes: bold))
                 }
+            } else {
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + mediaItem!.speaker!, attributes: bold))
+            }
 
-                title.attributedText = attrString // NSAttributedString(string: "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)", attributes: normal)
+            title.attributedText = attrString // NSAttributedString(string: "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)", attributes: normal)
 
-                attrString = NSMutableAttributedString()
+            attrString = NSMutableAttributedString()
+            
+            var titleString:String?
+            
+            if (mediaItem?.title?.range(of: " (Part ") != nil) {
+                let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
+                let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
+                titleString = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
+            } else {
+                titleString = mediaItem?.title
+            }
+
+            if mediaItem!.searchHit!.title {
+                var string:String?
+                var before:String?
+                var after:String?
                 
-                var titleString:String?
-                
-                if (mediaItem?.title?.range(of: " (Part ") != nil) {
-                    let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
-                    let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
-                    titleString = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
-                } else {
-                    titleString = mediaItem?.title
-                }
-
-                if mediaItem!.searchHit!.title {
-                    var string:String?
-                    var before:String?
-                    var after:String?
+                if let range = titleString?.lowercased().range(of: globals.search.text!.lowercased()) {
+                    before = titleString?.substring(to: range.lowerBound)
+                    string = titleString?.substring(with: range)
+                    after = titleString?.substring(from: range.upperBound)
                     
-                    if let range = titleString?.lowercased().range(of: globals.search.text!.lowercased()) {
-                        before = titleString?.substring(to: range.lowerBound)
-                        string = titleString?.substring(with: range)
-                        after = titleString?.substring(from: range.upperBound)
-                        
-                        attrString.append(NSAttributedString(string: before!,   attributes: normal))
-                        attrString.append(NSAttributedString(string: string!,   attributes: highlighted))
-                        attrString.append(NSAttributedString(string: after!,    attributes: normal))
-                    }
-                } else {
-                    attrString.append(NSAttributedString(string: titleString!, attributes: normal))
+                    attrString.append(NSAttributedString(string: before!,   attributes: normal))
+                    attrString.append(NSAttributedString(string: string!,   attributes: highlighted))
+                    attrString.append(NSAttributedString(string: after!,    attributes: normal))
                 }
+            } else {
+                attrString.append(NSAttributedString(string: titleString!, attributes: normal))
+            }
+            
+            if mediaItem!.searchHit!.scriptureReference {
+                var string:String?
+                var before:String?
+                var after:String?
                 
-                if mediaItem!.searchHit!.scriptureReference {
-                    var string:String?
-                    var before:String?
-                    var after:String?
+                if let range = mediaItem?.scriptureReference?.lowercased().range(of: globals.search.text!.lowercased()) {
+                    before = mediaItem?.scriptureReference?.substring(to: range.lowerBound)
+                    string = mediaItem?.scriptureReference?.substring(with: range)
+                    after = mediaItem?.scriptureReference?.substring(from: range.upperBound)
                     
-                    if let range = mediaItem?.scriptureReference?.lowercased().range(of: globals.search.text!.lowercased()) {
-                        before = mediaItem?.scriptureReference?.substring(to: range.lowerBound)
-                        string = mediaItem?.scriptureReference?.substring(with: range)
-                        after = mediaItem?.scriptureReference?.substring(from: range.upperBound)
-                        
-                        attrString.append(NSAttributedString(string: "\n" + before!,   attributes: normal))
-                        attrString.append(NSAttributedString(string: string!,   attributes: highlighted))
-                        attrString.append(NSAttributedString(string: after!,    attributes: normal))
-                    }
-                } else {
-                    attrString.append(NSAttributedString(string: "\n" + mediaItem!.scriptureReference!, attributes: normal))
+                    attrString.append(NSAttributedString(string: "\n" + before!,   attributes: normal))
+                    attrString.append(NSAttributedString(string: string!,   attributes: highlighted))
+                    attrString.append(NSAttributedString(string: after!,    attributes: normal))
                 }
+            } else {
+                attrString.append(NSAttributedString(string: "\n" + mediaItem!.scriptureReference!, attributes: normal))
+            }
 
-                detail.attributedText = attrString
-                
+            detail.attributedText = attrString
+            
 //                if (mediaItem?.title?.range(of: " (Part ") != nil) {
 //                    let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
 //                    let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
@@ -170,34 +173,32 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 //                } else {
 //                    detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scriptureReference!)"
 //                }
-            } else {
-                title.text = "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)"
+        } else {
+            title.text = "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)"
+            
+            //            print(mediaItem?.title)
+            
+            if (mediaItem?.title != nil) {
+                if (mediaItem?.title?.range(of: " (Part ") != nil) {
+                    let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
+                    let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
+                    let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
+                    detail.text = "\(combined)\n\(mediaItem!.scriptureReference!)"
+                } else {
+                    detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scriptureReference!)"
+                }
                 
-                //            print(mediaItem?.title)
+                if let className = mediaItem?.className {
+                    detail.text = detail.text! + "\n" + className
+                }
                 
-                if (mediaItem?.title != nil) {
-                    if (mediaItem?.title?.range(of: " (Part ") != nil) {
-                        let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
-                        let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
-                        let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
-                        detail.text = "\(combined)\n\(mediaItem!.scriptureReference!)"
-                    } else {
-                        detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scriptureReference!)"
-                    }
-                    
-                    if let className = mediaItem?.className {
-                        detail.text = detail.text! + "\n" + className
-                    }
-                    
 //                    if globals.mediaCategory.selected == "All Media" {
 //                        detail.text = "\(mediaItem!.category!)\n" + detail.text!
 //                    }
-                }
             }
-        } else {
-            isHiddenUI(true)
-            print("No mediaItem for cell!")
         }
+        
+        isHiddenUI(false)
     }
     
 //    func endEdit()
@@ -209,16 +210,58 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     
     var mediaItem:MediaItem? {
         didSet {
-            if (oldValue != nil) {
-                NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
-            }
-            
-            if (mediaItem != nil) {
-                DispatchQueue.main.async {
-                    NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+            if mediaItem != oldValue {
+//                DispatchQueue.main.async {
+//                    NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateTagsButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_CELL_TAG), object: nil)
+//                }
+                
+                if (oldValue != nil) {
+                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
+                }
+                
+                if (mediaItem != nil) {
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+
+                        if self.tagsButton != nil {
+                            if (self.mediaItem!.hasTags) {
+                                if (self.mediaItem?.self.tagsSet?.count > 1) {
+                                    self.tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState())
+                                } else {
+                                    self.tagsButton.setTitle(Constants.FA.TAG, for: UIControlState())
+                                }
+                            } else {
+                                self.tagsButton.isHidden = true
+                            }
+                        }
+                        
+                        if self.downloadButton != nil {
+                            switch self.mediaItem!.audioDownload!.state {
+                            case .none:
+                                self.downloadButton.setTitle(Constants.FA.DOWNLOAD, for: UIControlState())
+                                break
+                                
+                            case .downloaded:
+                                self.downloadButton.setTitle(Constants.FA.DOWNLOADED, for: UIControlState())
+                                break
+                                
+                            case .downloading:
+                                self.downloadButton.setTitle(Constants.FA.DOWNLOADING, for: UIControlState())
+                                break
+                            }
+                        }
+                    }
                 }
             }
-
+            
+            if tagsToolbar == nil {
+                setupTagsToolbar()
+            }
+            
+            if downloadToolbar == nil {
+                setupDownloadButtonToolbar()
+            }
+            
             updateUI()
         }
     }
@@ -370,7 +413,19 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         }
     }
 
-    func setupTagsButton()
+    func updateTagsButton()
+    {
+        guard (tagsButton != nil) else {
+            return
+        }
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.tagsButton.isHidden = !self.mediaItem!.hasTags
+            self.tagsButton.isEnabled = globals.search.complete
+        })
+    }
+    
+    func setupTagsToolbar()
     {
         guard (mediaItem != nil) else {
             return
@@ -379,8 +434,8 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         guard (tagsButton != nil) else {
             return
         }
-        
-//        DispatchQueue.main.async(execute: { () -> Void in
+
+        DispatchQueue.main.async(execute: { () -> Void in
             self.tagsToolbar = UIToolbar(frame: self.tagsButton.frame)
             self.tagsToolbar?.setItems([UIBarButtonItem(title: nil, style: .plain, target: self, action: nil)], animated: false)
             self.tagsToolbar?.isHidden = true
@@ -405,22 +460,10 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             //        self.addConstraint(height)
             
             self.setNeedsLayout()
-            
-            if (self.mediaItem!.hasTags) {
-                self.tagsButton.isHidden = false
-                
-                if (self.mediaItem?.self.tagsSet?.count > 1) {
-                    self.tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState())
-                } else {
-                    self.tagsButton.setTitle(Constants.FA.TAG, for: UIControlState())
-                }
-            } else {
-                self.tagsButton.isHidden = true
-            }
-//        })
+        })
     }
     
-    func setupDownloadButtonForAudio()
+    func setupDownloadButtonToolbar()
     {
         guard (mediaItem?.audioDownload != nil) else {
             return
@@ -430,7 +473,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             return
         }
         
-//        DispatchQueue.main.async(execute: { () -> Void in
+        DispatchQueue.main.async(execute: { () -> Void in
             self.downloadToolbar = UIToolbar(frame: self.downloadButton.frame)
             self.downloadToolbar?.setItems([UIBarButtonItem(title: nil, style: .plain, target: self, action: nil)], animated: false)
             self.downloadToolbar?.isHidden = true
@@ -455,21 +498,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             //        self.addConstraint(height)
             
             self.setNeedsLayout()
-            
-            switch self.mediaItem!.audioDownload!.state {
-            case .none:
-                self.downloadButton.setTitle(Constants.FA.DOWNLOAD, for: UIControlState())
-                break
-                
-            case .downloaded:
-                self.downloadButton.setTitle(Constants.FA.DOWNLOADED, for: UIControlState())
-                break
-                
-            case .downloading:
-                self.downloadButton.setTitle(Constants.FA.DOWNLOADING, for: UIControlState())
-                break
-            }
-//        })
+        })
     }
     
     var tagsToolbar: UIToolbar?
@@ -568,27 +597,29 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     
     func setupProgressBarForAudio()
     {
-        if mediaItem != nil {
-            switch mediaItem!.audioDownload!.state {
-            case .none:
-                downloadProgressBar.isHidden = true
+        guard (mediaItem != nil) else {
+            return
+        }
+        
+        switch mediaItem!.audioDownload!.state {
+        case .none:
+            downloadProgressBar.isHidden = true
+            downloadProgressBar.progress = 0
+            break
+            
+        case .downloaded:
+            downloadProgressBar.isHidden = true
+            downloadProgressBar.progress = 1
+            break
+            
+        case .downloading:
+            downloadProgressBar.isHidden = false
+            if (mediaItem!.audioDownload!.totalBytesExpectedToWrite > 0) {
+                downloadProgressBar.progress = Float(mediaItem!.audioDownload!.totalBytesWritten) / Float(mediaItem!.audioDownload!.totalBytesExpectedToWrite)
+            } else {
                 downloadProgressBar.progress = 0
-                break
-                
-            case .downloaded:
-                downloadProgressBar.isHidden = true
-                downloadProgressBar.progress = 1
-                break
-                
-            case .downloading:
-                downloadProgressBar.isHidden = false
-                if (mediaItem!.audioDownload!.totalBytesExpectedToWrite > 0) {
-                    downloadProgressBar.progress = Float(mediaItem!.audioDownload!.totalBytesWritten) / Float(mediaItem!.audioDownload!.totalBytesExpectedToWrite)
-                } else {
-                    downloadProgressBar.progress = 0
-                }
-                break
             }
+            break
         }
     }
     
