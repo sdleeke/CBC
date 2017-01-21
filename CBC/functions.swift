@@ -2987,7 +2987,11 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
     if globals.search.valid, let searchText = globals.search.text {
         bodyString = bodyString! + "Search: \(searchText)<br/>"
     }
-
+    
+    if globals.search.lexicon {
+        bodyString = bodyString! + "Lexicon Mode<br/>"
+    }
+    
     bodyString = bodyString! + "Grouped: By \(translate(globals.grouping)!)<br/>"
     bodyString = bodyString! + "Sorted: \(translate(globals.sorting)!)<br/>"
     
@@ -3187,6 +3191,26 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
     return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
 }
 
+func translateTestament(_ testament:String) -> String
+{
+    var translation = Constants.EMPTY_STRING
+    
+    switch testament {
+    case Constants.OT:
+        translation = Constants.Old_Testament
+        break
+        
+    case Constants.NT:
+        translation = Constants.New_Testament
+        break
+        
+    default:
+        break
+    }
+    
+    return translation
+}
+
 func translate(_ string:String?) -> String?
 {
     guard (string != nil) else {
@@ -3290,6 +3314,10 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
     
     if globals.search.valid, let searchText = globals.search.text {
         bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
+    }
+    
+    if globals.search.lexicon {
+        bodyString = bodyString! + "Lexicon Mode<br/>"
     }
     
     let keys:[String] = mediaListSort.keys.map({ (string:String) -> String in

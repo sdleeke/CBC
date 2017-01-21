@@ -951,7 +951,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
             }
             
             if (globals.media.tags.selected == tag) {
-                globals.media.tagged = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
+                globals.media.tagged[globals.media.tags.selected!] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
                 
                 DispatchQueue.main.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
@@ -984,7 +984,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                 }
                 
                 if (globals.media.tags.selected == tag) {
-                    globals.media.tagged = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
+                    globals.media.tagged[globals.media.tags.selected!] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
                     
                     DispatchQueue.main.async(execute: { () -> Void in
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged

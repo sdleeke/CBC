@@ -281,13 +281,17 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 //Nothing to show
             }
             
-            showMenu.append(Constants.Scripture_Index)
+            if (globals.media.active?.scriptureIndex?.eligible != nil) {
+                showMenu.append(Constants.Scripture_Index)
+            }
             
             if globals.media.active?.list?.count > 0 {
                 showMenu.append(Constants.View_List)
             }
             
-            showMenu.append(Constants.Lexicon)
+            if !globals.search.active && (globals.media.active?.lexicon?.eligible != nil) {
+                showMenu.append(Constants.Lexicon)
+            }
             
             if globals.history != nil {
                 showMenu.append(Constants.History)
@@ -427,6 +431,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             break
             
         case .selectingLexicon:
+            _ = navigationController?.popViewController(animated: true)
+            
             let string = strings[index]
             
             if let range = string.range(of: " (") {
@@ -441,7 +447,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 })
                 
                 // Show the results directly rather than by executing a search
-                if let list:[MediaItem]? = globals.media.all?.lexicon?[searchText]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
+                if let list:[MediaItem]? = globals.media.toSearch?.lexicon?.words?[searchText]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
                     return tuple.0
                 }) {
                     updateSearch(searchText:searchText,mediaItems: list)
@@ -786,13 +792,28 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
                 
             case Constants.Scripture_Index:
-                if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SCRIPTURE_INDEX) as? ScriptureIndexViewController {
-
-                    viewController.mediaListGroupSort = globals.media.active
-
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.navigationController?.pushViewController(viewController, animated: true)
+                if (globals.media.active?.scriptureIndex?.eligible == nil) {
+                    let alert = UIAlertController(title:"No Scripture Index Available",
+                                                  message: "The Scripture references for these media items are not specific.",
+                                                  preferredStyle: UIAlertControllerStyle.alert)
+                    
+                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                        
                     })
+                    alert.addAction(action)
+                    
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.present(alert, animated: true, completion: nil)
+                    })
+                } else {
+                    if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SCRIPTURE_INDEX) as? ScriptureIndexViewController {
+                        
+                        viewController.mediaListGroupSort = globals.media.active
+                        
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.navigationController?.pushViewController(viewController, animated: true)
+                        })
+                    }
                 }
 
 //                performSegue(withIdentifier: Constants.SEGUE.SHOW_SCRIPTURE_INDEX, sender: nil)
@@ -801,41 +822,60 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             case Constants.Lexicon:
                 var mlgs:MediaListGroupSort?
                 
-                if (globals.media.all?.lexicon != nil) || globals.reachability.isReachable {
-                    mlgs = globals.media.all
+                if globals.reachability.isReachable {
+                    mlgs = globals.media.active
                 } else {
                     networkUnavailable("Lexicon unavailable.")
                 }
                 
-                if mlgs != nil, let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                    navigationController.modalPresentationStyle = .popover
+                if mlgs?.lexicon?.eligible == nil {
+                    let alert = UIAlertController(title:"No Lexicon Available",
+                                                  message: "HTML transcripts are not available for these media items.",
+                        preferredStyle: UIAlertControllerStyle.alert)
                     
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                    navigationController.popoverPresentationController?.delegate = self
-                    
-                    navigationController.popoverPresentationController?.barButtonItem = self.showButton
-                    
-                    popover.navigationItem.title = Constants.Lexicon
-                    
-                    popover.delegate = self
-                    popover.purpose = .selectingLexicon
-                    
-                    popover.mediaListGroupSort = mlgs
-                    
-                    popover.showIndex = true
-                    popover.showSectionHeaders = true
-                    
-                    popover.vc = self
+                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                        
+                    })
+                    alert.addAction(action)
                     
                     DispatchQueue.main.async(execute: { () -> Void in
-                        self.present(navigationController, animated: true, completion: {
-                            DispatchQueue.main.async(execute: { () -> Void in
-                                // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
-                                navigationController.popoverPresentationController?.passthroughViews = nil
-                            })
-                        })
+                        self.present(alert, animated: true, completion: nil)
                     })
+                } else {
+                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                        let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                        //                    navigationController.modalPresentationStyle = .popover
+                        
+                        //                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                        //                    navigationController.popoverPresentationController?.delegate = self
+                        //
+                        //                    navigationController.popoverPresentationController?.barButtonItem = self.showButton
+                        
+                        popover.navigationItem.title = Constants.Lexicon
+                        
+                        popover.delegate = self
+                        popover.purpose = .selectingLexicon
+                        
+                        popover.mediaListGroupSort = mlgs
+                        
+                        popover.showIndex = true
+                        popover.showSectionHeaders = true
+                        
+                        //                    popover.vc = self
+                        
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.navigationController?.pushViewController(popover, animated: true)
+                        })
+                        
+                        //                    DispatchQueue.main.async(execute: { () -> Void in
+                        //                        self.present(navigationController, animated: true, completion: {
+                        //                            DispatchQueue.main.async(execute: { () -> Void in
+                        //                                // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+                        //                                navigationController.popoverPresentationController?.passthroughViews = nil
+                        //                            })
+                        //                        })
+                        //                    })
+                    }
                 }
                 break
                 
@@ -1004,6 +1044,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             self.listActivityIndicator.stopAnimating()
             self.listActivityIndicator.isHidden = true
+            
+            self.setupTag()
+            self.setupTagsButton()
             
             self.enableBarButtons()
             
@@ -2157,10 +2200,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
         tableView.addSubview(refreshControl!)
        
-        setupBarButtons()
         
         setupTagsToolbar()
-        setupTagsButton()
         
         if globals.mediaRepository.list == nil {
             //            disableBarButtons()
@@ -2223,9 +2264,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
             }
         }
-        
-        // Reload the table
-        tableView.reloadData()
         
         setupSortingAndGroupingOptions()
         setupShowMenu()
@@ -2313,6 +2351,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             if (globals.mediaRepository.list ==  nil) || globals.isLoading || globals.isRefreshing || !globals.search.complete {
                 self.tagsButton.isEnabled = false
+                self.tagsButton.isHidden = true
+            }
+            
+            if globals.search.lexicon {
+                self.tagsButton.isEnabled = false
+                self.tagsButton.isHidden = true
             }
         })
     }
@@ -2664,6 +2708,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             default:
                 break
             }
+            
+            if globals.search.lexicon {
+                self.tagLabel.text = self.tagLabel.text! + " (Lexicon Mode)"
+            }
         })
     }
     
@@ -2717,6 +2765,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         updateUI()
         
+        // Reload the table
+        tableView.reloadData()
+        
         // Causes a crash in split screen on first swipe to get MVC to show when only DVC is showing.
         // Forces MasterViewController to show.  App MUST start in preferredDisplayMode == .automatic or the MVC can't be dragged out after it is hidden!
         if (splitViewController?.preferredDisplayMode == .automatic) {
@@ -2738,6 +2789,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         setupCategoryButton()
         
         setupTag()
+        setupTagsButton()
         
         //        setupSplitViewController()
         
@@ -2745,11 +2797,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         setupTitle()
         
-        navigationController?.isToolbarHidden = false
-        
         setupBarButtons()
 
         setupListActivityIndicator()
+        
+        navigationController?.isToolbarHidden = false
     }
 
     override func viewDidAppear(_ animated: Bool) {

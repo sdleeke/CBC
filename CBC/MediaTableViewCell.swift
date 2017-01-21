@@ -61,7 +61,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 
         setupIcons()
 
-        if globals.search.active && ((vc as? MediaTableViewController) != nil) {
+        if globals.search.active && !globals.search.lexicon && ((vc as? MediaTableViewController) != nil) {
             var attrString = NSMutableAttributedString()
             
             let normal = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
@@ -422,6 +422,11 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         DispatchQueue.main.async(execute: { () -> Void in
             self.tagsButton.isHidden = !self.mediaItem!.hasTags
             self.tagsButton.isEnabled = globals.search.complete
+            
+            if globals.search.lexicon {
+                self.tagsButton.isEnabled = false
+                self.tagsButton.isHidden = true
+            }
         })
     }
     
@@ -521,13 +526,13 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 
             if (mediaItem!.hasTags) {
                 if (mediaItem?.tagsSet?.count > 1) {
-                    if mediaItem!.searchHit!.tags {
+                    if !globals.search.lexicon, mediaItem!.searchHit!.tags {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: highlighted))
                     } else {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: normal))
                     }
                 } else {
-                    if mediaItem!.searchHit!.tags {
+                    if !globals.search.lexicon, mediaItem!.searchHit!.tags {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: highlighted))
                     } else {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: normal))

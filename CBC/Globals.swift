@@ -61,16 +61,18 @@ struct Tags {
             if (newValue != nil) {
                 //                showing = Constants.TAGGED
                 
-                if (newValue != globals.mediaCategory.tag) || (globals.media.tagged == nil) {
+                // (newValue != globals.mediaCategory.tag) || 
+                
+                if (globals.media.tagged[newValue!] == nil) {
                     if globals.media.all == nil {
                         //This is filtering, i.e. searching all mediaItems => s/b in background
-                        globals.media.tagged = MediaListGroupSort(mediaItems: mediaItemsWithTag(globals.mediaRepository.list, tag: newValue))
+                        globals.media.tagged[newValue!] = MediaListGroupSort(mediaItems: mediaItemsWithTag(globals.mediaRepository.list, tag: newValue))
                     } else {
-                        globals.media.tagged = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[stringWithoutPrefixes(newValue!)!])
+                        globals.media.tagged[newValue!] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[stringWithoutPrefixes(newValue!)!])
                     }
                 }
             } else {
-                globals.media.tagged = nil
+//                globals.media.tagged[newValue!] = nil
                 //                showing = Constants.ALL
             }
             
@@ -94,7 +96,7 @@ struct Media {
     var all:MediaListGroupSort?
     
     //The mediaItems with the selected tags, although now we only support one tag being selected
-    var tagged:MediaListGroupSort?
+    var tagged = [String:MediaListGroupSort]()
     
     var tags = Tags()
     
@@ -104,7 +106,7 @@ struct Media {
             
             switch tags.showing! {
             case Constants.TAGGED:
-                mediaItems = tagged
+                mediaItems = tagged[tags.selected!]
                 break
                 
             case Constants.ALL:
@@ -125,7 +127,7 @@ struct Media {
             
             switch tags.showing! {
             case Constants.TAGGED:
-                mediaItems = tagged
+                mediaItems = tagged[tags.selected!]
                 break
                 
             case Constants.ALL:
@@ -748,12 +750,12 @@ class Globals : NSObject {
                     media.tags.selected = nil
                 }
 
-                if media.tags.showing == Constants.TAGGED, media.tagged == nil {
+                if media.tags.showing == Constants.TAGGED, media.tagged[mediaCategory.tag!] == nil {
                     if media.all == nil {
                         //This is filtering, i.e. searching all mediaItems => s/b in background
-                        media.tagged = MediaListGroupSort(mediaItems: mediaItemsWithTag(mediaRepository.list, tag: media.tags.selected))
+                        media.tagged[mediaCategory.tag!] = MediaListGroupSort(mediaItems: mediaItemsWithTag(mediaRepository.list, tag: media.tags.selected))
                     } else {
-                        media.tagged = MediaListGroupSort(mediaItems: media.all?.tagMediaItems?[stringWithoutPrefixes(media.tags.selected!)!])
+                        media.tagged[mediaCategory.tag!] = MediaListGroupSort(mediaItems: media.all?.tagMediaItems?[stringWithoutPrefixes(media.tags.selected!)!])
                     }
                 }
                 

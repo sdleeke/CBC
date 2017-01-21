@@ -166,7 +166,11 @@ struct Constants {
         
         static let LEXICON_STARTED          = "LEXICON STARTED"
         static let LEXICON_UPDATED          = "LEXICON UPDATED"
-        static let LEXICON_FINISHED         = "LEXICON FINISHED"
+        static let LEXICON_COMPLETED         = "LEXICON COMPLETED"
+        
+        static let SCRIPTURE_INDEX_STARTED          = "SCRIPTURE_INDEX STARTED"
+        static let SCRIPTURE_INDEX_UPDATED          = "SCRIPTURE_INDEX UPDATED"
+        static let SCRIPTURE_INDEX_COMPLETED        = "SCRIPTURE_INDEX COMPLETED"
         
         static let UPDATE_PLAY_PAUSE        = "UPDATE PLAY PAUSE"
         

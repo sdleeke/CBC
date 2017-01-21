@@ -9,344 +9,6 @@
 import UIKit
 import MessageUI
 
-class BooksChaptersVerses : Swift.Comparable {
-    var data:[String:[Int:[Int]]]?
-
-    func bookChaptersVerses(book:String?) -> BooksChaptersVerses?
-    {
-        guard (book != nil) else {
-            return self
-        }
-        
-        let bcv = BooksChaptersVerses()
-        
-        bcv[book!] = data?[book!]
-        
-//        print(bcv[book!])
-        
-        return bcv
-    }
-    
-    func numberOfVerses() -> Int
-    {
-        var count = 0
-        
-        if let books = data?.keys.sorted(by: { bookNumberInBible($0) < bookNumberInBible($1) }) {
-            for book in books {
-                if let chapters = data?[book]?.keys.sorted() {
-                    for chapter in chapters {
-                        if let verses = data?[book]?[chapter] {
-                            count += verses.count
-                        }
-                    }
-                }
-            }
-        }
-        
-        return count
-    }
-    
-    subscript(key:String) -> [Int:[Int]]? {
-        get {
-            return data?[key]
-        }
-        set {
-            if data == nil {
-                data = [String:[Int:[Int]]]()
-            }
-            
-            data?[key] = newValue
-        }
-    }
-    
-    static func ==(lhs: BooksChaptersVerses, rhs: BooksChaptersVerses) -> Bool
-    {
-        let lhsBooks = lhs.data?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
-        let rhsBooks = rhs.data?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
-        
-        if (lhsBooks == nil) && (rhsBooks == nil) {
-        } else
-            if (lhsBooks != nil) && (rhsBooks == nil) {
-                return false
-            } else
-                if (lhsBooks == nil) && (rhsBooks != nil) {
-                    return false
-                } else {
-                    if lhsBooks?.count != rhsBooks?.count {
-                        return false
-                    } else {
-//                        print(lhsBooks)
-                        for index in 0...(lhsBooks!.count - 1) {
-                            if lhsBooks?[index] != rhsBooks?[index] {
-                                return false
-                            }
-                        }
-                        for book in lhsBooks! {
-                            let lhsChapters = lhs[book]?.keys.sorted()
-                            let rhsChapters = rhs[book]?.keys.sorted()
-                            
-                            if (lhsChapters == nil) && (rhsChapters == nil) {
-                            } else
-                                if (lhsChapters != nil) && (rhsChapters == nil) {
-                                    return false
-                                } else
-                                    if (lhsChapters == nil) && (rhsChapters != nil) {
-                                        return false
-                                    } else {
-                                        if lhsChapters?.count != rhsChapters?.count {
-                                            return false
-                                        } else {
-                                            for index in 0...(lhsChapters!.count - 1) {
-                                                if lhsChapters?[index] != rhsChapters?[index] {
-                                                    return false
-                                                }
-                                            }
-                                            for chapter in lhsChapters! {
-                                                let lhsVerses = lhs[book]?[chapter]?.sorted()
-                                                let rhsVerses = rhs[book]?[chapter]?.sorted()
-                                                
-                                                if (lhsVerses == nil) && (rhsVerses == nil) {
-                                                } else
-                                                    if (lhsVerses != nil) && (rhsVerses == nil) {
-                                                        return false
-                                                    } else
-                                                        if (lhsVerses == nil) && (rhsVerses != nil) {
-                                                            return false
-                                                        } else {
-                                                            if lhsVerses?.count != rhsVerses?.count {
-                                                                return false
-                                                            } else {
-                                                                for index in 0...(lhsVerses!.count - 1) {
-                                                                    if lhsVerses?[index] != rhsVerses?[index] {
-                                                                        return false
-                                                                    }
-                                                                }
-                                                            }
-                                                }
-                                            }
-                                        }
-                            }
-                        }
-                    }
-        }
-        
-        return true
-    }
-    
-    static func !=(lhs: BooksChaptersVerses, rhs: BooksChaptersVerses) -> Bool
-    {
-        return !(lhs == rhs)
-    }
-    
-    static func <=(lhs: BooksChaptersVerses, rhs: BooksChaptersVerses) -> Bool
-    {
-        return (lhs < rhs) || (lhs == rhs)
-    }
-    
-    static func <(lhs: BooksChaptersVerses, rhs: BooksChaptersVerses) -> Bool
-    {
-        let lhsBooks = lhs.data?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
-        let rhsBooks = rhs.data?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
-
-        if (lhsBooks == nil) && (rhsBooks == nil) {
-            return false
-        } else
-            if (lhsBooks != nil) && (rhsBooks == nil) {
-                return false
-            } else
-                if (lhsBooks == nil) && (rhsBooks != nil) {
-                    return true
-                } else {
-                    for lhsBook in lhsBooks! {
-                        for rhsBook in rhsBooks! {
-                            if lhsBook == rhsBook {
-                                let lhsChapters = lhs[lhsBook]?.keys.sorted()
-                                let rhsChapters = rhs[rhsBook]?.keys.sorted()
-                                
-                                if (lhsChapters == nil) && (rhsChapters == nil) {
-                                    return lhsBooks?.count < rhsBooks?.count
-                                } else
-                                    if (lhsChapters != nil) && (rhsChapters == nil) {
-                                        return true
-                                    } else
-                                        if (lhsChapters == nil) && (rhsChapters != nil) {
-                                            return false
-                                        } else {
-                                            for lhsChapter in lhsChapters! {
-                                                for rhsChapter in rhsChapters! {
-                                                    if lhsChapter == rhsChapter {
-                                                        let lhsVerses = lhs[lhsBook]?[lhsChapter]?.sorted()
-                                                        let rhsVerses = rhs[rhsBook]?[rhsChapter]?.sorted()
-                                                        
-                                                        if (lhsVerses == nil) && (rhsVerses == nil) {
-                                                            return lhsChapters?.count < rhsChapters?.count
-                                                        } else
-                                                            if (lhsVerses != nil) && (rhsVerses == nil) {
-                                                                return true
-                                                            } else
-                                                                if (lhsVerses == nil) && (rhsVerses != nil) {
-                                                                    return false
-                                                                } else {
-                                                                    for lhsVerse in lhsVerses! {
-                                                                        for rhsVerse in rhsVerses! {
-                                                                            if lhsVerse == rhsVerse {
-                                                                                return lhs.numberOfVerses() < rhs.numberOfVerses()
-                                                                            } else {
-                                                                                return lhsVerse < rhsVerse
-                                                                            }
-                                                                        }
-                                                                    }
-                                                        }
-                                                    } else {
-                                                        return lhsChapter < rhsChapter
-                                                    }
-                                                }
-                                            }
-                                }
-                            } else {
-                                return bookNumberInBible(lhsBook) < bookNumberInBible(rhsBook)
-                            }
-                        }
-                    }
-        }
-    
-        return false
-    }
-    
-    static func >=(lhs: BooksChaptersVerses, rhs: BooksChaptersVerses) -> Bool
-    {
-        return !(lhs < rhs)
-    }
-    
-    static func >(lhs: BooksChaptersVerses, rhs: BooksChaptersVerses) -> Bool
-    {
-        return !(lhs < rhs) && !(lhs == rhs)
-    }
-}
-
-class ScriptureIndex {
-//    var active = false
-    
-    var sectionsIndex = [String:[String:[MediaItem]]]()
-    
-    var sections:[String:[MediaItem]]?
-        {
-        get {
-            return context != nil ? sectionsIndex[context!] : nil
-        }
-        set {
-            guard (context != nil) else {
-                return
-            }
-            sectionsIndex[context!] = newValue
-        }
-    }
-
-    lazy var html:CachedString? = {
-        [unowned self] in
-        return CachedString(index:self.index)
-    }()
-    
-    func index() -> String? {
-        return context
-    }
-
-    var context:String? {
-        get {
-            var index:String?
-            
-            if let selectedTestament = self.selectedTestament {
-                index = selectedTestament
-            }
-            
-            if index != nil, let selectedBook = self.selectedBook {
-                index = index! + ":" + selectedBook
-            }
-            
-            if index != nil, selectedChapter > 0 {
-                index = index! + ":\(selectedChapter)"
-            }
-            
-            if index != nil, selectedVerse > 0 {
-                index = index! + ":\(selectedVerse)"
-            }
-            
-            return index
-        }
-    }
-
-//    var htmlStrings = [String:String]()
-//
-//    var htmlString:String? {
-//        get {
-//            return index != nil ? htmlStrings[index!] : nil
-//        }
-//        set {
-//            if index != nil {
-//                htmlStrings[index!] = newValue
-//            }
-//        }
-//    }
-//    
-//    var index:String? {
-//        get {
-//            var index:String?
-//            
-//            if let selectedTestament = self.selectedTestament {
-//                index = selectedTestament
-//            }
-//            
-//            if index != nil, let selectedBook = self.selectedBook {
-//                index = index! + ":" + selectedBook
-//            }
-//            
-//            if index != nil, selectedChapter > 0 {
-//                index = index! + ":\(selectedChapter)"
-//            }
-//            
-//            if index != nil, selectedVerse > 0 {
-//                index = index! + ":\(selectedVerse)"
-//            }
-//            
-//            return index
-//        }
-//    }
-    
-    var sorted = [String:Bool]()
-    
-                    //Test
-    var byTestament = [String:[MediaItem]]()
-    
-                    //Test  //Book
-    var byBook = [String:[String:[MediaItem]]]()
-    
-                    //Test  //Book  //Ch#
-    var byChapter = [String:[String:[Int:[MediaItem]]]]()
-    
-                    //Test  //Book  //Ch#/Verse#
-    var byVerse = [String:[String:[Int:[Int:[MediaItem]]]]]()
-
-    var selectedTestament:String? = Constants.OT
-    
-    var selectedBook:String? {
-        didSet {
-            if selectedBook == nil {
-                selectedChapter = 0
-                selectedVerse = 0
-            }
-        }
-    }
-    
-    var selectedChapter:Int = 0 {
-        didSet {
-            if selectedChapter == 0 {
-                selectedVerse = 0
-            }
-        }
-    }
-    
-    var selectedVerse:Int = 0
-}
 
 //struct ScripturePicker {
 //    var books:[String]?
@@ -386,17 +48,17 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         get {
             return mediaListGroupSort?.scriptureIndex
         }
-        set {
-            mediaListGroupSort?.scriptureIndex = newValue
-//            scriptureIndex?.active = true
-        }
+//        set {
+//            mediaListGroupSort?.scriptureIndex = newValue
+////            scriptureIndex?.active = true
+//        }
     }
     
-    var list:[MediaItem]? {
-        get {
-            return mediaListGroupSort?.list
-        }
-    }
+//    var list:[MediaItem]? {
+//        get {
+//            return mediaListGroupSort?.list
+//        }
+//    }
     
     @IBOutlet weak var logo: UIImageView!
     @IBOutlet weak var directionLabel: UILabel!
@@ -603,26 +265,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     //
     //    }
     
-    func translateTestament(_ testament:String) -> String
-    {
-        var translation = Constants.EMPTY_STRING
-        
-        switch testament {
-        case Constants.OT:
-            translation = Constants.Old_Testament
-            break
-            
-        case Constants.NT:
-            translation = Constants.New_Testament
-            break
-            
-        default:
-            break
-        }
-        
-        return translation
-    }
-    
     func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
         var label:UILabel!
         
@@ -743,12 +385,14 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         }
 
         guard (scriptureIndex?.selectedBook != nil) else {
-            let testament = translateTestament(scriptureIndex!.selectedTestament!)
+            var testament:String!
             
-            let index = testament
+            if let selectedTestament = scriptureIndex?.selectedTestament {
+                testament = translateTestament(selectedTestament)
+            }
 
             DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                if self.scriptureIndex!.sorted[index] == nil {
+                if self.scriptureIndex!.sorted[testament] == nil {
                     DispatchQueue.main.async(execute: { () -> Void in
                         self.disableBarButtons()
                         self.spinner.isHidden = false
@@ -757,7 +401,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     })
 
                     self.scriptureIndex?.byTestament[testament] = self.sortMediaItems(self.scriptureIndex?.byTestament[testament],book:nil) // self.sortMediaItemsBook(self.scriptureIndex?.byTestament[testament])
-                    self.scriptureIndex!.sorted[index] = true
+                    self.scriptureIndex!.sorted[testament] = true
                     
                     self.mediaItems = self.scriptureIndex?.byTestament[testament]
                     
@@ -1236,17 +880,18 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     
         updateSwitches()
 
-        if scriptureIndex == nil {
-            buildScriptureIndex()
-        } else {
-            updateSearchResults()
-        }
+        scriptureIndex?.build()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 //        saveSettings()
-        NotificationCenter.default.removeObserver(self)
+        
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: scriptureIndex)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_UPDATED), object: scriptureIndex)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: scriptureIndex)
+
+//        NotificationCenter.default.removeObserver(self)
     }
     
     override func viewDidAppear(_ animated: Bool)
@@ -1318,7 +963,11 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         if globals.search.valid, let text = globals.search.text {
             bodyString = bodyString! + "Search: \(text)<br/><br/>"
         }
-
+        
+        if globals.search.lexicon {
+            bodyString = bodyString! + "Lexicon Mode<br/>"
+        }
+        
         if let selectedTestament = self.scriptureIndex?.selectedTestament {
             var indexFor = translateTestament(selectedTestament)
 
@@ -1771,13 +1420,36 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         }
     }
     
+    func started()
+    {
+        
+    }
+    
+    func updated()
+    {
+        
+    }
+    
+    func completed()
+    {
+        updateSearchResults()
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        DispatchQueue.main.async {
+            NotificationCenter.default.addObserver(self, selector: #selector(ScriptureIndexViewController.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self.scriptureIndex)
+            NotificationCenter.default.addObserver(self, selector: #selector(ScriptureIndexViewController.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_UPDATED), object: self.scriptureIndex)
+            NotificationCenter.default.addObserver(self, selector: #selector(ScriptureIndexViewController.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self.scriptureIndex)
+        }
 
         let indexButton = UIBarButtonItem(title: Constants.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureIndexViewController.index(_:)))
         let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
-        navigationController?.toolbar.isTranslucent = false
+
         setToolbarItems([spaceButton,indexButton], animated: false)
+
+        navigationController?.toolbar.isTranslucent = false
 
         if let selectedTestament = scriptureIndex?.selectedTestament {
             let testament = translateTestament(selectedTestament)
@@ -1988,113 +1660,113 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         tableView.reloadData()
     }
 
-    func buildScriptureIndex()
-    {
-        guard (scriptureIndex == nil) else {
-            return
-        }
-        
-        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-            self.scriptureIndex = ScriptureIndex()
-            
-            //                self.clearSettings()
-            
-            self.progress = 0
-            self.finished = 0
-            
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.disableBarButtons()
-                
-                self.spinner.isHidden = false
-                self.spinner.startAnimating()
-
-                self.progressIndicator.progress = 0
-                self.progressIndicator.isHidden = false
-            })
-            
-            if self.list != nil {
-                self.finished += Float(self.list!.count)
-                for mediaItem in self.list! {
-                    let booksChaptersVerses = mediaItem.booksAndChaptersAndVerses()
-                    if let books = booksChaptersVerses?.data?.keys {
-                        self.finished += Float(mediaItem.books!.count)
-                        for book in books {
-//                            print("\(mediaItem)")
-                            if self.scriptureIndex?.byTestament[testament(book)] != nil {
-                                if !self.scriptureIndex!.byTestament[testament(book)]!.contains(mediaItem) {
-                                    self.scriptureIndex?.byTestament[testament(book)]?.append(mediaItem)
-                                }
-                            } else {
-                                self.scriptureIndex?.byTestament[testament(book)] = [mediaItem]
-                            }
-                            
-                            if self.scriptureIndex?.byBook[testament(book)] == nil {
-                                self.scriptureIndex?.byBook[testament(book)] = [String:[MediaItem]]()
-                            }
-                            if self.scriptureIndex?.byBook[testament(book)]?[book] != nil {
-                                if !self.scriptureIndex!.byBook[testament(book)]![book]!.contains(mediaItem) {
-                                    self.scriptureIndex?.byBook[testament(book)]?[book]?.append(mediaItem)
-                                }
-                            } else {
-                                self.scriptureIndex?.byBook[testament(book)]?[book] = [mediaItem]
-                            }
-                            
-                            if let chapters = booksChaptersVerses?[book]?.keys {
-                                self.finished += Float(chapters.count)
-                                for chapter in chapters {
-                                    if self.scriptureIndex?.byChapter[testament(book)] == nil {
-                                        self.scriptureIndex?.byChapter[testament(book)] = [String:[Int:[MediaItem]]]()
-                                    }
-                                    if self.scriptureIndex?.byChapter[testament(book)]?[book] == nil {
-                                        self.scriptureIndex?.byChapter[testament(book)]?[book] = [Int:[MediaItem]]()
-                                    }
-                                    if self.scriptureIndex?.byChapter[testament(book)]?[book]?[chapter] != nil {
-                                        if !self.scriptureIndex!.byChapter[testament(book)]![book]![chapter]!.contains(mediaItem) {
-                                            self.scriptureIndex?.byChapter[testament(book)]?[book]?[chapter]?.append(mediaItem)
-                                        }
-                                    } else {
-                                        self.scriptureIndex?.byChapter[testament(book)]?[book]?[chapter] = [mediaItem]
-                                    }
-                                    
-                                    if let verses = booksChaptersVerses?[book]?[chapter] {
-                                        self.finished += Float(verses.count)
-                                        for verse in verses {
-                                            if self.scriptureIndex?.byVerse[testament(book)] == nil {
-                                                self.scriptureIndex?.byVerse[testament(book)] = [String:[Int:[Int:[MediaItem]]]]()
-                                            }
-                                            if self.scriptureIndex?.byVerse[testament(book)]?[book] == nil {
-                                                self.scriptureIndex?.byVerse[testament(book)]?[book] = [Int:[Int:[MediaItem]]]()
-                                            }
-                                            if self.scriptureIndex?.byVerse[testament(book)]?[book]?[chapter] == nil {
-                                                self.scriptureIndex?.byVerse[testament(book)]?[book]?[chapter] = [Int:[MediaItem]]()
-                                            }
-                                            if self.scriptureIndex?.byVerse[testament(book)]?[book]?[chapter]?[verse] != nil {
-                                                if !self.scriptureIndex!.byVerse[testament(book)]![book]![chapter]![verse]!.contains(mediaItem) {
-                                                    self.scriptureIndex?.byVerse[testament(book)]?[book]?[chapter]?[verse]?.append(mediaItem)
-                                                }
-                                            } else {
-                                                self.scriptureIndex?.byVerse[testament(book)]?[book]?[chapter]?[verse] = [mediaItem]
-                                            }
-                                            
-                                            self.progress += 1
-                                        }
-                                    }
-                                    
-                                    self.progress += 1
-                                }
-                            }
-                            
-                            self.progress += 1
-                        }
-                    }
-                    
-                    self.progress += 1
-                }
-            }
-            
-            self.updateSearchResults()
-        })
-    }
+//    func buildScriptureIndex()
+//    {
+//        guard (scriptureIndex == nil) else {
+//            return
+//        }
+//        
+//        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+//            self.scriptureIndex = ScriptureIndex()
+//            
+//            //                self.clearSettings()
+//            
+//            self.progress = 0
+//            self.finished = 0
+//            
+//            DispatchQueue.main.async(execute: { () -> Void in
+//                self.disableBarButtons()
+//                
+//                self.spinner.isHidden = false
+//                self.spinner.startAnimating()
+//
+//                self.progressIndicator.progress = 0
+//                self.progressIndicator.isHidden = false
+//            })
+//            
+//            if self.list != nil {
+//                self.finished += Float(self.list!.count)
+//                for mediaItem in self.list! {
+//                    let booksChaptersVerses = mediaItem.booksAndChaptersAndVerses()
+//                    if let books = booksChaptersVerses?.data?.keys {
+//                        self.finished += Float(mediaItem.books!.count)
+//                        for book in books {
+////                            print("\(mediaItem)")
+//                            if self.scriptureIndex?.byTestament[testament(book)] != nil {
+//                                if !self.scriptureIndex!.byTestament[testament(book)]!.contains(mediaItem) {
+//                                    self.scriptureIndex?.byTestament[testament(book)]?.append(mediaItem)
+//                                }
+//                            } else {
+//                                self.scriptureIndex?.byTestament[testament(book)] = [mediaItem]
+//                            }
+//                            
+//                            if self.scriptureIndex?.byBook[testament(book)] == nil {
+//                                self.scriptureIndex?.byBook[testament(book)] = [String:[MediaItem]]()
+//                            }
+//                            if self.scriptureIndex?.byBook[testament(book)]?[book] != nil {
+//                                if !self.scriptureIndex!.byBook[testament(book)]![book]!.contains(mediaItem) {
+//                                    self.scriptureIndex?.byBook[testament(book)]?[book]?.append(mediaItem)
+//                                }
+//                            } else {
+//                                self.scriptureIndex?.byBook[testament(book)]?[book] = [mediaItem]
+//                            }
+//                            
+//                            if let chapters = booksChaptersVerses?[book]?.keys {
+//                                self.finished += Float(chapters.count)
+//                                for chapter in chapters {
+//                                    if self.scriptureIndex?.byChapter[testament(book)] == nil {
+//                                        self.scriptureIndex?.byChapter[testament(book)] = [String:[Int:[MediaItem]]]()
+//                                    }
+//                                    if self.scriptureIndex?.byChapter[testament(book)]?[book] == nil {
+//                                        self.scriptureIndex?.byChapter[testament(book)]?[book] = [Int:[MediaItem]]()
+//                                    }
+//                                    if self.scriptureIndex?.byChapter[testament(book)]?[book]?[chapter] != nil {
+//                                        if !self.scriptureIndex!.byChapter[testament(book)]![book]![chapter]!.contains(mediaItem) {
+//                                            self.scriptureIndex?.byChapter[testament(book)]?[book]?[chapter]?.append(mediaItem)
+//                                        }
+//                                    } else {
+//                                        self.scriptureIndex?.byChapter[testament(book)]?[book]?[chapter] = [mediaItem]
+//                                    }
+//                                    
+//                                    if let verses = booksChaptersVerses?[book]?[chapter] {
+//                                        self.finished += Float(verses.count)
+//                                        for verse in verses {
+//                                            if self.scriptureIndex?.byVerse[testament(book)] == nil {
+//                                                self.scriptureIndex?.byVerse[testament(book)] = [String:[Int:[Int:[MediaItem]]]]()
+//                                            }
+//                                            if self.scriptureIndex?.byVerse[testament(book)]?[book] == nil {
+//                                                self.scriptureIndex?.byVerse[testament(book)]?[book] = [Int:[Int:[MediaItem]]]()
+//                                            }
+//                                            if self.scriptureIndex?.byVerse[testament(book)]?[book]?[chapter] == nil {
+//                                                self.scriptureIndex?.byVerse[testament(book)]?[book]?[chapter] = [Int:[MediaItem]]()
+//                                            }
+//                                            if self.scriptureIndex?.byVerse[testament(book)]?[book]?[chapter]?[verse] != nil {
+//                                                if !self.scriptureIndex!.byVerse[testament(book)]![book]![chapter]![verse]!.contains(mediaItem) {
+//                                                    self.scriptureIndex?.byVerse[testament(book)]?[book]?[chapter]?[verse]?.append(mediaItem)
+//                                                }
+//                                            } else {
+//                                                self.scriptureIndex?.byVerse[testament(book)]?[book]?[chapter]?[verse] = [mediaItem]
+//                                            }
+//                                            
+//                                            self.progress += 1
+//                                        }
+//                                    }
+//                                    
+//                                    self.progress += 1
+//                                }
+//                            }
+//                            
+//                            self.progress += 1
+//                        }
+//                    }
+//                    
+//                    self.progress += 1
+//                }
+//            }
+//            
+//            self.updateSearchResults()
+//        })
+//    }
     
     func tableView(_ tableView: UITableView, canEditRowAtIndexPath indexPath: IndexPath) -> Bool
     {
