@@ -139,7 +139,9 @@ struct Media {
             }
             
             if globals.search.valid {
-                mediaItems = mediaItems?.searches?[globals.search.text!]
+                if let searchText = globals.search.text?.uppercased() {
+                    mediaItems = mediaItems?.searches?[searchText]
+                }
             }
             
             return mediaItems
@@ -795,7 +797,7 @@ class Globals : NSObject {
 //                    media.tags.showing = Constants.ALL
 //                }
 
-                search.text = defaults.string(forKey: Constants.SEARCH_TEXT)
+                search.text = defaults.string(forKey: Constants.SEARCH_TEXT)?.uppercased()
                 search.active = search.text != nil
 
                 mediaPlayer.mediaItem = mediaCategory.playing != nil ? mediaRepository.index?[mediaCategory.playing!] : nil

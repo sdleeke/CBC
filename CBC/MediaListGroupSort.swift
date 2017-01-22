@@ -537,13 +537,14 @@ class Lexicon : NSObject {
     
     var words:Words? {
         didSet {
-            print(words?.count)
+//            print(words?.count)
         }
     }
     
     var creating = false
     var pauseUpdates = false
-    
+    var completed = false
+
     var entries:[MediaItem]? {
         get {
             var mediaItemSet = Set<MediaItem>()
@@ -574,7 +575,7 @@ class Lexicon : NSObject {
         }
     }
 
-    func create()
+    func build()
     {
         guard !creating else {
             return
@@ -642,6 +643,7 @@ class Lexicon : NSObject {
                 self.words = dict.count > 0 ? dict : nil
                 
                 self.creating = false
+                self.completed = true
                 
                 //        print(dict)
                 DispatchQueue.main.async(execute: { () -> Void in

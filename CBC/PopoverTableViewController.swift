@@ -610,7 +610,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         if mediaListGroupSort != nil {
             // Start lexicon creation if it isn't already being created.
             if (mediaListGroupSort?.lexicon?.words == nil) {
-                mediaListGroupSort?.lexicon?.create()
+                mediaListGroupSort?.lexicon?.build()
             } else {
                 if let creating = mediaListGroupSort!.lexicon?.creating, creating {
                     lexiconUpdated()

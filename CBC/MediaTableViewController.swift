@@ -111,6 +111,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         tagLabel.text = nil
         
+        // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
+        globals.media = Media()
+        
         loadMediaItems()
         {
             if globals.mediaRepository.list == nil {
@@ -289,7 +292,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 showMenu.append(Constants.View_List)
             }
             
-            if !globals.search.active && (globals.media.active?.lexicon?.eligible != nil) {
+            if (!globals.search.active || globals.search.lexicon) && (globals.media.active?.lexicon?.eligible != nil) {
                 showMenu.append(Constants.Lexicon)
             }
             
@@ -390,7 +393,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         switch purpose {
         case .selectingCellSearch:
-            var searchText = strings[index]
+            var searchText = strings[index].uppercased()
             
             if let range = searchText.range(of: " (") {
                 searchText = searchText.substring(to: range.lowerBound)
@@ -436,7 +439,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             let string = strings[index]
             
             if let range = string.range(of: " (") {
-                let searchText = string.substring(to: range.lowerBound)
+                let searchText = string.substring(to: range.lowerBound).uppercased()
                     
                 globals.search.lexicon = true // MUST COME FIRST to avoid saving searchText for the next startup.
                 globals.search.text = searchText
@@ -809,7 +812,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SCRIPTURE_INDEX) as? ScriptureIndexViewController {
                         
                         viewController.mediaListGroupSort = globals.media.active
-                        
+
                         DispatchQueue.main.async(execute: { () -> Void in
                             self.navigationController?.pushViewController(viewController, animated: true)
                         })
@@ -822,9 +825,13 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             case Constants.Lexicon:
                 var mlgs:MediaListGroupSort?
                 
-                if globals.reachability.isReachable {
-                    mlgs = globals.media.active
+                if globals.search.lexicon {
+                    mlgs = globals.media.toSearch
                 } else {
+                    mlgs = globals.media.active
+                }
+
+                if let completed = mlgs?.lexicon?.completed, !completed && !globals.reachability.isReachable {
                     networkUnavailable("Lexicon unavailable.")
                 }
                 
@@ -1270,8 +1277,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        print("searchBar:textDidChange:")
         //Unstable results from incremental search
 //        print("\"\(searchText)\"")
+        
+        let searchText = searchText.uppercased()
+        
         globals.search.text = searchText
-
+        
         if (searchText != Constants.EMPTY_STRING) { //
             updateSearchResults(searchText,completion: nil)
         } else {
@@ -1288,7 +1298,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        print("searchBarSearchButtonClicked:")
         searchBar.resignFirstResponder()
 //        print(searchBar.text)
-        globals.search.text = searchBar.text
+
+        let searchText = searchBar.text?.uppercased()
+        
+        globals.search.text = searchText
+        
         if globals.search.valid {
             updateSearchResults(searchBar.text,completion: nil)
         } else {
@@ -1314,9 +1328,13 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         })
 
 //        print(searchBar.text)
-        globals.search.text = searchBar.text
+        
+        let searchText = searchBar.text?.uppercased()
+        
+        globals.search.text = searchText
+        
         if globals.search.valid { //
-            updateSearchResults(searchBar.text,completion: nil)
+            updateSearchResults(searchText,completion: nil)
         } else {
 //            print("clearDisplay 4")
             globals.clearDisplay()
@@ -2428,7 +2446,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func updateDisplay(searchText:String?)
     {
-        if !globals.search.active || (globals.search.text == searchText) {
+        guard let searchText = searchText?.uppercased() else {
+            return
+        }
+        
+        if !globals.search.active || (globals.search.text?.uppercased() == searchText) {
 //            print(globals.search.text,searchText)
 //            print("setupDisplay")
             globals.setupDisplay(globals.media.active)
@@ -2448,7 +2470,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
     func updateSearch(searchText:String?,mediaItems: [MediaItem]?)
     {
-        guard searchText != nil else {
+        guard let searchText = searchText?.uppercased() else {
             return
         }
         
@@ -2458,7 +2480,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             globals.media.toSearch?.searches = [String:MediaListGroupSort]()
         }
         
-        globals.media.toSearch?.searches?[searchText!] = MediaListGroupSort(mediaItems: mediaItems)
+        globals.media.toSearch?.searches?[searchText] = MediaListGroupSort(mediaItems: mediaItems)
         
         self.showProgress = true
     }
@@ -2467,7 +2489,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     {
 //        print(searchText)
 
-        guard (searchText != nil) else {
+        guard let searchText = searchText?.uppercased() else {
             return
         }
         
@@ -2475,8 +2497,28 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             return
         }
         
-        guard (globals.media.toSearch?.searches?[searchText!] == nil) else {
+//        print(searchText)
+        
+        guard (globals.media.toSearch?.searches?[searchText] == nil) else {
             updateDisplay(searchText:searchText)
+            setupListActivityIndicator()
+            setupBarButtons()
+            setupCategoryButton()
+            setupTagsButton()
+            return
+        }
+        
+        if globals.search.lexicon {
+            if let list:[MediaItem]? = globals.media.toSearch?.lexicon?.words?[searchText]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
+                return tuple.0
+            }) {
+                updateSearch(searchText:searchText,mediaItems: list)
+                updateDisplay(searchText:searchText)
+            } else {
+                updateSearch(searchText:searchText,mediaItems: nil)
+                updateDisplay(searchText:searchText)
+            }
+
             setupListActivityIndicator()
             setupBarButtons()
             setupCategoryButton()
@@ -2519,7 +2561,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     abort = abort || shouldAbort()
                     
                     if abort {
-                        globals.media.toSearch?.searches?[searchText!] = nil
+                        globals.media.toSearch?.searches?[searchText] = nil
                         break
                     } else {
                         if searchHit {
@@ -2541,7 +2583,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
                     self.updateDisplay(searchText:searchText)
                 } else {
-                    globals.media.toSearch?.searches?[searchText!] = nil
+                    globals.media.toSearch?.searches?[searchText] = nil
                 }
                 
                 if !abort && globals.search.transcripts {
@@ -2557,7 +2599,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         abort = abort || shouldAbort()
                         
                         if abort {
-                            globals.media.toSearch?.searches?[searchText!] = nil
+                            globals.media.toSearch?.searches?[searchText] = nil
                             break
                         } else {
                             if searchHit {
@@ -2580,7 +2622,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             abort = abort || shouldAbort()
             
             if abort {
-                globals.media.toSearch?.searches?[searchText!] = nil
+                globals.media.toSearch?.searches?[searchText] = nil
             } else {
                 self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
                 self.updateDisplay(searchText:searchText)
@@ -3019,77 +3061,117 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
     {
         super.viewWillTransition(to: size, with: coordinator)
+
+        dismiss(animated: true, completion: nil)
         
-//        if (self.view.window == nil) {
-//            return
+//        if let sivc = self.navigationController?.visibleViewController as? ScriptureIndexViewController {
+//            print("SIVC")
 //        }
+//        if let ptvc = self.navigationController?.visibleViewController as? PopoverTableViewController {
+//            print("PTVC")
+//        }
+
+        _ = self.navigationController?.popToRootViewController(animated: true)
         
-        if (splitViewController != nil) {
-//            dismiss(animated: false, completion: nil)
-//            if (popover != nil) {
-//                dismiss(animated: false, completion: nil)
-//                popover = nil
+//        if let count = self.splitViewController?.viewControllers.count {
+//            print(count)
+//
+//            switch count {
+//            case 1:
+//                break
+//            
+//            case 2:
+//                break
+//                
+//            default:
+//                break
 //            }
+//        }
+
+        coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
+            
+        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.setupTitle()
+            })
         }
 
-        if (self.splitViewController != nil) {
-//            print("Before")
-//            print(splitViewController!.viewControllers.count)
-//            print(navigationController!.viewControllers.count)
-//            print(navigationController!.visibleViewController)
-            
-            let beforeSVCC = splitViewController!.viewControllers.count
-            let beforeNVCC = navigationController!.viewControllers.count
-            
-            let sivc = self.navigationController?.visibleViewController as? ScriptureIndexViewController
-            
-            if (beforeSVCC == 1) && (beforeNVCC > beforeSVCC) && (sivc != nil) {
-                // Keeps any MTVC vc from showing up in the MVC rather than the MTVC hierarchy.
-                _ = self.navigationController?.popToRootViewController(animated: false)
-            }
-
-            coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
-
-            }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-//                print("After")
-//                print(self.splitViewController?.viewControllers.count)
-//                print(self.navigationController?.viewControllers.count)
-//                print(self.navigationController?.visibleViewController)
-                
-                let afterSVCC = self.splitViewController!.viewControllers.count
-                let afterNVCC = self.navigationController!.viewControllers.count
-
-                if (afterNVCC == 1) && (sivc != nil) { //
-                    if (afterSVCC == 1) || (afterNVCC < afterSVCC) { //
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            self.navigationController?.pushViewController(sivc!, animated: false)
-                        })
-                    }
-                }
-
-                //Without this background/main dispatching there isn't time to scroll after a reload.
-//                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-//                    DispatchQueue.main.async(execute: { () -> Void in
-//                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
-//                    })
+////        if (self.view.window == nil) {
+////            return
+////        }
+//        
+//        if (splitViewController != nil) {
+////            dismiss(animated: false, completion: nil)
+////            if (popover != nil) {
+////                dismiss(animated: false, completion: nil)
+////                popover = nil
+////            }
+//        }
+//
+//        if (self.splitViewController != nil) {
+////            print("Before")
+////            print(splitViewController!.viewControllers.count)
+////            print(navigationController!.viewControllers.count)
+////            print(navigationController!.visibleViewController)
+//            
+//            let beforeSVCC = splitViewController!.viewControllers.count
+//            let beforeNVCC = navigationController!.viewControllers.count
+//            
+//            let sivc = self.navigationController?.visibleViewController as? ScriptureIndexViewController
+//            let ptvc = self.navigationController?.visibleViewController as? PopoverTableViewController
+//            
+//            if (beforeSVCC == 1) && (beforeNVCC > beforeSVCC) && ((sivc != nil) || (ptvc != nil)) {
+//                // Keeps any MTVC vc from showing up in the MVC rather than the MTVC hierarchy.
+//                _ = self.navigationController?.popToRootViewController(animated: false)
+//            }
+//
+//            coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
+//
+//            }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
+////                print("After")
+////                print(self.splitViewController?.viewControllers.count)
+////                print(self.navigationController?.viewControllers.count)
+////                print(self.navigationController?.visibleViewController)
+//                
+//                let afterSVCC = self.splitViewController!.viewControllers.count
+//                let afterNVCC = self.navigationController!.viewControllers.count
+//
+//                if (afterNVCC == 1) && (sivc != nil) { //
+//                    if (afterSVCC == 1) || (afterNVCC < afterSVCC) { //
+//                        DispatchQueue.main.async(execute: { () -> Void in
+//                            if let vc = sivc {
+//                                self.navigationController?.pushViewController(vc, animated: false)
+//                            }
+//                            if let vc = ptvc {
+//                                self.navigationController?.pushViewController(vc, animated: false)
+//                            }
+//                        })
+//                    }
+//                }
+//
+//                //Without this background/main dispatching there isn't time to scroll after a reload.
+////                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+////                    DispatchQueue.main.async(execute: { () -> Void in
+////                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
+////                    })
+////                })
+//
+//                //        setupSplitViewController()
+//                
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    self.setupShowHide()
+//                    self.setupTitle()
 //                })
-
-                //        setupSplitViewController()
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.setupShowHide()
-                    self.setupTitle()
-                })
-            }
-        } else {
-            coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
-                
-            }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.setupTitle()
-                })
-            }
-        }
+//            }
+//        } else {
+//            coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
+//                
+//            }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    self.setupTitle()
+//                })
+//            }
+//        }
     }
     
     // MARK: UITableViewDataSource
