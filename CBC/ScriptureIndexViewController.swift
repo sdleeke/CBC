@@ -878,9 +878,13 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
 
 //        navigationController?.isToolbarHidden = true
     
-        updateSwitches()
+//        updateSwitches()
 
-        scriptureIndex?.build()
+        if let completed = scriptureIndex?.completed, !completed {
+            scriptureIndex?.build()
+        } else {
+            updateUI()
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {

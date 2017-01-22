@@ -284,12 +284,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 //Nothing to show
             }
             
-            if (globals.media.active?.scriptureIndex?.eligible != nil) {
-                showMenu.append(Constants.Scripture_Index)
-            }
-            
             if globals.media.active?.list?.count > 0 {
                 showMenu.append(Constants.View_List)
+            }
+            
+            if (globals.media.active?.scriptureIndex?.eligible != nil) {
+                showMenu.append(Constants.Scripture_Index)
             }
             
             if (!globals.search.active || globals.search.lexicon) && (globals.media.active?.lexicon?.eligible != nil) {
@@ -1789,6 +1789,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
             globals.setupDisplay(globals.media.active)
             
+            if globals.reachability.isReachableViaWiFi {
+                globals.media.all?.lexicon?.build()
+            }
+            
             DispatchQueue.main.async(execute: { () -> Void in
                 self.navigationItem.title = Constants.Title.Setting_up_Player
                 
@@ -3062,8 +3066,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     {
         super.viewWillTransition(to: size, with: coordinator)
 
-        dismiss(animated: true, completion: nil)
-        
 //        if let sivc = self.navigationController?.visibleViewController as? ScriptureIndexViewController {
 //            print("SIVC")
 //        }
@@ -3071,7 +3073,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //            print("PTVC")
 //        }
 
-        _ = self.navigationController?.popToRootViewController(animated: true)
+        if !UIApplication.shared.isRunningInFullScreen() {
+            _ = self.navigationController?.popToRootViewController(animated: true)
+        }
         
 //        if let count = self.splitViewController?.viewControllers.count {
 //            print(count)
@@ -3092,6 +3096,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
             DispatchQueue.main.async(execute: { () -> Void in
+                if !UIApplication.shared.isRunningInFullScreen() {
+                    self.dismiss(animated: true, completion: nil)
+                }
                 self.setupTitle()
             })
         }

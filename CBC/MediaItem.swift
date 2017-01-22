@@ -677,7 +677,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         
         loadNotesHTML()
 
-        notesTokens = tokenCountsFromString(notesHTML)
+        notesTokens = tokenCountsFromString(stripHTML(notesHTML))
     }
     
     func formatDate(_ format:String?) -> String? {
@@ -1139,7 +1139,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                 return searchMarkedFullNotesHTML?[searchText]
             }
         } else {
-            let string = "No Occurences of \"\(searchText!)\" were found.<br/>"
+            let string = "No Occurrences of \"\(searchText!)\" were found.<br/>"
             
             if let newString = fullNotesHTML?.replacingOccurrences(of: "<body>", with: "<body>" + string) {
                 return newString
@@ -1211,12 +1211,12 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         var indexString:String!
             
         if markCounter > 0 {
-            indexString = "<a id=\"locations\" name=\"locations\">Occurences</a> of \"\(searchText!)\": \(markCounter)<br/>"
+            indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText!)\": \(markCounter)<br/>"
         } else {
-            indexString = "<a id=\"locations\" name=\"locations\">No occurences</a> of \"\(searchText!)\" were found.<br/>"
+            indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText!)\" were found.<br/>"
         }
         
-        // If we want an index of links to the occurences of the searchText.
+        // If we want an index of links to the occurrences of the searchText.
         if index {
             if markCounter > 0 {
                 indexString = indexString + "<div>Locations: "

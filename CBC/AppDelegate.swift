@@ -10,6 +10,24 @@ import UIKit
 import AVFoundation
 import AudioToolbox
 
+extension UIApplication
+{
+    func isRunningInFullScreen() -> Bool
+    {
+        if let w = self.keyWindow
+        {
+            let maxScreenSize = max(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
+            let minScreenSize = min(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
+            let maxAppSize = max(w.bounds.size.width, w.bounds.size.height)
+            let minAppSize = min(w.bounds.size.width, w.bounds.size.height)
+            return maxScreenSize == maxAppSize && minScreenSize == minAppSize
+        }
+        
+        return true
+    }
+}
+
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, UISplitViewControllerDelegate {
 

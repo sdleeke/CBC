@@ -574,7 +574,7 @@ class Lexicon : NSObject {
             }
         }
     }
-
+    
     func build()
     {
         guard !creating else {
@@ -606,7 +606,7 @@ class Lexicon : NSObject {
                                 } else {
                                     dict[token.0]?.append((mediaItem,token.1))
                                 }
-                                
+
                                 if globals.isRefreshing || globals.isLoading {
                                     break
                                 }
@@ -653,33 +653,6 @@ class Lexicon : NSObject {
         }
     }
     
-    override var description:String {
-        get {
-            load()
-            
-            var string = String()
-            
-            if let keys = words?.keys.sorted() {
-                for key in keys {
-                    string = string + key + "\n"
-                    if let mediaItems = words?[key]?.sorted(by: { (first, second) -> Bool in
-                        if first.1 == second.1 {
-                            return first.0.fullDate!.isOlderThan(second.0.fullDate!)
-                        } else {
-                            return first.1 > second.1
-                        }
-                    }) {
-                        for mediaItem in mediaItems {
-                            string = string + "(\(mediaItem.0,mediaItem.1))\n"
-                        }
-                    }
-                }
-            }
-            
-            return string
-        }
-    }
-    
     func load()
     {
         guard (words == nil) else {
@@ -707,6 +680,33 @@ class Lexicon : NSObject {
         //        print(dict)
         
         words = dict.count > 0 ? dict : nil
+    }
+    
+    override var description:String {
+        get {
+            load()
+            
+            var string = String()
+            
+            if let keys = words?.keys.sorted() {
+                for key in keys {
+                    string = string + key + "\n"
+                    if let mediaItems = words?[key]?.sorted(by: { (first, second) -> Bool in
+                        if first.1 == second.1 {
+                            return first.0.fullDate!.isOlderThan(second.0.fullDate!)
+                        } else {
+                            return first.1 > second.1
+                        }
+                    }) {
+                        for mediaItem in mediaItems {
+                            string = string + "(\(mediaItem.0,mediaItem.1))\n"
+                        }
+                    }
+                }
+            }
+            
+            return string
+        }
     }
 }
 
