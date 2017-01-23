@@ -269,10 +269,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         controller.dismiss(animated: true, completion: nil)
     }
    
-    func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
+    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?) {
         DispatchQueue.main.async(execute: { () -> Void in
             self.dismiss(animated: true, completion: nil)
         })
+        
+        guard let strings = strings else {
+            return
+        }
         
         switch purpose {
         case .selectingWord:
@@ -438,6 +442,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                     
                     popover.showIndex = true //(globals.grouping == .series)
                     popover.showSectionHeaders = true
+                    
+                    popover.search = true
                     
                     popover.vc = self
                     

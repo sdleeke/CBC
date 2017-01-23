@@ -10,16 +10,165 @@ import UIKit
 
 protocol PopoverTableViewControllerDelegate
 {
-    func rowClickedAtIndex(_ index:Int, strings:[String], purpose:PopoverPurpose, mediaItem:MediaItem?)
+    func rowClickedAtIndex(_ index:Int, strings:[String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
 }
 
-class PopoverTableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-    struct Section {
-        var titles:[String]?
-        var counts:[Int]?
-        var indexes:[Int]?
+extension PopoverTableViewController: UISearchControllerDelegate {
+    // MARK: UISearchControllerDelegate
+    
+    func didDismissSearchController(_ searchController: UISearchController)
+    {
+        print("didDismissSearchController")
     }
     
+    func didPresentSearchController(_ searchController: UISearchController)
+    {
+        print("didPresentSearchController")
+    }
+    
+    func presentSearchController(_ searchController: UISearchController)
+    {
+        print("presentSearchController")
+    }
+    
+    func willDismissSearchController(_ searchController: UISearchController)
+    {
+        print("willDismissSearchController")
+    }
+    
+    func willPresentSearchController(_ searchController: UISearchController)
+    {
+        print("willPresentSearchController")
+    }
+}
+
+extension PopoverTableViewController: UISearchResultsUpdating {
+    // MARK: UISearchResultsUpdating
+    
+    func updateSearchResults(for: UISearchController) {
+        DispatchQueue.main.async(execute: {
+            self.tableView.reloadData()
+        })
+    }
+}
+
+extension PopoverTableViewController: UISearchBarDelegate {
+    //MARK: SearchBarDelegate
+
+    func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool
+    {
+        return true
+    }
+    
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar)
+    {
+        if let text = searchBar.text { // , (text.isEmpty == false)
+            
+            // update the search result array by filtering….
+            
+            if let filteredStrings = strings?.filter({ (string:String) -> Bool in
+                return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            }) {
+                self.filteredStrings = filteredStrings.count > 0 ? filteredStrings : nil
+                
+                //                print(self.filteredStrings)
+                
+                let indexStrings = self.filteredStrings?.map({ (string:String) -> String in
+                    return string.uppercased()
+                })
+                
+                filteredSection.build(indexStrings)
+                
+                //                print(filteredSection.titles)
+                //
+                //                DispatchQueue.main.async(execute: {
+                //                    self.tableView.reloadData()
+                //                })
+            }
+        }
+    }
+    
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar)
+    {
+        if let text = searchBar.text { // , (text.isEmpty == false)
+            
+            // update the search result array by filtering….
+            
+            if let filteredStrings = strings?.filter({ (string:String) -> Bool in
+                return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            }) {
+                self.filteredStrings = filteredStrings.count > 0 ? filteredStrings : nil
+                
+                //                print(self.filteredStrings)
+                
+                let indexStrings = self.filteredStrings?.map({ (string:String) -> String in
+                    return string.uppercased()
+                })
+                
+                filteredSection.build(indexStrings)
+                
+                //                print(filteredSection.titles)
+                //
+                //                DispatchQueue.main.async(execute: {
+                //                    self.tableView.reloadData()
+                //                })
+            }
+        }
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
+    {
+        if let text = searchBar.text { // , (text.isEmpty == false)
+            
+            // update the search result array by filtering….
+
+            if let filteredStrings = strings?.filter({ (string:String) -> Bool in
+                return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            }) {
+                self.filteredStrings = filteredStrings.count > 0 ? filteredStrings : nil
+                
+//                print(self.filteredStrings)
+                
+                let indexStrings = self.filteredStrings?.map({ (string:String) -> String in
+                    return string.uppercased()
+                })
+
+                filteredSection.build(indexStrings)
+                
+//                print(filteredSection.titles)
+//                
+//                DispatchQueue.main.async(execute: {
+//                    self.tableView.reloadData()
+//                })
+            }
+        }
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        //        print("searchBarSearchButtonClicked:")
+
+        DispatchQueue.main.async(execute: {
+            searchBar.resignFirstResponder()
+        })
+
+        print(searchController?.isActive)
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        DispatchQueue.main.async(execute: {
+            searchBar.text = nil
+            searchBar.resignFirstResponder()
+        })
+    }
+}
+
+//struct Section {
+//    var titles:[String]?
+//    var counts:[Int]?
+//    var indexes:[Int]?
+//}
+
+class PopoverTableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     var vc:UIViewController?
     
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
@@ -44,15 +193,20 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     var indexStrings:[String]?
     
     var strings:[String]?
-    
-//    var transform:((String?)->String?)?
-    
-//    var section:Section!
-    
     lazy var section:Section! = {
         var section = Section()
         return section
     }()
+    
+    var filteredStrings:[String]?
+    var filteredSection:Section! = {
+        var section = Section()
+        return section
+    }()
+    
+//    var transform:((String?)->String?)?
+    
+//    var section:Section!
     
     func setPreferredContentSize()
     {
@@ -60,7 +214,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             return
         }
         
-        self.tableView.sizeToFit()
+//        self.tableView.sizeToFit()
         
         let margins:CGFloat = 2
         let marginSpace:CGFloat = 9
@@ -165,13 +319,21 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     
     func handleRefresh(_ refreshControl: UIRefreshControl)
     {
-        refreshControl.beginRefreshing()
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.refreshControl?.beginRefreshing()
+        })
         
-        view.isUserInteractionEnabled = false
+//        view.isUserInteractionEnabled = false
         
-        isRefreshing = true
-        mediaListGroupSort?.lexicon?.pauseUpdates = false
-        lexiconUpdated()
+        if let pause = mediaListGroupSort?.lexicon?.pauseUpdates, pause {
+            isRefreshing = true
+            mediaListGroupSort?.lexicon?.pauseUpdates = false
+            lexiconUpdated()
+        } else {
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.refreshControl?.endRefreshing()
+            })
+        }
     }
     
     var refreshControl:UIRefreshControl?
@@ -205,17 +367,53 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         }
     }
     
+    var search = false
+    
+    var searchController:UISearchController?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if mediaListGroupSort != nil {
-            mediaListGroupSort?.lexicon?.pauseUpdates = false
+        if search {
+            definesPresentationContext = true // ABSOLUTE ESSENTIAL TO SEARCH BAR BEING CORRECTLY PLACED WHEN ACTIVATED
+
+            searchController = UISearchController(searchResultsController: nil)
             
-            DispatchQueue.main.async {
+            searchController?.searchResultsUpdater = self
+            searchController?.searchBar.sizeToFit()
+
+            searchController?.delegate = self
+            searchController?.searchBar.delegate = self
+
+//            if #available(iOS 9.1, *) {
+//                searchController?.obscuresBackgroundDuringPresentation = false
+//            } else {
+//                // Fallback on earlier versions
+//            }
+            
+            searchController?.dimsBackgroundDuringPresentation = false
+            
+            tableView.tableHeaderView = searchController?.searchBar
+        }
+        
+        if mediaListGroupSort != nil {
+            searchController?.hidesNavigationBarDuringPresentation = true
+
+            addRefreshControl()
+            
+            mediaListGroupSort?.lexicon?.pauseUpdates = false
+
+            DispatchQueue(label: "CBC").async(execute: { () -> Void in
                 NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconStarted), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.mediaListGroupSort?.lexicon)
                 NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconUpdated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self.mediaListGroupSort?.lexicon)
                 NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconCompleted), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self.mediaListGroupSort?.lexicon)
-            }
+            })
+           
+//            DispatchQueue.main.async {
+//            }
+        } else {
+            searchController?.hidesNavigationBarDuringPresentation = false
+            tableView.bounces = false
         }
 
         //This makes accurate scrolling to sections impossible but since we don't use scrollToRowAtIndexPath with
@@ -246,56 +444,6 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
     }
     
-    func setupIndex()
-    {
-        guard showIndex else {
-            return
-        }
-        
-        guard (strings != nil) else {
-            return
-        }
-        
-        guard (indexStrings != nil) else {
-            return
-        }
-        
-        let a = "A"
-        
-        var indexes = [Int]()
-        var counts = [Int]()
-        
-        section.titles = Array(Set(indexStrings!.map({ (string:String) -> String in
-            if string.endIndex >= a.endIndex {
-                return stringWithoutPrefixes(string)!.substring(to: a.endIndex).uppercased()
-            } else {
-                return string
-            }
-        }))).sorted() { $0 < $1 }
-        
-        var stringIndex = [String:[String]]()
-        
-        for indexString in indexStrings! {
-            if stringIndex[indexString.substring(to: a.endIndex)] == nil {
-                stringIndex[indexString.substring(to: a.endIndex)] = [String]()
-            }
-            //                print(testString,string)
-            stringIndex[indexString.substring(to: a.endIndex)]?.append(indexString)
-        }
-        
-        var counter = 0
-        
-        for key in stringIndex.keys.sorted() {
-            //                print(stringIndex[key]!)
-            indexes.append(counter)
-            counts.append(stringIndex[key]!.count)
-            counter += stringIndex[key]!.count
-        }
-        
-        section.indexes = indexes.count > 0 ? indexes : nil
-        section.counts = counts.count > 0 ? counts : nil
-    }
-    
     func lexiconStarted()
     {
         self.activityIndicator.startAnimating()
@@ -308,173 +456,203 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             return
         }
         
-        DispatchQueue.global(qos: .background).async {
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.activityIndicator.startAnimating()
+            self.activityIndicator?.isHidden = false
+        })
+        
+        if  let pause = self.mediaListGroupSort?.lexicon?.pauseUpdates, !pause,
+            let creating = self.mediaListGroupSort?.lexicon?.creating, creating,
+            let count = self.mediaListGroupSort?.lexicon?.entries?.count,
+            let total = self.mediaListGroupSort?.lexicon?.eligible?.count {
             DispatchQueue.main.async(execute: { () -> Void in
-                self.activityIndicator.startAnimating()
-                self.activityIndicator?.isHidden = false
-            })
-            
-            if  let pause = self.mediaListGroupSort?.lexicon?.pauseUpdates, !pause,
-                let creating = self.mediaListGroupSort?.lexicon?.creating, creating,
-                let count = self.mediaListGroupSort?.lexicon?.entries?.count,
-                let total = self.mediaListGroupSort?.lexicon?.eligible?.count {
-                DispatchQueue.main.async(execute: { () -> Void in
-                    if  let pause = self.mediaListGroupSort?.lexicon?.pauseUpdates, !pause,
-                        let creating = self.mediaListGroupSort?.lexicon?.creating, creating {
-                        self.navigationItem.title = "Lexicon \(count) of \(total)"
-                    }
-                })
-                
-                var strings = [String]()
-                
-                if let words = self.mediaListGroupSort?.lexicon?.words?.keys.sorted() {
-                    for word in words {
-                        if let count = self.mediaListGroupSort?.lexicon?.words?[word]?.count {
-                            strings.append("\(word) (\(count))")
-                        }
-                    }
-                }
-                
-                let array = Array(Set(strings)).sorted() { $0.uppercased() < $1.uppercased() }
-                
-                let indexStrings = array.map({ (string:String) -> String in
-                    return string.uppercased()
-                })
-                
                 if  let pause = self.mediaListGroupSort?.lexicon?.pauseUpdates, !pause,
                     let creating = self.mediaListGroupSort?.lexicon?.creating, creating {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.strings = strings
-                        self.indexStrings = indexStrings
-                        
-                        self.setupIndex()
-                        
-                        self.tableView.reloadData()
-                        self.tableView.sizeToFit()
-                    })
+                    self.navigationItem.title = "Lexicon \(count) of \(total)"
                 }
-
-                let margins:CGFloat = 2
-                let marginSpace:CGFloat = 9
-                
-                let checkmarkSpace:CGFloat = 38
-                let indexSpace:CGFloat = 40
-                
-                var height:CGFloat = 0.0
-                var width:CGFloat = 0.0
-                
-                var deducts:CGFloat = 0
-                
-                deducts += margins * marginSpace
-                
-                if self.showIndex {
-                    deducts += indexSpace
-                }
-                
-                switch self.purpose! {
-                case .selectingTags:
-                    fallthrough
-                case .selectingGrouping:
-                    fallthrough
-                case .selectingSorting:
-                    deducts += checkmarkSpace
-                    break
-                    
-                default:
-                    break
-                }
-                
-                var viewWidth = self.view.frame.width
-                
-                if (self.vc?.splitViewController != nil) && (self.vc!.splitViewController!.viewControllers.count > 1) {
-                    viewWidth = self.vc!.splitViewController!.view.frame.width
-                }
-                
-                //        print(view.frame.width - deducts)
-                
-                let heightSize: CGSize = CGSize(width: viewWidth - deducts, height: .greatestFiniteMagnitude)
-                let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
-                
-                if let title = self.navigationItem.title {
-                    let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-                    
-                    width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0)], context: nil).width
-                }
-                
-                //        print(strings)
-                
-                if let strings = self.strings {
-                    for string in strings {
-                        let string = string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-                        
-                        let maxWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
-                        
-                        let maxHeight = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
-                        
-                        //            print(string)
-                        //            print(maxSize)
-                        
-                        //            print(string,width,maxWidth.width)
-                        
-                        if maxWidth.width > width {
-                            width = maxWidth.width
-                        }
-                        
-                        //            print(string,maxHeight.height) // baseHeight
-                        
-                        height += 2*8 + maxHeight.height // - baseHeight
-                        
-                        //            print(maxHeight.height, (Int(maxHeight.height) / 16) - 1)
-                        //            height += CGFloat(((Int(maxHeight.height) / 16) - 1) * 16)
+            })
+            
+            var strings = [String]()
+            
+            if let words = self.mediaListGroupSort?.lexicon?.words?.keys.sorted() {
+                for word in words {
+                    if let count = self.mediaListGroupSort?.lexicon?.words?[word]?.count {
+                        strings.append("\(word) (\(count))")
                     }
                 }
-                
-                width += margins * marginSpace
-                
-                switch self.purpose! {
-                case .selectingTags:
-                    fallthrough
-                case .selectingGrouping:
-                    fallthrough
-                case .selectingSorting:
-                    width += checkmarkSpace
-                    break
-                    
-                default:
-                    break
-                }
-                
-                if self.showIndex {
-                    width += indexSpace
-                    height += self.tableView.sectionHeaderHeight * CGFloat(self.indexStrings!.count)
-                }
-                
-                //        print(height)
-                //        print(width)
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    if  let pause = self.mediaListGroupSort?.lexicon?.pauseUpdates, !pause,
-                        let creating = self.mediaListGroupSort?.lexicon?.creating, creating {
-                        self.preferredContentSize = CGSize(width: width, height: height)
-                    }
-                    
-                    if #available(iOS 10.0, *) {
-                        if let refreshing = self.tableView.refreshControl?.isRefreshing, refreshing {
-                            self.view.isUserInteractionEnabled = true
-                            self.refreshControl?.endRefreshing()
-                            self.removeRefreshControl()
-                        }
+            }
+            
+            self.strings = strings.count > 0 ? strings.sorted() { $0.uppercased() < $1.uppercased() } : nil
+            
+            self.indexStrings = self.strings?.map({ (string:String) -> String in
+                return string.uppercased()
+            })
+            
+            self.section.build(self.indexStrings)
+            
+            //                if let strings = self.strings {
+            //                    let array = Array(Set(strings))
+            //
+            //                }
+            
+            //                let array = Array(Set(strings)).sorted() { $0.uppercased() < $1.uppercased() }
+            //
+            //                let indexStrings = array.map({ (string:String) -> String in
+            //                    return string.uppercased()
+            //                })
+            
+            if let active = self.searchController?.isActive, active {
+                if let filteredStrings = self.strings?.filter({ (string:String) -> Bool in
+                    if let text = self.searchController?.searchBar.text {
+                        return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
                     } else {
-                        // Fallback on earlier versions
-                        if self.isRefreshing {
-                            self.view.isUserInteractionEnabled = true
-                            self.refreshControl?.endRefreshing()
-                            self.removeRefreshControl()
-                            self.isRefreshing = false
-                        }
+                        return false
                     }
+                }) {
+                    self.filteredStrings = filteredStrings.count > 0 ? filteredStrings : nil
+                    
+                    //                        print(self.filteredStrings)
+                    
+                    let indexStrings = self.filteredStrings?.map({ (string:String) -> String in
+                        return string.uppercased()
+                    })
+                    
+                    self.filteredSection.build(indexStrings)
+                    
+                    //                        print(self.filteredSection.titles)
+                }
+            }
+            
+            if  let pause = self.mediaListGroupSort?.lexicon?.pauseUpdates, !pause,
+                let creating = self.mediaListGroupSort?.lexicon?.creating, creating {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.tableView.reloadData()
+                    //                        self.tableView.sizeToFit()
                 })
             }
+            
+            let margins:CGFloat = 2
+            let marginSpace:CGFloat = 9
+            
+            let checkmarkSpace:CGFloat = 38
+            let indexSpace:CGFloat = 40
+            
+            var height:CGFloat = 0.0
+            var width:CGFloat = 0.0
+            
+            var deducts:CGFloat = 0
+            
+            deducts += margins * marginSpace
+            
+            if self.showIndex {
+                deducts += indexSpace
+            }
+            
+            switch self.purpose! {
+            case .selectingTags:
+                fallthrough
+            case .selectingGrouping:
+                fallthrough
+            case .selectingSorting:
+                deducts += checkmarkSpace
+                break
+                
+            default:
+                break
+            }
+            
+            var viewWidth = self.view.frame.width
+            
+            if (self.vc?.splitViewController != nil) && (self.vc!.splitViewController!.viewControllers.count > 1) {
+                viewWidth = self.vc!.splitViewController!.view.frame.width
+            }
+            
+            //        print(view.frame.width - deducts)
+            
+            let heightSize: CGSize = CGSize(width: viewWidth - deducts, height: .greatestFiniteMagnitude)
+            let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
+            
+            if let title = self.navigationItem.title {
+                let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+                
+                width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0)], context: nil).width
+            }
+            
+            //        print(strings)
+            
+            if let strings = self.strings {
+                for string in strings {
+                    let string = string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+                    
+                    let maxWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
+                    
+                    let maxHeight = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
+                    
+                    //            print(string)
+                    //            print(maxSize)
+                    
+                    //            print(string,width,maxWidth.width)
+                    
+                    if maxWidth.width > width {
+                        width = maxWidth.width
+                    }
+                    
+                    //            print(string,maxHeight.height) // baseHeight
+                    
+                    height += 2*8 + maxHeight.height // - baseHeight
+                    
+                    //            print(maxHeight.height, (Int(maxHeight.height) / 16) - 1)
+                    //            height += CGFloat(((Int(maxHeight.height) / 16) - 1) * 16)
+                }
+            }
+            
+            width += margins * marginSpace
+            
+            switch self.purpose! {
+            case .selectingTags:
+                fallthrough
+            case .selectingGrouping:
+                fallthrough
+            case .selectingSorting:
+                width += checkmarkSpace
+                break
+                
+            default:
+                break
+            }
+            
+            if self.showIndex {
+                width += indexSpace
+                if self.indexStrings != nil {
+                    height += self.tableView.sectionHeaderHeight * CGFloat(self.indexStrings!.count)
+                }
+            }
+            
+            //        print(height)
+            //        print(width)
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                if  let pause = self.mediaListGroupSort?.lexicon?.pauseUpdates, !pause,
+                    let creating = self.mediaListGroupSort?.lexicon?.creating, creating {
+                    self.preferredContentSize = CGSize(width: width, height: height)
+                }
+                
+                if #available(iOS 10.0, *) {
+                    if let refreshing = self.tableView.refreshControl?.isRefreshing, refreshing {
+                        //                            self.view.isUserInteractionEnabled = true
+                        self.refreshControl?.endRefreshing()
+                        //                            self.removeRefreshControl()
+                    }
+                } else {
+                    // Fallback on earlier versions
+                    if self.isRefreshing {
+                        //                            self.view.isUserInteractionEnabled = true
+                        self.refreshControl?.endRefreshing()
+                        //                            self.removeRefreshControl()
+                        self.isRefreshing = false
+                    }
+                }
+            })
         }
     }
     
@@ -496,16 +674,40 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                 }
             }
             
-            self.strings = strings
-            self.indexStrings = strings
-            
-            let array = Array(Set(self.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
-            
-            self.indexStrings = array.map({ (string:String) -> String in
+            self.strings = strings.count > 0 ? strings.sorted() { $0.uppercased() < $1.uppercased() } : nil
+
+            self.indexStrings = self.strings?.map({ (string:String) -> String in
                 return string.uppercased()
             })
             
-            self.setupIndex()
+//            if let strings = self.strings {
+//                let array = Array(Set(strings))
+//                
+//            }
+            
+            self.section.build(self.indexStrings)
+            
+            if let active = self.searchController?.isActive, active {
+                if let filteredStrings = self.strings?.filter({ (string:String) -> Bool in
+                    if let text = self.searchController?.searchBar.text {
+                        return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+                    } else {
+                        return false
+                    }
+                }) {
+                    self.filteredStrings = filteredStrings.count > 0 ? filteredStrings : nil
+                    
+//                    print(self.filteredStrings)
+                    
+                    let indexStrings = self.filteredStrings?.map({ (string:String) -> String in
+                        return string.uppercased()
+                    })
+                    
+                    self.filteredSection.build(indexStrings)
+                    
+//                    print(self.filteredSection.titles)
+                }
+            }
             
             DispatchQueue.main.async(execute: { () -> Void in
                 if #available(iOS 10.0, *) {
@@ -520,9 +722,10 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                     }
                 }
                 
-                self.view.isUserInteractionEnabled = true
+//                self.view.isUserInteractionEnabled = true
                 
                 self.removeRefreshControl()
+                self.tableView.bounces = false
 
                 if  let count = self.mediaListGroupSort?.lexicon?.entries?.count,
                     let total = self.mediaListGroupSort?.lexicon?.eligible?.count {
@@ -536,10 +739,18 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
 
                 self.activityIndicator?.stopAnimating()
                 self.activityIndicator?.isHidden = true
-                
-                if strings.count > 0 {
-                    self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: .top, animated: true)
+
+                if let active = self.searchController?.isActive, active {
+                    if self.filteredStrings?.count > 0 {
+                        self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: .top, animated: true)
+                    }
+                } else {
+                    if self.strings?.count > 0 {
+                        self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: .top, animated: true)
+                    }
                 }
+                
+                self.tableView.setContentOffset(CGPoint(x:0, y:0), animated: false)
             })
         }
     }
@@ -561,12 +772,14 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         navigationController?.setToolbarHidden(true, animated: false)
         
         if strings != nil {
-            setupIndex()
-
-            if showIndex && (section.titles?.count == 1) {
-                showIndex = false
+            if showIndex {
+                if (self.indexStrings?.count > 1) {
+                    section.build(self.indexStrings)
+                } else {
+                    showIndex = false
+                }
             }
-            
+
             tableView.reloadData()
             
             setPreferredContentSize()
@@ -593,7 +806,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                         return string.uppercased()
                     })
                     
-                    self.setupIndex()
+                    self.section.build(self.indexStrings)
                     
                     DispatchQueue.main.async(execute: { () -> Void in
                         self.tableView.reloadData()
@@ -637,8 +850,12 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Potentially incomplete method implementation.
         // Return the number of sections.
-        if showIndex, section != nil {
-            return self.section.titles != nil ? self.section.titles!.count : 0
+        if showIndex {
+            if let active = searchController?.isActive, active {
+                return filteredSection != nil ? (filteredSection.titles != nil ? filteredSection.titles!.count : 0) : 0
+            } else {
+                return section != nil ? (section.titles != nil ? section.titles!.count : 0) : 0
+            }
         } else {
             return 1
         }
@@ -647,16 +864,24 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete method implementation.
         // Return the number of rows in the section.
-        if showIndex, self.section != nil {
-            return self.section.counts != nil ? ((section < self.section.counts?.count) ? self.section.counts![section] : 0) : 0
+        if showIndex {
+            if let active = searchController?.isActive, active {
+                return self.filteredSection != nil ? (self.filteredSection.counts != nil ? ((section < self.filteredSection.counts?.count) ? self.filteredSection.counts![section] : 0) : 0) : 0
+            } else {
+                return self.section != nil ? (self.section.counts != nil ? ((section < self.section.counts?.count) ? self.section.counts![section] : 0) : 0) : 0
+            }
         } else {
             return strings != nil ? strings!.count : 0
         }
     }
 
     func sectionIndexTitles(for tableView: UITableView) -> [String]? {
-        if showIndex, section != nil {
-            return self.section.titles
+        if showIndex {
+            if let active = searchController?.isActive, active {
+                return filteredSection != nil ? filteredSection.titles : nil
+            } else {
+                return section != nil ? section.titles : nil
+            }
         } else {
             return nil
         }
@@ -667,11 +892,9 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
 //    }
     
     func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int {
-        if showIndex, section != nil {
+        if showIndex {
             if let pause = mediaListGroupSort?.lexicon?.pauseUpdates, !pause, let creating = mediaListGroupSort?.lexicon?.creating, creating {
                 mediaListGroupSort?.lexicon?.pauseUpdates = true
-                
-                addRefreshControl()
                 
                 DispatchQueue.main.async(execute: { () -> Void in
                     self.navigationItem.title = "Lexicon Updates Paused"
@@ -707,8 +930,12 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if showIndex, showSectionHeaders, self.section != nil { // showIndex &&
-            return self.section.titles != nil ? self.section.titles![section] : nil
+        if showIndex, showSectionHeaders { // showIndex &&
+            if let active = searchController?.isActive, active {
+                return self.filteredSection != nil ? self.filteredSection.titles?[section] : nil
+            } else {
+                return self.section != nil ? self.section.titles?[section] : nil
+            }
         } else {
             return nil
         }
@@ -720,17 +947,31 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         var index = -1
         
         if (showIndex) {
-            index = section.indexes != nil ? section.indexes![indexPath.section] + indexPath.row : -1
+            if let active = searchController?.isActive, active {
+                index = filteredSection.indexes != nil ? (indexPath.section < filteredSection.indexes?.count ? filteredSection.indexes![indexPath.section] + indexPath.row : -1) : -1
+            } else {
+                index = section.indexes != nil ? section.indexes![indexPath.section] + indexPath.row : -1
+            }
         } else {
             index = indexPath.row
+        }
+        
+        if index == -1 {
+            print("ERROR")
         }
         
         // Configure the cell...
         switch purpose! {
         case .selectingTags:
             //            print("strings: \(strings[indexPath.row]) mediaItemTag: \(globals.mediaItemTag)")
-            let string = strings![index]
-            
+            var string:String!
+
+            if let active = searchController?.isActive, active {
+                string = filteredStrings?[index]
+            } else {
+                string = strings?[index]
+            }
+
             switch globals.media.tags.showing! {
             case Constants.TAGGED:
                 if (tagsArrayFromTagsString(globals.media.tags.selected)!.index(of: string) != nil) {
@@ -741,7 +982,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                 break
             
             case Constants.ALL:
-                if ((globals.media.tags.selected == nil) && (strings![index] == Constants.All)) {
+                if ((globals.media.tags.selected == nil) && (string == Constants.All)) {
                     cell.accessoryType = UITableViewCellAccessoryType.checkmark
                 } else {
                     cell.accessoryType = UITableViewCellAccessoryType.none
@@ -775,7 +1016,18 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         }
 
 //        print(strings)
-        cell.title.text = strings![index]
+
+        if let active = searchController?.isActive, active {
+            if (index >= 0) && (index < filteredStrings?.count) {
+                cell.title.text = filteredStrings?[index]
+            }
+        } else {
+            if (index >= 0) && (index < strings?.count) {
+                cell.title.text = strings?[index]
+            }
+        }
+        
+//        print("CELL:",cell.title.text)
 
         return cell
     }
@@ -786,7 +1038,11 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         var index = -1
         
         if (showIndex) {
-            index = section.indexes != nil ? section.indexes![indexPath.section] + indexPath.row : -1
+            if let active = searchController?.isActive, active {
+                index = filteredSection.indexes != nil ? filteredSection.indexes![indexPath.section] + indexPath.row : -1
+            } else {
+                index = section.indexes != nil ? section.indexes![indexPath.section] + indexPath.row : -1
+            }
         } else {
             index = indexPath.row
         }
@@ -805,7 +1061,11 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
 //            break
             
         default:
-            delegate?.rowClickedAtIndex(index, strings: strings!, purpose: purpose!, mediaItem: selectedMediaItem)
+            if let active = searchController?.isActive, active {
+                delegate?.rowClickedAtIndex(index, strings: filteredStrings, purpose: purpose!, mediaItem: selectedMediaItem)
+            } else {
+                delegate?.rowClickedAtIndex(index, strings: strings, purpose: purpose!, mediaItem: selectedMediaItem)
+            }
             break
         }
     }

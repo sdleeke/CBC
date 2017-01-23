@@ -113,8 +113,10 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                 attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + mediaItem!.speaker!, attributes: bold))
             }
 
-            title.attributedText = attrString // NSAttributedString(string: "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)", attributes: normal)
-
+            DispatchQueue.main.async {
+                self.title.attributedText = attrString // NSAttributedString(string: "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)", attributes: normal)
+            }
+            
             attrString = NSMutableAttributedString()
             
             var titleString:String?
@@ -163,7 +165,9 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                 attrString.append(NSAttributedString(string: "\n" + mediaItem!.scriptureReference!, attributes: normal))
             }
 
-            detail.attributedText = attrString
+            DispatchQueue.main.async {
+                self.detail.attributedText = attrString
+            }
             
 //                if (mediaItem?.title?.range(of: " (Part ") != nil) {
 //                    let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
@@ -174,7 +178,9 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 //                    detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scriptureReference!)"
 //                }
         } else {
-            title.text = "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)"
+            DispatchQueue.main.async {
+                self.title.text = "\(self.mediaItem!.formattedDate!) \(self.mediaItem!.service!) \(self.mediaItem!.speaker!)"
+            }
             
             //            print(mediaItem?.title)
             
@@ -183,13 +189,20 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                     let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
                     let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
                     let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
-                    detail.text = "\(combined)\n\(mediaItem!.scriptureReference!)"
+                    
+                    DispatchQueue.main.async {
+                        self.detail.text = "\(combined)\n\(self.mediaItem!.scriptureReference!)"
+                    }
                 } else {
-                    detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scriptureReference!)"
+                    DispatchQueue.main.async {
+                        self.detail.text = "\(self.mediaItem!.title!)\n\(self.mediaItem!.scriptureReference!)"
+                    }
                 }
                 
                 if let className = mediaItem?.className {
-                    detail.text = detail.text! + "\n" + className
+                    DispatchQueue.main.async {
+                        self.detail.text = self.detail.text! + "\n" + className
+                    }
                 }
                 
 //                    if globals.mediaCategory.selected == "All Media" {
@@ -220,9 +233,11 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                 }
                 
                 if (mediaItem != nil) {
-                    DispatchQueue.main.async {
+                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
                         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-
+                    })
+                    
+                    DispatchQueue.main.async {
                         if self.tagsButton != nil {
                             if (self.mediaItem!.hasTags) {
                                 if (self.mediaItem?.self.tagsSet?.count > 1) {
@@ -560,7 +575,9 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                 attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.AUDIO, attributes: normal))
             }
             
-            icons.attributedText = attrString
+            DispatchQueue.main.async {
+                self.icons.attributedText = attrString
+            }
         } else {
             var string = String()
             
@@ -596,35 +613,39 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                 string = string + Constants.SINGLE_SPACE + Constants.FA.AUDIO
             }
             
-            icons.text = string
+            DispatchQueue.main.async {
+                self.icons.text = string
+            }
         }
     }
     
     func setupProgressBarForAudio()
     {
-        guard (mediaItem != nil) else {
+        guard let download = mediaItem?.audioDownload else {
             return
         }
         
-        switch mediaItem!.audioDownload!.state {
-        case .none:
-            downloadProgressBar.isHidden = true
-            downloadProgressBar.progress = 0
-            break
-            
-        case .downloaded:
-            downloadProgressBar.isHidden = true
-            downloadProgressBar.progress = 1
-            break
-            
-        case .downloading:
-            downloadProgressBar.isHidden = false
-            if (mediaItem!.audioDownload!.totalBytesExpectedToWrite > 0) {
-                downloadProgressBar.progress = Float(mediaItem!.audioDownload!.totalBytesWritten) / Float(mediaItem!.audioDownload!.totalBytesExpectedToWrite)
-            } else {
-                downloadProgressBar.progress = 0
+        DispatchQueue.main.async {
+            switch download.state {
+            case .none:
+                self.downloadProgressBar.isHidden = true
+                self.downloadProgressBar.progress = 0
+                break
+                
+            case .downloaded:
+                self.downloadProgressBar.isHidden = true
+                self.downloadProgressBar.progress = 1
+                break
+                
+            case .downloading:
+                self.downloadProgressBar.isHidden = false
+                if (download.totalBytesExpectedToWrite > 0) {
+                    self.downloadProgressBar.progress = Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite)
+                } else {
+                    self.downloadProgressBar.progress = 0
+                }
+                break
             }
-            break
         }
     }
     

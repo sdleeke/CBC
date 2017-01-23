@@ -371,7 +371,7 @@ class ScriptureIndex {
     func build()
     {
         guard !completed else {
-            DispatchQueue.main.async(execute: { () -> Void in
+            DispatchQueue(label: "CBC").async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
             })
             return
@@ -389,7 +389,7 @@ class ScriptureIndex {
             if let list = self.mediaListGroupSort?.list {
                 //                self.finished += Float(self.list!.count)
                 
-                DispatchQueue.main.async(execute: { () -> Void in
+                DispatchQueue(label: "CBC").async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self)
                 })
                 
@@ -511,7 +511,7 @@ class ScriptureIndex {
                 }
             }
 
-            DispatchQueue.main.async(execute: { () -> Void in
+            DispatchQueue(label: "CBC").async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
             })
 
@@ -593,7 +593,7 @@ class Lexicon : NSObject {
                 
                 for mediaItem in list {
                     if mediaItem.hasNotesHTML {
-                        DispatchQueue.main.async(execute: { () -> Void in
+                        DispatchQueue(label: "CBC").async(execute: { () -> Void in
                             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self)
                         })
                         
@@ -629,7 +629,7 @@ class Lexicon : NSObject {
                         if !self.pauseUpdates {
                             self.words = dict.count > 0 ? dict : nil
                             
-                            DispatchQueue.main.async(execute: { () -> Void in
+                            DispatchQueue(label: "CBC").async(execute: { () -> Void in
                                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
                             })
                         }
@@ -646,7 +646,7 @@ class Lexicon : NSObject {
                 self.completed = true
                 
                 //        print(dict)
-                DispatchQueue.main.async(execute: { () -> Void in
+                DispatchQueue(label: "CBC").async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self)
                 })
             }

@@ -60,7 +60,7 @@ class Download {
                         break
                     }
                     
-                    DispatchQueue.main.async(execute: { () -> Void in
+                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
                         // The following must appear AFTER we change the state
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                     })
@@ -74,10 +74,10 @@ class Download {
                         break
                         
                     case .downloaded:
-                        DispatchQueue.main.async(execute: { () -> Void in
+                        DispatchQueue.main.async {
                             // The following must appear AFTER we change the state
                             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.mediaItem)
-                        })
+                        }
                         break
                         
                     case .none:

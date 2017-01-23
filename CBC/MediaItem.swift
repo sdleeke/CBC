@@ -602,7 +602,8 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
             let json = JSON(data: data)
             if json != JSON.null {
                 
-                print(json)
+//                print(json)
+                
                 return json
             }
         } catch let error as NSError {
@@ -619,7 +620,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         let json = singleJSONFromURL() // jsonDataFromDocumentsDirectory()
         
         if json != JSON.null {
-            print("single json:\(json)")
+//            print("single json:\(jsaon)")
             
             let mediaItems = json[Constants.JSON.ARRAY_KEY.SINGLE_ENTRY]
             
@@ -634,7 +635,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                 mediaItemDicts.append(dict)
             }
             
-            print(mediaItemDicts)
+//            print(mediaItemDicts)
             
             return mediaItemDicts.count > 0 ? mediaItemDicts[0] : nil
         } else {
@@ -958,9 +959,9 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                 })
             }
             
-            DispatchQueue.main.async(execute: { () -> Void in
+            DispatchQueue.main.async {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
-            })
+            }
         }
     }
     
@@ -991,9 +992,9 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                     })
                 }
                 
-                DispatchQueue.main.async(execute: { () -> Void in
+                DispatchQueue.main.async {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
-                })
+                }
             }
         }
     }
@@ -2015,7 +2016,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
             case Purpose.audio:
                 if progress > current {
 //                    print(Constants.NOTIFICATION.MEDIA_UPDATE_CELL)
-                    DispatchQueue.main.async(execute: { () -> Void in
+                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: download?.mediaItem)
                     })
                 }

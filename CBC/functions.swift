@@ -2709,31 +2709,31 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
         var style:UIModalPresentationStyle = .popover
         var direction:UIPopoverArrowDirection = .any
         
-        if (barButtonItem == nil) && (UIDevice.current.model != "iPad") {
-            direction = .down
-            
-            //                            print(self.navigationController!.view.convert(sourceRectView.frame.origin, from: sourceRectView),
-            //                                  self.navigationController!.view.frame.origin,
-            //                                  self.prefersStatusBarHidden,
-            //                                  UIApplication.shared.statusBarFrame.height,
-            //                                  self.navigationController!.navigationBar.frame.height)
-            //
-            //                            print(  self.view.convert(sourceRectView.frame.origin, from: sourceRectView).y -
-            //                                    self.view.frame.origin.y)
-
-            if let frame = sourceRectView?.frame {
-                let gap =   viewController.navigationController!.view.convert(frame.origin, from: sourceRectView).y -
-                    viewController.navigationController!.view.frame.origin.y -
-                    viewController.navigationController!.navigationBar.frame.height -
-                    UIApplication.shared.statusBarFrame.height
-                
-                //                            print(gap)
-                
-                if gap < 139 { // Ugh, a magic number.
-                    style = .overFullScreen
-                }
-            }
-        }
+//        if (barButtonItem == nil) && (UIDevice.current.model != "iPad") {
+//            direction = .down
+//            
+//            //                            print(self.navigationController!.view.convert(sourceRectView.frame.origin, from: sourceRectView),
+//            //                                  self.navigationController!.view.frame.origin,
+//            //                                  self.prefersStatusBarHidden,
+//            //                                  UIApplication.shared.statusBarFrame.height,
+//            //                                  self.navigationController!.navigationBar.frame.height)
+//            //
+//            //                            print(  self.view.convert(sourceRectView.frame.origin, from: sourceRectView).y -
+//            //                                    self.view.frame.origin.y)
+//
+//            if let frame = sourceRectView?.frame {
+//                let gap =   viewController.navigationController!.view.convert(frame.origin, from: sourceRectView).y -
+//                    viewController.navigationController!.view.frame.origin.y -
+//                    viewController.navigationController!.navigationBar.frame.height -
+//                    UIApplication.shared.statusBarFrame.height
+//                
+//                //                            print(gap)
+//                
+//                if gap < 139 { // Ugh, a magic number.
+//                    style = .overFullScreen
+//                }
+//            }
+//        }
         
         navigationController.modalPresentationStyle = style
         navigationController.popoverPresentationController?.permittedArrowDirections = direction

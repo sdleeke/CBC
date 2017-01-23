@@ -880,11 +880,13 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     
 //        updateSwitches()
 
-        if let completed = scriptureIndex?.completed, !completed {
-            scriptureIndex?.build()
-        } else {
-            updateUI()
-        }
+        scriptureIndex?.build()
+
+//        if let completed = scriptureIndex?.completed, !completed {
+//            scriptureIndex?.build()
+//        } else {
+//            updateUI()
+//        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -1234,10 +1236,14 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
 //        }
 //    }
     
-    func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
+    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?) {
         DispatchQueue.main.async(execute: { () -> Void in
             self.dismiss(animated: true, completion: nil)
         })
+        
+        guard let strings = strings else {
+            return
+        }
         
         switch purpose {
         case .selectingSection:
@@ -1442,11 +1448,11 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        DispatchQueue.main.async {
+        DispatchQueue(label: "CBC").async(execute: { () -> Void in
             NotificationCenter.default.addObserver(self, selector: #selector(ScriptureIndexViewController.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self.scriptureIndex)
             NotificationCenter.default.addObserver(self, selector: #selector(ScriptureIndexViewController.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_UPDATED), object: self.scriptureIndex)
             NotificationCenter.default.addObserver(self, selector: #selector(ScriptureIndexViewController.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self.scriptureIndex)
-        }
+        })
 
         let indexButton = UIBarButtonItem(title: Constants.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureIndexViewController.index(_:)))
         let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)

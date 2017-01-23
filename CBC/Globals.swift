@@ -15,10 +15,72 @@ struct MediaNeed {
     var grouping:Bool = true
 }
 
-struct Section {
+class Section {
     var titles:[String]?
     var counts:[Int]?
     var indexes:[Int]?
+
+    func build(_ indexStrings:[String]?)
+    {
+        let a = "A"
+        
+        guard indexStrings != nil else {
+            titles = nil
+            counts = nil
+            indexes = nil
+            
+            return
+        }
+        
+        guard indexStrings?.count > 0 else {
+            titles = nil
+            counts = nil
+            indexes = nil
+            
+            return
+        }
+        
+        titles = Array(Set(indexStrings!.map({ (string:String) -> String in
+            if string.endIndex >= a.endIndex {
+                return stringWithoutPrefixes(string)!.substring(to: a.endIndex).uppercased()
+            } else {
+                return string
+            }
+        }))).sorted() { $0 < $1 }
+
+        if titles?.count == 0 {
+            titles = nil
+            counts = nil
+            indexes = nil
+        } else {
+            var stringIndex = [String:[String]]()
+            
+            for indexString in indexStrings! {
+                if stringIndex[indexString.substring(to: a.endIndex)] == nil {
+                    stringIndex[indexString.substring(to: a.endIndex)] = [String]()
+                }
+                //                print(testString,string)
+                stringIndex[indexString.substring(to: a.endIndex)]?.append(indexString)
+            }
+            
+            var counter = 0
+            
+            var counts = [Int]()
+            var indexes = [Int]()
+            
+            for key in stringIndex.keys.sorted() {
+                //                print(stringIndex[key]!)
+                
+                indexes.append(counter)
+                counts.append(stringIndex[key]!.count)
+                
+                counter += stringIndex[key]!.count
+            }
+            
+            self.counts = counts.count > 0 ? counts : nil
+            self.indexes = indexes.count > 0 ? indexes : nil
+        }
+    }
 }
 
 struct Display {

@@ -76,6 +76,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     @IBOutlet weak var tagsButton: UIButton!
     @IBOutlet weak var tagLabel: UILabel!
     
+    @IBOutlet weak var lexiconLabel: UILabel!
+    
     var refreshControl:UIRefreshControl?
 
     var session:URLSession? // Used for JSON
@@ -386,10 +388,14 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         controller.dismiss(animated: true, completion: nil)
     }
     
-    func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
+    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?) {
         DispatchQueue.main.async(execute: { () -> Void in
             self.dismiss(animated: true, completion: nil)
         })
+        
+        guard let strings = strings else {
+            return
+        }
         
         switch purpose {
         case .selectingCellSearch:
@@ -581,23 +587,33 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             break
             
         case .selectingSection:
-            dismiss(animated: true, completion: nil)
-            let indexPath = IndexPath(row: 0, section: index)
-            
-            if !(indexPath.section < tableView.numberOfSections) {
-                NSLog("indexPath section ERROR in MTVC .selectingSection")
-                NSLog("Section: \(indexPath.section)")
-                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
-                break
-            }
-            
-            if !(indexPath.row < tableView.numberOfRows(inSection: indexPath.section)) {
-                NSLog("indexPath row ERROR in MTVC .selectingSection")
-                NSLog("Section: \(indexPath.section)")
-                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
-                NSLog("Row: \(indexPath.row)")
-                NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
-                break
+            if let section = globals.media.active?.section?.titles?.index(of: strings[index]) {
+                let indexPath = IndexPath(row: 0, section: section)
+                
+                if !(indexPath.section < tableView.numberOfSections) {
+                    NSLog("indexPath section ERROR in MTVC .selectingSection")
+                    NSLog("Section: \(indexPath.section)")
+                    NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+                    break
+                }
+                
+                if !(indexPath.row < tableView.numberOfRows(inSection: indexPath.section)) {
+                    NSLog("indexPath row ERROR in MTVC .selectingSection")
+                    NSLog("Section: \(indexPath.section)")
+                    NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+                    NSLog("Row: \(indexPath.row)")
+                    NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
+                    break
+                }
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.tableView.setEditing(false, animated: true)
+                })
+                
+                //Can't use this reliably w/ variable row heights.
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.top, animated: true)
+                })
             }
 
             //Too slow
@@ -628,15 +644,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             //                        indexPath = NSIndexPath(forRow: 0, inSection: section!)
             //                    }
             //                }
-            
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.tableView.setEditing(false, animated: true)
-            })
-
-            //Can't use this reliably w/ variable row heights.
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.top, animated: true)
-            })
             break
             
         case .selectingGrouping:
@@ -862,6 +869,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         
                         popover.delegate = self
                         popover.purpose = .selectingLexicon
+                        
+                        popover.search = true
                         
                         popover.mediaListGroupSort = mlgs
                         
@@ -1100,6 +1109,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 popover.indexStrings = globals.media.active?.section?.indexTitles
                 popover.showIndex = true
                 popover.showSectionHeaders = true
+                popover.search = popover.strings?.count > 10
                 break
                 
             case Grouping.BOOK:
@@ -1132,6 +1142,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
                 popover.showIndex = true
                 popover.showSectionHeaders = true
+                popover.search = popover.strings?.count > 10
                 break
                 
             default:
@@ -1296,7 +1307,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
 //        print("searchBarSearchButtonClicked:")
-        searchBar.resignFirstResponder()
+        DispatchQueue.main.async(execute: { () -> Void in
+            searchBar.resignFirstResponder()
+        })
 //        print(searchBar.text)
 
         let searchText = searchBar.text?.uppercased()
@@ -2435,6 +2448,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             popover.showIndex = true
             popover.showSectionHeaders = true
             
+            popover.search = true
+            
             popover.vc = self
             
             DispatchQueue.main.async(execute: { () -> Void in
@@ -2756,7 +2771,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             }
             
             if globals.search.lexicon {
-                self.tagLabel.text = self.tagLabel.text! + " (Lexicon Mode)"
+                self.lexiconLabel.text = "Lexicon Mode"
+            } else {
+                self.lexiconLabel.text = nil
             }
         })
     }
@@ -3410,11 +3427,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 popover.selectedMediaItem = mediaItem
                 
-                popover.strings = nil
-                
                 popover.strings = mediaItem.notesTokens?.map({ (string:String,count:Int) -> String in
                     return "\(string) (\(count))"
                 })
+                
+                popover.search = popover.strings?.count > 10
                 
                 if (popover.strings != nil) {
                     let array = Array(Set(popover.strings!)).sorted() { $0.uppercased() < $1.uppercased() }

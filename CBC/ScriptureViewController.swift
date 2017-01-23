@@ -477,10 +477,14 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
         webViewController?.increaseFontSize()
     }
     
-    func rowClickedAtIndex(_ index: Int, strings: [String], purpose:PopoverPurpose, mediaItem:MediaItem?) {
+    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?) {
         DispatchQueue.main.async(execute: { () -> Void in
             self.dismiss(animated: true, completion: nil)
         })
+        
+        guard let strings = strings else {
+            return
+        }
         
         switch purpose {
         case .selectingAction:

@@ -871,12 +871,6 @@ Email: cbcstaff@countrysidebible.org</string>
                                     <action selector="mediaCategoryButtonAction:" destination="4xA-dz-LhV" eventType="touchUpInside" id="a5P-hM-fZk"/>
                                 </connections>
                             </button>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="XoU-Mk-gWs" userLabel="Tag Label">
-                                <rect key="frame" x="160" y="30" width="0.0" height="0.0"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="FuZ-ag-Fsa">
                                 <rect key="frame" x="286" y="-1" width="30" height="31"/>
                                 <constraints>
@@ -892,6 +886,18 @@ Email: cbcstaff@countrysidebible.org</string>
                                     <action selector="selectingTagsAction:" destination="4xA-dz-LhV" eventType="touchUpInside" id="6RI-Re-R3y"/>
                                 </connections>
                             </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="XoU-Mk-gWs" userLabel="Tag Label">
+                                <rect key="frame" x="160" y="30" width="0.0" height="0.0"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" misplaced="YES" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="icq-T1-0Hk" userLabel="Lexicon Label">
+                                <rect key="frame" x="160" y="252" width="0.0" height="0.0"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <searchBar contentMode="redraw" translatesAutoresizingMaskIntoConstraints="NO" id="PI1-KK-22F">
                                 <rect key="frame" x="0.0" y="30" width="320" height="44"/>
                                 <textInputTraits key="textInputTraits"/>
@@ -1027,6 +1033,7 @@ Email: cbcstaff@countrysidebible.org</string>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
+                            <constraint firstItem="icq-T1-0Hk" firstAttribute="leading" secondItem="96A-nP-rUw" secondAttribute="leading" constant="6" id="4aT-bx-l4y"/>
                             <constraint firstItem="QaS-gl-tEL" firstAttribute="centerX" secondItem="VzS-WY-Fmg" secondAttribute="centerX" id="4al-nR-1qf"/>
                             <constraint firstItem="Urs-8r-5e2" firstAttribute="top" secondItem="HBU-GK-goT" secondAttribute="bottom" id="5Hi-yX-7gn"/>
                             <constraint firstItem="PI1-KK-22F" firstAttribute="leading" secondItem="96A-nP-rUw" secondAttribute="leading" id="5ju-WB-cGn"/>
@@ -1046,6 +1053,7 @@ Email: cbcstaff@countrysidebible.org</string>
                             <constraint firstItem="XoU-Mk-gWs" firstAttribute="centerX" secondItem="fg5-Hs-nZk" secondAttribute="centerX" id="wAF-fZ-B50"/>
                             <constraint firstItem="fg5-Hs-nZk" firstAttribute="centerX" secondItem="96A-nP-rUw" secondAttribute="centerXWithinMargins" id="xOP-Ae-x8q"/>
                             <constraint firstAttribute="trailing" secondItem="HBU-GK-goT" secondAttribute="trailing" id="xUM-7Y-tBR"/>
+                            <constraint firstItem="icq-T1-0Hk" firstAttribute="baseline" secondItem="fg5-Hs-nZk" secondAttribute="baseline" id="zHN-ia-T49"/>
                         </constraints>
                         <variation key="default">
                             <mask key="constraints">
@@ -1062,6 +1070,7 @@ Email: cbcstaff@countrysidebible.org</string>
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="lexiconLabel" destination="icq-T1-0Hk" id="0y0-jJ-H52"/>
                         <outlet property="listActivityIndicator" destination="VzS-WY-Fmg" id="wee-Cd-eKB"/>
                         <outlet property="mediaCategoryButton" destination="fg5-Hs-nZk" id="ESc-Z1-KEa"/>
                         <outlet property="progressIndicator" destination="QaS-gl-tEL" id="svu-5O-lrL"/>
