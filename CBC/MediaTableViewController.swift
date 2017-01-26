@@ -556,8 +556,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             
                             self.tableView.reloadData()
                             
-                            self.listActivityIndicator.isHidden = false
-                            self.listActivityIndicator.startAnimating()
+//                            self.listActivityIndicator.isHidden = false
+//                            self.listActivityIndicator.startAnimating()
 
                             self.startAnimating()
 
@@ -574,8 +574,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             self.tableView.reloadData()
                             self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
                             
-                            self.listActivityIndicator.stopAnimating()
-                            self.listActivityIndicator.isHidden = true
+//                            self.listActivityIndicator.stopAnimating()
+//                            self.listActivityIndicator.isHidden = true
                             
                             self.stopAnimating()
                             
@@ -660,8 +660,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 DispatchQueue.main.async(execute: { () -> Void in
                     self.tableView.reloadData()
                     
-                    self.listActivityIndicator.isHidden = false
-                    self.listActivityIndicator.startAnimating()
+//                    self.listActivityIndicator.isHidden = false
+//                    self.listActivityIndicator.startAnimating()
                     
                     self.startAnimating()
 
@@ -688,8 +688,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             
                             self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
                             
-                            self.listActivityIndicator.stopAnimating()
-                            self.listActivityIndicator.isHidden = true
+//                            self.listActivityIndicator.stopAnimating()
+//                            self.listActivityIndicator.isHidden = true
                             
                             self.stopAnimating()
                             
@@ -710,8 +710,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 DispatchQueue.main.async(execute: { () -> Void in
                     self.tableView.reloadData()
                     
-                    self.listActivityIndicator.isHidden = false
-                    self.listActivityIndicator.startAnimating()
+//                    self.listActivityIndicator.isHidden = false
+//                    self.listActivityIndicator.startAnimating()
                     
                     self.startAnimating()
 
@@ -738,8 +738,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             
                             self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
                             
-                            self.listActivityIndicator.stopAnimating()
-                            self.listActivityIndicator.isHidden = true
+//                            self.listActivityIndicator.stopAnimating()
+//                            self.listActivityIndicator.isHidden = true
 
                             self.stopAnimating()
                             
@@ -1061,8 +1061,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         DispatchQueue.main.async(execute: { () -> Void in
             self.tableView.reloadData()
 
-            self.listActivityIndicator.isHidden = false
-            self.listActivityIndicator.startAnimating()
+//            self.listActivityIndicator.isHidden = false
+//            self.listActivityIndicator.startAnimating()
 
             self.startAnimating()
         })
@@ -1072,8 +1072,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         DispatchQueue.main.async(execute: { () -> Void in
             self.tableView.reloadData()
             
-            self.listActivityIndicator.stopAnimating()
-            self.listActivityIndicator.isHidden = true
+//            self.listActivityIndicator.stopAnimating()
+//            self.listActivityIndicator.isHidden = true
             
             self.stopAnimating()
             
@@ -1880,33 +1880,33 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     {
         if globals.isLoading || (globals.search.active && !globals.search.complete) {
             if !globals.isRefreshing {
-                if !self.listActivityIndicator.isAnimating {
+//                if !self.listActivityIndicator.isAnimating {
                     DispatchQueue.main.async(execute: { () -> Void in
-                        self.listActivityIndicator.isHidden = false
-                        self.listActivityIndicator.startAnimating()
+//                        self.listActivityIndicator.isHidden = false
+//                        self.listActivityIndicator.startAnimating()
                         
                         self.startAnimating()
                     })
-                }
+//                }
             } else {
-                if self.listActivityIndicator.isAnimating {
+//                if self.listActivityIndicator.isAnimating {
                     DispatchQueue.main.async(execute: { () -> Void in
-                        self.listActivityIndicator.stopAnimating()
-                        self.listActivityIndicator.isHidden = true
+//                        self.listActivityIndicator.stopAnimating()
+//                        self.listActivityIndicator.isHidden = true
                         
                         self.stopAnimating()
                     })
-                }
+//                }
             }
         } else {
-            if self.listActivityIndicator.isAnimating {
+//            if self.listActivityIndicator.isAnimating {
                 DispatchQueue.main.async(execute: { () -> Void in
-                    self.listActivityIndicator.stopAnimating()
-                    self.listActivityIndicator.isHidden = true
+//                    self.listActivityIndicator.stopAnimating()
+//                    self.listActivityIndicator.isHidden = true
                 
                     self.stopAnimating()
                 })
-            }
+//            }
         }
     }
     
@@ -2265,9 +2265,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             return
         }
         
-        loadingView = UIView()
+        loadingView = UIView(frame: CGRect(x: 0, y: 0, width: 80, height: 80))
         
-        loadingView.frame = CGRect(x: 0, y: 0, width: 80, height: 80)
+//        loadingView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+        
         loadingView.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
         
         loadingView.backgroundColor = UIColor.gray.withAlphaComponent(0.75)
@@ -2275,8 +2276,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         loadingView.clipsToBounds = true
         loadingView.layer.cornerRadius = 10
         
-        view.addSubview(loadingView)
-
         let actInd = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
 
         actInd.frame = CGRect(x: 0, y: 0, width: 40, height: 40);
@@ -2284,7 +2283,19 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         loadingView.addSubview(actInd)
         
+        view.addSubview(loadingView)
+        
         actInd.startAnimating()
+        
+        // Doesn't work to center the loadingView, instead resetting the center in viewWillTransition
+        
+//        let centerX = NSLayoutConstraint(item: loadingView!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: loadingView!.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
+//        loadingView?.superview?.addConstraint(centerX)
+//        
+//        let centerY = NSLayoutConstraint(item: loadingView!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: loadingView!.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+//        loadingView?.superview?.addConstraint(centerY)
+//        
+//        loadingView?.superview?.layoutSubviews()
     }
     
     override func viewDidLoad() {
@@ -3180,7 +3191,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        }
 
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            
+            if self.loadingView != nil {
+                self.loadingView.center = CGPoint(x: self.view.bounds.width / 2, y: self.view.bounds.height / 2)
+            }
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
             DispatchQueue.main.async(execute: { () -> Void in
                 if !UIApplication.shared.isRunningInFullScreen() {

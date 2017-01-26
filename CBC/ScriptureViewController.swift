@@ -273,8 +273,11 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
             default:
                 break
             }
-
+            
             scripture?.selected.book = scripture?.picker.books?[0]
+            
+            updatePicker()
+            
             scripture?.selected.chapter = scripture!.picker.chapters![0]
 
             pickerView.reloadAllComponents()
@@ -689,7 +692,8 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
         return Constants.EMPTY_STRING
     }
     
-    override func viewDidLoad() {
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
         
         DispatchQueue.main.async {
