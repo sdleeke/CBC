@@ -91,21 +91,48 @@ struct Display {
 struct MediaRepository {
     var list:[MediaItem]? { //Not in any specific order
         didSet {
+            index = nil
+            classes = nil
+            
             if (list != nil) {
-                index = [String:MediaItem]()
-                
                 for mediaItem in list! {
-                    if index![mediaItem.id!] == nil {
-                        index![mediaItem.id!] = mediaItem
-                    } else {
-                        print("DUPLICATE MEDIAITEM ID: \(mediaItem)")
+                    if let id = mediaItem.id {
+                        if index == nil {
+                            index = [String:MediaItem]()
+                        }
+                        if index![id] == nil {
+                            index![id] = mediaItem
+                        } else {
+                            print("DUPLICATE MEDIAITEM ID: \(mediaItem)")
+                        }
                     }
+                    
+                    if let className = mediaItem.className {
+                        if classes == nil {
+                            classes = [className]
+                        } else {
+                            classes?.append(className)
+                        }
+                    }
+                }
+                
+                globals.groupings = Constants.groupings
+                globals.groupingTitles = Constants.GroupingTitles
+
+                if classes?.count > 0 {
+                    globals.groupings.append(Grouping.CLASS)
+                    globals.groupingTitles.append(Grouping.Class)
+                }
+                
+                if let grouping = globals.grouping, !globals.groupings.contains(grouping) {
+                    globals.grouping = Grouping.YEAR
                 }
             }
         }
     }
 
     var index:[String:MediaItem]?
+    var classes:[String]?
 }
 
 struct Tags {
@@ -492,6 +519,9 @@ class Globals : NSObject {
 
     // So that the selected cell is scrolled to only on startup, not every time the master view controller appears.
     var scrolledToMediaItemLastSelected = false
+
+    var groupings = Constants.groupings
+    var groupingTitles = Constants.GroupingTitles
     
     var grouping:String? = Grouping.YEAR {
         didSet {
@@ -1159,6 +1189,14 @@ class Globals : NSObject {
         unobservePlayer()
         
         mediaPlayer.player = AVPlayer(url: url!)
+        
+        if #available(iOS 10.0, *) {
+            if globals.mediaPlayer.mediaItem?.playing == Playing.audio {
+                mediaPlayer.player?.automaticallyWaitsToMinimizeStalling = false
+            }
+        } else {
+            // Fallback on earlier versions
+        }
         
         // Just replacing the item will not cause a timeout when the player can't load.
         //            if mediaPlayer.player == nil {

@@ -810,7 +810,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         //        print("\(wkWebView!.scrollView.contentOffset)")
         //        print("\(wkWebView!.scrollView.zoomScale)")
         
-        if (UIApplication.shared.applicationState == UIApplicationState.active) && (selectedMediaItem != nil) && // !showScripture &&
+        if (selectedMediaItem != nil) && // (UIApplication.shared.applicationState == UIApplicationState.active) && // !showScripture &&
             (wkWebView != nil) && (!wkWebView!.isLoading) && (wkWebView!.url != nil) {
             
             selectedMediaItem?.mediaItemSettings?[selectedMediaItem!.showing! + Constants.CONTENT_OFFSET_X_RATIO] = "\(wkWebView!.scrollView.contentOffset.x / wkWebView!.scrollView.contentSize.width)"
@@ -826,7 +826,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
         //        print("\(wkWebView!.scrollView.contentOffset)")
         //        print("\(wkWebView!.scrollView.zoomScale)")
         
-        if (UIApplication.shared.applicationState == UIApplicationState.active) && //  && (selectedMediaItem != nil) !showScripture &&
+        if // (UIApplication.shared.applicationState == UIApplicationState.active) && //  && (selectedMediaItem != nil) !showScripture &&
             (wkWebView != nil) && (!wkWebView!.isLoading) {
             
             html.xRatio = Double(wkWebView!.scrollView.contentOffset.x) / Double(wkWebView!.scrollView.contentSize.width)

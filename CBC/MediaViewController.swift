@@ -2955,9 +2955,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         
         cell.isHiddenUI(true)
         
-        cell.mediaItem = mediaItems?[indexPath.row]
-        
         cell.vc = self
+        
+        cell.mediaItem = mediaItems?[indexPath.row]
         
         return cell
     }
@@ -3707,7 +3707,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         }
         scripture.backgroundColor = UIColor.orange
         
-        if mediaItem.scriptureReference != Constants.Selected_Scriptures {
+        if mediaItem.books != nil {
             actions.append(scripture)
         }
         

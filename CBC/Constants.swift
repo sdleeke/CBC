@@ -85,11 +85,13 @@ struct Grouping {
     static let Book = "Book"
     static let Speaker = "Speaker"
     static let Title = "Title"
+    static let Class = "Class"
 
     static let YEAR = "year"
     static let BOOK = "book"
     static let SPEAKER = "speaker"
     static let TITLE = "title"
+    static let CLASS = "class"
 }
 
 struct Sorting {
@@ -624,10 +626,10 @@ struct Constants {
     }
 
     static let sortings = [Sorting.CHRONOLOGICAL, Sorting.REVERSE_CHRONOLOGICAL]
-    static let Sortings = [Sorting.Oldest_to_Newest, Sorting.Newest_to_Oldest]
+    static let SortingTitles = [Sorting.Oldest_to_Newest, Sorting.Newest_to_Oldest]
     
     static let groupings = [Grouping.YEAR, Grouping.TITLE, Grouping.BOOK, Grouping.SPEAKER]
-    static let Groupings = [Grouping.Year, Grouping.Title, Grouping.Book, Grouping.Speaker]
+    static let GroupingTitles = [Grouping.Year, Grouping.Title, Grouping.Book, Grouping.Speaker]
 
     struct SCRIPTURE_INDEX {
         static let BASE         = "SCRIPTURE INDEX"

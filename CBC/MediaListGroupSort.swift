@@ -591,6 +591,8 @@ class Lexicon : NSObject {
             DispatchQueue.global(qos: .background).async {
                 var dict = Words()
                 
+                var date:Date?
+                
                 for mediaItem in list {
                     if mediaItem.hasNotesHTML {
                         DispatchQueue(label: "CBC").async(execute: { () -> Void in
@@ -629,9 +631,19 @@ class Lexicon : NSObject {
                         if !self.pauseUpdates {
                             self.words = dict.count > 0 ? dict : nil
                             
-                            DispatchQueue(label: "CBC").async(execute: { () -> Void in
-                                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
-                            })
+                            if let interval = date?.timeIntervalSinceNow {
+                                if interval < -1 {
+                                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
+                                    })
+                                }
+                            } else {
+                                DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
+                                })
+                            }
+                            
+                            date = Date()
                         }
                     }
                     
@@ -748,11 +760,20 @@ class MediaListGroupSort {
                 
                 for mediaItem in list! {
                     index![mediaItem.id!] = mediaItem
+                    
+                    if let className = mediaItem.className {
+                        if classes == nil {
+                            classes = [className]
+                        } else {
+                            classes?.append(className)
+                        }
+                    }
                 }
             }
         }
     }
     var index:[String:MediaItem]? //MediaItems indexed by ID.
+    var classes:[String]?
     
     lazy var lexicon:Lexicon? = {
         [unowned self] in
@@ -836,6 +857,10 @@ class MediaListGroupSort {
                 
             case Grouping.SPEAKER:
                 entries = [(mediaItem.speakerSectionSort,mediaItem.speakerSection)]
+                break
+                
+            case Grouping.CLASS:
+                entries = [(mediaItem.classSectionSort,mediaItem.classSection)]
                 break
                 
             default:
@@ -936,14 +961,14 @@ class MediaListGroupSort {
                             return bookNumberInBible($0) < bookNumberInBible($1)
                         }
                         
-                    case Grouping.SPEAKER:
-                        return $0 < $1
-                        
-                    case Grouping.TITLE:
-                        return $0.lowercased() < $1.lowercased()
+//                    case Grouping.SPEAKER:
+//                        return $0 < $1
+//                        
+//                    case Grouping.TITLE:
+//                        return $0.lowercased() < $1.lowercased()
                         
                     default:
-                        break
+                        return $0.lowercased() < $1.lowercased()
                     }
                     
                     return $0 < $1

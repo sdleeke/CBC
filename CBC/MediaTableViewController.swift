@@ -558,7 +558,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             
                             self.listActivityIndicator.isHidden = false
                             self.listActivityIndicator.startAnimating()
-                            
+
+                            self.startAnimating()
+
                             self.disableBarButtons()
                         })
                         
@@ -574,6 +576,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             
                             self.listActivityIndicator.stopAnimating()
                             self.listActivityIndicator.isHidden = true
+                            
+                            self.stopAnimating()
                             
                             self.enableBarButtons()
                             
@@ -648,7 +652,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
         case .selectingGrouping:
             dismiss(animated: true, completion: nil)
-            globals.grouping = Constants.groupings[index]
+            globals.grouping = globals.groupings[index]
             
             if globals.media.need.grouping {
                 globals.clearDisplay()
@@ -659,6 +663,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     self.listActivityIndicator.isHidden = false
                     self.listActivityIndicator.startAnimating()
                     
+                    self.startAnimating()
+
                     self.disableBarButtons()
                     
                     DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
@@ -684,6 +690,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             
                             self.listActivityIndicator.stopAnimating()
                             self.listActivityIndicator.isHidden = true
+                            
+                            self.stopAnimating()
                             
                             self.enableBarButtons()
                         })
@@ -705,6 +713,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     self.listActivityIndicator.isHidden = false
                     self.listActivityIndicator.startAnimating()
                     
+                    self.startAnimating()
+
                     self.disableBarButtons()
                     
                     DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
@@ -731,6 +741,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                             self.listActivityIndicator.stopAnimating()
                             self.listActivityIndicator.isHidden = true
 
+                            self.stopAnimating()
+                            
                             self.enableBarButtons()
                         })
                     })
@@ -1051,6 +1063,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
             self.listActivityIndicator.isHidden = false
             self.listActivityIndicator.startAnimating()
+
+            self.startAnimating()
         })
         
         globals.setupDisplay(globals.media.active)
@@ -1060,6 +1074,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             self.listActivityIndicator.stopAnimating()
             self.listActivityIndicator.isHidden = true
+            
+            self.stopAnimating()
             
             self.setupTag()
             self.setupTagsButton()
@@ -1104,14 +1120,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             popover.purpose = .selectingSection
 
             switch globals.grouping! {
-            case Grouping.TITLE:
-                popover.strings = globals.media.active?.section?.titles
-                popover.indexStrings = globals.media.active?.section?.indexTitles
-                popover.showIndex = true
-                popover.showSectionHeaders = true
-                popover.search = popover.strings?.count > 10
-                break
-                
             case Grouping.BOOK:
                 if let books = globals.media.active?.section?.titles?.filter({ (string:String) -> Bool in
                     return bookNumberInBible(string) != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
@@ -1134,12 +1142,14 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 popover.showSectionHeaders = false
                 break
                 
+            case Grouping.CLASS:
+                fallthrough
             case Grouping.SPEAKER:
+                //                    popover.transform = lastNameFromName
+                fallthrough
+            case Grouping.TITLE:
                 popover.strings = globals.media.active?.section?.titles
                 popover.indexStrings = globals.media.active?.section?.indexTitles
-                
-//                    popover.transform = lastNameFromName
-
                 popover.showIndex = true
                 popover.showSectionHeaders = true
                 popover.search = popover.strings?.count > 10
@@ -1191,7 +1201,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             popover.delegate = self
             
             popover.purpose = .selectingGrouping
-            popover.strings = Constants.Groupings
+            popover.strings = globals.groupingTitles
             
             popover.showIndex = false
             popover.showSectionHeaders = false
@@ -1226,7 +1236,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             popover.delegate = self
             
             popover.purpose = .selectingSorting
-            popover.strings = Constants.Sortings
+            popover.strings = Constants.SortingTitles
             
             popover.showIndex = false
             popover.showSectionHeaders = false
@@ -1874,6 +1884,17 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     DispatchQueue.main.async(execute: { () -> Void in
                         self.listActivityIndicator.isHidden = false
                         self.listActivityIndicator.startAnimating()
+                        
+                        self.startAnimating()
+                    })
+                }
+            } else {
+                if self.listActivityIndicator.isAnimating {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.listActivityIndicator.stopAnimating()
+                        self.listActivityIndicator.isHidden = true
+                        
+                        self.stopAnimating()
                     })
                 }
             }
@@ -1882,6 +1903,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 DispatchQueue.main.async(execute: { () -> Void in
                     self.listActivityIndicator.stopAnimating()
                     self.listActivityIndicator.isHidden = true
+                
+                    self.stopAnimating()
                 })
             }
         }
@@ -2076,9 +2099,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func handleRefresh(_ refreshControl: UIRefreshControl)
     {
-        refreshControl.beginRefreshing()
-        
         globals.isRefreshing = true
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.setupListActivityIndicator()
+            refreshControl.beginRefreshing()
+        })
         
         globals.unobservePlayer()
         
@@ -2220,6 +2246,47 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         changesPending = false
     }
     
+    var loadingView:UIView!
+
+    func stopAnimating()
+    {
+        guard loadingView != nil else {
+            return
+        }
+        
+        loadingView.removeFromSuperview()
+        
+        loadingView = nil
+    }
+    
+    func startAnimating()
+    {
+        guard loadingView == nil else {
+            return
+        }
+        
+        loadingView = UIView()
+        
+        loadingView.frame = CGRect(x: 0, y: 0, width: 80, height: 80)
+        loadingView.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
+        
+        loadingView.backgroundColor = UIColor.gray.withAlphaComponent(0.75)
+        
+        loadingView.clipsToBounds = true
+        loadingView.layer.cornerRadius = 10
+        
+        view.addSubview(loadingView)
+
+        let actInd = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
+
+        actInd.frame = CGRect(x: 0, y: 0, width: 40, height: 40);
+        actInd.center = CGPoint(x: loadingView.bounds.width / 2, y: loadingView.bounds.height / 2)
+        
+        loadingView.addSubview(actInd)
+        
+        actInd.startAnimating()
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -2234,7 +2301,6 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         refreshControl!.addTarget(self, action: #selector(MediaTableViewController.handleRefresh(_:)), for: UIControlEvents.valueChanged)
 
         tableView.addSubview(refreshControl!)
-       
         
         setupTagsToolbar()
         
@@ -2285,7 +2351,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         } else {
                             // Reload the table
                             self.tableView.reloadData()
-                            
+
                             DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                                 DispatchQueue.main.async(execute: { () -> Void in
                                     self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
@@ -2700,6 +2766,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 section = globals.media.active!.section!.titles!.index(of: mediaItem!.speakerSection!)!
                 break
                 
+            case Grouping.CLASS:
+                section = globals.media.active!.section!.titles!.index(of: mediaItem!.classSection!)!
+                break
+                
             default:
                 break
             }
@@ -2829,7 +2899,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         updateUI()
         
         // Reload the table
-        tableView.reloadData()
+//        tableView.reloadData() // Removes selection!
         
         // Causes a crash in split screen on first swipe to get MVC to show when only DVC is showing.
         // Forces MasterViewController to show.  App MUST start in preferredDisplayMode == .automatic or the MVC can't be dragged out after it is hidden!
@@ -3531,7 +3601,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         scripture.backgroundColor = UIColor.orange
 
-        if mediaItem.scriptureReference != Constants.Selected_Scriptures {
+        if mediaItem.books != nil {
             actions.append(scripture)
         }
 

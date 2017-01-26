@@ -394,6 +394,10 @@ func mediaItemSections(_ mediaItems:[MediaItem]?,sorting:String?,grouping:String
         strings = speakerSectionsFromMediaItems(mediaItems)
         break
         
+    case Grouping.CLASS:
+        strings = classSectionsFromMediaItems(mediaItems)
+        break
+        
     default:
         strings = nil
         break
@@ -1934,6 +1938,18 @@ func titleFromName(_ name:String?) -> String?
     return title != Constants.EMPTY_STRING ? title : nil
 }
 
+func classSectionsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
+{
+    return mediaItems != nil ?
+        Array(
+            Set(mediaItems!.map({ (mediaItem:MediaItem) -> String in
+                return mediaItem.classSection!
+            })
+            )
+            ).sorted()
+        : nil
+}
+
 func speakerSectionsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 {
     return mediaItems != nil ?
@@ -2042,7 +2058,7 @@ func compareMediaItemDates(first:MediaItem, second:MediaItem, sorting:String?) -
     return result
 }
 
-func sortMediaItemsBySeries(_ mediaItems:[MediaItem]?,sorting:String?) -> [MediaItem]?
+func sortMediaItemsByMultiPart(_ mediaItems:[MediaItem]?,sorting:String?) -> [MediaItem]?
 {
     return mediaItems?.sorted() {
         var result = false
@@ -2056,6 +2072,24 @@ func sortMediaItemsBySeries(_ mediaItems:[MediaItem]?,sorting:String?) -> [Media
             result = compareMediaItemDates(first: first,second: second, sorting: sorting)
         }
 
+        return result
+    }
+}
+
+func sortMediaItemsByClass(_ mediaItems:[MediaItem]?,sorting: String?) -> [MediaItem]?
+{
+    return mediaItems?.sorted() {
+        var result = false
+        
+        let first = $0
+        let second = $1
+        
+        if (first.classSectionSort != second.classSectionSort) {
+            result = first.classSectionSort < second.classSectionSort
+        } else {
+            result = compareMediaItemDates(first: first,second: second, sorting: sorting)
+        }
+        
         return result
     }
 }
@@ -2706,9 +2740,9 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
             viewController.dismiss(animated: true, completion: nil)
         })
         
-        var style:UIModalPresentationStyle = .popover
-        var direction:UIPopoverArrowDirection = .any
-        
+//        var style:UIModalPresentationStyle = .popover
+//        var direction:UIPopoverArrowDirection = .any
+//        
 //        if (barButtonItem == nil) && (UIDevice.current.model != "iPad") {
 //            direction = .down
 //            
@@ -2735,8 +2769,8 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
 //            }
 //        }
         
-        navigationController.modalPresentationStyle = style
-        navigationController.popoverPresentationController?.permittedArrowDirections = direction
+        navigationController.modalPresentationStyle = .popover
+        navigationController.popoverPresentationController?.permittedArrowDirections = .any
         navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
         
         if sourceView != nil {
@@ -3069,6 +3103,12 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                         order.append("speaker")
                     }
                     
+                    if globals.grouping != Grouping.CLASS {
+                        if let className = mediaItem.className, !className.isEmpty {
+                            order.append("class")
+                        }
+                    }
+                    
                     if let string = mediaItem.bodyHTML(order: order, includeURLs: includeURLs, includeColumns: includeColumns) {
                         bodyString = bodyString! + string
                     }
@@ -3102,6 +3142,8 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
             bodyString = bodyString! + "<div><a id=\"index\" name=\"index\" href=\"#top\">Index</a><br/><br/>"
             
             switch globals.grouping! {
+            case Grouping.CLASS:
+                fallthrough
             case Grouping.SPEAKER:
                 fallthrough
             case Grouping.TITLE:
@@ -3240,6 +3282,9 @@ func translate(_ string:String?) -> String?
         
     case Grouping.SPEAKER:
         return Grouping.Speaker
+        
+    case Grouping.CLASS:
+        return Grouping.Class
         
     default:
         return nil

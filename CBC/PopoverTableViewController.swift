@@ -193,16 +193,10 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     var indexStrings:[String]?
     
     var strings:[String]?
-    lazy var section:Section! = {
-        var section = Section()
-        return section
-    }()
+    var section = Section()
     
     var filteredStrings:[String]?
-    var filteredSection:Section! = {
-        var section = Section()
-        return section
-    }()
+    var filteredSection = Section()
     
 //    var transform:((String?)->String?)?
     
@@ -320,7 +314,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     func handleRefresh(_ refreshControl: UIRefreshControl)
     {
         DispatchQueue.main.async(execute: { () -> Void in
-            self.refreshControl?.beginRefreshing()
+            refreshControl.beginRefreshing()
         })
         
 //        view.isUserInteractionEnabled = false
@@ -328,7 +322,9 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         if let pause = mediaListGroupSort?.lexicon?.pauseUpdates, pause {
             isRefreshing = true
             mediaListGroupSort?.lexicon?.pauseUpdates = false
-            lexiconUpdated()
+            DispatchQueue.global(qos: .userInitiated).async {
+                self.lexiconUpdated()
+            }
         } else {
             DispatchQueue.main.async(execute: { () -> Void in
                 self.refreshControl?.endRefreshing()
@@ -413,7 +409,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
 //            }
         } else {
             searchController?.hidesNavigationBarDuringPresentation = false
-            tableView.bounces = false
+//            tableView.bounces = false
         }
 
         //This makes accurate scrolling to sections impossible but since we don't use scrollToRowAtIndexPath with
@@ -725,7 +721,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
 //                self.view.isUserInteractionEnabled = true
                 
                 self.removeRefreshControl()
-                self.tableView.bounces = false
+//                self.tableView.bounces = false
 
                 if  let count = self.mediaListGroupSort?.lexicon?.entries?.count,
                     let total = self.mediaListGroupSort?.lexicon?.eligible?.count {
@@ -826,7 +822,9 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                 mediaListGroupSort?.lexicon?.build()
             } else {
                 if let creating = mediaListGroupSort!.lexicon?.creating, creating {
-                    lexiconUpdated()
+                    DispatchQueue.global(qos: .userInitiated).async {
+                        self.lexiconUpdated()
+                    }
                 } else {
                     lexiconCompleted()
                 }
@@ -852,9 +850,9 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         // Return the number of sections.
         if showIndex {
             if let active = searchController?.isActive, active {
-                return filteredSection != nil ? (filteredSection.titles != nil ? filteredSection.titles!.count : 0) : 0
+                return filteredSection.titles != nil ? filteredSection.titles!.count : 0
             } else {
-                return section != nil ? (section.titles != nil ? section.titles!.count : 0) : 0
+                return section.titles != nil ? section.titles!.count : 0
             }
         } else {
             return 1
@@ -866,9 +864,9 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
         // Return the number of rows in the section.
         if showIndex {
             if let active = searchController?.isActive, active {
-                return self.filteredSection != nil ? (self.filteredSection.counts != nil ? ((section < self.filteredSection.counts?.count) ? self.filteredSection.counts![section] : 0) : 0) : 0
+                return self.filteredSection.counts != nil ? ((section < self.filteredSection.counts?.count) ? self.filteredSection.counts![section] : 0) : 0
             } else {
-                return self.section != nil ? (self.section.counts != nil ? ((section < self.section.counts?.count) ? self.section.counts![section] : 0) : 0) : 0
+                return self.section.counts != nil ? ((section < self.section.counts?.count) ? self.section.counts![section] : 0) : 0
             }
         } else {
             return strings != nil ? strings!.count : 0
@@ -878,9 +876,9 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     func sectionIndexTitles(for tableView: UITableView) -> [String]? {
         if showIndex {
             if let active = searchController?.isActive, active {
-                return filteredSection != nil ? filteredSection.titles : nil
+                return filteredSection.titles
             } else {
-                return section != nil ? section.titles : nil
+                return section.titles
             }
         } else {
             return nil
@@ -932,9 +930,9 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         if showIndex, showSectionHeaders { // showIndex &&
             if let active = searchController?.isActive, active {
-                return self.filteredSection != nil ? self.filteredSection.titles?[section] : nil
+                return self.filteredSection.titles?[section]
             } else {
-                return self.section != nil ? self.section.titles?[section] : nil
+                return self.section.titles?[section]
             }
         } else {
             return nil
@@ -995,7 +993,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             break
             
         case .selectingGrouping:
-            if (Constants.groupings[index] == globals.grouping) {
+            if (globals.groupings[index] == globals.grouping) {
                 cell.accessoryType = UITableViewCellAccessoryType.checkmark
             } else {
                 cell.accessoryType = UITableViewCellAccessoryType.none

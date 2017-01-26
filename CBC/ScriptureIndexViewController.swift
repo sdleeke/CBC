@@ -1566,21 +1566,28 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
 
     func isHiddenUI(_ state:Bool)
     {
-        directionLabel.isHidden = state
-        switchesLabel.isHidden = state
-        
-        bookLabel.isHidden = state
-        bookSwitch.isHidden = state
-        
-        chapterLabel.isHidden = state
-        chapterSwitch.isHidden = state
-        
-        numberOfMediaItemsLabel.isHidden = state
-        numberOfMediaItems.isHidden = state
-        
-        scripturePicker.isHidden = state
+        func set(_ state:Bool)
+        {
+            directionLabel.isHidden = state
+            switchesLabel.isHidden = state
+            
+            bookLabel.isHidden = state
+            bookSwitch.isHidden = state
+            
+            chapterLabel.isHidden = state
+            chapterSwitch.isHidden = state
+            
+            numberOfMediaItemsLabel.isHidden = state
+            numberOfMediaItems.isHidden = state
+            
+            scripturePicker.isHidden = state
 
-        isHiddenNumberAndTableUI(state)
+            isHiddenNumberAndTableUI(state)
+        }
+    
+        DispatchQueue.main.async(execute: { () -> Void in
+            set(state)
+        })
     }
 
     func isHiddenNumberAndTableUI(_ state:Bool)
@@ -1865,7 +1872,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         }
         scripture.backgroundColor = UIColor.orange
         
-        if mediaItem.scriptureReference != Constants.Selected_Scriptures {
+        if mediaItem.books != nil {
             actions.append(scripture)
         }
         

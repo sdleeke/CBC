@@ -337,6 +337,14 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                 return mediaItem?.scriptureReference?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
             }
         }
+        var className:Bool {
+            get {
+                guard globals.search.text != nil else {
+                    return false
+                }
+                return mediaItem?.className?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+            }
+        }
         var tags:Bool {
             get {
                 guard globals.search.text != nil else {
@@ -359,7 +367,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
     
     func search() -> Bool
     {
-        return searchHit!.title || searchHit!.formattedDate || searchHit!.speaker || searchHit!.scriptureReference || searchHit!.tags
+        return searchHit!.title || searchHit!.formattedDate || searchHit!.speaker || searchHit!.scriptureReference || searchHit!.className || searchHit!.tags
     }
         
     func searchFullNotesHTML() -> Bool
@@ -746,6 +754,18 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         return Scripture(reference:self.scriptureReference)
     }()
     
+    var classSectionSort:String! {
+        get {
+            return classSection.lowercased()
+        }
+    }
+    
+    var classSection:String! {
+        get {
+            return hasClassName ? className! : Constants.None
+        }
+    }
+    
     var className:String? {
         get {
             return dict![Field.className]
@@ -754,7 +774,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
     
     var speakerSectionSort:String! {
         get {
-            return hasSpeaker ? speakerSort! : Constants.None
+            return speakerSort!.lowercased()
         }
     }
     
@@ -1751,11 +1771,19 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                     }
                     bodyString = bodyString! + "</td>"
                     break
-
+                    
                 case "speaker":
                     bodyString = bodyString! + "<td valign=\"top\">"
                     if let speaker = self.speaker {
                         bodyString = bodyString! + speaker
+                    }
+                    bodyString = bodyString! + "</td>"
+                    break
+                    
+                case "class":
+                    bodyString = bodyString! + "<td valign=\"top\">"
+                    if let className = self.className {
+                        bodyString = bodyString! + className
                     }
                     bodyString = bodyString! + "</td>"
                     break
@@ -1798,6 +1826,12 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                 case "speaker":
                     if let speaker = self.speaker {
                         bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + speaker
+                    }
+                    break
+                    
+                case "class":
+                    if let className = self.className {
+                        bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + className
                     }
                     break
                     
@@ -2317,42 +2351,67 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
     var hasScripture:Bool
         {
         get {
-            return (self.scriptureReference != nil) && (self.scriptureReference != Constants.EMPTY_STRING)
+            guard let isEmpty = scriptureReference?.isEmpty else {
+                return false
+            }
+            
+            return !isEmpty
+//            return (self.scriptureReference != nil) && (self.scriptureReference != Constants.EMPTY_STRING)
         }
     }
     
     var hasClassName:Bool
         {
         get {
-            return (self.className != nil) && (self.className != Constants.EMPTY_STRING)
+            guard let isEmpty = className?.isEmpty else {
+                return false
+            }
+            
+            return !isEmpty
+//            return (self.className != nil) && (self.className != Constants.EMPTY_STRING)
         }
     }
     
     var hasMultipleParts:Bool
         {
         get {
-            return (self.multiPartName != nil) && (self.multiPartName != Constants.EMPTY_STRING)
+            guard let isEmpty = multiPartName?.isEmpty else {
+                return false
+            }
+            
+            return !isEmpty
+//            return (self.multiPartName != nil) && (self.multiPartName != Constants.EMPTY_STRING)
         }
     }
     
     var hasCategory:Bool
         {
         get {
-            return (self.category != nil) && (self.category != Constants.EMPTY_STRING)
+            guard let isEmpty = category?.isEmpty else {
+                return false
+            }
+            
+            return !isEmpty
+//            return (self.category != nil) && (self.category != Constants.EMPTY_STRING)
         }
     }
     
     var hasBook:Bool
     {
         get {
-            return (self.books != nil) // && (self.book != Constants.EMPTY_STRING)
+            return (self.books != nil)
         }
     }
     
     var hasSpeaker:Bool
     {
         get {
-            return (self.speaker != nil) && (self.speaker != Constants.EMPTY_STRING)
+            guard let isEmpty = speaker?.isEmpty else {
+                return false
+            }
+            
+            return !isEmpty
+//            return (self.speaker != nil) && (self.speaker != Constants.EMPTY_STRING)
         }
     }
     
@@ -2409,7 +2468,12 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
     var hasTags:Bool
     {
         get {
-            return (self.tags != nil) && (self.tags != Constants.EMPTY_STRING)
+            guard let isEmpty = tags?.isEmpty else {
+                return false
+            }
+            
+            return !isEmpty
+//            return (self.tags != nil) && (self.tags != Constants.EMPTY_STRING)
         }
     }
     
