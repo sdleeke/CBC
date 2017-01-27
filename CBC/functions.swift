@@ -1881,13 +1881,19 @@ func tokensFromString(_ string:String?) -> [String]?
 
 func lastNameFromName(_ name:String?) -> String?
 {
-    if var lastname = name {
-        while (lastname.range(of: Constants.SINGLE_SPACE) != nil) {
-            lastname = lastname.substring(from: lastname.range(of: Constants.SINGLE_SPACE)!.upperBound)
-        }
-        return lastname
+//    if var lastname = name {
+//        while (lastname.range(of: Constants.SINGLE_SPACE) != nil) {
+//            lastname = lastname.substring(from: lastname.range(of: Constants.SINGLE_SPACE)!.upperBound)
+//        }
+//        return lastname
+//    }
+//    return nil
+    
+    if let firstName = firstNameFromName(name), let range = name?.range(of: firstName) {
+        return name?.substring(from: range.upperBound).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    } else {
+        return name
     }
-    return nil
 }
 
 func firstNameFromName(_ name:String?) -> String?

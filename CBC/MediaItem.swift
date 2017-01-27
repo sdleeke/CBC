@@ -432,9 +432,18 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                 if let playing = mediaItemSettings?[Field.playing] {
                     dict![Field.playing] = playing
                 } else {
-                    dict![Field.playing] = Playing.audio
+                    dict![Field.playing] = hasAudio ? Playing.audio : (hasVideo ? Playing.video : nil)
                 }
             }
+            
+            if !hasAudio && (dict![Field.playing] == Playing.audio) {
+                dict![Field.playing] = hasVideo ? Playing.video : nil
+            }
+
+            if !hasVideo && (dict![Field.playing] == Playing.video) {
+                dict![Field.playing] = hasAudio ? Playing.video : nil
+            }
+            
             return dict![Field.playing]
         }
         
@@ -786,7 +795,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
     
     var speaker:String? {
         get {
-            return dict![Field.speaker]?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            return dict![Field.speaker]
         }
     }
     
@@ -801,7 +810,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
 
                     var speakerSort:String?
                     
-                    if (speaker != nil) {
+                    if hasSpeaker {
                         if !speaker!.contains("Ministry Panel") {
                             if let lastName = lastNameFromName(speaker) {
                                 speakerSort = lastName
@@ -820,9 +829,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
                     dict![Field.speaker_sort] = speakerSort != nil ? speakerSort : Constants.None
                 }
             }
-            if dict![Field.speaker_sort] == nil {
-                print("Speaker sort is NIL")
-            }
+
             return dict![Field.speaker_sort]
         }
     }
@@ -2408,6 +2415,10 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         get {
             guard let isEmpty = speaker?.isEmpty else {
                 return false
+            }
+            
+            if isEmpty {
+                print("speaker is empty")
             }
             
             return !isEmpty

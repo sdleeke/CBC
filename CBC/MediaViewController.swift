@@ -334,7 +334,12 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             }
             
             if (selectedMediaItem != nil) && (selectedMediaItem != globals.mediaPlayer.mediaItem) {
-                playerURL(url: selectedMediaItem?.playingURL!)
+                if let url = selectedMediaItem?.playingURL {
+                    playerURL(url: url)
+                } else {
+                    print(selectedMediaItem?.dict)
+                    networkUnavailable("Media Not Available")
+                }
 
 //                switch selectedMediaItem!.playing! {
 //                case Playing.video:
@@ -2656,47 +2661,48 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     fileprivate func setupAudioOrVideo()
     {
-        if (selectedMediaItem != nil) {
-            if (selectedMediaItem!.hasVideo) {
-                audioOrVideoControl.isEnabled = true
-                audioOrVideoControl.isHidden = false
-                audioOrVideoWidthConstraint.constant = Constants.AUDIO_VIDEO_MAX_WIDTH
-                view.setNeedsLayout()
+        guard (selectedMediaItem != nil) else {
+            audioOrVideoControl.isEnabled = false
+            audioOrVideoControl.isHidden = true
+            return
+        }
+        
+        if (selectedMediaItem!.hasAudio && selectedMediaItem!.hasVideo) {
+            audioOrVideoControl.isEnabled = true
+            audioOrVideoControl.isHidden = false
+            audioOrVideoWidthConstraint.constant = Constants.AUDIO_VIDEO_MAX_WIDTH
+            view.setNeedsLayout()
 
-                audioOrVideoControl.setEnabled(true, forSegmentAt: Constants.AV_SEGMENT_INDEX.AUDIO)
-                audioOrVideoControl.setEnabled(true, forSegmentAt: Constants.AV_SEGMENT_INDEX.VIDEO)
-                
+            audioOrVideoControl.setEnabled(true, forSegmentAt: Constants.AV_SEGMENT_INDEX.AUDIO)
+            audioOrVideoControl.setEnabled(true, forSegmentAt: Constants.AV_SEGMENT_INDEX.VIDEO)
+            
 //                print(selectedMediaItem!.playing!)
+            
+            switch selectedMediaItem!.playing! {
+            case Playing.audio:
+                audioOrVideoControl.selectedSegmentIndex = Constants.AV_SEGMENT_INDEX.AUDIO
+                break
                 
-                switch selectedMediaItem!.playing! {
-                case Playing.audio:
-                    audioOrVideoControl.selectedSegmentIndex = Constants.AV_SEGMENT_INDEX.AUDIO
-                    break
-                    
-                case Playing.video:
-                    audioOrVideoControl.selectedSegmentIndex = Constants.AV_SEGMENT_INDEX.VIDEO
-                    break
-                    
-                default:
-                    break
-                }
-
-                let attr = [NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.ICONS_FONT_SIZE)!]
+            case Playing.video:
+                audioOrVideoControl.selectedSegmentIndex = Constants.AV_SEGMENT_INDEX.VIDEO
+                break
                 
-                audioOrVideoControl.setTitleTextAttributes(attr, for: UIControlState())
-                
-                audioOrVideoControl.setTitle(Constants.FA.AUDIO, forSegmentAt: Constants.AV_SEGMENT_INDEX.AUDIO) // Audio
-
-                audioOrVideoControl.setTitle(Constants.FA.VIDEO, forSegmentAt: Constants.AV_SEGMENT_INDEX.VIDEO) // Video
-            } else {
-                audioOrVideoControl.isEnabled = false
-                audioOrVideoControl.isHidden = true
-                audioOrVideoWidthConstraint.constant = 0
-                view.setNeedsLayout()
+            default:
+                break
             }
+
+            let attr = [NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.ICONS_FONT_SIZE)!]
+            
+            audioOrVideoControl.setTitleTextAttributes(attr, for: UIControlState())
+            
+            audioOrVideoControl.setTitle(Constants.FA.AUDIO, forSegmentAt: Constants.AV_SEGMENT_INDEX.AUDIO) // Audio
+
+            audioOrVideoControl.setTitle(Constants.FA.VIDEO, forSegmentAt: Constants.AV_SEGMENT_INDEX.VIDEO) // Video
         } else {
             audioOrVideoControl.isEnabled = false
             audioOrVideoControl.isHidden = true
+            audioOrVideoWidthConstraint.constant = 0
+            view.setNeedsLayout()
         }
     }
     

@@ -151,7 +151,7 @@ extension PopoverTableViewController: UISearchBarDelegate {
             searchBar.resignFirstResponder()
         })
 
-        print(searchController?.isActive)
+//        print(searchController?.isActive)
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
@@ -387,15 +387,17 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
 //                // Fallback on earlier versions
 //            }
             
+            searchController?.hidesNavigationBarDuringPresentation = true
+            
             searchController?.dimsBackgroundDuringPresentation = false
             
             tableView.tableHeaderView = searchController?.searchBar
         }
         
         if mediaListGroupSort != nil {
-            searchController?.hidesNavigationBarDuringPresentation = true
-
             addRefreshControl()
+            
+//            searchController?.hidesNavigationBarDuringPresentation = true
             
             mediaListGroupSort?.lexicon?.pauseUpdates = false
 
@@ -408,7 +410,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
 //            DispatchQueue.main.async {
 //            }
         } else {
-            searchController?.hidesNavigationBarDuringPresentation = false
+//            searchController?.hidesNavigationBarDuringPresentation = false
 //            tableView.bounces = false
         }
 
@@ -527,111 +529,111 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                 })
             }
             
-            let margins:CGFloat = 2
-            let marginSpace:CGFloat = 9
-            
-            let checkmarkSpace:CGFloat = 38
-            let indexSpace:CGFloat = 40
-            
-            var height:CGFloat = 0.0
-            var width:CGFloat = 0.0
-            
-            var deducts:CGFloat = 0
-            
-            deducts += margins * marginSpace
-            
-            if self.showIndex {
-                deducts += indexSpace
-            }
-            
-            switch self.purpose! {
-            case .selectingTags:
-                fallthrough
-            case .selectingGrouping:
-                fallthrough
-            case .selectingSorting:
-                deducts += checkmarkSpace
-                break
-                
-            default:
-                break
-            }
-            
-            var viewWidth = self.view.frame.width
-            
-            if (self.vc?.splitViewController != nil) && (self.vc!.splitViewController!.viewControllers.count > 1) {
-                viewWidth = self.vc!.splitViewController!.view.frame.width
-            }
-            
-            //        print(view.frame.width - deducts)
-            
-            let heightSize: CGSize = CGSize(width: viewWidth - deducts, height: .greatestFiniteMagnitude)
-            let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
-            
-            if let title = self.navigationItem.title {
-                let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-                
-                width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0)], context: nil).width
-            }
-            
-            //        print(strings)
-            
-            if let strings = self.strings {
-                for string in strings {
-                    let string = string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-                    
-                    let maxWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
-                    
-                    let maxHeight = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
-                    
-                    //            print(string)
-                    //            print(maxSize)
-                    
-                    //            print(string,width,maxWidth.width)
-                    
-                    if maxWidth.width > width {
-                        width = maxWidth.width
-                    }
-                    
-                    //            print(string,maxHeight.height) // baseHeight
-                    
-                    height += 2*8 + maxHeight.height // - baseHeight
-                    
-                    //            print(maxHeight.height, (Int(maxHeight.height) / 16) - 1)
-                    //            height += CGFloat(((Int(maxHeight.height) / 16) - 1) * 16)
-                }
-            }
-            
-            width += margins * marginSpace
-            
-            switch self.purpose! {
-            case .selectingTags:
-                fallthrough
-            case .selectingGrouping:
-                fallthrough
-            case .selectingSorting:
-                width += checkmarkSpace
-                break
-                
-            default:
-                break
-            }
-            
-            if self.showIndex {
-                width += indexSpace
-                if self.indexStrings != nil {
-                    height += self.tableView.sectionHeaderHeight * CGFloat(self.indexStrings!.count)
-                }
-            }
+//            let margins:CGFloat = 2
+//            let marginSpace:CGFloat = 9
+//            
+//            let checkmarkSpace:CGFloat = 38
+//            let indexSpace:CGFloat = 40
+//            
+//            var height:CGFloat = 0.0
+//            var width:CGFloat = 0.0
+//            
+//            var deducts:CGFloat = 0
+//            
+//            deducts += margins * marginSpace
+//            
+//            if self.showIndex {
+//                deducts += indexSpace
+//            }
+//            
+//            switch self.purpose! {
+//            case .selectingTags:
+//                fallthrough
+//            case .selectingGrouping:
+//                fallthrough
+//            case .selectingSorting:
+//                deducts += checkmarkSpace
+//                break
+//                
+//            default:
+//                break
+//            }
+//            
+//            var viewWidth = self.view.frame.width
+//            
+//            if (self.vc?.splitViewController != nil) && (self.vc!.splitViewController!.viewControllers.count > 1) {
+//                viewWidth = self.vc!.splitViewController!.view.frame.width
+//            }
+//            
+//            //        print(view.frame.width - deducts)
+//            
+//            let heightSize: CGSize = CGSize(width: viewWidth - deducts, height: .greatestFiniteMagnitude)
+//            let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
+//            
+//            if let title = self.navigationItem.title {
+//                let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+//                
+//                width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0)], context: nil).width
+//            }
+//            
+//            //        print(strings)
+//            
+//            if let strings = self.strings {
+//                for string in strings {
+//                    let string = string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+//                    
+//                    let maxWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
+//                    
+//                    let maxHeight = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
+//                    
+//                    //            print(string)
+//                    //            print(maxSize)
+//                    
+//                    //            print(string,width,maxWidth.width)
+//                    
+//                    if maxWidth.width > width {
+//                        width = maxWidth.width
+//                    }
+//                    
+//                    //            print(string,maxHeight.height) // baseHeight
+//                    
+//                    height += 2*8 + maxHeight.height // - baseHeight
+//                    
+//                    //            print(maxHeight.height, (Int(maxHeight.height) / 16) - 1)
+//                    //            height += CGFloat(((Int(maxHeight.height) / 16) - 1) * 16)
+//                }
+//            }
+//            
+//            width += margins * marginSpace
+//            
+//            switch self.purpose! {
+//            case .selectingTags:
+//                fallthrough
+//            case .selectingGrouping:
+//                fallthrough
+//            case .selectingSorting:
+//                width += checkmarkSpace
+//                break
+//                
+//            default:
+//                break
+//            }
+//            
+//            if self.showIndex {
+//                width += indexSpace
+//                if self.indexStrings != nil {
+//                    height += self.tableView.sectionHeaderHeight * CGFloat(self.indexStrings!.count)
+//                }
+//            }
             
             //        print(height)
             //        print(width)
             
             DispatchQueue.main.async(execute: { () -> Void in
-                if  let pause = self.mediaListGroupSort?.lexicon?.pauseUpdates, !pause,
-                    let creating = self.mediaListGroupSort?.lexicon?.creating, creating {
-                    self.preferredContentSize = CGSize(width: width, height: height)
-                }
+//                if  let pause = self.mediaListGroupSort?.lexicon?.pauseUpdates, !pause,
+//                    let creating = self.mediaListGroupSort?.lexicon?.creating, creating {
+//                    self.preferredContentSize = CGSize(width: width, height: height)
+//                }
                 
                 if #available(iOS 10.0, *) {
                     if let refreshing = self.tableView.refreshControl?.isRefreshing, refreshing {

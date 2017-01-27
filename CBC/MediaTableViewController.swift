@@ -411,6 +411,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 self.tableView.setEditing(false, animated: true)
                 self.searchBar.text = searchText
                 self.searchBar.showsCancelButton = true
+                self.searchBar.becomeFirstResponder()
             })
 
             updateSearchResults(searchText,completion: nil)
@@ -453,6 +454,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 DispatchQueue.main.async(execute: { () -> Void in
                     self.searchBar.text = searchText
                     self.searchBar.showsCancelButton = true
+                    self.searchBar.becomeFirstResponder()
                 })
                 
                 // Show the results directly rather than by executing a search
@@ -2468,7 +2470,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             if globals.search.lexicon {
                 self.tagsButton.isEnabled = false
-                self.tagsButton.isHidden = true
+                self.tagsButton.isHidden = false
             }
         })
     }
