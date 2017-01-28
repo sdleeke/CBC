@@ -304,16 +304,17 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     {
         if observerActive {
             if observedItem != player?.currentItem {
-                print("WRONG CURRENT ITEM!")
+                print("observedItem != player?.currentItem")
             }
-            if observedItem == nil {
-                print("CURRENT ITEM NIL!")
+            if observedItem != nil {
+                print("MVC removeObserver: ",player?.currentItem?.observationInfo)
+                
+                observedItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: &PlayerContext)
+                observedItem = nil
+                observerActive = false
+            } else {
+                print("observedItem == nil!")
             }
-            
-            print("MVC removeObserver: ",player?.currentItem?.observationInfo)
-            
-            player?.currentItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: &PlayerContext)
-            observerActive = false
         }
     }
     
@@ -446,6 +447,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 if (globals.mediaPlayer.mediaItem == selectedMediaItem) {
                     globals.mediaPlayer.stop() // IfPlaying
                     
+                    globals.mediaPlayer.player = nil
+                    
                     globals.mediaPlayer.view?.isHidden = true
                     
                     setupSpinner()
@@ -458,7 +461,12 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 
                 selectedMediaItem?.playing = Playing.audio // Must come before setupNoteAndSlides()
                 
+//                if (globals.mediaPlayer.mediaItem == selectedMediaItem) {
+//                    globals.setupPlayer(selectedMediaItem, playOnLoad: false)
+//                }
+                
                 playerURL(url: selectedMediaItem?.playingURL)
+                
                 setupSliderAndTimes()
                 
                 // If video was playing we need to show slides or transcript and adjust the STV control to hide the video segment and show the other(s).
@@ -476,6 +484,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 if (globals.mediaPlayer.mediaItem == selectedMediaItem) {
                     globals.mediaPlayer.stop() // IfPlaying
                     
+                    globals.mediaPlayer.player = nil
+                    
                     setupSpinner()
                     
                     removeSliderObserver()
@@ -486,7 +496,12 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 
                 selectedMediaItem?.playing = Playing.video // Must come before setupNoteAndSlides()
                 
+//                if (globals.mediaPlayer.mediaItem == selectedMediaItem) {
+//                    globals.setupPlayer(selectedMediaItem, playOnLoad: false)
+//                }
+
                 playerURL(url: selectedMediaItem?.playingURL)
+                
                 setupSliderAndTimes()
                 
                 // Don't need to change the documents (they are already showing) or hte STV control as that will change when the video starts playing.
@@ -724,47 +739,48 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 
     @IBAction func playPause(_ sender: UIButton)
     {
-        if (globals.mediaPlayer.state != nil) && (globals.mediaPlayer.mediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) {
-            switch globals.mediaPlayer.state! {
-            case .none:
-//                print("none")
-                break
-                
-            case .playing:
-//                print("playing")
-                globals.mediaPlayer.pause() // IfPlaying
-
-                setupPlayPauseButton()
-                setupSpinner()
-                break
-                
-            case .paused:
-//                print("paused")
-                if globals.mediaPlayer.loaded && (globals.mediaPlayer.url == selectedMediaItem?.playingURL) {
-                    playCurrentMediaItem(selectedMediaItem)
-                } else {
-                    playNewMediaItem(selectedMediaItem)
-                }
-                break
-                
-            case .stopped:
-//                print("stopped")
-                break
-                
-            case .seekingForward:
-//                print("seekingForward")
-                globals.mediaPlayer.pause() // IfPlaying
-//                setupPlayPauseButton()
-                break
-                
-            case .seekingBackward:
-//                print("seekingBackward")
-                globals.mediaPlayer.pause() // IfPlaying
-//                setupPlayPauseButton()
-                break
-            }
-        } else {
+        guard (globals.mediaPlayer.state != nil) && (globals.mediaPlayer.mediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) else {
             playNewMediaItem(selectedMediaItem)
+            return
+        }
+
+        switch globals.mediaPlayer.state! {
+        case .none:
+//                print("none")
+            break
+            
+        case .playing:
+//                print("playing")
+            globals.mediaPlayer.pause() // IfPlaying
+
+            setupPlayPauseButton()
+            setupSpinner()
+            break
+            
+        case .paused:
+//                print("paused")
+            if globals.mediaPlayer.loaded && (globals.mediaPlayer.url == selectedMediaItem?.playingURL) {
+                playCurrentMediaItem(selectedMediaItem)
+            } else {
+                playNewMediaItem(selectedMediaItem)
+            }
+            break
+            
+        case .stopped:
+//                print("stopped")
+            break
+            
+        case .seekingForward:
+//                print("seekingForward")
+            globals.mediaPlayer.pause() // IfPlaying
+//                setupPlayPauseButton()
+            break
+            
+        case .seekingBackward:
+//                print("seekingBackward")
+            globals.mediaPlayer.pause() // IfPlaying
+//                setupPlayPauseButton()
+            break
         }
     }
     
@@ -2415,30 +2431,31 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     func setupActionAndTagsButtons()
     {
-        if (selectedMediaItem != nil) {
-            var barButtons = [UIBarButtonItem]()
-            
-            actionButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(MediaViewController.actions))
-            barButtons.append(actionButton!)
-        
-            if (selectedMediaItem!.hasTags) {
-                if (selectedMediaItem?.tagsSet?.count > 1) {
-                    tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.tags(_:)))
-                } else {
-                    tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.tags(_:)))
-                }
-                
-                tagsButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.TAGS_FONT_SIZE)!], for: UIControlState())
-                
-                barButtons.append(tagsButton!)
-            }
-
-            self.navigationItem.setRightBarButtonItems(barButtons, animated: true)
-        } else {
+        guard (selectedMediaItem != nil) else {
             actionButton = nil
             tagsButton = nil
             self.navigationItem.setRightBarButtonItems(nil, animated: true)
+            return
         }
+
+        var barButtons = [UIBarButtonItem]()
+        
+        actionButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(MediaViewController.actions))
+        barButtons.append(actionButton!)
+    
+        if (selectedMediaItem!.hasTags) {
+            if (selectedMediaItem?.tagsSet?.count > 1) {
+                tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.tags(_:)))
+            } else {
+                tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.tags(_:)))
+            }
+            
+            tagsButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.TAGS_FONT_SIZE)!], for: UIControlState())
+            
+            barButtons.append(tagsButton!)
+        }
+
+        self.navigationItem.setRightBarButtonItems(barButtons, animated: true)
     }
 
 //    override func prefersStatusBarHidden() -> Bool
@@ -3238,6 +3255,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             return
         }
         
+        guard (globals.mediaPlayer.state != nil) else {
+            return
+        }
+        
         slider.isEnabled = globals.mediaPlayer.loaded
         setupPlayPauseButton()
         setupSpinner()
@@ -3403,46 +3424,50 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         setupPlayPauseButton()
     }
     
-    fileprivate func playNewMediaItem(_ mediaItem:MediaItem?) {
-        globals.mediaPlayer.pause() // IfPlaying
+    fileprivate func playNewMediaItem(_ mediaItem:MediaItem?)
+    {
+        globals.mediaPlayer.stop() // IfPlaying
         
         globals.mediaPlayer.view?.removeFromSuperview()
         
-        if (mediaItem != nil) && (mediaItem!.hasVideo || mediaItem!.hasAudio) {
-            setupSpinner()
-            
-            globals.mediaPlayer.mediaItem = mediaItem
-            
-            removeSliderObserver()
-            
-            //This guarantees a fresh start.
-            globals.setupPlayer(mediaItem, playOnLoad: true)
-            
-            if (mediaItem!.hasVideo && (mediaItem!.playing == Playing.video)) {
-                setupPlayerView(globals.mediaPlayer.view)
-                
-                if (view.window != nil) {
-                    if globals.mediaPlayer.loaded {
-                        globals.mediaPlayer.view?.isHidden = false
-                        mediaItemNotesAndSlides.bringSubview(toFront: globals.mediaPlayer.view!)
-                    }
-                }
-                
-                mediaItem!.showing = Showing.video
-            }
-            
-            addSliderObserver()
+        guard (mediaItem != nil) && (mediaItem!.hasVideo || mediaItem!.hasAudio) else {
+            return
+        }
+        
+        setupSpinner()
+        
+        globals.mediaPlayer.mediaItem = mediaItem
+        
+        removeSliderObserver()
+        
+        //This guarantees a fresh start.
+        globals.setupPlayer(mediaItem, playOnLoad: true)
+        
+        if (mediaItem!.hasVideo && (mediaItem!.playing == Playing.video)) {
+            setupPlayerView(globals.mediaPlayer.view)
             
             if (view.window != nil) {
-                setupSTVControl()
-                setupSliderAndTimes()
-                setupPlayPauseButton()
-                setupActionAndTagsButtons()
+                if globals.mediaPlayer.loaded {
+                    globals.mediaPlayer.view?.isHidden = false
+                    mediaItemNotesAndSlides.bringSubview(toFront: globals.mediaPlayer.view!)
+                }
             }
+            
+            mediaItem!.showing = Showing.video
+        }
+        
+        addSliderObserver()
+        
+        if (view.window != nil) {
+            setupSTVControl()
+            setupSliderAndTimes()
+            setupPlayPauseButton()
+            setupActionAndTagsButtons()
         }
     }
     
-    func tableView(_ tableView: UITableView, didDeselectRowAtIndexPath indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didDeselectRowAtIndexPath indexPath: IndexPath)
+    {
 //        if let cell = tableView.cellForRowAtIndexPath(indexPath) as? MediaTableViewCell {
 //
 //        }

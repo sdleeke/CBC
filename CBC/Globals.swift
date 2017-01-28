@@ -1122,10 +1122,10 @@ class Globals : NSObject {
         
         unobservePlayer()
         
-        mediaPlayer.player?.currentItem?.addObserver(self,
-                                                     forKeyPath: #keyPath(AVPlayerItem.status),
-                                                     options: [.old, .new],
-                                                     context: nil) // &GlobalPlayerContext
+        mediaPlayer.currentItem?.addObserver(self,
+                                             forKeyPath: #keyPath(AVPlayerItem.status),
+                                             options: [.old, .new],
+                                             context: nil) // &GlobalPlayerContext
         mediaPlayer.observerActive = true
         mediaPlayer.observedItem = mediaPlayer.currentItem
         
@@ -1152,16 +1152,19 @@ class Globals : NSObject {
         
         if mediaPlayer.observerActive {
             if mediaPlayer.observedItem != mediaPlayer.currentItem {
-                print("WRONG CURRENT ITEM!")
+                print("mediaPlayer.observedItem != mediaPlayer.currentPlayer!")
             }
-            if mediaPlayer.observedItem == nil {
-                print("CURRENT ITEM NIL!")
+            if mediaPlayer.observedItem != nil {
+                print("GLOBAL removeObserver: ",mediaPlayer.observedItem?.observationInfo)
+                
+                mediaPlayer.observedItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: nil) // &GlobalPlayerContext
+                
+                mediaPlayer.observedItem = nil
+                
+                mediaPlayer.observerActive = false
+            } else {
+                print("mediaPlayer.observedItem == nil!")
             }
-            
-            print("GLOBAL removeObserver: ",mediaPlayer.player?.currentItem?.observationInfo)
-            
-            mediaPlayer.player?.currentItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: nil) // &GlobalPlayerContext
-            mediaPlayer.observerActive = false
         }
 
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
@@ -1206,6 +1209,22 @@ class Globals : NSObject {
         
         unobservePlayer()
         
+        mediaPlayer.controller = AVPlayerViewController()
+        
+        mediaPlayer.controller?.showsPlaybackControls = false
+        
+        if #available(iOS 10.0, *) {
+            mediaPlayer.controller?.updatesNowPlayingInfoCenter = false
+        } else {
+            // Fallback on earlier versions
+        }
+        
+        if #available(iOS 9.0, *) {
+            mediaPlayer.controller?.allowsPictureInPicturePlayback = true
+        } else {
+            // Fallback on earlier versions
+        }
+
         mediaPlayer.player = AVPlayer(url: url!)
         
         if #available(iOS 10.0, *) {
@@ -1234,9 +1253,11 @@ class Globals : NSObject {
     
     func setupPlayer(_ mediaItem:MediaItem?,playOnLoad:Bool)
     {
-        if (mediaItem != nil) {
-            setupPlayer(url: mediaItem!.playingURL,playOnLoad: playOnLoad)
+        guard (mediaItem != nil) else {
+            return
         }
+
+        setupPlayer(url: mediaItem!.playingURL,playOnLoad: playOnLoad)
     }
     
     func reloadPlayer(_ mediaItem:MediaItem?)

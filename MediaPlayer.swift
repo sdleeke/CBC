@@ -106,9 +106,9 @@ class MediaPlayer {
         }
     }
     
-    private var controller:AVPlayerViewController? = AVPlayerViewController()
+    var controller:AVPlayerViewController? // = AVPlayerViewController()
     
-    private var stateTime:PlayerStateTime?
+    var stateTime:PlayerStateTime?
     
     var showsPlaybackControls:Bool{
         get {
@@ -119,22 +119,22 @@ class MediaPlayer {
         }
     }
     
-    init()
-    {
-        controller?.showsPlaybackControls = false
-        
-        if #available(iOS 10.0, *) {
-            controller?.updatesNowPlayingInfoCenter = false
-        } else {
-            // Fallback on earlier versions
-        }
-        
-        if #available(iOS 9.0, *) {
-            controller?.allowsPictureInPicturePlayback = true
-        } else {
-            // Fallback on earlier versions
-        }
-    }
+//    init()
+//    {
+//        controller?.showsPlaybackControls = false
+//        
+//        if #available(iOS 10.0, *) {
+//            controller?.updatesNowPlayingInfoCenter = false
+//        } else {
+//            // Fallback on earlier versions
+//        }
+//        
+//        if #available(iOS 9.0, *) {
+//            controller?.allowsPictureInPicturePlayback = true
+//        } else {
+//            // Fallback on earlier versions
+//        }
+//    }
     
     //    func stopIfPlaying()
     //    {
@@ -188,6 +188,8 @@ class MediaPlayer {
             break
         }
         
+        controller?.allowsPictureInPicturePlayback = true
+        
         setupPlayingInfoCenter()
     }
     
@@ -238,6 +240,8 @@ class MediaPlayer {
             break
             
         default:
+            controller?.allowsPictureInPicturePlayback = false
+            
             player?.pause()
             
             updateCurrentTimeExact()
@@ -366,6 +370,7 @@ class MediaPlayer {
                 self.sliderTimerReturn = nil
             }
             
+            // This seems to be lethal if newValue is nil
             self.controller?.player = newValue
         }
     }
@@ -438,8 +443,10 @@ class MediaPlayer {
             
             if mediaItem == nil {
                 MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-                player = nil
-                stateTime = nil
+                
+                // For some reason setting player to nil is LETHAL.
+//                player = nil
+//                stateTime = nil
             }
         }
     }
