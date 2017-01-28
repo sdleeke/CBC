@@ -537,7 +537,26 @@ class Lexicon : NSObject {
     
     var words:Words? {
         didSet {
-//            print(words?.count)
+            var strings = [String]()
+            
+            if let keys = words?.keys.sorted() {
+                for word in keys {
+                    if let count = words?[word]?.count {
+                        strings.append("\(word) (\(count))")
+                    }
+                }
+            }
+            
+            let indexStrings = strings.map({ (string:String) -> String in
+                return string.uppercased()
+            })
+            
+            //            if let strings = self.strings {
+            //                let array = Array(Set(strings))
+            //
+            //            }
+            
+            section.build(indexStrings)
         }
     }
     
@@ -545,6 +564,8 @@ class Lexicon : NSObject {
     var pauseUpdates = false
     var completed = false
 
+    var section = Section()
+    
     var entries:[MediaItem]? {
         get {
             var mediaItemSet = Set<MediaItem>()
@@ -818,7 +839,7 @@ class MediaListGroupSort {
         
         var groupedMediaItems = [String:[String:[MediaItem]]]()
         
-        globals.finished += list!.count
+//        globals.finished += list!.count
         
         for mediaItem in list! {
             var entries:[(string:String,name:String)]?
@@ -885,14 +906,14 @@ class MediaListGroupSort {
                         groupedMediaItems[grouping!]?[entry.string]?.append(mediaItem)
                     }
                     
-                    globals.progress += 1
+//                    globals.progress += 1
                 }
             }
         }
         
-        if (groupedMediaItems[grouping!] != nil) {
-            globals.finished += groupedMediaItems[grouping!]!.keys.count
-        }
+//        if (groupedMediaItems[grouping!] != nil) {
+//            globals.finished += groupedMediaItems[grouping!]!.keys.count
+//        }
         
         if (groupSort?[grouping!] == nil) {
             groupSort?[grouping!] = [String:[String:[MediaItem]]]()
@@ -918,7 +939,7 @@ class MediaListGroupSort {
                         break
                     }
                     
-                    globals.progress += 1
+//                    globals.progress += 1
                 }
             }
         }
@@ -1174,8 +1195,8 @@ class MediaListGroupSort {
             return
         }
         
-        globals.finished = 0
-        globals.progress = 0
+//        globals.finished = 0
+//        globals.progress = 0
         
         list = mediaItems
         
@@ -1184,7 +1205,7 @@ class MediaListGroupSort {
         
         sortGroup(globals.grouping)
         
-        globals.finished += list!.count
+//        globals.finished += list!.count
 
         tagMediaItems = [String:[MediaItem]]()
         tagNames = [String:String]()
@@ -1201,7 +1222,7 @@ class MediaListGroupSort {
                     tagNames?[sortTag!] = tag
                 }
             }
-            globals.progress += 1
+//            globals.progress += 1
         }
     }
 }

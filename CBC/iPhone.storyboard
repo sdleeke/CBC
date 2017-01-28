@@ -898,6 +898,14 @@ Email: cbcstaff@countrysidebible.org</string>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mst-oT-tvt" userLabel="Lexicon Button">
+                                <rect key="frame" x="137" y="237" width="46" height="30"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <state key="normal" title="Lexicon"/>
+                                <connections>
+                                    <action selector="lexiconButtonAction:" destination="4xA-dz-LhV" eventType="touchUpInside" id="VwR-yO-IIJ"/>
+                                </connections>
+                            </button>
                             <searchBar contentMode="redraw" translatesAutoresizingMaskIntoConstraints="NO" id="PI1-KK-22F">
                                 <rect key="frame" x="0.0" y="30" width="320" height="44"/>
                                 <textInputTraits key="textInputTraits"/>
@@ -1033,12 +1041,14 @@ Email: cbcstaff@countrysidebible.org</string>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
+                            <constraint firstItem="mst-oT-tvt" firstAttribute="leading" secondItem="icq-T1-0Hk" secondAttribute="leading" id="0bs-Nb-eK8"/>
                             <constraint firstItem="icq-T1-0Hk" firstAttribute="leading" secondItem="96A-nP-rUw" secondAttribute="leading" constant="6" id="4aT-bx-l4y"/>
                             <constraint firstItem="QaS-gl-tEL" firstAttribute="centerX" secondItem="VzS-WY-Fmg" secondAttribute="centerX" id="4al-nR-1qf"/>
                             <constraint firstItem="Urs-8r-5e2" firstAttribute="top" secondItem="HBU-GK-goT" secondAttribute="bottom" id="5Hi-yX-7gn"/>
                             <constraint firstItem="PI1-KK-22F" firstAttribute="leading" secondItem="96A-nP-rUw" secondAttribute="leading" id="5ju-WB-cGn"/>
                             <constraint firstItem="HBU-GK-goT" firstAttribute="leading" secondItem="96A-nP-rUw" secondAttribute="leading" id="8IA-b7-wgq"/>
                             <constraint firstItem="XoU-Mk-gWs" firstAttribute="top" secondItem="fg5-Hs-nZk" secondAttribute="bottom" id="8a7-O9-n1L"/>
+                            <constraint firstItem="mst-oT-tvt" firstAttribute="baseline" secondItem="icq-T1-0Hk" secondAttribute="baseline" id="9K9-ea-B05"/>
                             <constraint firstAttribute="trailing" secondItem="PI1-KK-22F" secondAttribute="trailing" id="9rL-DQ-V6w"/>
                             <constraint firstItem="VzS-WY-Fmg" firstAttribute="centerX" secondItem="96A-nP-rUw" secondAttribute="centerX" id="Iis-vC-Wbx"/>
                             <constraint firstItem="VzS-WY-Fmg" firstAttribute="centerY" secondItem="96A-nP-rUw" secondAttribute="centerY" id="Lng-I6-90e"/>
@@ -1070,10 +1080,9 @@ Email: cbcstaff@countrysidebible.org</string>
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="lexiconButton" destination="mst-oT-tvt" id="Mm7-1V-DdK"/>
                         <outlet property="lexiconLabel" destination="icq-T1-0Hk" id="0y0-jJ-H52"/>
-                        <outlet property="listActivityIndicator" destination="VzS-WY-Fmg" id="wee-Cd-eKB"/>
                         <outlet property="mediaCategoryButton" destination="fg5-Hs-nZk" id="ESc-Z1-KEa"/>
-                        <outlet property="progressIndicator" destination="QaS-gl-tEL" id="svu-5O-lrL"/>
                         <outlet property="searchBar" destination="PI1-KK-22F" id="leD-jN-jHW"/>
                         <outlet property="showButton" destination="mag-xm-dO5" id="h1n-DU-VBJ"/>
                         <outlet property="tableView" destination="HBU-GK-goT" id="aBX-wH-0OI"/>

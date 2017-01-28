@@ -16,14 +16,14 @@ struct MediaNeed {
 }
 
 class Section {
+    var strings:[String]?
+
     var titles:[String]?
     var counts:[Int]?
     var indexes:[Int]?
 
     func build(_ indexStrings:[String]?)
     {
-        let a = "A"
-        
         guard indexStrings != nil else {
             titles = nil
             counts = nil
@@ -39,6 +39,14 @@ class Section {
             
             return
         }
+        
+        guard (strings == nil) || (strings! != indexStrings!) else {
+            return
+        }
+        
+        strings = indexStrings
+        
+        let a = "A"
         
         titles = Array(Set(indexStrings!.map({ (string:String) -> String in
             if string.endIndex >= a.endIndex {
@@ -229,7 +237,7 @@ struct Media {
             
             if globals.search.valid {
                 if let searchText = globals.search.text?.uppercased() {
-                    mediaItems = mediaItems?.searches?[searchText]
+                    mediaItems = mediaItems?.searches?[globals.search.lexicon ? "lexicon:"+searchText : searchText]
                 }
             }
             
@@ -433,7 +441,7 @@ struct Search {
                 active = false
             }
             
-            if (text != oldValue) {
+            if (text != oldValue) && !globals.isLoading {
                 if valid && !lexicon {
                     UserDefaults.standard.set(text, forKey: Constants.SEARCH_TEXT)
                     UserDefaults.standard.synchronize()
@@ -461,8 +469,8 @@ struct Search {
 var globals:Globals!
 
 class Globals : NSObject {
-    var finished = 0
-    var progress = 0
+//    var finished = 0
+//    var progress = 0
     
     var loadSingles = true
     
@@ -889,7 +897,7 @@ class Globals : NSObject {
 //                    media.tags.showing = Constants.ALL
 //                }
 
-                search.text = defaults.string(forKey: Constants.SEARCH_TEXT)?.uppercased()
+                search.text = defaults.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
                 search.active = search.text != nil
 
                 mediaPlayer.mediaItem = mediaCategory.playing != nil ? mediaRepository.index?[mediaCategory.playing!] : nil
@@ -1119,6 +1127,7 @@ class Globals : NSObject {
                                                      options: [.old, .new],
                                                      context: nil) // &GlobalPlayerContext
         mediaPlayer.observerActive = true
+        mediaPlayer.observedItem = mediaPlayer.currentItem
         
         mediaPlayer.playerTimerReturn = mediaPlayer.player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1,Constants.CMTime_Resolution), queue: DispatchQueue.main, using: { [weak self] (time:CMTime) in
             self?.playerTimer()
@@ -1142,6 +1151,15 @@ class Globals : NSObject {
         }
         
         if mediaPlayer.observerActive {
+            if mediaPlayer.observedItem != mediaPlayer.currentItem {
+                print("WRONG CURRENT ITEM!")
+            }
+            if mediaPlayer.observedItem == nil {
+                print("CURRENT ITEM NIL!")
+            }
+            
+            print("GLOBAL removeObserver: ",mediaPlayer.player?.currentItem?.observationInfo)
+            
             mediaPlayer.player?.currentItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: nil) // &GlobalPlayerContext
             mediaPlayer.observerActive = false
         }

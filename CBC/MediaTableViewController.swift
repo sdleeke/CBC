@@ -55,8 +55,6 @@ enum JSONSource {
 
 class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISearchBarDelegate, UISearchControllerDelegate, UIPopoverPresentationControllerDelegate, URLSessionDownloadDelegate, MFMailComposeViewControllerDelegate, PopoverTableViewControllerDelegate, PopoverPickerControllerDelegate { //
 
-    var showProgress = true
-    
 //    var refreshList = true
     var changesPending = false
     
@@ -77,6 +75,31 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     @IBOutlet weak var tagLabel: UILabel!
     
     @IBOutlet weak var lexiconLabel: UILabel!
+    @IBOutlet weak var lexiconButton: UIButton!
+    @IBAction func lexiconButtonAction(_ sender: UIButton)
+    {
+        if globals.search.lexicon {
+            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                
+                popover.navigationItem.title = Constants.Lexicon
+                
+                popover.delegate = self
+                popover.purpose = .selectingLexicon
+                
+                popover.search = true
+                
+                popover.mediaListGroupSort = globals.media.toSearch
+                
+                popover.showIndex = true
+                popover.showSectionHeaders = true
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.navigationController?.pushViewController(popover, animated: true)
+                })
+            }
+        }
+    }
     
     var refreshControl:UIRefreshControl?
 
@@ -196,9 +219,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     @IBOutlet weak var listActivityIndicator: UIActivityIndicatorView!
 
-    var progressTimer:Timer?
-    
-    @IBOutlet weak var progressIndicator: UIProgressView!
+//    var showProgress = true
+//    
+//    var progressTimer:Timer?
+//    
+//    @IBOutlet weak var progressIndicator: UIProgressView!
     
     @IBOutlet weak var searchBar: UISearchBar!
 
@@ -411,7 +436,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 self.tableView.setEditing(false, animated: true)
                 self.searchBar.text = searchText
                 self.searchBar.showsCancelButton = true
-                self.searchBar.becomeFirstResponder()
+//                self.searchBar.becomeFirstResponder()
             })
 
             updateSearchResults(searchText,completion: nil)
@@ -454,7 +479,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 DispatchQueue.main.async(execute: { () -> Void in
                     self.searchBar.text = searchText
                     self.searchBar.showsCancelButton = true
-                    self.searchBar.becomeFirstResponder()
+//                    self.searchBar.becomeFirstResponder()
                 })
                 
                 // Show the results directly rather than by executing a search
@@ -670,20 +695,20 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     self.disableBarButtons()
                     
                     DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                        globals.progress = 0
-                        globals.finished = 0
+//                        globals.progress = 0
+//                        globals.finished = 0
                         
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            self.progressTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PROGRESS, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
-                        })
+//                        DispatchQueue.main.async(execute: { () -> Void in
+//                            self.progressTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PROGRESS, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
+//                        })
                         
                         globals.setupDisplay(globals.media.active)
                         
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            self.progressTimer?.invalidate()
-                            self.progressTimer = nil
-                            self.progressIndicator.isHidden = true
-                        })
+//                        DispatchQueue.main.async(execute: { () -> Void in
+//                            self.progressTimer?.invalidate()
+//                            self.progressTimer = nil
+//                            self.progressIndicator.isHidden = true
+//                        })
                         
                         DispatchQueue.main.async(execute: { () -> Void in
                             self.tableView.reloadData()
@@ -720,20 +745,20 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     self.disableBarButtons()
                     
                     DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                        globals.progress = 0
-                        globals.finished = 0
+//                        globals.progress = 0
+//                        globals.finished = 0
                         
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            self.progressTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PROGRESS, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
-                        })
+//                        DispatchQueue.main.async(execute: { () -> Void in
+//                            self.progressTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PROGRESS, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
+//                        })
                         
                         globals.setupDisplay(globals.media.active)
                         
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            self.progressTimer?.invalidate()
-                            self.progressTimer = nil
-                            self.progressIndicator.isHidden = true
-                        })
+//                        DispatchQueue.main.async(execute: { () -> Void in
+//                            self.progressTimer?.invalidate()
+//                            self.progressTimer = nil
+//                            self.progressIndicator.isHidden = true
+//                        })
                         
                         DispatchQueue.main.async(execute: { () -> Void in
                             self.tableView.reloadData()
@@ -1410,30 +1435,30 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         }
     }
     
-    func updateProgress()
-    {
-//        print("\(Float(globals.progress))")
-//        print("\(Float(globals.finished))")
-//        print("\(Float(globals.progress) / Float(globals.finished))")
-        
-        self.progressIndicator.progress = 0
-        if (globals.finished > 0) {
-            self.progressIndicator.isHidden = !showProgress
-            self.progressIndicator.progress = Float(globals.progress) / Float(globals.finished)
-        }
-        
-        //            print("\(self.progressIndicator.progress)")
-        
-        if self.progressIndicator.progress == 1.0 {
-            self.progressTimer?.invalidate()
-            
-            self.progressIndicator.isHidden = true
-            self.progressIndicator.progress = 0
-            
-            globals.progress = 0
-            globals.finished = 0
-        }
-    }
+//    func updateProgress()
+//    {
+////        print("\(Float(globals.progress))")
+////        print("\(Float(globals.finished))")
+////        print("\(Float(globals.progress) / Float(globals.finished))")
+//        
+//        self.progressIndicator.progress = 0
+//        if (globals.finished > 0) {
+//            self.progressIndicator.isHidden = !showProgress
+//            self.progressIndicator.progress = Float(globals.progress) / Float(globals.finished)
+//        }
+//        
+//        //            print("\(self.progressIndicator.progress)")
+//        
+//        if self.progressIndicator.progress == 1.0 {
+//            self.progressTimer?.invalidate()
+//            
+//            self.progressIndicator.isHidden = true
+//            self.progressIndicator.progress = 0
+//            
+//            globals.progress = 0
+//            globals.finished = 0
+//        }
+//    }
 
     func jsonAlert(title:String,message:String)
     {
@@ -1676,12 +1701,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 
     func loadMediaItems(completion: (() -> Void)?)
     {
-        globals.progress = 0
-        globals.finished = 0
-        
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.progressTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PROGRESS, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
-        })
+//        globals.progress = 0
+//        globals.finished = 0
+//        
+//        DispatchQueue.main.async(execute: { () -> Void in
+//            self.progressTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PROGRESS, target: self, selector: #selector(MediaTableViewController.updateProgress), userInfo: nil, repeats: true)
+//        })
 
         DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
             globals.isLoading = true
@@ -1840,9 +1865,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     }
                 }
 
-                completion?()
-
                 globals.isLoading = false
+                
+                completion?()
 
                 self.setupBarButtons()
                 self.setupTagsButton()
@@ -1869,10 +1894,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func setupBarButtons()
     {
-        if globals.isLoading || globals.isRefreshing || !globals.search.complete {
+        if globals.isLoading || globals.isRefreshing { //  || !globals.search.complete
             disableBarButtons()
         } else {
-            if (globals.mediaRepository.list != nil) &&  globals.search.complete {
+            if (globals.mediaRepository.list != nil) { //  && globals.search.complete
                 enableBarButtons()
             }
         }
@@ -1925,13 +1950,13 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
         print("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
         
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.progressIndicator.isHidden = false
-            
-            print(totalBytesExpectedToWrite > 0 ? Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) : 0.0)
-            
-            self.progressIndicator.progress = totalBytesExpectedToWrite > 0 ? Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) : 0.0
-        })
+//        DispatchQueue.main.async(execute: { () -> Void in
+//            self.progressIndicator.isHidden = false
+//            
+//            print(totalBytesExpectedToWrite > 0 ? Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) : 0.0)
+//            
+//            self.progressIndicator.progress = totalBytesExpectedToWrite > 0 ? Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) : 0.0
+//        })
 
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
     }
@@ -1940,9 +1965,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     {
         print("URLSession:downloadTask:didFinishDownloadingToURL")
         
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.progressIndicator.isHidden = true
-        })
+//        DispatchQueue.main.async(execute: { () -> Void in
+//            self.progressIndicator.isHidden = true
+//        })
 
         var success = false
         
@@ -2249,6 +2274,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     }
     
     var loadingView:UIView!
+    var actInd:UIActivityIndicatorView!
 
     func stopAnimating()
     {
@@ -2256,38 +2282,34 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             return
         }
         
-        loadingView.removeFromSuperview()
+        guard actInd != nil else {
+            return
+        }
         
-        loadingView = nil
+//        print("stopAnimating")
+
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.actInd.stopAnimating()
+            self.loadingView.isHidden = true
+        })
     }
     
     func startAnimating()
     {
-        guard loadingView == nil else {
+        guard loadingView != nil else {
             return
         }
         
-        loadingView = UIView(frame: CGRect(x: 0, y: 0, width: 80, height: 80))
+        guard actInd != nil else {
+            return
+        }
         
-//        loadingView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+//        print("startAnimating")
         
-        loadingView.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
-        
-        loadingView.backgroundColor = UIColor.gray.withAlphaComponent(0.75)
-        
-        loadingView.clipsToBounds = true
-        loadingView.layer.cornerRadius = 10
-        
-        let actInd = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
-
-        actInd.frame = CGRect(x: 0, y: 0, width: 40, height: 40);
-        actInd.center = CGPoint(x: loadingView.bounds.width / 2, y: loadingView.bounds.height / 2)
-        
-        loadingView.addSubview(actInd)
-        
-        view.addSubview(loadingView)
-        
-        actInd.startAnimating()
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.loadingView.isHidden = false
+            self.actInd.startAnimating()
+        })
         
         // Doesn't work to center the loadingView, instead resetting the center in viewWillTransition
         
@@ -2302,6 +2324,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        searchBar.autocapitalizationType = .none
         
         DispatchQueue.main.async {
             NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
@@ -2445,11 +2469,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     self.tagsButton.isHidden = true
                     break
                     
-                case 1:
-                    self.tagsButton.setTitle(Constants.FA.TAG, for: UIControlState())
-                    self.tagsButton.isEnabled = true
-                    self.tagsButton.isHidden = false
-                    break
+//                case 1: // Never happens because if there is one we add the All tag.
+//                    self.tagsButton.setTitle(Constants.FA.TAG, for: UIControlState())
+//                    self.tagsButton.isEnabled = true
+//                    self.tagsButton.isHidden = false
+//                    break
                     
                 default:
                     self.tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState())
@@ -2465,7 +2489,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             if (globals.mediaRepository.list ==  nil) || globals.isLoading || globals.isRefreshing || !globals.search.complete {
                 self.tagsButton.isEnabled = false
-                self.tagsButton.isHidden = true
+                self.tagsButton.isHidden = false
             }
             
             if globals.search.lexicon {
@@ -2527,7 +2551,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             popover.showIndex = true
             popover.showSectionHeaders = true
             
-            popover.search = true
+            popover.search = popover.strings?.count > 10
             
             popover.vc = self
             
@@ -2572,15 +2596,16 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             return
         }
         
-        self.showProgress = false
+//        self.showProgress = false
         
         if globals.media.toSearch?.searches == nil {
             globals.media.toSearch?.searches = [String:MediaListGroupSort]()
         }
         
-        globals.media.toSearch?.searches?[searchText] = MediaListGroupSort(mediaItems: mediaItems)
         
-        self.showProgress = true
+        globals.media.toSearch?.searches?[globals.search.lexicon ? "lexicon:"+searchText : searchText] = MediaListGroupSort(mediaItems: mediaItems)
+        
+//        self.showProgress = true
     }
     
     func updateSearchResults(_ searchText:String?,completion: (() -> Void)?)
@@ -2597,7 +2622,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         
 //        print(searchText)
         
-        guard (globals.media.toSearch?.searches?[searchText] == nil) else {
+        guard (globals.media.toSearch?.searches?[globals.search.lexicon ? "lexicon:"+searchText : searchText] == nil) else {
             updateDisplay(searchText:searchText)
             setupListActivityIndicator()
             setupBarButtons()
@@ -2652,6 +2677,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             
             if globals.media.toSearch?.list != nil {
                 for mediaItem in globals.media.toSearch!.list! {
+                    globals.search.complete = false
+                    
                     self.setupListActivityIndicator()
                     
                     let searchHit = mediaItem.search()
@@ -2686,6 +2713,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 if !abort && globals.search.transcripts {
                     for mediaItem in globals.media.toSearch!.list! {
+                        globals.search.complete = false
+                        
                         self.setupListActivityIndicator()
                         
                         var searchHit = false
@@ -2853,11 +2882,13 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
             }
             
-            if globals.search.lexicon {
-                self.lexiconLabel.text = "Lexicon Mode"
-            } else {
-                self.lexiconLabel.text = nil
-            }
+            self.lexiconButton.isEnabled = globals.search.lexicon
+
+//            if globals.search.lexicon {
+//                self.lexiconLabel.text = "Lexicon Mode"
+//            } else {
+//                self.lexiconLabel.text = nil
+//            }
         })
     }
     
@@ -2953,6 +2984,28 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
+        if loadingView == nil {
+            loadingView = UIView(frame: CGRect(x: 0, y: 0, width: 80, height: 80))
+            
+            //        loadingView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+            
+            loadingView.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
+            
+            loadingView.backgroundColor = UIColor.gray.withAlphaComponent(0.75)
+            
+            loadingView.clipsToBounds = true
+            loadingView.layer.cornerRadius = 10
+            
+            actInd = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
+            
+            actInd.frame = CGRect(x: 0, y: 0, width: 40, height: 40);
+            actInd.center = CGPoint(x: loadingView.bounds.width / 2, y: loadingView.bounds.height / 2)
+            
+            loadingView.addSubview(actInd)
+            
+            view.addSubview(loadingView)
+        }
+
         //Do we want to do this?  If someone has selected something farther down the list to view, not play, when they come back
         //the list will scroll to whatever is playing or paused.
         
@@ -3632,7 +3685,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     
     func tableView(_ tableView: UITableView, canEditRowAtIndexPath indexPath: IndexPath) -> Bool
     {
-        return globals.search.complete
+        return true // globals.search.complete
     }
     
     /*

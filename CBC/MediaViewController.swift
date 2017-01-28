@@ -102,6 +102,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     }
     
     var observerActive = false
+    var observedItem:AVPlayerItem?
 
     private var PlayerContext = 0
     
@@ -302,6 +303,15 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     func removePlayerObserver()
     {
         if observerActive {
+            if observedItem != player?.currentItem {
+                print("WRONG CURRENT ITEM!")
+            }
+            if observedItem == nil {
+                print("CURRENT ITEM NIL!")
+            }
+            
+            print("MVC removeObserver: ",player?.currentItem?.observationInfo)
+            
             player?.currentItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: &PlayerContext)
             observerActive = false
         }
@@ -314,6 +324,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                                          options: [.old, .new],
                                          context: &PlayerContext)
         observerActive = true
+        observedItem = player?.currentItem
     }
     
     func playerURL(url: URL?)
@@ -420,6 +431,9 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     @IBAction func audioOrVideoSelection(sender: UISegmentedControl)
     {
 //        print(selectedMediaItem!.playing!)
+        guard Thread.isMainThread else {
+            return
+        }
         
         switch sender.selectedSegmentIndex {
         case Constants.AV_SEGMENT_INDEX.AUDIO:
@@ -433,7 +447,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     globals.mediaPlayer.stop() // IfPlaying
                     
                     globals.mediaPlayer.view?.isHidden = true
-
+                    
                     setupSpinner()
                     
                     removeSliderObserver()
@@ -441,12 +455,12 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     setupPlayPauseButton()
                     setupSliderAndTimes()
                 }
-
+                
                 selectedMediaItem?.playing = Playing.audio // Must come before setupNoteAndSlides()
                 
                 playerURL(url: selectedMediaItem?.playingURL)
                 setupSliderAndTimes()
-
+                
                 // If video was playing we need to show slides or transcript and adjust the STV control to hide the video segment and show the other(s).
                 setupDocumentsAndVideo() // Calls setupSTVControl()
                 break
@@ -469,7 +483,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                     setupPlayPauseButton()
                     setupSliderAndTimes()
                 }
-
+                
                 selectedMediaItem?.playing = Playing.video // Must come before setupNoteAndSlides()
                 
                 playerURL(url: selectedMediaItem?.playingURL)
@@ -499,6 +513,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     @IBOutlet weak var stvWidthConstraint: NSLayoutConstraint!
     @IBAction func stvAction(_ sender: UISegmentedControl)
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         // This assumes this action isn't called unless an unselected segment is changed.  Otherwise touching the selected segment would cause it to flip to itself.
         
         var fromView:UIView?
@@ -625,81 +643,87 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 
     func setupSTVControl()
     {
-        if (selectedMediaItem != nil) {
-            stvControl.removeAllSegments()
-            
-            var index = 0
-            var slidesIndex = 0
-            var notesIndex = 0
-            var videoIndex = 0
+        guard Thread.isMainThread else {
+            return
+        }
 
-            let attr = [NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.ICONS_FONT_SIZE)!]
-            stvControl.setTitleTextAttributes(attr, for: UIControlState())
-            
-            // This order: Transcript (aka Notes), Slides, Video matches the CBC web site.
-            
-            if (selectedMediaItem!.hasNotes) {
-                stvControl.insertSegment(withTitle: Constants.STV_SEGMENT_TITLE.TRANSCRIPT, at: index, animated: false)
-                notesIndex = index
-                index += 1
-            }
-            if (selectedMediaItem!.hasSlides) {
-                stvControl.insertSegment(withTitle: Constants.STV_SEGMENT_TITLE.SLIDES, at: index, animated: false)
-                slidesIndex = index
-                index += 1
-            }
-            if (selectedMediaItem!.hasVideo && (globals.mediaPlayer.mediaItem == selectedMediaItem) && (selectedMediaItem?.playing == Playing.video)) { //  && !globals.mediaPlayer.loadFailed
-                stvControl.insertSegment(withTitle: Constants.STV_SEGMENT_TITLE.VIDEO, at: index, animated: false)
-                videoIndex = index
-                index += 1
-            }
-            
-            stvWidthConstraint.constant = Constants.MIN_STV_SEGMENT_WIDTH * CGFloat(index)
-            view.setNeedsLayout()
-
-            switch selectedMediaItem!.showing! {
-            case Showing.slides:
-                stvControl.selectedSegmentIndex = slidesIndex
-                mediaItemNotesAndSlides?.gestureRecognizers = nil
-                break
-                
-            case Showing.notes:
-                stvControl.selectedSegmentIndex = notesIndex
-                mediaItemNotesAndSlides?.gestureRecognizers = nil
-                break
-                
-            case Showing.video:
-                stvControl.selectedSegmentIndex = videoIndex
-                mediaItemNotesAndSlides?.gestureRecognizers = nil
-                let pan = UIPanGestureRecognizer(target: self, action: #selector(MediaViewController.showHideSlider(_:)))
-                mediaItemNotesAndSlides?.addGestureRecognizer(pan)
-                break
-                
-            case Showing.none:
-                fallthrough
-                
-            default:
-                break
-            }
-
-            if (stvControl.numberOfSegments < 2) {
-                stvControl.isEnabled = false
-                stvControl.isHidden = true
-                stvWidthConstraint.constant = 0
-                view.setNeedsLayout()
-            } else {
-                stvControl.isEnabled = true
-                stvControl.isHidden = false
-            }
-        } else {
+        guard (selectedMediaItem != nil) else {
             stvControl.isEnabled = false
             stvControl.isHidden = true
             stvWidthConstraint.constant = 0
             view.setNeedsLayout()
+            return
+        }
+        
+        stvControl.removeAllSegments()
+        
+        var index = 0
+        var slidesIndex = 0
+        var notesIndex = 0
+        var videoIndex = 0
+
+        let attr = [NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.ICONS_FONT_SIZE)!]
+        stvControl.setTitleTextAttributes(attr, for: UIControlState())
+        
+        // This order: Transcript (aka Notes), Slides, Video matches the CBC web site.
+        
+        if (selectedMediaItem!.hasNotes) {
+            stvControl.insertSegment(withTitle: Constants.STV_SEGMENT_TITLE.TRANSCRIPT, at: index, animated: false)
+            notesIndex = index
+            index += 1
+        }
+        if (selectedMediaItem!.hasSlides) {
+            stvControl.insertSegment(withTitle: Constants.STV_SEGMENT_TITLE.SLIDES, at: index, animated: false)
+            slidesIndex = index
+            index += 1
+        }
+        if (selectedMediaItem!.hasVideo && (globals.mediaPlayer.mediaItem == selectedMediaItem) && (selectedMediaItem?.playing == Playing.video)) { //  && !globals.mediaPlayer.loadFailed
+            stvControl.insertSegment(withTitle: Constants.STV_SEGMENT_TITLE.VIDEO, at: index, animated: false)
+            videoIndex = index
+            index += 1
+        }
+        
+        stvWidthConstraint.constant = Constants.MIN_STV_SEGMENT_WIDTH * CGFloat(index)
+        view.setNeedsLayout()
+
+        switch selectedMediaItem!.showing! {
+        case Showing.slides:
+            stvControl.selectedSegmentIndex = slidesIndex
+            mediaItemNotesAndSlides?.gestureRecognizers = nil
+            break
+            
+        case Showing.notes:
+            stvControl.selectedSegmentIndex = notesIndex
+            mediaItemNotesAndSlides?.gestureRecognizers = nil
+            break
+            
+        case Showing.video:
+            stvControl.selectedSegmentIndex = videoIndex
+            mediaItemNotesAndSlides?.gestureRecognizers = nil
+            let pan = UIPanGestureRecognizer(target: self, action: #selector(MediaViewController.showHideSlider(_:)))
+            mediaItemNotesAndSlides?.addGestureRecognizer(pan)
+            break
+            
+        case Showing.none:
+            fallthrough
+            
+        default:
+            break
+        }
+
+        if (stvControl.numberOfSegments < 2) {
+            stvControl.isEnabled = false
+            stvControl.isHidden = true
+            stvWidthConstraint.constant = 0
+            view.setNeedsLayout()
+        } else {
+            stvControl.isEnabled = true
+            stvControl.isHidden = false
         }
     }
 
-    @IBAction func playPause(_ sender: UIButton) {
+    @IBAction func playPause(_ sender: UIButton)
+    {
         if (globals.mediaPlayer.state != nil) && (globals.mediaPlayer.mediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) {
             switch globals.mediaPlayer.state! {
             case .none:
@@ -2062,6 +2086,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     fileprivate func setupDocumentsAndVideo()
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         activityIndicator.isHidden = true
 
         progressIndicator.isHidden = true
@@ -2283,35 +2311,57 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     func setupPlayPauseButton()
     {
-        if (selectedMediaItem != nil) {
-            if (selectedMediaItem == globals.mediaPlayer.mediaItem) && (globals.mediaPlayer.state != nil) {
-                playPauseButton.isEnabled = globals.mediaPlayer.loaded || globals.mediaPlayer.loadFailed
-                
-                switch globals.mediaPlayer.state! {
-                case .playing:
-//                    print("Pause")
-                    playPauseButton.setTitle(Constants.FA.PAUSE, for: UIControlState())
-                    break
-                    
-                case .paused:
-//                    print("Play")
-                    playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState())
-                    break
-                    
-                default:
-                    break
-                }
-            } else {
-//                print("Play2")
-                playPauseButton.isEnabled = true
-                playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState())
-            }
-
-            playPauseButton.isHidden = false
-        } else {
+        guard Thread.isMainThread else {
+            return
+        }
+        
+        guard (selectedMediaItem != nil) else  {
             playPauseButton.isEnabled = false
             playPauseButton.isHidden = true
+            return
         }
+
+        if (selectedMediaItem == globals.mediaPlayer.mediaItem) && (globals.mediaPlayer.state != nil) {
+            playPauseButton.isEnabled = globals.mediaPlayer.loaded || globals.mediaPlayer.loadFailed
+            
+            switch globals.mediaPlayer.state! {
+            case .playing:
+                if (globals.mediaPlayer.rate == 0) {
+                    globals.mediaPlayer.pause() // IfPlaying
+                }
+                break
+                
+            case .paused:
+                if (globals.mediaPlayer.rate > 0) {
+                    globals.mediaPlayer.play() // IfPlaying
+                }
+                break
+                
+            default:
+                break
+            }
+            
+            switch globals.mediaPlayer.state! {
+            case .playing:
+//                    print("Pause")
+                playPauseButton.setTitle(Constants.FA.PAUSE, for: UIControlState())
+                break
+                
+            case .paused:
+//                    print("Play")
+                playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState())
+                break
+                
+            default:
+                break
+            }
+        } else {
+//                print("Play2")
+            playPauseButton.isEnabled = true
+            playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState())
+        }
+
+        playPauseButton.isHidden = false
     }
     
     // Specifically for Plus size iPhones.
@@ -3123,110 +3173,134 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         }
     }
     
-    fileprivate func setupSliderAndTimes() {
-        if (selectedMediaItem != nil) {
-            if (globals.mediaPlayer.state != .stopped) && (globals.mediaPlayer.mediaItem == selectedMediaItem) {
-                if !globals.mediaPlayer.loadFailed {
-                    setSliderAndTimesToAudio()
+    fileprivate func setupSliderAndTimes()
+    {
+        guard Thread.isMainThread else {
+            return
+        }
+        
+        guard (selectedMediaItem != nil) else {
+            elapsed.isHidden = true
+            remaining.isHidden = true
+            slider.isHidden = true
+            return
+        }
+        
+        if (globals.mediaPlayer.state != .stopped) && (globals.mediaPlayer.mediaItem == selectedMediaItem) {
+            if !globals.mediaPlayer.loadFailed {
+                setSliderAndTimesToAudio()
+            } else {
+                elapsed.isHidden = true
+                remaining.isHidden = true
+                slider.isHidden = true
+            }
+        } else {
+            if (player?.currentItem?.status == .readyToPlay) {
+                if let length = player?.currentItem?.duration.seconds {
+                    let timeNow = Double(selectedMediaItem!.currentTime!)!
+                    let progress = timeNow / length
+                    
+                    //                        print("timeNow",timeNow)
+                    //                        print("progress",progress)
+                    //                        print("length",length)
+                    
+                    slider.value = Float(progress)
+                    setTimes(timeNow: timeNow,length: length)
+                    
+                    elapsed.isHidden = false
+                    remaining.isHidden = false
+                    slider.isHidden = false
+                    slider.isEnabled = false
                 } else {
                     elapsed.isHidden = true
                     remaining.isHidden = true
                     slider.isHidden = true
                 }
             } else {
-                if (player?.currentItem?.status == .readyToPlay) {
-                    if let length = player?.currentItem?.duration.seconds {
-                        let timeNow = Double(selectedMediaItem!.currentTime!)!
-                        let progress = timeNow / length
-                        
-                        //                        print("timeNow",timeNow)
-                        //                        print("progress",progress)
-                        //                        print("length",length)
-                        
-                        slider.value = Float(progress)
-                        setTimes(timeNow: timeNow,length: length)
-                        
-                        elapsed.isHidden = false
-                        remaining.isHidden = false
-                        slider.isHidden = false
-                        slider.isEnabled = false
-                    } else {
-                        elapsed.isHidden = true
-                        remaining.isHidden = true
-                        slider.isHidden = true
-                    }
-                } else {
-                    elapsed.isHidden = true
-                    remaining.isHidden = true
-                    slider.isHidden = true
-                }
+                elapsed.isHidden = true
+                remaining.isHidden = true
+                slider.isHidden = true
             }
-        } else {
-            elapsed.isHidden = true
-            remaining.isHidden = true
-            slider.isHidden = true
         }
     }
 
     func sliderTimer()
     {
-        if (selectedMediaItem != nil) && (selectedMediaItem == globals.mediaPlayer.mediaItem) {
-            slider.isEnabled = globals.mediaPlayer.loaded
-            setupPlayPauseButton()
+        guard Thread.isMainThread else {
+            return
+        }
+        
+        guard (selectedMediaItem != nil) else {
+            return
+        }
+    
+        guard (selectedMediaItem == globals.mediaPlayer.mediaItem) else {
+            return
+        }
+        
+        slider.isEnabled = globals.mediaPlayer.loaded
+        setupPlayPauseButton()
+        setupSpinner()
+        
+        switch globals.mediaPlayer.state! {
+        case .none:
+//                print("none")
+            break
+            
+        case .playing:
+//                print("playing")
+            
             setupSpinner()
             
-            switch globals.mediaPlayer.state! {
-            case .none:
-//                print("none")
-                break
-                
-            case .playing:
-//                print("playing")
+            if globals.mediaPlayer.loaded {
                 setSliderAndTimesToAudio()
                 
-                if (selectedMediaItem != nil) && (selectedMediaItem == globals.mediaPlayer.mediaItem) {
-                    setupSpinner()
-
-                    if globals.mediaPlayer.loaded && (globals.mediaPlayer.rate == 0) {
-                        globals.mediaPlayer.pause() // IfPlaying
-                        setupPlayPauseButton()
-                        
-                        if globals.mediaPlayer.mediaItem?.playing == Playing.video,
-                            let currentTime = globals.mediaPlayer.mediaItem?.currentTime,
-                            let time = Double(currentTime) {
-                            let newCurrentTime = (time - Constants.BACK_UP_TIME) < 0 ? 0 : time - Constants.BACK_UP_TIME
-                            globals.mediaPlayer.mediaItem?.currentTime = (Double(newCurrentTime) - 1).description
-                            globals.mediaPlayer.seek(to: newCurrentTime)
-                        }
-                    }
+                if (globals.mediaPlayer.rate == 0) {
+                    globals.mediaPlayer.pause() // IfPlaying
+                    setupPlayPauseButton()
+                    
+//                    if globals.mediaPlayer.mediaItem?.playing == Playing.video,
+//                        let currentTime = globals.mediaPlayer.mediaItem?.currentTime,
+//                        let time = Double(currentTime) {
+//                        let newCurrentTime = (time - Constants.BACK_UP_TIME) < 0 ? 0 : time - Constants.BACK_UP_TIME
+//                        globals.mediaPlayer.mediaItem?.currentTime = (Double(newCurrentTime) - 1).description
+//                        globals.mediaPlayer.seek(to: newCurrentTime)
+//                    }
                 }
-                break
-                
-            case .paused:
-//                print("paused")
-                
-                if globals.mediaPlayer.loaded {
-                    setSliderAndTimesToAudio()
-                }
-                
-                setupSpinner()
-                break
-                
-            case .stopped:
-//                print("stopped")
-                break
-                
-            case .seekingForward:
-//                print("seekingForward")
-                setupSpinner()
-                break
-                
-            case .seekingBackward:
-//                print("seekingBackward")
-                setupSpinner()
-                break
             }
+            break
             
+        case .paused:
+//                print("paused")
+            
+            setupSpinner()
+            
+            if globals.mediaPlayer.loaded {
+                if (globals.mediaPlayer.rate > 0) {
+//                    globals.mediaPlayer.updateCurrentTimeExact()
+                    globals.mediaPlayer.play() // IfPlaying
+                    setupPlayPauseButton()
+                }
+
+                setSliderAndTimesToAudio()
+            }
+            break
+            
+        case .stopped:
+//                print("stopped")
+            break
+            
+        case .seekingForward:
+//                print("seekingForward")
+            setupSpinner()
+            break
+            
+        case .seekingBackward:
+//                print("seekingBackward")
+            setupSpinner()
+            break
+        }
+        
 //            if (globals.mediaPlayer.player != nil) {
 //                switch globals.mediaPlayer.player!.playbackState {
 //                case .Interrupted:
@@ -3254,7 +3328,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //                    break
 //                }
 //            }
-        }
     }
     
     func removeSliderObserver()
@@ -3377,50 +3450,63 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     
     func setupSpinner()
     {
-        if (selectedMediaItem != nil) && (selectedMediaItem == globals.mediaPlayer.mediaItem) {
-            if !globals.mediaPlayer.loaded && !globals.mediaPlayer.loadFailed {
-                if !spinner.isAnimating {
-                    spinner.isHidden = false
-                    spinner.startAnimating()
-                }
-            } else {
-                if globals.mediaPlayer.isPlaying {
-                    switch globals.mediaPlayer.mediaItem!.playing! {
-                    case Playing.audio:
-                        if (globals.mediaPlayer.currentTime!.seconds > Double(globals.mediaPlayer.mediaItem!.currentTime!)!) {
-                            if spinner.isAnimating {
-                                spinner.isHidden = true
-                                spinner.stopAnimating()
-                            }
-                        } else {
-                            if !spinner.isAnimating {
-                                spinner.isHidden = false
-                                spinner.startAnimating()
-                            }
-                        }
-                        break
-                        
-                    case Playing.video:
+        guard Thread.isMainThread else {
+            return
+        }
+        
+        guard (selectedMediaItem != nil) else {
+            if spinner.isAnimating {
+                spinner.stopAnimating()
+                spinner.isHidden = true
+            }
+            return
+        }
+        
+        guard (selectedMediaItem == globals.mediaPlayer.mediaItem) else {
+            if spinner.isAnimating {
+                spinner.stopAnimating()
+                spinner.isHidden = true
+            }
+            return
+        }
+        
+        if !globals.mediaPlayer.loaded && !globals.mediaPlayer.loadFailed {
+            if !spinner.isAnimating {
+                spinner.isHidden = false
+                spinner.startAnimating()
+            }
+        } else {
+            if globals.mediaPlayer.isPlaying {
+                switch globals.mediaPlayer.mediaItem!.playing! {
+                case Playing.audio:
+                    if (globals.mediaPlayer.currentTime!.seconds > Double(globals.mediaPlayer.mediaItem!.currentTime!)!) {
                         if spinner.isAnimating {
                             spinner.isHidden = true
                             spinner.stopAnimating()
                         }
-                        break
-                        
-                    default:
-                        break
+                    } else {
+                        if !spinner.isAnimating {
+                            spinner.isHidden = false
+                            spinner.startAnimating()
+                        }
                     }
-                } else {
+                    break
+                    
+                case Playing.video:
                     if spinner.isAnimating {
                         spinner.isHidden = true
                         spinner.stopAnimating()
                     }
+                    break
+                    
+                default:
+                    break
                 }
-            }
-        } else {
-            if spinner.isAnimating {
-                spinner.stopAnimating()
-                spinner.isHidden = true
+            } else {
+                if spinner.isAnimating {
+                    spinner.isHidden = true
+                    spinner.stopAnimating()
+                }
             }
         }
     }

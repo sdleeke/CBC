@@ -43,7 +43,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VOM-jg-qMI" userLabel="Category Button">
-                                <rect key="frame" x="145.5" y="0.0" width="30" height="34"/>
+                                <rect key="frame" x="145" y="0.0" width="30" height="34"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="18"/>
                                 <connections>
                                     <action selector="mediaCategoryButtonAction:" destination="aFI-YW-IUs" eventType="touchUpInside" id="zZ9-SA-ehY"/>
@@ -68,6 +68,14 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="V9R-6d-CCj" userLabel="Lexicon Button">
+                                <rect key="frame" x="137" y="337" width="46" height="30"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <state key="normal" title="Lexicon"/>
+                                <connections>
+                                    <action selector="lexiconButtonAction:" destination="aFI-YW-IUs" eventType="touchUpInside" id="9Ac-Z2-YuT"/>
+                                </connections>
+                            </button>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="VIx-eq-98g">
                                 <rect key="frame" x="0.0" y="83" width="320" height="621"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -76,7 +84,7 @@
                                         <rect key="frame" x="0.0" y="22" width="320" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="a5x-WU-NNC" id="A01-fJ-FMH">
-                                            <rect key="frame" x="0.0" y="0.0" width="320" height="99.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="99"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="749" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Xkb-5P-JA1">
@@ -190,7 +198,7 @@
                                 </connections>
                             </tableView>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="UJe-f8-3w6" userLabel="List Activity Indicator">
-                                <rect key="frame" x="150.5" y="342.5" width="20" height="20"/>
+                                <rect key="frame" x="150" y="342" width="20" height="20"/>
                             </activityIndicatorView>
                             <searchBar contentMode="redraw" translatesAutoresizingMaskIntoConstraints="NO" id="Hkg-p6-JKj">
                                 <rect key="frame" x="0.0" y="40" width="320" height="44"/>
@@ -224,12 +232,14 @@
                             <constraint firstItem="VIx-eq-98g" firstAttribute="top" secondItem="TA6-b3-HPP" secondAttribute="bottom" id="Gmd-mz-JWI"/>
                             <constraint firstItem="5VA-jO-Uu5" firstAttribute="bottom" secondItem="UID-2k-GxM" secondAttribute="top" id="HAD-9c-V2h"/>
                             <constraint firstItem="JeO-c3-71m" firstAttribute="centerX" secondItem="UJe-f8-3w6" secondAttribute="centerX" id="KbV-gK-5LN"/>
+                            <constraint firstItem="V9R-6d-CCj" firstAttribute="leading" secondItem="xKW-tv-3Qi" secondAttribute="leading" id="Kra-Af-LSQ"/>
                             <constraint firstAttribute="trailing" secondItem="VIx-eq-98g" secondAttribute="trailing" id="KxI-ow-z9l"/>
                             <constraint firstItem="KAY-ks-SIC" firstAttribute="top" secondItem="VIx-eq-98g" secondAttribute="bottom" id="PhN-wb-2kh"/>
                             <constraint firstItem="xKW-tv-3Qi" firstAttribute="baseline" secondItem="VOM-jg-qMI" secondAttribute="baseline" id="TF0-FC-EXw"/>
                             <constraint firstItem="JeO-c3-71m" firstAttribute="centerY" secondItem="UJe-f8-3w6" secondAttribute="centerY" id="aa8-gz-0cf"/>
                             <constraint firstItem="VIx-eq-98g" firstAttribute="top" secondItem="Hkg-p6-JKj" secondAttribute="bottom" constant="-1" id="bJR-j0-5RM"/>
                             <constraint firstItem="VOM-jg-qMI" firstAttribute="top" secondItem="TA6-b3-HPP" secondAttribute="bottom" id="iWt-ph-VH8"/>
+                            <constraint firstItem="V9R-6d-CCj" firstAttribute="baseline" secondItem="xKW-tv-3Qi" secondAttribute="baseline" id="lOz-RE-Z9G"/>
                             <constraint firstItem="UJe-f8-3w6" firstAttribute="centerX" secondItem="NpF-M6-DhB" secondAttribute="centerX" id="mbj-e0-qKg"/>
                             <constraint firstAttribute="trailing" secondItem="Hkg-p6-JKj" secondAttribute="trailing" id="oWE-FM-apC"/>
                             <constraint firstItem="VOM-jg-qMI" firstAttribute="centerY" secondItem="NpF-M6-DhB" secondAttribute="centerYWithinMargins" id="p5n-Wy-tV7"/>
@@ -254,10 +264,9 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="lexiconButton" destination="V9R-6d-CCj" id="WzG-ZL-ddJ"/>
                         <outlet property="lexiconLabel" destination="xKW-tv-3Qi" id="7wf-Pe-DVW"/>
-                        <outlet property="listActivityIndicator" destination="UJe-f8-3w6" id="hX9-uT-0Ms"/>
                         <outlet property="mediaCategoryButton" destination="VOM-jg-qMI" id="L1B-ex-pJd"/>
-                        <outlet property="progressIndicator" destination="JeO-c3-71m" id="tMU-CT-Hb1"/>
                         <outlet property="searchBar" destination="Hkg-p6-JKj" id="BUC-kc-bu8"/>
                         <outlet property="showButton" destination="VA6-vQ-Zs4" id="qlw-rw-8CU"/>
                         <outlet property="tableView" destination="VIx-eq-98g" id="E7U-PX-3tl"/>
@@ -285,7 +294,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="i5a-B7-7oc" userLabel="ViewSplit" customClass="ViewSplit" customModule="CBC" customModuleProvider="target">
-                                <rect key="frame" x="679" y="0.0" width="24" height="769"/>
+                                <rect key="frame" x="678.5" y="0.0" width="24" height="769"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <gestureRecognizers/>
                                 <constraints>
@@ -296,7 +305,7 @@
                                 </connections>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Bq5-HS-Wzs" userLabel="Control View" customClass="ControlView" customModule="CBC" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="468" width="703" height="46"/>
+                                <rect key="frame" x="0.0" y="468" width="702.5" height="46"/>
                                 <subviews>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="oDn-Ci-DOw">
                                         <rect key="frame" x="8" y="9" width="50" height="29"/>
@@ -332,7 +341,7 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="Pkj-Y2-Qqf" customClass="OBSlider" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="139" y="8" width="432" height="31"/>
+                                        <rect key="frame" x="139" y="8" width="431.5" height="31"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="50" id="3Ko-1C-1yT"/>
@@ -348,7 +357,7 @@
                                         <rect key="frame" x="345.5" y="13" width="20" height="20"/>
                                     </activityIndicatorView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="00:00" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="S9f-5O-zMH" userLabel="Time Remaining">
-                                        <rect key="frame" x="577" y="15" width="39" height="17"/>
+                                        <rect key="frame" x="576.5" y="15" width="39" height="17"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="lessThanOrEqual" constant="50" id="czM-83-Oku"/>
@@ -358,7 +367,7 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="3yY-29-aOM">
-                                        <rect key="frame" x="624" y="9" width="71" height="29"/>
+                                        <rect key="frame" x="623.5" y="9" width="71" height="29"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="lessThanOrEqual" constant="75" id="fQF-aT-Yg1"/>
                                         </constraints>
@@ -399,7 +408,7 @@
                                 </variation>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="sSN-Ac-J4R" userLabel="Notes and slides">
-                                <rect key="frame" x="0.0" y="64" width="679" height="404"/>
+                                <rect key="frame" x="0.0" y="64" width="678.5" height="404"/>
                                 <subviews>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="Ay8-yt-A6W">
                                         <rect key="frame" x="200.5" y="166" width="279" height="72"/>
@@ -434,14 +443,14 @@
                                 </constraints>
                             </view>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="1" sectionFooterHeight="1" translatesAutoresizingMaskIntoConstraints="NO" id="91J-fh-SJo">
-                                <rect key="frame" x="0.0" y="514" width="703" height="254"/>
+                                <rect key="frame" x="0.0" y="514" width="702.5" height="254"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="MultiPartMediaItem" id="pos-sk-GNz" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="1" width="702.5" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="pos-sk-GNz" id="fzr-9D-Qsi">
-                                            <rect key="frame" x="0.0" y="0.0" width="703" height="99.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="702.5" height="99"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="749" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Spt-3A-E9i">
@@ -973,11 +982,11 @@ Web site: www.countrysidebible.org</string>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="z2d-eT-0hV" userLabel="Web View">
-                                <rect key="frame" x="0.0" y="0.0" width="703" height="671"/>
+                                <rect key="frame" x="0.0" y="0.0" width="702.5" height="671"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </view>
                             <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="Countryside broadcasts live on Sundays at 9:30 am, 11:05 am, and 6:00 pm." textAlignment="center" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jso-Nw-Fui">
-                                <rect key="frame" x="0.0" y="671" width="703" height="33"/>
+                                <rect key="frame" x="0.0" y="671" width="702.5" height="33"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="lessThanOrEqual" constant="60" id="0NZ-dK-ch7"/>
@@ -1037,7 +1046,7 @@ Web site: www.countrysidebible.org</string>
                 <navigationController storyboardIdentifier="Show MediaItem NavCon" automaticallyAdjustsScrollViewInsets="NO" id="oQN-d3-XYK" userLabel="Series NavBar" sceneMemberID="viewController">
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="Q0j-il-YcR">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="Q0j-il-YcR">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1056,7 +1065,7 @@ Web site: www.countrysidebible.org</string>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="BMJ-Z1-LlI" userLabel="About NavBar" sceneMemberID="viewController">
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="RNv-hO-i4N">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="RNv-hO-i4N">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1101,7 +1110,7 @@ Web site: www.countrysidebible.org</string>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1ps-Wb-dVz" userLabel="WebView">
-                                <rect key="frame" x="0.0" y="0.0" width="703" height="704"/>
+                                <rect key="frame" x="0.0" y="0.0" width="702.5" height="704"/>
                                 <subviews>
                                     <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="ti8-5g-rcB">
                                         <rect key="frame" x="342" y="342" width="20" height="20"/>
@@ -1161,7 +1170,7 @@ Web site: www.countrysidebible.org</string>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="HZ4-Wg-0bg" userLabel="About 2 NavBar" sceneMemberID="viewController">
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="gez-mL-Sw6">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="gez-mL-Sw6">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1454,7 +1463,7 @@ Web site: www.countrysidebible.org</string>
                                         <rect key="frame" x="0.0" y="1" width="600" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="O5D-zW-cLl" id="t9J-qH-ixG">
-                                            <rect key="frame" x="0.0" y="0.0" width="600" height="100"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="600" height="99"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="749" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qyy-zD-jgt">
@@ -1685,7 +1694,7 @@ Web site: www.countrysidebible.org</string>
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
                     <navigationItem key="navigationItem" id="4uc-8a-zXE"/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="Gvh-Gc-vL7">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="Gvh-Gc-vL7">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1704,7 +1713,7 @@ Web site: www.countrysidebible.org</string>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="pf8-KW-lh5" userLabel="Live NavBar" sceneMemberID="viewController">
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="OfT-c7-OZU">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="OfT-c7-OZU">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1767,7 +1776,7 @@ Web site: www.countrysidebible.org</string>
                 <navigationController storyboardIdentifier="String Picker" automaticallyAdjustsScrollViewInsets="NO" id="icr-bO-25n" userLabel="Popover Picker NavBar" sceneMemberID="viewController">
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="5DQ-Us-xdI">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="5DQ-Us-xdI">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1786,7 +1795,7 @@ Web site: www.countrysidebible.org</string>
                 <navigationController storyboardIdentifier="PopoverTableView" automaticallyAdjustsScrollViewInsets="NO" id="yT6-xg-1Zh" userLabel="Popover TVC NavBar" sceneMemberID="viewController">
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="aCW-cS-M3H">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="aCW-cS-M3H">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1873,7 +1882,7 @@ Web site: www.countrysidebible.org</string>
                 <navigationController storyboardIdentifier="Web View" automaticallyAdjustsScrollViewInsets="NO" id="wJk-md-wo6" userLabel="WebView NavBar" sceneMemberID="viewController">
                     <extendedEdge key="edgesForExtendedLayout"/>
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="Fw4-67-qAB">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="Fw4-67-qAB">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1895,7 +1904,7 @@ Web site: www.countrysidebible.org</string>
                     <value key="contentSizeForViewInPopover" type="size" width="250" height="475"/>
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
                     <size key="freeformSize" width="250" height="475"/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="4zB-LF-JlQ">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="4zB-LF-JlQ">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1981,7 +1990,7 @@ Web site: www.countrysidebible.org</string>
             <objects>
                 <navigationController storyboardIdentifier="Scripture View" automaticallyAdjustsScrollViewInsets="NO" id="Hnh-OZ-gjc" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="DTQ-fe-ZBa">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="DTQ-fe-ZBa">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>

@@ -193,7 +193,17 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     var indexStrings:[String]?
     
     var strings:[String]?
-    var section = Section()
+    var _section = Section()
+    
+    var section:Section! {
+        get {
+            if let section = mediaListGroupSort?.lexicon?.section {
+                return section
+            } else {
+                return _section
+            }
+        }
+    }
     
     var filteredStrings:[String]?
     var filteredSection = Section()
@@ -277,7 +287,11 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             
             //            print(string,maxHeight.height) // baseHeight
             
-            height += 2*8 + maxHeight.height // - baseHeight
+            if tableView.rowHeight != -1 {
+                height += tableView.rowHeight
+            } else {
+                height += 2*8 + maxHeight.height // - baseHeight
+            }
             
             //            print(maxHeight.height, (Int(maxHeight.height) / 16) - 1)
             //            height += CGFloat(((Int(maxHeight.height) / 16) - 1) * 16)
@@ -470,23 +484,25 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                 }
             })
             
-            var strings = [String]()
+            self.strings = mediaListGroupSort?.lexicon?.section.strings 
             
-            if let words = self.mediaListGroupSort?.lexicon?.words?.keys.sorted() {
-                for word in words {
-                    if let count = self.mediaListGroupSort?.lexicon?.words?[word]?.count {
-                        strings.append("\(word) (\(count))")
-                    }
-                }
-            }
-            
-            self.strings = strings.count > 0 ? strings.sorted() { $0.uppercased() < $1.uppercased() } : nil
-            
-            self.indexStrings = self.strings?.map({ (string:String) -> String in
-                return string.uppercased()
-            })
-            
-            self.section.build(self.indexStrings)
+//            var strings = [String]()
+//            
+//            if let words = self.mediaListGroupSort?.lexicon?.words?.keys.sorted() {
+//                for word in words {
+//                    if let count = self.mediaListGroupSort?.lexicon?.words?[word]?.count {
+//                        strings.append("\(word) (\(count))")
+//                    }
+//                }
+//            }
+//            
+//            self.strings = strings.count > 0 ? strings.sorted() { $0.uppercased() < $1.uppercased() } : nil
+//            
+//            self.indexStrings = self.strings?.map({ (string:String) -> String in
+//                return string.uppercased()
+//            })
+//            
+//            self.section.build(self.indexStrings)
             
             //                if let strings = self.strings {
             //                    let array = Array(Set(strings))
@@ -662,29 +678,8 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                 self.activityIndicator?.isHidden = false
             })
             
-            var strings = [String]()
-            
-            if let words = self.mediaListGroupSort?.lexicon?.words?.keys.sorted() {
-                for word in words {
-                    if let count = self.mediaListGroupSort?.lexicon?.words?[word]?.count {
-                        strings.append("\(word) (\(count))")
-                    }
-                }
-            }
-            
-            self.strings = strings.count > 0 ? strings.sorted() { $0.uppercased() < $1.uppercased() } : nil
+            self.strings = self.mediaListGroupSort?.lexicon?.section.strings
 
-            self.indexStrings = self.strings?.map({ (string:String) -> String in
-                return string.uppercased()
-            })
-            
-//            if let strings = self.strings {
-//                let array = Array(Set(strings))
-//                
-//            }
-            
-            self.section.build(self.indexStrings)
-            
             if let active = self.searchController?.isActive, active {
                 if let filteredStrings = self.strings?.filter({ (string:String) -> Bool in
                     if let text = self.searchController?.searchBar.text {
@@ -733,7 +728,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
 //                self.navigationItem.title = "Lexicon Complete"
 
                 self.tableView.reloadData()
-                self.setPreferredContentSize()
+//                self.setPreferredContentSize()
 
                 self.activityIndicator?.stopAnimating()
                 self.activityIndicator?.isHidden = true
@@ -823,13 +818,25 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
             if (mediaListGroupSort?.lexicon?.words == nil) {
                 mediaListGroupSort?.lexicon?.build()
             } else {
-                if let creating = mediaListGroupSort!.lexicon?.creating, creating {
-                    DispatchQueue.global(qos: .userInitiated).async {
-                        self.lexiconUpdated()
-                    }
-                } else {
-                    lexiconCompleted()
+                if  let count = self.mediaListGroupSort?.lexicon?.entries?.count,
+                    let total = self.mediaListGroupSort?.lexicon?.eligible?.count {
+                    self.navigationItem.title = "Lexicon \(count) of \(total)"
                 }
+                
+                //                self.navigationItem.title = "Lexicon Complete"
+                
+                self.strings = mediaListGroupSort?.lexicon?.section.strings
+                
+                self.tableView.reloadData()
+                
+                self.activityIndicator?.stopAnimating()
+                self.activityIndicator?.isHidden = true
+                
+                if self.strings?.count > 0 {
+                    self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: .top, animated: true)
+                }
+                
+                self.tableView.setContentOffset(CGPoint(x:0, y:0), animated: false)
             }
         }
     }
@@ -944,6 +951,8 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.POPOVER_CELL, for: indexPath) as! PopoverTableViewCell
 
+        cell.title.text = nil
+        
         var index = -1
         
         if (showIndex) {

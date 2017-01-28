@@ -97,6 +97,7 @@ class MediaPlayer {
     var playerTimerReturn:Any? = nil
     
     var observerActive = false
+    var observedItem:AVPlayerItem?
     //    var playerObserver:Timer?
     
     var url : URL? {
