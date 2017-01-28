@@ -447,8 +447,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 if (globals.mediaPlayer.mediaItem == selectedMediaItem) {
                     globals.mediaPlayer.stop() // IfPlaying
                     
-                    globals.mediaPlayer.player = nil
-                    
                     globals.mediaPlayer.view?.isHidden = true
                     
                     setupSpinner()
@@ -483,8 +481,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             case Playing.audio:
                 if (globals.mediaPlayer.mediaItem == selectedMediaItem) {
                     globals.mediaPlayer.stop() // IfPlaying
-                    
-                    globals.mediaPlayer.player = nil
                     
                     setupSpinner()
                     
