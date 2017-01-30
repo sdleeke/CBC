@@ -561,7 +561,7 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaTableViewController.swift"
@@ -574,14 +574,14 @@
             landmarkType = "7">
             <Locations>
                <Location
-                  shouldBeEnabled = "Yes"
+                  shouldBeEnabled = "No"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
                   symbolName = "CBC.MediaTableViewController.lexiconCompleted () -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v22/CBC/MediaTableViewController.swift"
-                  timestampString = "507435752.468293"
+                  timestampString = "507469966.09029"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "2350"
@@ -589,14 +589,14 @@
                   offsetFromSymbolStart = "674">
                </Location>
                <Location
-                  shouldBeEnabled = "Yes"
+                  shouldBeEnabled = "No"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
                   symbolName = "CBC.MediaTableViewController.lexiconCompleted () -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v22/CBC/MediaTableViewController.swift"
-                  timestampString = "507435752.470378"
+                  timestampString = "507469966.092537"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "2350"
@@ -604,14 +604,14 @@
                   offsetFromSymbolStart = "2362">
                </Location>
                <Location
-                  shouldBeEnabled = "Yes"
+                  shouldBeEnabled = "No"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
                   symbolName = "CBC.MediaTableViewController.(lexiconCompleted () -&gt; ()).(closure #1)"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v22/CBC/MediaTableViewController.swift"
-                  timestampString = "507435752.472475"
+                  timestampString = "507469966.094622"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "2351"

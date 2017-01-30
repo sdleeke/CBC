@@ -1776,7 +1776,7 @@ func tokenCountsFromString(_ string:String?) -> [(String,Int)]?
     }
     
     var tokenCounts = [(String,Int)]()
-
+    
     if let tokens = tokensFromString(string) {
         for token in tokens {
             var count = 0
@@ -1831,7 +1831,7 @@ func tokensFromString(_ string:String?) -> [String]?
                     break
                 }
             }
-
+            
             if let range = token.lowercased().range(of: "i'"), range.lowerBound == token.startIndex {
                 token = Constants.EMPTY_STRING
             }
@@ -1843,7 +1843,7 @@ func tokensFromString(_ string:String?) -> [String]?
             }
             
             token = token.trimmingCharacters(in: CharacterSet(charactersIn: "‘“'"))
-
+            
             if token != Constants.EMPTY_STRING {
                 tokens.insert(token.uppercased())
                 token = Constants.EMPTY_STRING
@@ -1854,7 +1854,7 @@ func tokensFromString(_ string:String?) -> [String]?
     }
     
     for char in str!.characters {
-//        print(char)
+        //        print(char)
         if UnicodeScalar(String(char)) != nil {
             if CharacterSet(charactersIn: "\" :-!;,.()?&/<>[]").contains(UnicodeScalar(String(char))!) {
                 processToken()
@@ -1877,6 +1877,89 @@ func tokensFromString(_ string:String?) -> [String]?
     return Array(tokens).sorted() {
         $0.lowercased() < $1.lowercased()
     }
+}
+
+func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
+{
+    guard !globals.isRefreshing else {
+        return nil
+    }
+    
+    guard (string != nil) else {
+        return nil
+    }
+    
+    var tokens = [String:Int]()
+    
+    var str = string?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    
+    if let range = str?.range(of: Constants.PART_INDICATOR_SINGULAR) {
+        str = str?.substring(to: range.lowerBound)
+    }
+    
+    //        print(name)
+    //        print(string)
+    
+    var token = Constants.EMPTY_STRING
+    
+    func processToken()
+    {
+        if (token.endIndex > "XX".endIndex) {
+            // "Q", "A", "I", "at", "or", "to", "of", "in", "on",  "be", "is", "vs", "us", "An"
+            for word in ["are", "can", "And", "The", "for"] {
+                if token.lowercased() == word.lowercased() {
+                    token = Constants.EMPTY_STRING
+                    break
+                }
+            }
+            
+            if let range = token.lowercased().range(of: "i'"), range.lowerBound == token.startIndex {
+                token = Constants.EMPTY_STRING
+            }
+            
+            if token.lowercased() != "it's" {
+                if let range = token.lowercased().range(of: "'s") {
+                    token = token.substring(to: range.lowerBound)
+                }
+            }
+            
+            token = token.trimmingCharacters(in: CharacterSet(charactersIn: "‘“'"))
+            
+            if token != Constants.EMPTY_STRING {
+                if let count = tokens[token.uppercased()] {
+                    tokens[token.uppercased()] = count + 1
+                } else {
+                    tokens[token.uppercased()] = 1
+                }
+                token = Constants.EMPTY_STRING
+            }
+        } else {
+            token = Constants.EMPTY_STRING
+        }
+    }
+    
+    for char in str!.characters {
+        //        print(char)
+        if UnicodeScalar(String(char)) != nil {
+            if CharacterSet(charactersIn: "\" :-!;,.()?&/<>[]").contains(UnicodeScalar(String(char))!) {
+                processToken()
+            } else {
+                if !CharacterSet(charactersIn: "$0123456789").contains(UnicodeScalar(String(char))!) {
+                    token.append(char)
+                }
+            }
+        }
+        
+        if globals.isRefreshing {
+            break
+        }
+    }
+    
+    if token != Constants.EMPTY_STRING {
+        processToken()
+    }
+    
+    return tokens.count > 0 ? tokens : nil
 }
 
 func lastNameFromName(_ name:String?) -> String?

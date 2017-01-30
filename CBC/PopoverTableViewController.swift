@@ -792,6 +792,7 @@ class PopoverTableViewController: UIViewController, UITableViewDataSource, UITab
                 })
                 
                 self.strings = self.stringsFunction?()
+                
                 if self.strings != nil {
                     let array = Array(Set(self.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
                         

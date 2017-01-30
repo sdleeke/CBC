@@ -526,7 +526,7 @@ typealias MediaGroupSort = [String:[String:[String:[MediaItem]]]]
 //Group//String//Name
 typealias MediaGroupNames = [String:[String:String]]
 
-typealias Words = [String:[(MediaItem,Int)]]
+typealias Words = [String:[MediaItem:Int]]
 
 class Lexicon : NSObject {
     weak var mediaListGroupSort:MediaListGroupSort?
@@ -570,9 +570,9 @@ class Lexicon : NSObject {
         get {
             var mediaItemSet = Set<MediaItem>()
             
-            if let list:[[MediaItem]] = words?.values.map({ (array:[(MediaItem,Int)]) -> [MediaItem] in
-                return array.map({ (tuple:(MediaItem,Int)) -> MediaItem in
-                    return tuple.0
+            if let list:[[MediaItem]] = words?.values.map({ (dict:[MediaItem:Int]) -> [MediaItem] in
+                return dict.map({ (mediaItem:MediaItem,count:Int) -> MediaItem in
+                    return mediaItem
                 })
             }) {
                 for mediaItemList in list {
@@ -614,20 +614,20 @@ class Lexicon : NSObject {
                 
                 var date = Date()
                 
+                DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self)
+                })
+                
                 for mediaItem in list {
                     if mediaItem.hasNotesHTML {
-                        DispatchQueue(label: "CBC").async(execute: { () -> Void in
-                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self)
-                        })
-                        
                         mediaItem.loadNotesTokens()
                         
                         if let notesTokens = mediaItem.notesTokens {
                             for token in notesTokens {
                                 if dict[token.0] == nil {
-                                    dict[token.0] = [(mediaItem,token.1)]
+                                    dict[token.0] = [mediaItem:token.1]
                                 } else {
-                                    dict[token.0]?.append((mediaItem,token.1))
+                                    dict[token.0]?[mediaItem] = token.1
                                 }
 
                                 if globals.isRefreshing || globals.isLoading {
@@ -695,9 +695,9 @@ class Lexicon : NSObject {
                 if let notesTokens = mediaItem.notesTokens {
                     for token in notesTokens {
                         if dict[token.0] == nil {
-                            dict[token.0] = [(mediaItem,token.1)]
+                            dict[token.0] = [mediaItem:token.1]
                         } else {
-                            dict[token.0]?.append((mediaItem,token.1))
+                            dict[token.0]?[mediaItem] = token.1
                         }
                     }
                 }

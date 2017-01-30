@@ -15,7 +15,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
     
     var booksChaptersVerses:BooksChaptersVerses?
     
-    var notesTokens:[(String,Int)]?
+    var notesTokens:[String:Int]? //[(String,Int)]?
     
     var singleLoaded = false
 
@@ -702,7 +702,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         
         loadNotesHTML()
 
-        notesTokens = tokenCountsFromString(stripHTML(notesHTML))
+        notesTokens = tokensAndCountsFromString(stripHTML(notesHTML))
     }
     
     func formatDate(_ format:String?) -> String? {

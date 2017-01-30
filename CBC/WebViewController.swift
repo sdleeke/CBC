@@ -417,7 +417,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                             popover.stringsFunction = {
                                 mediaItem?.loadNotesHTML()
                                 
-                                if let notesTokens = tokenCountsFromString(mediaItem?.notesHTML) {
+                                if let notesTokens = tokensAndCountsFromString(mediaItem?.notesHTML) {
                                     mediaItem?.notesTokens = notesTokens
                                     
                                     return notesTokens.map({ (string:String,count:Int) -> String in
