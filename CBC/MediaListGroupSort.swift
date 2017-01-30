@@ -612,7 +612,7 @@ class Lexicon : NSObject {
             DispatchQueue.global(qos: .background).async {
                 var dict = Words()
                 
-                var date:Date?
+                var date = Date()
                 
                 for mediaItem in list {
                     if mediaItem.hasNotesHTML {
@@ -652,19 +652,13 @@ class Lexicon : NSObject {
                         if !self.pauseUpdates {
                             self.words = dict.count > 0 ? dict : nil
                             
-                            if let interval = date?.timeIntervalSinceNow {
-                                if interval < -1 {
-                                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
-                                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
-                                    })
-                                }
-                            } else {
+                            if date.timeIntervalSinceNow < -1 {
                                 DispatchQueue(label: "CBC").async(execute: { () -> Void in
                                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
                                 })
+                                
+                                date = Date()
                             }
-                            
-                            date = Date()
                         }
                     }
                     

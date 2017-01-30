@@ -2961,10 +2961,10 @@ func stripHTML(_ string:String?) -> String?
         }
     }
     
-    bodyString = bodyString?.replacingOccurrences(of: "&rsquo", with: "")
-    bodyString = bodyString?.replacingOccurrences(of: "&rdquo", with: "")
-    bodyString = bodyString?.replacingOccurrences(of: "&lsquo", with: "")
-    bodyString = bodyString?.replacingOccurrences(of: "&ldquo", with: "")
+    bodyString = bodyString?.replacingOccurrences(of: "&rsquo;", with: "'")
+    bodyString = bodyString?.replacingOccurrences(of: "&rdquo;", with: "\"")
+    bodyString = bodyString?.replacingOccurrences(of: "&lsquo;", with: "'")
+    bodyString = bodyString?.replacingOccurrences(of: "&ldquo;", with: "\"")
     
     bodyString = bodyString?.replacingOccurrences(of: "<br/>", with: "\n")
     

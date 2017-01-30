@@ -837,6 +837,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
             case Constants.Media_Paused:
                 globals.gotoPlayingPaused = true
+                globals.mediaPlayer.controller?.allowsPictureInPicturePlayback = false
                 performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: self)
                 break
                 
@@ -1021,6 +1022,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
 
             case Constants.Live:
+                globals.mediaPlayer.controller?.allowsPictureInPicturePlayback = false
                 performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: self)
                 break
                 
@@ -2148,6 +2150,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         setupSearchBar()
         
         DispatchQueue.main.async(execute: { () -> Void in
+            self.lexiconButton.isEnabled = false
             self.tableView.reloadData()
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
         })
@@ -2155,7 +2158,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         setupBarButtons()
         setupCategoryButton()
         setupTagsButton()
-
+        
         // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
         globals.media = Media()
         
@@ -2320,6 +2323,37 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        loadingView?.superview?.addConstraint(centerY)
 //        
 //        loadingView?.superview?.layoutSubviews()
+    }
+    
+    func lexiconStarted()
+    {
+        if globals.search.lexicon {
+            
+        }
+    }
+    
+    func lexiconUpdated()
+    {
+        if globals.search.lexicon, let searchText = globals.search.text {
+            if let list:[MediaItem]? = globals.media.toSearch?.lexicon?.words?[searchText]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
+                return tuple.0
+            }) {
+                updateSearch(searchText:searchText,mediaItems: list)
+                updateDisplay(searchText:searchText)
+            }
+        }
+    }
+    
+    func lexiconCompleted()
+    {
+        if globals.search.lexicon, let searchText = globals.search.text {
+            if let list:[MediaItem]? = globals.media.toSearch?.lexicon?.words?[searchText]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
+                return tuple.0
+            }) {
+                updateSearch(searchText:searchText,mediaItems: list)
+                updateDisplay(searchText:searchText)
+            }
+        }
     }
     
     override func viewDidLoad() {
@@ -2940,6 +2974,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
+        DispatchQueue(label: "CBC").async(execute: { () -> Void in
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.lexiconStarted), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.lexiconUpdated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.lexiconCompleted), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: nil)
+        })
+        
         updateUI()
         
         // Reload the table
@@ -3029,6 +3069,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        }
         
 //        NotificationCenter.default.removeObserver(self) // If you do this it won't get notified of list changes, i.e. adding and removing from Favorites and Downloads.
+    
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: nil)
     }
     
     override func viewDidDisappear(_ animated: Bool) {
@@ -3189,6 +3233,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     {
 //        let isFullScreen = UIApplication.shared.delegate!.window!!.frame.equalTo(UIApplication.shared.delegate!.window!!.screen.bounds);
 //            print(isFullScreen)
+        guard Thread.isMainThread else {
+            return
+        }
         
         if (splitViewController?.viewControllers.count > 1) { //  && isFullScreen
             switch splitViewController!.displayMode {
@@ -3250,12 +3297,13 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 self.loadingView.center = CGPoint(x: self.view.bounds.width / 2, y: self.view.bounds.height / 2)
             }
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            DispatchQueue.main.async(execute: { () -> Void in
-                if !UIApplication.shared.isRunningInFullScreen() {
-                    self.dismiss(animated: true, completion: nil)
-                }
-                self.setupTitle()
-            })
+            self.setupShowHide()
+            if !UIApplication.shared.isRunningInFullScreen() {
+                self.dismiss(animated: true, completion: nil)
+            }
+            self.setupTitle()
+//            DispatchQueue.main.async(execute: { () -> Void in
+//            })
         }
 
 ////        if (self.view.window == nil) {

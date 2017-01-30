@@ -370,6 +370,7 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
         //        print("Size: \(size)")
 
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
+            
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
 //            print(self.view.frame.width,self.vc!.view!.frame.height)
             

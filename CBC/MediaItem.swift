@@ -677,7 +677,14 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         }
         
         if let mediaItemDict = self.loadSingleDict() {
-            dict![Field.notes_HTML] = mediaItemDict[Field.notes_HTML]
+            if var notesHTML = mediaItemDict[Field.notes_HTML] {
+                notesHTML = notesHTML.replacingOccurrences(of: "&rsquo;", with: "'")
+                notesHTML = notesHTML.replacingOccurrences(of: "&rdquo;", with: "\"")
+                notesHTML = notesHTML.replacingOccurrences(of: "&lsquo;", with: "'")
+                notesHTML = notesHTML.replacingOccurrences(of: "&ldquo;", with: "\"")
+                
+                dict![Field.notes_HTML] = notesHTML
+            }
         } else {
             print("loadSingle failure")
         }
@@ -897,43 +904,39 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
     // nil better be okay for these or expect a crash
     var tags:String? {
         get {
-            if let tags = mediaItemSettings?[Field.tags] {
-                if dict![Field.tags] != nil {
-                    return dict![Field.tags]! + Constants.TAGS_SEPARATOR + tags
-                } else {
-                    return tags
-                }
-            } else {
-                var tags:String?
-                
-                if hasClassName {
-                    tags = tags != nil ? tags! + "|" + className! : className!
-                }
-                
-                if hasSlides {
-                    tags = tags != nil ? tags! + "|" + Constants.Slides : Constants.Slides
-                }
-                
-                if hasNotes {
-                    tags = tags != nil ? tags! + "|" + Constants.Transcript : Constants.Transcript
-                }
-                
-                if hasNotesHTML {
-                    tags = tags != nil ? tags! + "|" + Constants.Lexicon : Constants.Lexicon
-                }
-                
-                if hasVideo {
-                    tags = tags != nil ? tags! + "|" + Constants.Video : Constants.Video
-                }
-                
+            if let savedTags = mediaItemSettings?[Field.tags] {
+                dict![Field.tags] =  dict![Field.tags] != nil ? dict![Field.tags]! + Constants.TAGS_SEPARATOR + savedTags : savedTags
+            }
+
+            var dynamicTags:String?
+            
+            if hasClassName {
+                dynamicTags = dynamicTags != nil ? dynamicTags! + "|" + className! : className!
+            }
+            
+            if hasSlides {
+                dynamicTags = dynamicTags != nil ? dynamicTags! + "|" + Constants.Slides : Constants.Slides
+            }
+            
+            if hasNotes {
+                dynamicTags = dynamicTags != nil ? dynamicTags! + "|" + Constants.Transcript : Constants.Transcript
+            }
+            
+            if hasNotesHTML {
+                dynamicTags = dynamicTags != nil ? dynamicTags! + "|" + Constants.Lexicon : Constants.Lexicon
+            }
+            
+            if hasVideo {
+                dynamicTags = dynamicTags != nil ? dynamicTags! + "|" + Constants.Video : Constants.Video
+            }
+            
 //                if let books = self.books {
 //                    for book in books {
 //                        tags = tags != nil ? tags! + "|Book:" + book : "Book:" + book
 //                    }
 //                }
-                
-                return dict![Field.tags] != nil ? dict![Field.tags]! + (tags != nil ? "|" + tags! : "") : tags
-            }
+            
+            return dict![Field.tags] != nil ? dict![Field.tags]! + (dynamicTags != nil ? "|" + dynamicTags! : "") : dynamicTags
         }
 //        set {
 //            var tag:String
