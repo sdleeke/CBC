@@ -544,18 +544,21 @@ class StringNode {
         }
     }
     
-    func depthBelow() -> Int
+    func depthBelow(_ cumulative:Int) -> Int
     {
         if isLeaf {
-            return 0
+            return cumulative
         } else {
             var depthsBelow = [Int]()
             
-            for stringNode in stringNodes! {
-                depthsBelow.append(stringNode.depthBelow())
+            for stringNode in stringNodes!.sorted(by: { $0.string < $1.string }) {
+                depthsBelow.append(stringNode.depthBelow(cumulative + 1))
             }
             
             if let last = depthsBelow.sorted().last {
+//                print(depthsBelow)
+//                print(depthsBelow.sorted())
+//                print("\n")
                 return last
             } else {
                 return 0
@@ -1060,6 +1063,8 @@ class Lexicon : NSObject {
                 
                 self.creating = false
                 self.completed = true
+                
+//                print(self.root.depthBelow(0))
                 
 //                self.mediaListGroupSort?.lexicon?.addStrings(self.mediaListGroupSort?.lexicon?.tokens)
 //                self.mediaListGroupSort?.lexicon?.root.printStrings(nil)
