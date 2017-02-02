@@ -526,6 +526,252 @@ typealias MediaGroupSort = [String:[String:[String:[MediaItem]]]]
 //Group//String//Name
 typealias MediaGroupNames = [String:[String:String]]
 
+class StringNode {
+    var string:String?
+    
+    init(_ string:String?)
+    {
+        self.string = string
+    }
+    
+    var wordEnding = false
+    
+    var stringNodes:[StringNode]?
+    
+    var isLeaf:Bool {
+        get {
+            return stringNodes == nil
+        }
+    }
+    
+    func depthBelow() -> Int
+    {
+        if isLeaf {
+            return 0
+        } else {
+            var depthsBelow = [Int]()
+            
+            for stringNode in stringNodes! {
+                depthsBelow.append(stringNode.depthBelow())
+            }
+            
+            if let last = depthsBelow.sorted().last {
+                return last
+            } else {
+                return 0
+            }
+        }
+    }
+    
+    func printStrings(_ cumulativeString:String?)
+    {
+//        guard string != nil else {
+//            return
+//        }
+        
+        if string != nil {
+            print(string!)
+        }
+        
+//        if wordEnding {
+//            print("\n")
+//        }
+        
+        guard stringNodes != nil else {
+            return
+        }
+        
+        for stringNode in stringNodes!.sorted(by: { $0.string < $1.string }) {
+            if let string = stringNode.string {
+                print(string,"\n")
+            } else {
+                print("NO STRING!\n")
+            }
+        }
+
+        for stringNode in stringNodes!.sorted(by: { $0.string < $1.string }) {
+            if cumulativeString != nil {
+                if string != nil {
+                    stringNode.printStrings(cumulativeString!+string!+"-")
+                } else {
+                    stringNode.printStrings(cumulativeString!+"-")
+                }
+            } else {
+                if string != nil {
+                    stringNode.printStrings(string!+"-")
+                } else {
+                    stringNode.printStrings(nil)
+                }
+            }
+        }
+    }
+    
+    func printWords(_ cumulativeString:String?)
+    {
+//        guard string != nil else {
+//            return
+//        }
+        
+        if wordEnding {
+            if cumulativeString != nil {
+                if string != nil {
+                    print(cumulativeString!+string!)
+                } else {
+                    print(cumulativeString!)
+                }
+            } else {
+                if string != nil {
+                    print(string!)
+                }
+            }
+
+//            print("\n")
+        }
+        
+        guard stringNodes != nil else {
+            return
+        }
+        
+        for stringNode in stringNodes!.sorted(by: { $0.string < $1.string }) {
+//            print(string!+"-")
+            if cumulativeString != nil {
+                if string != nil {
+                    stringNode.printWords(cumulativeString!+string!+"-")
+                } else {
+                    stringNode.printWords(cumulativeString!+"-")
+                }
+            } else {
+                if string != nil {
+                    stringNode.printWords(string!+"-")
+                } else {
+                    stringNode.printWords(nil)
+                }
+            }
+        }
+    }
+    
+    func addStringNode(_ newString:String?)
+    {
+        guard (newString != nil) else {
+            return
+        }
+
+        guard (stringNodes != nil) else {
+            let newNode = StringNode(newString)
+            newNode.wordEnding = true
+            stringNodes = [newNode]
+            return
+        }
+
+        var fragment = newString
+        
+        var foundNode:StringNode?
+        
+        var isEmpty = fragment!.isEmpty
+        
+        while !isEmpty {
+            for stringNode in stringNodes!.sorted(by: { $0.string < $1.string }) {
+                if stringNode.string?.endIndex >= fragment!.endIndex, stringNode.string?.substring(to: fragment!.endIndex) == fragment {
+                    foundNode = stringNode
+                    break
+                }
+            }
+            
+            if foundNode != nil {
+                break
+            }
+            
+            fragment = fragment!.substring(to: fragment!.index(before: fragment!.endIndex))
+            
+            if fragment != nil {
+                isEmpty = fragment!.isEmpty
+            } else {
+                isEmpty = true
+            }
+        }
+        
+        if foundNode != nil {
+            foundNode?.addString(newString)
+        } else {
+            let newNode = StringNode(newString)
+            newNode.wordEnding = true
+            stringNodes?.append(newNode)
+        }
+    }
+    
+    func addString(_ newString:String?)
+    {
+        guard let stringEmpty = newString?.isEmpty, !stringEmpty else {
+            return
+        }
+
+        guard (string != nil) else {
+            addStringNode(newString)
+            return
+        }
+        
+        guard (string != newString) else {
+            wordEnding = true
+            return
+        }
+        
+        var fragment = newString
+        
+        var isEmpty = fragment!.isEmpty
+        
+        while !isEmpty {
+            if string?.endIndex >= fragment!.endIndex, string?.substring(to: fragment!.endIndex) == fragment {
+                break
+            }
+
+            fragment = fragment!.substring(to: fragment!.index(before: fragment!.endIndex))
+
+            if fragment != nil {
+                isEmpty = fragment!.isEmpty
+            } else {
+                isEmpty = true
+            }
+        }
+        
+        if !isEmpty {
+            let stringRemainder = string?.substring(from: fragment!.endIndex)
+
+            let newStringRemainder = newString?.substring(from: fragment!.endIndex)
+            
+            if let isEmpty = stringRemainder?.isEmpty, !isEmpty {
+                let newNode = StringNode(stringRemainder)
+                newNode.stringNodes = stringNodes
+                
+                newNode.wordEnding = wordEnding
+                
+                wordEnding = false
+                
+                string = fragment
+                stringNodes = [newNode]
+            }
+            
+            if let isEmpty = newStringRemainder?.isEmpty, !isEmpty {
+                addStringNode(newStringRemainder)
+            } else {
+                wordEnding = true
+            }
+        } else {
+            // No match!?!?!
+        }
+    }
+    
+    func addStrings(_ strings:[String]?)
+    {
+        guard strings != nil else {
+            return
+        }
+        
+        for string in strings! {
+            addString(string)
+        }
+    }
+}
+
 typealias Words = [String:[MediaItem:Int]]
 
 class Lexicon : NSObject {
@@ -533,6 +779,101 @@ class Lexicon : NSObject {
     
     init(_ mlgs:MediaListGroupSort?){
         self.mediaListGroupSort = mlgs
+    }
+    
+    var root:StringNode!
+
+    func buildStringTree()
+    {
+        root = StringNode(nil)
+        root.addStrings(tokens)
+    }
+    
+    var tokens:[String]? {
+        get {
+            return words?.keys.sorted()
+        }
+    }
+    
+    var gcw:[String]? {
+        get {
+            var words = [String:Int]()
+            
+            if let tokens = tokens {
+                if var currentToken = tokens.first {
+                    for token in tokens {
+                        if token.contains(currentToken) {
+                            if (token != tokens.first) {
+                                if let count = words[currentToken] {
+                                    words[currentToken] = count + 1
+                                } else {
+                                    words[currentToken] = 1
+                                }
+                            }
+                        } else {
+                            currentToken = token
+                        }
+                    }
+                }
+            }
+            
+            return words.count > 0 ? words.keys.sorted() : nil
+        }
+    }
+    
+    var gcr:[String]? {
+        get {
+            guard tokens != nil else {
+                return nil
+            }
+            
+            var roots = [String:Int]()
+            
+            if let tokens = tokens {
+                for token in tokens {
+                    var string = String()
+                    
+                    for character in token.characters {
+                        string.append(character)
+                        
+                        if let count = roots[string] {
+                            roots[string] = count + 1
+                        } else {
+                            roots[string] = 1
+                        }
+                    }
+                }
+            }
+            
+            let candidates = roots.keys.filter({ (root:String) -> Bool in
+                if let count = roots[root] {
+                    return count > 1
+                } else {
+                    return false
+                }
+            }).sorted()
+            
+            var finalRoots = candidates
+            
+            if var currentCandidate = candidates.first {
+                for candidate in candidates {
+                    if candidate != candidates.first {
+//                        print(candidate,currentCandidate)
+                        if currentCandidate.endIndex <= candidate.endIndex {
+                            if candidate.substring(to: currentCandidate.endIndex) == currentCandidate {
+                                if let index = finalRoots.index(of: currentCandidate) {
+                                    finalRoots.remove(at: index)
+                                }
+                            }
+                        }
+                        
+                        currentCandidate = candidate
+                    }
+                }
+            }
+            
+            return finalRoots.count > 0 ? finalRoots : nil
+        }
     }
     
     var words:Words? {
@@ -551,12 +892,18 @@ class Lexicon : NSObject {
                 return string.uppercased()
             })
             
+//            print(tokens)
+//            print(gcr)
+//            print(gcw)
+            
             //            if let strings = self.strings {
             //                let array = Array(Set(strings))
             //
             //            }
             
             section.build(indexStrings)
+            
+            buildStringTree()
         }
     }
     
@@ -568,19 +915,41 @@ class Lexicon : NSObject {
     
     var entries:[MediaItem]? {
         get {
-            var mediaItemSet = Set<MediaItem>()
-            
-            if let list:[[MediaItem]] = words?.values.map({ (dict:[MediaItem:Int]) -> [MediaItem] in
-                return dict.map({ (mediaItem:MediaItem,count:Int) -> MediaItem in
-                    return mediaItem
-                })
-            }) {
-                for mediaItemList in list {
-                    mediaItemSet = mediaItemSet.union(Set(mediaItemList))
-                }
+            guard words != nil else {
+                return nil
             }
+
+            // Both use a lot of memory for the array(s) unless there is some smart compiler optimiation going on behind the scenes.
             
-            return mediaItemSet.count > 0 ? Array(mediaItemSet) : nil
+            // Both create a list of lists of MediaItems potentially on the order of #words * #mediaitems (coudl be in the (tens of) thousands) that has many repetitions of the same mediaItem and then eliminates redundancies w/ Set
+            
+            // But flatMap is more compact.  I believe, however, that the use of flatMap is only possible because Words is no longer a dictionary of tuples but a dictionary of dictionaries and a dictionary is a collection and flatMap operates on collections, whereas a tuple is not a collection so flatMap is only possible becase of the change to using collections entirely.
+
+            // Using flatMap
+            return Array(Set(
+                words!.flatMap({ (tuple:(key: String, value: [MediaItem : Int])) -> [MediaItem] in
+                    // .map is required below to return an array of MediaItem, otherwise it returns a LazyMapCollection and I haven't figured that out.
+                    return tuple.value.keys.map({ (mediaItem:MediaItem) -> MediaItem in
+                        return mediaItem
+                    })
+                })
+            ))
+            
+            // Using map - creates a list of lists of MediaItems no longer than the active list of MediaItems and then collapses them w/ Set.
+//            var mediaItemSet = Set<MediaItem>()
+//            
+//            if let list:[[MediaItem]] = words?.values.map({ (dict:[MediaItem:Int]) -> [MediaItem] in
+//                return dict.map({ (mediaItem:MediaItem,count:Int) -> MediaItem in
+//                    return mediaItem
+//                })
+//            }) {
+//                for mediaItemList in list {
+//                    mediaItemSet = mediaItemSet.union(Set(mediaItemList))
+//                }
+//            }
+//            
+//            return mediaItemSet.count > 0 ? Array(mediaItemSet) : nil
+            
         }
     }
     
@@ -594,6 +963,26 @@ class Lexicon : NSObject {
                 return nil
             }
         }
+    }
+    
+    func documents(_ word:String?) -> Int? // nil => not found
+    {
+        guard word != nil else {
+            return nil
+        }
+        
+        return words?[word!]?.count
+    }
+    
+    func occurences(_ word:String?) -> Int? // nil => not found
+    {
+        guard word != nil else {
+            return nil
+        }
+        
+        return words?[word!]?.values.map({ (count:Int) -> Int in
+            return count
+        }).reduce(0, +)
     }
     
     func build()
@@ -672,6 +1061,14 @@ class Lexicon : NSObject {
                 self.creating = false
                 self.completed = true
                 
+//                self.mediaListGroupSort?.lexicon?.addStrings(self.mediaListGroupSort?.lexicon?.tokens)
+//                self.mediaListGroupSort?.lexicon?.root.printStrings(nil)
+//                self.mediaListGroupSort?.lexicon?.root.printWords(nil)
+//                
+//                print(self.mediaListGroupSort?.lexicon?.tokens)
+//                print(self.mediaListGroupSort?.lexicon?.gcw)
+//                print(self.mediaListGroupSort?.lexicon?.gcr)
+
                 //        print(dict)
                 DispatchQueue(label: "CBC").async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self)
