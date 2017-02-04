@@ -10,6 +10,87 @@ import Foundation
 import UIKit
 import AVKit
 
+struct SearchHit {
+    var mediaItem:MediaItem?
+    
+    //        init()
+    //        {
+    //            self.mediaItem = mediaItem
+    //        }
+    
+    var searchText:String?
+    
+    init(_ mediaItem:MediaItem?,_ searchText:String?)
+    {
+        self.mediaItem = mediaItem
+        self.searchText = searchText
+    }
+    
+    var title:Bool {
+        get {
+            guard searchText != nil else {
+                return false
+            }
+            return mediaItem?.title?.range(of:searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+        }
+    }
+    var formattedDate:Bool {
+        get {
+            guard searchText != nil else {
+                return false
+            }
+            return mediaItem?.formattedDate?.range(of:searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+        }
+    }
+    var speaker:Bool {
+        get {
+            guard searchText != nil else {
+                return false
+            }
+            return mediaItem?.speaker?.range(of:searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+        }
+    }
+    var scriptureReference:Bool {
+        get {
+            guard searchText != nil else {
+                return false
+            }
+            return mediaItem?.scriptureReference?.range(of:searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+        }
+    }
+    var className:Bool {
+        get {
+            guard searchText != nil else {
+                return false
+            }
+            return mediaItem?.className?.range(of:searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+        }
+    }
+    var tags:Bool {
+        get {
+            guard searchText != nil else {
+                return false
+            }
+            return mediaItem?.tags?.range(of:searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+        }
+    }
+    var transcriptHTML:Bool {
+        get {
+            guard searchText != nil else {
+                return false
+            }
+            
+//            guard globals.search.transcripts else {
+//                return false
+//            }
+            
+            // ( || globals.search.lexicon)
+            
+            return mediaItem?.notesHTML?.range(of:searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+        }
+    }
+}
+
 class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
     var dict:[String:String]?
     
@@ -33,7 +114,7 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
 //        print("\(dict)")
         self.dict = dict
         
-        self.searchHit = SearchHit(mediaItem: self)
+//        self.searchHit = SearchHit(mediaItem: self)
         
         DispatchQueue.main.async {
             NotificationCenter.default.addObserver(self, selector: #selector(MediaItem.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
@@ -297,85 +378,24 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
             }).sorted() : nil
     }
     
-    struct SearchHit {
-        weak var mediaItem:MediaItem?
-        
-        init(mediaItem:MediaItem?)
-        {
-            self.mediaItem = mediaItem
-        }
-        
-        var title:Bool {
-            get {
-                guard globals.search.text != nil else {
-                    return false
-                }
-                return mediaItem?.title?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
-            }
-        }
-        var formattedDate:Bool {
-            get {
-                guard globals.search.text != nil else {
-                    return false
-                }
-                return mediaItem?.formattedDate?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
-            }
-        }
-        var speaker:Bool {
-            get {
-                guard globals.search.text != nil else {
-                    return false
-                }
-                return mediaItem?.speaker?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
-            }
-        }
-        var scriptureReference:Bool {
-            get {
-                guard globals.search.text != nil else {
-                    return false
-                }
-                return mediaItem?.scriptureReference?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
-            }
-        }
-        var className:Bool {
-            get {
-                guard globals.search.text != nil else {
-                    return false
-                }
-                return mediaItem?.className?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
-            }
-        }
-        var tags:Bool {
-            get {
-                guard globals.search.text != nil else {
-                    return false
-                }
-                return mediaItem?.tags?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
-            }
-        }
-        var transcriptHTML:Bool {
-            get {
-                guard globals.search.text != nil else {
-                    return false
-                }
-                return (globals.search.transcripts || globals.search.lexicon) && mediaItem?.notesHTML?.range(of:globals.search.text!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
-            }
-        }
-    }
-    
-    var searchHit:SearchHit?
-    
-    func search() -> Bool
+    func searchHit(_ searchText:String?) -> SearchHit
     {
-        return searchHit!.title || searchHit!.formattedDate || searchHit!.speaker || searchHit!.scriptureReference || searchHit!.className || searchHit!.tags
+        return SearchHit(self,searchText)
+    }
+    
+    func search(_ searchText:String?) -> Bool
+    {
+        let searchHit = SearchHit(self,searchText)
+        
+        return searchHit.title || searchHit.formattedDate || searchHit.speaker || searchHit.scriptureReference || searchHit.className || searchHit.tags
     }
         
-    func searchFullNotesHTML() -> Bool
+    func searchFullNotesHTML(_ searchText:String?) -> Bool
     {
         if hasNotesHTML {
             loadNotesHTML()
             
-            return searchHit!.transcriptHTML
+            return SearchHit(self,searchText).transcriptHTML
         } else {
             return false
         }

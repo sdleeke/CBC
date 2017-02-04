@@ -3116,9 +3116,9 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
         bodyString = bodyString! + "Search: \(searchText)<br/>"
     }
     
-    if globals.search.lexicon {
-        bodyString = bodyString! + "Lexicon Mode<br/>"
-    }
+//    if globals.search.lexicon {
+//        bodyString = bodyString! + "Lexicon Mode<br/>"
+//    }
     
     bodyString = bodyString! + "Grouped: By \(translate(globals.grouping)!)<br/>"
     bodyString = bodyString! + "Sorted: \(translate(globals.sorting)!)<br/>"
@@ -3455,9 +3455,9 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
         bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
     }
     
-    if globals.search.lexicon {
-        bodyString = bodyString! + "Lexicon Mode<br/>"
-    }
+//    if globals.search.lexicon {
+//        bodyString = bodyString! + "Lexicon Mode<br/>"
+//    }
     
     let keys:[String] = mediaListSort.keys.map({ (string:String) -> String in
         return string

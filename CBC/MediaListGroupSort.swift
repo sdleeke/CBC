@@ -784,7 +784,9 @@ class Lexicon : NSObject {
         self.mediaListGroupSort = mlgs
     }
     
-    var root:StringNode!
+    lazy var root:StringNode! = {
+        return StringNode(nil)
+    }()
 
     func buildStringTree()
     {
@@ -906,6 +908,10 @@ class Lexicon : NSObject {
             
             section.build(indexStrings)
             
+            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
+            })
+
             buildStringTree()
         }
     }
@@ -1042,12 +1048,8 @@ class Lexicon : NSObject {
                         //                        }
                         
                         if !self.pauseUpdates {
-                            self.words = dict.count > 0 ? dict : nil
-                            
                             if date.timeIntervalSinceNow < -1 {
-                                DispatchQueue(label: "CBC").async(execute: { () -> Void in
-                                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
-                                })
+                                self.words = dict.count > 0 ? dict : nil
                                 
                                 date = Date()
                             }

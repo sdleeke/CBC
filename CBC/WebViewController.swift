@@ -422,7 +422,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                                     
                                     return notesTokens.map({ (string:String,count:Int) -> String in
                                         return "\(string) (\(count))"
-                                    })
+                                    }).sorted()
                                 } else {
                                     return nil
                                 }
@@ -430,8 +430,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, UIScrollViewDel
                         } else {
                             popover.strings = mediaItem?.notesTokens?.map({ (string:String,count:Int) -> String in
                                 return "\(string) (\(count))"
-                            })
+                            }).sorted()
                             
+                            // Why Array(Set())?  Duplicates?
                             let array = Array(Set(popover.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
                             
                             popover.indexStrings = array.map({ (string:String) -> String in

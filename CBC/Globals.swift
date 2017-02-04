@@ -237,7 +237,7 @@ struct Media {
             
             if globals.search.valid {
                 if let searchText = globals.search.text?.uppercased() {
-                    mediaItems = mediaItems?.searches?[globals.search.lexicon ? "lexicon:"+searchText : searchText]
+                    mediaItems = mediaItems?.searches?[searchText] // globals.search.lexicon ? "lexicon:"+searchText : 
                 }
             }
             
@@ -417,12 +417,12 @@ struct SelectedMediaItem {
 
 struct Search {
     var complete:Bool = true
-    var lexicon:Bool = false
+//    var lexicon:Bool = false
     var active:Bool = false {
         didSet {
             if !active {
                 complete = true
-                lexicon = false
+//                lexicon = false
             }
         }
     }
@@ -442,7 +442,7 @@ struct Search {
             }
             
             if (text != oldValue) && !globals.isLoading {
-                if valid && !lexicon {
+                if valid { //  && !lexicon
                     UserDefaults.standard.set(text, forKey: Constants.SEARCH_TEXT)
                     UserDefaults.standard.synchronize()
                 } else {

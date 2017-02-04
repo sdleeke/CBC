@@ -197,8 +197,8 @@ struct Constants {
         
         static let UPDATE_MEDIA_LIST        = "UPDATE MEDIA LIST"
         
-        static let EDITING                  = "EDITING"
-        static let NOT_EDITING              = "NOT EDITING"
+//        static let EDITING                  = "EDITING"
+//        static let NOT_EDITING              = "NOT EDITING"
     }
     
     struct IDENTIFIER {
@@ -217,6 +217,7 @@ struct Constants {
         static let STRING_PICKER            = "String Picker"
         
         static let SCRIPTURE_INDEX          = "Scripture Index"
+        static let LEXICON_INDEX            = "Lexicon Index"
         
         static let LEXICON                  = "Lexicon"
         
@@ -492,6 +493,7 @@ struct Constants {
         static let SHOW_FULL_SCREEN         = "Show Full Screen"
         static let SHOW_INDEX_MEDIAITEM     = "Show Index MediaItem"
         static let SHOW_SCRIPTURE_INDEX     = "Show Scripture Index"
+        static let SHOW_WORD_LIST           = "Show Word List"
     }
 
     static let HTML_MIN_FONT_SIZE = 4
@@ -592,6 +594,7 @@ struct Constants {
 //    static let Decrease_Font_Size = "Decrease Font Size"
     
     static let Lexicon = "Lexicon"
+    static let Lexicon_Index = "Lexicon Index"
     
     static let View_List = "View List"
     static let List = "List"

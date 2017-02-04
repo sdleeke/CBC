@@ -55,7 +55,6 @@ enum JSONSource {
 
 class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISearchBarDelegate, UISearchControllerDelegate, UIPopoverPresentationControllerDelegate, URLSessionDownloadDelegate, MFMailComposeViewControllerDelegate, PopoverTableViewControllerDelegate, PopoverPickerControllerDelegate { //
 
-//    var refreshList = true
     var changesPending = false
     
     var jsonSource:JSONSource = .direct
@@ -74,32 +73,32 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     @IBOutlet weak var tagsButton: UIButton!
     @IBOutlet weak var tagLabel: UILabel!
     
-    @IBOutlet weak var lexiconLabel: UILabel!
-    @IBOutlet weak var lexiconButton: UIButton!
-    @IBAction func lexiconButtonAction(_ sender: UIButton)
-    {
-        if globals.search.lexicon {
-            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                
-                popover.navigationItem.title = Constants.Lexicon
-                
-                popover.delegate = self
-                popover.purpose = .selectingLexicon
-                
-                popover.search = true
-                
-                popover.mediaListGroupSort = globals.media.toSearch
-                
-                popover.showIndex = true
-                popover.showSectionHeaders = true
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.navigationController?.pushViewController(popover, animated: true)
-                })
-            }
-        }
-    }
+//    @IBOutlet weak var lexiconLabel: UILabel!
+//    @IBOutlet weak var lexiconButton: UIButton!
+//    @IBAction func lexiconButtonAction(_ sender: UIButton)
+//    {
+//        if globals.search.lexicon {
+//            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                
+//                popover.navigationItem.title = Constants.Lexicon
+//                
+//                popover.delegate = self
+//                popover.purpose = .selectingLexicon
+//                
+//                popover.search = true
+//                
+//                popover.mediaListGroupSort = globals.media.toSearch
+//                
+//                popover.showIndex = true
+//                popover.showSectionHeaders = true
+//                
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    self.navigationController?.pushViewController(popover, animated: true)
+//                })
+//            }
+//        }
+//    }
     
     var refreshControl:UIRefreshControl?
 
@@ -319,8 +318,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 showMenu.append(Constants.Scripture_Index)
             }
             
-            if (!globals.search.active || globals.search.lexicon) && (globals.media.active?.lexicon?.eligible != nil) {
-                showMenu.append(Constants.Lexicon)
+            // ( || globals.search.lexicon)
+            
+            if (globals.media.active?.lexicon?.eligible != nil) {
+                showMenu.append(Constants.Lexicon_Index)
             }
             
             if globals.history != nil {
@@ -473,7 +474,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             if let range = string.range(of: " (") {
                 let searchText = string.substring(to: range.lowerBound).uppercased()
                     
-                globals.search.lexicon = true // MUST COME FIRST to avoid saving searchText for the next startup.
+//                globals.search.lexicon = true // MUST COME FIRST to avoid saving searchText for the next startup.
                 globals.search.text = searchText
                 
                 DispatchQueue.main.async(execute: { () -> Void in
@@ -869,23 +870,11 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //                performSegue(withIdentifier: Constants.SEGUE.SHOW_SCRIPTURE_INDEX, sender: nil)
                 break
                 
-            case Constants.Lexicon:
-                var mlgs:MediaListGroupSort?
-                
-                if globals.search.lexicon {
-                    mlgs = globals.media.toSearch
-                } else {
-                    mlgs = globals.media.active
-                }
-
-                if let completed = mlgs?.lexicon?.completed, !completed && !globals.reachability.isReachable {
-                    networkUnavailable("Lexicon unavailable.")
-                }
-                
-                if mlgs?.lexicon?.eligible == nil {
-                    let alert = UIAlertController(title:"No Lexicon Available",
-                                                  message: "HTML transcripts are not available for these media items.",
-                        preferredStyle: UIAlertControllerStyle.alert)
+            case Constants.Lexicon_Index:
+                if (globals.media.active?.lexicon?.eligible == nil) {
+                    let alert = UIAlertController(title:"No Lexicon Index Available",
+                                                  message: "These media items do not have HTML transcripts.",
+                                                  preferredStyle: UIAlertControllerStyle.alert)
                     
                     let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
                         
@@ -896,43 +885,79 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         self.present(alert, animated: true, completion: nil)
                     })
                 } else {
-                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                        let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                        //                    navigationController.modalPresentationStyle = .popover
+                    if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.LEXICON_INDEX) as? LexiconIndexViewController {
                         
-                        //                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                        //                    navigationController.popoverPresentationController?.delegate = self
-                        //
-                        //                    navigationController.popoverPresentationController?.barButtonItem = self.showButton
-                        
-                        popover.navigationItem.title = Constants.Lexicon
-                        
-                        popover.delegate = self
-                        popover.purpose = .selectingLexicon
-                        
-                        popover.search = true
-                        
-                        popover.mediaListGroupSort = mlgs
-                        
-                        popover.showIndex = true
-                        popover.showSectionHeaders = true
-                        
-                        //                    popover.vc = self
+                        viewController.mediaListGroupSort = globals.media.active
                         
                         DispatchQueue.main.async(execute: { () -> Void in
-                            self.navigationController?.pushViewController(popover, animated: true)
+                            self.navigationController?.pushViewController(viewController, animated: true)
                         })
-                        
-                        //                    DispatchQueue.main.async(execute: { () -> Void in
-                        //                        self.present(navigationController, animated: true, completion: {
-                        //                            DispatchQueue.main.async(execute: { () -> Void in
-                        //                                // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
-                        //                                navigationController.popoverPresentationController?.passthroughViews = nil
-                        //                            })
-                        //                        })
-                        //                    })
                     }
                 }
+
+//                var mlgs:MediaListGroupSort?
+//                
+//                if globals.search.lexicon {
+//                    mlgs = globals.media.toSearch
+//                } else {
+//                    mlgs = globals.media.active
+//                }
+//
+//                if let completed = mlgs?.lexicon?.completed, !completed && !globals.reachability.isReachable {
+//                    networkUnavailable("Lexicon unavailable.")
+//                }
+//                
+//                if mlgs?.lexicon?.eligible == nil {
+//                    let alert = UIAlertController(title:"No Lexicon Available",
+//                                                  message: "HTML transcripts are not available for these media items.",
+//                        preferredStyle: UIAlertControllerStyle.alert)
+//                    
+//                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+//                        
+//                    })
+//                    alert.addAction(action)
+//                    
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                        self.present(alert, animated: true, completion: nil)
+//                    })
+//                } else {
+//                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                        let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                        //                    navigationController.modalPresentationStyle = .popover
+//                        
+//                        //                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
+//                        //                    navigationController.popoverPresentationController?.delegate = self
+//                        //
+//                        //                    navigationController.popoverPresentationController?.barButtonItem = self.showButton
+//                        
+//                        popover.navigationItem.title = Constants.Lexicon
+//                        
+//                        popover.delegate = self
+//                        popover.purpose = .selectingLexicon
+//                        
+//                        popover.search = true
+//                        
+//                        popover.mediaListGroupSort = mlgs
+//                        
+//                        popover.showIndex = true
+//                        popover.showSectionHeaders = true
+//                        
+//                        //                    popover.vc = self
+//                        
+//                        DispatchQueue.main.async(execute: { () -> Void in
+//                            self.navigationController?.pushViewController(popover, animated: true)
+//                        })
+//                        
+//                        //                    DispatchQueue.main.async(execute: { () -> Void in
+//                        //                        self.present(navigationController, animated: true, completion: {
+//                        //                            DispatchQueue.main.async(execute: { () -> Void in
+//                        //                                // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+//                        //                                navigationController.popoverPresentationController?.passthroughViews = nil
+//                        //                            })
+//                        //                        })
+//                        //                    })
+//                    }
+//                }
                 break
                 
             case Constants.View_List:
@@ -2150,7 +2175,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         setupSearchBar()
         
         DispatchQueue.main.async(execute: { () -> Void in
-            self.lexiconButton.isEnabled = false
+//            self.lexiconButton.isEnabled = false
             self.tableView.reloadData()
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
         })
@@ -2257,24 +2282,23 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         })
     }
     
-    func editing()
-    {
-//        refreshList = false
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.searchBar.resignFirstResponder()
-        })
-    }
-    
-    func notEditing()
-    {
-        if changesPending {
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.tableView.reloadData()
-            })
-        }
-//        refreshList = true
-        changesPending = false
-    }
+//    func editing()
+//    {
+//        DispatchQueue.main.async(execute: { () -> Void in
+//            self.searchBar.resignFirstResponder()
+//        })
+//    }
+//    
+//    func notEditing()
+//    {
+//        if changesPending {
+//            DispatchQueue.main.async(execute: { () -> Void in
+//                self.tableView.reloadData()
+//            })
+//        }
+//
+//        changesPending = false
+//    }
     
     var loadingView:UIView!
     var actInd:UIActivityIndicatorView!
@@ -2325,49 +2349,42 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        loadingView?.superview?.layoutSubviews()
     }
     
-    func lexiconStarted()
-    {
-        if globals.search.lexicon {
-            
-        }
-    }
-    
-    func lexiconUpdated()
-    {
-        if globals.search.lexicon, let searchText = globals.search.text {
-            if let list:[MediaItem]? = globals.media.toSearch?.lexicon?.words?[searchText]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
-                return tuple.0
-            }) {
-                updateSearch(searchText:searchText,mediaItems: list)
-                updateDisplay(searchText:searchText)
-            }
-        }
-    }
-    
-    func lexiconCompleted()
-    {
-        if globals.search.lexicon, let searchText = globals.search.text {
-            if let list:[MediaItem]? = globals.media.toSearch?.lexicon?.words?[searchText]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
-                return tuple.0
-            }) {
-                updateSearch(searchText:searchText,mediaItems: list)
-                updateDisplay(searchText:searchText)
-            }
-        }
-    }
+//    func lexiconStarted()
+//    {
+////        if globals.search.lexicon {
+////            
+////        }
+//    }
+//    
+//    func lexiconUpdated()
+//    {
+//        if let searchText = globals.search.text.uppercased() { // globals.search.lexicon,
+//            if let list:[MediaItem]? = globals.media.toSearch?.lexicon?.words?[searchText]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
+//                return tuple.0
+//            }) {
+//                updateSearch(searchText:searchText,mediaItems: list)
+//                updateDisplay(searchText:searchText)
+//            }
+//        }
+//    }
+//    
+//    func lexiconCompleted()
+//    {
+//        if let searchText = globals.search.text.uppercased() { // globals.search.lexicon,
+//            if let list:[MediaItem]? = globals.media.toSearch?.lexicon?.words?[searchText]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
+//                return tuple.0
+//            }) {
+//                updateSearch(searchText:searchText,mediaItems: list)
+//                updateDisplay(searchText:searchText)
+//            }
+//        }
+//    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         searchBar.autocapitalizationType = .none
-        
-        DispatchQueue.main.async {
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
-            
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.editing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.EDITING), object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.notEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_EDITING), object: nil)
-        }
-        
+
         refreshControl = UIRefreshControl()
         refreshControl!.addTarget(self, action: #selector(MediaTableViewController.handleRefresh(_:)), for: UIControlEvents.valueChanged)
 
@@ -2526,10 +2543,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 self.tagsButton.isHidden = false
             }
             
-            if globals.search.lexicon {
-                self.tagsButton.isEnabled = false
-                self.tagsButton.isHidden = false
-            }
+//            if globals.search.lexicon {
+//                self.tagsButton.isEnabled = false
+//                self.tagsButton.isHidden = false
+//            }
         })
     }
     
@@ -2636,8 +2653,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             globals.media.toSearch?.searches = [String:MediaListGroupSort]()
         }
         
+        // globals.search.lexicon ? "lexicon:"+searchText : 
         
-        globals.media.toSearch?.searches?[globals.search.lexicon ? "lexicon:"+searchText : searchText] = MediaListGroupSort(mediaItems: mediaItems)
+        globals.media.toSearch?.searches?[searchText] = MediaListGroupSort(mediaItems: mediaItems)
         
 //        self.showProgress = true
     }
@@ -2650,32 +2668,16 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             return
         }
         
-        guard (searchText != Constants.EMPTY_STRING) else {
+        guard !searchText.isEmpty else {
             return
         }
         
 //        print(searchText)
         
-        guard (globals.media.toSearch?.searches?[globals.search.lexicon ? "lexicon:"+searchText : searchText] == nil) else {
-            updateDisplay(searchText:searchText)
-            setupListActivityIndicator()
-            setupBarButtons()
-            setupCategoryButton()
-            setupTagsButton()
-            return
-        }
+        // globals.search.lexicon ? "lexicon:"+searchText : 
         
-        if globals.search.lexicon {
-            if let list:[MediaItem]? = globals.media.toSearch?.lexicon?.words?[searchText]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
-                return tuple.0
-            }) {
-                updateSearch(searchText:searchText,mediaItems: list)
-                updateDisplay(searchText:searchText)
-            } else {
-                updateSearch(searchText:searchText,mediaItems: nil)
-                updateDisplay(searchText:searchText)
-            }
-
+        guard (globals.media.toSearch?.searches?[searchText] == nil) else {
+            updateDisplay(searchText:searchText)
             setupListActivityIndicator()
             setupBarButtons()
             setupCategoryButton()
@@ -2715,7 +2717,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                     
                     self.setupListActivityIndicator()
                     
-                    let searchHit = mediaItem.search()
+                    let searchHit = mediaItem.search(searchText)
                     
                     abort = abort || shouldAbort()
                     
@@ -2754,7 +2756,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                         var searchHit = false
                         
                         if (searchMediaItems == nil) || !searchMediaItems!.contains(mediaItem) {
-                            searchHit = mediaItem.searchFullNotesHTML()
+                            searchHit = mediaItem.searchFullNotesHTML(searchText)
                         }
 
                         abort = abort || shouldAbort()
@@ -2916,7 +2918,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 break
             }
             
-            self.lexiconButton.isEnabled = globals.search.lexicon
+//            self.lexiconButton.isEnabled = globals.search.lexicon
 
 //            if globals.search.lexicon {
 //                self.lexiconLabel.text = "Lexicon Mode"
@@ -2974,11 +2976,12 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        DispatchQueue(label: "CBC").async(execute: { () -> Void in
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.lexiconStarted), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.lexiconUpdated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.lexiconCompleted), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: nil)
-        })
+        DispatchQueue.main.async {
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
+            
+//            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.editing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.EDITING), object: self.tableView)
+//            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.notEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_EDITING), object: self.tableView)
+        }
         
         updateUI()
         
@@ -3064,15 +3067,10 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
-//        if (splitViewController == nil) {
-//            navigationController?.isToolbarHidden = true
-//        }
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
         
-//        NotificationCenter.default.removeObserver(self) // If you do this it won't get notified of list changes, i.e. adding and removing from Favorites and Downloads.
-    
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: nil)
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: nil)
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: nil)
+//        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.EDITING), object: tableView)
+//        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_EDITING), object: tableView)
     }
     
     override func viewDidDisappear(_ animated: Bool) {
@@ -3266,31 +3264,9 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
     {
         super.viewWillTransition(to: size, with: coordinator)
 
-//        if let sivc = self.navigationController?.visibleViewController as? ScriptureIndexViewController {
-//            print("SIVC")
-//        }
-//        if let ptvc = self.navigationController?.visibleViewController as? PopoverTableViewController {
-//            print("PTVC")
-//        }
-
         if !UIApplication.shared.isRunningInFullScreen() {
             _ = self.navigationController?.popToRootViewController(animated: true)
         }
-        
-//        if let count = self.splitViewController?.viewControllers.count {
-//            print(count)
-//
-//            switch count {
-//            case 1:
-//                break
-//            
-//            case 2:
-//                break
-//                
-//            default:
-//                break
-//            }
-//        }
 
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
             if self.loadingView != nil {
@@ -3302,86 +3278,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 self.dismiss(animated: true, completion: nil)
             }
             self.setupTitle()
-//            DispatchQueue.main.async(execute: { () -> Void in
-//            })
         }
-
-////        if (self.view.window == nil) {
-////            return
-////        }
-//        
-//        if (splitViewController != nil) {
-////            dismiss(animated: false, completion: nil)
-////            if (popover != nil) {
-////                dismiss(animated: false, completion: nil)
-////                popover = nil
-////            }
-//        }
-//
-//        if (self.splitViewController != nil) {
-////            print("Before")
-////            print(splitViewController!.viewControllers.count)
-////            print(navigationController!.viewControllers.count)
-////            print(navigationController!.visibleViewController)
-//            
-//            let beforeSVCC = splitViewController!.viewControllers.count
-//            let beforeNVCC = navigationController!.viewControllers.count
-//            
-//            let sivc = self.navigationController?.visibleViewController as? ScriptureIndexViewController
-//            let ptvc = self.navigationController?.visibleViewController as? PopoverTableViewController
-//            
-//            if (beforeSVCC == 1) && (beforeNVCC > beforeSVCC) && ((sivc != nil) || (ptvc != nil)) {
-//                // Keeps any MTVC vc from showing up in the MVC rather than the MTVC hierarchy.
-//                _ = self.navigationController?.popToRootViewController(animated: false)
-//            }
-//
-//            coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
-//
-//            }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-////                print("After")
-////                print(self.splitViewController?.viewControllers.count)
-////                print(self.navigationController?.viewControllers.count)
-////                print(self.navigationController?.visibleViewController)
-//                
-//                let afterSVCC = self.splitViewController!.viewControllers.count
-//                let afterNVCC = self.navigationController!.viewControllers.count
-//
-//                if (afterNVCC == 1) && (sivc != nil) { //
-//                    if (afterSVCC == 1) || (afterNVCC < afterSVCC) { //
-//                        DispatchQueue.main.async(execute: { () -> Void in
-//                            if let vc = sivc {
-//                                self.navigationController?.pushViewController(vc, animated: false)
-//                            }
-//                            if let vc = ptvc {
-//                                self.navigationController?.pushViewController(vc, animated: false)
-//                            }
-//                        })
-//                    }
-//                }
-//
-//                //Without this background/main dispatching there isn't time to scroll after a reload.
-////                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-////                    DispatchQueue.main.async(execute: { () -> Void in
-////                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
-////                    })
-////                })
-//
-//                //        setupSplitViewController()
-//                
-//                DispatchQueue.main.async(execute: { () -> Void in
-//                    self.setupShowHide()
-//                    self.setupTitle()
-//                })
-//            }
-//        } else {
-//            coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
-//                
-//            }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-//                DispatchQueue.main.async(execute: { () -> Void in
-//                    self.setupTitle()
-//                })
-//            }
-//        }
     }
     
     // MARK: UITableViewDataSource
@@ -3429,40 +3326,15 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         }
     }
 
-//    override func observeValue(forKeyPath keyPath: String?,
-//                               of object: Any?,
-//                               change: [NSKeyValueChangeKey : Any]?,
-//                               context: UnsafeMutableRawPointer?) {
-//        // Only handle observations for the playerItemContext
-//        //        guard context == &GlobalPlayerContext else {
-//        //            super.observeValue(forKeyPath: keyPath,
-//        //                               of: object,
-//        //                               change: change,
-//        //                               context: context)
-//        //            return
-//        //        }
-//        
-//        if keyPath == #keyPath(UITableViewCell.center) {
-//            // Get the status change from the change dictionary
-//            if let style = change?[.newKey] as? Int {
-//                print(change?[.newKey],style)
-//            }
-//            
-//        }
-//    }
-
     func tableView(_ TableView: UITableView, cellForRowAtIndexPath indexPath: IndexPath) -> MediaTableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.MEDIAITEM, for: indexPath) as! MediaTableViewCell
         
         cell.vc = self
         
+        cell.searchText = globals.search.active ? globals.search.text : nil
+        
         cell.isHiddenUI(true)
         
-//        cell.addObserver(self,
-//                          forKeyPath: #keyPath(UITableViewCell.),
-//                          options: [.old, .new],
-//                          context: nil) // &GlobalPlayerContext
-
         // Configure the cell
         if (globals.display.section.indexes != nil) && (globals.display.mediaItems != nil) {
             if indexPath.section < globals.display.section.indexes!.count {
@@ -3500,7 +3372,27 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
         }
     }
     
-    func tableView(_ TableView: UITableView, didDeselectRowAtIndexPath indexPath: IndexPath) {
+    func tableView(_ tableView:UITableView, willBeginEditingRowAtIndexPath indexPath: IndexPath)
+    {
+        // Tells the delegate that the table view is about to go into editing mode.
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.searchBar.resignFirstResponder()
+        })
+    }
+    
+    func tableView(_ tableView:UITableView, didEndEditingRowAtIndexPath indexPath: IndexPath)
+    {
+        // Tells the delegate that the table view has left editing mode.
+        if changesPending {
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.tableView.reloadData()
+            })
+        }
+        
+        changesPending = false
+    }
+    
+    func tableView(_ tableView:UITableView, didDeselectRowAtIndexPath indexPath: IndexPath) {
 //        print("didDeselect")
 
 //        if let cell: MediaTableViewCell = tableView.cellForRowAtIndexPath(indexPath) as? MediaTableViewCell {
@@ -3510,33 +3402,8 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
 //        }
     }
     
-//    func setupRowActionFont()
-//    {
-//        if #available(iOS 9.0, *) {
-//            print(NSClassFromString("UITableViewCellDeleteConfirmationView"))
-//            
-//            let appearanceButton = UIButton.appearance(whenContainedInInstancesOf: [NSClassFromString("UITableViewCellDeleteConfirmationView") as! UIAppearanceContainer.Type])
-//
-//            let attributes = [NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.ICONS_FONT_SIZE)!]
-//            
-//            let attributedString = NSAttributedString(string: "", attributes: attributes)
-//            
-//            appearanceButton.setAttributedTitle(attributedString, for: UIControlState.normal)
-//            
-//            appearanceButton.set
-//            
-////            appearanceButton.setTitleTextAttributes(attributes, for: UIControlState())
-//        } else {
-//            // Fallback on earlier versions
-//        }
-//    }
-    
     func tableView(_ tableView: UITableView, editActionsForRowAtIndexPath indexPath: IndexPath) -> [UITableViewRowAction]?
     {
-//        setupRowActionFont()
-        
-//        refreshList = false
-        
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
             return nil
         }
@@ -3615,7 +3482,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
                 
                 popover.strings = mediaItem.notesTokens?.map({ (string:String,count:Int) -> String in
                     return "\(string) (\(count))"
-                })
+                }).sorted()
                 
                 popover.search = popover.strings?.count > 10
                 
@@ -3664,7 +3531,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
                 
-                if globals.search.valid && (globals.search.transcripts || globals.search.lexicon) {
+                if globals.search.valid && globals.search.transcripts { // ( || globals.search.lexicon)
                     htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
                 } else {
                     htmlString = mediaItem.fullNotesHTML
@@ -3674,7 +3541,7 @@ class MediaTableViewController: UIViewController, UISearchResultsUpdating, UISea
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
-                    if globals.search.valid && (globals.search.transcripts || globals.search.lexicon) {
+                    if globals.search.valid && globals.search.transcripts { // ( || globals.search.lexicon)
                         return mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
                     } else {
                         return mediaItem.fullNotesHTML

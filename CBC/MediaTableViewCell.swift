@@ -14,24 +14,24 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 
     weak var vc:UIViewController?
     
-    override func willTransition(to state: UITableViewCellStateMask)
-    {
-        switch state.rawValue {
-        case 2:
-            DispatchQueue.main.async(execute: { () -> Void in
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.EDITING), object: nil)
-            })
-            break
-        
-        default:
-            DispatchQueue.main.async(execute: { () -> Void in
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.NOT_EDITING), object: nil)
-            })
-            break
-        }
-        
-//        print(state.rawValue)
-    }
+//    override func willTransition(to state: UITableViewCellStateMask)
+//    {
+//        switch state.rawValue {
+//        case 2:
+//            DispatchQueue.main.async(execute: { () -> Void in
+//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.EDITING), object: self.tv)
+//            })
+//            break
+//        
+//        default:
+//            DispatchQueue.main.async(execute: { () -> Void in
+//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.NOT_EDITING), object: self.tv)
+//            })
+//            break
+//        }
+//        
+////        print(state.rawValue)
+//    }
     
     func isHiddenUI(_ state:Bool)
     {
@@ -68,7 +68,8 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 
         setupIcons()
 
-        if globals.search.active && !globals.search.lexicon && ((vc as? MediaTableViewController) != nil) {
+//        if (globals.search.active && ((vc as? MediaTableViewController) != nil)) || ((vc as? LexiconIndexViewController) != nil) { // !globals.search.lexicon &&
+        if searchText != nil {
             let titleString = NSMutableAttributedString()
             
             let normal = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
@@ -81,12 +82,12 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
                                 NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
             
-            if let searchHit = mediaItem?.searchHit?.formattedDate, searchHit, let formattedDate = mediaItem?.formattedDate {
+            if let searchHit = mediaItem?.searchHit(searchText).formattedDate, searchHit, let formattedDate = mediaItem?.formattedDate {
                 var string:String?
                 var before:String?
                 var after:String?
                 
-                if let range = formattedDate.lowercased().range(of: globals.search.text!.lowercased()) {
+                if let range = formattedDate.lowercased().range(of: searchText!.lowercased()) {
                     before = formattedDate.substring(to: range.lowerBound)
                     string = formattedDate.substring(with: range)
                     after = formattedDate.substring(from: range.upperBound)
@@ -110,12 +111,12 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             }
             titleString.append(NSAttributedString(string: mediaItem!.service!, attributes: bold))
 
-            if let searchHit = mediaItem?.searchHit?.speaker, searchHit, let speaker = mediaItem?.speaker {
+            if let searchHit = mediaItem?.searchHit(searchText).speaker, searchHit, let speaker = mediaItem?.speaker {
                 var string:String?
                 var before:String?
                 var after:String?
                 
-                if let range = speaker.lowercased().range(of: globals.search.text!.lowercased()) {
+                if let range = speaker.lowercased().range(of: searchText!.lowercased()) {
                     before = speaker.substring(to: range.lowerBound)
                     string = speaker.substring(with: range)
                     after = speaker.substring(from: range.upperBound)
@@ -158,12 +159,12 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                 title = mediaItem?.title
             }
 
-            if let searchHit = mediaItem?.searchHit?.title, searchHit {
+            if let searchHit = mediaItem?.searchHit(searchText).title, searchHit {
                 var string:String?
                 var before:String?
                 var after:String?
                 
-                if let range = title?.lowercased().range(of: globals.search.text!.lowercased()) {
+                if let range = title?.lowercased().range(of: searchText!.lowercased()) {
                     before = title?.substring(to: range.lowerBound)
                     string = title?.substring(with: range)
                     after = title?.substring(from: range.upperBound)
@@ -184,12 +185,12 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                 }
             }
             
-            if let searchHit = mediaItem?.searchHit?.scriptureReference, searchHit, let scriptureReference = mediaItem?.scriptureReference {
+            if let searchHit = mediaItem?.searchHit(searchText).scriptureReference, searchHit, let scriptureReference = mediaItem?.scriptureReference {
                 var string:String?
                 var before:String?
                 var after:String?
                 
-                if let range = scriptureReference.lowercased().range(of: globals.search.text!.lowercased()) {
+                if let range = scriptureReference.lowercased().range(of: searchText!.lowercased()) {
                     before = scriptureReference.substring(to: range.lowerBound)
                     string = scriptureReference.substring(with: range)
                     after = scriptureReference.substring(from: range.upperBound)
@@ -256,12 +257,12 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 //                }
 //            }
 
-            if mediaItem!.searchHit!.className {
+            if mediaItem!.searchHit(searchText).className {
                 var string:String?
                 var before:String?
                 var after:String?
                 
-                if let range = mediaItem?.className?.lowercased().range(of: globals.search.text!.lowercased()) {
+                if let range = mediaItem?.className?.lowercased().range(of: searchText!.lowercased()) {
                     before = mediaItem?.className?.substring(to: range.lowerBound)
                     string = mediaItem?.className?.substring(with: range)
                     after = mediaItem?.className?.substring(from: range.upperBound)
@@ -383,9 +384,15 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 //        }
 //    }
     
+    var searchText:String? {
+        didSet {
+            updateUI()
+        }
+    }
+    
     var mediaItem:MediaItem? {
         didSet {
-            if mediaItem != oldValue {
+//            if mediaItem != oldValue {
 //                DispatchQueue.main.async {
 //                    NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateTagsButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_CELL_TAG), object: nil)
 //                }
@@ -429,7 +436,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                         }
                     }
                 }
-            }
+//            }
             
             if tagsToolbar == nil {
                 setupTagsToolbar()
@@ -600,10 +607,10 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             self.tagsButton.isHidden = !self.mediaItem!.hasTags
             self.tagsButton.isEnabled = globals.search.complete
             
-            if globals.search.lexicon {
-                self.tagsButton.isEnabled = false
-                self.tagsButton.isHidden = true
-            }
+//            if globals.search.lexicon {
+//                self.tagsButton.isEnabled = false
+//                self.tagsButton.isHidden = true
+//            }
         })
     }
     
@@ -689,7 +696,11 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     
     func setupIcons()
     {
-        if globals.search.active && ((vc as? MediaTableViewController) != nil) {
+        guard mediaItem != nil else {
+            return
+        }
+        
+        if (searchText != nil) {
             let attrString = NSMutableAttributedString()
             
             let normal = [ NSFontAttributeName: UIFont(name: "FontAwesome", size: 12.0)! ]
@@ -703,13 +714,13 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 
             if (mediaItem!.hasTags) {
                 if (mediaItem?.tagsSet?.count > 1) {
-                    if !globals.search.lexicon, mediaItem!.searchHit!.tags {
+                    if mediaItem!.searchHit(searchText).tags { // !globals.search.lexicon,
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: highlighted))
                     } else {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: normal))
                     }
                 } else {
-                    if !globals.search.lexicon, mediaItem!.searchHit!.tags {
+                    if mediaItem!.searchHit(searchText).tags { // !globals.search.lexicon,
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: highlighted))
                     } else {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: normal))
@@ -718,9 +729,10 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             }
 
             if (mediaItem!.hasNotes) {
-                if mediaItem!.searchHit!.transcriptHTML {
+                if mediaItem!.searchHit(searchText).transcriptHTML {
                     attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: highlighted))
                 } else {
+//                    print(searchText!)
                     attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: normal))
                 }
             }
