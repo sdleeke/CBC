@@ -3049,6 +3049,8 @@ func stripHTML(_ string:String?) -> String?
     bodyString = bodyString?.replacingOccurrences(of: "&lsquo;", with: "'")
     bodyString = bodyString?.replacingOccurrences(of: "&ldquo;", with: "\"")
     
+    bodyString = bodyString?.replacingOccurrences(of: "&ccedil;", with: "C")
+    
     bodyString = bodyString?.replacingOccurrences(of: "<br/>", with: "\n")
     
     bodyString = bodyString?.replacingOccurrences(of: "<table>", with: "")

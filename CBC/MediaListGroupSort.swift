@@ -908,11 +908,11 @@ class Lexicon : NSObject {
             
             section.build(indexStrings)
             
+            buildStringTree()
+            
             DispatchQueue(label: "CBC").async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
             })
-
-            buildStringTree()
         }
     }
     

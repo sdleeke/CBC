@@ -22,7 +22,11 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     
     var searchText:String? {
         didSet {
-            selectedWord.text = searchText
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.selectedWord.text = self.searchText
+            })
+            
+            updateSearchResults()
         }
     }
     
@@ -51,9 +55,28 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
 
     }
     
+    var pickerSelections = [Int:Int]()
+    
     func numberOfComponents(in pickerView: UIPickerView) -> Int
     {
+//        var stringNodes = lexicon?.root?.stringNodes
+//        
+//        var i = 0
+//        
+//        while stringNodes != nil {
+//            if let index = pickerSelections[i] {
+//                stringNodes = stringNodes?[index].stringNodes
+//            } else {
+//                stringNodes = nil
+//            }
+//            
+//            i += 1
+//        }
+//
+//        return i
+        
         if let depth = lexicon?.root.depthBelow(0) {
+//            print("Depth:",depth)
             return depth
         } else {
             return 0
@@ -62,30 +85,91 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int
     {
-        var numberOfRows = 1
+        var stringNode = lexicon?.root
         
         switch component {
+        case 0:
+            break
             
         default:
+            guard (pickerSelections[component-1] != nil) else {
+                return 0
+            }
+            
+            for i in 0..<component {
+                if let selection = pickerSelections[i] {
+                    if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
+                        if selection < stringNodes.count {
+                            stringNode = stringNodes[selection]
+                        }
+                    }
+                }
+            }
+            break
+        }
+
+        if let count = stringNode?.stringNodes?.count {
+//            print("Component: ",component," Rows: ",count)
+            return count
+        } else {
+            return 0
+        }
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat
+    {
+        var stringNode = lexicon?.root
+        
+        switch component {
+        case 0:
+            break
+            
+        default:
+            guard (pickerSelections[component-1] != nil) else {
+                return 0.0
+            }
+            
+            for i in 0..<component {
+                if let selection = pickerSelections[i] {
+                    if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
+                        if selection < stringNodes.count {
+                            stringNode = stringNodes[selection]
+                        }
+                    }
+                }
+            }
             break
         }
         
-        return numberOfRows
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat {
-        switch component {
-            
-        default:
-            return 40
+        var width:CGFloat = 0.0
+        
+        let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
+        
+        if let stringNodes = stringNode?.stringNodes {
+            for stringNode in stringNodes {
+//                print(stringNode.string)
+                if let stringWidth = stringNode.string?.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.footnote)], context: nil).width {
+                    if stringWidth > width {
+                        width = stringWidth
+                    }
+                }
+            }
         }
+
+        if pickerSelections[component] == nil {
+           pickerSelections[component] = 0
+        }
+        
+//        print("Component: ",component," Width: ",width)
+        return width + 8
     }
     
     //    func pickerView(pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
     //
     //    }
     
-    func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
+    func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView
+    {
         var label:UILabel!
         
         if view != nil {
@@ -94,28 +178,114 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
             label = UILabel()
         }
         
-        label.font = UIFont(name: "System", size: 12.0)
+        let normal = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.footnote) ]
         
-        label.text = title(forRow: row, forComponent: component)
+//        let bold = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
+//        
+//        let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+//                            NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
+//        
+//        let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+//                                NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
+        
+        if let title = title(forRow: row, forComponent: component) {
+            label.attributedText = NSAttributedString(string: title,attributes: normal)
+        }
         
         return label
     }
     
     func title(forRow row:Int, forComponent component:Int) -> String?
     {
+        var stringNode = lexicon?.root
+        
         switch component {
+        case 0:
+            break
             
         default:
-            return nil
+            guard (pickerSelections[component-1] != nil) else {
+                return nil
+            }
+            
+            for i in 0..<component {
+                if let selection = pickerSelections[i] {
+                    if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
+                        if selection < stringNodes.count {
+                            stringNode = stringNodes[selection]
+                        }
+                    }
+                }
+            }
             break
         }
+
+        if let count = stringNode?.stringNodes?.count {
+            if row < count {
+                if let string = stringNode?.stringNodes?[row].string {
+//                    print("Component: ",component," Row: ",row," String: ",string)
+                    return string
+                }
+            }
+        }
         
-        return Constants.EMPTY_STRING
+        return nil
     }
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String?
     {
         return title(forRow: row,forComponent: component)
+    }
+    
+    func wordFromPicker() -> String?
+    {
+        var word:String?
+        
+        var stringNode = lexicon?.root
+
+        var i = 0
+        
+        while pickerSelections[i] != nil {
+            if let selection = pickerSelections[i] {
+                if let stringNodes = stringNode?.stringNodes {
+                    if selection < stringNodes.count {
+                        stringNode = stringNodes[selection]
+                        
+                        if let string = stringNode?.string {
+                            word = word != nil ? word! + string : string
+                        }
+                    }
+                }
+            }
+            
+            i += 1
+        }
+        
+//        print("wordFromPicker: ",word)
+        
+        if let wordEnding = stringNode?.wordEnding, wordEnding {
+            return word
+        } else {
+            return nil
+        }
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
+    {
+        pickerSelections[component] = row
+        
+        for i in (component+1)..<pickerView.numberOfComponents {
+            pickerSelections[i] = nil
+        }
+        
+        searchText = wordFromPicker()
+        
+//        print(pickerSelections)
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            pickerView.reloadAllComponents()
+            pickerView.setNeedsLayout()
+        })
     }
     
     func disableToolBarButtons()
@@ -168,31 +338,29 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     
     func updateSearchResults()
     {
-        if searchText != nil {
-            // Show the results directly rather than by executing a search
-            results = MediaListGroupSort(mediaItems: self.lexicon?.words?[self.searchText!]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
-                return tuple.0
-            }))
-            
+        guard (searchText != nil) else {
+            results = nil
             DispatchQueue.main.async(execute: { () -> Void in
                 self.updateActionMenu()
-                
-                if !self.tableView.isEditing {
-                    self.tableView.reloadData()
-                } else {
-                    self.changesPending = true
-                }
+                self.tableView.reloadData()
             })
+            return
         }
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
-    {
-        switch component {
+
+        // Show the results directly rather than by executing a search
+        results = MediaListGroupSort(mediaItems: self.lexicon?.words?[self.searchText!]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
+            return tuple.0
+        }))
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.updateActionMenu()
             
-        default:
-            break
-        }
+            if !self.tableView.isEditing {
+                self.tableView.reloadData()
+            } else {
+                self.changesPending = true
+            }
+        })
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
@@ -356,6 +524,14 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
+//        container.isHidden = true
+
+        wordPicker.isHidden = true
+        
+        disableBarButtons()
+        spinner.isHidden = false
+        spinner.startAnimating()
+
         DispatchQueue(label: "CBC").async(execute: { () -> Void in
             NotificationCenter.default.addObserver(self, selector: #selector(LexiconIndexViewController.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.lexicon)
             NotificationCenter.default.addObserver(self, selector: #selector(LexiconIndexViewController.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self.lexicon)
@@ -370,10 +546,6 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
             let total = lexicon?.eligible?.count {
             self.navigationItem.title = "Lexicon Index \(count) of \(total)"
         }
-
-        disableBarButtons()
-        spinner.isHidden = false
-        spinner.startAnimating()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -387,7 +559,9 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
-        
+
+//        wordPicker.reloadAllComponents()
+
         // Seems like the following should work but doesn't.
         //        navigationItem.backBarButtonItem?.title = Constants.Back
         
@@ -804,30 +978,71 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         
     }
     
-    func updated()
+    func updateTitle()
     {
         DispatchQueue.main.async(execute: { () -> Void in
-            if  let pause = self.lexicon?.pauseUpdates, !pause,
-                let creating = self.lexicon?.creating, creating,
-                let count = self.lexicon?.entries?.count,
+            if  let count = self.lexicon?.entries?.count,
                 let total = self.lexicon?.eligible?.count {
                 self.navigationItem.title = "Lexicon Index \(count) of \(total)"
             }
         })
-
+    }
+    
+    func updatePickerSelections()
+    {
+        guard self.lexicon?.root?.stringNodes != nil else {
+            return
+        }
+        
+        var stringNode = self.lexicon?.root
+        
+        var i = 0
+        
+        while stringNode != nil {
+            if stringNode?.stringNodes == nil {
+                self.pickerSelections[i] = nil
+                stringNode = nil
+            } else
+                
+                if self.pickerSelections[i] >= stringNode!.stringNodes!.count {
+                    self.pickerSelections[i] = 0
+                    stringNode = stringNode?.stringNodes?[0]
+                } else {
+                    if let index = self.pickerSelections[i] {
+                        stringNode = stringNode?.stringNodes?[index]
+                    } else {
+                        stringNode = nil
+                    }
+            }
+            
+            i += 1
+        }
+        
+        if i <= self.wordPicker.numberOfComponents {
+            for index in i..<self.wordPicker.numberOfComponents {
+                self.pickerSelections[index] = nil
+            }
+        }
+    }
+    
+    func updated()
+    {
+        updatePickerSelections()
+        
+        updateTitle()
+        
+        updatePicker()
+        
         updateSearchResults()
     }
     
     func completed()
     {
-        DispatchQueue.main.async(execute: { () -> Void in
-            if  let pause = self.lexicon?.pauseUpdates, !pause,
-                let completed = self.lexicon?.completed, completed,
-                let count = self.lexicon?.entries?.count,
-                let total = self.lexicon?.eligible?.count {
-                self.navigationItem.title = "Lexicon Index \(count) of \(total)"
-            }
-        })
+        updatePickerSelections()
+        
+        updateTitle()
+        
+        updatePicker()
         
         updateSearchResults()
     }
@@ -846,36 +1061,6 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         tableView.tableFooterView = UIView()
         
         navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(LexiconIndexViewController.actions)), animated: true) //
-    }
-    
-    func sortMediaItems(_ mediaItems:[MediaItem]?,book:String?) -> [MediaItem]?
-    {
-        var list:[MediaItem]?
-        
-//        list = mediaItems?.sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
-//            let firstBooksChaptersVerses   = first.booksAndChaptersAndVerses()?.bookChaptersVerses(book: book)
-//            let secondBooksChaptersVerses  = second.booksAndChaptersAndVerses()?.bookChaptersVerses(book: book)
-//            
-//            //            print(book)
-//            //            print(first,second)
-//            //            print(firstBooksChaptersVerses?.data,secondBooksChaptersVerses?.data)
-//            
-//            if firstBooksChaptersVerses == secondBooksChaptersVerses {
-//                if first.fullDate!.isEqualTo(second.fullDate!) {
-//                    if first.service == second.service {
-//                        return lastNameFromName(first.speaker) < lastNameFromName(second.speaker)
-//                    } else {
-//                        return first.service < second.service
-//                    }
-//                } else {
-//                    return first.fullDate!.isOlderThan(second.fullDate!)
-//                }
-//            } else {
-//                return firstBooksChaptersVerses < secondBooksChaptersVerses
-//            }
-//        })
-        
-        return list
     }
     
     func updateText()
@@ -916,37 +1101,27 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     
     func updatePicker()
     {
-        guard Thread.isMainThread else {
-            return
-        }
-        
-        wordPicker.reloadAllComponents()
-        
-        //                print(selectedTestament)
-        //                print(selectedBook)
-        //                print(selectedChapter)
-        
-//        if let selectedTestament = scriptureIndex?.selectedTestament {
-//            if let index = Constants.TESTAMENTS.index(of: selectedTestament) {
-//                scripturePicker.selectRow(index, inComponent: 0, animated: false)
-//            }
-//            
-//            if let selectedBook = scriptureIndex?.selectedBook, let index = scripture?.picker.books?.index(of: selectedBook) {
-//                scripturePicker.selectRow(index, inComponent: 1, animated: false)
-//            }
-//            
-//            if let selectedChapter = scriptureIndex?.selectedChapter, selectedChapter > 0, let index = scripture?.picker.chapters?.index(of: selectedChapter) {
-//                scripturePicker.selectRow(index, inComponent: 2, animated: false)
-//            }
-//            
-//            if let selectedVerse = scriptureIndex?.selectedVerse, selectedVerse > 0, let index = scripture?.picker.verses?.index(of: selectedVerse) {
-//                scripturePicker.selectRow(index, inComponent: 3, animated: false)
-//            }
-//        }
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.wordPicker.reloadAllComponents()
+            self.wordPicker.setNeedsLayout()
+            
+            var i = 0
+            
+            while self.pickerSelections[i] != nil {
+                self.wordPicker.selectRow(self.pickerSelections[i]!,inComponent: i, animated: true)
+                i += 1
+            }
+            
+            self.searchText = self.wordFromPicker()
+        })
     }
     
     func updateActionMenu()
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         navigationItem.rightBarButtonItem?.isEnabled = actionMenuItems()?.count > 0
     }
     

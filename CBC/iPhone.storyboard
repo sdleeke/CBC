@@ -2221,15 +2221,9 @@ Web site: www.countrysidebible.org</string>
                                     <outlet property="delegate" destination="yBi-hr-rwX" id="cdH-RC-vZi"/>
                                 </connections>
                             </tableView>
-                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="d5r-fS-OBZ">
+                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="d5r-fS-OBZ">
                                 <rect key="frame" x="140" y="276.5" width="20" height="20"/>
                             </activityIndicatorView>
-                            <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="cNn-Cv-SSL">
-                                <rect key="frame" x="75" y="285.5" width="150" height="2"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="150" id="UZC-3p-WBt"/>
-                                </constraints>
-                            </progressView>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="nIU-Yk-8Cc">
                                 <rect key="frame" x="0.0" y="37" width="300" height="499"/>
                                 <connections>
@@ -2241,7 +2235,6 @@ Web site: www.countrysidebible.org</string>
                         <constraints>
                             <constraint firstItem="nIU-Yk-8Cc" firstAttribute="trailing" secondItem="bCz-Rp-GGU" secondAttribute="trailing" id="0op-U3-GMu"/>
                             <constraint firstItem="nIU-Yk-8Cc" firstAttribute="centerY" secondItem="bCz-Rp-GGU" secondAttribute="centerY" id="0rI-Iy-yng"/>
-                            <constraint firstItem="cNn-Cv-SSL" firstAttribute="centerX" secondItem="d5r-fS-OBZ" secondAttribute="centerX" id="14a-Nv-XQJ"/>
                             <constraint firstItem="nIU-Yk-8Cc" firstAttribute="leading" secondItem="bCz-Rp-GGU" secondAttribute="leading" id="1o5-lb-v8w"/>
                             <constraint firstItem="ufg-gV-jC4" firstAttribute="leading" secondItem="bY2-j3-OdH" secondAttribute="leading" id="2Gk-Jy-J9E"/>
                             <constraint firstItem="nIU-Yk-8Cc" firstAttribute="bottom" secondItem="bCz-Rp-GGU" secondAttribute="bottom" id="2Wy-rc-AUf"/>
@@ -2258,7 +2251,6 @@ Web site: www.countrysidebible.org</string>
                             <constraint firstItem="vEe-NM-n7S" firstAttribute="leading" secondItem="ufg-gV-jC4" secondAttribute="trailing" constant="8" symbolic="YES" id="M6m-Yn-tfy"/>
                             <constraint firstItem="ufg-gV-jC4" firstAttribute="top" secondItem="bCz-Rp-GGU" secondAttribute="bottom" constant="8" symbolic="YES" id="Ocf-9L-aLZ"/>
                             <constraint firstItem="f1J-2i-SKL" firstAttribute="top" secondItem="ufg-gV-jC4" secondAttribute="bottom" constant="8" id="Rld-w5-hh5"/>
-                            <constraint firstItem="cNn-Cv-SSL" firstAttribute="centerY" secondItem="d5r-fS-OBZ" secondAttribute="centerY" id="StX-GC-7ZQ"/>
                             <constraint firstItem="f1J-2i-SKL" firstAttribute="leading" secondItem="X0R-Cl-6c4" secondAttribute="leading" id="TNj-MA-9mj"/>
                             <constraint firstItem="f1J-2i-SKL" firstAttribute="height" secondItem="bCz-Rp-GGU" secondAttribute="height" id="VHp-2Q-U6c"/>
                             <constraint firstItem="f1J-2i-SKL" firstAttribute="width" secondItem="bCz-Rp-GGU" secondAttribute="width" id="VX6-tz-tCz"/>
