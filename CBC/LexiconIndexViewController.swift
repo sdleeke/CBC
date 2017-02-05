@@ -24,6 +24,8 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         didSet {
             DispatchQueue.main.async(execute: { () -> Void in
                 self.selectedWord.text = self.searchText
+
+                self.setupLocateButton()
             })
             
             updateSearchResults()
@@ -49,6 +51,12 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     
     @IBOutlet weak var selectedLabel: UILabel!
     @IBOutlet weak var selectedWord: UILabel!
+    
+    @IBOutlet weak var locateButton: UIButton!
+    @IBAction func LocateAction(_ sender: UIButton)
+    {
+        ptvc.locateSelectedText(scroll: true,select: true)
+    }
     
     func updateDirectionLabel()
     {
@@ -363,6 +371,8 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         })
     }
     
+    var ptvc:PopoverTableViewController!
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
         // Get the new view controller using [segue destinationViewController].
@@ -379,6 +389,8 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
             case Constants.SEGUE.SHOW_WORD_LIST:
 //                print("SHOW WORD LIST")
                 if let destination = dvc as? PopoverTableViewController {
+                    ptvc = destination
+                    
                     destination.delegate = self
                     destination.purpose = .selectingLexicon
                     
@@ -419,7 +431,6 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
     {
-
         if results?.section?.titles != nil {
             if section < results?.section?.titles?.count {
                 return results?.section?.titles?[section]
@@ -504,7 +515,8 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         }
     }
     
-    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool {
+    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool
+    {
         var show:Bool
         
         show = true
@@ -521,6 +533,17 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         return show
     }
     
+    func setupLocateButton()
+    {
+        if self.searchText != nil {
+            self.locateButton.isHidden = false
+            self.locateButton.isEnabled = true
+        } else {
+            self.locateButton.isHidden = true
+            self.locateButton.isEnabled = false
+        }
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
@@ -529,8 +552,11 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         wordPicker.isHidden = true
         
         disableBarButtons()
-        spinner.isHidden = false
-        spinner.startAnimating()
+        
+        setupLocateButton()
+        
+//        spinner.isHidden = false
+//        spinner.startAnimating()
 
         DispatchQueue(label: "CBC").async(execute: { () -> Void in
             NotificationCenter.default.addObserver(self, selector: #selector(LexiconIndexViewController.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.lexicon)
@@ -807,8 +833,8 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         return insertHead(bodyString,fontSize:Constants.FONT_SIZE)
     }
     
-    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?) {
-        
+    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
+    {
         guard let strings = strings else {
             return
         }
@@ -990,6 +1016,10 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     
     func updatePickerSelections()
     {
+        guard !wordPicker.isHidden else {
+            return
+        }
+        
         guard self.lexicon?.root?.stringNodes != nil else {
             return
         }
@@ -1027,22 +1057,24 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     
     func updated()
     {
-        updatePickerSelections()
+        if !wordPicker.isHidden {
+            updatePickerSelections()
+            updatePicker()
+        }
         
         updateTitle()
-        
-        updatePicker()
         
         updateSearchResults()
     }
     
     func completed()
     {
-        updatePickerSelections()
+        if !wordPicker.isHidden {
+            updatePickerSelections()
+            updatePicker()
+        }
         
         updateTitle()
-        
-        updatePicker()
         
         updateSearchResults()
     }
@@ -1082,7 +1114,7 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         selectedLabel.isHidden = state
         selectedWord.isHidden = state
         
-        wordPicker.isHidden = state
+//        wordPicker.isHidden = state
         
         isHiddenNumberAndTableUI(state)
     }
@@ -1146,7 +1178,10 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         
         isHiddenUI(false)
         
-        updatePicker()
+        if !wordPicker.isHidden {
+            updatePickerSelections()
+            updatePicker()
+        }
         
         updateDirectionLabel()
         

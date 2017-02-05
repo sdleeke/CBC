@@ -456,7 +456,9 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     self.enableBarButtons()
                     self.updateUI()
                     self.tableView.reloadData()
-                    self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                    if self.scriptureIndex?.byTestament[testament]?.count > 0 {
+                        self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                    }
                 })
             })
             return
@@ -486,7 +488,9 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     self.enableBarButtons()
                     self.updateUI()
                     self.tableView.reloadData()
-                    self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                    if self.scriptureIndex?.byBook[testament]?[selectedBook]?.count > 0 {
+                        self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                    }
                 })
             })
             return
@@ -517,7 +521,9 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                     self.enableBarButtons()
                     self.updateUI()
                     self.tableView.reloadData()
-                    self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                    if self.scriptureIndex?.byChapter[testament]?[selectedBook]?[selectedChapter]?.count > 0 {
+                        self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                    }
                 })
             })
             return
@@ -534,7 +540,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             })
             
             if self.scriptureIndex!.sorted[index] == nil {
-//                self.scriptureIndex?.byChapter[testament]?[selectedBook]?[selectedChapter] = self.sortMediaItems(self.scriptureIndex?.byChapter[testament]?[book]?[selectedChapter],book:selectedBook,chapter:selectedChapter)
+//                self.scriptureIndex?.byVerse[testament]?[selectedBook]?[selectedChapter] = self.sortMediaItems(self.scriptureIndex?.byChapter[testament]?[book]?[selectedChapter],book:selectedBook,chapter:selectedChapter)
                 self.scriptureIndex!.sorted[index] = true
             }
             
@@ -549,7 +555,9 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
                 self.enableBarButtons()
                 self.updateUI()
                 self.tableView.reloadData()
-                self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                if self.scriptureIndex?.byVerse[testament]?[selectedBook]?[selectedChapter]?[selectedVerse]?.count > 0 {
+                    self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                }
             })
         })
     }

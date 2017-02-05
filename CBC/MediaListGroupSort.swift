@@ -885,9 +885,9 @@ class Lexicon : NSObject {
         didSet {
             var strings = [String]()
             
-            if let keys = words?.keys.sorted() {
+            if let keys = self.words?.keys.sorted() {
                 for word in keys {
-                    if let count = words?[word]?.count {
+                    if let count = self.words?[word]?.count {
                         strings.append("\(word) (\(count))")
                     }
                 }
@@ -897,18 +897,18 @@ class Lexicon : NSObject {
                 return string.uppercased()
             })
             
-//            print(tokens)
-//            print(gcr)
-//            print(gcw)
+            //            print(tokens)
+            //            print(gcr)
+            //            print(gcw)
             
             //            if let strings = self.strings {
             //                let array = Array(Set(strings))
             //
             //            }
             
-            section.build(indexStrings)
+            self.section.build(indexStrings)
             
-            buildStringTree()
+            self.buildStringTree()
             
             DispatchQueue(label: "CBC").async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)

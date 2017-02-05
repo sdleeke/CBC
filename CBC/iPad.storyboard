@@ -274,7 +274,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="i5a-B7-7oc" userLabel="ViewSplit" customClass="ViewSplit" customModule="CBC" customModuleProvider="target">
-                                <rect key="frame" x="679" y="0.0" width="24" height="769"/>
+                                <rect key="frame" x="678.5" y="0.0" width="24" height="769"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <gestureRecognizers/>
                                 <constraints>
@@ -285,7 +285,7 @@
                                 </connections>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Bq5-HS-Wzs" userLabel="Control View" customClass="ControlView" customModule="CBC" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="468" width="703" height="46"/>
+                                <rect key="frame" x="0.0" y="468" width="702.5" height="46"/>
                                 <subviews>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="oDn-Ci-DOw">
                                         <rect key="frame" x="8" y="9" width="50" height="29"/>
@@ -321,7 +321,7 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="Pkj-Y2-Qqf" customClass="OBSlider" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="139" y="8" width="432" height="31"/>
+                                        <rect key="frame" x="139" y="8" width="431.5" height="31"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="50" id="3Ko-1C-1yT"/>
@@ -337,7 +337,7 @@
                                         <rect key="frame" x="345.5" y="13" width="20" height="20"/>
                                     </activityIndicatorView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="00:00" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="S9f-5O-zMH" userLabel="Time Remaining">
-                                        <rect key="frame" x="577" y="15" width="39" height="17"/>
+                                        <rect key="frame" x="576.5" y="15" width="39" height="17"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="lessThanOrEqual" constant="50" id="czM-83-Oku"/>
@@ -347,7 +347,7 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="3yY-29-aOM">
-                                        <rect key="frame" x="624" y="9" width="71" height="29"/>
+                                        <rect key="frame" x="623.5" y="9" width="71" height="29"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="lessThanOrEqual" constant="75" id="fQF-aT-Yg1"/>
                                         </constraints>
@@ -388,7 +388,7 @@
                                 </variation>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="sSN-Ac-J4R" userLabel="Notes and slides">
-                                <rect key="frame" x="0.0" y="64" width="679" height="404"/>
+                                <rect key="frame" x="0.0" y="64" width="678.5" height="404"/>
                                 <subviews>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="Ay8-yt-A6W">
                                         <rect key="frame" x="200.5" y="166" width="279" height="72"/>
@@ -423,7 +423,7 @@
                                 </constraints>
                             </view>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="1" sectionFooterHeight="1" translatesAutoresizingMaskIntoConstraints="NO" id="91J-fh-SJo">
-                                <rect key="frame" x="0.0" y="514" width="703" height="254"/>
+                                <rect key="frame" x="0.0" y="514" width="702.5" height="254"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="MultiPartMediaItem" id="pos-sk-GNz" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
@@ -449,7 +449,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iq3-ZA-EGB" userLabel="Download">
-                                                    <rect key="frame" x="681" y="48" width="18" height="31"/>
+                                                    <rect key="frame" x="681" y="44" width="18" height="33"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="Bqj-uH-acL"/>
                                                     </constraints>
@@ -460,7 +460,7 @@
                                                     </connections>
                                                 </button>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Icons" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="L9x-Xt-BKK" userLabel="Icons">
-                                                    <rect key="frame" x="670" y="79" width="29" height="12"/>
+                                                    <rect key="frame" x="669" y="77" width="30" height="14"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
@@ -962,11 +962,11 @@ Web site: www.countrysidebible.org</string>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="z2d-eT-0hV" userLabel="Web View">
-                                <rect key="frame" x="0.0" y="0.0" width="702.5" height="671"/>
+                                <rect key="frame" x="0.0" y="0.0" width="703" height="671"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </view>
                             <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="Countryside broadcasts live on Sundays at 9:30 am, 11:05 am, and 6:00 pm." textAlignment="center" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jso-Nw-Fui">
-                                <rect key="frame" x="0.0" y="671" width="702.5" height="33"/>
+                                <rect key="frame" x="0.0" y="671" width="703" height="33"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="lessThanOrEqual" constant="60" id="0NZ-dK-ch7"/>
@@ -1090,7 +1090,7 @@ Web site: www.countrysidebible.org</string>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1ps-Wb-dVz" userLabel="WebView">
-                                <rect key="frame" x="0.0" y="0.0" width="703" height="704"/>
+                                <rect key="frame" x="0.0" y="0.0" width="702.5" height="704"/>
                                 <subviews>
                                     <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="ti8-5g-rcB">
                                         <rect key="frame" x="342" y="342" width="20" height="20"/>
@@ -1996,13 +1996,13 @@ Web site: www.countrysidebible.org</string>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Select a word to find related media." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wFg-Do-qyZ">
-                                <rect key="frame" x="20" y="20" width="271" height="21"/>
+                                <rect key="frame" x="8" y="8" width="271" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <pickerView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="x0l-Db-PQg" userLabel="Word Picker">
-                                <rect key="frame" x="0.0" y="49" width="600" height="250"/>
+                                <rect key="frame" x="0.0" y="37" width="600" height="250"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="250" id="oto-SA-p5G"/>
                                 </constraints>
@@ -2012,19 +2012,19 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </pickerView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Selected:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ycZ-zi-bn1" userLabel="Selected Label">
-                                <rect key="frame" x="20" y="307" width="72" height="21"/>
+                                <rect key="frame" x="8" y="295" width="72" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="NN" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="VQa-4x-Xe7" userLabel="Selected Word">
-                                <rect key="frame" x="100" y="307" width="25" height="21"/>
+                                <rect key="frame" x="88" y="295" width="25" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="Lyf-na-Uzj">
-                                <rect key="frame" x="161" y="400" width="279" height="72"/>
+                                <rect key="frame" x="161" y="394" width="279" height="72"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                 </accessibility>
@@ -2035,7 +2035,7 @@ Web site: www.countrysidebible.org</string>
                                 </constraints>
                             </imageView>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="1" sectionFooterHeight="1" translatesAutoresizingMaskIntoConstraints="NO" id="87d-zJ-TEW">
-                                <rect key="frame" x="0.0" y="336" width="600" height="200"/>
+                                <rect key="frame" x="0.0" y="324" width="600" height="212"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="IndexMediaItem" id="Lb7-Td-pZZ" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
@@ -2118,28 +2118,39 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </tableView>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="G5M-pO-tba">
-                                <rect key="frame" x="290" y="164.5" width="20" height="20"/>
+                                <rect key="frame" x="290" y="152.5" width="20" height="20"/>
                             </activityIndicatorView>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="0i9-DK-n2A">
-                                <rect key="frame" x="0.0" y="49" width="600" height="250"/>
+                                <rect key="frame" x="0.0" y="37" width="600" height="250"/>
                                 <connections>
                                     <segue destination="XK5-KT-b8P" kind="embed" identifier="Show Word List" id="h1S-N1-N0w"/>
                                 </connections>
                             </containerView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="df8-uq-4Cb">
+                                <rect key="frame" x="121" y="291" width="47" height="30"/>
+                                <state key="normal" title="Locate"/>
+                                <connections>
+                                    <action selector="LocateAction:" destination="3Dc-QY-O2e" eventType="touchUpInside" id="tun-qR-VN4"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="wFg-Do-qyZ" firstAttribute="leading" secondItem="vlo-ne-tIt" secondAttribute="leadingMargin" id="1Mi-aV-rbC"/>
+                            <constraint firstItem="wFg-Do-qyZ" firstAttribute="leading" secondItem="vlo-ne-tIt" secondAttribute="leading" constant="8" id="1Mi-aV-rbC"/>
                             <constraint firstItem="G5M-pO-tba" firstAttribute="centerX" secondItem="x0l-Db-PQg" secondAttribute="centerX" id="1aa-Ap-bUx"/>
+                            <constraint firstItem="df8-uq-4Cb" firstAttribute="leading" secondItem="VQa-4x-Xe7" secondAttribute="trailing" constant="8" id="2Ig-zc-3QD"/>
                             <constraint firstItem="87d-zJ-TEW" firstAttribute="leading" secondItem="vlo-ne-tIt" secondAttribute="leading" id="4H9-Dl-ALr"/>
                             <constraint firstItem="87d-zJ-TEW" firstAttribute="top" secondItem="ycZ-zi-bn1" secondAttribute="bottom" constant="8" id="61t-XW-YCS"/>
-                            <constraint firstItem="wFg-Do-qyZ" firstAttribute="top" secondItem="vlo-ne-tIt" secondAttribute="top" constant="20" symbolic="YES" id="AKv-WE-7Qu"/>
+                            <constraint firstItem="wFg-Do-qyZ" firstAttribute="top" secondItem="vlo-ne-tIt" secondAttribute="top" constant="8" id="AKv-WE-7Qu"/>
+                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="df8-uq-4Cb" secondAttribute="trailing" constant="8" id="AdV-7T-Apb"/>
                             <constraint firstItem="x0l-Db-PQg" firstAttribute="top" secondItem="wFg-Do-qyZ" secondAttribute="bottom" constant="8" symbolic="YES" id="BKN-SU-kFw"/>
-                            <constraint firstAttribute="trailingMargin" relation="greaterThanOrEqual" secondItem="VQa-4x-Xe7" secondAttribute="trailing" id="C8g-N3-A90"/>
+                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="VQa-4x-Xe7" secondAttribute="trailing" constant="8" id="C8g-N3-A90"/>
                             <constraint firstItem="G5M-pO-tba" firstAttribute="centerY" secondItem="x0l-Db-PQg" secondAttribute="centerY" id="Ems-9M-qqm"/>
+                            <constraint firstItem="df8-uq-4Cb" firstAttribute="baseline" secondItem="VQa-4x-Xe7" secondAttribute="baseline" id="Gd6-mX-Wzx"/>
                             <constraint firstAttribute="trailing" secondItem="87d-zJ-TEW" secondAttribute="trailing" id="HoC-1I-jPY"/>
                             <constraint firstItem="87d-zJ-TEW" firstAttribute="bottom" secondItem="Va6-mQ-aBq" secondAttribute="top" id="IY0-Gj-1gB"/>
                             <constraint firstItem="x0l-Db-PQg" firstAttribute="top" secondItem="wFg-Do-qyZ" secondAttribute="bottom" constant="8" symbolic="YES" id="Mbd-zL-nXH"/>
+                            <constraint firstItem="df8-uq-4Cb" firstAttribute="baseline" secondItem="ycZ-zi-bn1" secondAttribute="baseline" id="Ou9-Al-jka"/>
                             <constraint firstItem="87d-zJ-TEW" firstAttribute="trailing" secondItem="x0l-Db-PQg" secondAttribute="trailing" id="Q0S-2m-fz4"/>
                             <constraint firstItem="Lyf-na-Uzj" firstAttribute="centerY" secondItem="87d-zJ-TEW" secondAttribute="centerY" id="QFx-wY-4Bd"/>
                             <constraint firstItem="Lyf-na-Uzj" firstAttribute="width" secondItem="Lyf-na-Uzj" secondAttribute="height" multiplier="31:8" id="V1G-rI-wox"/>
@@ -2155,9 +2166,9 @@ Web site: www.countrysidebible.org</string>
                             <constraint firstItem="x0l-Db-PQg" firstAttribute="leading" secondItem="vlo-ne-tIt" secondAttribute="leading" id="mGT-lM-T4Y"/>
                             <constraint firstItem="0i9-DK-n2A" firstAttribute="top" secondItem="x0l-Db-PQg" secondAttribute="top" id="pp2-WV-Zpu"/>
                             <constraint firstItem="0i9-DK-n2A" firstAttribute="centerY" secondItem="x0l-Db-PQg" secondAttribute="centerY" id="qte-TD-hif"/>
+                            <constraint firstItem="VQa-4x-Xe7" firstAttribute="baseline" secondItem="ycZ-zi-bn1" secondAttribute="baseline" id="sui-eR-Rh4"/>
                             <constraint firstItem="Lyf-na-Uzj" firstAttribute="centerX" secondItem="vlo-ne-tIt" secondAttribute="centerX" id="ts0-Bn-Y8n"/>
                             <constraint firstItem="0i9-DK-n2A" firstAttribute="leading" secondItem="x0l-Db-PQg" secondAttribute="leading" id="u9m-6h-4Ac"/>
-                            <constraint firstItem="VQa-4x-Xe7" firstAttribute="top" secondItem="ycZ-zi-bn1" secondAttribute="top" id="uHV-m8-Wpp"/>
                             <constraint firstItem="87d-zJ-TEW" firstAttribute="leading" secondItem="x0l-Db-PQg" secondAttribute="leading" id="xEd-hX-3Ns"/>
                             <constraint firstAttribute="trailing" secondItem="x0l-Db-PQg" secondAttribute="trailing" id="ytW-aU-bAh"/>
                         </constraints>
@@ -2178,6 +2189,7 @@ Web site: www.countrysidebible.org</string>
                     <connections>
                         <outlet property="container" destination="0i9-DK-n2A" id="afe-3m-1Jp"/>
                         <outlet property="directionLabel" destination="wFg-Do-qyZ" id="WcX-kx-AUl"/>
+                        <outlet property="locateButton" destination="df8-uq-4Cb" id="hFF-7n-g55"/>
                         <outlet property="logo" destination="Lyf-na-Uzj" id="u4p-ea-pJR"/>
                         <outlet property="selectedLabel" destination="ycZ-zi-bn1" id="s1N-u4-o0i"/>
                         <outlet property="selectedWord" destination="VQa-4x-Xe7" id="yTp-n7-mzr"/>
