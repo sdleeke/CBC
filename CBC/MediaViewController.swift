@@ -89,8 +89,297 @@ class ControlView : UIView {
     }
 }
 
-class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, WKUIDelegate, WKNavigationDelegate, UIScrollViewDelegate, UIPopoverPresentationControllerDelegate, PopoverTableViewControllerDelegate {
+extension MediaViewController : UIAdaptivePresentationControllerDelegate
+{
+    // MARK: UIAdaptivePresentationControllerDelegate
+    
+    // Specifically for Plus size iPhones.
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+        return UIModalPresentationStyle.none
+    }
+}
 
+extension MediaViewController : PopoverTableViewControllerDelegate
+{
+    // MARK: PopoverTableViewControllerDelegate
+    
+    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
+    {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaViewController:rowClickedAtIndex")
+            return
+        }
+        
+        dismiss(animated: true, completion: nil)
+        
+        guard let strings = strings else {
+            return
+        }
+        
+        switch purpose {
+        case .selectingCellAction:
+            switch strings[index] {
+            case Constants.Download_Audio:
+                mediaItem?.audioDownload?.download()
+                break
+                
+            case Constants.Delete_Audio_Download:
+                mediaItem?.audioDownload?.delete()
+                break
+                
+            case Constants.Cancel_Audio_Download:
+                mediaItem?.audioDownload?.cancelOrDelete()
+                break
+                
+            default:
+                break
+            }
+            break
+            
+        case .selectingAction:
+            switch strings[index] {
+            case Constants.Print_Slides:
+                fallthrough
+            case Constants.Print_Transcript:
+                printDocument(viewController: self, documentURL: selectedMediaItem?.downloadURL)
+                break
+                
+            case Constants.Add_to_Favorites:
+                selectedMediaItem?.addTag(Constants.Favorites)
+                break
+                
+            case Constants.Add_All_to_Favorites:
+                for mediaItem in mediaItems! {
+                    mediaItem.addTag(Constants.Favorites)
+                }
+                break
+                
+            case Constants.Remove_From_Favorites:
+                selectedMediaItem?.removeTag(Constants.Favorites)
+                break
+                
+            case Constants.Remove_All_From_Favorites:
+                for mediaItem in mediaItems! {
+                    mediaItem.removeTag(Constants.Favorites)
+                }
+                break
+                
+            case Constants.Open_on_CBC_Website:
+                if selectedMediaItem?.websiteURL != nil {
+                    if (UIApplication.shared.canOpenURL(selectedMediaItem!.websiteURL! as URL)) { // Reachability.isConnectedToNetwork() &&
+                        UIApplication.shared.openURL(selectedMediaItem!.websiteURL! as URL)
+                    } else {
+                        networkUnavailable("Unable to open transcript in browser at: \(selectedMediaItem?.websiteURL)")
+                    }
+                }
+                break
+                
+            case Constants.Open_in_Browser:
+                if selectedMediaItem?.downloadURL != nil {
+                    if (UIApplication.shared.canOpenURL(selectedMediaItem!.downloadURL! as URL)) { // Reachability.isConnectedToNetwork() &&
+                        UIApplication.shared.openURL(selectedMediaItem!.downloadURL! as URL)
+                    } else {
+                        networkUnavailable("Unable to open transcript in browser at: \(selectedMediaItem?.downloadURL)")
+                    }
+                }
+                break
+                
+            case Constants.Scripture_Viewer:
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "Scripture View") as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? ScriptureViewController  {
+                    
+                    popover.scripture = self.scripture
+                    
+                    popover.vc = self
+                    
+                    navigationController.modalPresentationStyle = .popover
+                    
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
+                    
+                    //                    popover.navigationItem.title = title
+                    
+                    popover.navigationController?.isNavigationBarHidden = false
+                    
+                    present(navigationController, animated: true, completion: nil)
+                }
+                break
+                
+            case Constants.Scripture_in_Browser:
+                openMediaItemScripture(selectedMediaItem)
+                break
+                
+            case Constants.Download_Audio:
+                selectedMediaItem?.audioDownload?.download()
+                break
+                
+            case Constants.Download_All_Audio:
+                for mediaItem in mediaItems! {
+                    mediaItem.audioDownload?.download()
+                }
+                break
+                
+            case Constants.Cancel_Audio_Download:
+                selectedMediaItem?.audioDownload?.cancelOrDelete()
+                break
+                
+            case Constants.Cancel_All_Audio_Downloads:
+                for mediaItem in mediaItems! {
+                    mediaItem.audioDownload?.cancel()
+                }
+                break
+                
+            case Constants.Delete_Audio_Download:
+                selectedMediaItem?.audioDownload?.delete()
+                break
+                
+            case Constants.Delete_All_Audio_Downloads:
+                for mediaItem in mediaItems! {
+                    mediaItem.audioDownload?.delete()
+                }
+                break
+                
+            case Constants.Print:
+                process(viewController: self, work: {
+                    return setupMediaItemsHTML(self.mediaItems,includeURLs:false,includeColumns:true)
+                }, completion: { (data:Any?) in
+                    printHTML(viewController: self, htmlString: data as? String)
+                })
+                break
+                
+            case Constants.Share:
+                shareHTML(viewController: self, htmlString: mediaItem?.webLink)
+                break
+                
+            case Constants.Share_All:
+                shareMediaItems(viewController: self, mediaItems: mediaItems, stringFunction: setupMediaItemsHTML)
+                break
+                
+            case Constants.Refresh_Document:
+                fallthrough
+            case Constants.Refresh_Transcript:
+                fallthrough
+            case Constants.Refresh_Slides:
+                // This only refreshes the visible document.
+                download?.cancelOrDelete()
+                document?.loaded = false
+                setupDocumentsAndVideo()
+                break
+                
+            default:
+                break
+            }
+            break
+            
+        default:
+            break
+        }
+    }
+}
+
+extension MediaViewController : MFMessageComposeViewControllerDelegate
+{
+    // MARK: MFMessageComposeViewControllerDelegate Method
+    
+    func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
+        controller.dismiss(animated: true, completion: nil)
+    }
+}
+
+extension MediaViewController : MFMailComposeViewControllerDelegate
+{
+    // MARK: MFMailComposeViewControllerDelegate Method
+    
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+        controller.dismiss(animated: true, completion: nil)
+    }
+}
+
+extension MediaViewController : WKNavigationDelegate
+{
+    // MARK: WKNavigationDelegate
+    
+    func webView(_ webView: WKWebView, didFail didFailNavigation: WKNavigation!, withError: Error) {
+        print("wkDidFailNavigation")
+        //        if (splitViewController != nil) || (self == navigationController?.visibleViewController) {
+        //        }
+        
+        webView.isHidden = true
+        if (selectedMediaItem != nil) && (documents[selectedMediaItem!.id] != nil) {
+            for document in documents[selectedMediaItem!.id]!.values {
+                if (webView == document.wkWebView) {
+                    document.wkWebView?.scrollView.delegate = nil
+                    document.wkWebView = nil
+                    if document.showing(selectedMediaItem) {
+                        activityIndicator.stopAnimating()
+                        activityIndicator.isHidden = true
+                        
+                        progressIndicator.isHidden = true
+                        
+                        logo.isHidden = !shouldShowLogo() // && roomForLogo()
+                        
+                        if (!logo.isHidden) {
+                            mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+                        }
+                        
+                        networkUnavailable(withError.localizedDescription)
+                        NSLog(withError.localizedDescription)
+                    }
+                }
+            }
+        }
+        
+        // Keep trying
+        //        let request = NSURLRequest(URL: wkWebView.URL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
+        //        wkWebView.loadRequest(request) // NSURLRequest(URL: webView.URL!)
+    }
+    
+    func webView(_ wkWebView: WKWebView, didStartProvisionalNavigation: WKNavigation!) {
+        print("wkDidStartProvisionalNavigation")
+        
+    }
+    
+    func webView(_ wkWebView: WKWebView, didFailProvisionalNavigation: WKNavigation!,withError: Error) {
+        print("didFailProvisionalNavigation")
+        
+        if !globals.cacheDownloads {
+            DispatchQueue.main.async(execute: { () -> Void in
+                for document in self.documents[self.selectedMediaItem!.id]!.values {
+                    if (document.wkWebView == wkWebView) && document.showing(self.selectedMediaItem) {
+                        self.document?.wkWebView?.isHidden = true
+                        self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+                        self.logo.isHidden = false
+                        
+                        if let purpose = document.download?.purpose {
+                            switch purpose {
+                            case Purpose.notes:
+                                networkUnavailable("Transcript not available.")
+                                break
+                                
+                            case Purpose.slides:
+                                networkUnavailable("Slides not available.")
+                                break
+                                
+                            default:
+                                break
+                            }
+                        }
+                    }
+                }
+            })
+        }
+    }
+}
+
+class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPresentationControllerDelegate
+{
     @IBOutlet weak var controlView: ControlView!
     
     @IBOutlet weak var controlViewTop: NSLayoutConstraint!
@@ -433,6 +722,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     {
 //        print(selectedMediaItem!.playing!)
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaViewController:audioOrVideoSelection")
             return
         }
         
@@ -525,6 +815,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     @IBAction func stvAction(_ sender: UISegmentedControl)
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaViewController:stvAction")
             return
         }
         
@@ -655,6 +946,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     func setupSTVControl()
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaViewController:setupSTVControl")
             return
         }
 
@@ -1065,11 +1357,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         })
     }
     
-    // MARK: MFMessageComposeViewControllerDelegate Method
-    func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
-        controller.dismiss(animated: true, completion: nil)
-    }
-    
     func message(_ mediaItem:MediaItem?)
     {
         guard MFMessageComposeViewController.canSendText() else {
@@ -1087,11 +1374,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         DispatchQueue.main.async(execute: { () -> Void in
             self.present(messageComposeViewController, animated: true, completion: nil)
         })
-    }
-    
-    // MARK: MFMailComposeViewControllerDelegate Method
-    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-        controller.dismiss(animated: true, completion: nil)
     }
     
     fileprivate func openMediaItemScripture(_ mediaItem:MediaItem?)
@@ -1113,179 +1395,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         }
     }
     
-    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?) {
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.dismiss(animated: true, completion: nil)
-        })
-        
-        guard let strings = strings else {
-            return
-        }
-        
-        switch purpose {
-        case .selectingCellAction:
-            switch strings[index] {
-            case Constants.Download_Audio:
-                mediaItem?.audioDownload?.download()
-                break
-                
-            case Constants.Delete_Audio_Download:
-                mediaItem?.audioDownload?.delete()
-                break
-                
-            case Constants.Cancel_Audio_Download:
-                mediaItem?.audioDownload?.cancelOrDelete()
-                break
-                
-            default:
-                break
-            }
-            break
-            
-        case .selectingAction:
-            switch strings[index] {
-            case Constants.Print_Slides:
-                fallthrough
-            case Constants.Print_Transcript:
-                printDocument(viewController: self, documentURL: selectedMediaItem?.downloadURL)
-                break
-                
-            case Constants.Add_to_Favorites:
-                selectedMediaItem?.addTag(Constants.Favorites)
-                break
-                
-            case Constants.Add_All_to_Favorites:
-                for mediaItem in mediaItems! {
-                    mediaItem.addTag(Constants.Favorites)
-                }
-                break
-                
-            case Constants.Remove_From_Favorites:
-                selectedMediaItem?.removeTag(Constants.Favorites)
-                break
-                
-            case Constants.Remove_All_From_Favorites:
-                for mediaItem in mediaItems! {
-                    mediaItem.removeTag(Constants.Favorites)
-                }
-                break
-                
-            case Constants.Open_on_CBC_Website:
-                if selectedMediaItem?.websiteURL != nil {
-                    if (UIApplication.shared.canOpenURL(selectedMediaItem!.websiteURL! as URL)) { // Reachability.isConnectedToNetwork() &&
-                        UIApplication.shared.openURL(selectedMediaItem!.websiteURL! as URL)
-                    } else {
-                        networkUnavailable("Unable to open transcript in browser at: \(selectedMediaItem?.websiteURL)")
-                    }
-                }
-                break
-                
-            case Constants.Open_in_Browser:
-                if selectedMediaItem?.downloadURL != nil {
-                    if (UIApplication.shared.canOpenURL(selectedMediaItem!.downloadURL! as URL)) { // Reachability.isConnectedToNetwork() &&
-                        UIApplication.shared.openURL(selectedMediaItem!.downloadURL! as URL)
-                    } else {
-                        networkUnavailable("Unable to open transcript in browser at: \(selectedMediaItem?.downloadURL)")
-                    }
-                }
-                break
-                
-            case Constants.Scripture_Viewer:
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "Scripture View") as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? ScriptureViewController  {
-                    
-                    popover.scripture = self.scripture
-                    
-                    popover.vc = self
-                    
-                    navigationController.modalPresentationStyle = .popover
-                    
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                    navigationController.popoverPresentationController?.delegate = self
-                    
-                    navigationController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
-                    
-                    //                    popover.navigationItem.title = title
-                    
-                    popover.navigationController?.isNavigationBarHidden = false
-                    
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.present(navigationController, animated: true, completion: nil)
-                    })
-                }
-                break
-                
-            case Constants.Scripture_in_Browser:
-                openMediaItemScripture(selectedMediaItem)
-                break
-                
-            case Constants.Download_Audio:
-                selectedMediaItem?.audioDownload?.download()
-                break
-                
-            case Constants.Download_All_Audio:
-                for mediaItem in mediaItems! {
-                    mediaItem.audioDownload?.download()
-                }
-                break
-                
-            case Constants.Cancel_Audio_Download:
-                selectedMediaItem?.audioDownload?.cancelOrDelete()
-                break
-                
-            case Constants.Cancel_All_Audio_Downloads:
-                for mediaItem in mediaItems! {
-                    mediaItem.audioDownload?.cancel()
-                }
-                break
-                
-            case Constants.Delete_Audio_Download:
-                selectedMediaItem?.audioDownload?.delete()
-                break
-                
-            case Constants.Delete_All_Audio_Downloads:
-                for mediaItem in mediaItems! {
-                    mediaItem.audioDownload?.delete()
-                }
-                break
-                
-            case Constants.Print:
-                process(viewController: self, work: {
-                    return setupMediaItemsHTML(self.mediaItems,includeURLs:false,includeColumns:true)
-                }, completion: { (data:Any?) in
-                    printHTML(viewController: self, htmlString: data as? String)
-                })
-                break
-                
-            case Constants.Share:
-                shareHTML(viewController: self, htmlString: mediaItem?.webLink)
-                break
-                
-            case Constants.Share_All:
-                shareMediaItems(viewController: self, mediaItems: mediaItems, stringFunction: setupMediaItemsHTML)
-                break
-                
-            case Constants.Refresh_Document:
-                fallthrough
-            case Constants.Refresh_Transcript:
-                fallthrough
-            case Constants.Refresh_Slides:
-                // This only refreshes the visible document.
-                download?.cancelOrDelete()
-                document?.loaded = false
-                setupDocumentsAndVideo()
-                break
-                
-            default:
-                break
-            }
-            break
-            
-        default:
-            break
-        }
-    }
-
     func actions()
     {
         //In case we have one already showing
@@ -1311,6 +1420,8 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             
             var actionMenu = [String]()
 
+            actionMenu.append(Constants.Scripture_Viewer)
+            
             if selectedMediaItem!.hasFavoritesTag {
                 actionMenu.append(Constants.Remove_From_Favorites)
             } else {
@@ -1399,8 +1510,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 //                actionMenu.append(Constants.Scripture_in_Browser)
 //            }
 
-            actionMenu.append(Constants.Scripture_Viewer)
-
             if let mediaItems = mediaItems {
                 var mediaItemsToDownload = 0
                 var mediaItemsDownloading = 0
@@ -1486,10 +1595,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
                 actionMenu.append(Constants.Share_All)
             }
             
-            popover.strings = actionMenu
+            popover.section.strings = actionMenu
             
-            popover.showIndex = false //(globals.grouping == .series)
-            popover.showSectionHeaders = false
+            popover.section.showIndex = false //(globals.grouping == .series)
+            popover.section.showHeaders = false
             
             popover.vc = self
             
@@ -1828,104 +1937,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         }
     }
     
-//    func downloading(_ timer:Timer?)
-//    {
-//        let document = timer?.userInfo as? Document
-//        
-//        print(document?.download?.purpose)
-//        print(document?.download?.state)
-//        print(document?.download?.downloadURL)
-//        
-//        if (selectedMediaItem != nil) {
-////            print(selectedMediaItem)
-//            if (document?.download != nil) {
-//                print("totalBytesWritten: \(document!.download!.totalBytesWritten)")
-//                print("totalBytesExpectedToWrite: \(document!.download!.totalBytesExpectedToWrite)")
-//                
-//                switch document!.download!.state {
-//                case .none:
-////                    print(".none")
-//                    document?.download?.task?.cancel()
-//                    
-//                    document?.loadTimer?.invalidate()
-//                    document?.loadTimer = nil
-//                    
-//                    if document!.showing(selectedMediaItem) {
-//                        self.activityIndicator.stopAnimating()
-//                        self.activityIndicator.isHidden = true
-//                        
-//                        self.progressIndicator.isHidden = true
-//                        
-//                        document?.wkWebView?.isHidden = true
-//                        
-//                        globals.mediaPlayer.view?.isHidden = true
-//                        
-//                        self.logo.isHidden = false
-//                        self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
-//                        
-//                        networkUnavailable("Download failed.")
-//                    }
-//                    break
-//                    
-//                case .downloading:
-////                    print(".downloading")
-//                    if document!.showing(selectedMediaItem) {
-//                        progressIndicator.progress = document!.download!.totalBytesExpectedToWrite > 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
-//                    }
-////                    if document!.download!.totalBytesExpectedToWrite == 0 {
-////                        document?.download?.cancelDownload()
-////                        document?.loadTimer?.invalidate()
-////                        document?.loadTimer = nil
-////                        progressIndicator.isHidden = true
-////                        activityIndicator.isHidden = true
-////                        selectedMediaItem?.showing = Showing.none
-////                        setupDocumentsAndVideo()
-////                    }
-//                    break
-//                    
-//                case .downloaded:
-////                    print(".downloaded")
-//                    if #available(iOS 9.0, *) {
-//
-//                        document?.loadTimer?.invalidate()
-//                        document?.loadTimer = nil
-//
-////                        DispatchQueue.global(qos: .background).async {
-////                            //                            print(document!.download!.fileSystemURL!)
-////                            _ = document?.wkWebView?.loadFileURL(document!.download!.fileSystemURL! as URL, allowingReadAccessTo: document!.download!.fileSystemURL! as URL)
-////                            
-////                            DispatchQueue.main.async(execute: { () -> Void in
-////                                if document!.visible(self.selectedMediaItem) {
-////                                    self.progressIndicator.progress = document!.download!.totalBytesExpectedToWrite > 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
-////                                }
-////                                
-////                                document?.loadTimer?.invalidate()
-////                                document?.loadTimer = nil
-////                            })
-////                        }
-//
-////                        DispatchQueue.global(priority: DispatchQueue.GlobalQueuePriority.default).async(execute: { () -> Void in
-//////                            print(document!.download!.fileSystemURL!)
-////                            document?.wkWebView?.loadFileURL(document!.download!.fileSystemURL! as URL, allowingReadAccessTo: document!.download!.fileSystemURL! as URL)
-////                            
-////                            DispatchQueue.main.async(execute: { () -> Void in
-////                                if document!.visible(self.selectedMediaItem) {
-////                                    self.progressIndicator.progress = document!.download!.totalBytesExpectedToWrite > 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
-////                                }
-////                                
-////                                document?.loadTimer?.invalidate()
-////                                document?.loadTimer = nil
-////                            })
-////                        })
-//                    } else {
-//                        // Fallback on earlier versions
-//                    }
-//                    break
-//                }
-//            }
-//        }
-//    }
-    
     func loading(_ timer:Timer?)
     {
         // Expected to be on the main thread
@@ -1995,10 +2006,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 
                         mediaItemNotesAndSlides.bringSubview(toFront: progressIndicator)
                     }
-                    
-//                    if document?.loadTimer == nil {
-//                        document?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.DOWNLOADING, target: self, selector: #selector(MediaViewController.downloading(_:)), userInfo: document, repeats: true)
-//                    }
                     
                     document?.download?.download()
                 } else {
@@ -2099,6 +2106,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     fileprivate func setupDocumentsAndVideo()
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaViewController:setupDocumentsAndVideo")
             return
         }
         
@@ -2324,6 +2332,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     func setupPlayPauseButton()
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaViewController:setupPlayPauseButton")
             return
         }
         
@@ -2376,16 +2385,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         playPauseButton.isHidden = false
     }
     
-    // Specifically for Plus size iPhones.
-    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-    {
-        return UIModalPresentationStyle.none
-    }
-    
-    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.none
-    }
-    
     func tags(_ object:AnyObject?)
     {
         //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.filters
@@ -2411,10 +2410,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             popover.delegate = self
             
             popover.purpose = .showingTags
-            popover.strings = selectedMediaItem?.tagsArray
+            popover.section.strings = selectedMediaItem?.tagsArray
             
-            popover.showIndex = false
-            popover.showSectionHeaders = false
+            popover.section.showIndex = false
+            popover.section.showHeaders = false
             
             popover.allowsSelection = false
             popover.selectedMediaItem = selectedMediaItem
@@ -3005,38 +3004,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         }
     }
 
-    func numberOfSectionsInTableView(_ tableView: UITableView) -> Int {
-        // #warning Potentially incomplete method implementation.
-        // Return the number of sections.
-        return 1
-    }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete method implementation.
-        // Return the number of rows in the section.
-        return selectedMediaItem != nil ? (mediaItems != nil ? mediaItems!.count : 0) : 0
-    }
-    
-    /*
-    */
-    func tableView(_ tableView: UITableView, cellForRowAtIndexPath indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.MULTIPART_MEDIAITEM, for: indexPath) as! MediaTableViewCell
-        
-        cell.isHiddenUI(true)
-        
-        cell.vc = self
-        
-        cell.mediaItem = mediaItems?[indexPath.row]
-        
-        return cell
-    }
-    
-    
-    func tableView(_ tableView: UITableView, shouldSelectRowAtIndexPath indexPath: IndexPath) -> Bool {
-        return true
-    }
-    
-
     fileprivate func setTimes(timeNow:Double, length:Double)
     {
 //        print("timeNow:",timeNow,"length:",length)
@@ -3189,6 +3156,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     fileprivate func setupSliderAndTimes()
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaViewController:setupSliderAndTimes")
             return
         }
         
@@ -3240,6 +3208,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
     func sliderTimer()
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaViewController:sliderTimer")
             return
         }
         
@@ -3430,9 +3399,11 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
             return
         }
         
-        setupSpinner()
-        
         globals.mediaPlayer.mediaItem = mediaItem
+        
+        globals.mediaPlayer.unload()
+        
+        setupSpinner()
         
         removeSliderObserver()
         
@@ -3462,16 +3433,10 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         }
     }
     
-    func tableView(_ tableView: UITableView, didDeselectRowAtIndexPath indexPath: IndexPath)
-    {
-//        if let cell = tableView.cellForRowAtIndexPath(indexPath) as? MediaTableViewCell {
-//
-//        }
-    }
-    
     func setupSpinner()
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaViewController:setupSpinner")
             return
         }
         
@@ -3532,99 +3497,6 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         }
     }
 
-    func tableView(_ tableView: UITableView, didSelectRowAtIndexPath indexPath: IndexPath) {
-        if (selectedMediaItem != nil) &&  (documents[selectedMediaItem!.id] != nil) {
-            for document in documents[selectedMediaItem!.id]!.values {
-                if document.showing(selectedMediaItem) && (document.wkWebView != nil) && document.loaded && document.wkWebView!.scrollView.isDecelerating {
-                    captureContentOffset(document)
-                }
-            }
-        }
-        
-        if (selectedMediaItem != mediaItems![indexPath.row]) || (globals.history == nil) {
-            globals.addToHistory(mediaItems![indexPath.row])
-        }
-        selectedMediaItem = mediaItems![indexPath.row]
-
-        setupSpinner()
-        setupAudioOrVideo()
-        setupPlayPauseButton()
-        setupSliderAndTimes()
-        setupDocumentsAndVideo()
-        setupActionAndTagsButtons()
-    }
-    
-    func webView(_ webView: WKWebView, didFail didFailNavigation: WKNavigation!, withError: Error) {
-        print("wkDidFailNavigation")
-//        if (splitViewController != nil) || (self == navigationController?.visibleViewController) {
-//        }
-
-        webView.isHidden = true
-        if (selectedMediaItem != nil) && (documents[selectedMediaItem!.id] != nil) {
-            for document in documents[selectedMediaItem!.id]!.values {
-                if (webView == document.wkWebView) {
-                    document.wkWebView?.scrollView.delegate = nil
-                    document.wkWebView = nil
-                    if document.showing(selectedMediaItem) {
-                        activityIndicator.stopAnimating()
-                        activityIndicator.isHidden = true
-                        
-                        progressIndicator.isHidden = true
-                        
-                        logo.isHidden = !shouldShowLogo() // && roomForLogo()
-                        
-                        if (!logo.isHidden) {
-                            mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
-                        }
-                        
-                        networkUnavailable(withError.localizedDescription)
-                        NSLog(withError.localizedDescription)
-                    }
-                }
-            }
-        }
-
-        // Keep trying
-//        let request = NSURLRequest(URL: wkWebView.URL!, cachePolicy: Constants.CACHE_POLICY, timeoutInterval: Constants.CACHE_TIMEOUT)
-//        wkWebView.loadRequest(request) // NSURLRequest(URL: webView.URL!)
-    }
-    
-    func webView(_ wkWebView: WKWebView, didStartProvisionalNavigation: WKNavigation!) {
-        print("wkDidStartProvisionalNavigation")
-        
-    }
-    
-    func webView(_ wkWebView: WKWebView, didFailProvisionalNavigation: WKNavigation!,withError: Error) {
-        print("didFailProvisionalNavigation")
-        
-        if !globals.cacheDownloads {
-            DispatchQueue.main.async(execute: { () -> Void in
-                for document in self.documents[self.selectedMediaItem!.id]!.values {
-                    if (document.wkWebView == wkWebView) && document.showing(self.selectedMediaItem) {
-                        self.document?.wkWebView?.isHidden = true
-                        self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
-                        self.logo.isHidden = false
-                        
-                        if let purpose = document.download?.purpose {
-                            switch purpose {
-                            case Purpose.notes:
-                                networkUnavailable("Transcript not available.")
-                                break
-                                
-                            case Purpose.slides:
-                                networkUnavailable("Slides not available.")
-                                break
-                                
-                            default:
-                                break
-                            }
-                        }
-                    }
-                }
-            })
-        }
-    }
-    
     func wkSetZoomScaleThenContentOffset(_ wkWebView: WKWebView, scale:CGFloat, offset:CGPoint) {
 //        print("scale: \(scale)")
 //        print("offset: \(offset)")
@@ -3733,7 +3605,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         }
     }
     
-    func tableView(_ tableView: UITableView, canEditRowAtIndexPath indexPath: IndexPath) -> Bool
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
             return false
@@ -3746,7 +3618,7 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
         return mediaItem.hasNotesHTML || (mediaItem.scriptureReference != Constants.Selected_Scriptures)
     }
     
-    func tableView(_ tableView: UITableView, editActionsForRowAtIndexPath indexPath: IndexPath) -> [UITableViewRowAction]?
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
             return nil
@@ -3830,49 +3702,106 @@ class MediaViewController: UIViewController, MFMailComposeViewControllerDelegate
 
         return actions
     }
+}
+
+extension MediaViewController : UITableViewDataSource
+{
+    // MARK: UITableViewDataSource
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        // #warning Potentially incomplete method implementation.
+        // Return the number of sections.
+        return 1
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        // #warning Incomplete method implementation.
+        // Return the number of rows in the section.
+        return selectedMediaItem != nil ? (mediaItems != nil ? mediaItems!.count : 0) : 0
+    }
     
     /*
-    // Override to support conditional editing of the table view.
-    override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-    // Return NO if you do not want the specified item to be editable.
-    return true
+     */
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
+    {
+        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.MULTIPART_MEDIAITEM, for: indexPath) as! MediaTableViewCell
+        
+        cell.hideUI()
+        
+        cell.vc = self
+        
+        cell.mediaItem = mediaItems?[indexPath.row]
+        
+        return cell
     }
-    */
+
+    /*
+     // Override to support conditional editing of the table view.
+     override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+     // Return NO if you do not want the specified item to be editable.
+     return true
+     }
+     */
     
     /*
-    // Override to support editing the table view.
-    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-    if editingStyle == .Delete {
-    // Delete the row from the data source
-    tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-    } else if editingStyle == .Insert {
-    // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
+     // Override to support editing the table view.
+     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+     if editingStyle == .Delete {
+     // Delete the row from the data source
+     tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+     } else if editingStyle == .Insert {
+     // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
+     }
+     }
+     */
+}
+
+extension MediaViewController : UITableViewDelegate
+{
+    // MARK: UITableViewDelegate
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
+    {
+        if (selectedMediaItem != nil) &&  (documents[selectedMediaItem!.id] != nil) {
+            for document in documents[selectedMediaItem!.id]!.values {
+                if document.showing(selectedMediaItem) && (document.wkWebView != nil) && document.loaded && document.wkWebView!.scrollView.isDecelerating {
+                    captureContentOffset(document)
+                }
+            }
+        }
+        
+        if (selectedMediaItem != mediaItems![indexPath.row]) || (globals.history == nil) {
+            globals.addToHistory(mediaItems![indexPath.row])
+        }
+        selectedMediaItem = mediaItems![indexPath.row]
+        
+        setupSpinner()
+        setupAudioOrVideo()
+        setupPlayPauseButton()
+        setupSliderAndTimes()
+        setupDocumentsAndVideo()
+        setupActionAndTagsButtons()
     }
+
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath)
+    {
+        //        if let cell = tableView.cellForRowAtIndexPath(indexPath) as? MediaTableViewCell {
+        //
+        //        }
     }
-    */
     
     /*
-    // Override to support rearranging the table view.
-    override func tableView(tableView: UITableView, moveRowAtIndexPath fromIndexPath: NSIndexPath, toIndexPath: NSIndexPath) {
-    
-    }
-    */
-    
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(tableView: UITableView, canMoveRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-    // Return NO if you do not want the item to be re-orderable.
-    return true
-    }
-    */
+     // Override to support rearranging the table view.
+     override func tableView(tableView: UITableView, moveRowAtIndexPath fromIndexPath: NSIndexPath, toIndexPath: NSIndexPath) {
+     
+     }
+     */
     
     /*
-    // MARK: - Navigation
-    
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-    }
-    */
+     // Override to support conditional rearranging of the table view.
+     override func tableView(tableView: UITableView, canMoveRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+     // Return NO if you do not want the item to be re-orderable.
+     return true
+     }
+     */
 }

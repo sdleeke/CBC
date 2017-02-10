@@ -303,6 +303,8 @@ func jsonDataFromCachesDirectory() -> JSON
 
 extension Date
 {
+    //MARK: Date extension
+
     init(dateString:String) {
         let dateStringFormatter = DateFormatter()
         dateStringFormatter.dateFormat = "yyyy-MM-dd"
@@ -361,7 +363,7 @@ func stringWithoutPrefixes(_ fromString:String?) -> String?
     var sortString = sourceString
     
     for prefix in prefixes {
-        if (sourceString?.endIndex >= prefix.endIndex) && (sourceString?.substring(to: prefix.endIndex) == prefix) {
+        if (sourceString?.endIndex >= prefix.endIndex) && (sourceString?.substring(to: prefix.endIndex).lowercased() == prefix.lowercased()) {
             sortString = sourceString!.substring(from: prefix.endIndex)
             break
         }
@@ -3049,6 +3051,11 @@ func stripHTML(_ string:String?) -> String?
     bodyString = bodyString?.replacingOccurrences(of: "&lsquo;", with: "'")
     bodyString = bodyString?.replacingOccurrences(of: "&ldquo;", with: "\"")
     
+    bodyString = bodyString?.replacingOccurrences(of: "&mdash;", with: "-")
+    bodyString = bodyString?.replacingOccurrences(of: "&ndash;", with: "-")
+    
+    bodyString = bodyString?.replacingOccurrences(of: "&nbsp;", with: " ")
+    
     bodyString = bodyString?.replacingOccurrences(of: "&ccedil;", with: "C")
     
     bodyString = bodyString?.replacingOccurrences(of: "<br/>", with: "\n")
@@ -3617,11 +3624,35 @@ func addressString() -> String
 func networkUnavailable(_ message:String?)
 {
     if (UIApplication.shared.applicationState == UIApplicationState.active) {
-//        DispatchQueue.main.async(execute: { () -> Void in
-//            UIApplication.shared.keyWindow?.rootViewController?.dismiss(animated: true, completion: nil)
-//        })
+        //        DispatchQueue.main.async(execute: { () -> Void in
+        //            UIApplication.shared.keyWindow?.rootViewController?.dismiss(animated: true, completion: nil)
+        //        })
         
         let alert = UIAlertController(title:Constants.Network_Error,
+                                      message: message,
+                                      preferredStyle: UIAlertControllerStyle.alert)
+        
+        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+            
+        })
+        alert.addAction(action)
+        
+        //        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
+        })
+    }
+}
+
+func userAlert(title:String?,message:String?)
+{
+    if (UIApplication.shared.applicationState == UIApplicationState.active) {
+        //        DispatchQueue.main.async(execute: { () -> Void in
+        //            UIApplication.shared.keyWindow?.rootViewController?.dismiss(animated: true, completion: nil)
+        //        })
+        
+        let alert = UIAlertController(title: title,
                                       message: message,
                                       preferredStyle: UIAlertControllerStyle.alert)
         

@@ -9,9 +9,192 @@
 import UIKit
 import MessageUI
 
-class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate, UIPopoverPresentationControllerDelegate, MFMailComposeViewControllerDelegate, XMLParserDelegate, PopoverTableViewControllerDelegate {
+//extension NSLayoutConstraint {
+//  MARK: NSLayoutConstraint extension
+//    /**
+//     Change multiplier constraint
+//     
+//     - parameter multiplier: CGFloat
+//     - returns: NSLayoutConstraint
+//     */
+//    func setMultiplier(multiplier:CGFloat) -> NSLayoutConstraint {
+//        
+//        NSLayoutConstraint.deactivate([self])
+//        
+//        let newConstraint = NSLayoutConstraint(
+//            item: firstItem,
+//            attribute: firstAttribute,
+//            relatedBy: relation,
+//            toItem: secondItem,
+//            attribute: secondAttribute,
+//            multiplier: multiplier,
+//            constant: constant)
+//        
+//        newConstraint.priority = priority
+//        newConstraint.shouldBeArchived = self.shouldBeArchived
+//        newConstraint.identifier = self.identifier
+//        
+//        NSLayoutConstraint.activate([newConstraint])
+//        return newConstraint
+//    }
+//}
+
+extension LexiconIndexViewController : UIAdaptivePresentationControllerDelegate
+{
+    // MARK: UIAdaptivePresentationControllerDelegate
     
+    // Specifically for Plus size iPhones.
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+        return UIModalPresentationStyle.none
+    }
+}
+
+extension LexiconIndexViewController : PopoverPickerControllerDelegate
+{
+    //  MARK: PopoverPickerControllerDelegate
+
+    func stringPicked(_ string: String?)
+    {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "LexiconIndexViewController:stringPicked")
+            return
+        }
+        
+        self.dismiss(animated: true, completion: nil)
+        self.tableView.setEditing(false, animated: true)
+        self.ptvc.selectString(string, scroll: true, select: true)
+        
+        searchText = string
+    }
+}
+
+extension LexiconIndexViewController : PopoverTableViewControllerDelegate
+{
+    //  MARK: PopoverTableViewControllerDelegate
+
+    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
+    {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "LexiconIndexViewController:rowClickedAtIndex")
+            return
+        }
+        
+        guard let strings = strings else {
+            return
+        }
+        
+        switch purpose {
+        case .selectingLexicon:
+            if index < strings.count {
+                let string = strings[index]
+                
+                if let range = string.range(of: " (") {
+                    searchText = string.substring(to: range.lowerBound).uppercased()
+                    
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.tableView.setEditing(false, animated: true)
+                    })
+                    
+                    updateSearchResults()
+                }
+            }
+            break
+            
+        case .selectingAction:
+            dismiss(animated: true, completion: nil)
+            
+            switch strings[index] {
+            case Constants.Word_Picker:
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
+                    navigationController.modalPresentationStyle = .popover
+                    
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                    
+                    navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+                    
+                    popover.navigationItem.title = Constants.Word_Picker
+                    
+                    popover.delegate = self
+                    
+                    popover.mediaListGroupSort = mediaListGroupSort
+                    
+                    present(navigationController, animated: true, completion: nil)
+                }
+                break
+                
+            case Constants.View_List:
+                process(viewController: self, work: { () -> (Any?) in
+                    if self.results?.html?.string == nil {
+                        self.results?.html?.string = self.setupMediaItemsHTMLLexicon(includeURLs: true, includeColumns: true)
+                    }
+                    
+                    return self.results?.html?.string
+                }, completion: { (data:Any?) in
+                    presentHTMLModal(viewController: self, medaiItem: nil, title: "Lexicon Index For: \(self.searchText!)", htmlString: data as? String)
+                })
+                break
+                
+            default:
+                break
+            }
+            break
+            
+        case .selectingCellAction:
+            dismiss(animated: true, completion: nil)
+            
+            switch strings[index] {
+            case Constants.Download_Audio:
+                mediaItem?.audioDownload?.download()
+                break
+                
+            case Constants.Delete_Audio_Download:
+                mediaItem?.audioDownload?.delete()
+                break
+                
+            case Constants.Cancel_Audio_Download:
+                mediaItem?.audioDownload?.cancelOrDelete()
+                break
+                
+            case Constants.Download_Audio:
+                mediaItem?.audioDownload?.download()
+                break
+                
+            default:
+                break
+            }
+            break
+            
+        default:
+            break
+        }
+    }
+}
+
+extension LexiconIndexViewController: MFMailComposeViewControllerDelegate
+{
+    // MARK: MFMailComposeViewControllerDelegate Method
+
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?)
+    {
+        controller.dismiss(animated: true, completion: nil)
+    }
+}
+
+class LexiconIndexViewController: UIViewController, UIPopoverPresentationControllerDelegate
+{
     var mediaListGroupSort:MediaListGroupSort?
+    
+    var root:StringNode?
+    
+//    var format:Format = .list
     
     var lexicon:Lexicon?
     {
@@ -22,10 +205,12 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     
     var searchText:String? {
         didSet {
+            ptvc.selectedText = searchText
+            
             DispatchQueue.main.async(execute: { () -> Void in
                 self.selectedWord.text = self.searchText
 
-                self.setupLocateButton()
+                self.updateLocateButton()
             })
             
             updateSearchResults()
@@ -36,6 +221,8 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
 
     var changesPending = false
 
+    var selectedMediaItem:MediaItem?
+    
     @IBOutlet weak var logo: UIImageView!
     @IBOutlet weak var directionLabel: UILabel!
     
@@ -45,9 +232,9 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     
     @IBOutlet weak var container: UIView!
     
-    var selectedMediaItem:MediaItem?
+    @IBOutlet weak var containerHeightConstraint: NSLayoutConstraint!
     
-    @IBOutlet weak var wordPicker: UIPickerView!
+//    @IBOutlet weak var wordPicker: UIPickerView!
     
     @IBOutlet weak var selectedLabel: UILabel!
     @IBOutlet weak var selectedWord: UILabel!
@@ -55,247 +242,14 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     @IBOutlet weak var locateButton: UIButton!
     @IBAction func LocateAction(_ sender: UIButton)
     {
-        ptvc.locateSelectedText(scroll: true,select: true)
+        ptvc.selectString(searchText,scroll: true,select: true)
     }
     
     func updateDirectionLabel()
     {
 
     }
-    
-    var pickerSelections = [Int:Int]()
-    
-    func numberOfComponents(in pickerView: UIPickerView) -> Int
-    {
-//        var stringNodes = lexicon?.root?.stringNodes
-//        
-//        var i = 0
-//        
-//        while stringNodes != nil {
-//            if let index = pickerSelections[i] {
-//                stringNodes = stringNodes?[index].stringNodes
-//            } else {
-//                stringNodes = nil
-//            }
-//            
-//            i += 1
-//        }
-//
-//        return i
-        
-        if let depth = lexicon?.root.depthBelow(0) {
-//            print("Depth:",depth)
-            return depth
-        } else {
-            return 0
-        }
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int
-    {
-        var stringNode = lexicon?.root
-        
-        switch component {
-        case 0:
-            break
-            
-        default:
-            guard (pickerSelections[component-1] != nil) else {
-                return 0
-            }
-            
-            for i in 0..<component {
-                if let selection = pickerSelections[i] {
-                    if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
-                        if selection < stringNodes.count {
-                            stringNode = stringNodes[selection]
-                        }
-                    }
-                }
-            }
-            break
-        }
 
-        if let count = stringNode?.stringNodes?.count {
-//            print("Component: ",component," Rows: ",count)
-            return count
-        } else {
-            return 0
-        }
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat
-    {
-        var stringNode = lexicon?.root
-        
-        switch component {
-        case 0:
-            break
-            
-        default:
-            guard (pickerSelections[component-1] != nil) else {
-                return 0.0
-            }
-            
-            for i in 0..<component {
-                if let selection = pickerSelections[i] {
-                    if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
-                        if selection < stringNodes.count {
-                            stringNode = stringNodes[selection]
-                        }
-                    }
-                }
-            }
-            break
-        }
-        
-        var width:CGFloat = 0.0
-        
-        let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
-        
-        if let stringNodes = stringNode?.stringNodes {
-            for stringNode in stringNodes {
-//                print(stringNode.string)
-                if let stringWidth = stringNode.string?.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.footnote)], context: nil).width {
-                    if stringWidth > width {
-                        width = stringWidth
-                    }
-                }
-            }
-        }
-
-        if pickerSelections[component] == nil {
-           pickerSelections[component] = 0
-        }
-        
-//        print("Component: ",component," Width: ",width)
-        return width + 8
-    }
-    
-    //    func pickerView(pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
-    //
-    //    }
-    
-    func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView
-    {
-        var label:UILabel!
-        
-        if view != nil {
-            label = view as! UILabel
-        } else {
-            label = UILabel()
-        }
-        
-        let normal = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.footnote) ]
-        
-//        let bold = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
-//        
-//        let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-//                            NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
-//        
-//        let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-//                                NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
-        
-        if let title = title(forRow: row, forComponent: component) {
-            label.attributedText = NSAttributedString(string: title,attributes: normal)
-        }
-        
-        return label
-    }
-    
-    func title(forRow row:Int, forComponent component:Int) -> String?
-    {
-        var stringNode = lexicon?.root
-        
-        switch component {
-        case 0:
-            break
-            
-        default:
-            guard (pickerSelections[component-1] != nil) else {
-                return nil
-            }
-            
-            for i in 0..<component {
-                if let selection = pickerSelections[i] {
-                    if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
-                        if selection < stringNodes.count {
-                            stringNode = stringNodes[selection]
-                        }
-                    }
-                }
-            }
-            break
-        }
-
-        if let count = stringNode?.stringNodes?.count {
-            if row < count {
-                if let string = stringNode?.stringNodes?[row].string {
-//                    print("Component: ",component," Row: ",row," String: ",string)
-                    return string
-                }
-            }
-        }
-        
-        return nil
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String?
-    {
-        return title(forRow: row,forComponent: component)
-    }
-    
-    func wordFromPicker() -> String?
-    {
-        var word:String?
-        
-        var stringNode = lexicon?.root
-
-        var i = 0
-        
-        while pickerSelections[i] != nil {
-            if let selection = pickerSelections[i] {
-                if let stringNodes = stringNode?.stringNodes {
-                    if selection < stringNodes.count {
-                        stringNode = stringNodes[selection]
-                        
-                        if let string = stringNode?.string {
-                            word = word != nil ? word! + string : string
-                        }
-                    }
-                }
-            }
-            
-            i += 1
-        }
-        
-//        print("wordFromPicker: ",word)
-        
-        if let wordEnding = stringNode?.wordEnding, wordEnding {
-            return word
-        } else {
-            return nil
-        }
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
-    {
-        pickerSelections[component] = row
-        
-        for i in (component+1)..<pickerView.numberOfComponents {
-            pickerSelections[i] = nil
-        }
-        
-        searchText = wordFromPicker()
-        
-//        print(pickerSelections)
-        
-        DispatchQueue.main.async(execute: { () -> Void in
-            pickerView.reloadAllComponents()
-            pickerView.setNeedsLayout()
-        })
-    }
-    
     func disableToolBarButtons()
     {
         if let barButtons = toolbarItems {
@@ -327,22 +281,6 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         
         enableToolBarButtons()
     }
-    
-//    func editing()
-//    {
-//
-//    }
-//    
-//    func notEditing()
-//    {
-//        if changesPending {
-//            DispatchQueue.main.async(execute: { () -> Void in
-//                self.tableView.reloadData()
-//            })
-//        }
-//
-//        changesPending = false
-//    }
     
     func updateSearchResults()
     {
@@ -398,8 +336,8 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
                     
                     destination.mediaListGroupSort = mediaListGroupSort
                     
-                    destination.showIndex = true
-                    destination.showSectionHeaders = true
+                    destination.section.showIndex = true
+                    destination.section.showHeaders = true
                 }
                 break
                 
@@ -424,97 +362,6 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         }
     }
     
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
-    {
-        return Constants.HEADER_HEIGHT
-    }
-    
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
-    {
-        if results?.section?.titles != nil {
-            if section < results?.section?.titles?.count {
-                return results?.section?.titles?[section]
-            } else {
-                return nil
-            }
-        } else {
-            return nil
-        }
-    }
-    
-    func numberOfSectionsInTableView(_ tableView: UITableView) -> Int
-    {
-        if let count = results?.section?.counts?.count {
-            return count
-        } else {
-            return 0
-        }
-    }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
-    {
-        if let count = results?.section?.counts?[section] {
-            return count
-        } else {
-            return 0
-        }
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAtIndexPath indexPath: IndexPath) -> UITableViewCell
-    {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.INDEX_MEDIA_ITEM, for: indexPath) as! MediaTableViewCell
-
-        if indexPath.section < results?.section?.indexes?.count {
-            if let section = results?.section?.indexes?[indexPath.section] {
-                if section + indexPath.row < results?.mediaItems?.count {
-                    cell.mediaItem = results?.mediaItems?[section + indexPath.row]
-                }
-            } else {
-                print("No mediaItem for cell!")
-            }
-        }
-
-        cell.searchText = searchText
-        
-        cell.vc = self
-        
-        return cell
-    }
-    
-    func tableView(_ tableView: UITableView, shouldSelectRowAtIndexPath indexPath: IndexPath) -> Bool
-    {
-        return true
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAtIndexPath indexPath: IndexPath)
-    {
-        print("didSelectRowAtIndexPath")
-        
-        var mediaItem:MediaItem?
-        
-        if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
-            mediaItem = cell.mediaItem // mediaItems?[indexPath.row]
-            
-            if (splitViewController != nil) && (splitViewController!.viewControllers.count > 1) {
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
-                    let viewController = navigationController.viewControllers[0] as? MediaViewController {
-                    viewController.selectedMediaItem = mediaItem
-                    splitViewController?.viewControllers[1] = navigationController
-                }
-            } else {
-                if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM) as? MediaViewController {
-                    viewController.selectedMediaItem = mediaItem
-                    
-                    self.navigationController?.navigationItem.hidesBackButton = false
-                    
-                    self.navigationController?.setToolbarHidden(true, animated: true)
-                    
-                    self.navigationController?.pushViewController(viewController, animated: true)
-                }
-            }
-        }
-    }
-    
     override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool
     {
         var show:Bool
@@ -533,30 +380,46 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         return show
     }
     
-    func setupLocateButton()
+    func updateLocateButton()
     {
-        if self.searchText != nil {
-            self.locateButton.isHidden = false
-            self.locateButton.isEnabled = true
+        // Not necessarily called on the main thread.
+//        guard Thread.isMainThread else {
+//            return
+//        }
+        
+        if (self.searchText != nil) { //  && wordPicker.isHidden
+//            if let visibleCells = ptvc?.tableView.visibleCells as? [PopoverTableViewCell] {
+//                for cell in visibleCells {
+//                    if let text = cell.title.text {
+//                        if text.substring(to: text.range(of: " (")!.lowerBound).uppercased() == searchText {
+//                            DispatchQueue.main.async(execute: { () -> Void in
+//                                self.locateButton.isHidden = true
+//                                self.locateButton.isEnabled = false
+//                            })
+//                            return
+//                        }
+//                    }
+//                }
+//            }
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.locateButton.isHidden = false
+                self.locateButton.isEnabled = true
+            })
         } else {
-            self.locateButton.isHidden = true
-            self.locateButton.isEnabled = false
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.locateButton.isHidden = true
+                self.locateButton.isEnabled = false
+            })
         }
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-//        container.isHidden = true
-
-        wordPicker.isHidden = true
+//        disableBarButtons()
         
-        disableBarButtons()
-        
-        setupLocateButton()
-        
-//        spinner.isHidden = false
-//        spinner.startAnimating()
+        updateLocateButton()
 
         DispatchQueue(label: "CBC").async(execute: { () -> Void in
             NotificationCenter.default.addObserver(self, selector: #selector(LexiconIndexViewController.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.lexicon)
@@ -572,6 +435,8 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
             let total = lexicon?.eligible?.count {
             self.navigationItem.title = "Lexicon Index \(count) of \(total)"
         }
+        
+        updateActionMenu()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -586,18 +451,11 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     {
         super.viewDidAppear(animated)
 
-//        wordPicker.reloadAllComponents()
-
         // Seems like the following should work but doesn't.
         //        navigationItem.backBarButtonItem?.title = Constants.Back
         
         //        navigationController?.navigationBar.backItem?.title = Constants.Back
         //        navigationItem.hidesBackButton = false
-    }
-    
-    // MARK: MFMailComposeViewControllerDelegate Method
-    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-        controller.dismiss(animated: true, completion: nil)
     }
     
     func setupMediaItemsHTMLLexicon(includeURLs:Bool,includeColumns:Bool) -> String?
@@ -833,88 +691,12 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         return insertHead(bodyString,fontSize:Constants.FONT_SIZE)
     }
     
-    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
-    {
-        guard let strings = strings else {
-            return
-        }
-        
-        switch purpose {
-        case .selectingLexicon:
-            if index < strings.count {
-                let string = strings[index]
-                
-                if let range = string.range(of: " (") {
-                    searchText = string.substring(to: range.lowerBound).uppercased()
-                    
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.tableView.setEditing(false, animated: true)
-                    })
-                    
-                    updateSearchResults()
-                }
-            }
-            break
-
-        case .selectingAction:
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.dismiss(animated: true, completion: nil)
-            })
-            
-            switch strings[index] {
-            case Constants.View_List:
-                process(viewController: self, work: { () -> (Any?) in
-                    if self.results?.html?.string == nil {
-                        self.results?.html?.string = self.setupMediaItemsHTMLLexicon(includeURLs: true, includeColumns: true)
-                    }
-                    
-                    return self.results?.html?.string
-                }, completion: { (data:Any?) in
-                    presentHTMLModal(viewController: self, medaiItem: nil, title: "Lexicon Index For: \(self.searchText!)", htmlString: data as? String)
-                })
-                break
-                
-            default:
-                break
-            }
-            break
-            
-        case .selectingCellAction:
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.dismiss(animated: true, completion: nil)
-            })
-
-            switch strings[index] {
-            case Constants.Download_Audio:
-                mediaItem?.audioDownload?.download()
-                break
-                
-            case Constants.Delete_Audio_Download:
-                mediaItem?.audioDownload?.delete()
-                break
-                
-            case Constants.Cancel_Audio_Download:
-                mediaItem?.audioDownload?.cancelOrDelete()
-                break
-                
-            case Constants.Download_Audio:
-                mediaItem?.audioDownload?.download()
-                break
-                
-            default:
-                break
-            }
-            break
-            
-        default:
-            break
-        }
-    }
-    
     func actionMenuItems() -> [String]?
     {
         var actionMenu = [String]()
-        
+
+        actionMenu.append(Constants.Word_Picker)
+
         if results?.list?.count > 0 {
             actionMenu.append(Constants.View_List)
         }
@@ -943,55 +725,10 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
             popover.delegate = self
             popover.purpose = .selectingAction
             
-            popover.strings = actionMenuItems()
+            popover.section.strings = actionMenuItems()
             
-            popover.showIndex = false //(globals.grouping == .series)
-            popover.showSectionHeaders = false
-            
-            popover.vc = self
-            
-            present(navigationController, animated: true, completion: nil)
-        }
-    }
-    
-    // Specifically for Plus size iPhones.
-    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-    {
-        return UIModalPresentationStyle.none
-    }
-    
-    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.none
-    }
-    
-    func index(_ object:AnyObject?)
-    {
-        //In case we have one already showing
-        dismiss(animated: true, completion: nil)
-        
-        //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.mediaItemSections
-        //And when the user chooses one, scroll to the first time in that section.
-        
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-            let button = object as? UIBarButtonItem
-            
-            navigationController.modalPresentationStyle = .popover
-            
-            navigationController.popoverPresentationController?.permittedArrowDirections = .down
-            navigationController.popoverPresentationController?.delegate = self
-            
-            navigationController.popoverPresentationController?.barButtonItem = button
-            
-            popover.navigationItem.title = Constants.Menu.Index
-            
-            popover.delegate = self
-            
-            popover.purpose = .selectingSection
-            
-//            popover.strings = sectionTitles
-            popover.showIndex = false
-            popover.showSectionHeaders = false
+            popover.section.showIndex = false //(globals.grouping == .series)
+            popover.section.showHeaders = false
             
             popover.vc = self
             
@@ -1014,69 +751,99 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         })
     }
     
-    func updatePickerSelections()
-    {
-        guard !wordPicker.isHidden else {
-            return
-        }
-        
-        guard self.lexicon?.root?.stringNodes != nil else {
-            return
-        }
-        
-        var stringNode = self.lexicon?.root
-        
-        var i = 0
-        
-        while stringNode != nil {
-            if stringNode?.stringNodes == nil {
-                self.pickerSelections[i] = nil
-                stringNode = nil
-            } else
-                
-                if self.pickerSelections[i] >= stringNode!.stringNodes!.count {
-                    self.pickerSelections[i] = 0
-                    stringNode = stringNode?.stringNodes?[0]
-                } else {
-                    if let index = self.pickerSelections[i] {
-                        stringNode = stringNode?.stringNodes?[index]
-                    } else {
-                        stringNode = nil
-                    }
-            }
-            
-            i += 1
-        }
-        
-        if i <= self.wordPicker.numberOfComponents {
-            for index in i..<self.wordPicker.numberOfComponents {
-                self.pickerSelections[index] = nil
-            }
-        }
-    }
+//    func updatePickerSelections()
+//    {
+//        guard root?.stringNodes != nil else {
+//            return
+//        }
+//        
+//        var stringNode = root
+//        
+//        var i = 0
+//        
+//        while stringNode != nil {
+//            if stringNode?.stringNodes == nil {
+//                pickerSelections[i] = nil
+//                stringNode = nil
+//            } else
+//                
+//            if pickerSelections[i] >= stringNode!.stringNodes!.count {
+//                pickerSelections[i] = 0
+//                stringNode = stringNode?.stringNodes?[0]
+//            } else {
+//                if let index = pickerSelections[i] {
+//                    stringNode = stringNode?.stringNodes?[index]
+//                } else {
+//                    stringNode = nil
+//                }
+//            }
+//            
+//            i += 1
+//        }
+//        
+////        print(wordPicker.numberOfComponents)
+//
+//        var index = i
+//        while index < wordPicker.numberOfComponents {
+//            pickerSelections[index] = nil
+//            index += 1
+//        }
+////        if i < wordPicker.numberOfComponents {
+////            for index in i..<wordPicker.numberOfComponents {
+////                pickerSelections[index] = nil
+////            }
+////        }
+//        
+//        DispatchQueue.main.async(execute: { () -> Void in
+//            self.wordPicker.setNeedsLayout()
+//        })
+//    }
+    
+//    func stringTreeUpdated()
+//    {
+//        if !wordPicker.isHidden {
+//            root = lexicon?.root
+//            
+//            DispatchQueue.main.async(execute: { () -> Void in
+//                self.spinner.stopAnimating()
+//                self.spinner.isHidden = true
+//            })
+//
+//            updatePickerSelections()
+//            updatePicker()
+//            
+//            updateTitle()
+//            
+//            updateLocateButton()
+//            
+//            updateSearchResults()
+//        }
+//    }
     
     func updated()
     {
-        if !wordPicker.isHidden {
-            updatePickerSelections()
-            updatePicker()
-        }
-        
         updateTitle()
         
+        updateLocateButton()
+        
         updateSearchResults()
+        
+//        if !wordPicker.isHidden {
+//            lexicon?.buildStringTree()
+//        }
     }
     
     func completed()
     {
-        if !wordPicker.isHidden {
-            updatePickerSelections()
-            updatePicker()
-        }
-        
         updateTitle()
         
+        updateLocateButton()
+        
         updateSearchResults()
+        
+//        if !wordPicker.isHidden {
+//            lexicon?.buildStringTree()
+//        }
     }
     
     override func viewDidLoad() {
@@ -1098,6 +865,7 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     func updateText()
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "LexiconIndexViewController:updateText")
             return
         }
      
@@ -1106,6 +874,7 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     func isHiddenUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenUI")
             return
         }
         
@@ -1122,6 +891,7 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     func isHiddenNumberAndTableUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenNumberAndTableUI")
             return
         }
         
@@ -1131,26 +901,26 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         tableView.isHidden = state
     }
     
-    func updatePicker()
-    {
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.wordPicker.reloadAllComponents()
-            self.wordPicker.setNeedsLayout()
-            
-            var i = 0
-            
-            while self.pickerSelections[i] != nil {
-                self.wordPicker.selectRow(self.pickerSelections[i]!,inComponent: i, animated: true)
-                i += 1
-            }
-            
-            self.searchText = self.wordFromPicker()
-        })
-    }
+//    func updatePicker()
+//    {
+//        DispatchQueue.main.async(execute: { () -> Void in
+//            self.wordPicker.reloadAllComponents()
+//            
+//            var i = 0
+//            
+//            while i < self.wordPicker.numberOfComponents, i < self.pickerSelections.count, self.pickerSelections[i] != nil {
+//                self.wordPicker.selectRow(self.pickerSelections[i]!,inComponent: i, animated: true)
+//                i += 1
+//            }
+//            
+//            self.searchText = self.wordFromPicker()
+//        })
+//    }
     
     func updateActionMenu()
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "LexiconIndexViewController:updateActionMenu")
             return
         }
         
@@ -1160,6 +930,7 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
     func updateUI()
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "LexiconIndexViewController:updateUI")
             return
         }
         
@@ -1178,10 +949,10 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         
         isHiddenUI(false)
         
-        if !wordPicker.isHidden {
-            updatePickerSelections()
-            updatePicker()
-        }
+//        if !wordPicker.isHidden {
+//            updatePickerSelections()
+//            updatePicker()
+//        }
         
         updateDirectionLabel()
         
@@ -1190,13 +961,64 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         tableView.reloadData()
     }
     
-    func tableView(_ tableView:UITableView, willBeginEditingRowAtIndexPath indexPath: IndexPath)
-    {
-        // Tells the delegate that the table view is about to go into editing mode.
-
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // Dispose of any resources that can be recreated.
+        globals.freeMemory()
     }
     
-    func tableView(_ tableView:UITableView, didEndEditingRowAtIndexPath indexPath: IndexPath)
+    
+    /*
+     // MARK: - Navigation
+     
+     // In a storyboard-based application, you will often want to do a little preparation before navigation
+     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+     // Get the new view controller using segue.destinationViewController.
+     // Pass the selected object to the new view controller.
+     }
+     */
+}
+
+extension LexiconIndexViewController : UITableViewDelegate
+{
+    // MARK: UITableViewDelegate
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
+    {
+        //        print("didSelectRowAtIndexPath")
+        
+        var mediaItem:MediaItem?
+        
+        if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
+            mediaItem = cell.mediaItem // mediaItems?[indexPath.row]
+            
+            if (splitViewController != nil) && (splitViewController!.viewControllers.count > 1) {
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
+                    let viewController = navigationController.viewControllers[0] as? MediaViewController {
+                    viewController.selectedMediaItem = mediaItem
+                    splitViewController?.viewControllers[1] = navigationController
+                }
+            } else {
+                if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM) as? MediaViewController {
+                    viewController.selectedMediaItem = mediaItem
+                    
+                    self.navigationController?.navigationItem.hidesBackButton = false
+                    
+                    self.navigationController?.setToolbarHidden(true, animated: true)
+                    
+                    self.navigationController?.pushViewController(viewController, animated: true)
+                }
+            }
+        }
+    }
+
+    func tableView(_ tableView:UITableView, willBeginEditingRowAt indexPath: IndexPath)
+    {
+        // Tells the delegate that the table view is about to go into editing mode.
+        
+    }
+    
+    func tableView(_ tableView:UITableView, didEndEditingRowAt indexPath: IndexPath?)
     {
         // Tells the delegate that the table view has left editing mode.
         if changesPending {
@@ -1208,20 +1030,7 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         changesPending = false
     }
     
-    func tableView(_ tableView: UITableView, canEditRowAtIndexPath indexPath: IndexPath) -> Bool
-    {
-        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-            return false
-        }
-        
-        guard let mediaItem = cell.mediaItem else {
-            return false
-        }
-        
-        return mediaItem.hasNotesHTML || (mediaItem.scriptureReference != Constants.Selected_Scriptures)
-    }
-    
-    func tableView(_ tableView: UITableView, editActionsForRowAtIndexPath indexPath: IndexPath) -> [UITableViewRowAction]?
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
             return nil
@@ -1305,21 +1114,81 @@ class LexiconIndexViewController: UIViewController, UIPickerViewDataSource, UIPi
         
         return actions
     }
+}
+
+extension LexiconIndexViewController : UITableViewDataSource
+{
+    // MARK: UITableViewDataSource
     
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-        globals.freeMemory()
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
+    {
+        return Constants.HEADER_HEIGHT
     }
     
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
+    {
+        if results?.section?.titles != nil {
+            if section < results?.section?.titles?.count {
+                return results?.section?.titles?[section]
+            } else {
+                return nil
+            }
+        } else {
+            return nil
+        }
+    }
     
-    /*
-     // MARK: - Navigation
-     
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-     // Get the new view controller using segue.destinationViewController.
-     // Pass the selected object to the new view controller.
-     }
-     */
+    func numberOfSections(in tableView: UITableView) -> Int
+    {
+        if let count = results?.section?.counts?.count {
+            return count
+        } else {
+            return 0
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
+    {
+        if let count = results?.section?.counts?[section] {
+            return count
+        } else {
+            return 0
+        }
+    }
+
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
+    {
+        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+            return false
+        }
+        
+        guard let mediaItem = cell.mediaItem else {
+            return false
+        }
+        
+        return mediaItem.hasNotesHTML || (mediaItem.scriptureReference != Constants.Selected_Scriptures)
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
+    {
+        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.INDEX_MEDIA_ITEM, for: indexPath) as! MediaTableViewCell
+        
+        cell.hideUI()
+        
+        cell.vc = self
+        
+        cell.searchText = searchText
+        
+        if indexPath.section < results?.section?.indexes?.count {
+            if let section = results?.section?.indexes?[indexPath.section] {
+                if section + indexPath.row < results?.mediaItems?.count {
+                    cell.mediaItem = results?.mediaItems?[section + indexPath.row]
+                }
+            } else {
+                print("No mediaItem for cell!")
+            }
+        }
+        
+        return cell
+    }
 }

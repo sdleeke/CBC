@@ -9,8 +9,374 @@
 import UIKit
 import MessageUI
 
+extension ScriptureViewController : UIAdaptivePresentationControllerDelegate
+{
+    // MARK: UIAdaptivePresentationControllerDelegate
+    
+    // Specifically for Plus size iPhones.
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+        return UIModalPresentationStyle.none
+    }
+}
 
-class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate, UIPopoverPresentationControllerDelegate, MFMailComposeViewControllerDelegate, PopoverTableViewControllerDelegate {
+extension ScriptureViewController : PopoverTableViewControllerDelegate
+{
+    // MARK: PopoverTableViewControllerDelegate
+
+    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
+    {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "ScriptureViewController:rowClickedAtIndex")
+            return
+        }
+        
+        dismiss(animated: true, completion: nil)
+        
+        guard let strings = strings else {
+            return
+        }
+        
+        switch purpose {
+        case .selectingAction:
+            switch strings[index] {
+            case Constants.Full_Screen:
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? WebViewController {
+                    // Had to take out the lines below or the searchBar would become unresponsive. No idea why.
+                    //                    DispatchQueue.main.async(execute: { () -> Void in
+                    //                        self.dismiss(animated: true, completion: nil)
+                    //                    })
+                    
+                    navigationController.modalPresentationStyle = .overFullScreen
+                    navigationController.popoverPresentationController?.delegate = popover
+                    
+                    popover.navigationItem.title = self.navigationItem.title
+                    
+                    popover.html.fontSize = self.webViewController!.html.fontSize
+                    popover.html.string = self.webViewController?.html.string
+                    
+                    popover.selectedMediaItem = self.webViewController?.selectedMediaItem
+                    
+                    popover.content = self.webViewController!.content
+                    
+                    popover.navigationController?.isNavigationBarHidden = false
+                    
+                    present(navigationController, animated: true, completion: nil)
+                }
+                break
+                
+            case Constants.Print:
+                if webViewController?.html.string != nil, webViewController!.html.string!.contains(" href=") {
+                    firstSecondCancel(viewController: self, title: "Remove Links?", message: "This can take some time.",
+                                      firstTitle: "Yes",
+                                      firstAction: {
+                                        process(viewController: self, work: { () -> (Any?) in
+                                            return stripLinks(self.webViewController?.html.string)
+                                        }, completion: { (data:Any?) in
+                                            printHTML(viewController: self, htmlString: data as? String)
+                                        })
+                    },
+                                      secondTitle: "No",
+                                      secondAction: {
+                                        printHTML(viewController: self, htmlString: self.webViewController?.html.string)
+                    },
+                                      cancelAction: {}
+                    )
+                } else {
+                    printHTML(viewController: self, htmlString: self.webViewController?.html.string)
+                }
+                break
+                
+            case Constants.Share:
+                shareHTML(viewController: self, htmlString: webViewController!.html.string!)
+                break
+                
+            default:
+                break
+            }
+            break
+            
+        default:
+            break
+        }
+    }
+}
+
+extension ScriptureViewController : UIPickerViewDataSource
+{
+    // MARK: UIPickerViewDataSource
+    
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 3
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int
+    {
+        var numberOfRows = 1
+        
+        switch component {
+        case 0:
+            numberOfRows = 2 // N.T. or O.T.
+            break
+            
+        case 1:
+            if (scripture?.selected.testament != nil) {
+                numberOfRows = scripture!.picker.books!.count
+            } else {
+                numberOfRows = 0 // number of books in testament
+            }
+            break
+            
+        case 2:
+            if (scripture?.selected.testament != nil) && (scripture?.selected.book != nil) {
+                numberOfRows = scripture!.picker.chapters!.count
+            } else {
+                numberOfRows = 0 // number of chapters in book
+            }
+            break
+            
+        case 3:
+            if scripture?.selected.chapter > 0 {
+                numberOfRows = 1 // number of verses in chapter
+            } else {
+                numberOfRows = 0 // number of verses in chapter
+            }
+            break
+            
+        default:
+            break
+        }
+        
+        return numberOfRows
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView
+    {
+        var label:UILabel!
+        
+        if view != nil {
+            label = view as! UILabel
+        } else {
+            label = UILabel()
+        }
+        
+        let normal = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
+        
+        //        let bold = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
+        //
+        //        let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+        //                            NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
+        //
+        //        let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+        //                                NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
+        
+        if let title = title(forRow: row, forComponent: component) {
+            label.attributedText = NSAttributedString(string: title,attributes: normal)
+        }
+        
+        return label
+        
+        //        var label:UILabel!
+        //
+        //        if view != nil {
+        //            label = view as! UILabel
+        //        } else {
+        //            label = UILabel()
+        //        }
+        //
+        //        label.font = UIFont(name: "System", size: 12.0)
+        //
+        //        label.text = title(forRow: row, forComponent: component)
+        //
+        //        return label
+    }
+    
+    func title(forRow row:Int, forComponent component:Int) -> String?
+    {
+        switch component {
+        case 0:
+            if row == 0 {
+                return Constants.OT
+            }
+            if row == 1 {
+                return Constants.NT
+            }
+            break
+            
+        case 1:
+            if (scripture?.selected.testament != nil) {
+                return scripture?.picker.books![row]
+            }
+            break
+            
+        case 2:
+            if (scripture?.selected.testament != nil) {
+                return "\(scripture!.picker.chapters![row])"
+            }
+            break
+            
+        case 3:
+            if scripture?.selected.chapter > 0 {
+                return "1"
+            }
+            break
+            
+        default:
+            break
+        }
+        
+        return Constants.EMPTY_STRING
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String?
+    {
+        return title(forRow: row,forComponent: component)
+    }
+}
+
+extension ScriptureViewController : UIPickerViewDelegate
+{
+    // MARK: UIPickerViewDelegate
+    
+    func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat {
+        switch component {
+        case 0:
+            return 50
+            
+        case 1:
+            return 175
+            
+        case 2:
+            return 35
+            
+        case 3:
+            return 35
+            
+        default:
+            return 0
+        }
+    }
+    
+    //    func pickerView(pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
+    //
+    //    }
+
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
+    {
+        switch component {
+        case 0: // Testament
+            switch row {
+            case 0:
+                scripture?.selected.testament = Constants.OT
+                break
+                
+            case 1:
+                scripture?.selected.testament = Constants.NT
+                break
+                
+            default:
+                break
+            }
+            
+            //            startingVerse = 0
+            
+            switch scripture!.selected.testament! {
+            case Constants.OT:
+                scripture?.picker.books = Constants.OLD_TESTAMENT_BOOKS
+                break
+                
+            case Constants.NT:
+                scripture?.picker.books = Constants.NEW_TESTAMENT_BOOKS
+                break
+                
+            default:
+                break
+            }
+            
+            scripture?.selected.book = scripture?.picker.books?[0]
+            
+            updatePicker()
+            
+            scripture?.selected.chapter = scripture!.picker.chapters![0]
+            
+            pickerView.reloadAllComponents()
+            
+            pickerView.selectRow(0, inComponent: 1, animated: true)
+            
+            pickerView.selectRow(0, inComponent: 2, animated: true)
+            
+            //            pickerView.selectRow(0, inComponent: 3, animated: true)
+            
+            updateReferenceLabel()
+            break
+            
+        case 1: // Book
+            if (scripture?.selected.testament != nil) {
+                scripture?.selected.book = scripture?.picker.books?[row]
+                
+                //                startingVerse = 0
+                
+                updatePicker()
+                
+                scripture?.selected.chapter = scripture!.picker.chapters![0]
+                
+                pickerView.reloadAllComponents()
+                
+                pickerView.selectRow(0, inComponent: 2, animated: true)
+                
+                //                pickerView.selectRow(0, inComponent: 3, animated: true)
+                
+                updateReferenceLabel()
+            }
+            break
+            
+        case 2: // Chapter
+            if (scripture?.selected.testament != nil) && (scripture?.selected.book != nil) {
+                scripture?.selected.chapter = scripture!.picker.chapters![row]
+                
+                //                startingVerse = 0
+                
+                pickerView.reloadAllComponents()
+                
+                //                pickerView.selectRow(0, inComponent: 3, animated: true)
+                
+                updateReferenceLabel()
+            }
+            break
+            
+        case 3: // Verse
+            if (scripture?.selected.testament != nil) && (scripture?.selected.book != nil) && (scripture?.selected.chapter > 0) {
+                //                startingVerse = row + 1
+                
+                pickerView.reloadAllComponents()
+                
+                updateReferenceLabel()
+            }
+            break
+            
+        default:
+            break
+        }
+        
+        showScripture()
+    }
+}
+
+extension ScriptureViewController : MFMailComposeViewControllerDelegate
+{
+    // MARK: MFMailComposeViewControllerDelegate Method
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+        controller.dismiss(animated: true, completion: nil)
+    }
+}
+
+class ScriptureViewController : UIViewController, UIPopoverPresentationControllerDelegate
+{
     var actionButton:UIBarButtonItem?
     var minusButton:UIBarButtonItem?
     var plusButton:UIBarButtonItem?
@@ -65,73 +431,6 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
 
     }
     
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 3
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int
-    {
-        var numberOfRows = 1
-        
-        switch component {
-        case 0:
-            numberOfRows = 2 // N.T. or O.T.
-            break
-            
-        case 1:
-            if (scripture?.selected.testament != nil) {
-                numberOfRows = scripture!.picker.books!.count
-            } else {
-                numberOfRows = 0 // number of books in testament
-            }
-            break
-            
-        case 2:
-            if (scripture?.selected.testament != nil) && (scripture?.selected.book != nil) {
-                numberOfRows = scripture!.picker.chapters!.count
-            } else {
-                numberOfRows = 0 // number of chapters in book
-            }
-            break
-            
-        case 3:
-            if scripture?.selected.chapter > 0 {
-                numberOfRows = 1 // number of verses in chapter
-            } else {
-                numberOfRows = 0 // number of verses in chapter
-            }
-            break
-            
-        default:
-            break
-        }
-        
-        return numberOfRows
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat {
-        switch component {
-        case 0:
-            return 50
-            
-        case 1:
-            return 175
-            
-        case 2:
-            return 35
-            
-        case 3:
-            return 35
-            
-        default:
-            return 0
-        }
-    }
-    
-    //    func pickerView(pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
-    //
-    //    }
-    
 //    func translateTestament(_ testament:String) -> String
 //    {
 //        var translation = Constants.EMPTY_STRING
@@ -151,64 +450,6 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
 //        
 //        return translation
 //    }
-    
-    func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
-        var label:UILabel!
-        
-        if view != nil {
-            label = view as! UILabel
-        } else {
-            label = UILabel()
-        }
-        
-        label.font = UIFont(name: "System", size: 12.0)
-        
-        label.text = title(forRow: row, forComponent: component)
-        
-        return label
-    }
-    
-    func title(forRow row:Int, forComponent component:Int) -> String?
-    {
-        switch component {
-        case 0:
-            if row == 0 {
-                return Constants.OT
-            }
-            if row == 1 {
-                return Constants.NT
-            }
-            break
-            
-        case 1:
-            if (scripture?.selected.testament != nil) {
-                return scripture?.picker.books![row]
-            }
-            break
-            
-        case 2:
-            if (scripture?.selected.testament != nil) {
-                return "\(scripture!.picker.chapters![row])"
-            }
-            break
-            
-        case 3:
-            if scripture?.selected.chapter > 0 {
-                return "1"
-            }
-            break
-            
-        default:
-            break
-        }
-        
-        return Constants.EMPTY_STRING
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String?
-    {
-        return title(forRow: row,forComponent: component)
-    }
     
     func disableToolBarButtons()
     {
@@ -240,106 +481,6 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
         navigationItem.rightBarButtonItem?.isEnabled = true
         
         enableToolBarButtons()
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
-    {
-        switch component {
-        case 0: // Testament
-            switch row {
-            case 0:
-                scripture?.selected.testament = Constants.OT
-                break
-                
-            case 1:
-                scripture?.selected.testament = Constants.NT
-                break
-                
-            default:
-                break
-            }
-            
-//            startingVerse = 0
-            
-            switch scripture!.selected.testament! {
-            case Constants.OT:
-                scripture?.picker.books = Constants.OLD_TESTAMENT_BOOKS
-                break
-                
-            case Constants.NT:
-                scripture?.picker.books = Constants.NEW_TESTAMENT_BOOKS
-                break
-                
-            default:
-                break
-            }
-            
-            scripture?.selected.book = scripture?.picker.books?[0]
-            
-            updatePicker()
-            
-            scripture?.selected.chapter = scripture!.picker.chapters![0]
-
-            pickerView.reloadAllComponents()
-            
-            pickerView.selectRow(0, inComponent: 1, animated: true)
-            
-            pickerView.selectRow(0, inComponent: 2, animated: true)
-            
-            //            pickerView.selectRow(0, inComponent: 3, animated: true)
-            
-            updateReferenceLabel()
-            break
-            
-        case 1: // Book
-            if (scripture?.selected.testament != nil) {
-                scripture?.selected.book = scripture?.picker.books?[row]
-                
-//                startingVerse = 0
-
-                updatePicker()
-
-                scripture?.selected.chapter = scripture!.picker.chapters![0]
-
-                pickerView.reloadAllComponents()
-                
-                pickerView.selectRow(0, inComponent: 2, animated: true)
-                
-                //                pickerView.selectRow(0, inComponent: 3, animated: true)
-                
-                updateReferenceLabel()
-            }
-            break
-            
-        case 2: // Chapter
-            if (scripture?.selected.testament != nil) && (scripture?.selected.book != nil) {
-                scripture?.selected.chapter = scripture!.picker.chapters![row]
-                
-//                startingVerse = 0
-                
-                pickerView.reloadAllComponents()
-                
-                //                pickerView.selectRow(0, inComponent: 3, animated: true)
-                
-                updateReferenceLabel()
-            }
-            break
-            
-        case 3: // Verse
-            if (scripture?.selected.testament != nil) && (scripture?.selected.book != nil) && (scripture?.selected.chapter > 0) {
-//                startingVerse = row + 1
-                
-                pickerView.reloadAllComponents()
-                
-                updateReferenceLabel()
-            }
-            break
-            
-        default:
-            break
-        }
-        
-        showScripture()
     }
     
     func clearView()
@@ -455,10 +596,10 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
             popover.delegate = self
             popover.purpose = .selectingAction
             
-            popover.strings = actionMenuItems()
+            popover.section.strings = actionMenuItems()
             
-            popover.showIndex = false //(globals.grouping == .series)
-            popover.showSectionHeaders = false
+            popover.section.showIndex = false //(globals.grouping == .series)
+            popover.section.showHeaders = false
             
             popover.vc = self
             
@@ -479,82 +620,6 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
     func increaseFontSize()
     {
         webViewController?.increaseFontSize()
-    }
-    
-    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?) {
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.dismiss(animated: true, completion: nil)
-        })
-        
-        guard let strings = strings else {
-            return
-        }
-        
-        switch purpose {
-        case .selectingAction:
-            switch strings[index] {
-            case Constants.Full_Screen:
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? WebViewController {
-                    // Had to take out the lines below or the searchBar would become unresponsive. No idea why.
-                    //                    DispatchQueue.main.async(execute: { () -> Void in
-                    //                        self.dismiss(animated: true, completion: nil)
-                    //                    })
-                    
-                    navigationController.modalPresentationStyle = .overFullScreen
-                    navigationController.popoverPresentationController?.delegate = popover
-                    
-                    popover.navigationItem.title = self.navigationItem.title
-                    
-                    popover.html.fontSize = self.webViewController!.html.fontSize
-                    popover.html.string = self.webViewController?.html.string
-                    
-                    popover.selectedMediaItem = self.webViewController?.selectedMediaItem
-                    
-                    popover.content = self.webViewController!.content
-                    
-                    popover.navigationController?.isNavigationBarHidden = false
-                    
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.present(navigationController, animated: true, completion: nil)
-                    })
-                }
-                break
-                
-            case Constants.Print:
-                if webViewController?.html.string != nil, webViewController!.html.string!.contains(" href=") {
-                    firstSecondCancel(viewController: self, title: "Remove Links?", message: "This can take some time.",
-                                      firstTitle: "Yes",
-                                      firstAction: {
-                                        process(viewController: self, work: { () -> (Any?) in
-                                            return stripLinks(self.webViewController?.html.string)
-                                        }, completion: { (data:Any?) in
-                                            printHTML(viewController: self, htmlString: data as? String)
-                                        })
-                    },
-                                      secondTitle: "No",
-                                      secondAction: {
-                                        printHTML(viewController: self, htmlString: self.webViewController?.html.string)
-                    },
-                                      cancelAction: {}
-                    )
-                } else {
-                    printHTML(viewController: self, htmlString: self.webViewController?.html.string)
-                }
-                break
-                
-            case Constants.Share:
-                shareHTML(viewController: self, htmlString: webViewController!.html.string!)
-                break
-                
-            default:
-                break
-            }
-            break
-            
-        default:
-            break
-        }
     }
     
     func done()
@@ -664,21 +729,6 @@ class ScriptureViewController: UIViewController, UIPickerViewDataSource, UIPicke
         
         //        navigationController?.navigationBar.backItem?.title = Constants.Back
         //        navigationItem.hidesBackButton = false
-    }
-    
-    // MARK: MFMailComposeViewControllerDelegate Method
-    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-        controller.dismiss(animated: true, completion: nil)
-    }
-    
-    // Specifically for Plus size iPhones.
-    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-    {
-        return UIModalPresentationStyle.none
-    }
-    
-    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.none
     }
     
     func testament(_ book:String) -> String

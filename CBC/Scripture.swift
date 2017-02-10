@@ -57,20 +57,9 @@ struct XML {
     var text:[String:[String:[String:String]]]?
 }
 
-class Scripture : NSObject, XMLParserDelegate {
-   
-    var picker = Picker()
-
-    var selected = Selected()
-
-    var xml = XML()
-    
-    var reference:String?
-    
-    init(reference:String?)
-    {
-        self.reference = reference
-    }
+extension Scripture : XMLParserDelegate
+{
+    // MARK: XMLParserDelegate
     
     func parserDidStartDocument(_ parser: XMLParser) {
         
@@ -136,6 +125,22 @@ class Scripture : NSObject, XMLParserDelegate {
     func parser(_ parser: XMLParser, foundCharacters string: String) {
         //        print(string)
         xml.string = (xml.string != nil ? xml.string! + string : string).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    }
+}
+
+class Scripture : NSObject {
+   
+    var picker = Picker()
+
+    var selected = Selected()
+
+    var xml = XML()
+    
+    var reference:String?
+    
+    init(reference:String?)
+    {
+        self.reference = reference
     }
     
     lazy var html:CachedString? = {

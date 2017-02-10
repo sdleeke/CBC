@@ -168,8 +168,10 @@ struct Constants {
         
         static let LEXICON_STARTED          = "LEXICON STARTED"
         static let LEXICON_UPDATED          = "LEXICON UPDATED"
-        static let LEXICON_COMPLETED         = "LEXICON COMPLETED"
-        
+        static let LEXICON_COMPLETED        = "LEXICON COMPLETED"
+
+        static let STRING_TREE_UPDATED      = "STRING TREE UPDATED"
+
         static let SCRIPTURE_INDEX_STARTED          = "SCRIPTURE_INDEX STARTED"
         static let SCRIPTURE_INDEX_UPDATED          = "SCRIPTURE_INDEX UPDATED"
         static let SCRIPTURE_INDEX_COMPLETED        = "SCRIPTURE_INDEX COMPLETED"
@@ -323,7 +325,8 @@ struct Constants {
     static let Select_Category = "Select Category"
     
     static let Search = "Search"
-    static let Tokens = "Words"
+    static let Words = "Words"
+    static let Word_Picker = "Word Picker"
 
 //    static let Search_Terms = "Search Terms"
 //    static let Search_Transcript = "Search Transcript"
@@ -355,7 +358,9 @@ struct Constants {
 
     static let QUOTE = "\""
     static let PLUS = "+"
-
+    
+    static let WORD_ENDING = EMPTY_STRING
+    
     static let SINGLE_SPACE = " "
     static let UNBREAKABLE_SPACE = "\u{00a0}"
     

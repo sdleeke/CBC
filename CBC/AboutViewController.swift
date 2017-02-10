@@ -10,7 +10,84 @@ import UIKit
 import MapKit
 import MessageUI
 
-class AboutViewController: UIViewController, UIPopoverPresentationControllerDelegate, PopoverTableViewControllerDelegate, MFMailComposeViewControllerDelegate
+extension AboutViewController : UIAdaptivePresentationControllerDelegate
+{
+    // MARK: UIAdaptivePresentationControllerDelegate
+
+    // Specifically for Plus size iPhones.
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+        return UIModalPresentationStyle.none
+    }
+}
+
+extension AboutViewController : MFMailComposeViewControllerDelegate
+{
+    // MARK: MFMailComposeViewControllerDelegate Method
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+        DispatchQueue.main.async(execute: { () -> Void in
+            controller.dismiss(animated: true, completion: nil)
+        })
+    }
+}
+
+extension AboutViewController : PopoverTableViewControllerDelegate
+{
+    // MARK: PopoverTableViewControllerDelegate Method
+    
+    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
+    {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "AboutViewController:rowClickedAtIndex")
+            return
+        }
+        
+        dismiss(animated: true, completion: nil)
+        
+        guard let strings = strings else {
+            return
+        }
+        
+        switch purpose {
+        case .selectingAction:
+            switch strings[index] {
+                
+            case Constants.Email_CBC:
+                mailHTML(viewController: self, to: [Constants.CBC.EMAIL], subject: Constants.EMAIL_SUBJECT, htmlString: "")
+                break
+                
+            case Constants.CBC_WebSite:
+                openWebSite(Constants.CBC.WEBSITE)
+                break
+                
+            case Constants.CBC_in_Apple_Maps:
+                openInAppleMaps()
+                break
+                
+            case Constants.CBC_in_Google_Maps:
+                openInGoogleMaps()
+                break
+                
+            case Constants.Share_This_App:
+                shareHTML(viewController: self, htmlString: "Countryside Bible Church Media app\n\nhttps://itunes.apple.com/us/app/countryside-bible-church-media/id1166303807?ls=1&mt=8")
+                break
+                
+            default:
+                break
+            }
+            break
+            
+        default:
+            break
+        }
+    }
+}
+
+class AboutViewController: UIViewController, UIPopoverPresentationControllerDelegate
 {
     override var canBecomeFirstResponder : Bool {
         return true //splitViewController == nil
@@ -27,13 +104,6 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
     @IBOutlet weak var scrollView: UIScrollView!
     
     var item:MKMapItem?
-    
-    // MARK: MFMailComposeViewControllerDelegate Method
-    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-        DispatchQueue.main.async(execute: { () -> Void in
-            controller.dismiss(animated: true, completion: nil)
-        })
-    }
     
     fileprivate func openWebSite(_ urlString:String)
     {
@@ -106,65 +176,12 @@ class AboutViewController: UIViewController, UIPopoverPresentationControllerDele
             
             actionMenu.append(Constants.Share_This_App)
             
-            popover.strings = actionMenu
+            popover.section.strings = actionMenu
             
-            popover.showIndex = false //(globals.grouping == .series)
-            popover.showSectionHeaders = false
+            popover.section.showIndex = false //(globals.grouping == .series)
+            popover.section.showHeaders = false
             
             present(navigationController, animated: true, completion: nil)
-        }
-    }
-    
-    // Specifically for Plus size iPhones.
-    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-    {
-        return UIModalPresentationStyle.none
-    }
-    
-    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.none
-    }
-    
-    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?) {
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.dismiss(animated: true, completion: nil)
-        })
-        
-        guard let strings = strings else {
-            return
-        }
-        
-        switch purpose {
-        case .selectingAction:
-            switch strings[index] {
-
-            case Constants.Email_CBC:
-                mailHTML(viewController: self, to: [Constants.CBC.EMAIL], subject: Constants.EMAIL_SUBJECT, htmlString: "")
-                break
-                
-            case Constants.CBC_WebSite:
-                openWebSite(Constants.CBC.WEBSITE)
-                break
-                
-            case Constants.CBC_in_Apple_Maps:
-                openInAppleMaps()
-                break
-                
-            case Constants.CBC_in_Google_Maps:
-                openInGoogleMaps()
-                break
-                
-            case Constants.Share_This_App:
-                shareHTML(viewController: self, htmlString: "Countryside Bible Church Media app\n\nhttps://itunes.apple.com/us/app/countryside-bible-church-media/id1166303807?ls=1&mt=8")
-                break
-                
-            default:
-                break
-            }
-            break
-            
-        default:
-            break
         }
     }
     

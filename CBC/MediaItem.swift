@@ -91,7 +91,296 @@ struct SearchHit {
     }
 }
 
-class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
+extension MediaItem : URLSessionDownloadDelegate
+{
+    // MARK: URLSessionDownloadDelegate
+    
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
+    {
+        var download:Download?
+        
+        for key in downloads.keys {
+            if (downloads[key]?.task == downloadTask) {
+                download = downloads[key]
+                break
+            }
+        }
+        
+        if (download?.purpose != nil) {
+            //            print(totalBytesWritten,totalBytesExpectedToWrite,Float(totalBytesWritten) / Float(totalBytesExpectedToWrite),Int(Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) * 100))
+            
+            let progress = totalBytesExpectedToWrite > 0 ? Int((Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)) * 100) % 100 : 0
+            
+            let current = download!.totalBytesExpectedToWrite > 0 ? Int((Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite)) * 100) % 100 : 0
+            
+            //            print(progress,current)
+            
+            switch download!.purpose! {
+            case Purpose.audio:
+                if progress > current {
+                    //                    print(Constants.NOTIFICATION.MEDIA_UPDATE_CELL)
+                    //                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: download?.mediaItem)
+                    })
+                }
+                break
+                
+            case Purpose.notes:
+                fallthrough
+            case Purpose.slides:
+                if progress > current {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: download)
+                    })
+                }
+                break
+                
+            default:
+                break
+            }
+            
+            debug("URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:")
+            
+            debug("session: \(session.sessionDescription)")
+            debug("downloadTask: \(downloadTask.taskDescription)")
+            
+            if (download?.fileSystemURL != nil) {
+                debug("path: \(download!.fileSystemURL!.path)")
+                debug("filename: \(download!.fileSystemURL!.lastPathComponent)")
+                
+                if (downloadTask.taskDescription != download!.fileSystemURL!.lastPathComponent) {
+                    debug("downloadTask.taskDescription != download!.fileSystemURL.lastPathComponent")
+                }
+            } else {
+                debug("No fileSystemURL")
+            }
+            
+            debug("bytes written: \(totalBytesWritten)")
+            debug("bytes expected to write: \(totalBytesExpectedToWrite)")
+            
+            if (download?.state == .downloading) {
+                download?.totalBytesWritten = totalBytesWritten
+                download?.totalBytesExpectedToWrite = totalBytesExpectedToWrite
+            } else {
+                print("ERROR NOT DOWNLOADING")
+            }
+        } else {
+            print("ERROR NO DOWNLOAD")
+        }
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            UIApplication.shared.isNetworkActivityIndicatorVisible = true
+        })
+    }
+    
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)
+    {
+        var download:Download?
+        
+        for key in downloads.keys {
+            if (downloads[key]?.task == downloadTask) {
+                download = downloads[key]
+                break
+            }
+        }
+        
+        guard (download != nil) else {
+            print("NO DOWNLOAD FOUND!")
+            return
+        }
+        
+        guard (download!.fileSystemURL != nil) else {
+            print("NO FILE SYSTEM URL!")
+            return
+        }
+        
+        debug("URLSession:downloadTask:didFinishDownloadingToURL:")
+        
+        debug("session: \(session.sessionDescription)")
+        debug("downloadTask: \(downloadTask.taskDescription)")
+        
+        debug("purpose: \(download!.purpose!)")
+        
+        debug("path: \(download!.fileSystemURL!.path)")
+        debug("filename: \(download!.fileSystemURL!.lastPathComponent)")
+        
+        if (downloadTask.taskDescription != download!.fileSystemURL!.lastPathComponent) {
+            debug("downloadTask.taskDescription != download!.fileSystemURL.lastPathComponent")
+        }
+        
+        debug("bytes written: \(download!.totalBytesWritten)")
+        debug("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
+        
+        let fileManager = FileManager.default
+        
+        // Check if file exists
+        //            print("location: \(location) \n\ndestinationURL: \(destinationURL)\n\n")
+        
+        do {
+            if (download?.state == .downloading) && (download!.totalBytesExpectedToWrite != -1) {
+                if (fileManager.fileExists(atPath: download!.fileSystemURL!.path)){
+                    do {
+                        try fileManager.removeItem(at: download!.fileSystemURL!)
+                    } catch _ {
+                        print("failed to remove duplicate download")
+                    }
+                }
+                
+                debug("\(location)")
+                
+                try fileManager.copyItem(at: location, to: download!.fileSystemURL!)
+                try fileManager.removeItem(at: location)
+                download?.state = .downloaded
+            } else {
+                // Nothing was downloaded
+                download?.state = .none
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
+                })
+            }
+        } catch _ {
+            print("failed to copy temp download file")
+            download?.state = .none
+        }
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            UIApplication.shared.isNetworkActivityIndicatorVisible = false
+        })
+    }
+    
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
+    {
+        var download:Download?
+        
+        for key in downloads.keys {
+            if (downloads[key]?.session == session) {
+                download = downloads[key]
+                break
+            }
+        }
+        
+        guard (download != nil) else {
+            print("NO DOWNLOAD FOUND!")
+            return
+        }
+        
+        debug("URLSession:task:didCompleteWithError:")
+        
+        debug("session: \(session.sessionDescription)")
+        debug("task: \(task.taskDescription)")
+        
+        debug("purpose: \(download!.purpose!)")
+        
+        if (download?.fileSystemURL != nil) {
+            debug("path: \(download!.fileSystemURL!.path)")
+            debug("filename: \(download!.fileSystemURL!.lastPathComponent)")
+            
+            if (task.taskDescription != download!.fileSystemURL!.lastPathComponent) {
+                debug("task.taskDescription != download!.fileSystemURL.lastPathComponent")
+            }
+        } else {
+            debug("No fileSystemURL")
+        }
+        
+        debug("bytes written: \(download!.totalBytesWritten)")
+        debug("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
+        
+        if (error != nil) {
+            print("with error: \(error!.localizedDescription)")
+            //            download?.state = .none
+            
+            switch download!.purpose! {
+            case Purpose.slides:
+                fallthrough
+            case Purpose.notes:
+                DispatchQueue.main.async(execute: { () -> Void in
+                    //                    print(download?.mediaItem)
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: download)
+                })
+                break
+                
+            default:
+                break
+            }
+        }
+        
+        //        print("Download error: \(error)")
+        //
+        //        if (download?.totalBytesExpectedToWrite == 0) {
+        //            download?.state = .none
+        //        } else {
+        //            print("Download succeeded for: \(session.description)")
+        ////            download?.state = .downloaded // <- This caused a very spurious error.  Let this state chagne happen in didFinishDownloadingToURL!
+        //        }
+        
+        // This may delete temp files other than the one we just downloaded, so don't do it.
+        //        removeTempFiles()
+        
+        session.invalidateAndCancel()
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            UIApplication.shared.isNetworkActivityIndicatorVisible = false
+        })
+    }
+    
+    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?)
+    {
+        var download:Download?
+        
+        for key in downloads.keys {
+            if (downloads[key]?.session == session) {
+                download = downloads[key]
+                break
+            }
+        }
+        
+        guard (download != nil) else {
+            print("NO DOWNLOAD FOUND!")
+            return
+        }
+        
+        debug("URLSession:didBecomeInvalidWithError:")
+        
+        debug("session: \(session.sessionDescription)")
+        
+        debug("purpose: \(download!.purpose!)")
+        
+        if (download?.fileSystemURL != nil) {
+            debug("path: \(download!.fileSystemURL!.path)")
+            debug("filename: \(download!.fileSystemURL!.lastPathComponent)")
+        } else {
+            debug("No fileSystemURL")
+        }
+        
+        debug("bytes written: \(download!.totalBytesWritten)")
+        debug("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
+        
+        if (error != nil) {
+            print("with error: \(error!.localizedDescription)")
+        }
+        
+        download?.session = nil
+    }
+    
+    func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession)
+    {
+        print("URLSessionDidFinishEventsForBackgroundURLSession")
+        
+        var filename:String?
+        
+        filename = session.configuration.identifier!.substring(from: Constants.DOWNLOAD_IDENTIFIER.endIndex)
+        
+        if let download = downloads.filter({ (key:String, value:Download) -> Bool in
+            //                print("\(filename) \(key)")
+            return value.task?.taskDescription == filename
+        }).first?.1 {
+            download.completionHandler?()
+        }
+    }
+}
+
+class MediaItem : NSObject {
     var dict:[String:String]?
     
     var booksChaptersVerses:BooksChaptersVerses?
@@ -181,23 +470,6 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         self.downloads[Purpose.outline] = download
         return download
         }()
-    
-//    required convenience init?(coder decoder: NSCoder)
-//    {
-//        guard
-//            
-//            let dict = decoder.decodeObjectForKey(Constants.DICT) as? [String:String]
-//            
-//            else {
-//                return nil
-//            }
-//        
-//        self.init(dict: dict)
-//    }
-//    
-//    func encodeWithCoder(coder: NSCoder) {
-//        coder.encodeObject(self.dict, forKey: Constants.DICT)
-//    }
     
     var id:String! {
         get {
@@ -2053,289 +2325,6 @@ class MediaItem : NSObject, URLSessionDownloadDelegate, XMLParserDelegate {
         }
         set {
             multiPartSettings?[Constants.SLIDE_SPLIT] = newValue
-        }
-    }
-    
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
-    {
-        var download:Download?
-        
-        for key in downloads.keys {
-            if (downloads[key]?.task == downloadTask) {
-                download = downloads[key]
-                break
-            }
-        }
-
-        if (download?.purpose != nil) {
-//            print(totalBytesWritten,totalBytesExpectedToWrite,Float(totalBytesWritten) / Float(totalBytesExpectedToWrite),Int(Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) * 100))
-            
-            let progress = totalBytesExpectedToWrite > 0 ? Int((Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)) * 100) % 100 : 0
-            
-            let current = download!.totalBytesExpectedToWrite > 0 ? Int((Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite)) * 100) % 100 : 0
-            
-//            print(progress,current)
-            
-            switch download!.purpose! {
-            case Purpose.audio:
-                if progress > current {
-//                    print(Constants.NOTIFICATION.MEDIA_UPDATE_CELL)
-                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: download?.mediaItem)
-                    })
-                }
-                break
-                
-            case Purpose.notes:
-                fallthrough
-            case Purpose.slides:
-                if progress > current {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: download)
-                    })
-                }
-                break
-                
-            default:
-                break
-            }
-
-            debug("URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:")
-            
-            debug("session: \(session.sessionDescription)")
-            debug("downloadTask: \(downloadTask.taskDescription)")
-            
-            if (download?.fileSystemURL != nil) {
-                debug("path: \(download!.fileSystemURL!.path)")
-                debug("filename: \(download!.fileSystemURL!.lastPathComponent)")
-                
-                if (downloadTask.taskDescription != download!.fileSystemURL!.lastPathComponent) {
-                    debug("downloadTask.taskDescription != download!.fileSystemURL.lastPathComponent")
-                }
-            } else {
-                debug("No fileSystemURL")
-            }
-            
-            debug("bytes written: \(totalBytesWritten)")
-            debug("bytes expected to write: \(totalBytesExpectedToWrite)")
-
-            if (download?.state == .downloading) {
-                download?.totalBytesWritten = totalBytesWritten
-                download?.totalBytesExpectedToWrite = totalBytesExpectedToWrite
-            } else {
-                print("ERROR NOT DOWNLOADING")
-            }
-        } else {
-            print("ERROR NO DOWNLOAD")
-        }
-        
-        DispatchQueue.main.async(execute: { () -> Void in
-            UIApplication.shared.isNetworkActivityIndicatorVisible = true
-        })
-    }
-    
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)
-    {
-        var download:Download?
-        
-        for key in downloads.keys {
-            if (downloads[key]?.task == downloadTask) {
-                download = downloads[key]
-                break
-            }
-        }
-        
-        guard (download != nil) else {
-            print("NO DOWNLOAD FOUND!")
-            return
-        }
-        
-        guard (download!.fileSystemURL != nil) else {
-            print("NO FILE SYSTEM URL!")
-            return
-        }
-
-        debug("URLSession:downloadTask:didFinishDownloadingToURL:")
-        
-        debug("session: \(session.sessionDescription)")
-        debug("downloadTask: \(downloadTask.taskDescription)")
-        
-        debug("purpose: \(download!.purpose!)")
-        
-        debug("path: \(download!.fileSystemURL!.path)")
-        debug("filename: \(download!.fileSystemURL!.lastPathComponent)")
-        
-        if (downloadTask.taskDescription != download!.fileSystemURL!.lastPathComponent) {
-            debug("downloadTask.taskDescription != download!.fileSystemURL.lastPathComponent")
-        }
-        
-        debug("bytes written: \(download!.totalBytesWritten)")
-        debug("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
-        
-        let fileManager = FileManager.default
-        
-        // Check if file exists
-        //            print("location: \(location) \n\ndestinationURL: \(destinationURL)\n\n")
-        
-        do {
-            if (download?.state == .downloading) && (download!.totalBytesExpectedToWrite != -1) {
-                if (fileManager.fileExists(atPath: download!.fileSystemURL!.path)){
-                    do {
-                        try fileManager.removeItem(at: download!.fileSystemURL!)
-                    } catch _ {
-                        print("failed to remove duplicate download")
-                    }
-                }
-                
-                debug("\(location)")
-                
-                try fileManager.copyItem(at: location, to: download!.fileSystemURL!)
-                try fileManager.removeItem(at: location)
-                download?.state = .downloaded
-            } else {
-                // Nothing was downloaded
-                download?.state = .none
-                DispatchQueue.main.async(execute: { () -> Void in
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
-                })
-            }
-        } catch _ {
-            print("failed to copy temp download file")
-            download?.state = .none
-        }
-    
-        DispatchQueue.main.async(execute: { () -> Void in
-            UIApplication.shared.isNetworkActivityIndicatorVisible = false
-        })
-    }
-
-    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
-    {
-        var download:Download?
-        
-        for key in downloads.keys {
-            if (downloads[key]?.session == session) {
-                download = downloads[key]
-                break
-            }
-        }
-        
-        guard (download != nil) else {
-            print("NO DOWNLOAD FOUND!")
-            return
-        }
-
-        debug("URLSession:task:didCompleteWithError:")
-        
-        debug("session: \(session.sessionDescription)")
-        debug("task: \(task.taskDescription)")
-        
-        debug("purpose: \(download!.purpose!)")
-        
-        if (download?.fileSystemURL != nil) {
-            debug("path: \(download!.fileSystemURL!.path)")
-            debug("filename: \(download!.fileSystemURL!.lastPathComponent)")
-            
-            if (task.taskDescription != download!.fileSystemURL!.lastPathComponent) {
-                debug("task.taskDescription != download!.fileSystemURL.lastPathComponent")
-            }
-        } else {
-            debug("No fileSystemURL")
-        }
-        
-        debug("bytes written: \(download!.totalBytesWritten)")
-        debug("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
-        
-        if (error != nil) {
-            print("with error: \(error!.localizedDescription)")
-//            download?.state = .none
-            
-            switch download!.purpose! {
-            case Purpose.slides:
-                fallthrough
-            case Purpose.notes:
-                DispatchQueue.main.async(execute: { () -> Void in
-//                    print(download?.mediaItem)
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: download)
-                })
-                break
-
-            default:
-                break
-            }
-        }
-        
-        //        print("Download error: \(error)")
-        //
-        //        if (download?.totalBytesExpectedToWrite == 0) {
-        //            download?.state = .none
-        //        } else {
-        //            print("Download succeeded for: \(session.description)")
-        ////            download?.state = .downloaded // <- This caused a very spurious error.  Let this state chagne happen in didFinishDownloadingToURL!
-        //        }
-        
-        // This may delete temp files other than the one we just downloaded, so don't do it.
-        //        removeTempFiles()
-        
-        session.invalidateAndCancel()
-        
-        DispatchQueue.main.async(execute: { () -> Void in
-            UIApplication.shared.isNetworkActivityIndicatorVisible = false
-        })
-    }
-    
-    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?)
-    {
-        var download:Download?
-        
-        for key in downloads.keys {
-            if (downloads[key]?.session == session) {
-                download = downloads[key]
-                break
-            }
-        }
-        
-        guard (download != nil) else {
-            print("NO DOWNLOAD FOUND!")
-            return
-        }
-        
-        debug("URLSession:didBecomeInvalidWithError:")
-        
-        debug("session: \(session.sessionDescription)")
-        
-        debug("purpose: \(download!.purpose!)")
-        
-        if (download?.fileSystemURL != nil) {
-            debug("path: \(download!.fileSystemURL!.path)")
-            debug("filename: \(download!.fileSystemURL!.lastPathComponent)")
-        } else {
-            debug("No fileSystemURL")
-        }
-        
-        debug("bytes written: \(download!.totalBytesWritten)")
-        debug("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
-        
-        if (error != nil) {
-            print("with error: \(error!.localizedDescription)")
-        }
-
-        download?.session = nil
-    }
-    
-    func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession)
-    {
-        print("URLSessionDidFinishEventsForBackgroundURLSession")
-        
-        var filename:String?
-        
-        filename = session.configuration.identifier!.substring(from: Constants.DOWNLOAD_IDENTIFIER.endIndex)
-        
-        if let download = downloads.filter({ (key:String, value:Download) -> Bool in
-            //                print("\(filename) \(key)")
-            return value.task?.taskDescription == filename
-        }).first?.1 {
-            download.completionHandler?()
         }
     }
     

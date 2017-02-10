@@ -17,14 +17,20 @@ struct MediaNeed {
 
 class Section {
     var strings:[String]?
-
+    var indexStrings:[String]?
+    
+    var indexTransform:((String?)->String?)?
+    
+    var showHeaders = false
+    var showIndex = false
+    
     var titles:[String]?
     var counts:[Int]?
     var indexes:[Int]?
 
-    func build(_ indexStrings:[String]?)
+    func build()
     {
-        guard indexStrings != nil else {
+        guard strings?.count > 0 else {
             titles = nil
             counts = nil
             indexes = nil
@@ -32,25 +38,21 @@ class Section {
             return
         }
         
-        guard indexStrings?.count > 0 else {
-            titles = nil
-            counts = nil
-            indexes = nil
-            
-            return
+        if showIndex {
+            guard indexStrings?.count > 0 else {
+                titles = nil
+                counts = nil
+                indexes = nil
+                
+                return
+            }
         }
-        
-        guard (strings == nil) || (strings! != indexStrings!) else {
-            return
-        }
-        
-        strings = indexStrings
         
         let a = "A"
         
         titles = Array(Set(indexStrings!.map({ (string:String) -> String in
             if string.endIndex >= a.endIndex {
-                return stringWithoutPrefixes(string)!.substring(to: a.endIndex).uppercased()
+                return string.substring(to: a.endIndex).uppercased()
             } else {
                 return string
             }
@@ -436,7 +438,7 @@ struct Search {
     var text:String? {
         didSet {
             if (text != nil) {
-                active = (active && (text == Constants.EMPTY_STRING)) || (text != Constants.EMPTY_STRING)
+                active = active && text!.isEmpty //( == Constants.EMPTY_STRING)) || (text != Constants.EMPTY_STRING)
             } else {
                 active = false
             }
@@ -1202,8 +1204,6 @@ class Globals : NSObject {
             return
         }
         
-        mediaPlayer.unload()
-        
         mediaPlayer.playOnLoad = playOnLoad
         mediaPlayer.showsPlaybackControls = false
         
@@ -1228,9 +1228,7 @@ class Globals : NSObject {
         mediaPlayer.player = AVPlayer(url: url!)
         
         if #available(iOS 10.0, *) {
-            if globals.mediaPlayer.mediaItem?.playing == Playing.audio {
-                mediaPlayer.player?.automaticallyWaitsToMinimizeStalling = false
-            }
+            mediaPlayer.player?.automaticallyWaitsToMinimizeStalling = globals.mediaPlayer.mediaItem?.playing != Playing.audio
         } else {
             // Fallback on earlier versions
         }

@@ -177,9 +177,9 @@ class MediaPlayer {
                 
                 DispatchQueue.main.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-                })
-
-                DispatchQueue(label: "CBC").async(execute: { () -> Void in
+//                })
+//
+//                DispatchQueue(label: "CBC").async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                 })
                 
@@ -217,9 +217,9 @@ class MediaPlayer {
             
             DispatchQueue.main.async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-            })
-            
-            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+//            })
+//            
+//            DispatchQueue(label: "CBC").async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
             })
             break
@@ -230,6 +230,11 @@ class MediaPlayer {
     
     func stop()
     {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaPlayer:stop")
+            return
+        }
+
         guard (url != nil) else {
             return
         }
@@ -252,14 +257,14 @@ class MediaPlayer {
             
             stateTime?.state = .stopped
             
-            DispatchQueue.main.async(execute: { () -> Void in
+//            DispatchQueue.main.async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-            })
-            
-            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+//            })
+//            
+//            DispatchQueue(label: "CBC").async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                 self.mediaItem = nil // This is unique to stop()
-            })
+//            })
             break
         }
         
@@ -435,11 +440,14 @@ class MediaPlayer {
     var mediaItem:MediaItem? {
         didSet {
             globals.mediaCategory.playing = mediaItem?.id
-            
-            // Remove playing icon if the previous mediaItem was playing. 
-            DispatchQueue(label: "CBC").async(execute: { () -> Void in
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
-            })
+
+            if oldValue != nil {
+                // Remove playing icon if the previous mediaItem was playing.
+                //            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
+                })
+            }
             
             if mediaItem == nil {
                 MPNowPlayingInfoCenter.default().nowPlayingInfo = nil

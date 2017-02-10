@@ -8,8 +8,24 @@
 
 import UIKit
 
-class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate {
+extension MediaTableViewCell : UIAdaptivePresentationControllerDelegate
+{
+    // MARK: UIAdaptivePresentationControllerDelegate
+    
+    // Specifically for Plus size iPhones.
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
+    }
+}
 
+class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate
+{
 //    var downloadObserver:Timer?
 
     weak var vc:UIViewController?
@@ -33,8 +49,25 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 ////        print(state.rawValue)
 //    }
     
+    func hideUI()
+    {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:hideUI")
+            return
+        }
+        
+        isHiddenUI(true)
+        
+        downloadProgressBar.isHidden = true
+    }
+    
     func isHiddenUI(_ state:Bool)
     {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:isHiddenUI")
+            return
+        }
+        
         func set(_ state:Bool)
         {
             title.isHidden = state
@@ -49,13 +82,52 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             }
         }
         
-        DispatchQueue.main.async(execute: { () -> Void in
-            set(state)
-        })
+        set(state)
+        
+        //        DispatchQueue.main.async(execute: { () -> Void in
+        //            set(state)
+        //        })
+    }
+    
+    func updateDownloadButton()
+    {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:updateDownloadButton")
+            return
+        }
+        
+        guard (mediaItem?.audioDownload != nil) else {
+            return
+        }
+        
+        guard (downloadButton != nil) else {
+            return
+        }
+        
+        DispatchQueue.main.async {
+            switch self.mediaItem!.audioDownload!.state {
+            case .none:
+                self.downloadButton.setTitle(Constants.FA.DOWNLOAD, for: UIControlState())
+                break
+                
+            case .downloaded:
+                self.downloadButton.setTitle(Constants.FA.DOWNLOADED, for: UIControlState())
+                break
+                
+            case .downloading:
+                self.downloadButton.setTitle(Constants.FA.DOWNLOADING, for: UIControlState())
+                break
+            }
+        }
     }
     
     func updateUI()
     {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:updateUI")
+            return
+        }
+        
         guard (mediaItem != nil) else {
             isHiddenUI(true)
             print("No mediaItem for cell!")
@@ -63,6 +135,8 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         }
 
         updateTagsButton()
+        
+        updateDownloadButton()
         
         setupProgressBarForAudio()
 
@@ -398,43 +472,17 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 //                }
                 
                 if (oldValue != nil) {
-                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
+//                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
+                    })
                 }
                 
                 if (mediaItem != nil) {
-                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
+//                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                    DispatchQueue.main.async(execute: { () -> Void in
                         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                     })
-                    
-                    DispatchQueue.main.async {
-                        if self.tagsButton != nil {
-                            if (self.mediaItem!.hasTags) {
-                                if (self.mediaItem?.self.tagsSet?.count > 1) {
-                                    self.tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState())
-                                } else {
-                                    self.tagsButton.setTitle(Constants.FA.TAG, for: UIControlState())
-                                }
-                            } else {
-                                self.tagsButton.isHidden = true
-                            }
-                        }
-                        
-                        if self.downloadButton != nil {
-                            switch self.mediaItem!.audioDownload!.state {
-                            case .none:
-                                self.downloadButton.setTitle(Constants.FA.DOWNLOAD, for: UIControlState())
-                                break
-                                
-                            case .downloaded:
-                                self.downloadButton.setTitle(Constants.FA.DOWNLOADED, for: UIControlState())
-                                break
-                                
-                            case .downloading:
-                                self.downloadButton.setTitle(Constants.FA.DOWNLOADING, for: UIControlState())
-                                break
-                            }
-                        }
-                    }
                 }
 //            }
             
@@ -457,6 +505,11 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     @IBOutlet weak var downloadButton: UIButton!
     @IBAction func downloadAction(_ sender: UIButton)
     {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:downloadAction")
+            return
+        }
+        
         guard (mediaItem != nil) else {
             return
         }
@@ -509,10 +562,10 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                 }
             }
             
-            popover.strings = strings
+            popover.section.strings = strings
             
-            popover.showIndex = false
-            popover.showSectionHeaders = false
+            popover.section.showIndex = false
+            popover.section.showHeaders = false
             
             popover.vc = vc
             
@@ -522,19 +575,14 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         updateUI()
     }
     
-    // Specifically for Plus size iPhones.
-    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-    {
-        return UIModalPresentationStyle.none
-    }
-    
-    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.none
-    }
-    
     @IBOutlet weak var tagsButton: UIButton!
     @IBAction func tagsAction(_ sender: UIButton)
     {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:tagsAction")
+            return
+        }
+        
         guard (mediaItem != nil) else {
             return
         }
@@ -567,11 +615,11 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             popover.delegate = self.vc as? MediaTableViewController
             popover.purpose = .selectingTags
             
-            popover.strings = mediaItem!.tagsArray
-            popover.strings?.insert(Constants.All,at: 0)
+            popover.section.strings = mediaItem!.tagsArray
+            popover.section.strings?.insert(Constants.All,at: 0)
             
-            popover.showIndex = false
-            popover.showSectionHeaders = false
+            popover.section.showIndex = false
+            popover.section.showHeaders = false
             
             popover.vc = vc
 
@@ -579,7 +627,8 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         }
     }
     
-    override func addSubview(_ view: UIView) {
+    override func addSubview(_ view: UIView)
+    {
         super.addSubview(view)
         
         let buttonFont = UIFont(name: Constants.FA.name, size: Constants.FA.ACTION_ICONS_FONT_SIZE)
@@ -599,6 +648,15 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 
     func updateTagsButton()
     {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:updateTagsButton")
+            return
+        }
+        
+        guard (mediaItem != nil) else {
+            return
+        }
+        
         guard (tagsButton != nil) else {
             return
         }
@@ -607,6 +665,16 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             self.tagsButton.isHidden = !self.mediaItem!.hasTags
             self.tagsButton.isEnabled = globals.search.complete
             
+            if (self.mediaItem!.hasTags) {
+                if (self.mediaItem?.self.tagsSet?.count > 1) {
+                    self.tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState())
+                } else {
+                    self.tagsButton.setTitle(Constants.FA.TAG, for: UIControlState())
+                }
+            } else {
+                self.tagsButton.isHidden = true
+            }
+
 //            if globals.search.lexicon {
 //                self.tagsButton.isEnabled = false
 //                self.tagsButton.isHidden = true
@@ -616,6 +684,11 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     
     func setupTagsToolbar()
     {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:setupTagsToolbar")
+            return
+        }
+        
         guard (mediaItem != nil) else {
             return
         }
@@ -654,6 +727,11 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     
     func setupDownloadButtonToolbar()
     {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:setupDownloadButtonToolbar")
+            return
+        }
+        
         guard (mediaItem?.audioDownload != nil) else {
             return
         }
@@ -696,6 +774,11 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     
     func setupIcons()
     {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:setupIcons")
+            return
+        }
+        
         guard mediaItem != nil else {
             return
         }
@@ -795,6 +878,11 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     
     func setupProgressBarForAudio()
     {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:setupProgressBarForAudio")
+            return
+        }
+        
         guard let download = mediaItem?.audioDownload else {
             return
         }

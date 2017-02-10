@@ -10,13 +10,449 @@ import UIKit
 import MessageUI
 
 
-//struct ScripturePicker {
-//    var books:[String]?
-//    var chapters:[Int]?
-//    var verses:[Int]?
-//}
+extension ScriptureIndexViewController : UIAdaptivePresentationControllerDelegate
+{
+    // MARK: UIAdaptivePresentationControllerDelegate
+    
+    // Specifically for Plus size iPhones.
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+        return UIModalPresentationStyle.none
+    }
+}
 
-class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate, UIPopoverPresentationControllerDelegate, MFMailComposeViewControllerDelegate, XMLParserDelegate, PopoverTableViewControllerDelegate {
+extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
+{
+    // MARK: PopoverTableViewControllerDelegate
+    
+    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
+    {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex")
+            return
+        }
+        
+        dismiss(animated: true, completion: nil)
+        
+        guard let strings = strings else {
+            return
+        }
+        
+        switch purpose {
+        case .selectingSection:
+            dismiss(animated: true, completion: nil)
+            let indexPath = IndexPath(row: 0, section: index)
+            
+            if !(indexPath.section < tableView.numberOfSections) {
+                NSLog("indexPath section ERROR in ScriptureIndex .selectingSection")
+                NSLog("Section: \(indexPath.section)")
+                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+                break
+            }
+            
+            if !(indexPath.row < tableView.numberOfRows(inSection: indexPath.section)) {
+                NSLog("indexPath row ERROR in ScriptureIndex .selectingSection")
+                NSLog("Section: \(indexPath.section)")
+                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+                NSLog("Row: \(indexPath.row)")
+                NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
+                break
+            }
+            
+            //Can't use this reliably w/ variable row heights.
+            tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.top, animated: true)
+            break
+            
+        case .selectingAction:
+            switch strings[index] {
+            case Constants.View_List:
+                process(viewController: self, work: { () -> (Any?) in
+                    if self.scriptureIndex?.html?.string == nil {
+                        self.scriptureIndex?.html?.string = self.setupMediaItemsHTMLScripture(self.mediaItems, includeURLs: true, includeColumns: true)
+                    }
+                    
+                    return self.scriptureIndex?.html?.string
+                }, completion: { (data:Any?) in
+                    presentHTMLModal(viewController: self, medaiItem: nil, title: globals.contextTitle, htmlString: data as? String)
+                })
+                break
+                
+            case Constants.View_Scripture:
+                if let reference = scripture?.selected.reference {
+                    if scripture?.html?[reference] != nil {
+                        popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:self.navigationItem.rightBarButtonItem,sourceView:nil,sourceRectView:nil,htmlString:scripture?.html?[reference])
+                    } else {
+                        process(viewController: self, work: { () -> (Any?) in
+                            self.scripture?.load(reference)
+                            return self.scripture?.html?[reference]
+                        }, completion: { (data:Any?) in
+                            if let htmlString = data as? String {
+                                popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:self.navigationItem.rightBarButtonItem,sourceView:nil,sourceRectView:nil,htmlString:htmlString)
+                            } else {
+                                networkUnavailable("Scripture text unavailable.")
+                            }
+                        })
+                    }
+                }
+                break
+                
+            default:
+                break
+            }
+            break
+            
+        case .selectingCellAction:
+            switch strings[index] {
+            case Constants.Download_Audio:
+                mediaItem?.audioDownload?.download()
+                break
+                
+            case Constants.Delete_Audio_Download:
+                mediaItem?.audioDownload?.delete()
+                break
+                
+            case Constants.Cancel_Audio_Download:
+                mediaItem?.audioDownload?.cancelOrDelete()
+                break
+                
+            case Constants.Download_Audio:
+                mediaItem?.audioDownload?.download()
+                break
+                
+            default:
+                break
+            }
+            break
+            
+        default:
+            break
+        }
+    }
+}
+
+extension ScriptureIndexViewController : UIPickerViewDelegate
+{
+    // MARK: UIPickerViewDelegate
+
+    func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat {
+        switch component {
+        case 0:
+            return 50
+            
+        case 1:
+            return 175
+            
+        case 2:
+            return 35
+            
+        case 3:
+            return 35
+            
+        default:
+            return 0
+        }
+    }
+    
+    //    func pickerView(pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
+    //
+    //    }
+    
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
+    {
+        switch component {
+        case 0: // Testament
+            switch row {
+            case 0:
+                if (scriptureIndex?.byTestament[Constants.Old_Testament] == nil) {
+                    scriptureIndex?.selectedTestament = Constants.NT
+                    break
+                }
+                
+                if (scriptureIndex?.byTestament[Constants.New_Testament] == nil) {
+                    scriptureIndex?.selectedTestament = Constants.OT
+                    break
+                }
+                
+                scriptureIndex?.selectedTestament = Constants.OT
+                break
+                
+            case 1:
+                scriptureIndex?.selectedTestament = Constants.NT
+                break
+                
+            default:
+                break
+            }
+            //            if row == 0 {
+            //                scriptureIndex?.selectedTestament = Constants.OT
+            //            }
+            //
+            //            if row == 1 {
+            //                scriptureIndex?.selectedTestament = Constants.NT
+            //            }
+            
+            if (scriptureIndex?.selectedTestament != nil) && bookSwitch.isOn {
+                scripture?.picker.books = scriptureIndex?.byBook[translateTestament(scriptureIndex!.selectedTestament!)]?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
+                scriptureIndex?.selectedBook = scripture?.picker.books?[0]
+            } else {
+                scriptureIndex?.selectedBook = nil
+            }
+            
+            updateSwitches()
+            
+            if chapterSwitch.isOn {
+                scripture?.picker.chapters = scriptureIndex?.byChapter[translateTestament(scriptureIndex!.selectedTestament!)]?[scriptureIndex!.selectedBook!]?.keys.sorted()
+                scriptureIndex?.selectedChapter = scripture!.picker.chapters![0]
+            } else {
+                scriptureIndex?.selectedChapter = 0
+            }
+            
+            scriptureIndex?.selectedVerse = 0
+            
+            pickerView.reloadAllComponents()
+            
+            pickerView.selectRow(0, inComponent: 1, animated: true)
+            
+            pickerView.selectRow(0, inComponent: 2, animated: true)
+            
+            //            pickerView.selectRow(0, inComponent: 3, animated: true)
+            
+            updateSearchResults()
+            break
+            
+        case 1: // Book
+            if (scriptureIndex?.selectedTestament != nil) && bookSwitch.isOn {
+                scripture?.picker.books = scriptureIndex?.byBook[translateTestament(scriptureIndex!.selectedTestament!)]?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
+                scriptureIndex?.selectedBook = scripture?.picker.books?[row]
+                
+                updateSwitches()
+                
+                if chapterSwitch.isOn {
+                    scripture?.picker.chapters = scriptureIndex?.byChapter[translateTestament(scriptureIndex!.selectedTestament!)]?[scriptureIndex!.selectedBook!]?.keys.sorted()
+                    scriptureIndex?.selectedChapter = scripture!.picker.chapters![0]
+                } else {
+                    scriptureIndex?.selectedChapter = 0
+                }
+                
+                scriptureIndex?.selectedVerse = 0
+                
+                pickerView.reloadAllComponents()
+                
+                pickerView.selectRow(0, inComponent: 2, animated: true)
+                
+                //                pickerView.selectRow(0, inComponent: 3, animated: true)
+                
+                updateSearchResults()
+            }
+            break
+            
+        case 2: // Chapter
+            if (scriptureIndex?.selectedTestament != nil) && (scriptureIndex?.selectedBook != nil) && bookSwitch.isOn && chapterSwitch.isOn {
+                scriptureIndex?.selectedChapter = scripture!.picker.chapters![row]
+                
+                scriptureIndex?.selectedVerse = 0
+                
+                pickerView.reloadAllComponents()
+                
+                //                pickerView.selectRow(0, inComponent: 3, animated: true)
+                
+                updateSearchResults()
+            }
+            break
+            
+        case 3: // Verse
+            if (scriptureIndex?.selectedTestament != nil) && (scriptureIndex?.selectedBook != nil) && (scriptureIndex?.selectedChapter > 0) && bookSwitch.isOn && chapterSwitch.isOn {
+                scriptureIndex?.selectedVerse = row + 1
+                
+                pickerView.reloadAllComponents()
+                
+                updateSearchResults()
+            }
+            break
+            
+        default:
+            break
+        }
+    }
+}
+
+extension ScriptureIndexViewController : UIPickerViewDataSource
+{
+    // MARK: UIPickerViewDataSource
+    
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 3
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int
+    {
+        var numberOfRows = 0
+        
+        switch component {
+        case 0:
+            //            numberOfRows = 2 // N.T. or O.T.
+            
+            if (scriptureIndex?.byTestament[Constants.Old_Testament] != nil) {
+                numberOfRows += 1
+            }
+            
+            if (scriptureIndex?.byTestament[Constants.New_Testament] != nil) {
+                numberOfRows += 1
+            }
+            break
+            
+        case 1:
+            if (scriptureIndex?.selectedTestament != nil) && bookSwitch.isOn {
+                numberOfRows = scripture!.picker.books!.count
+            } else {
+                numberOfRows = 0 // number of books in testament
+            }
+            break
+            
+        case 2:
+            if (scriptureIndex?.selectedTestament != nil) && (scriptureIndex?.selectedBook != nil) && bookSwitch.isOn && chapterSwitch.isOn {
+                numberOfRows = scripture!.picker.chapters!.count
+            } else {
+                numberOfRows = 0 // number of chapters in book
+            }
+            break
+            
+        case 3:
+            if scriptureIndex?.selectedChapter > 0 {
+                numberOfRows = 1 // number of verses in chapter
+            } else {
+                numberOfRows = 0 // number of verses in chapter
+            }
+            break
+            
+        default:
+            break
+        }
+        
+        return numberOfRows
+    }
+    
+    func title(forRow row:Int, forComponent component:Int) -> String?
+    {
+        switch component {
+        case 0:
+            if (scriptureIndex?.byTestament[Constants.Old_Testament] == nil) {
+                if row == 0 {
+                    return Constants.NT
+                }
+            }
+            
+            if (scriptureIndex?.byTestament[Constants.New_Testament] == nil) {
+                if row == 0 {
+                    return Constants.OT
+                }
+            }
+            
+            switch row {
+            case 0:
+                return Constants.OT
+                
+            case 1:
+                return Constants.NT
+                
+            default:
+                break
+            }
+            break
+            
+        case 1:
+            if (scriptureIndex?.selectedTestament != nil) {
+                if let book = scripture?.picker.books?[row] {
+                    if book == "Psalm" {
+                        return "Psalms"
+                    } else {
+                        return book
+                    }
+                }
+            }
+            break
+            
+        case 2:
+            if (scriptureIndex?.selectedTestament != nil) {
+                return "\(scripture!.picker.chapters![row])"
+            }
+            break
+            
+        case 3:
+            if scriptureIndex?.selectedChapter > 0 {
+                return "1"
+            }
+            break
+            
+        default:
+            break
+        }
+        
+        return Constants.EMPTY_STRING
+    }
+
+    func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView
+    {
+        var label:UILabel!
+        
+        if view != nil {
+            label = view as! UILabel
+        } else {
+            label = UILabel()
+        }
+        
+        let normal = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
+        
+        //        let bold = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
+        //
+        //        let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+        //                            NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
+        //
+        //        let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+        //                                NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
+        
+        if let title = title(forRow: row, forComponent: component) {
+            label.attributedText = NSAttributedString(string: title,attributes: normal)
+        }
+        
+        return label
+        
+        //        var label:UILabel!
+        //
+        //        if view != nil {
+        //            label = view as! UILabel
+        //        } else {
+        //            label = UILabel()
+        //        }
+        //
+        //        label.font = UIFont(name: "System", size: 12.0)
+        //
+        //        label.text = title(forRow: row, forComponent: component)
+        //        
+        //        return label
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String?
+    {
+        return title(forRow: row,forComponent: component)
+    }
+}
+
+extension ScriptureIndexViewController : MFMailComposeViewControllerDelegate
+{
+    // MARK: MFMailComposeViewControllerDelegate Method
+    
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+        controller.dismiss(animated: true, completion: nil)
+    }
+}
+
+class ScriptureIndexViewController : UIViewController, UIPopoverPresentationControllerDelegate
+{
     var finished:Float = 0.0
     var progress:Float = 0.0 {
         didSet {
@@ -204,137 +640,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
 //        }
     }
 
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 3
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int
-    {
-        var numberOfRows = 1
-        
-        switch component {
-        case 0:
-            numberOfRows = 2 // N.T. or O.T.
-            break
-            
-        case 1:
-            if (scriptureIndex?.selectedTestament != nil) && bookSwitch.isOn {
-                numberOfRows = scripture!.picker.books!.count
-            } else {
-                numberOfRows = 0 // number of books in testament
-            }
-            break
-            
-        case 2:
-            if (scriptureIndex?.selectedTestament != nil) && (scriptureIndex?.selectedBook != nil) && bookSwitch.isOn && chapterSwitch.isOn {
-                numberOfRows = scripture!.picker.chapters!.count
-            } else {
-                numberOfRows = 0 // number of chapters in book
-            }
-            break
-            
-        case 3:
-            if scriptureIndex?.selectedChapter > 0 {
-                numberOfRows = 1 // number of verses in chapter
-            } else {
-                numberOfRows = 0 // number of verses in chapter
-            }
-            break
-            
-        default:
-            break
-        }
-        
-        return numberOfRows
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat {
-        switch component {
-        case 0:
-            return 50
-            
-        case 1:
-            return 175
-            
-        case 2:
-            return 35
-            
-        case 3:
-            return 35
-            
-        default:
-            return 0
-        }
-    }
-    
-    //    func pickerView(pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
-    //
-    //    }
-    
-    func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
-        var label:UILabel!
-        
-        if view != nil {
-            label = view as! UILabel
-        } else {
-            label = UILabel()
-        }
-
-        label.font = UIFont(name: "System", size: 12.0)
-        
-        label.text = title(forRow: row, forComponent: component)
-        
-        return label
-    }
-    
-    func title(forRow row:Int, forComponent component:Int) -> String?
-    {
-        switch component {
-        case 0:
-            if row == 0 {
-                return Constants.OT
-            }
-            if row == 1 {
-                return Constants.NT
-            }
-            break
-            
-        case 1:
-            if (scriptureIndex?.selectedTestament != nil) {
-                if let book = scripture?.picker.books?[row] {
-                    if book == "Psalm" {
-                        return "Psalms"
-                    } else {
-                        return book
-                    }
-                }
-            }
-            break
-            
-        case 2:
-            if (scriptureIndex?.selectedTestament != nil) {
-                return "\(scripture!.picker.chapters![row])"
-            }
-            break
-            
-        case 3:
-            if scriptureIndex?.selectedChapter > 0 {
-                return "1"
-            }
-            break
-            
-        default:
-            break
-        }
-        
-        return Constants.EMPTY_STRING
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String?
-    {
-        return title(forRow: row,forComponent: component)
-    }
-    
     func disableToolBarButtons()
     {
         if let barButtons = toolbarItems {
@@ -561,103 +866,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             })
         })
     }
-    
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
-    {
-        switch component {
-        case 0: // Testament
-            if row == 0 {
-                scriptureIndex?.selectedTestament = Constants.OT
-            }
-            
-            if row == 1 {
-                scriptureIndex?.selectedTestament = Constants.NT
-            }
-            
-            if (scriptureIndex?.selectedTestament != nil) && bookSwitch.isOn {
-                scripture?.picker.books = scriptureIndex?.byBook[translateTestament(scriptureIndex!.selectedTestament!)]?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
-                scriptureIndex?.selectedBook = scripture?.picker.books?[0]
-            } else {
-                scriptureIndex?.selectedBook = nil
-            }
 
-            updateSwitches()
-            
-            if chapterSwitch.isOn {
-                scripture?.picker.chapters = scriptureIndex?.byChapter[translateTestament(scriptureIndex!.selectedTestament!)]?[scriptureIndex!.selectedBook!]?.keys.sorted()
-                scriptureIndex?.selectedChapter = scripture!.picker.chapters![0]
-            } else {
-                scriptureIndex?.selectedChapter = 0
-            }
-            
-            scriptureIndex?.selectedVerse = 0
-            
-            pickerView.reloadAllComponents()
-            
-            pickerView.selectRow(0, inComponent: 1, animated: true)
-
-            pickerView.selectRow(0, inComponent: 2, animated: true)
-            
-            //            pickerView.selectRow(0, inComponent: 3, animated: true)
-            
-            updateSearchResults()
-            break
-            
-        case 1: // Book
-            if (scriptureIndex?.selectedTestament != nil) && bookSwitch.isOn {
-                scripture?.picker.books = scriptureIndex?.byBook[translateTestament(scriptureIndex!.selectedTestament!)]?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
-                scriptureIndex?.selectedBook = scripture?.picker.books?[row]
-                
-                updateSwitches()
-                
-                if chapterSwitch.isOn {
-                    scripture?.picker.chapters = scriptureIndex?.byChapter[translateTestament(scriptureIndex!.selectedTestament!)]?[scriptureIndex!.selectedBook!]?.keys.sorted()
-                    scriptureIndex?.selectedChapter = scripture!.picker.chapters![0]
-                } else {
-                    scriptureIndex?.selectedChapter = 0
-                }
-                
-                scriptureIndex?.selectedVerse = 0
-                
-                pickerView.reloadAllComponents()
-
-                pickerView.selectRow(0, inComponent: 2, animated: true)
-                
-                //                pickerView.selectRow(0, inComponent: 3, animated: true)
-                
-                updateSearchResults()
-            }
-            break
-            
-        case 2: // Chapter
-            if (scriptureIndex?.selectedTestament != nil) && (scriptureIndex?.selectedBook != nil) && bookSwitch.isOn && chapterSwitch.isOn {
-                scriptureIndex?.selectedChapter = scripture!.picker.chapters![row]
-                
-                scriptureIndex?.selectedVerse = 0
-
-                pickerView.reloadAllComponents()
-                
-                //                pickerView.selectRow(0, inComponent: 3, animated: true)
-
-                updateSearchResults()
-            }
-            break
-            
-        case 3: // Verse
-            if (scriptureIndex?.selectedTestament != nil) && (scriptureIndex?.selectedBook != nil) && (scriptureIndex?.selectedChapter > 0) && bookSwitch.isOn && chapterSwitch.isOn {
-                scriptureIndex?.selectedVerse = row + 1
-                
-                pickerView.reloadAllComponents()
-
-                updateSearchResults()
-            }
-            break
-            
-        default:
-            break
-        }
-    }
-    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
         // Get the new view controller using [segue destinationViewController].
@@ -688,117 +897,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
 
             default:
                 break
-            }
-        }
-    }
-    
-    func sectionIndexTitlesForTableView(_ tableView: UITableView) -> [AnyObject]! {
-        return nil
-    }
-    
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        if let _ = scriptureIndex?.selectedBook {
-            return 0
-        } else {
-            return Constants.HEADER_HEIGHT
-        }
-    }
-    
-    func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, atIndex index: Int) -> Int {
-        return 0
-    }
-    
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if let _ = scriptureIndex?.selectedBook {
-            return nil
-        } else {
-            if sectionTitles != nil {
-                if section < sectionTitles!.count {
-                    return sectionTitles![section]
-                }
-            }
-        }
-
-        return nil
-    }
-
-    func numberOfSectionsInTableView(_ tableView: UITableView) -> Int {
-        // #warning Potentially incomplete method implementation.
-        // Return the number of sections.
-        
-        if let _ = scriptureIndex?.selectedBook {
-            return 1
-        } else {
-            return sectionTitles != nil ? sectionTitles!.count : 0
-        }
-    }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete method implementation.
-        // Return the number of rows in the section.
-        
-        if let _ = scriptureIndex?.selectedBook {
-            return mediaItems != nil ? mediaItems!.count : 0
-        } else {
-            if let sectionTitle = sectionTitles?[section], let rows = sections?[sectionTitle] {
-                return rows.count
-            }
-        }
-
-        return 0
-    }
-    
-    /*
-    */
-    func tableView(_ tableView: UITableView, cellForRowAtIndexPath indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.INDEX_MEDIA_ITEM, for: indexPath) as! MediaTableViewCell
-        
-        if let _ = scriptureIndex?.selectedBook {
-//            print(scriptureIndex?.selectedBook)
-            cell.mediaItem = mediaItems?[indexPath.row]
-        } else {
-            if let sectionTitle = sectionTitles?[indexPath.section] {
-                cell.mediaItem = sections?[sectionTitle]?[indexPath.row]
-            }
-        }
-        
-        cell.vc = self
-        
-        return cell
-    }
-    
-    func tableView(_ tableView: UITableView, shouldSelectRowAtIndexPath indexPath: IndexPath) -> Bool {
-        return true
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAtIndexPath indexPath: IndexPath) {
-        print("didSelectRowAtIndexPath")
-        
-        if let _ = scriptureIndex?.selectedBook {
-            selectedMediaItem = mediaItems?[indexPath.row]
-        } else {
-            if let sectionTitle = sectionTitles?[indexPath.section] {
-                selectedMediaItem = sections?[sectionTitle]?[indexPath.row]
-            }
-        }
-
-        print(selectedMediaItem?.booksChaptersVerses?.data as Any)
-        
-        if (splitViewController != nil) && (splitViewController!.viewControllers.count > 1) {
-            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
-                let viewController = navigationController.viewControllers[0] as? MediaViewController {
-                viewController.selectedMediaItem = selectedMediaItem
-                splitViewController?.viewControllers[1] = navigationController
-            }
-        } else {
-            if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM) as? MediaViewController {
-                viewController.selectedMediaItem = selectedMediaItem
-                
-                self.navigationController?.navigationItem.hidesBackButton = false
-                
-                self.navigationController?.setToolbarHidden(true, animated: true)
-                
-                self.navigationController?.pushViewController(viewController, animated: true)
             }
         }
     }
@@ -897,11 +995,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
 
 //        navigationController?.navigationBar.backItem?.title = Constants.Back
 //        navigationItem.hidesBackButton = false
-    }
-    
-    // MARK: MFMailComposeViewControllerDelegate Method
-    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-        controller.dismiss(animated: true, completion: nil)
     }
     
     func setupMediaItemsHTMLScripture(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String?
@@ -1090,108 +1183,6 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         return insertHead(bodyString,fontSize:Constants.FONT_SIZE)
     }
 
-    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?) {
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.dismiss(animated: true, completion: nil)
-        })
-        
-        guard let strings = strings else {
-            return
-        }
-        
-        switch purpose {
-        case .selectingSection:
-            dismiss(animated: true, completion: nil)
-            let indexPath = IndexPath(row: 0, section: index)
-            
-            if !(indexPath.section < tableView.numberOfSections) {
-                NSLog("indexPath section ERROR in ScriptureIndex .selectingSection")
-                NSLog("Section: \(indexPath.section)")
-                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
-                break
-            }
-            
-            if !(indexPath.row < tableView.numberOfRows(inSection: indexPath.section)) {
-                NSLog("indexPath row ERROR in ScriptureIndex .selectingSection")
-                NSLog("Section: \(indexPath.section)")
-                NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
-                NSLog("Row: \(indexPath.row)")
-                NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
-                break
-            }
-            
-            //Can't use this reliably w/ variable row heights.
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.top, animated: true)
-            })
-            break
-            
-        case .selectingAction:
-            switch strings[index] {
-            case Constants.View_List:
-                process(viewController: self, work: { () -> (Any?) in
-                    if self.scriptureIndex?.html?.string == nil {
-                        self.scriptureIndex?.html?.string = self.setupMediaItemsHTMLScripture(self.mediaItems, includeURLs: true, includeColumns: true)
-                    }
-
-                    return self.scriptureIndex?.html?.string
-                }, completion: { (data:Any?) in
-                    presentHTMLModal(viewController: self, medaiItem: nil, title: globals.contextTitle, htmlString: data as? String)
-                })
-                break
-                
-            case Constants.View_Scripture:
-                if let reference = scripture?.selected.reference {
-                    if scripture?.html?[reference] != nil {
-                        popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:self.navigationItem.rightBarButtonItem,sourceView:nil,sourceRectView:nil,htmlString:scripture?.html?[reference])
-                    } else {
-                        process(viewController: self, work: { () -> (Any?) in
-                            self.scripture?.load(reference)
-                            return self.scripture?.html?[reference]
-                        }, completion: { (data:Any?) in
-                            if let htmlString = data as? String {
-                                popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:self.navigationItem.rightBarButtonItem,sourceView:nil,sourceRectView:nil,htmlString:htmlString)
-                            } else {
-                                networkUnavailable("Scripture text unavailable.")
-                            }
-                        })
-                    }
-                }
-                break
-                
-            default:
-                break
-            }
-            break
-            
-        case .selectingCellAction:
-            switch strings[index] {
-            case Constants.Download_Audio:
-                mediaItem?.audioDownload?.download()
-                break
-                
-            case Constants.Delete_Audio_Download:
-                mediaItem?.audioDownload?.delete()
-                break
-                
-            case Constants.Cancel_Audio_Download:
-                mediaItem?.audioDownload?.cancelOrDelete()
-                break
-                
-            case Constants.Download_Audio:
-                mediaItem?.audioDownload?.download()
-                break
-                
-            default:
-                break
-            }
-            break
-            
-        default:
-            break
-        }
-    }
-    
     func actionMenuItems() -> [String]?
     {
         var actionMenu = [String]()
@@ -1228,25 +1219,15 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             popover.delegate = self
             popover.purpose = .selectingAction
             
-            popover.strings = actionMenuItems()
+            popover.section.strings = actionMenuItems()
             
-            popover.showIndex = false //(globals.grouping == .series)
-            popover.showSectionHeaders = false
+            popover.section.showIndex = false //(globals.grouping == .series)
+            popover.section.showHeaders = false
             
             popover.vc = self
             
             present(navigationController, animated: true, completion: nil)
         }
-    }
-    
-    // Specifically for Plus size iPhones.
-    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-    {
-        return UIModalPresentationStyle.none
-    }
-    
-    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-        return UIModalPresentationStyle.none
     }
     
     func index(_ object:AnyObject?)
@@ -1274,9 +1255,9 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
             
             popover.purpose = .selectingSection
 
-            popover.strings = sectionTitles
-            popover.showIndex = false
-            popover.showSectionHeaders = false
+            popover.section.strings = sectionTitles
+            popover.section.showIndex = false
+            popover.section.showHeaders = false
             
             popover.vc = self
             
@@ -1420,6 +1401,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     func updateText()
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateText")
             return
         }
         
@@ -1465,6 +1447,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     func isHiddenUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenUI")
             return
         }
         
@@ -1488,6 +1471,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     func isHiddenNumberAndTableUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenNumberAndTableUI")
             return
         }
         
@@ -1500,6 +1484,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     func updatePicker()
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "ScriptureIndexViewController:updatePicker")
             return
         }
         
@@ -1531,6 +1516,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
     func updateSwitches()
     {
         guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateSwitches")
             return
         }
         
@@ -1556,15 +1542,23 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         navigationItem.rightBarButtonItem?.isEnabled = actionMenuItems()?.count > 0
     }
     
-    func updateUI()
+    func updateToolbar()
     {
-        guard Thread.isMainThread else {
-            return
-        }
+        navigationController?.setToolbarHidden(scriptureIndex?.selectedBook != nil, animated: true)
         
         navigationController?.toolbar.items?[1].isEnabled = mediaItems?.count > 0
         
-        navigationController?.setToolbarHidden(scriptureIndex?.selectedBook != nil, animated: true)
+        toolbarItems?[1].isEnabled = mediaItems?.count > 0
+    }
+
+    func updateUI()
+    {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateUI")
+            return
+        }
+    
+        updateToolbar()
         
         spinner.isHidden = true
         spinner.stopAnimating()
@@ -1582,12 +1576,102 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         
         updateText()
         
-        enableBarButtons()
+//        enableBarButtons()
         
 //        tableView.reloadData()
     }
 
-    func tableView(_ tableView: UITableView, canEditRowAtIndexPath indexPath: IndexPath) -> Bool
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // Dispose of any resources that can be recreated.
+        globals.freeMemory()
+    }
+}
+
+extension ScriptureIndexViewController : UITableViewDataSource
+{
+    // MARK: UITableViewDataSource
+    
+    func sectionIndexTitles(for tableView: UITableView) -> [String]? {
+        return nil
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        if let _ = scriptureIndex?.selectedBook {
+            return 0
+        } else {
+            return Constants.HEADER_HEIGHT
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int {
+        return 0
+    }
+    
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        if let _ = scriptureIndex?.selectedBook {
+            return nil
+        } else {
+            if sectionTitles != nil {
+                if section < sectionTitles!.count {
+                    return sectionTitles![section]
+                }
+            }
+        }
+        
+        return nil
+    }
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        // #warning Potentially incomplete method implementation.
+        // Return the number of sections.
+        
+        if let _ = scriptureIndex?.selectedBook {
+            return 1
+        } else {
+            return sectionTitles != nil ? sectionTitles!.count : 0
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        // #warning Incomplete method implementation.
+        // Return the number of rows in the section.
+        
+        if let _ = scriptureIndex?.selectedBook {
+            return mediaItems != nil ? mediaItems!.count : 0
+        } else {
+            if let sectionTitle = sectionTitles?[section], let rows = sections?[sectionTitle] {
+                return rows.count
+            }
+        }
+        
+        return 0
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
+    {
+        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.INDEX_MEDIA_ITEM, for: indexPath) as! MediaTableViewCell
+        
+        if let _ = scriptureIndex?.selectedBook {
+            //            print(scriptureIndex?.selectedBook)
+            cell.mediaItem = mediaItems?[indexPath.row]
+        } else {
+            if let sectionTitle = sectionTitles?[indexPath.section] {
+                cell.mediaItem = sections?[sectionTitle]?[indexPath.row]
+            }
+        }
+        
+        cell.vc = self
+        
+        return cell
+    }
+}
+
+extension ScriptureIndexViewController : UITableViewDelegate
+{
+    // MARK: UITableViewDelegate
+    
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
             return false
@@ -1600,7 +1684,7 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         return mediaItem.hasNotesHTML || (mediaItem.scriptureReference != Constants.Selected_Scriptures)
     }
     
-    func tableView(_ tableView: UITableView, editActionsForRowAtIndexPath indexPath: IndexPath) -> [UITableViewRowAction]?
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
             return nil
@@ -1685,20 +1769,37 @@ class ScriptureIndexViewController: UIViewController, UIPickerViewDataSource, UI
         return actions
     }
     
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-        globals.freeMemory()
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print("didSelectRowAtIndexPath")
+        
+        if let _ = scriptureIndex?.selectedBook {
+            selectedMediaItem = mediaItems?[indexPath.row]
+        } else {
+            if let sectionTitle = sectionTitles?[indexPath.section] {
+                selectedMediaItem = sections?[sectionTitle]?[indexPath.row]
+            }
+        }
+        
+        print(selectedMediaItem?.booksChaptersVerses?.data as Any)
+        
+        if (splitViewController != nil) && (splitViewController!.viewControllers.count > 1) {
+            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
+                let viewController = navigationController.viewControllers[0] as? MediaViewController {
+                viewController.selectedMediaItem = selectedMediaItem
+                splitViewController?.viewControllers[1] = navigationController
+            }
+        } else {
+            if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM) as? MediaViewController {
+                viewController.selectedMediaItem = selectedMediaItem
+                
+                self.navigationController?.navigationItem.hidesBackButton = false
+                
+                self.navigationController?.setToolbarHidden(true, animated: true)
+                
+                self.navigationController?.pushViewController(viewController, animated: true)
+            }
+        }
     }
-    
-    
-    /*
-    // MARK: - Navigation
-    
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-    // Get the new view controller using segue.destinationViewController.
-    // Pass the selected object to the new view controller.
-    }
-    */
 }
+
+

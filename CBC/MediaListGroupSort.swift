@@ -663,6 +663,7 @@ class StringNode {
             let newNode = StringNode(newString)
             newNode.wordEnding = true
             stringNodes = [newNode]
+            newNode.stringNodes = [StringNode(Constants.WORD_ENDING)]
             return
         }
 
@@ -698,6 +699,7 @@ class StringNode {
         } else {
             let newNode = StringNode(newString)
             newNode.wordEnding = true
+            newNode.stringNodes = [StringNode(Constants.WORD_ENDING)]
             stringNodes?.append(newNode)
         }
     }
@@ -715,6 +717,24 @@ class StringNode {
         
         guard (string != newString) else {
             wordEnding = true
+            
+            var found = false
+            
+            if var stringNodes = stringNodes {
+                for stringNode in stringNodes {
+                    if stringNode.string == Constants.WORD_ENDING {
+                        found = true
+                        break
+                    }
+                }
+                
+                if !found {
+                    stringNodes.append(StringNode(Constants.WORD_ENDING))
+                }
+            } else {
+                stringNodes = [StringNode(Constants.WORD_ENDING)]
+            }
+            
             return
         }
         
@@ -746,6 +766,12 @@ class StringNode {
                 newNode.stringNodes = stringNodes
                 
                 newNode.wordEnding = wordEnding
+                
+                if !wordEnding, let index = stringNodes?.index(where: { (stringNode:StringNode) -> Bool in
+                    return stringNode.string == Constants.WORD_ENDING
+                }) {
+                    stringNodes?.remove(at: index)
+                }
                 
                 wordEnding = false
                 
@@ -788,10 +814,28 @@ class Lexicon : NSObject {
         return StringNode(nil)
     }()
 
+    var stringTreeBuilding = false
+    var stringTreeCompleted = false
+    
     func buildStringTree()
     {
-        root = StringNode(nil)
-        root.addStrings(tokens)
+        guard !stringTreeBuilding else {
+            return
+        }
+        
+        stringTreeBuilding = true
+        
+        DispatchQueue.global(qos: .background).async {
+            self.root = StringNode(nil)
+            self.root.addStrings(self.tokens)
+            
+            self.stringTreeBuilding = false
+            self.stringTreeCompleted = true
+            
+            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
+            })
+        }
     }
     
     var tokens:[String]? {
@@ -893,7 +937,9 @@ class Lexicon : NSObject {
                 }
             }
             
-            let indexStrings = strings.map({ (string:String) -> String in
+            section.strings = strings
+            
+            section.indexStrings = section.strings?.map({ (string:String) -> String in
                 return string.uppercased()
             })
             
@@ -906,9 +952,14 @@ class Lexicon : NSObject {
             //
             //            }
             
-            self.section.build(indexStrings)
+//            print("Before section.build: ",Date())
+            self.section.build()
             
-            self.buildStringTree()
+//            print("Before buildStringTree: ",Date())
+//            DispatchQueue.global(qos: .background).async {
+//                self.buildStringTree()
+//            }
+//            print("After buildStringTree: ",Date())
             
             DispatchQueue(label: "CBC").async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
@@ -1000,6 +1051,10 @@ class Lexicon : NSObject {
             return
         }
         
+//        guard !completed else {
+//            return
+//        }
+        
         guard (words == nil) else {
             return
         }
@@ -1048,7 +1103,9 @@ class Lexicon : NSObject {
                         //                        }
                         
                         if !self.pauseUpdates {
-                            if date.timeIntervalSinceNow < -1 {
+                            if date.timeIntervalSinceNow < -2 {
+//                                print(date)
+                                
                                 self.words = dict.count > 0 ? dict : nil
                                 
                                 date = Date()
@@ -1064,7 +1121,10 @@ class Lexicon : NSObject {
                 self.words = dict.count > 0 ? dict : nil
                 
                 self.creating = false
-                self.completed = true
+                
+                if !globals.isRefreshing && !globals.isLoading {
+                    self.completed = true
+                }
                 
 //                print(self.root.depthBelow(0))
                 
