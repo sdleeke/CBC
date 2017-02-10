@@ -84,8 +84,6 @@ struct SearchHit {
 //                return false
 //            }
             
-            // ( || globals.search.lexicon)
-            
             return mediaItem?.notesHTML?.range(of:searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
@@ -1196,10 +1194,10 @@ class MediaItem : NSObject {
     // nil better be okay for these or expect a crash
     var tags:String? {
         get {
-            if let savedTags = mediaItemSettings?[Field.tags] {
-                dict![Field.tags] =  dict![Field.tags] != nil ? dict![Field.tags]! + Constants.TAGS_SEPARATOR + savedTags : savedTags
-            }
-
+            let jsonTags = dict?[Field.tags]
+            
+            let savedTags = mediaItemSettings?[Field.tags]
+            
             var dynamicTags:String?
             
             if hasClassName {
@@ -1222,13 +1220,28 @@ class MediaItem : NSObject {
                 dynamicTags = dynamicTags != nil ? dynamicTags! + "|" + Constants.Video : Constants.Video
             }
             
-//                if let books = self.books {
-//                    for book in books {
-//                        tags = tags != nil ? tags! + "|Book:" + book : "Book:" + book
-//                    }
-//                }
+            //                if let books = self.books {
+            //                    for book in books {
+            //                        tags = tags != nil ? tags! + "|Book:" + book : "Book:" + book
+            //                    }
+            //                }
+//            if dict![Field.tags] == nil {
+//                
+//                
+//                dict![Field.tags] = savedTags != nil ? savedTags! + (dynamicTags != nil ? "|" + dynamicTags! : "") : dynamicTags
+//            }
             
-            return dict![Field.tags] != nil ? dict![Field.tags]! + (dynamicTags != nil ? "|" + dynamicTags! : "") : dynamicTags
+            var tags:String?
+
+            tags = tags != nil ? tags! + (jsonTags != nil ? "|" + jsonTags! : "") : (jsonTags != nil ? jsonTags : nil)
+            
+            tags = tags != nil ? tags! + (savedTags != nil ? "|" + savedTags! : "") : (savedTags != nil ? savedTags : nil)
+            
+            tags = tags != nil ? tags! + (dynamicTags != nil ? "|" + dynamicTags! : "") : (dynamicTags != nil ? dynamicTags : nil)
+            
+//            print(tags)
+            
+            return tags
         }
 //        set {
 //            var tag:String
@@ -1254,6 +1267,8 @@ class MediaItem : NSObject {
     {
         let tags = tagsArrayFromTagsString(mediaItemSettings![Field.tags])
         
+//        print(tags)
+        
         if tags?.index(of: tag) == nil {
             if (mediaItemSettings?[Field.tags] == nil) {
                 mediaItemSettings?[Field.tags] = tag
@@ -1261,6 +1276,10 @@ class MediaItem : NSObject {
                 mediaItemSettings?[Field.tags] = mediaItemSettings![Field.tags]! + Constants.TAGS_SEPARATOR + tag
             }
             
+            let tags = tagsArrayFromTagsString(mediaItemSettings![Field.tags])
+
+//            print(tags)
+
             let sortTag = stringWithoutPrefixes(tag)
             
             if globals.media.all!.tagMediaItems![sortTag!] != nil {
@@ -1292,31 +1311,36 @@ class MediaItem : NSObject {
         if (mediaItemSettings?[Field.tags] != nil) {
             var tags = tagsArrayFromTagsString(mediaItemSettings![Field.tags])
             
-            if tags?.index(of: tag) != nil {
+//            print(tags)
+            
+            while tags?.index(of: tag) != nil {
                 tags?.remove(at: tags!.index(of: tag)!)
-                mediaItemSettings?[Field.tags] = tagsArrayToTagsString(tags)
+            }
+            
+//            print(tags)
+            
+            mediaItemSettings?[Field.tags] = tagsArrayToTagsString(tags)
+            
+            let sortTag = stringWithoutPrefixes(tag)
+            
+            if let index = globals.media.all?.tagMediaItems?[sortTag!]?.index(of: self) {
+                globals.media.all?.tagMediaItems?[sortTag!]?.remove(at: index)
+            }
+            
+            if globals.media.all?.tagMediaItems?[sortTag!]?.count == 0 {
+                _ = globals.media.all?.tagMediaItems?.removeValue(forKey: sortTag!)
+            }
+            
+            if (globals.media.tags.selected == tag) {
+                globals.media.tagged[globals.media.tags.selected!] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
                 
-                let sortTag = stringWithoutPrefixes(tag)
-                
-                if let index = globals.media.all?.tagMediaItems?[sortTag!]?.index(of: self) {
-                    globals.media.all?.tagMediaItems?[sortTag!]?.remove(at: index)
-                }
-                
-                if globals.media.all?.tagMediaItems?[sortTag!]?.count == 0 {
-                    _ = globals.media.all?.tagMediaItems?.removeValue(forKey: sortTag!)
-                }
-                
-                if (globals.media.tags.selected == tag) {
-                    globals.media.tagged[globals.media.tags.selected!] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
-                    
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
-                    })
-                }
-                
-                DispatchQueue.main.async {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
-                }
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
+                })
+            }
+            
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
             }
         }
     }

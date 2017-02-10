@@ -1086,23 +1086,23 @@ Email: cbcstaff@countrysidebible.org</string>
                         <viewControllerLayoutGuide type="bottom" id="B9d-oL-eyL"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="iEh-1k-NWu">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="432"/>
+                        <rect key="frame" x="0.0" y="64" width="568" height="256"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fMW-fs-A1c" userLabel="WebView">
-                                <rect key="frame" x="0.0" y="0.0" width="600" height="432"/>
+                                <rect key="frame" x="0.0" y="0.0" width="568" height="256"/>
                                 <subviews>
                                     <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="32f-tz-uDW">
-                                        <rect key="frame" x="290" y="206" width="20" height="20"/>
+                                        <rect key="frame" x="274" y="118" width="20" height="20"/>
                                     </activityIndicatorView>
                                     <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="s1B-pf-2oT">
-                                        <rect key="frame" x="225" y="215" width="150" height="2"/>
+                                        <rect key="frame" x="209" y="127" width="150" height="2"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="150" id="FA9-Bu-8Zo"/>
                                         </constraints>
                                     </progressView>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="SWG-El-9IY">
-                                        <rect key="frame" x="160" y="180" width="279" height="72"/>
+                                        <rect key="frame" x="144" y="92" width="279" height="72"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>
@@ -2354,6 +2354,6 @@ Web site: www.countrysidebible.org</string>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="wKS-0J-tYC"/>
-        <segue reference="a3l-pm-T8G"/>
+        <segue reference="m58-6R-TkB"/>
     </inferredMetricsTieBreakers>
 </document>

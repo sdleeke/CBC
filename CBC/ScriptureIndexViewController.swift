@@ -1051,10 +1051,6 @@ class ScriptureIndexViewController : UIViewController, UIPopoverPresentationCont
             bodyString = bodyString! + "Search: \(text)<br/><br/>"
         }
         
-//        if globals.search.lexicon {
-//            bodyString = bodyString! + "Lexicon Mode<br/>"
-//        }
-        
         if let selectedTestament = self.scriptureIndex?.selectedTestament {
             var indexFor = translateTestament(selectedTestament)
 
@@ -1706,7 +1702,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
                 
-                if globals.search.valid && globals.search.transcripts { // ( || globals.search.lexicon)
+                if globals.search.valid && globals.search.transcripts {
                     htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
                 } else {
                     htmlString = mediaItem.fullNotesHTML
@@ -1716,7 +1712,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
-                    if globals.search.valid && globals.search.transcripts { // ( || globals.search.lexicon)
+                    if globals.search.valid && globals.search.transcripts {
                         return mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
                     } else {
                         return mediaItem.fullNotesHTML

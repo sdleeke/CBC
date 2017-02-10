@@ -369,7 +369,10 @@ func stringWithoutPrefixes(_ fromString:String?) -> String?
         }
     }
 
-//    print(sortString)
+    if sortString == "" {
+        print(sortString)
+    }
+
     return sortString
 }
 
@@ -2364,11 +2367,7 @@ func tagsArrayToTagsString(_ tagsArray:[String]?) -> String?
         var tagString:String?
         
         for tag in tagsArray! {
-            if tagString == nil {
-                tagString = tag
-            } else {
-                tagString = tagString! + Constants.TAGS_SEPARATOR + tag
-            }
+            tagString = tagString != nil ? tagString! + Constants.TAGS_SEPARATOR + tag : tag
         }
         
         return tagString
@@ -3125,10 +3124,6 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
         bodyString = bodyString! + "Search: \(searchText)<br/>"
     }
     
-//    if globals.search.lexicon {
-//        bodyString = bodyString! + "Lexicon Mode<br/>"
-//    }
-    
     bodyString = bodyString! + "Grouped: By \(translate(globals.grouping)!)<br/>"
     bodyString = bodyString! + "Sorted: \(translate(globals.sorting)!)<br/>"
     
@@ -3463,10 +3458,6 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
     if globals.search.valid, let searchText = globals.search.text {
         bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
     }
-    
-//    if globals.search.lexicon {
-//        bodyString = bodyString! + "Lexicon Mode<br/>"
-//    }
     
     let keys:[String] = mediaListSort.keys.map({ (string:String) -> String in
         return string

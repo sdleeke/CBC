@@ -142,7 +142,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 
         setupIcons()
 
-//        if (globals.search.active && ((vc as? MediaTableViewController) != nil)) || ((vc as? LexiconIndexViewController) != nil) { // !globals.search.lexicon &&
+//        if (globals.search.active && ((vc as? MediaTableViewController) != nil)) || ((vc as? LexiconIndexViewController) != nil) {
         if searchText != nil {
             let titleString = NSMutableAttributedString()
             
@@ -674,11 +674,6 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             } else {
                 self.tagsButton.isHidden = true
             }
-
-//            if globals.search.lexicon {
-//                self.tagsButton.isEnabled = false
-//                self.tagsButton.isHidden = true
-//            }
         })
     }
     
@@ -797,13 +792,13 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 
             if (mediaItem!.hasTags) {
                 if (mediaItem?.tagsSet?.count > 1) {
-                    if mediaItem!.searchHit(searchText).tags { // !globals.search.lexicon,
+                    if mediaItem!.searchHit(searchText).tags {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: highlighted))
                     } else {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: normal))
                     }
                 } else {
-                    if mediaItem!.searchHit(searchText).tags { // !globals.search.lexicon,
+                    if mediaItem!.searchHit(searchText).tags {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: highlighted))
                     } else {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: normal))

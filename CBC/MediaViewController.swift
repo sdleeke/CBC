@@ -2448,6 +2448,8 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
             tagsButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.TAGS_FONT_SIZE)!], for: UIControlState())
             
             barButtons.append(tagsButton!)
+        } else {
+            
         }
 
         self.navigationItem.setRightBarButtonItems(barButtons, animated: true)
@@ -3640,7 +3642,7 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
                 
-//                if globals.search.valid && globals.search.transcripts { // ( || globals.search.lexicon)
+//                if globals.search.valid && globals.search.transcripts {
 //                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
 //                } else {
                     htmlString = mediaItem.fullNotesHTML
@@ -3650,7 +3652,7 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
-                    if globals.search.valid && globals.search.transcripts { // ( || globals.search.lexicon)
+                    if globals.search.valid && globals.search.transcripts {
                         return mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
                     } else {
                         return mediaItem.fullNotesHTML

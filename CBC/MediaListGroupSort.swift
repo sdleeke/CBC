@@ -1672,6 +1672,11 @@ class MediaListGroupSort {
             if let tags =  mediaItem.tagsSet {
                 for tag in tags {
                     let sortTag = stringWithoutPrefixes(tag)
+                    
+                    if sortTag == "" {
+                        print(sortTag)
+                    }
+
                     if tagMediaItems?[sortTag!] == nil {
                         tagMediaItems?[sortTag!] = [mediaItem]
                     } else {

@@ -401,7 +401,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             if let range = string.range(of: " (") {
                 let searchText = string.substring(to: range.lowerBound).uppercased()
                 
-                //                globals.search.lexicon = true // MUST COME FIRST to avoid saving searchText for the next startup.
                 globals.search.text = searchText
                 
                 DispatchQueue.main.async(execute: { () -> Void in
@@ -797,70 +796,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         navigationController?.pushViewController(viewController, animated: true)
                     }
                 }
-                
-                //                var mlgs:MediaListGroupSort?
-                //
-                //                if globals.search.lexicon {
-                //                    mlgs = globals.media.toSearch
-                //                } else {
-                //                    mlgs = globals.media.active
-                //                }
-                //
-                //                if let completed = mlgs?.lexicon?.completed, !completed && !globals.reachability.isReachable {
-                //                    networkUnavailable("Lexicon unavailable.")
-                //                }
-                //
-                //                if mlgs?.lexicon?.eligible == nil {
-                //                    let alert = UIAlertController(title:"No Lexicon Available",
-                //                                                  message: "HTML transcripts are not available for these media items.",
-                //                        preferredStyle: UIAlertControllerStyle.alert)
-                //
-                //                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                //
-                //                    })
-                //                    alert.addAction(action)
-                //
-                //                    DispatchQueue.main.async(execute: { () -> Void in
-                //                        self.present(alert, animated: true, completion: nil)
-                //                    })
-                //                } else {
-                //                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                //                        let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                //                        //                    navigationController.modalPresentationStyle = .popover
-                //
-                //                        //                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                //                        //                    navigationController.popoverPresentationController?.delegate = self
-                //                        //
-                //                        //                    navigationController.popoverPresentationController?.barButtonItem = self.showButton
-                //
-                //                        popover.navigationItem.title = Constants.Lexicon
-                //
-                //                        popover.delegate = self
-                //                        popover.purpose = .selectingLexicon
-                //
-                //                        popover.search = true
-                //
-                //                        popover.mediaListGroupSort = mlgs
-                //
-                //                        popover.section.showIndex = true
-                //                        popover.section.showHeaders = true
-                //
-                //                        //                    popover.vc = self
-                //
-                //                        DispatchQueue.main.async(execute: { () -> Void in
-                //                            self.navigationController?.pushViewController(popover, animated: true)
-                //                        })
-                //
-                //                        //                    DispatchQueue.main.async(execute: { () -> Void in
-                //                        //                        self.present(navigationController, animated: true, completion: {
-                //                        //                            DispatchQueue.main.async(execute: { () -> Void in
-                //                        //                                // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
-                //                        //                                navigationController.popoverPresentationController?.passthroughViews = nil
-                //                        //                            })
-                //                        //                        })
-                //                        //                    })
-                //                    }
-                //                }
                 break
                 
             case Constants.View_List:
@@ -980,7 +915,160 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
     }
 }
 
-class MediaTableViewController: UIViewController, UIPopoverPresentationControllerDelegate, URLSessionDownloadDelegate
+extension MediaTableViewController : URLSessionDownloadDelegate
+{
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset: Int64, expectedTotalBytes: Int64)
+    {
+        
+    }
+    
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
+    {
+        print("URLSession:downloadTask:bytesWritten:totalBytesWritten:totalBytesExpectedToWrite:")
+        
+        let filename = downloadTask.taskDescription!
+        
+        print("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
+        
+        //        DispatchQueue.main.async(execute: { () -> Void in
+        //            self.progressIndicator.isHidden = false
+        //
+        //            print(totalBytesExpectedToWrite > 0 ? Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) : 0.0)
+        //
+        //            self.progressIndicator.progress = totalBytesExpectedToWrite > 0 ? Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) : 0.0
+        //        })
+        
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
+    }
+    
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)
+    {
+        print("URLSession:downloadTask:didFinishDownloadingToURL")
+        
+        //        DispatchQueue.main.async(execute: { () -> Void in
+        //            self.progressIndicator.isHidden = true
+        //        })
+        
+        var success = false
+        
+        print("countOfBytesExpectedToReceive: \(downloadTask.countOfBytesExpectedToReceive)")
+        
+        print("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
+        
+        let filename = downloadTask.taskDescription!
+        
+        print("filename: \(filename) location: \(location)")
+        
+        if (downloadTask.countOfBytesReceived > 0) {
+            let fileManager = FileManager.default
+            
+            //Get documents directory URL
+            if let destinationURL = cachesURL()?.appendingPathComponent(filename) {
+                // Check if file exist
+                if (fileManager.fileExists(atPath: destinationURL.path)){
+                    do {
+                        try fileManager.removeItem(at: destinationURL)
+                    } catch _ {
+                        print("failed to remove old json file")
+                    }
+                }
+                
+                do {
+                    try fileManager.copyItem(at: location as URL, to: destinationURL)
+                    try fileManager.removeItem(at: location as URL)
+                    success = true
+                } catch _ {
+                    print("failed to copy new json file to Documents")
+                }
+            } else {
+                print("failed to get destinationURL")
+            }
+        } else {
+            print("downloadTask.countOfBytesReceived not > 0")
+        }
+        
+        if success {
+            // ONLY flush and refresh the data once we know we have successfully downloaded the new JSON
+            // file and successfully copied it to the Documents directory.
+            
+            // URL call back does NOT run on the main queue
+            DispatchQueue.main.async(execute: { () -> Void in
+                globals.mediaPlayer.pause() // IfPlaying
+                
+                globals.mediaPlayer.view?.isHidden = true
+                globals.mediaPlayer.view?.removeFromSuperview()
+                
+                //                self.loadCategories()
+                
+                self.loadMediaItems()
+                    {
+                        //                    self.refreshControl?.endRefreshing()
+                        UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                        //                    globals.isRefreshing = false
+                }
+            })
+        } else {
+            DispatchQueue.main.async(execute: { () -> Void in
+                if (UIApplication.shared.applicationState == UIApplicationState.active) {
+                    let alert = UIAlertController(title:"Unable to Download Media",
+                                                  message: "Please try to refresh the list again.",
+                                                  preferredStyle: UIAlertControllerStyle.alert)
+                    
+                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                        
+                    })
+                    alert.addAction(action)
+                    
+                    self.present(alert, animated: true, completion: nil)
+                }
+                
+                self.refreshControl!.endRefreshing()
+                UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                
+                globals.setupDisplay(globals.media.active)
+                self.tableView.reloadData()
+                
+                globals.isRefreshing = false
+                
+                self.setupViews()
+            })
+        }
+    }
+    
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
+    {
+        print("URLSession:task:didCompleteWithError")
+        
+        if (error != nil) {
+            //            print("Download failed for: \(session.description)")
+        } else {
+            //            print("Download succeeded for: \(session.description)")
+        }
+        
+        // This deletes more than the temp file associated with this download and sometimes it deletes files in progress
+        // that are needed!  We need to find a way to delete only the temp file created by this download task.
+        //        removeTempFiles()
+        
+        let filename = task.taskDescription
+        print("filename: \(filename!) error: \(error)")
+        
+        session.invalidateAndCancel()
+        
+        //        if let taskIndex = globals.downloadTasks.indexOf(task as! NSURLSessionDownloadTask) {
+        //            globals.downloadTasks.removeAtIndex(taskIndex)
+        //        }
+        
+        UIApplication.shared.isNetworkActivityIndicatorVisible = false
+    }
+    
+    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?)
+    {
+        print("URLSession:didBecomeInvalidWithError")
+        
+    }
+}
+
+class MediaTableViewController : UIViewController, UIPopoverPresentationControllerDelegate
 {
     var changesPending = false
     
@@ -999,33 +1087,6 @@ class MediaTableViewController: UIViewController, UIPopoverPresentationControlle
     var tagsToolbar: UIToolbar?
     @IBOutlet weak var tagsButton: UIButton!
     @IBOutlet weak var tagLabel: UILabel!
-    
-//    @IBOutlet weak var lexiconLabel: UILabel!
-//    @IBOutlet weak var lexiconButton: UIButton!
-//    @IBAction func lexiconButtonAction(_ sender: UIButton)
-//    {
-//        if globals.search.lexicon {
-//            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-//                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-//                
-//                popover.navigationItem.title = Constants.Lexicon
-//                
-//                popover.delegate = self
-//                popover.purpose = .selectingLexicon
-//                
-//                popover.search = true
-//                
-//                popover.mediaListGroupSort = globals.media.toSearch
-//                
-//                popover.section.showIndex = true
-//                popover.section.showHeaders = true
-//                
-//                DispatchQueue.main.async(execute: { () -> Void in
-//                    self.navigationController?.pushViewController(popover, animated: true)
-//                })
-//            }
-//        }
-//    }
     
     var refreshControl:UIRefreshControl?
 
@@ -1164,8 +1225,6 @@ class MediaTableViewController: UIViewController, UIPopoverPresentationControlle
             if (globals.media.active?.scriptureIndex?.eligible != nil) {
                 showMenu.append(Constants.Scripture_Index)
             }
-            
-            // ( || globals.search.lexicon)
             
             if (globals.media.active?.lexicon?.eligible != nil) {
                 showMenu.append(Constants.Lexicon_Index)
@@ -1990,156 +2049,6 @@ class MediaTableViewController: UIViewController, UIPopoverPresentationControlle
         }
     }
     
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset: Int64, expectedTotalBytes: Int64)
-    {
-    
-    }
-    
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
-    {
-        print("URLSession:downloadTask:bytesWritten:totalBytesWritten:totalBytesExpectedToWrite:")
-        
-        let filename = downloadTask.taskDescription!
-        
-        print("filename: \(filename) bytesWritten: \(bytesWritten) totalBytesWritten: \(totalBytesWritten) totalBytesExpectedToWrite: \(totalBytesExpectedToWrite)")
-        
-//        DispatchQueue.main.async(execute: { () -> Void in
-//            self.progressIndicator.isHidden = false
-//            
-//            print(totalBytesExpectedToWrite > 0 ? Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) : 0.0)
-//            
-//            self.progressIndicator.progress = totalBytesExpectedToWrite > 0 ? Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) : 0.0
-//        })
-
-        UIApplication.shared.isNetworkActivityIndicatorVisible = true
-    }
-    
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)
-    {
-        print("URLSession:downloadTask:didFinishDownloadingToURL")
-        
-//        DispatchQueue.main.async(execute: { () -> Void in
-//            self.progressIndicator.isHidden = true
-//        })
-
-        var success = false
-        
-        print("countOfBytesExpectedToReceive: \(downloadTask.countOfBytesExpectedToReceive)")
-        
-        print("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
-        
-        let filename = downloadTask.taskDescription!
-        
-        print("filename: \(filename) location: \(location)")
-        
-        if (downloadTask.countOfBytesReceived > 0) {
-            let fileManager = FileManager.default
-            
-            //Get documents directory URL
-            if let destinationURL = cachesURL()?.appendingPathComponent(filename) {
-                // Check if file exist
-                if (fileManager.fileExists(atPath: destinationURL.path)){
-                    do {
-                        try fileManager.removeItem(at: destinationURL)
-                    } catch _ {
-                        print("failed to remove old json file")
-                    }
-                }
-                
-                do {
-                    try fileManager.copyItem(at: location as URL, to: destinationURL)
-                    try fileManager.removeItem(at: location as URL)
-                    success = true
-                } catch _ {
-                    print("failed to copy new json file to Documents")
-                }
-            } else {
-                print("failed to get destinationURL")
-            }
-        } else {
-            print("downloadTask.countOfBytesReceived not > 0")
-        }
-        
-        if success {
-            // ONLY flush and refresh the data once we know we have successfully downloaded the new JSON
-            // file and successfully copied it to the Documents directory.
-            
-            // URL call back does NOT run on the main queue
-            DispatchQueue.main.async(execute: { () -> Void in
-                globals.mediaPlayer.pause() // IfPlaying
-                
-                globals.mediaPlayer.view?.isHidden = true
-                globals.mediaPlayer.view?.removeFromSuperview()
-                
-//                self.loadCategories()
-                
-                self.loadMediaItems()
-                {
-//                    self.refreshControl?.endRefreshing()
-                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
-//                    globals.isRefreshing = false
-                }
-            })
-        } else {
-            DispatchQueue.main.async(execute: { () -> Void in
-                if (UIApplication.shared.applicationState == UIApplicationState.active) {
-                    let alert = UIAlertController(title:"Unable to Download Media",
-                        message: "Please try to refresh the list again.",
-                        preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                        
-                    })
-                    alert.addAction(action)
-                    
-                    self.present(alert, animated: true, completion: nil)
-                }
-                
-                self.refreshControl!.endRefreshing()
-                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                
-                globals.setupDisplay(globals.media.active)
-                self.tableView.reloadData()
-                
-                globals.isRefreshing = false
-
-                self.setupViews()
-            })
-        }
-    }
-    
-    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
-    {
-        print("URLSession:task:didCompleteWithError")
-        
-        if (error != nil) {
-//            print("Download failed for: \(session.description)")
-        } else {
-//            print("Download succeeded for: \(session.description)")
-        }
-        
-        // This deletes more than the temp file associated with this download and sometimes it deletes files in progress
-        // that are needed!  We need to find a way to delete only the temp file created by this download task.
-//        removeTempFiles()
-        
-        let filename = task.taskDescription
-        print("filename: \(filename!) error: \(error)")
-        
-        session.invalidateAndCancel()
-        
-        //        if let taskIndex = globals.downloadTasks.indexOf(task as! NSURLSessionDownloadTask) {
-        //            globals.downloadTasks.removeAtIndex(taskIndex)
-        //        }
-        
-        UIApplication.shared.isNetworkActivityIndicatorVisible = false
-    }
-    
-    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?)
-    {
-        print("URLSession:didBecomeInvalidWithError")
-
-    }
-    
     func downloadJSON()
     {
         var url:String?
@@ -2374,37 +2283,6 @@ class MediaTableViewController: UIViewController, UIPopoverPresentationControlle
 //        loadingView?.superview?.layoutSubviews()
     }
     
-//    func lexiconStarted()
-//    {
-////        if globals.search.lexicon {
-////            
-////        }
-//    }
-//    
-//    func lexiconUpdated()
-//    {
-//        if let searchText = globals.search.text.uppercased() { // globals.search.lexicon,
-//            if let list:[MediaItem]? = globals.media.toSearch?.lexicon?.words?[searchText]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
-//                return tuple.0
-//            }) {
-//                updateSearch(searchText:searchText,mediaItems: list)
-//                updateDisplay(searchText:searchText)
-//            }
-//        }
-//    }
-//    
-//    func lexiconCompleted()
-//    {
-//        if let searchText = globals.search.text.uppercased() { // globals.search.lexicon,
-//            if let list:[MediaItem]? = globals.media.toSearch?.lexicon?.words?[searchText]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
-//                return tuple.0
-//            }) {
-//                updateSearch(searchText:searchText,mediaItems: list)
-//                updateDisplay(searchText:searchText)
-//            }
-//        }
-//    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -2567,11 +2445,6 @@ class MediaTableViewController: UIViewController, UIPopoverPresentationControlle
                 self.tagsButton.isEnabled = false
                 self.tagsButton.isHidden = false
             }
-            
-//            if globals.search.lexicon {
-//                self.tagsButton.isEnabled = false
-//                self.tagsButton.isHidden = false
-//            }
         })
     }
     
@@ -2610,7 +2483,7 @@ class MediaTableViewController: UIViewController, UIPopoverPresentationControlle
             popover.delegate = self
             popover.purpose = .selectingTags
             
-            //                    print(globals.media.all!.mediaItemTags!)
+//            print(globals.media.all!.mediaItemTags!)
             
             var strings = [Constants.All]
             
@@ -2678,8 +2551,6 @@ class MediaTableViewController: UIViewController, UIPopoverPresentationControlle
             globals.media.toSearch?.searches = [String:MediaListGroupSort]()
         }
         
-        // globals.search.lexicon ? "lexicon:"+searchText : 
-        
         globals.media.toSearch?.searches?[searchText] = MediaListGroupSort(mediaItems: mediaItems)
         
 //        self.showProgress = true
@@ -2698,8 +2569,6 @@ class MediaTableViewController: UIViewController, UIPopoverPresentationControlle
         }
         
 //        print(searchText)
-        
-        // globals.search.lexicon ? "lexicon:"+searchText : 
         
         guard (globals.media.toSearch?.searches?[searchText] == nil) else {
             updateDisplay(searchText:searchText)
@@ -2942,14 +2811,6 @@ class MediaTableViewController: UIViewController, UIPopoverPresentationControlle
             default:
                 break
             }
-            
-//            self.lexiconButton.isEnabled = globals.search.lexicon
-
-//            if globals.search.lexicon {
-//                self.lexiconLabel.text = "Lexicon Mode"
-//            } else {
-//                self.lexiconLabel.text = nil
-//            }
         })
     }
     
@@ -3564,7 +3425,7 @@ extension MediaTableViewController : UITableViewDelegate
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
                 
-                if globals.search.valid && globals.search.transcripts { // ( || globals.search.lexicon)
+                if globals.search.valid && globals.search.transcripts {
                     htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
                 } else {
                     htmlString = mediaItem.fullNotesHTML
@@ -3574,7 +3435,7 @@ extension MediaTableViewController : UITableViewDelegate
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
-                    if globals.search.valid && globals.search.transcripts { // ( || globals.search.lexicon)
+                    if globals.search.valid && globals.search.transcripts {
                         return mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
                     } else {
                         return mediaItem.fullNotesHTML

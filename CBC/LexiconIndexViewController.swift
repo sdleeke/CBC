@@ -1062,7 +1062,7 @@ extension LexiconIndexViewController : UITableViewDelegate
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
-                    if globals.search.valid && globals.search.transcripts { // ( || globals.search.lexicon)
+                    if globals.search.valid && globals.search.transcripts {
                         return mediaItem.markedFullNotesHTML(searchText:searchText,index: true)
                     } else {
                         return mediaItem.fullNotesHTML
