@@ -77,6 +77,51 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
 {
     //  MARK: PopoverTableViewControllerDelegate
 
+    func actionMenu(action: String?,mediaItem:MediaItem?)
+    {
+        guard let action = action else {
+            return
+        }
+        
+        switch action {
+        case Constants.Word_Picker:
+            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
+                navigationController.modalPresentationStyle = .popover
+                
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                
+                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+                
+                popover.navigationItem.title = Constants.Word_Picker
+                
+                popover.delegate = self
+                
+                popover.mediaListGroupSort = mediaListGroupSort
+                
+                present(navigationController, animated: true, completion: nil)
+            }
+            break
+            
+        case Constants.View_List:
+            process(viewController: self, work: { () -> (Any?) in
+                if self.results?.html?.string == nil {
+                    self.results?.html?.string = self.setupMediaItemsHTMLLexicon(includeURLs: true, includeColumns: true)
+                }
+                
+                return self.results?.html?.string
+            }, completion: { (data:Any?) in
+                presentHTMLModal(viewController: self, medaiItem: nil, title: "Lexicon Index For: \(self.searchText!)", htmlString: data as? String)
+            })
+            break
+            
+        default:
+            break
+        }
+    }
+    
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
@@ -89,6 +134,42 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
         }
         
         switch purpose {
+        case .selectingSection:
+            dismiss(animated: true, completion: nil)
+            
+            if let titles = results?.section?.titles {
+                var i = 0
+                for string in titles {
+                    if string == strings[index] {
+                        break
+                    }
+                    
+                    i += 1
+                }
+                
+                let indexPath = IndexPath(row: 0, section: i)
+                
+                if !(indexPath.section < tableView.numberOfSections) {
+                    NSLog("indexPath section ERROR in LexiconIndex .selectingSection")
+                    NSLog("Section: \(indexPath.section)")
+                    NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+                    break
+                }
+                
+                if !(indexPath.row < tableView.numberOfRows(inSection: indexPath.section)) {
+                    NSLog("indexPath row ERROR in LexiconIndex .selectingSection")
+                    NSLog("Section: \(indexPath.section)")
+                    NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
+                    NSLog("Row: \(indexPath.row)")
+                    NSLog("TableView Number of Rows in Section: \(tableView.numberOfRows(inSection: indexPath.section))")
+                    break
+                }
+                
+                //Can't use this reliably w/ variable row heights.
+                tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.top, animated: true)
+            }
+            break
+            
         case .selectingLexicon:
             if index < strings.count {
                 let string = strings[index]
@@ -107,44 +188,8 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             
         case .selectingAction:
             dismiss(animated: true, completion: nil)
-            
-            switch strings[index] {
-            case Constants.Word_Picker:
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
-                    navigationController.modalPresentationStyle = .popover
-                    
-                    navigationController.popoverPresentationController?.delegate = self
-                    
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                    
-                    navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-                    
-                    popover.navigationItem.title = Constants.Word_Picker
-                    
-                    popover.delegate = self
-                    
-                    popover.mediaListGroupSort = mediaListGroupSort
-                    
-                    present(navigationController, animated: true, completion: nil)
-                }
-                break
-                
-            case Constants.View_List:
-                process(viewController: self, work: { () -> (Any?) in
-                    if self.results?.html?.string == nil {
-                        self.results?.html?.string = self.setupMediaItemsHTMLLexicon(includeURLs: true, includeColumns: true)
-                    }
-                    
-                    return self.results?.html?.string
-                }, completion: { (data:Any?) in
-                    presentHTMLModal(viewController: self, medaiItem: nil, title: "Lexicon Index For: \(self.searchText!)", htmlString: data as? String)
-                })
-                break
-                
-            default:
-                break
-            }
+
+            actionMenu(action:strings[index],mediaItem:mediaItem)
             break
             
         case .selectingCellAction:
@@ -234,8 +279,6 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
     
     @IBOutlet weak var containerHeightConstraint: NSLayoutConstraint!
     
-//    @IBOutlet weak var wordPicker: UIPickerView!
-    
     @IBOutlet weak var selectedLabel: UILabel!
     @IBOutlet weak var selectedWord: UILabel!
     
@@ -299,13 +342,13 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
         }))
         
         DispatchQueue.main.async(execute: { () -> Void in
-            self.updateActionMenu()
-            
             if !self.tableView.isEditing {
                 self.tableView.reloadData()
             } else {
                 self.changesPending = true
             }
+            
+            self.updateUI()
         })
     }
     
@@ -387,7 +430,7 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
 //            return
 //        }
         
-        if (self.searchText != nil) { //  && wordPicker.isHidden
+        if (self.searchText != nil) {
 //            if let visibleCells = ptvc?.tableView.visibleCells as? [PopoverTableViewCell] {
 //                for cell in visibleCells {
 //                    if let text = cell.title.text {
@@ -429,7 +472,7 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
         
         navigationItem.hidesBackButton = false
         
-        navigationController?.setToolbarHidden(true, animated: false)
+        navigationController?.setToolbarHidden(false, animated: true)
         
         if  let count = lexicon?.entries?.count,
             let total = lexicon?.eligible?.count {
@@ -437,6 +480,8 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
         }
         
         updateActionMenu()
+        
+        updateUI()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -469,7 +514,19 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
         bodyString = "<!DOCTYPE html><html><body>"
         
         if searchText != nil {
-            bodyString = bodyString! + "Lexicon Index For: \(searchText!)<br/><br/>"
+            bodyString = bodyString! + "Lexicon Index For \(searchText!):"
+            
+            var appearances = 0
+
+            if let mediaItems = results!.mediaItems {
+                for mediaItem in mediaItems {
+                    if let count = mediaItem.notesTokens?[searchText!] {
+                        appearances += count
+                    }
+                }
+                
+                bodyString = bodyString! + " \(appearances) Appearances in \(mediaItems.count) Documents<br/><br/>"
+            }
         }
         
         bodyString = bodyString! + "The following media "
@@ -502,14 +559,11 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
         bodyString = bodyString! + "Sorted: \(translate(globals.sorting)!)<br/>"
         
         if let keys = results?.section?.indexTitles {
-            var count = 0
-            for key in keys {
-                if let mediaItems = results?.groupSort?[globals.grouping!]?[key]?[globals.sorting!] {
-                    count += mediaItems.count
-                }
-            }
-            
-            bodyString = bodyString! + "Total: \(count)<br/>"
+//            for key in keys {
+//                if let mediaItems = results?.groupSort?[globals.grouping!]?[key]?[globals.sorting!] {
+//                    count += mediaItems.count
+//                }
+//            }
             
             bodyString = bodyString! + "<br/>"
             
@@ -540,7 +594,7 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
                     
                     if includeColumns {
                         bodyString = bodyString! + "<tr>"
-                        bodyString = bodyString! + "<td valign=\"top\" colspan=\"6\">"
+                        bodyString = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
                     }
                     
                     if includeURLs, (keys.count > 1) {
@@ -564,7 +618,7 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
                     }
                     
                     for mediaItem in mediaItems {
-                        var order = ["date","title","scripture"]
+                        var order = ["date","title","count","scripture"]
                         
                         if speakerCount > 1 {
                             order.append("speaker")
@@ -576,7 +630,7 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
                             }
                         }
                         
-                        if let string = mediaItem.bodyHTML(order: order, includeURLs: includeURLs, includeColumns: includeColumns) {
+                        if let string = mediaItem.bodyHTML(order: order, token: searchText, includeURLs: includeURLs, includeColumns: includeColumns) {
                             bodyString = bodyString! + string
                         }
                         
@@ -588,7 +642,7 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
                 
                 if includeColumns {
                     bodyString = bodyString! + "<tr>"
-                    bodyString = bodyString! + "<td valign=\"top\" colspan=\"6\">"
+                    bodyString = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
                 }
                 
                 bodyString = bodyString! + "<br/>"
@@ -751,75 +805,6 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
         })
     }
     
-//    func updatePickerSelections()
-//    {
-//        guard root?.stringNodes != nil else {
-//            return
-//        }
-//        
-//        var stringNode = root
-//        
-//        var i = 0
-//        
-//        while stringNode != nil {
-//            if stringNode?.stringNodes == nil {
-//                pickerSelections[i] = nil
-//                stringNode = nil
-//            } else
-//                
-//            if pickerSelections[i] >= stringNode!.stringNodes!.count {
-//                pickerSelections[i] = 0
-//                stringNode = stringNode?.stringNodes?[0]
-//            } else {
-//                if let index = pickerSelections[i] {
-//                    stringNode = stringNode?.stringNodes?[index]
-//                } else {
-//                    stringNode = nil
-//                }
-//            }
-//            
-//            i += 1
-//        }
-//        
-////        print(wordPicker.numberOfComponents)
-//
-//        var index = i
-//        while index < wordPicker.numberOfComponents {
-//            pickerSelections[index] = nil
-//            index += 1
-//        }
-////        if i < wordPicker.numberOfComponents {
-////            for index in i..<wordPicker.numberOfComponents {
-////                pickerSelections[index] = nil
-////            }
-////        }
-//        
-//        DispatchQueue.main.async(execute: { () -> Void in
-//            self.wordPicker.setNeedsLayout()
-//        })
-//    }
-    
-//    func stringTreeUpdated()
-//    {
-//        if !wordPicker.isHidden {
-//            root = lexicon?.root
-//            
-//            DispatchQueue.main.async(execute: { () -> Void in
-//                self.spinner.stopAnimating()
-//                self.spinner.isHidden = true
-//            })
-//
-//            updatePickerSelections()
-//            updatePicker()
-//            
-//            updateTitle()
-//            
-//            updateLocateButton()
-//            
-//            updateSearchResults()
-//        }
-//    }
-    
     func updated()
     {
         updateTitle()
@@ -827,10 +812,6 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
         updateLocateButton()
         
         updateSearchResults()
-        
-//        if !wordPicker.isHidden {
-//            lexicon?.buildStringTree()
-//        }
     }
     
     func completed()
@@ -840,16 +821,53 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
         updateLocateButton()
         
         updateSearchResults()
-        
-//        if !wordPicker.isHidden {
-//            lexicon?.buildStringTree()
-//        }
     }
     
-    override func viewDidLoad() {
+    func index(_ object:AnyObject?)
+    {
+        //In case we have one already showing
+        dismiss(animated: true, completion: nil)
+        
+        //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.mediaItemSections
+        //And when the user chooses one, scroll to the first time in that section.
+        
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            let button = object as? UIBarButtonItem
+            
+            navigationController.modalPresentationStyle = .popover
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .down
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.barButtonItem = button
+            
+            popover.navigationItem.title = Constants.Menu.Index
+            
+            popover.delegate = self
+            
+            popover.purpose = .selectingSection
+            
+            popover.section.strings = results?.section?.titles
+            popover.section.showIndex = false
+            popover.section.showHeaders = false
+            
+            popover.vc = self
+            
+            present(navigationController, animated: true, completion: nil)
+        }
+    }
+    
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
         
-//        navigationController?.toolbar.isTranslucent = false
+        let indexButton = UIBarButtonItem(title: Constants.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(LexiconIndexViewController.index(_:)))
+        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
+        
+        self.setToolbarItems([spaceButton,indexButton], animated: false)
+
+        navigationController?.toolbar.isTranslucent = false
         
         //        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
         navigationItem.leftItemsSupplementBackButton = true
@@ -883,8 +901,6 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
         selectedLabel.isHidden = state
         selectedWord.isHidden = state
         
-//        wordPicker.isHidden = state
-        
         isHiddenNumberAndTableUI(state)
     }
     
@@ -900,22 +916,6 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
         
         tableView.isHidden = state
     }
-    
-//    func updatePicker()
-//    {
-//        DispatchQueue.main.async(execute: { () -> Void in
-//            self.wordPicker.reloadAllComponents()
-//            
-//            var i = 0
-//            
-//            while i < self.wordPicker.numberOfComponents, i < self.pickerSelections.count, self.pickerSelections[i] != nil {
-//                self.wordPicker.selectRow(self.pickerSelections[i]!,inComponent: i, animated: true)
-//                i += 1
-//            }
-//            
-//            self.searchText = self.wordFromPicker()
-//        })
-//    }
     
     func updateActionMenu()
     {
@@ -934,12 +934,8 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
             return
         }
         
-//        navigationController?.toolbar.items?[1].isEnabled = results?.list?.count > 0
-        
-        navigationController?.setToolbarHidden(true, animated: true)
-        
-        //        navigationController?.isToolbarHidden =
-        
+        navigationController?.setToolbarHidden(false, animated: true)
+
         spinner.isHidden = true
         spinner.stopAnimating()
         
@@ -949,16 +945,9 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
         
         isHiddenUI(false)
         
-//        if !wordPicker.isHidden {
-//            updatePickerSelections()
-//            updatePicker()
-//        }
-        
         updateDirectionLabel()
         
         updateText()
-        
-        tableView.reloadData()
     }
     
     override func didReceiveMemoryWarning() {
@@ -1120,11 +1109,6 @@ extension LexiconIndexViewController : UITableViewDataSource
 {
     // MARK: UITableViewDataSource
     
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
-    {
-        return Constants.HEADER_HEIGHT
-    }
-    
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
     {
         if results?.section?.titles != nil {
@@ -1172,7 +1156,7 @@ extension LexiconIndexViewController : UITableViewDataSource
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
     {
         let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.INDEX_MEDIA_ITEM, for: indexPath) as! MediaTableViewCell
-        
+
         cell.hideUI()
         
         cell.vc = self
@@ -1189,6 +1173,61 @@ extension LexiconIndexViewController : UITableViewDataSource
             }
         }
         
+        if let searchText = searchText, let mediaItem = cell.mediaItem, let count = mediaItem.notesTokens?[searchText] {
+            cell.countLabel.text = count.description
+        } else {
+            cell.countLabel.text = nil
+        }
+        
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
+    {
+        guard section < results?.section?.titles?.count, let title = results?.section?.titles?[section] else {
+            return Constants.HEADER_HEIGHT
+        }
+        
+        let heightSize: CGSize = CGSize(width: tableView.frame.width - 20, height: .greatestFiniteMagnitude)
+        
+        let height = title.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)], context: nil).height
+        
+        //        print(height,max(Constants.HEADER_HEIGHT,height + 28))
+        
+        return max(Constants.HEADER_HEIGHT,height + 28)
+    }
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView?
+    {
+        let view = UIView()
+        
+        view.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+        
+        if section < results?.section?.titles?.count, let title = results?.section?.titles?[section] {
+            let label = UILabel()
+            
+            label.numberOfLines = 0
+            label.lineBreakMode = .byWordWrapping
+            
+            let bold = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
+            
+            label.attributedText = NSAttributedString(string: title,   attributes: bold)
+            
+            label.translatesAutoresizingMaskIntoConstraints = false
+
+            view.addSubview(label)
+
+            let views = ["label": label,"view": view]
+            
+            let horizontalContraints = NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: .alignAllCenterY, metrics: nil, views: views)
+            let verticalContraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: .alignAllCenterX, metrics: nil, views: views)
+            
+            view.addConstraints(horizontalContraints)
+            view.addConstraints(verticalContraints)
+        }
+        
+        view.alpha = 0.85
+        
+        return view
     }
 }

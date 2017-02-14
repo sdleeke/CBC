@@ -189,7 +189,7 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
 
 func removeJSONFromFileSystemDirectory()
 {
-    if let jsonFileSystemURL = cachesURL()?.appendingPathComponent(Constants.JSON.FILENAME.MEDIA) {
+    if let filename = globals.mediaCategory.filename, let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) {
         do {
             try FileManager.default.removeItem(atPath: jsonFileSystemURL.path)
         } catch _ {
@@ -204,7 +204,7 @@ func jsonToFileSystemDirectory(key:String)
     
     let jsonBundlePath = Bundle.main.path(forResource: key, ofType: Constants.JSON.TYPE)
     
-    if let jsonFileURL = cachesURL()?.appendingPathComponent(Constants.JSON.FILENAME.MEDIA) {
+    if let filename = globals.mediaCategory.filename, let jsonFileURL = cachesURL()?.appendingPathComponent(filename) {
         // Check if file exist
         if (!fileManager.fileExists(atPath: jsonFileURL.path)){
             if (jsonBundlePath != nil) {
@@ -267,7 +267,7 @@ func jsonDataFromDocumentsDirectory() -> JSON
 {
     jsonToFileSystemDirectory(key:Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES)
     
-    if let jsonURL = cachesURL()?.appendingPathComponent(Constants.JSON.FILENAME.MEDIA) {
+    if let filename = globals.mediaCategory.filename, let jsonURL = cachesURL()?.appendingPathComponent(filename) {
         if let data = try? Data(contentsOf: jsonURL) {
             let json = JSON(data: data)
             if json != JSON.null {
@@ -285,7 +285,7 @@ func jsonDataFromDocumentsDirectory() -> JSON
 
 func jsonDataFromCachesDirectory() -> JSON
 {
-    if let jsonURL = cachesURL()?.appendingPathComponent(Constants.JSON.FILENAME.MEDIA) {
+    if let filename = globals.mediaCategory.filename, let jsonURL = cachesURL()?.appendingPathComponent(filename) {
         if let data = try? Data(contentsOf: jsonURL) {
             let json = JSON(data: data)
             if json != JSON.null {
@@ -2976,7 +2976,9 @@ func insertMenuHead(_ string:String?,fontSize:Int) -> String?
 
 func insertHead(_ string:String?,fontSize:Int) -> String?
 {
-    let head = "<html><head><meta name=\"viewport\" content=\"initial-scale=1.0\"/><style>body{font: -apple-system-body;font-size:\(fontSize)pt;}td{font-size:\(fontSize)pt;}mark{background-color:silver}</style></head>"
+    // <meta name=\"viewport\" content=\"width=device-width,initial-size=1.0\"/>
+    
+    let head = "<html><head><meta name=\"viewport\" content=\"width=device-width,initial-size=1.0\"/><style>body{font: -apple-system-body;font-size:\(fontSize)pt;}href{font: -apple-system-body;font-size:\(fontSize)pt;}td{font: -apple-system-body;font-size:\(fontSize)pt;}p{font: -apple-system-body;font-size:\(fontSize)pt;}a{font: -apple-system-body;font-size:\(fontSize)pt;}mark{background-color:silver}</style></head>"
     
     return string?.replacingOccurrences(of: "<html>", with: head)
 }
@@ -3136,7 +3138,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
         }
 
         bodyString = bodyString! + "Total: \(count)<br/>"
-        
+
         bodyString = bodyString! + "<br/>"
         
         if includeURLs, (keys.count > 1) {
@@ -3166,7 +3168,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                 
                 if includeColumns {
                     bodyString = bodyString! + "<tr>"
-                    bodyString = bodyString! + "<td valign=\"top\" colspan=\"6\">"
+                    bodyString = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
                 }
                 
                 if includeURLs, (keys.count > 1) {
@@ -3202,7 +3204,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                         }
                     }
                     
-                    if let string = mediaItem.bodyHTML(order: order, includeURLs: includeURLs, includeColumns: includeColumns) {
+                    if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
                         bodyString = bodyString! + string
                     }
                     
@@ -3214,7 +3216,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
             
             if includeColumns {
                 bodyString = bodyString! + "<tr>"
-                bodyString = bodyString! + "<td valign=\"top\" colspan=\"6\">"
+                bodyString = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
             }
             
             bodyString = bodyString! + "<br/>"
@@ -3480,13 +3482,13 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
             switch mediaItems.count {
             case 1:
                 if let mediaItem = mediaItems.first {
-                    if let string = mediaItem.bodyHTML(order: ["date","title","scripture","speaker"],includeURLs:includeURLs,includeColumns:includeColumns) {
+                    if let string = mediaItem.bodyHTML(order: ["date","title","scripture","speaker"], token: nil, includeURLs:includeURLs, includeColumns:includeColumns) {
                         bodyString = bodyString! + string
                     }
                     
                     if includeColumns {
                         bodyString  = bodyString! + "<tr>"
-                        bodyString  = bodyString! + "<td valign=\"top\" colspan=\"6\">"
+                        bodyString  = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
                     }
                     
                     bodyString = bodyString! + "<br/>"
@@ -3502,7 +3504,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
                 if lastKey != nil, let count = mediaListSort[lastKey!]?.count, count == 1 {
                     if includeColumns {
                         bodyString  = bodyString! + "<tr>"
-                        bodyString  = bodyString! + "<td valign=\"top\" colspan=\"6\">"
+                        bodyString  = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
                     }
                     
                     bodyString = bodyString! + "<br/>"
@@ -3529,7 +3531,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
                 
                 if includeColumns {
                     bodyString  = bodyString! + "<tr>"
-                    bodyString  = bodyString! + "<td valign=\"top\" colspan=\"6\">"
+                    bodyString  = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
                 }
                 
                 if includeURLs, (keys.count > 1) {
@@ -3557,7 +3559,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
                         order.append("speaker")
                     }
                     
-                    if let string = mediaItem.bodyHTML(order: order, includeURLs: includeURLs, includeColumns: includeColumns) {
+                    if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
                         bodyString = bodyString! + string
                     }
                     
@@ -3612,19 +3614,21 @@ func addressString() -> String
     return addressString
 }
 
+var alert:UIAlertController!
+
 func networkUnavailable(_ message:String?)
 {
-    if (UIApplication.shared.applicationState == UIApplicationState.active) {
+    if (alert == nil) && (UIApplication.shared.applicationState == UIApplicationState.active) {
         //        DispatchQueue.main.async(execute: { () -> Void in
         //            UIApplication.shared.keyWindow?.rootViewController?.dismiss(animated: true, completion: nil)
         //        })
         
-        let alert = UIAlertController(title:Constants.Network_Error,
+        alert = UIAlertController(title:Constants.Network_Error,
                                       message: message,
                                       preferredStyle: UIAlertControllerStyle.alert)
         
         let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-            
+            alert = nil
         })
         alert.addAction(action)
         

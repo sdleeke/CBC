@@ -18,6 +18,8 @@ enum State {
 class Download {
     weak var mediaItem:MediaItem?
     
+    var observer:Selector?
+    
     var purpose:String?
     
     var downloadURL:URL?
@@ -41,10 +43,44 @@ class Download {
             return state == .downloading
         }
     }
-    
+
+    @objc func downloadFailed()
+    {
+        networkUnavailable("Download failed.")
+    }
+
     var state:State = .none {
         didSet {
             if state != oldValue {
+                switch state {
+                case .downloading:
+                    if observer == nil {
+                        observer = #selector(AppDelegate.downloadFailed)
+                        DispatchQueue.main.async {
+                            NotificationCenter.default.addObserver(self, selector: #selector(Download.downloadFailed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
+                        }
+                    }
+                    break
+                    
+                case .downloaded:
+                    // This will remove the observer before an error notification is processed - so leave the observer in place.
+//                    if observer == #selector(AppDelegate.downloadFailed) {
+//                        DispatchQueue.main.async {
+//                            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
+//                        }
+//                    }
+                    break
+                    
+                case .none:
+                    // This will remove the observer before an error notification is processed - so leave the observer in place.
+//                    if observer == #selector(AppDelegate.downloadFailed) {
+//                        DispatchQueue.main.async {
+//                            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
+//                        }
+//                    }
+                    break
+                }
+
                 switch purpose! {
                 case Purpose.audio:
                     switch state {
@@ -134,7 +170,7 @@ class Download {
         print(state)
         if (state == .none) {
             state = .downloading
-            
+
             let downloadRequest = URLRequest(url: downloadURL!)
             
             let configuration = URLSessionConfiguration.ephemeral

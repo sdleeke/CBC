@@ -251,6 +251,12 @@ struct Media {
 struct MediaCategory {
     var dicts:[String:String]?
     
+    var filename:String? {
+        get {
+            return selectedID != nil ? Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES + selectedID! +  Constants.JSON.FILENAME_EXTENSION : nil
+        }
+    }
+    
     var names:[String]? {
         get {
             return dicts?.keys.map({ (key:String) -> String in
@@ -1006,6 +1012,10 @@ class Globals : NSObject {
                 //                print(player?.currentItem?.duration.seconds)
                 if !mediaPlayer.loaded && (mediaPlayer.mediaItem != nil) && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM)) {
                     mediaPlayer.loaded = true
+                    
+                    if (mediaPlayer.mediaItem?.playing == Playing.video) {
+                        mediaPlayer.mediaItem?.showing = Showing.video
+                    }
 
                     if mediaPlayer.mediaItem!.hasCurrentTime() {
                         if mediaPlayer.mediaItem!.atEnd {
@@ -1138,6 +1148,7 @@ class Globals : NSObject {
             NotificationCenter.default.addObserver(self, selector: #selector(Globals.didPlayToEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
         }
         
+        // Why was this put here?
         mediaPlayer.pause()
     }
     
@@ -1203,6 +1214,8 @@ class Globals : NSObject {
             return
         }
         
+        mediaPlayer.unload()
+
         mediaPlayer.playOnLoad = playOnLoad
         mediaPlayer.showsPlaybackControls = false
         

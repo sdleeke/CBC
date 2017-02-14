@@ -60,9 +60,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
         
         globals.startAudio()
         
-        DispatchQueue.main.async {
-            NotificationCenter.default.addObserver(self, selector: #selector(AppDelegate.downloadFailed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: nil)
-        }
+//        DispatchQueue.main.async {
+//            NotificationCenter.default.addObserver(self, selector: #selector(AppDelegate.downloadFailed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: nil)
+//        }
         
         return true
     }

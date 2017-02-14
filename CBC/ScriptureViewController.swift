@@ -842,7 +842,7 @@ class ScriptureViewController : UIViewController, UIPopoverPresentationControlle
     
     func updateUI()
     {
-        navigationController?.setToolbarHidden(scripture?.selected.book != nil, animated: true)
+//        navigationController?.setToolbarHidden(scripture?.selected.book != nil, animated: true)
         
         updateActionMenu()
         

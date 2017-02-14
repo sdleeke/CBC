@@ -1025,6 +1025,8 @@ class ScriptureIndexViewController : UIViewController, UIPopoverPresentationCont
         
         bodyString = "<!DOCTYPE html><html><body>"
         
+        bodyString = bodyString! + "<div>"
+
         bodyString = bodyString! + "The following media "
         
         if mediaItems!.count > 1 {
@@ -1051,6 +1053,8 @@ class ScriptureIndexViewController : UIViewController, UIPopoverPresentationCont
             bodyString = bodyString! + "Search: \(text)<br/><br/>"
         }
         
+        bodyString = bodyString! + "</div>"
+
         if let selectedTestament = self.scriptureIndex?.selectedTestament {
             var indexFor = translateTestament(selectedTestament)
 
@@ -1086,7 +1090,7 @@ class ScriptureIndexViewController : UIViewController, UIPopoverPresentationCont
         for book in books {
             if includeColumns {
                 bodyString  = bodyString! + "<tr>"
-                bodyString  = bodyString! + "<td valign=\"top\" colspan=\"6\">"
+                bodyString  = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
             }
 
             if let mediaItems = bodyItems[book] {
@@ -1133,7 +1137,7 @@ class ScriptureIndexViewController : UIViewController, UIPopoverPresentationCont
                         order.append("speaker")
                     }
                     
-                    if let string = mediaItem.bodyHTML(order: order, includeURLs: includeURLs, includeColumns: includeColumns) {
+                    if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
                         bodyString = bodyString! + string
                     }
                     
@@ -1144,7 +1148,7 @@ class ScriptureIndexViewController : UIViewController, UIPopoverPresentationCont
                 
                 if includeColumns {
                     bodyString  = bodyString! + "<tr>"
-                    bodyString  = bodyString! + "<td valign=\"top\" colspan=\"6\">"
+                    bodyString  = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
                 }
                 
                 bodyString = bodyString! + "<br/>"
@@ -1648,6 +1652,8 @@ extension ScriptureIndexViewController : UITableViewDataSource
     {
         let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.INDEX_MEDIA_ITEM, for: indexPath) as! MediaTableViewCell
         
+        cell.hideUI()
+        
         if let _ = scriptureIndex?.selectedBook {
             //            print(scriptureIndex?.selectedBook)
             cell.mediaItem = mediaItems?[indexPath.row]
@@ -1794,6 +1800,17 @@ extension ScriptureIndexViewController : UITableViewDelegate
                 
                 self.navigationController?.pushViewController(viewController, animated: true)
             }
+        }
+    }
+
+    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int)
+    {
+        if let header = view as? UITableViewHeaderFooterView {
+            header.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+
+            header.textLabel?.textColor = UIColor.black
+
+            header.alpha = 0.85
         }
     }
 }

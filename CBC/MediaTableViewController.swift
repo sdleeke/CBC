@@ -260,7 +260,7 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
         
         //        print(string)
         
-        guard (globals.mediaCategory.selected != string) else {
+        guard (globals.mediaCategory.selected != string) || (globals.mediaRepository.list == nil) else {
             return
         }
         
@@ -339,6 +339,225 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 {
     // MARK: PopoverTableViewControllerDelegate
     
+    func showMenu(action:String?,mediaItem:MediaItem?)
+    {
+        guard let action = action else {
+            return
+        }
+        
+        switch action {
+        case Constants.About:
+            about()
+            break
+            
+        case Constants.Current_Selection:
+            if let mediaItem = selectedMediaItem {
+                if globals.media.active!.mediaItems!.contains(mediaItem) {
+                    if tableView.isEditing {
+                        tableView.setEditing(false, animated: true)
+                        DispatchQueue.global(qos: .background).async {
+                            Thread.sleep(forTimeInterval: 0.1)
+                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                        }
+                    } else {
+                        selectOrScrollToMediaItem(selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                    }
+                } else {
+                    //                        dismiss(animated: true, completion: nil)
+                    
+                    let alert = UIAlertController(title:"Not in List",
+                                                  message: "\"\(mediaItem.title!)\" is not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",
+                        preferredStyle: UIAlertControllerStyle.alert)
+                    
+                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                        
+                    })
+                    alert.addAction(action)
+                    
+                    present(alert, animated: true, completion: nil)
+                }
+            } else {
+                //                    dismiss(animated: true, completion: nil)
+                
+                let alert = UIAlertController(title:"Media Item Not Found!",
+                                              message: "Oops, this should never happen!",
+                                              preferredStyle: UIAlertControllerStyle.alert)
+                
+                let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                    
+                })
+                alert.addAction(action)
+                
+                present(alert, animated: true, completion: nil)
+            }
+            break
+            
+        case Constants.Media_Playing:
+            fallthrough
+            
+        case Constants.Media_Paused:
+            globals.gotoPlayingPaused = true
+            globals.mediaPlayer.controller?.allowsPictureInPicturePlayback = false
+            performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: self)
+            break
+            
+        case Constants.Scripture_Index:
+            if (globals.media.active?.scriptureIndex?.eligible == nil) {
+                let alert = UIAlertController(title:"No Scripture Index Available",
+                                              message: "The Scripture references for these media items are not specific.",
+                                              preferredStyle: UIAlertControllerStyle.alert)
+                
+                let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                    
+                })
+                alert.addAction(action)
+                
+                present(alert, animated: true, completion: nil)
+            } else {
+                if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SCRIPTURE_INDEX) as? ScriptureIndexViewController {
+                    
+                    viewController.mediaListGroupSort = globals.media.active
+                    
+                    navigationController?.pushViewController(viewController, animated: true)
+                }
+            }
+            
+            //                performSegue(withIdentifier: Constants.SEGUE.SHOW_SCRIPTURE_INDEX, sender: nil)
+            break
+            
+        case Constants.Lexicon_Index:
+            if (globals.media.active?.lexicon?.eligible == nil) {
+                let alert = UIAlertController(title:"No Lexicon Index Available",
+                                              message: "These media items do not have HTML transcripts.",
+                                              preferredStyle: UIAlertControllerStyle.alert)
+                
+                let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                    
+                })
+                alert.addAction(action)
+                
+                present(alert, animated: true, completion: nil)
+            } else {
+                if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.LEXICON_INDEX) as? LexiconIndexViewController {
+                    
+                    viewController.mediaListGroupSort = globals.media.active
+                    
+                    navigationController?.pushViewController(viewController, animated: true)
+                }
+            }
+            break
+            
+        case Constants.View_List:
+            if let string = globals.media.active?.html?.string {
+                presentHTMLModal(viewController: self, medaiItem: nil, title: globals.contextTitle, htmlString: string)
+            } else {
+                process(viewController: self, work: { () -> (Any?) in
+                    if globals.media.active?.html?.string == nil {
+                        globals.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs: true, includeColumns: true)
+                    }
+                    return globals.media.active?.html?.string
+                }, completion: { (data:Any?) in
+                    presentHTMLModal(viewController: self, medaiItem: nil, title: globals.contextTitle, htmlString: data as? String)
+                })
+            }
+            break
+            
+        case Constants.History:
+            if globals.relevantHistoryList == nil {
+                let alert = UIAlertController(title: "History is empty.",
+                                              message: nil,
+                                              preferredStyle: UIAlertControllerStyle.alert)
+                
+                let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                    
+                })
+                alert.addAction(cancelAction)
+                
+                present(alert, animated: true, completion: nil)
+            } else {
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                    navigationController.modalPresentationStyle = .popover
+                    
+                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.barButtonItem = showButton
+                    
+                    popover.navigationItem.title = Constants.History
+                    
+                    popover.delegate = self
+                    popover.purpose = .selectingHistory
+                    
+                    popover.section.strings = globals.relevantHistoryList
+                    
+                    popover.section.showIndex = false
+                    popover.section.showHeaders = false
+                    
+                    popover.vc = self
+                    
+                    present(navigationController, animated: true, completion: {
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+                            navigationController.popoverPresentationController?.passthroughViews = nil
+                        })
+                    })
+                }
+            }
+            break
+            
+        case Constants.Clear_History:
+            let alert = UIAlertController(title: "Delete History?",
+                                          message: nil,
+                                          preferredStyle: UIAlertControllerStyle.alert)
+            
+            let deleteAction = UIAlertAction(title: "Delete", style: UIAlertActionStyle.destructive, handler: { (UIAlertAction) -> Void in
+                globals.history = nil
+                let defaults = UserDefaults.standard
+                defaults.removeObject(forKey: Constants.HISTORY)
+                defaults.synchronize()
+            })
+            alert.addAction(deleteAction)
+            
+            let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                
+            })
+            alert.addAction(cancelAction)
+            
+            present(alert, animated: true, completion: nil)
+            break
+            
+        case Constants.Live:
+            globals.mediaPlayer.controller?.allowsPictureInPicturePlayback = false
+            performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: self)
+            break
+            
+        case Constants.Settings:
+            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SETTINGS_NAVCON) as? UINavigationController,
+                let _ = navigationController.viewControllers[0] as? SettingsViewController {
+                navigationController.modalPresentationStyle = .popover
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.barButtonItem = showButton
+                
+                present(navigationController, animated: true, completion: {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+                        navigationController.popoverPresentationController?.passthroughViews = nil
+                    })
+                })
+            }
+            
+            //                performSegue(withIdentifier: Constants.SEGUE.SHOW_SETTINGS, sender: nil)
+            break
+            
+        default:
+            break
+        }
+    }
+
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
@@ -696,217 +915,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
         case .selectingShow:
             //            dismiss(animated: true, completion: nil)
-            switch strings[index] {
-            case Constants.About:
-                about()
-                break
-                
-            case Constants.Current_Selection:
-                if let mediaItem = selectedMediaItem {
-                    if globals.media.active!.mediaItems!.contains(mediaItem) {
-                        if tableView.isEditing {
-                            tableView.setEditing(false, animated: true)
-                            DispatchQueue.global(qos: .background).async {
-                                Thread.sleep(forTimeInterval: 0.1)
-                                self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                            }
-                        } else {
-                            selectOrScrollToMediaItem(selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                        }
-                    } else {
-                        //                        dismiss(animated: true, completion: nil)
-                        
-                        let alert = UIAlertController(title:"Not in List",
-                                                      message: "\"\(mediaItem.title!)\" is not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",
-                            preferredStyle: UIAlertControllerStyle.alert)
-                        
-                        let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                            
-                        })
-                        alert.addAction(action)
-                        
-                        present(alert, animated: true, completion: nil)
-                    }
-                } else {
-                    //                    dismiss(animated: true, completion: nil)
-                    
-                    let alert = UIAlertController(title:"Media Item Not Found!",
-                                                  message: "Oops, this should never happen!",
-                                                  preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                        
-                    })
-                    alert.addAction(action)
-                    
-                    present(alert, animated: true, completion: nil)
-                }
-                break
-                
-            case Constants.Media_Playing:
-                fallthrough
-                
-            case Constants.Media_Paused:
-                globals.gotoPlayingPaused = true
-                globals.mediaPlayer.controller?.allowsPictureInPicturePlayback = false
-                performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: self)
-                break
-                
-            case Constants.Scripture_Index:
-                if (globals.media.active?.scriptureIndex?.eligible == nil) {
-                    let alert = UIAlertController(title:"No Scripture Index Available",
-                                                  message: "The Scripture references for these media items are not specific.",
-                                                  preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                        
-                    })
-                    alert.addAction(action)
-                    
-                    present(alert, animated: true, completion: nil)
-                } else {
-                    if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SCRIPTURE_INDEX) as? ScriptureIndexViewController {
-                        
-                        viewController.mediaListGroupSort = globals.media.active
-                        
-                        navigationController?.pushViewController(viewController, animated: true)
-                    }
-                }
-                
-                //                performSegue(withIdentifier: Constants.SEGUE.SHOW_SCRIPTURE_INDEX, sender: nil)
-                break
-                
-            case Constants.Lexicon_Index:
-                if (globals.media.active?.lexicon?.eligible == nil) {
-                    let alert = UIAlertController(title:"No Lexicon Index Available",
-                                                  message: "These media items do not have HTML transcripts.",
-                                                  preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                        
-                    })
-                    alert.addAction(action)
-                    
-                    present(alert, animated: true, completion: nil)
-                } else {
-                    if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.LEXICON_INDEX) as? LexiconIndexViewController {
-                        
-                        viewController.mediaListGroupSort = globals.media.active
-                        
-                        navigationController?.pushViewController(viewController, animated: true)
-                    }
-                }
-                break
-                
-            case Constants.View_List:
-                if let string = globals.media.active?.html?.string {
-                    presentHTMLModal(viewController: self, medaiItem: nil, title: globals.contextTitle, htmlString: string)
-                } else {
-                    process(viewController: self, work: { () -> (Any?) in
-                        if globals.media.active?.html?.string == nil {
-                            globals.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs: true, includeColumns: true)
-                        }
-                        return globals.media.active?.html?.string
-                    }, completion: { (data:Any?) in
-                        presentHTMLModal(viewController: self, medaiItem: nil, title: globals.contextTitle, htmlString: data as? String)
-                    })
-                }
-                break
-                
-            case Constants.History:
-                if globals.relevantHistoryList == nil {
-                    let alert = UIAlertController(title: "History is empty.",
-                                                  message: nil,
-                                                  preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                        
-                    })
-                    alert.addAction(cancelAction)
-                    
-                    present(alert, animated: true, completion: nil)
-                } else {
-                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                        let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                        navigationController.modalPresentationStyle = .popover
-                        
-                        navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                        navigationController.popoverPresentationController?.delegate = self
-                        
-                        navigationController.popoverPresentationController?.barButtonItem = showButton
-                        
-                        popover.navigationItem.title = Constants.History
-                        
-                        popover.delegate = self
-                        popover.purpose = .selectingHistory
-                        
-                        popover.section.strings = globals.relevantHistoryList
-                        
-                        popover.section.showIndex = false
-                        popover.section.showHeaders = false
-                        
-                        popover.vc = self
-                        
-                        present(navigationController, animated: true, completion: {
-                            DispatchQueue.main.async(execute: { () -> Void in
-                                // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
-                                navigationController.popoverPresentationController?.passthroughViews = nil
-                            })
-                        })
-                    }
-                }
-                break
-                
-            case Constants.Clear_History:
-                let alert = UIAlertController(title: "Delete History?",
-                                              message: nil,
-                                              preferredStyle: UIAlertControllerStyle.alert)
-                
-                let deleteAction = UIAlertAction(title: "Delete", style: UIAlertActionStyle.destructive, handler: { (UIAlertAction) -> Void in
-                    globals.history = nil
-                    let defaults = UserDefaults.standard
-                    defaults.removeObject(forKey: Constants.HISTORY)
-                    defaults.synchronize()
-                })
-                alert.addAction(deleteAction)
-                
-                let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                    
-                })
-                alert.addAction(cancelAction)
-                
-                present(alert, animated: true, completion: nil)
-                break
-                
-            case Constants.Live:
-                globals.mediaPlayer.controller?.allowsPictureInPicturePlayback = false
-                performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: self)
-                break
-                
-            case Constants.Settings:
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SETTINGS_NAVCON) as? UINavigationController,
-                    let _ = navigationController.viewControllers[0] as? SettingsViewController {
-                    navigationController.modalPresentationStyle = .popover
-                    
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                    navigationController.popoverPresentationController?.delegate = self
-                    
-                    navigationController.popoverPresentationController?.barButtonItem = showButton
-                    
-                    present(navigationController, animated: true, completion: {
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
-                            navigationController.popoverPresentationController?.passthroughViews = nil
-                        })
-                    })
-                }
-                
-                //                performSegue(withIdentifier: Constants.SEGUE.SHOW_SETTINGS, sender: nil)
-                break
-                
-            default:
-                break
-            }
+            showMenu(action:strings[index],mediaItem:mediaItem)
             break
             
         default:
@@ -974,8 +983,8 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                 }
                 
                 do {
-                    try fileManager.copyItem(at: location as URL, to: destinationURL)
-                    try fileManager.removeItem(at: location as URL)
+                    try fileManager.copyItem(at: location, to: destinationURL)
+                    try fileManager.removeItem(at: location)
                     success = true
                 } catch _ {
                     print("failed to copy new json file to Documents")
@@ -1173,8 +1182,8 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
             if (globals.mediaPlayer.mediaItem != nil) {
                 var show:String = Constants.EMPTY_STRING
                 
-                if globals.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM) {
-                    switch globals.mediaPlayer.state! {
+                if globals.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM), let state = globals.mediaPlayer.state {
+                    switch state {
                     case .paused:
                         show = Constants.Media_Paused
                         break
@@ -1603,7 +1612,7 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
                     try data.write(to: jsonFileSystemURL!)//, options: NSData.WritingOptions.atomic)
 //                    jsonAlert(title:"Pursue sanctification!",message:"Media list read, loaded, and written.")
                 } catch let error as NSError {
-                    jsonAlert(title:"Media List Error",message:"Media list read and loaded but write failed.")
+                    print("Media List Error","Media list read and loaded but write failed.")
                     NSLog(error.localizedDescription)
                 }
                 
@@ -1626,7 +1635,7 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
                         print("could not get json from the file system either.")
                     }
                 } catch let error as NSError {
-                    jsonAlert(title:"Media List Error",message:"Media list read but failed to load.  Last available copy read failed.")
+                    print("Media List Error","Media list read but failed to load.  Last available copy read failed.")
                     NSLog(error.localizedDescription)
                 }
             }
@@ -1648,7 +1657,7 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
                     print("could not get json from the file system either.")
                 }
             } catch let error as NSError {
-                jsonAlert(title:"Media List Error",message:"Media list read failed.  Last available copy read failed.")
+                print("Media List Error","Media list read failed.  Last available copy read failed.")
                 NSLog(error.localizedDescription)
             }
         }
@@ -1860,8 +1869,12 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
                     
                 case .direct:
                     // From URL
-                    if let mediaItemDicts = self.loadJSONDictsFromURL(url: url!,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES,filename: Constants.JSON.FILENAME.MEDIA) {
+                    print(globals.mediaCategory.filename)
+                    if let filename = globals.mediaCategory.filename, let mediaItemDicts = self.loadJSONDictsFromURL(url: url!,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES,filename: filename) {
                         globals.mediaRepository.list = self.mediaItemsFromMediaItemDicts(mediaItemDicts)
+                    } else {
+                        globals.mediaRepository.list = nil
+                        print("FAILED TO LOAD")
                     }
                     break
                 }
@@ -1997,7 +2010,7 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
             if globals.isLoading || globals.isRefreshing || !globals.search.complete {
                 self.mediaCategoryButton.isEnabled = false
             } else {
-                if (globals.mediaRepository.list != nil) && globals.search.complete {
+                if globals.search.complete { // (globals.mediaRepository.list != nil) &&
                     self.mediaCategoryButton.isEnabled = true
                 }
             }
@@ -2064,7 +2077,7 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
         session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
         
         let downloadTask = session?.downloadTask(with: downloadRequest)
-        downloadTask?.taskDescription = Constants.JSON.FILENAME.MEDIA
+        downloadTask?.taskDescription = globals.mediaCategory.filename
         
         downloadTask?.resume()
         
@@ -2950,16 +2963,19 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
         }
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool)
+    {
         super.viewWillDisappear(animated)
         
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
+        // Can't remove this or the list won't update correctly on iPhone where this VC is pushed off screen. 
+//        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
         
 //        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.EDITING), object: tableView)
 //        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_EDITING), object: tableView)
     }
     
-    override func viewDidDisappear(_ animated: Bool) {
+    override func viewDidDisappear(_ animated: Bool)
+    {
         super.viewDidDisappear(animated)
     }
     
@@ -3183,15 +3199,13 @@ extension MediaTableViewController : UITableViewDataSource
         return nil
     }
     
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return Constants.HEADER_HEIGHT
-    }
-
-    func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int {
+    func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int
+    {
         return 0
     }
     
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
+    {
         if globals.display.section.titles != nil {
             if section < globals.display.section.titles!.count {
                 return globals.display.section.titles![section]
@@ -3203,7 +3217,8 @@ extension MediaTableViewController : UITableViewDataSource
         }
     }
     
-    func tableView(_ TableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ TableView: UITableView, numberOfRowsInSection section: Int) -> Int
+    {
         //#warning Incomplete method implementation -- Return the number of items in the section
         if globals.display.section.counts != nil {
             if section < globals.display.section.counts!.count {
@@ -3241,21 +3256,88 @@ extension MediaTableViewController : UITableViewDataSource
 
         return cell
     }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
+    {
+        guard section < globals.display.section.titles?.count, let title = globals.display.section.titles?[section] else {
+            return Constants.HEADER_HEIGHT
+        }
+        
+        let heightSize: CGSize = CGSize(width: tableView.frame.width - 20, height: .greatestFiniteMagnitude)
+        
+        let height = title.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)], context: nil).height
+        
+//        print(height,max(Constants.HEADER_HEIGHT,height + 28))
+        
+        return max(Constants.HEADER_HEIGHT,height + 28)
+    }
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView?
+    {
+        let view = UIView()
+        
+        view.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+
+        if section < globals.display.section.titles?.count, let title = globals.display.section.titles?[section] {
+            let label = UILabel()
+            
+            label.numberOfLines = 0
+            label.lineBreakMode = .byWordWrapping
+
+            let bold = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
+
+            label.attributedText = NSAttributedString(string: title,   attributes: bold)
+            
+            label.translatesAutoresizingMaskIntoConstraints = false
+            
+            let views = ["label": label,"view": view]
+            view.addSubview(label)
+            
+            let horizontalContraints = NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: .alignAllCenterY, metrics: nil, views: views)
+            let verticalContraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: .alignAllCenterX, metrics: nil, views: views)
+            
+            view.addConstraints(horizontalContraints)
+            view.addConstraints(verticalContraints)
+        }
+
+//        header.textLabel?.textColor = UIColor.black
+        
+        view.alpha = 0.85
+
+        return view
+    }
 }
 
 extension MediaTableViewController : UITableViewDelegate
 {
     // MARK: UITableViewDelegate
     
-    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
-        if let header = view as? UITableViewHeaderFooterView {
-            header.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
-            header.textLabel?.textColor = UIColor.black
-            header.alpha = 0.85
-        }
-    }
+//    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int)
+//    {
+//        if let header = view as? UITableViewHeaderFooterView {
+//            header.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+//
+//            header.textLabel?.textColor = UIColor.black
+//
+//            header.textLabel?.numberOfLines = 0
+//            header.textLabel?.lineBreakMode = .byWordWrapping
+//            
+//            if section < globals.display.section.titles?.count, let title = globals.display.section.titles?[section] {
+//                let heightSize: CGSize = CGSize(width: tableView.frame.width, height: .greatestFiniteMagnitude)
+//                
+//                let rect = title.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)], context: nil)
+//                
+//                print(rect)
+//                
+//                header.textLabel?.textRect(forBounds: rect, limitedToNumberOfLines: 0)
+//            }
+//            
+//            header.alpha = 0.85
+//        }
+//    }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
+    {
 //        print("didSelect")
 
         if let cell: MediaTableViewCell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {

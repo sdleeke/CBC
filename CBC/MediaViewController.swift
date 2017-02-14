@@ -108,6 +108,148 @@ extension MediaViewController : PopoverTableViewControllerDelegate
 {
     // MARK: PopoverTableViewControllerDelegate
     
+    func actionMenu(action:String?,mediaItem:MediaItem?)
+    {
+        guard let action = action else {
+            return
+        }
+        
+        switch action {
+        case Constants.Print_Slides:
+            fallthrough
+        case Constants.Print_Transcript:
+            printDocument(viewController: self, documentURL: selectedMediaItem?.downloadURL)
+            break
+            
+        case Constants.Add_to_Favorites:
+            selectedMediaItem?.addTag(Constants.Favorites)
+            break
+            
+        case Constants.Add_All_to_Favorites:
+            for mediaItem in mediaItems! {
+                mediaItem.addTag(Constants.Favorites)
+            }
+            break
+            
+        case Constants.Remove_From_Favorites:
+            selectedMediaItem?.removeTag(Constants.Favorites)
+            break
+            
+        case Constants.Remove_All_From_Favorites:
+            for mediaItem in mediaItems! {
+                mediaItem.removeTag(Constants.Favorites)
+            }
+            break
+            
+        case Constants.Open_on_CBC_Website:
+            if selectedMediaItem?.websiteURL != nil {
+                if (UIApplication.shared.canOpenURL(selectedMediaItem!.websiteURL!)) { // Reachability.isConnectedToNetwork() &&
+                    UIApplication.shared.openURL(selectedMediaItem!.websiteURL!)
+                } else {
+                    networkUnavailable("Unable to open transcript in browser at: \(selectedMediaItem?.websiteURL)")
+                }
+            }
+            break
+            
+        case Constants.Open_in_Browser:
+            if selectedMediaItem?.downloadURL != nil {
+                if (UIApplication.shared.canOpenURL(selectedMediaItem!.downloadURL!)) { // Reachability.isConnectedToNetwork() &&
+                    UIApplication.shared.openURL(selectedMediaItem!.downloadURL!)
+                } else {
+                    networkUnavailable("Unable to open transcript in browser at: \(selectedMediaItem?.downloadURL)")
+                }
+            }
+            break
+            
+        case Constants.Scripture_Viewer:
+            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "Scripture View") as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? ScriptureViewController  {
+                
+                popover.scripture = self.scripture
+                
+                popover.vc = self
+                
+                navigationController.modalPresentationStyle = .popover
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
+                
+                //                    popover.navigationItem.title = title
+                
+                popover.navigationController?.isNavigationBarHidden = false
+                
+                present(navigationController, animated: true, completion: nil)
+            }
+            break
+            
+        case Constants.Scripture_in_Browser:
+            openMediaItemScripture(selectedMediaItem)
+            break
+            
+        case Constants.Download_Audio:
+            selectedMediaItem?.audioDownload?.download()
+            break
+            
+        case Constants.Download_All_Audio:
+            for mediaItem in mediaItems! {
+                mediaItem.audioDownload?.download()
+            }
+            break
+            
+        case Constants.Cancel_Audio_Download:
+            selectedMediaItem?.audioDownload?.cancelOrDelete()
+            break
+            
+        case Constants.Cancel_All_Audio_Downloads:
+            for mediaItem in mediaItems! {
+                mediaItem.audioDownload?.cancel()
+            }
+            break
+            
+        case Constants.Delete_Audio_Download:
+            selectedMediaItem?.audioDownload?.delete()
+            break
+            
+        case Constants.Delete_All_Audio_Downloads:
+            for mediaItem in mediaItems! {
+                mediaItem.audioDownload?.delete()
+            }
+            break
+            
+        case Constants.Print:
+            process(viewController: self, work: {
+                return setupMediaItemsHTML(self.mediaItems,includeURLs:false,includeColumns:true)
+            }, completion: { (data:Any?) in
+                printHTML(viewController: self, htmlString: data as? String)
+            })
+            break
+            
+        case Constants.Share:
+            shareHTML(viewController: self, htmlString: mediaItem?.webLink)
+            break
+            
+        case Constants.Share_All:
+            shareMediaItems(viewController: self, mediaItems: mediaItems, stringFunction: setupMediaItemsHTML)
+            break
+            
+        case Constants.Refresh_Document:
+            fallthrough
+        case Constants.Refresh_Transcript:
+            fallthrough
+        case Constants.Refresh_Slides:
+            // This only refreshes the visible document.
+            download?.cancelOrDelete()
+            document?.loaded = false
+            setupDocumentsAndVideo()
+            break
+            
+        default:
+            break
+        }
+    }
+    
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
@@ -142,140 +284,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingAction:
-            switch strings[index] {
-            case Constants.Print_Slides:
-                fallthrough
-            case Constants.Print_Transcript:
-                printDocument(viewController: self, documentURL: selectedMediaItem?.downloadURL)
-                break
-                
-            case Constants.Add_to_Favorites:
-                selectedMediaItem?.addTag(Constants.Favorites)
-                break
-                
-            case Constants.Add_All_to_Favorites:
-                for mediaItem in mediaItems! {
-                    mediaItem.addTag(Constants.Favorites)
-                }
-                break
-                
-            case Constants.Remove_From_Favorites:
-                selectedMediaItem?.removeTag(Constants.Favorites)
-                break
-                
-            case Constants.Remove_All_From_Favorites:
-                for mediaItem in mediaItems! {
-                    mediaItem.removeTag(Constants.Favorites)
-                }
-                break
-                
-            case Constants.Open_on_CBC_Website:
-                if selectedMediaItem?.websiteURL != nil {
-                    if (UIApplication.shared.canOpenURL(selectedMediaItem!.websiteURL! as URL)) { // Reachability.isConnectedToNetwork() &&
-                        UIApplication.shared.openURL(selectedMediaItem!.websiteURL! as URL)
-                    } else {
-                        networkUnavailable("Unable to open transcript in browser at: \(selectedMediaItem?.websiteURL)")
-                    }
-                }
-                break
-                
-            case Constants.Open_in_Browser:
-                if selectedMediaItem?.downloadURL != nil {
-                    if (UIApplication.shared.canOpenURL(selectedMediaItem!.downloadURL! as URL)) { // Reachability.isConnectedToNetwork() &&
-                        UIApplication.shared.openURL(selectedMediaItem!.downloadURL! as URL)
-                    } else {
-                        networkUnavailable("Unable to open transcript in browser at: \(selectedMediaItem?.downloadURL)")
-                    }
-                }
-                break
-                
-            case Constants.Scripture_Viewer:
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "Scripture View") as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? ScriptureViewController  {
-                    
-                    popover.scripture = self.scripture
-                    
-                    popover.vc = self
-                    
-                    navigationController.modalPresentationStyle = .popover
-                    
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                    navigationController.popoverPresentationController?.delegate = self
-                    
-                    navigationController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
-                    
-                    //                    popover.navigationItem.title = title
-                    
-                    popover.navigationController?.isNavigationBarHidden = false
-                    
-                    present(navigationController, animated: true, completion: nil)
-                }
-                break
-                
-            case Constants.Scripture_in_Browser:
-                openMediaItemScripture(selectedMediaItem)
-                break
-                
-            case Constants.Download_Audio:
-                selectedMediaItem?.audioDownload?.download()
-                break
-                
-            case Constants.Download_All_Audio:
-                for mediaItem in mediaItems! {
-                    mediaItem.audioDownload?.download()
-                }
-                break
-                
-            case Constants.Cancel_Audio_Download:
-                selectedMediaItem?.audioDownload?.cancelOrDelete()
-                break
-                
-            case Constants.Cancel_All_Audio_Downloads:
-                for mediaItem in mediaItems! {
-                    mediaItem.audioDownload?.cancel()
-                }
-                break
-                
-            case Constants.Delete_Audio_Download:
-                selectedMediaItem?.audioDownload?.delete()
-                break
-                
-            case Constants.Delete_All_Audio_Downloads:
-                for mediaItem in mediaItems! {
-                    mediaItem.audioDownload?.delete()
-                }
-                break
-                
-            case Constants.Print:
-                process(viewController: self, work: {
-                    return setupMediaItemsHTML(self.mediaItems,includeURLs:false,includeColumns:true)
-                }, completion: { (data:Any?) in
-                    printHTML(viewController: self, htmlString: data as? String)
-                })
-                break
-                
-            case Constants.Share:
-                shareHTML(viewController: self, htmlString: mediaItem?.webLink)
-                break
-                
-            case Constants.Share_All:
-                shareMediaItems(viewController: self, mediaItems: mediaItems, stringFunction: setupMediaItemsHTML)
-                break
-                
-            case Constants.Refresh_Document:
-                fallthrough
-            case Constants.Refresh_Transcript:
-                fallthrough
-            case Constants.Refresh_Slides:
-                // This only refreshes the visible document.
-                download?.cancelOrDelete()
-                document?.loaded = false
-                setupDocumentsAndVideo()
-                break
-                
-            default:
-                break
-            }
+            actionMenu(action:strings[index],mediaItem:mediaItem)
             break
             
         default:
@@ -297,7 +306,8 @@ extension MediaViewController : MFMailComposeViewControllerDelegate
 {
     // MARK: MFMailComposeViewControllerDelegate Method
     
-    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?)
+    {
         controller.dismiss(animated: true, completion: nil)
     }
 }
@@ -306,8 +316,141 @@ extension MediaViewController : WKNavigationDelegate
 {
     // MARK: WKNavigationDelegate
     
-    func webView(_ webView: WKWebView, didFail didFailNavigation: WKNavigation!, withError: Error) {
-        print("wkDidFailNavigation")
+    func webView(_ webView: WKWebView,
+                 decidePolicyFor navigationResponse: WKNavigationResponse,
+                 decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void)
+    {
+//        print(navigationResponse.response.mimeType)
+//        print(navigationResponse.response.suggestedFilename)
+//        print(navigationResponse.response.textEncodingName)
+//        print(navigationResponse.response.expectedContentLength)
+//        print(navigationResponse.response.url)
+        
+        guard let statusCode
+            = (navigationResponse.response as? HTTPURLResponse)?.statusCode else {
+                // if there's no http status code to act on, exit and allow navigation
+                decisionHandler(.allow)
+                return
+        }
+        
+        if statusCode >= 400 {
+            // error has occurred
+            if document!.showing(self.selectedMediaItem) {
+                if let purpose = document?.purpose {
+                    switch purpose {
+                    case Purpose.slides:
+                        networkUnavailable("Slides not available.")
+                        break
+                        
+                    case Purpose.notes:
+                        networkUnavailable("Transcript not available.")
+                        break
+                        
+                    default:
+                        break
+                    }
+                }
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.activityIndicator.stopAnimating()
+                    self.activityIndicator.isHidden = true
+                    
+                    self.logo.isHidden = false
+                    self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+                })
+            }
+            
+            decisionHandler(.cancel)
+        } else {
+            decisionHandler(.allow)
+        }
+        
+//        if (navigationResponse.response.expectedContentLength > 1000) {
+//            decisionHandler(.allow)
+//        } else {
+//            if document!.showing(self.selectedMediaItem) {
+//                if let purpose = document?.purpose {
+//                    switch purpose {
+//                    case Purpose.slides:
+//                        networkUnavailable("Slides not available.")
+//                        break
+//                        
+//                    case Purpose.notes:
+//                        networkUnavailable("Transcript not available.")
+//                        break
+//                        
+//                    default:
+//                        break
+//                    }
+//                }
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    self.activityIndicator.stopAnimating()
+//                    self.activityIndicator.isHidden = true
+//                    
+//                    self.logo.isHidden = false
+//                    self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+//                })
+//            }
+//            
+//            decisionHandler(.cancel)
+//        }
+    }
+    
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        print("wkWebViewDidFinishNavigation Loading:\(webView.isLoading)")
+        
+        //        print("Frame: \(webView.frame)")
+        //        print("Bounds: \(webView.bounds)")
+        
+        guard self.view != nil else {
+            return
+        }
+        
+        guard selectedMediaItem != nil else {
+            return
+        }
+        
+        guard documents[selectedMediaItem!.id] != nil else {
+            return
+        }
+        
+        for document in documents[selectedMediaItem!.id]!.values {
+            if (webView == document.wkWebView) {
+                //                        print("mediaItemNotesWebView")
+                if document.showing(selectedMediaItem) {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.activityIndicator.stopAnimating()
+                        self.activityIndicator.isHidden = true
+                        
+                        self.progressIndicator.isHidden = true
+                        
+                        self.setupSTVControl()
+                        
+                        //                            print("webView:hidden=panning")
+
+                        webView.isHidden = false // self.panning
+                    })
+                } else {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        //                            print("webView:hidden=true")
+                        webView.isHidden = true
+                    })
+                }
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    document.loadTimer?.invalidate()
+                    document.loadTimer = nil
+                })
+
+                setDocumentContentOffsetAndZoomScale(document)
+
+                document.loaded = true
+            }
+        }
+    }
+    
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError: Error)
+    {
+        print("wkDidFail navigation")
         //        if (splitViewController != nil) || (self == navigationController?.visibleViewController) {
         //        }
         
@@ -346,7 +489,8 @@ extension MediaViewController : WKNavigationDelegate
         
     }
     
-    func webView(_ wkWebView: WKWebView, didFailProvisionalNavigation: WKNavigation!,withError: Error) {
+    func webView(_ wkWebView: WKWebView, didFailProvisionalNavigation: WKNavigation!,withError: Error)
+    {
         print("didFailProvisionalNavigation")
         
         if !globals.cacheDownloads {
@@ -970,20 +1114,24 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
         
         // This order: Transcript (aka Notes), Slides, Video matches the CBC web site.
         
-        if (selectedMediaItem!.hasNotes) {
+        if selectedMediaItem!.hasNotes {
             stvControl.insertSegment(withTitle: Constants.STV_SEGMENT_TITLE.TRANSCRIPT, at: index, animated: false)
             notesIndex = index
             index += 1
         }
-        if (selectedMediaItem!.hasSlides) {
+        if selectedMediaItem!.hasSlides {
             stvControl.insertSegment(withTitle: Constants.STV_SEGMENT_TITLE.SLIDES, at: index, animated: false)
             slidesIndex = index
             index += 1
         }
-        if (selectedMediaItem!.hasVideo && (globals.mediaPlayer.mediaItem == selectedMediaItem) && (selectedMediaItem?.playing == Playing.video)) { //  && !globals.mediaPlayer.loadFailed
-            stvControl.insertSegment(withTitle: Constants.STV_SEGMENT_TITLE.VIDEO, at: index, animated: false)
-            videoIndex = index
-            index += 1
+        if selectedMediaItem!.hasVideo { //  && !globals.mediaPlayer.loadFailed
+            if (selectedMediaItem == globals.mediaPlayer.mediaItem) && globals.mediaPlayer.loaded {
+                if (selectedMediaItem?.playing == Playing.video) { //  && (selectedMediaItem?.showing == Showing.video)
+                    stvControl.insertSegment(withTitle: Constants.STV_SEGMENT_TITLE.VIDEO, at: index, animated: false)
+                    videoIndex = index
+                    index += 1
+                }
+            }
         }
         
         stvWidthConstraint.constant = Constants.MIN_STV_SEGMENT_WIDTH * CGFloat(index)
@@ -1283,40 +1431,43 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
     
     fileprivate func adjustAudioAfterUserMovedSlider()
     {
-        if (globals.mediaPlayer.player != nil) {
-            if (slider.value < 1.0) {
-                let length = globals.mediaPlayer.duration!.seconds
+        guard globals.mediaPlayer.player != nil else {
+            return
+        }
+        
+        if (slider.value < 1.0) {
+            if let length = globals.mediaPlayer.duration?.seconds {
                 let seekToTime = Double(slider.value) * length
                 
                 globals.mediaPlayer.seek(to: seekToTime)
                 
                 globals.mediaPlayer.mediaItem?.currentTime = seekToTime.description
-            } else {
-                globals.mediaPlayer.pause()
-
-                globals.mediaPlayer.seek(to: globals.mediaPlayer.duration?.seconds)
-                
-                globals.mediaPlayer.mediaItem?.currentTime = globals.mediaPlayer.duration!.seconds.description
             }
+        } else {
+            globals.mediaPlayer.pause()
             
-            switch globals.mediaPlayer.state! {
-            case .playing:
-                controlView.sliding = globals.reachability.isReachable
-                break
-
-            default:
-                controlView.sliding = false
-                break
-            }
+            globals.mediaPlayer.seek(to: globals.mediaPlayer.duration?.seconds)
             
-            globals.mediaPlayer.mediaItem?.atEnd = slider.value == 1.0
-            
-            globals.mediaPlayer.startTime = globals.mediaPlayer.mediaItem?.currentTime
-            
-            setupSpinner()
-            setupPlayPauseButton()
-            addSliderObserver()
+            globals.mediaPlayer.mediaItem?.currentTime = globals.mediaPlayer.duration!.seconds.description
         }
+        
+        switch globals.mediaPlayer.state! {
+        case .playing:
+            controlView.sliding = globals.reachability.isReachable
+            break
+            
+        default:
+            controlView.sliding = false
+            break
+        }
+        
+        globals.mediaPlayer.mediaItem?.atEnd = slider.value == 1.0
+        
+        globals.mediaPlayer.startTime = globals.mediaPlayer.mediaItem?.currentTime
+        
+        setupSpinner()
+        setupPlayPauseButton()
+        addSliderObserver()
     }
     
     @IBAction func sliderTouchDown(_ sender: UISlider) {
@@ -1755,20 +1906,29 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
     
     func readyToPlay()
     {
-        if (selectedMediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) && globals.mediaPlayer.isPaused && globals.mediaPlayer.mediaItem!.hasCurrentTime() {
+        guard globals.mediaPlayer.loaded else {
+            return
+        }
+        
+        guard (selectedMediaItem != nil) else {
+            return
+        }
+        
+        guard (selectedMediaItem == globals.mediaPlayer.mediaItem) else {
+            return
+        }
+        
+        if globals.mediaPlayer.isPaused && globals.mediaPlayer.mediaItem!.hasCurrentTime() {
             globals.mediaPlayer.seek(to: Double(globals.mediaPlayer.mediaItem!.currentTime!))
         }
         
-        if (selectedMediaItem == globals.mediaPlayer.mediaItem) {
-            if (selectedMediaItem?.playing == Playing.video) {
-                if selectedMediaItem?.showing == Showing.video {
-                    globals.mediaPlayer.view?.isHidden = false
-                    mediaItemNotesAndSlides.bringSubview(toFront: globals.mediaPlayer.view!)
-                }
-            }
+        if (selectedMediaItem?.playing == Playing.video) {
+            globals.mediaPlayer.view?.isHidden = false
+            mediaItemNotesAndSlides.bringSubview(toFront: globals.mediaPlayer.view!)
         }
         
         setupSpinner()
+        setupSTVControl()
         setupSliderAndTimes()
         setupPlayPauseButton()
     }
@@ -1782,9 +1942,20 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
     
     func failedToPlay()
     {
-        setupSpinner()
-        setupSliderAndTimes()
-        setupPlayPauseButton()
+        guard (selectedMediaItem != nil) else {
+            return
+        }
+        
+        if (selectedMediaItem == globals.mediaPlayer.mediaItem) {
+            if (selectedMediaItem?.showing == Showing.video) {
+                logo.isHidden = false
+                mediaItemNotesAndSlides.bringSubview(toFront: logo)
+            }
+            
+            setupSpinner()
+            setupSliderAndTimes()
+            setupPlayPauseButton()
+        }
     }
     
     func showPlaying()
@@ -1979,6 +2150,33 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
         }
     }
     
+    func downloadFailed()
+    {
+        if document!.showing(self.selectedMediaItem) {
+            if let purpose = document?.purpose {
+                switch purpose {
+                case Purpose.slides:
+                    networkUnavailable("Slides not available.")
+                    break
+                    
+                case Purpose.notes:
+                    networkUnavailable("Transcript not available.")
+                    break
+                    
+                default:
+                    break
+                }
+            }
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.activityIndicator.stopAnimating()
+                self.activityIndicator.isHidden = true
+                
+                self.logo.isHidden = false
+                self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+            })
+        }
+    }
+    
     fileprivate func loadDocument(_ document:Document?)
     {
         if let loading = document?.wkWebView?.isLoading, loading {
@@ -2007,23 +2205,62 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
                         mediaItemNotesAndSlides.bringSubview(toFront: progressIndicator)
                     }
                     
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: document?.download)
+                    }
+
+                    document?.download?.observer = #selector(MediaViewController.downloadFailed)
+
                     document?.download?.download()
                 } else {
                     DispatchQueue.global(qos: .background).async(execute: { () -> Void in
 //                        print(document!.download!.fileSystemURL!)
-                        _ = document?.wkWebView?.loadFileURL(document!.download!.fileSystemURL! as URL, allowingReadAccessTo: document!.download!.fileSystemURL! as URL)
-                        
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            if (document != nil) && document!.showing(self.selectedMediaItem) {
-                                self.activityIndicator.startAnimating()
-                                self.activityIndicator.isHidden = false
-                                
-                                self.progressIndicator.progress = 0.0
-                                self.progressIndicator.isHidden = true
-                            }
-//                            document?.loadTimer?.invalidate()
-//                            document?.loadTimer = nil
-                        })
+
+                        if let fileSystemURL = document?.download?.fileSystemURL { //, let downloadURL = document?.download?.downloadURL
+                            _ = document?.wkWebView?.loadFileURL(fileSystemURL, allowingReadAccessTo: fileSystemURL)
+                            
+//                            if let data = try? Data(contentsOf: fileSystemURL, options: Data.ReadingOptions.mappedIfSafe) {
+//                                if data.count > 1000 {
+//                                    _ = document?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "utf-8", baseURL: downloadURL.deletingLastPathComponent())
+//                                    
+//                                    DispatchQueue.main.async(execute: { () -> Void in
+//                                        if (document != nil) && document!.showing(self.selectedMediaItem) {
+//                                            self.activityIndicator.startAnimating()
+//                                            self.activityIndicator.isHidden = false
+//                                            
+//                                            self.progressIndicator.progress = 0.0
+//                                            self.progressIndicator.isHidden = true
+//                                        }
+//                                        //                            document?.loadTimer?.invalidate()
+//                                        //                            document?.loadTimer = nil
+//                                    })
+//                                } else {
+//                                    if document!.showing(self.selectedMediaItem) {
+//                                        if let purpose = document?.purpose {
+//                                            switch purpose {
+//                                            case Purpose.slides:
+//                                                networkUnavailable("Slides not available.")
+//                                                break
+//                                                
+//                                            case Purpose.notes:
+//                                                networkUnavailable("Transcript not available.")
+//                                                break
+//                                                
+//                                            default:
+//                                                break
+//                                            }
+//                                        }
+//                                        DispatchQueue.main.async(execute: { () -> Void in
+//                                            self.activityIndicator.stopAnimating()
+//                                            self.activityIndicator.isHidden = true
+//                                            
+//                                            self.logo.isHidden = false
+//                                            self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+//                                        })
+//                                    }
+//                                }
+//                            }
+                        }
                     })
                 }
             } else {
@@ -2053,7 +2290,7 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
                     }
                     
                     let request = URLRequest(url: document!.download!.downloadURL!)
-//                    let request = URLRequest(url: document!.download!.downloadURL! as URL, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
+//                    let request = URLRequest(url: document!.download!.downloadURL!, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
                     _ = document?.wkWebView?.load(request)
                 })
             }
@@ -2073,7 +2310,7 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
                 })
                 
                 let request = URLRequest(url: document!.download!.downloadURL!)
-//                let request = URLRequest(url: document!.download!.downloadURL! as URL, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
+//                let request = URLRequest(url: document!.download!.downloadURL!, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
                 _ = document?.wkWebView?.load(request)
             })
         }
@@ -2772,14 +3009,19 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
     
     func updateUI()
     {
-        if (selectedMediaItem != nil),
-            (selectedMediaItem == globals.mediaPlayer.mediaItem),
-            (globals.mediaPlayer.url != selectedMediaItem?.playingURL) {
-//            ((globals.mediaPlayer.url != selectedMediaItem?.videoURL) && (globals.mediaPlayer.url != selectedMediaItem?.audioURL)) {
-            globals.mediaPlayer.pause()
-            globals.setupPlayer(selectedMediaItem,playOnLoad:false)
+        if (selectedMediaItem != nil) && (selectedMediaItem == globals.mediaPlayer.mediaItem) {
+            if (globals.mediaPlayer.url != selectedMediaItem?.playingURL) {
+                //            ((globals.mediaPlayer.url != selectedMediaItem?.videoURL) && (globals.mediaPlayer.url != selectedMediaItem?.audioURL)) {
+                globals.mediaPlayer.pause()
+                globals.setupPlayer(selectedMediaItem,playOnLoad:false)
+            } else {
+                if globals.mediaPlayer.loadFailed {
+                    logo.isHidden = false
+                    mediaItemNotesAndSlides.bringSubview(toFront: logo)
+                }
+            }
         }
-
+        
         setupPlayerView(globals.mediaPlayer.view)
 
         //        print("viewWillAppear 1 mediaItemNotesAndSlides.bounds: \(mediaItemNotesAndSlides.bounds)")
@@ -2807,6 +3049,8 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
         super.viewWillAppear(animated)
 
         DispatchQueue.main.async {
+            // Shouldn't some or all of these have object values of selectedMediaItem?
+            
             NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.showPlaying), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SHOW_PLAYING), object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.paused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
             
@@ -2960,7 +3204,9 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
         removeSliderObserver()
         removePlayerObserver()
 
-        NotificationCenter.default.removeObserver(self)
+//        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: nil)
+        
+        NotificationCenter.default.removeObserver(self) // Catch-all.
         
 //        sliderObserver?.invalidate()
     }
@@ -3414,15 +3660,6 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
         
         if (mediaItem!.hasVideo && (mediaItem!.playing == Playing.video)) {
             setupPlayerView(globals.mediaPlayer.view)
-            
-            if (view.window != nil) {
-                if globals.mediaPlayer.loaded {
-                    globals.mediaPlayer.view?.isHidden = false
-                    mediaItemNotesAndSlides.bringSubview(toFront: globals.mediaPlayer.view!)
-                }
-            }
-            
-            mediaItem!.showing = Showing.video
         }
         
         addSliderObserver()
@@ -3554,57 +3791,37 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
         
         wkSetZoomScaleThenContentOffset(document!.wkWebView!, scale: zoomScale, offset: contentOffset)
     }
-    
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        print("wkWebViewDidFinishNavigation Loading:\(webView.isLoading)")
-        
-//        print("Frame: \(webView.frame)")
-//        print("Bounds: \(webView.bounds)")
-        
-        guard self.view != nil else {
-            return
-        }
+}
 
-        guard selectedMediaItem != nil else {
-            return
-        }
+extension MediaViewController : UITableViewDataSource
+{
+    // MARK: UITableViewDataSource
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        // #warning Potentially incomplete method implementation.
+        // Return the number of sections.
+        return 1
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        // #warning Incomplete method implementation.
+        // Return the number of rows in the section.
+        return selectedMediaItem != nil ? (mediaItems != nil ? mediaItems!.count : 0) : 0
+    }
+    
+    /*
+     */
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
+    {
+        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.MULTIPART_MEDIAITEM, for: indexPath) as! MediaTableViewCell
         
-        guard documents[selectedMediaItem!.id] != nil else {
-            return
-        }
+        cell.hideUI()
         
-        for document in documents[selectedMediaItem!.id]!.values {
-            if (webView == document.wkWebView) {
-                //                        print("mediaItemNotesWebView")
-                if document.showing(selectedMediaItem) {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.activityIndicator.stopAnimating()
-                        self.activityIndicator.isHidden = true
-                        
-                        self.progressIndicator.isHidden = true
-                        
-                        self.setupSTVControl()
-                        
-                        //                            print("webView:hidden=panning")
-                        webView.isHidden = false // self.panning
-                    })
-                } else {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        //                            print("webView:hidden=true")
-                        webView.isHidden = true
-                    })
-                }
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    document.loadTimer?.invalidate()
-                    document.loadTimer = nil
-                })
-                
-                setDocumentContentOffsetAndZoomScale(document)
-                
-                document.loaded = true
-            }
-        }
+        cell.vc = self
+        
+        cell.mediaItem = mediaItems?[indexPath.row]
+        
+        return cell
     }
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
@@ -3642,11 +3859,11 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
                 
-//                if globals.search.valid && globals.search.transcripts {
-//                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
-//                } else {
-                    htmlString = mediaItem.fullNotesHTML
-//                }
+                //                if globals.search.valid && globals.search.transcripts {
+                //                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
+                //                } else {
+                htmlString = mediaItem.fullNotesHTML
+                //                }
                 
                 popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
             } else {
@@ -3701,40 +3918,8 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
         if mediaItem.hasNotesHTML {
             actions.append(transcript)
         }
-
+        
         return actions
-    }
-}
-
-extension MediaViewController : UITableViewDataSource
-{
-    // MARK: UITableViewDataSource
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Potentially incomplete method implementation.
-        // Return the number of sections.
-        return 1
-    }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete method implementation.
-        // Return the number of rows in the section.
-        return selectedMediaItem != nil ? (mediaItems != nil ? mediaItems!.count : 0) : 0
-    }
-    
-    /*
-     */
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
-    {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.MULTIPART_MEDIAITEM, for: indexPath) as! MediaTableViewCell
-        
-        cell.hideUI()
-        
-        cell.vc = self
-        
-        cell.mediaItem = mediaItems?[indexPath.row]
-        
-        return cell
     }
 
     /*

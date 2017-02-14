@@ -104,7 +104,26 @@ extension MediaItem : URLSessionDownloadDelegate
             }
         }
         
-        if (download?.purpose != nil) {
+        guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
+            print("DOWNLOAD ERROR")
+            DispatchQueue.main.async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
+                UIApplication.shared.isNetworkActivityIndicatorVisible = false
+            })
+            download?.cancel()
+            return
+        }
+        
+        guard (download != nil) else {
+            print("NO DOWNLOAD FOUND!")
+            return
+        }
+        
+        if let purpose = download?.purpose {
+            DispatchQueue.main.async(execute: { () -> Void in
+                UIApplication.shared.isNetworkActivityIndicatorVisible = true
+            })
+
             //            print(totalBytesWritten,totalBytesExpectedToWrite,Float(totalBytesWritten) / Float(totalBytesExpectedToWrite),Int(Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) * 100))
             
             let progress = totalBytesExpectedToWrite > 0 ? Int((Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)) * 100) % 100 : 0
@@ -113,7 +132,7 @@ extension MediaItem : URLSessionDownloadDelegate
             
             //            print(progress,current)
             
-            switch download!.purpose! {
+            switch purpose {
             case Purpose.audio:
                 if progress > current {
                     //                    print(Constants.NOTIFICATION.MEDIA_UPDATE_CELL)
@@ -166,10 +185,6 @@ extension MediaItem : URLSessionDownloadDelegate
         } else {
             print("ERROR NO DOWNLOAD")
         }
-        
-        DispatchQueue.main.async(execute: { () -> Void in
-            UIApplication.shared.isNetworkActivityIndicatorVisible = true
-        })
     }
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)
@@ -181,6 +196,16 @@ extension MediaItem : URLSessionDownloadDelegate
                 download = downloads[key]
                 break
             }
+        }
+        
+        guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
+            print("DOWNLOAD ERROR")
+            DispatchQueue.main.async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
+                UIApplication.shared.isNetworkActivityIndicatorVisible = false
+            })
+            download?.cancel()
+            return
         }
         
         guard (download != nil) else {
@@ -232,10 +257,10 @@ extension MediaItem : URLSessionDownloadDelegate
                 download?.state = .downloaded
             } else {
                 // Nothing was downloaded
-                download?.state = .none
                 DispatchQueue.main.async(execute: { () -> Void in
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
                 })
+                download?.state = .none
             }
         } catch _ {
             print("failed to copy temp download file")
@@ -256,6 +281,16 @@ extension MediaItem : URLSessionDownloadDelegate
                 download = downloads[key]
                 break
             }
+        }
+
+        guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
+            print("DOWNLOAD ERROR")
+            DispatchQueue.main.async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
+                UIApplication.shared.isNetworkActivityIndicatorVisible = false
+            })
+            download?.cancel()
+            return
         }
         
         guard (download != nil) else {
@@ -709,6 +744,18 @@ class MediaItem : NSObject {
         }
     }
     
+    var isInMediaPlayer:Bool {
+        get {
+            return (self == globals.mediaPlayer.mediaItem)
+        }
+    }
+    
+    var isLoaded:Bool {
+        get {
+            return isInMediaPlayer && globals.mediaPlayer.loaded
+        }
+    }
+    
     var isPlaying:Bool {
         get {
             return globals.mediaPlayer.url == playingURL
@@ -814,7 +861,7 @@ class MediaItem : NSObject {
     var webLink : String? {
         get {
             
-            if let body = bodyHTML(order: ["title","scripture","speaker"], includeURLs: false, includeColumns: false), let urlString = websiteURL?.absoluteString {
+            if let body = bodyHTML(order: ["title","scripture","speaker"], token: nil, includeURLs: false, includeColumns: false), let urlString = websiteURL?.absoluteString {
                 return body + "\n\n" + urlString
             } else {
                 return nil
@@ -1276,8 +1323,7 @@ class MediaItem : NSObject {
                 mediaItemSettings?[Field.tags] = mediaItemSettings![Field.tags]! + Constants.TAGS_SEPARATOR + tag
             }
             
-            let tags = tagsArrayFromTagsString(mediaItemSettings![Field.tags])
-
+//            let tags = tagsArrayFromTagsString(mediaItemSettings![Field.tags])
 //            print(tags)
 
             let sortTag = stringWithoutPrefixes(tag)
@@ -1991,7 +2037,7 @@ class MediaItem : NSObject {
     
     var contents:String? {
         get {
-            return stripHTML(bodyHTML(order: ["date","title","scripture","speaker"], includeURLs: false, includeColumns: false))
+            return stripHTML(bodyHTML(order: ["date","title","scripture","speaker"], token: nil, includeURLs: false, includeColumns: false))
 
             // Don't need these now that there is a web page for each sermon.
             //    if let audioURL = mediaItem?.audioURL?.absoluteString {
@@ -2016,7 +2062,7 @@ class MediaItem : NSObject {
         get {
             var bodyString = "<!DOCTYPE html><html><body>"
             
-            if let string = bodyHTML(order: ["date","title","scripture","speaker"], includeURLs: true, includeColumns: true) {
+            if let string = bodyHTML(order: ["date","title","scripture","speaker"], token: nil, includeURLs: true, includeColumns: true) {
                 bodyString = bodyString + string
             }
             
@@ -2043,7 +2089,7 @@ class MediaItem : NSObject {
         }
     }
     
-    func bodyHTML(order:[String],includeURLs:Bool,includeColumns:Bool) -> String?
+    func bodyHTML(order:[String],token: String?,includeURLs:Bool,includeColumns:Bool) -> String?
     {
         var bodyString:String?
         
@@ -2053,25 +2099,25 @@ class MediaItem : NSObject {
             for item in order {
                 switch item.lowercased() {
                 case "date":
-                    bodyString = bodyString! + "<td valign=\"top\">"
+                    bodyString = bodyString! + "<td valign=\"baseline\">"
                     if let month = formattedDateMonth {
                         bodyString = bodyString! + month
                     }
                     bodyString = bodyString! + "</td>"
                     
-                    bodyString = bodyString! + "<td valign=\"top\" align=\"right\">"
+                    bodyString = bodyString! + "<td valign=\"baseline\" align=\"right\">"
                     if let day = formattedDateDay {
                         bodyString  = bodyString! + day + ","
                     }
                     bodyString = bodyString! + "</td>"
                     
-                    bodyString = bodyString! + "<td valign=\"top\" align=\"right\">"
+                    bodyString = bodyString! + "<td valign=\"baseline\" align=\"right\">"
                     if let year = formattedDateYear {
                         bodyString  = bodyString! + year
                     }
                     bodyString = bodyString! + "</td>"
                     
-                    bodyString = bodyString! + "<td valign=\"top\">"
+                    bodyString = bodyString! + "<td valign=\"baseline\">"
                     if let service = self.service {
                         bodyString  = bodyString! + service
                     }
@@ -2079,7 +2125,7 @@ class MediaItem : NSObject {
                     break
                     
                 case "title":
-                    bodyString = bodyString! + "<td valign=\"top\">"
+                    bodyString = bodyString! + "<td valign=\"baseline\">"
                     if let title = self.title {
                         if includeURLs, let websiteURL = websiteURL?.absoluteString {
                             bodyString = bodyString! + "<a href=\"" + websiteURL + "\">\(title)</a>"
@@ -2091,7 +2137,7 @@ class MediaItem : NSObject {
                     break
 
                 case "scripture":
-                    bodyString = bodyString! + "<td valign=\"top\">"
+                    bodyString = bodyString! + "<td valign=\"baseline\">"
                     if let scriptureReference = self.scriptureReference {
                         bodyString = bodyString! + scriptureReference
                     }
@@ -2099,7 +2145,7 @@ class MediaItem : NSObject {
                     break
                     
                 case "speaker":
-                    bodyString = bodyString! + "<td valign=\"top\">"
+                    bodyString = bodyString! + "<td valign=\"baseline\">"
                     if let speaker = self.speaker {
                         bodyString = bodyString! + speaker
                     }
@@ -2107,9 +2153,17 @@ class MediaItem : NSObject {
                     break
                     
                 case "class":
-                    bodyString = bodyString! + "<td valign=\"top\">"
+                    bodyString = bodyString! + "<td valign=\"baseline\">"
                     if let className = self.className {
                         bodyString = bodyString! + className
+                    }
+                    bodyString = bodyString! + "</td>"
+                    break
+                    
+                case "count":
+                    bodyString = bodyString! + "<td valign=\"baseline\">"
+                    if let token = token, let count = self.notesTokens?[token] {
+                        bodyString = bodyString! + "(\(count))"
                     }
                     bodyString = bodyString! + "</td>"
                     break
@@ -2161,6 +2215,12 @@ class MediaItem : NSObject {
                     }
                     break
                     
+                case "count":
+                    if let token = token, let count = self.notesTokens?[token] {
+                        bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + "(\(count))"
+                    }
+                    break
+
                 default:
                     break
                 }

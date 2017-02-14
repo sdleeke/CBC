@@ -49,6 +49,8 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
 ////        print(state.rawValue)
 //    }
     
+    @IBOutlet weak var countLabel: UILabel!
+    
     func hideUI()
     {
         guard Thread.isMainThread else {
@@ -68,25 +70,16 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             return
         }
         
-        func set(_ state:Bool)
-        {
-            title.isHidden = state
-            detail.isHidden = state
-            
-            icons.isHidden = state
-            
-            downloadButton.isHidden = state
-            
-            if (tagsButton != nil) {
-                tagsButton.isHidden = state
-            }
+        title.isHidden = state
+        detail.isHidden = state
+        
+        icons.isHidden = state
+        
+        downloadButton.isHidden = state
+        
+        if (tagsButton != nil) {
+            tagsButton.isHidden = state
         }
-        
-        set(state)
-        
-        //        DispatchQueue.main.async(execute: { () -> Void in
-        //            set(state)
-        //        })
     }
     
     func updateDownloadButton()
@@ -121,28 +114,9 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
         }
     }
     
-    func updateUI()
+    func setupText()
     {
-        guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:updateUI")
-            return
-        }
-        
-        guard (mediaItem != nil) else {
-            isHiddenUI(true)
-            print("No mediaItem for cell!")
-            return
-        }
-
-        updateTagsButton()
-        
-        updateDownloadButton()
-        
-        setupProgressBarForAudio()
-
-        setupIcons()
-
-//        if (globals.search.active && ((vc as? MediaTableViewController) != nil)) || ((vc as? LexiconIndexViewController) != nil) {
+        //        if (globals.search.active && ((vc as? MediaTableViewController) != nil)) || ((vc as? LexiconIndexViewController) != nil) {
         if searchText != nil {
             let titleString = NSMutableAttributedString()
             
@@ -154,7 +128,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                                 NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
             
             let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-                                NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
+                                    NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
             
             if let searchHit = mediaItem?.searchHit(searchText).formattedDate, searchHit, let formattedDate = mediaItem?.formattedDate {
                 var string:String?
@@ -184,7 +158,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                 titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
             }
             titleString.append(NSAttributedString(string: mediaItem!.service!, attributes: bold))
-
+            
             if let searchHit = mediaItem?.searchHit(searchText).speaker, searchHit, let speaker = mediaItem?.speaker {
                 var string:String?
                 var before:String?
@@ -198,7 +172,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                     if !titleString.string.isEmpty {
                         titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
                     }
-
+                    
                     if let before = before {
                         titleString.append(NSAttributedString(string: before,   attributes: bold))
                     }
@@ -215,9 +189,9 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                 }
                 titleString.append(NSAttributedString(string:mediaItem!.speaker!, attributes: bold))
             }
-
+            
             DispatchQueue.main.async {
-//                print(titleString.string)
+                //                print(titleString.string)
                 self.title.attributedText = titleString // NSAttributedString(string: "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)", attributes: normal)
             }
             
@@ -232,7 +206,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             } else {
                 title = mediaItem?.title
             }
-
+            
             if let searchHit = mediaItem?.searchHit(searchText).title, searchHit {
                 var string:String?
                 var before:String?
@@ -291,46 +265,46 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                 }
             }
             
-//            if let _ = vc as? MediaTableViewController {
-//                if globals.grouping != Grouping.CLASS {
-//                    if mediaItem!.searchHit!.className {
-//                        var string:String?
-//                        var before:String?
-//                        var after:String?
-//                        
-//                        if let range = mediaItem?.className?.lowercased().range(of: globals.search.text!.lowercased()) {
-//                            before = mediaItem?.className?.substring(to: range.lowerBound)
-//                            string = mediaItem?.className?.substring(with: range)
-//                            after = mediaItem?.className?.substring(from: range.upperBound)
-//                            
-//                            detailString.append(NSAttributedString(string: "\n" + before!,   attributes: normal))
-//                            detailString.append(NSAttributedString(string: string!,   attributes: highlighted))
-//                            detailString.append(NSAttributedString(string: after!,    attributes: normal))
-//                        }
-//                    } else {
-//                        detailString.append(NSAttributedString(string: "\n" + mediaItem!.className!, attributes: normal))
-//                    }
-//                }
-//            } else {
-//                if mediaItem!.searchHit!.className {
-//                    var string:String?
-//                    var before:String?
-//                    var after:String?
-//                    
-//                    if let range = mediaItem?.className?.lowercased().range(of: globals.search.text!.lowercased()) {
-//                        before = mediaItem?.className?.substring(to: range.lowerBound)
-//                        string = mediaItem?.className?.substring(with: range)
-//                        after = mediaItem?.className?.substring(from: range.upperBound)
-//                        
-//                        detailString.append(NSAttributedString(string: "\n" + before!,   attributes: normal))
-//                        detailString.append(NSAttributedString(string: string!,   attributes: highlighted))
-//                        detailString.append(NSAttributedString(string: after!,    attributes: normal))
-//                    }
-//                } else {
-//                    detailString.append(NSAttributedString(string: "\n" + mediaItem!.className!, attributes: normal))
-//                }
-//            }
-
+            //            if let _ = vc as? MediaTableViewController {
+            //                if globals.grouping != Grouping.CLASS {
+            //                    if mediaItem!.searchHit!.className {
+            //                        var string:String?
+            //                        var before:String?
+            //                        var after:String?
+            //
+            //                        if let range = mediaItem?.className?.lowercased().range(of: globals.search.text!.lowercased()) {
+            //                            before = mediaItem?.className?.substring(to: range.lowerBound)
+            //                            string = mediaItem?.className?.substring(with: range)
+            //                            after = mediaItem?.className?.substring(from: range.upperBound)
+            //
+            //                            detailString.append(NSAttributedString(string: "\n" + before!,   attributes: normal))
+            //                            detailString.append(NSAttributedString(string: string!,   attributes: highlighted))
+            //                            detailString.append(NSAttributedString(string: after!,    attributes: normal))
+            //                        }
+            //                    } else {
+            //                        detailString.append(NSAttributedString(string: "\n" + mediaItem!.className!, attributes: normal))
+            //                    }
+            //                }
+            //            } else {
+            //                if mediaItem!.searchHit!.className {
+            //                    var string:String?
+            //                    var before:String?
+            //                    var after:String?
+            //
+            //                    if let range = mediaItem?.className?.lowercased().range(of: globals.search.text!.lowercased()) {
+            //                        before = mediaItem?.className?.substring(to: range.lowerBound)
+            //                        string = mediaItem?.className?.substring(with: range)
+            //                        after = mediaItem?.className?.substring(from: range.upperBound)
+            //
+            //                        detailString.append(NSAttributedString(string: "\n" + before!,   attributes: normal))
+            //                        detailString.append(NSAttributedString(string: string!,   attributes: highlighted))
+            //                        detailString.append(NSAttributedString(string: after!,    attributes: normal))
+            //                    }
+            //                } else {
+            //                    detailString.append(NSAttributedString(string: "\n" + mediaItem!.className!, attributes: normal))
+            //                }
+            //            }
+            
             if mediaItem!.searchHit(searchText).className {
                 var string:String?
                 var before:String?
@@ -362,20 +336,20 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                     detailString.append(NSAttributedString(string: className, attributes: normal))
                 }
             }
-
+            
             DispatchQueue.main.async {
-//                print(detailString.string)
+                //                print(detailString.string)
                 self.detail.attributedText = detailString
             }
             
-//                if (mediaItem?.title?.range(of: " (Part ") != nil) {
-//                    let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
-//                    let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
-//                    let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
-//                    detail.text = "\(combined)\n\(mediaItem!.scriptureReference!)"
-//                } else {
-//                    detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scriptureReference!)"
-//                }
+            //                if (mediaItem?.title?.range(of: " (Part ") != nil) {
+            //                    let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
+            //                    let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
+            //                    let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
+            //                    detail.text = "\(combined)\n\(mediaItem!.scriptureReference!)"
+            //                } else {
+            //                    detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scriptureReference!)"
+            //                }
         } else {
             DispatchQueue.main.async {
                 if let formattedDate = self.mediaItem?.formattedDate {
@@ -393,7 +367,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                     }
                     self.title.text?.append(speaker)
                 }
-//                self.title.text = "\(self.mediaItem!.formattedDate!) \(self.mediaItem!.service!) \(self.mediaItem!.speaker!)"
+                //                self.title.text = "\(self.mediaItem!.formattedDate!) \(self.mediaItem!.service!) \(self.mediaItem!.speaker!)"
             }
             
             //            print(mediaItem?.title)
@@ -403,10 +377,10 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                     let first = title.substring(to: (title.range(of: " (Part")?.upperBound)!)
                     let second = title.substring(from: (title.range(of: " (Part ")?.upperBound)!)
                     let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
-
+                    
                     title = combined
                 }
-
+                
                 DispatchQueue.main.async {
                     self.detail.text = title
                     
@@ -424,39 +398,56 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                         self.detail.text?.append(className)
                     }
                 }
-
-//                if let _ = vc as? MediaTableViewController {
-//                    if globals.grouping != Grouping.CLASS, let className = mediaItem?.className {
-//                        DispatchQueue.main.async {
-//                            self.detail.text = self.detail.text! + "\n" + className
-//                        }
-//                    }
-//                } else {
-//                    if let className = mediaItem?.className {
-//                        DispatchQueue.main.async {
-//                            self.detail.text = self.detail.text! + "\n" + className
-//                        }
-//                    }
-//                }
+                
+                //                if let _ = vc as? MediaTableViewController {
+                //                    if globals.grouping != Grouping.CLASS, let className = mediaItem?.className {
+                //                        DispatchQueue.main.async {
+                //                            self.detail.text = self.detail.text! + "\n" + className
+                //                        }
+                //                    }
+                //                } else {
+                //                    if let className = mediaItem?.className {
+                //                        DispatchQueue.main.async {
+                //                            self.detail.text = self.detail.text! + "\n" + className
+                //                        }
+                //                    }
+                //                }
                 
                 
-//                    if globals.mediaCategory.selected == "All Media" {
-//                        detail.text = "\(mediaItem!.category!)\n" + detail.text!
-//                    }
+                //                    if globals.mediaCategory.selected == "All Media" {
+                //                        detail.text = "\(mediaItem!.category!)\n" + detail.text!
+                //                    }
             }
         }
+    }
+    
+    func updateUI()
+    {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:updateUI")
+            return
+        }
+        
+        guard (mediaItem != nil) else {
+            isHiddenUI(true)
+            print("No mediaItem for cell!")
+            return
+        }
 
+        updateTagsButton()
+        
+        updateDownloadButton()
+        
+        setupProgressBarForAudio()
+
+        setupIcons()
+
+        setupText()
+        
         if (detail.text != nil) || (detail.attributedText != nil) {
             isHiddenUI(false)
         }
     }
-    
-//    func endEdit()
-//    {
-//        DispatchQueue.main.async {
-//            self.setEditing(false, animated: true)
-//        }
-//    }
     
     var searchText:String? {
         didSet {
@@ -466,25 +457,23 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
     
     var mediaItem:MediaItem? {
         didSet {
-//            if mediaItem != oldValue {
-//                DispatchQueue.main.async {
-//                    NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateTagsButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_CELL_TAG), object: nil)
-//                }
-                
-                if (oldValue != nil) {
-//                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
-                    })
-                }
-                
-                if (mediaItem != nil) {
-//                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-                    })
-                }
+//            DispatchQueue.main.async {
+//                NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateTagsButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_CELL_TAG), object: nil)
 //            }
+            
+            if (oldValue != nil) {
+//                DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
+                })
+            }
+            
+            if (mediaItem != nil) {
+//                DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+                })
+            }
             
             if tagsToolbar == nil {
                 setupTagsToolbar()

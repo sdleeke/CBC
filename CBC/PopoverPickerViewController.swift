@@ -366,7 +366,7 @@ class PopoverPickerViewController : UIViewController
             root = lexicon?.root
 
             if (root == nil) || root!.isLeaf {
-                print("building")
+//                print("building")
 
                 lexicon?.build()
                 
