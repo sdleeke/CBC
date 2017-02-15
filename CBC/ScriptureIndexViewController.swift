@@ -1683,7 +1683,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
             return false
         }
         
-        return mediaItem.hasNotesHTML || (mediaItem.scriptureReference != Constants.Selected_Scriptures)
+        return mediaItem.hasNotesHTML || (mediaItem.books?.count > 0)
     }
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?

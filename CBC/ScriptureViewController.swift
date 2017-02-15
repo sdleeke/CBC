@@ -657,7 +657,7 @@ class ScriptureViewController : UIViewController, UIPopoverPresentationControlle
         
         setupBarButtons()
         
-        if scripture?.selected.reference == nil, let reference = scripture?.reference, reference != Constants.Selected_Scriptures {
+        if scripture?.selected.reference == nil, let reference = scripture?.reference, let books = booksFromScriptureReference(reference), books.count > 0 {
             DispatchQueue.global(qos: .background).async {
                 self.scripture?.load(reference)
                 

@@ -284,7 +284,7 @@ extension MediaItem : URLSessionDownloadDelegate
         }
 
         guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
-            print("DOWNLOAD ERROR")
+            print("DOWNLOAD ERROR:",task.taskDescription,(task.response as? HTTPURLResponse)?.statusCode)
             DispatchQueue.main.async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
                 UIApplication.shared.isNetworkActivityIndicatorVisible = false

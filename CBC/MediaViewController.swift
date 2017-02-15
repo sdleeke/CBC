@@ -335,7 +335,7 @@ extension MediaViewController : WKNavigationDelegate
         
         if statusCode >= 400 {
             // error has occurred
-            if document!.showing(self.selectedMediaItem) {
+            if let showing = document?.showing(self.selectedMediaItem), showing {
                 if let purpose = document?.purpose {
                     switch purpose {
                     case Purpose.slides:
@@ -551,8 +551,8 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
     
     var document:Document? {
         get {
-            if (selectedMediaItem != nil) && (selectedMediaItem!.showing != nil) {
-                return documents[selectedMediaItem!.id]![selectedMediaItem!.showing!]
+            if let id = selectedMediaItem?.id, let showing = selectedMediaItem?.showing {
+                return documents[id]![showing]
             } else {
                 return nil
             }
@@ -614,23 +614,23 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
         //        print(document)
         //        print(download)
         
-        guard document != nil else {
+        guard let document = document else {
             return
         }
         
-        guard document!.download != nil else {
+        guard let download = document.download else {
             return
         }
         
-        switch document!.download!.state {
+        switch download.state {
         case .none:
             //                    print(".none")
             break
             
         case .downloading:
             //                    print(".downloading")
-            if document!.showing(selectedMediaItem) {
-                progressIndicator.progress = document!.download!.totalBytesExpectedToWrite > 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
+            if document.showing(selectedMediaItem) {
+                progressIndicator.progress = download.totalBytesExpectedToWrite > 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
             }
             break
             
@@ -660,7 +660,7 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
         case .downloading:
             //                    print(".downloading")
             document?.download?.state = .none
-            if document!.showing(selectedMediaItem) {
+            if let showing = document?.showing(selectedMediaItem), showing {
                 DispatchQueue.main.async(execute: { () -> Void in
                     self.activityIndicator.stopAnimating()
                     self.activityIndicator.isHidden = true
@@ -1074,17 +1074,36 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
                                change: [NSKeyValueChangeKey : Any]?,
                                context: UnsafeMutableRawPointer?) {
         // Only handle observations for the playerItemContext
-        guard (context == &PlayerContext) else {
-            super.observeValue(forKeyPath: keyPath,
-                               of: object,
-                               change: change,
-                               context: context)
-            return
-        }
-        
+
         if keyPath == #keyPath(AVPlayerItem.status) {
+            guard (context == &PlayerContext) else {
+                super.observeValue(forKeyPath: keyPath,
+                                   of: object,
+                                   change: change,
+                                   context: context)
+                return
+            }
+            
             setupSliderAndTimes()
         }
+        
+//        if keyPath == #keyPath(WKWebView.estimatedProgress) {
+//            if let showing = document?.showing(selectedMediaItem), showing {
+//                if (document?.wkWebView == (object as? WKWebView)) {
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                        self.progressIndicator.progress = Float(self.document!.wkWebView!.estimatedProgress)
+//                        print(self.progressIndicator.progress)
+//                        if self.progressIndicator.progress == 1 {
+//                            self.activityIndicator.stopAnimating()
+//                            self.activityIndicator.isHidden = true
+//                            
+//                            self.progressIndicator.isHidden = true
+//                            (object as? WKWebView)?.removeObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), context: nil)
+//                        }
+//                    })
+//                }
+//            }
+//        }
     }
 
     func setupSTVControl()
@@ -1657,10 +1676,10 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
             
             actionMenu.append(Constants.Open_on_CBC_Website)
             
-//            if (selectedMediaItem!.hasScripture && (selectedMediaItem?.scripture != Constants.Selected_Scriptures)) {
+//            if let books = selectedMediaItem?.books {
 //                actionMenu.append(Constants.Scripture_in_Browser)
 //            }
-
+            
             if let mediaItems = mediaItems {
                 var mediaItemsToDownload = 0
                 var mediaItemsDownloading = 0
@@ -2113,19 +2132,21 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
         // Expected to be on the main thread
         if let document = timer?.userInfo as? Document {
             if document.showing(selectedMediaItem) {
-                if (document.wkWebView != nil) {
-                    progressIndicator.progress = Float(document.wkWebView!.estimatedProgress)
+                if let estimatedProgress = document.wkWebView?.estimatedProgress {
+                    progressIndicator.progress = Float(estimatedProgress)
 
-                    if progressIndicator.progress == 1 {
-                        progressIndicator.isHidden = true
-                    }
+//                    if estimatedProgress == 1 {
+//                        progressIndicator.isHidden = true
+//                    }
                 }
             }
             
             if (document.wkWebView != nil) && !document.wkWebView!.isLoading {
                 activityIndicator.stopAnimating()
                 activityIndicator.isHidden = true
-                
+
+                progressIndicator.isHidden = true
+
                 document.loadTimer?.invalidate()
                 document.loadTimer = nil
             }
@@ -2152,7 +2173,7 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
     
     func downloadFailed()
     {
-        if document!.showing(self.selectedMediaItem) {
+        if let showing = document?.showing(self.selectedMediaItem), showing {
             if let purpose = document?.purpose {
                 switch purpose {
                 case Purpose.slides:
@@ -2179,6 +2200,10 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
     
     fileprivate func loadDocument(_ document:Document?)
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         if let loading = document?.wkWebView?.isLoading, loading {
             return
         }
@@ -2190,7 +2215,7 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
             if globals.cacheDownloads {
 //                print(document?.download?.state)
                 if (document?.download != nil) && (document?.download?.state != .downloaded){
-                    if document!.showing(selectedMediaItem) {
+                    if let showing = document?.showing(selectedMediaItem), showing {
                         mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
                         mediaItemNotesAndSlides.bringSubview(toFront: progressIndicator)
                         
@@ -2204,10 +2229,11 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
 
                         mediaItemNotesAndSlides.bringSubview(toFront: progressIndicator)
                     }
-                    
-                    DispatchQueue.main.async {
-                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: document?.download)
-                    }
+
+                    NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: document?.download)
+
+//                    DispatchQueue.main.async {
+//                    }
 
                     document?.download?.observer = #selector(MediaViewController.downloadFailed)
 
@@ -2217,6 +2243,15 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
 //                        print(document!.download!.fileSystemURL!)
 
                         if let fileSystemURL = document?.download?.fileSystemURL { //, let downloadURL = document?.download?.downloadURL
+                            DispatchQueue.main.async(execute: { () -> Void in
+                                if let showing = self.document?.showing(self.selectedMediaItem), showing {
+                                    self.activityIndicator.isHidden = false
+                                    self.activityIndicator.startAnimating()
+                                    
+                                    self.mediaItemNotesAndSlides.bringSubview(toFront: self.activityIndicator)
+                                }
+                            })
+                            
                             _ = document?.wkWebView?.loadFileURL(fileSystemURL, allowingReadAccessTo: fileSystemURL)
                             
 //                            if let data = try? Data(contentsOf: fileSystemURL, options: Data.ReadingOptions.mappedIfSafe) {
@@ -2266,7 +2301,7 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
             } else {
                 DispatchQueue.global(qos: .background).async(execute: { () -> Void in
                     DispatchQueue.main.async(execute: { () -> Void in
-                        if document!.showing(self.selectedMediaItem) {
+                        if let showing = document?.showing(self.selectedMediaItem), showing {
                             self.activityIndicator.isHidden = false
                             self.activityIndicator.startAnimating()
                             
@@ -2277,6 +2312,11 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
                             document?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(MediaViewController.loading(_:)), userInfo: document, repeats: true)
                         }
                     })
+                    
+//                    document?.wkWebView?.addObserver(self,
+//                                                         forKeyPath: #keyPath(WKWebView.estimatedProgress),
+//                                                         options: [.old, .new],
+//                                                         context: nil) // &GlobalPlayerContext
                     
                     if (document == nil) {
                         print("document nil")
@@ -2297,7 +2337,7 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
         } else {
             DispatchQueue.global(qos: .background).async(execute: { () -> Void in
                 DispatchQueue.main.async(execute: { () -> Void in
-                    if document!.showing(self.selectedMediaItem) {
+                    if let showing = document?.showing(self.selectedMediaItem), showing {
                         self.activityIndicator.isHidden = false
                         self.activityIndicator.startAnimating()
                         
@@ -2347,6 +2387,23 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
             return
         }
         
+        guard (selectedMediaItem != nil) else {
+            viewSplit.isHidden = true
+            
+            hideAllDocuments()
+            
+            globals.mediaPlayer.view?.isHidden = true
+            
+            logo.isHidden = !shouldShowLogo() // && roomForLogo()
+            
+            if !logo.isHidden {
+                mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+            }
+            
+            setupSTVControl()
+            return
+        }
+        
         activityIndicator.isHidden = true
 
         progressIndicator.isHidden = true
@@ -2357,172 +2414,156 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
 //        print("Last Selected: \(globals.mediaItemLastSelected?.title)")
 //        print("Playing: \(globals.player.playing?.title)")
         
-        if (selectedMediaItem != nil) {
-            viewSplit.isHidden = false
+        viewSplit.isHidden = false
 
-            if (selectedMediaItem!.hasNotes) {
-                notesDocument = documents[selectedMediaItem!.id]?[Purpose.notes]
-                
-                if (notesDocument == nil) {
-                    notesDocument = Document(purpose: Purpose.notes, mediaItem: selectedMediaItem)
-                }
+        if (selectedMediaItem!.hasNotes) {
+            notesDocument = documents[selectedMediaItem!.id]?[Purpose.notes]
+            
+            if (notesDocument == nil) {
+                notesDocument = Document(purpose: Purpose.notes, mediaItem: selectedMediaItem)
+            }
 //                print(notesDocument?.download?.downloadURL)
-                setupDocument(notesDocument)
-            } else {
-                notesDocument?.wkWebView?.isHidden = true
-            }
-            
-            if (selectedMediaItem!.hasSlides) {
-                slidesDocument = documents[selectedMediaItem!.id]?[Purpose.slides]
-                
-                if (slidesDocument == nil) {
-                    slidesDocument = Document(purpose: Purpose.slides, mediaItem: selectedMediaItem)
-                }
-//                print(slidesDocument?.download?.downloadURL)
-                setupDocument(slidesDocument)
-            } else {
-                slidesDocument?.wkWebView?.isHidden = true
-            }
-            
-    //        print("notes hidden \(mediaItemNotes.hidden)")
-    //        print("slides hidden \(mediaItemSlides.hidden)")
-            
-            // Check whether they can or should show what they claim to show!
-            
-            switch selectedMediaItem!.showing! {
-            case Showing.notes:
-                if !selectedMediaItem!.hasNotes {
-                    selectedMediaItem!.showing = Showing.none
-                }
-                break
-                
-            case Showing.slides:
-                if !selectedMediaItem!.hasSlides {
-                    selectedMediaItem!.showing = Showing.none
-                }
-                break
-                
-            case Showing.video:
-                if !selectedMediaItem!.hasVideo {
-                    selectedMediaItem!.showing = Showing.none
-                }
-                break
-                
-            default:
-                break
-            }
-            
-            switch selectedMediaItem!.showing! {
-            case Showing.notes:
-                globals.mediaPlayer.view?.isHidden = true
-                logo.isHidden = true
-                
-                hideOtherDocuments()
-                
-                if (wkWebView != nil) {
-//                    wkWebView?.isHidden = false
-                    mediaItemNotesAndSlides.bringSubview(toFront: wkWebView!)
-                }
-                break
-                
-            case Showing.slides:
-                globals.mediaPlayer.view?.isHidden = true
-                logo.isHidden = true
-                
-                hideOtherDocuments()
-                
-                if (wkWebView != nil) {
-//                    wkWebView?.isHidden = false
-                    mediaItemNotesAndSlides.bringSubview(toFront: wkWebView!)
-                }
-                break
-                
-            case Showing.video:
-                //This should not happen unless it is playing video.
-                switch selectedMediaItem!.playing! {
-                case Playing.audio:
-                    setupDefaultDocuments()
-                    break
-
-                case Playing.video:
-                    if (globals.mediaPlayer.mediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) {
-                        hideAllDocuments()
-
-                        if globals.mediaPlayer.loaded {
-                            logo.isHidden = true
-                            globals.mediaPlayer.view?.isHidden = false
-                        }
-                        
-                        selectedMediaItem?.showing = Showing.video
-                        
-                        if (globals.mediaPlayer.player != nil) {
-//                            mediaItemNotesAndSlides.bringSubview(toFront: globals.mediaPlayer.view!)
-                        } else {
-                            setupDefaultDocuments()
-                        }
-                    } else {
-                        //This should never happen.
-                        setupDefaultDocuments()
-                    }
-                    break
-                    
-                default:
-                    break
-                }
-                break
-                
-            case Showing.none:
-                activityIndicator.stopAnimating()
-                activityIndicator.isHidden = true
-                
-                hideAllDocuments()
-                
-                switch selectedMediaItem!.playing! {
-                case Playing.audio:
-                    globals.mediaPlayer.view?.isHidden = true
-                    setupDefaultDocuments()
-                    break
-                    
-                case Playing.video:
-                    if (globals.mediaPlayer.mediaItem == selectedMediaItem) {
-                        if (globals.mediaPlayer.mediaItem!.hasVideo && (globals.mediaPlayer.mediaItem!.playing == Playing.video)) {
-                            if globals.mediaPlayer.loaded {
-                                globals.mediaPlayer.view?.isHidden = false
-                            }
-                            mediaItemNotesAndSlides.bringSubview(toFront: globals.mediaPlayer.view!)
-                            selectedMediaItem?.showing = Showing.video
-                        } else {
-                            globals.mediaPlayer.view?.isHidden = true
-                            self.logo.isHidden = false
-                            selectedMediaItem?.showing = Showing.none
-                            self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
-                        }
-                    } else {
-                        globals.mediaPlayer.view?.isHidden = true
-                        setupDefaultDocuments()
-                    }
-                    break
-                    
-                default:
-                    break
-                }
-                break
-                
-            default:
-                break
-            }
+            setupDocument(notesDocument)
         } else {
-            viewSplit.isHidden = true
+            notesDocument?.wkWebView?.isHidden = true
+        }
+        
+        if (selectedMediaItem!.hasSlides) {
+            slidesDocument = documents[selectedMediaItem!.id]?[Purpose.slides]
+            
+            if (slidesDocument == nil) {
+                slidesDocument = Document(purpose: Purpose.slides, mediaItem: selectedMediaItem)
+            }
+//                print(slidesDocument?.download?.downloadURL)
+            setupDocument(slidesDocument)
+        } else {
+            slidesDocument?.wkWebView?.isHidden = true
+        }
+        
+//        print("notes hidden \(mediaItemNotes.hidden)")
+//        print("slides hidden \(mediaItemSlides.hidden)")
+        
+        // Check whether they can or should show what they claim to show!
+        
+        switch selectedMediaItem!.showing! {
+        case Showing.notes:
+            if !selectedMediaItem!.hasNotes {
+                selectedMediaItem!.showing = Showing.none
+            }
+            break
+            
+        case Showing.slides:
+            if !selectedMediaItem!.hasSlides {
+                selectedMediaItem!.showing = Showing.none
+            }
+            break
+            
+        case Showing.video:
+            if !selectedMediaItem!.hasVideo {
+                selectedMediaItem!.showing = Showing.none
+            }
+            break
+            
+        default:
+            break
+        }
+        
+        switch selectedMediaItem!.showing! {
+        case Showing.notes:
+            globals.mediaPlayer.view?.isHidden = true
+            logo.isHidden = true
+            
+            hideOtherDocuments()
+            
+            if (wkWebView != nil) {
+//                    wkWebView?.isHidden = false
+                mediaItemNotesAndSlides.bringSubview(toFront: wkWebView!)
+            }
+            break
+            
+        case Showing.slides:
+            globals.mediaPlayer.view?.isHidden = true
+            logo.isHidden = true
+            
+            hideOtherDocuments()
+            
+            if (wkWebView != nil) {
+//                    wkWebView?.isHidden = false
+                mediaItemNotesAndSlides.bringSubview(toFront: wkWebView!)
+            }
+            break
+            
+        case Showing.video:
+            //This should not happen unless it is playing video.
+            switch selectedMediaItem!.playing! {
+            case Playing.audio:
+                setupDefaultDocuments()
+                break
+
+            case Playing.video:
+                if (globals.mediaPlayer.mediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) {
+                    hideAllDocuments()
+
+                    logo.isHidden = globals.mediaPlayer.loaded
+                    globals.mediaPlayer.view?.isHidden = !globals.mediaPlayer.loaded
+                    
+                    selectedMediaItem?.showing = Showing.video
+                    
+                    if (globals.mediaPlayer.player != nil) {
+//                            mediaItemNotesAndSlides.bringSubview(toFront: globals.mediaPlayer.view!)
+                    } else {
+                        setupDefaultDocuments()
+                    }
+                } else {
+                    //This should never happen.
+                    setupDefaultDocuments()
+                }
+                break
+                
+            default:
+                break
+            }
+            break
+            
+        case Showing.none:
+            activityIndicator.stopAnimating()
+            activityIndicator.isHidden = true
             
             hideAllDocuments()
-
-            globals.mediaPlayer.view?.isHidden = true
             
-            logo.isHidden = !shouldShowLogo() // && roomForLogo()
-            
-            if (!logo.isHidden) {
-                mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+            switch selectedMediaItem!.playing! {
+            case Playing.audio:
+                globals.mediaPlayer.view?.isHidden = true
+                setupDefaultDocuments()
+                break
+                
+            case Playing.video:
+                if (globals.mediaPlayer.mediaItem == selectedMediaItem) {
+                    if (globals.mediaPlayer.mediaItem!.hasVideo && (globals.mediaPlayer.mediaItem!.playing == Playing.video)) {
+                        if globals.mediaPlayer.loaded {
+                            globals.mediaPlayer.view?.isHidden = false
+                        }
+                        mediaItemNotesAndSlides.bringSubview(toFront: globals.mediaPlayer.view!)
+                        selectedMediaItem?.showing = Showing.video
+                    } else {
+                        globals.mediaPlayer.view?.isHidden = true
+                        self.logo.isHidden = false
+                        selectedMediaItem?.showing = Showing.none
+                        self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
+                    }
+                } else {
+                    globals.mediaPlayer.view?.isHidden = true
+                    setupDefaultDocuments()
+                }
+                break
+                
+            default:
+                break
             }
+            break
+            
+        default:
+            break
         }
 
         setupSTVControl()
@@ -3195,6 +3236,10 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
                 document.wkWebView?.removeFromSuperview()
                 document.wkWebView?.scrollView.delegate = nil
                 
+                document.loadTimer?.invalidate()
+                
+//                document.wkWebView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), context: nil)
+                
                 if document.showing(selectedMediaItem) && (document.wkWebView != nil) && document.wkWebView!.scrollView.isDecelerating {
                     captureContentOffset(document)
                 }
@@ -3834,7 +3879,7 @@ extension MediaViewController : UITableViewDataSource
             return false
         }
         
-        return mediaItem.hasNotesHTML || (mediaItem.scriptureReference != Constants.Selected_Scriptures)
+        return mediaItem.hasNotesHTML || (mediaItem.books?.count > 0)
     }
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
@@ -3922,14 +3967,6 @@ extension MediaViewController : UITableViewDataSource
         return actions
     }
 
-    /*
-     // Override to support conditional editing of the table view.
-     override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-     // Return NO if you do not want the specified item to be editable.
-     return true
-     }
-     */
-    
     /*
      // Override to support editing the table view.
      override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {

@@ -826,9 +826,9 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                 string = string + Constants.SINGLE_SPACE + Constants.FA.PLAYING
             }
             
-            //        if (mediaItem!.scriptureReference != Constants.Selected_Scriptures) {
-            //            string = string + Constants.SINGLE_SPACE + Constants.FA.BOOK
-            //        }
+//            if let books = mediaItem?.books {
+//                string = string + Constants.SINGLE_SPACE + Constants.FA.SCRIPTURE
+//            }
             
             if (mediaItem!.hasTags) {
                 if (mediaItem?.tagsSet?.count > 1) {

@@ -3378,6 +3378,19 @@ extension MediaTableViewController : UITableViewDelegate
 //        }
     }
     
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
+    {
+        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+            return false
+        }
+        
+        guard let mediaItem = cell.mediaItem else {
+            return false
+        }
+        
+        return true // globals.search.complete
+    }
+    
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
@@ -3572,11 +3585,6 @@ extension MediaTableViewController : UITableViewDelegate
         }
 
         return actions
-    }
-    
-    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
-    {
-        return true // globals.search.complete
     }
     
     /*

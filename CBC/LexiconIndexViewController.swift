@@ -1019,6 +1019,23 @@ extension LexiconIndexViewController : UITableViewDelegate
         changesPending = false
     }
     
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
+    {
+        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+            return false
+        }
+        
+        guard let mediaItem = cell.mediaItem else {
+            return false
+        }
+        
+        guard let searchText = cell.searchText else {
+            return false
+        }
+        
+        return mediaItem.hasNotesHTML || (mediaItem.books?.count > 0)
+    }
+    
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
@@ -1140,19 +1157,6 @@ extension LexiconIndexViewController : UITableViewDataSource
         }
     }
 
-    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
-    {
-        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-            return false
-        }
-        
-        guard let mediaItem = cell.mediaItem else {
-            return false
-        }
-        
-        return mediaItem.hasNotesHTML || (mediaItem.scriptureReference != Constants.Selected_Scriptures)
-    }
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
     {
         let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.INDEX_MEDIA_ITEM, for: indexPath) as! MediaTableViewCell
