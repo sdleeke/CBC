@@ -66,6 +66,14 @@ struct SearchHit {
             return mediaItem?.className?.range(of:searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
         }
     }
+    var eventName:Bool {
+        get {
+            guard searchText != nil else {
+                return false
+            }
+            return mediaItem?.eventName?.range(of:searchText!, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+        }
+    }
     var tags:Bool {
         get {
             guard searchText != nil else {
@@ -692,7 +700,7 @@ class MediaItem : NSObject {
     {
         let searchHit = SearchHit(self,searchText)
         
-        return searchHit.title || searchHit.formattedDate || searchHit.speaker || searchHit.scriptureReference || searchHit.className || searchHit.tags
+        return searchHit.title || searchHit.formattedDate || searchHit.speaker || searchHit.scriptureReference || searchHit.className || searchHit.eventName || searchHit.tags
     }
         
     func searchFullNotesHTML(_ searchText:String?) -> Bool
@@ -1125,6 +1133,24 @@ class MediaItem : NSObject {
         }
     }
     
+    var eventSectionSort:String! {
+        get {
+            return eventSection.lowercased()
+        }
+    }
+    
+    var eventSection:String! {
+        get {
+            return hasEventName ? eventName! : Constants.None
+        }
+    }
+    
+    var eventName:String? {
+        get {
+            return dict![Field.eventName]
+        }
+    }
+    
     var speakerSectionSort:String! {
         get {
             return speakerSort!.lowercased()
@@ -1249,6 +1275,10 @@ class MediaItem : NSObject {
             
             if hasClassName {
                 dynamicTags = dynamicTags != nil ? dynamicTags! + "|" + className! : className!
+            }
+            
+            if hasEventName {
+                dynamicTags = dynamicTags != nil ? dynamicTags! + "|" + eventName! : eventName!
             }
             
             if hasSlides {
@@ -2160,6 +2190,14 @@ class MediaItem : NSObject {
                     bodyString = bodyString! + "</td>"
                     break
                     
+                case "event":
+                    bodyString = bodyString! + "<td valign=\"baseline\">"
+                    if let eventName = self.eventName {
+                        bodyString = bodyString! + eventName
+                    }
+                    bodyString = bodyString! + "</td>"
+                    break
+                    
                 case "count":
                     bodyString = bodyString! + "<td valign=\"baseline\">"
                     if let token = token, let count = self.notesTokens?[token] {
@@ -2212,6 +2250,12 @@ class MediaItem : NSObject {
                 case "class":
                     if let className = self.className {
                         bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + className
+                    }
+                    break
+                    
+                case "event":
+                    if let eventName = self.eventName {
+                        bodyString = (bodyString != nil ? bodyString! + Constants.SINGLE_SPACE : Constants.EMPTY_STRING) + Constants.SINGLE_SPACE + eventName
                     }
                     break
                     
@@ -2471,7 +2515,19 @@ class MediaItem : NSObject {
             }
             
             return !isEmpty
-//            return (self.className != nil) && (self.className != Constants.EMPTY_STRING)
+            //            return (self.className != nil) && (self.className != Constants.EMPTY_STRING)
+        }
+    }
+    
+    var hasEventName:Bool
+        {
+        get {
+            guard let isEmpty = eventName?.isEmpty else {
+                return false
+            }
+            
+            return !isEmpty
+            //            return (self.eventName != nil) && (self.eventName != Constants.EMPTY_STRING)
         }
     }
     

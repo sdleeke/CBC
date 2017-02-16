@@ -2298,7 +2298,7 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         searchBar.autocapitalizationType = .none
 
         refreshControl = UIRefreshControl()
@@ -2501,6 +2501,8 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
             var strings = [Constants.All]
             
             strings.append(contentsOf: globals.media.all!.mediaItemTags!)
+            
+            print(globals.media.all!.proposedTags)
             
             popover.section.strings = strings.sorted(by: { stringWithoutPrefixes($0)! < stringWithoutPrefixes($1)! })
             
@@ -2755,6 +2757,10 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
                 section = globals.media.active!.section!.titles!.index(of: mediaItem!.classSection!)!
                 break
                 
+            case Grouping.EVENT:
+                section = globals.media.active!.section!.titles!.index(of: mediaItem!.eventSection!)!
+                break
+                
             default:
                 break
             }
@@ -2946,8 +2952,19 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
             loadingView.addSubview(actInd)
             
             view.addSubview(loadingView)
-        }
 
+            view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-[loadingView]-|", options: [.alignAllCenterY], metrics: nil, views: ["loadingView":loadingView]))
+            view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-[loadingView]-|", options: [.alignAllCenterX], metrics: nil, views: ["loadingView":loadingView]))
+
+//            let views = ["loadingView": loadingView,"view": view]
+//            
+//            let horizontalContraints = NSLayoutConstraint.constraints(withVisualFormat: "H:|-[loadingView]-|", options: [.alignAllCenterY], metrics: nil, views: views)
+//            let verticalContraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-[loadingView]-|", options: [.alignAllCenterX], metrics: nil, views: views)
+//            
+//            view.addConstraints(horizontalContraints)
+//            view.addConstraints(verticalContraints)
+        }
+        
         //Do we want to do this?  If someone has selected something farther down the list to view, not play, when they come back
         //the list will scroll to whatever is playing or paused.
         
@@ -3167,6 +3184,19 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
     {
         super.viewWillTransition(to: size, with: coordinator)
 
+        var indexPath:IndexPath?
+        
+        if self.tableView.isEditing {
+            for cell in self.tableView.visibleCells {
+                if cell.isEditing {
+                    indexPath = self.tableView.indexPath(for: cell)
+                    break
+                }
+            }
+            self.dismiss(animated: true, completion: nil)
+            self.tableView.setEditing(false, animated: true)
+        }
+
         if !UIApplication.shared.isRunningInFullScreen() {
             _ = self.navigationController?.popToRootViewController(animated: true)
         }
@@ -3176,6 +3206,13 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
                 self.loadingView.center = CGPoint(x: self.view.bounds.width / 2, y: self.view.bounds.height / 2)
             }
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
+            if indexPath != nil {
+                self.tableView.scrollToRow(at: indexPath!, at: .middle, animated: true)
+//                let cell = self.tableView.cellForRow(at: indexPath!)
+//                cell?.setEditing(true, animated: true)
+//                self.tableView.reloadRows(at: [indexPath!], with: UITableViewRowAnimation.left)
+            }
+
             self.setupShowHide()
             if !UIApplication.shared.isRunningInFullScreen() {
                 self.dismiss(animated: true, completion: nil)
@@ -3289,15 +3326,19 @@ extension MediaTableViewController : UITableViewDataSource
             label.attributedText = NSAttributedString(string: title,   attributes: bold)
             
             label.translatesAutoresizingMaskIntoConstraints = false
-            
-            let views = ["label": label,"view": view]
+
             view.addSubview(label)
-            
-            let horizontalContraints = NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: .alignAllCenterY, metrics: nil, views: views)
-            let verticalContraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: .alignAllCenterX, metrics: nil, views: views)
-            
-            view.addConstraints(horizontalContraints)
-            view.addConstraints(verticalContraints)
+
+            view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
+            view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":label]))
+
+//            let views = ["label": label,"view": view]
+//            
+//            let horizontalContraints = NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: views)
+//            let verticalContraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: views)
+//            
+//            view.addConstraints(horizontalContraints)
+//            view.addConstraints(verticalContraints)
         }
 
 //        header.textLabel?.textColor = UIColor.black

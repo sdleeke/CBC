@@ -630,6 +630,12 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
                             }
                         }
                         
+                        if globals.grouping != Grouping.EVENT {
+                            if let eventName = mediaItem.eventName, !eventName.isEmpty {
+                                order.append("event")
+                            }
+                        }
+                        
                         if let string = mediaItem.bodyHTML(order: order, token: searchText, includeURLs: includeURLs, includeColumns: includeColumns) {
                             bodyString = bodyString! + string
                         }
@@ -1221,13 +1227,14 @@ extension LexiconIndexViewController : UITableViewDataSource
 
             view.addSubview(label)
 
-            let views = ["label": label,"view": view]
-            
-            let horizontalContraints = NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: .alignAllCenterY, metrics: nil, views: views)
-            let verticalContraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: .alignAllCenterX, metrics: nil, views: views)
-            
-            view.addConstraints(horizontalContraints)
-            view.addConstraints(verticalContraints)
+            view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
+            view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":label]))
+
+//            let horizontalContraints = NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: views)
+//            let verticalContraints = NSLayoutConstraint.constraints(withVisualFormat: "V:", options: [.alignAllCenterX], metrics: nil, views: views)
+//            
+//            view.addConstraints(horizontalContraints)
+//            view.addConstraints(verticalContraints)
         }
         
         view.alpha = 0.85

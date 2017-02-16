@@ -337,6 +337,38 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                 }
             }
             
+            if mediaItem!.searchHit(searchText).eventName {
+                var string:String?
+                var before:String?
+                var after:String?
+                
+                if let range = mediaItem?.eventName?.lowercased().range(of: searchText!.lowercased()) {
+                    before = mediaItem?.eventName?.substring(to: range.lowerBound)
+                    string = mediaItem?.eventName?.substring(with: range)
+                    after = mediaItem?.eventName?.substring(from: range.upperBound)
+                    
+                    if !detailString.string.isEmpty {
+                        detailString.append(NSAttributedString(string: "\n"))
+                    }
+                    if let before = before {
+                        detailString.append(NSAttributedString(string: before,   attributes: normal))
+                    }
+                    if let string = string {
+                        detailString.append(NSAttributedString(string: string,   attributes: highlighted))
+                    }
+                    if let after = after {
+                        detailString.append(NSAttributedString(string: after,   attributes: normal))
+                    }
+                }
+            } else {
+                if let eventName = mediaItem?.eventName {
+                    if !detailString.string.isEmpty {
+                        detailString.append(NSAttributedString(string: "\n"))
+                    }
+                    detailString.append(NSAttributedString(string: eventName, attributes: normal))
+                }
+            }
+            
             DispatchQueue.main.async {
                 //                print(detailString.string)
                 self.detail.attributedText = detailString
@@ -396,6 +428,13 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
                             self.detail.text?.append("\n")
                         }
                         self.detail.text?.append(className)
+                    }
+                    
+                    if let eventName = self.mediaItem?.eventName {
+                        if let isEmpty = self.detail.text?.isEmpty, !isEmpty {
+                            self.detail.text?.append("\n")
+                        }
+                        self.detail.text?.append(eventName)
                     }
                 }
                 

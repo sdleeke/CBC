@@ -103,6 +103,7 @@ struct MediaRepository {
         didSet {
             index = nil
             classes = nil
+            events = nil
             
             if (list != nil) {
                 for mediaItem in list! {
@@ -124,6 +125,14 @@ struct MediaRepository {
                             classes?.append(className)
                         }
                     }
+                    
+                    if let eventName = mediaItem.eventName {
+                        if events == nil {
+                            events = [eventName]
+                        } else {
+                            events?.append(eventName)
+                        }
+                    }
                 }
                 
                 globals.groupings = Constants.groupings
@@ -132,6 +141,11 @@ struct MediaRepository {
                 if classes?.count > 0 {
                     globals.groupings.append(Grouping.CLASS)
                     globals.groupingTitles.append(Grouping.Class)
+                }
+                
+                if events?.count > 0 {
+                    globals.groupings.append(Grouping.EVENT)
+                    globals.groupingTitles.append(Grouping.Event)
                 }
                 
                 if let grouping = globals.grouping, !globals.groupings.contains(grouping) {
@@ -143,6 +157,7 @@ struct MediaRepository {
 
     var index:[String:MediaItem]?
     var classes:[String]?
+    var events:[String]?
 }
 
 struct Tags {

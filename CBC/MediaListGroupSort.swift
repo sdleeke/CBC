@@ -1247,12 +1247,21 @@ class MediaListGroupSort {
                             classes?.append(className)
                         }
                     }
+                    
+                    if let eventName = mediaItem.eventName {
+                        if events == nil {
+                            events = [eventName]
+                        } else {
+                            events?.append(eventName)
+                        }
+                    }
                 }
             }
         }
     }
     var index:[String:MediaItem]? //MediaItems indexed by ID.
     var classes:[String]?
+    var events:[String]?
     
     lazy var lexicon:Lexicon? = {
         [unowned self] in
@@ -1271,6 +1280,53 @@ class MediaListGroupSort {
     
     var tagMediaItems:[String:[MediaItem]]?//sortTag:MediaItem
     var tagNames:[String:String]?//sortTag:tag
+    
+    var proposedTags:[String]? {
+        get {
+            var possibleTags = [String:Int]()
+            
+            if let tags = mediaItemTags {
+                for tag in tags {
+                    var possibleTag = tag
+                    
+                    if possibleTag.range(of: "-") != nil {
+                        while possibleTag.range(of: "-") != nil {
+                            let range = possibleTag.range(of: "-")
+                            
+                            let candidate = possibleTag.substring(to: range!.lowerBound).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                            
+                            if Int(candidate) == nil {
+                                if let count = possibleTags[candidate] {
+                                    possibleTags[candidate] =  count + 1
+                                } else {
+                                    possibleTags[candidate] =  1
+                                }
+                            }
+
+                            possibleTag = possibleTag.substring(from: range!.upperBound).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                        }
+                        
+                        if !possibleTag.isEmpty {
+                            let candidate = possibleTag.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+
+                            if Int(candidate) == nil {
+                                if let count = possibleTags[candidate] {
+                                    possibleTags[candidate] =  count + 1
+                                } else {
+                                    possibleTags[candidate] =  1
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            let proposedTags:[String] = possibleTags.keys.map { (string:String) -> String in
+                return string
+            }
+            return proposedTags.count > 0 ? proposedTags : nil
+        }
+    }
     
     var mediaItemTags:[String]? {
         get {
@@ -1340,6 +1396,10 @@ class MediaListGroupSort {
                 
             case Grouping.CLASS:
                 entries = [(mediaItem.classSectionSort,mediaItem.classSection)]
+                break
+                
+            case Grouping.EVENT:
+                entries = [(mediaItem.eventSectionSort,mediaItem.eventSection)]
                 break
                 
             default:

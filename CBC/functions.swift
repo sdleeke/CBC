@@ -2508,16 +2508,16 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
             }
         }
         
-        let uiView = viewController.view!
+        let view = viewController.view!
         
         let container: UIView = UIView()
         
-        container.frame = uiView.frame
-        container.center = CGPoint(x: uiView.bounds.width / 2, y: uiView.bounds.height / 2)
+        container.frame = view.frame
+        container.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
         
         container.backgroundColor = UIColor.white.withAlphaComponent(0.5)
         
-        uiView.addSubview(container)
+        view.addSubview(container)
         
         let loadingView: UIView = UIView()
         
@@ -2531,12 +2531,18 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
         
         container.addSubview(loadingView)
         
+        container.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-[loadingView]-|", options: [.alignAllCenterY], metrics: nil, views: ["loadingView":loadingView]))
+        container.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-[loadingView]-|", options: [.alignAllCenterX], metrics: nil, views: ["loadingView":loadingView]))
+        
         let actInd = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
         
         actInd.frame = CGRect(x: 0, y: 0, width: 40, height: 40);
         actInd.center = CGPoint(x: loadingView.bounds.width / 2, y: loadingView.bounds.height / 2)
         
         loadingView.addSubview(actInd)
+        
+        loadingView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-[actInd]-|", options: [.alignAllCenterY], metrics: nil, views: ["actInd":actInd]))
+        loadingView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-[actInd]-|", options: [.alignAllCenterX], metrics: nil, views: ["actInd":actInd]))
         
         actInd.startAnimating()
         
@@ -3201,6 +3207,12 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                     if globals.grouping != Grouping.CLASS {
                         if let className = mediaItem.className, !className.isEmpty {
                             order.append("class")
+                        }
+                    }
+                    
+                    if globals.grouping != Grouping.EVENT {
+                        if let eventName = mediaItem.eventName, !eventName.isEmpty {
+                            order.append("event")
                         }
                     }
                     

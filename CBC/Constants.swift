@@ -40,6 +40,7 @@ struct Field {
     static let category = "category"
     
     static let className = "class"
+    static let eventName = "event"
     
     static let multi_part_name = "multi part name"
     static let multi_part_name_sort = "multi part name sort"
@@ -86,12 +87,14 @@ struct Grouping {
     static let Speaker = "Speaker"
     static let Title = "Title"
     static let Class = "Class"
+    static let Event = "Event"
 
     static let YEAR = "year"
     static let BOOK = "book"
     static let SPEAKER = "speaker"
     static let TITLE = "title"
     static let CLASS = "class"
+    static let EVENT = "event"
 }
 
 struct Sorting {
