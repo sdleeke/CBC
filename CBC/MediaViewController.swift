@@ -1856,32 +1856,34 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
     
     fileprivate func setupWKWebView(_ wkWebView:WKWebView?)
     {
-        if (wkWebView != nil) {
-            wkWebView?.isMultipleTouchEnabled = true
-            
-            wkWebView?.scrollView.scrollsToTop = false
-            
-            wkWebView?.scrollView.delegate = self
-            wkWebView?.navigationDelegate = self
-
-            wkWebView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
-            
-            mediaItemNotesAndSlides.addSubview(wkWebView!)
-            
-            let centerXNotes = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
-            mediaItemNotesAndSlides.addConstraint(centerXNotes)
-            
-            let centerYNotes = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-            mediaItemNotesAndSlides.addConstraint(centerYNotes)
-            
-            let widthXNotes = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
-            mediaItemNotesAndSlides.addConstraint(widthXNotes)
-            
-            let widthYNotes = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
-            mediaItemNotesAndSlides.addConstraint(widthYNotes)
-            
-            mediaItemNotesAndSlides.setNeedsLayout()
+        guard (wkWebView != nil) else {
+            return
         }
+        
+        wkWebView?.isMultipleTouchEnabled = true
+        
+        wkWebView?.scrollView.scrollsToTop = false
+        
+        wkWebView?.scrollView.delegate = self
+        wkWebView?.navigationDelegate = self
+        
+        wkWebView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+        
+        mediaItemNotesAndSlides.addSubview(wkWebView!)
+        
+        let centerXNotes = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
+        mediaItemNotesAndSlides.addConstraint(centerXNotes)
+        
+        let centerYNotes = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+        mediaItemNotesAndSlides.addConstraint(centerYNotes)
+        
+        let widthXNotes = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
+        mediaItemNotesAndSlides.addConstraint(widthXNotes)
+        
+        let widthYNotes = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
+        mediaItemNotesAndSlides.addConstraint(widthYNotes)
+        
+        mediaItemNotesAndSlides.setNeedsLayout()
     }
     
     func scrollViewDidZoom(_ scrollView: UIScrollView) {

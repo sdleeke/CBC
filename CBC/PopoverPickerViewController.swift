@@ -326,7 +326,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
     }
 }
 
-class PopoverPickerViewController : UIViewController
+class PopoverPickerViewController : UIViewController, UIPopoverPresentationControllerDelegate, PopoverTableViewControllerDelegate
 {
     var delegate : PopoverPickerControllerDelegate?
     
@@ -355,14 +355,134 @@ class PopoverPickerViewController : UIViewController
         delegate?.stringPicked(string)
     }
     
+    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose: PopoverPurpose, mediaItem: MediaItem?)
+    {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "PopoverPickerViewController:rowClickedAtIndex")
+            return
+        }
+        
+//        dismiss(animated: true, completion: nil)
+        
+        guard let string = strings?[index] else {
+            return
+        }
+        
+        switch purpose {
+        case .selectingAction:
+            switch string {
+            case Constants.View_List:
+                process(viewController: self, work: { () -> (Any?) in
+                    var bodyHTML = "<!DOCTYPE html>"
+                    
+                    bodyHTML = bodyHTML + "<html><body>"
+                    
+                    bodyHTML = bodyHTML + "<center>"
+
+                    if let roots = self.lexicon?.stringTree.root?.stringNodes {
+                        bodyHTML = bodyHTML + "<table><tr>"
+
+                        for root in roots {
+                            if let string = root.string {
+                                bodyHTML = bodyHTML + "<td>" + "<a id=\"index\(string)\" name=\"index\(string)\" href=#\(string)>" + string + "</a>" + "</td>"
+                            }
+                        }
+                        
+                        bodyHTML = bodyHTML + "</tr></table>"
+
+                        bodyHTML = bodyHTML + "<table>"
+                        
+                        for root in roots {
+                            if let string = root.string {
+                                bodyHTML = bodyHTML + "<tr><td>" + "<a id=\"\(string)\" name=\"\(string)\" href=#index\(string)>" + string + "</a>" + "</td></tr>"
+                            }
+                            
+                            if let rows = root.htmlWords(nil) {
+                                for row in rows {
+                                    bodyHTML = bodyHTML + "<tr>" + row + "</tr>"
+                                }
+                            }
+                        }
+                        
+                        bodyHTML = bodyHTML + "</table>"
+                    }
+                    
+                    bodyHTML = bodyHTML + "</center>"
+                    
+                    bodyHTML = bodyHTML + "</body></html>"
+                    
+                    return bodyHTML
+                }, completion: { (data:Any?) in
+                    presentHTMLModal(viewController: self, medaiItem: nil, title: "Expanded Word Picker", htmlString: data as? String)
+                })
+                break
+                
+            default:
+                break
+            }
+            break
+            
+        default:
+            break
+        }
+    }
+    
+    func actions()
+    {
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            navigationController.modalPresentationStyle = .popover
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+            
+            //                popover.navigationItem.title = Constants.Actions
+            
+            popover.navigationController?.isNavigationBarHidden = true
+            
+            popover.delegate = self
+            popover.purpose = .selectingAction
+            
+            var actionMenu = [String]()
+            
+            actionMenu.append(Constants.View_List)
+            
+            popover.section.strings = actionMenu
+            
+            popover.section.showIndex = false //(globals.grouping == .series)
+            popover.section.showHeaders = false
+            
+            popover.vc = self
+            
+            present(navigationController, animated: true, completion: nil)
+        }
+    }
+    
+    func updateActionButton()
+    {
+        navigationItem.rightBarButtonItem?.isEnabled = lexicon?.stringTree.root.depthBelow(0) > 0
+    }
+    
+    func setupActionButton()
+    {
+        if mediaListGroupSort != nil {
+            navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(PopoverPickerViewController.actions)), animated: false)
+        }
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        setupActionButton()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
+        updateActionButton()
+        
         if mediaListGroupSort != nil {
             DispatchQueue(label: "CBC").async(execute: { () -> Void in
                 NotificationCenter.default.addObserver(self, selector: #selector(PopoverPickerViewController.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.lexicon)
@@ -550,6 +670,14 @@ class PopoverPickerViewController : UIViewController
     
     func stringTreeUpdated()
     {
+//        print(lexicon?.stringTree.root.depthBelow(0))
+        
+//        lexicon?.stringTree.root.printStrings(nil)
+//        lexicon?.stringTree.root.printWords(nil)
+        
+//        let words = lexicon?.stringTree.root.htmlWords(nil)
+//        print(words)
+        
         root = lexicon?.stringTree.root
         
 //        print(self.mediaListGroupSort?.lexicon?.root.htmlWords(nil))
@@ -559,6 +687,8 @@ class PopoverPickerViewController : UIViewController
             self.updatePicker()
             
             DispatchQueue.main.async(execute: { () -> Void in
+                self.updateActionButton()
+
                 if let eligible = self.lexicon?.eligible?.count, let depth = self.lexicon?.stringTree.root?.depthBelow(0) {
                     if eligible == 0,depth > 0 {
                         // Should NEVER happen

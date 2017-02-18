@@ -814,6 +814,10 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
     
     func updated()
     {
+//        print(lexicon?.tokens)
+//        print(lexicon?.gcw)
+//        print(lexicon?.gcr)
+
         updateTitle()
         
         updateLocateButton()
@@ -823,6 +827,10 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
     
     func completed()
     {
+//        print(lexicon?.tokens)
+//        print(lexicon?.gcw)
+//        print(lexicon?.gcr)
+
         updateTitle()
         
         updateLocateButton()

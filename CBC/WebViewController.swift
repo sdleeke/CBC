@@ -624,7 +624,7 @@ class WebViewController: UIViewController, UIScrollViewDelegate, UIPopoverPresen
         wkWebView?.isMultipleTouchEnabled = true
         wkWebView?.isUserInteractionEnabled = true
         
-//        wkWebView?.scrollView.scrollsToTop = false
+        wkWebView?.scrollView.scrollsToTop = true
         
         wkWebView?.scrollView.delegate = self
 
