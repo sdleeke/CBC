@@ -835,7 +835,7 @@ class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelega
             }
 
             if (mediaItem!.hasNotes) {
-                if mediaItem!.searchHit(searchText).transcriptHTML {
+                if globals.search.transcripts && mediaItem!.searchHit(searchText).transcriptHTML {
                     attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: highlighted))
                 } else {
 //                    print(searchText!)

@@ -3086,24 +3086,32 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
         setupActionAndTagsButtons()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool)
+    {
         super.viewWillAppear(animated)
 
-        DispatchQueue.main.async {
-            // Shouldn't some or all of these have object values of selectedMediaItem?
-            
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.showPlaying), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SHOW_PLAYING), object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.paused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
-            
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.failedToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.readyToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.setupPlayPauseButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-            
-            if (self.splitViewController != nil) {
-                NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
-                NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
-            }
+        guard Thread.isMainThread else {
+            return
         }
+        
+        navigationController?.isToolbarHidden = true
+
+        // Shouldn't some or all of these have object values of selectedMediaItem?
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.showPlaying), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SHOW_PLAYING), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.paused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.failedToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.readyToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.setupPlayPauseButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+        
+        if (self.splitViewController != nil) {
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
+        }
+
+//        DispatchQueue.main.async {
+//        }
 
         if (selectedMediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) && globals.mediaPlayer.isPaused && globals.mediaPlayer.mediaItem!.hasCurrentTime() {
             globals.mediaPlayer.seek(to: Double(globals.mediaPlayer.mediaItem!.currentTime!))
@@ -3904,21 +3912,25 @@ extension MediaViewController : UITableViewDataSource
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
                 
-                //                if globals.search.valid && globals.search.transcripts {
-                //                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
-                //                } else {
+//                if globals.search.valid && globals.search.transcripts {
+//                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
+//                } else {
+//                    htmlString = mediaItem.fullNotesHTML
+//                }
+
                 htmlString = mediaItem.fullNotesHTML
-                //                }
-                
                 popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
-                    if globals.search.valid && globals.search.transcripts {
-                        return mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
-                    } else {
-                        return mediaItem.fullNotesHTML
-                    }
+                    
+//                    if globals.search.valid && globals.search.transcripts {
+//                        return mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false, index: true)
+//                    } else {
+//                        return mediaItem.fullNotesHTML
+//                    }
+                    
+                    return mediaItem.fullNotesHTML
                 }, completion: { (data:Any?) in
                     if let htmlString = data as? String {
                         popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)

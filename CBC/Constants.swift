@@ -166,6 +166,8 @@ struct Constants {
 
         static let SET_PREFERRED_CONTENT_SIZE = "SET PREFERRED CONTENT SIZE"
         
+        static let UPDATE_SEARCH            = "UPDATE SEARCH"
+        
         static let UPDATE_DOCUMENT          = "UPDATE DOCUMENT"
         static let CANCEL_DOCUMENT          = "CANCEL DOCUMENT"
         

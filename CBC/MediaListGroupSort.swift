@@ -611,9 +611,9 @@ class StringNode {
     
     func printWords(_ cumulativeString:String?)
     {
-//        guard string != nil else {
-//            return
-//        }
+        //        guard string != nil else {
+        //            return
+        //        }
         
         if wordEnding {
             if cumulativeString != nil {
@@ -627,8 +627,8 @@ class StringNode {
                     print(string!)
                 }
             }
-
-//            print("\n")
+            
+            //            print("\n")
         }
         
         guard stringNodes != nil else {
@@ -636,7 +636,7 @@ class StringNode {
         }
         
         for stringNode in stringNodes!.sorted(by: { $0.string < $1.string }) {
-//            print(string!+"-")
+            //            print(string!+"-")
             if cumulativeString != nil {
                 if string != nil {
                     stringNode.printWords(cumulativeString!+string!+"-")
@@ -652,6 +652,121 @@ class StringNode {
             }
         }
     }
+    
+//    func htmlWords(_ cumulativeString:String?,htmlString:String?) -> String?
+//    {
+//        //        guard string != nil else {
+//        //            return
+//        //        }
+//        
+//        var newHTMLString:String?
+//        
+//        if wordEnding {
+//            if cumulativeString != nil {
+//                if string != nil {
+//                    newHTMLString = htmlString! + "<tr>" + cumulativeString! + string! + "</tr>"
+//                } else {
+//                    newHTMLString = htmlString! + "<tr>" + cumulativeString! + "</tr>"
+//                }
+//            } else {
+//                if string != nil {
+//                    newHTMLString = htmlString! + "<tr>" + string! + "</tr>"
+//                }
+//            }
+//        } else {
+//            if cumulativeString != nil {
+//                if string != nil {
+//                    newHTMLString = htmlString! + "<tr>" + cumulativeString! + string! + "</tr>"
+//                } else {
+//                    newHTMLString = htmlString! + "<tr>" + cumulativeString! + "</tr>"
+//                }
+//            } else {
+//                if string != nil {
+//                    newHTMLString = htmlString! + "<tr>" + string! + "</tr>"
+//                }
+//            }
+//        }
+//        
+//        guard stringNodes != nil else {
+//            return newHTMLString
+//        }
+//        
+//        for stringNode in stringNodes!.sorted(by: { $0.string < $1.string }) {
+//            //            print(string!+"-")
+//            if cumulativeString != nil {
+//                if string != nil {
+//                    newHTMLString = stringNode.htmlWords(cumulativeString! + "<td>" + string! + "</td>",htmlString: newHTMLString)
+//                } else {
+//                    newHTMLString = stringNode.htmlWords(cumulativeString! + "<td></td>",htmlString: newHTMLString)
+//                }
+//            } else {
+//                if string != nil {
+//                    newHTMLString = stringNode.htmlWords("</td>" + string! + "</td>",htmlString: newHTMLString)
+//                } else {
+//                    newHTMLString = stringNode.htmlWords("<td></td>",htmlString: newHTMLString)
+//                }
+//            }
+//        }
+//        
+//        return newHTMLString
+//    }
+    
+//    func htmlWords(_ cumulativeHTML:String?) -> String?
+//    {
+//        //        guard string != nil else {
+//        //            return
+//        //        }
+//
+//        var html:String?
+//        
+//        if wordEnding {
+//            if cumulativeHTML != nil {
+//                if string != nil {
+//                    html = cumulativeHTML! + string! + "</td></tr>"
+//                } else {
+//                    html = cumulativeHTML! + "</tr>"
+//                }
+//            } else {
+//                if string != nil {
+//                    html = "<tr><td>" + string! + "</td></tr>"
+//                } else {
+//                    // This means both the cumulative string and string are nil, i.e. root.
+//                }
+//            }
+//        } else {
+//            if cumulativeHTML != nil {
+//                if string != nil {
+//                    html = cumulativeHTML! + string!
+//                }
+//            } else {
+//                if string != nil {
+//                    html = string
+//                }
+//            }
+//        }
+//        
+//        guard stringNodes != nil else {
+//            if html != nil {
+//                if wordEnding {
+//                    return html
+//                } else {
+//                    // THIS SHOULD NEVER HAPPEN.
+//                    return html! + "</tr>"
+//                }
+//            } else {
+//                return nil
+//            }
+//        }
+//        
+//        for stringNode in stringNodes!.sorted(by: { $0.string < $1.string }) {
+//            //            print(string!+"-")
+//            if let string = stringNode.htmlWords(html) {
+//                html = html != nil ? html! + string : string
+//            }
+//        }
+//        
+//        return html
+//    }
     
     func addStringNode(_ newString:String?)
     {
@@ -803,6 +918,43 @@ class StringNode {
 
 typealias Words = [String:[MediaItem:Int]]
 
+class StringTree {
+    weak var lexicon:Lexicon!
+    
+    init(lexicon:Lexicon?)
+    {
+        self.lexicon = lexicon
+    }
+    
+    lazy var root:StringNode! = {
+        return StringNode(nil)
+    }()
+    
+    var building = false
+    var completed = false
+
+    func build()
+    {
+        guard !building else {
+            return
+        }
+        
+        building = true
+        
+        DispatchQueue.global(qos: .background).async {
+            self.root = StringNode(nil)
+            self.root.addStrings(self.lexicon.tokens)
+            
+            self.building = false
+            self.completed = true
+            
+            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.lexicon)
+            })
+        }
+    }
+}
+
 class Lexicon : NSObject {
     weak var mediaListGroupSort:MediaListGroupSort?
     
@@ -810,33 +962,10 @@ class Lexicon : NSObject {
         self.mediaListGroupSort = mlgs
     }
     
-    lazy var root:StringNode! = {
-        return StringNode(nil)
+    lazy var stringTree:StringTree! = {
+        [unowned self] in
+        return StringTree(lexicon: self)
     }()
-
-    var stringTreeBuilding = false
-    var stringTreeCompleted = false
-    
-    func buildStringTree()
-    {
-        guard !stringTreeBuilding else {
-            return
-        }
-        
-        stringTreeBuilding = true
-        
-        DispatchQueue.global(qos: .background).async {
-            self.root = StringNode(nil)
-            self.root.addStrings(self.tokens)
-            
-            self.stringTreeBuilding = false
-            self.stringTreeCompleted = true
-            
-            DispatchQueue(label: "CBC").async(execute: { () -> Void in
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
-            })
-        }
-    }
     
     var tokens:[String]? {
         get {
@@ -1125,13 +1254,13 @@ class Lexicon : NSObject {
                 if !globals.isRefreshing && !globals.isLoading {
                     self.completed = true
                 }
-                
+
 //                print(self.root.depthBelow(0))
                 
 //                self.mediaListGroupSort?.lexicon?.addStrings(self.mediaListGroupSort?.lexicon?.tokens)
 //                self.mediaListGroupSort?.lexicon?.root.printStrings(nil)
 //                self.mediaListGroupSort?.lexicon?.root.printWords(nil)
-//                
+//
 //                print(self.mediaListGroupSort?.lexicon?.tokens)
 //                print(self.mediaListGroupSort?.lexicon?.gcw)
 //                print(self.mediaListGroupSort?.lexicon?.gcr)
@@ -1295,7 +1424,7 @@ class MediaListGroupSort {
                             
                             let candidate = possibleTag.substring(to: range!.lowerBound).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
                             
-                            if Int(candidate) == nil {
+                            if (Int(candidate) == nil) && !tags.contains(candidate) {
                                 if let count = possibleTags[candidate] {
                                     possibleTags[candidate] =  count + 1
                                 } else {
@@ -1309,7 +1438,7 @@ class MediaListGroupSort {
                         if !possibleTag.isEmpty {
                             let candidate = possibleTag.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
 
-                            if Int(candidate) == nil {
+                            if (Int(candidate) == nil) && !tags.contains(candidate) {
                                 if let count = possibleTags[candidate] {
                                     possibleTags[candidate] =  count + 1
                                 } else {
@@ -1560,8 +1689,7 @@ class MediaListGroupSort {
     
     lazy var section:Section? = {
         [unowned self] in
-        var section = Section(self)
-        return section
+        return Section(self)
         }()
     
     //    var sectionIndexTitles:[String]? {

@@ -9,46 +9,30 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "508942213.1386"
+            filePath = "CBC/PopoverPickerViewController.swift"
+            timestampString = "509125140.30092"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "3211"
-            endingLineNumber = "3211"
-            landmarkName = "viewWillTransition(to:with:)"
+            startingLineNumber = "446"
+            endingLineNumber = "446"
+            landmarkName = "setPreferredContentSize()"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "function signature specialization &lt;Arg[1] = Value Promoted from Box&gt; of CBC.MediaTableViewController.(viewWillTransition (to : __C.CGSize, with : __ObjC.UIViewControllerTransitionCoordinator) -&gt; ()).(closure #2)"
-                  moduleName = "CBC"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/MediaTableViewController.swift"
-                  timestampString = "508939144.666"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "3206"
-                  endingLineNumber = "3206"
-                  offsetFromSymbolStart = "422">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "CBC.MediaTableViewController.(viewWillTransition (to : __C.CGSize, with : __ObjC.UIViewControllerTransitionCoordinator) -&gt; ()).(closure #2).(closure #1)"
-                  moduleName = "CBC"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/MediaTableViewController.swift"
-                  timestampString = "508939144.668168"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "3207"
-                  endingLineNumber = "3207"
-                  offsetFromSymbolStart = "19">
-               </Location>
-            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/PopoverPickerViewController.swift"
+            timestampString = "509123909.636504"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "268"
+            endingLineNumber = "268"
+            landmarkName = "pickerView(_:widthForComponent:)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

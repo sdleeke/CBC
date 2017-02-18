@@ -1112,6 +1112,7 @@ class MediaItem : NSObject {
     }
     
     lazy var scripture:Scripture? = {
+        [unowned self] in
         return Scripture(reference:self.scriptureReference)
     }()
     
@@ -1264,13 +1265,54 @@ class MediaItem : NSObject {
         }
     }
     
-    // nil better be okay for these or expect a crash
-    var tags:String? {
+    func proposedTags(_ tags:String?) -> String?
+    {
+        var possibleTags = [String:Int]()
+        
+        if let tags = tagsArrayFromTagsString(tags) {
+            for tag in tags {
+                var possibleTag = tag
+                
+                if possibleTag.range(of: "-") != nil {
+                    while possibleTag.range(of: "-") != nil {
+                        let range = possibleTag.range(of: "-")
+                        
+                        let candidate = possibleTag.substring(to: range!.lowerBound).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                        
+                        if (Int(candidate) == nil) && !tags.contains(candidate) {
+                            if let count = possibleTags[candidate] {
+                                possibleTags[candidate] =  count + 1
+                            } else {
+                                possibleTags[candidate] =  1
+                            }
+                        }
+                        
+                        possibleTag = possibleTag.substring(from: range!.upperBound).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                    }
+                    
+                    if !possibleTag.isEmpty {
+                        let candidate = possibleTag.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                        
+                        if (Int(candidate) == nil) && !tags.contains(candidate) {
+                            if let count = possibleTags[candidate] {
+                                possibleTags[candidate] =  count + 1
+                            } else {
+                                possibleTags[candidate] =  1
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        let proposedTags:[String] = possibleTags.keys.map { (string:String) -> String in
+            return string
+        }
+        return proposedTags.count > 0 ? tagsArrayToTagsString(proposedTags) : nil
+    }
+    
+    var dynamicTags:String? {
         get {
-            let jsonTags = dict?[Field.tags]
-            
-            let savedTags = mediaItemSettings?[Field.tags]
-            
             var dynamicTags:String?
             
             if hasClassName {
@@ -1296,6 +1338,17 @@ class MediaItem : NSObject {
             if hasVideo {
                 dynamicTags = dynamicTags != nil ? dynamicTags! + "|" + Constants.Video : Constants.Video
             }
+
+            return dynamicTags
+        }
+    }
+    
+    // nil better be okay for these or expect a crash
+    var tags:String? {
+        get {
+            let jsonTags = dict?[Field.tags]
+            
+            let savedTags = mediaItemSettings?[Field.tags]
             
             //                if let books = self.books {
             //                    for book in books {
@@ -1315,6 +1368,18 @@ class MediaItem : NSObject {
             tags = tags != nil ? tags! + (savedTags != nil ? "|" + savedTags! : "") : (savedTags != nil ? savedTags : nil)
             
             tags = tags != nil ? tags! + (dynamicTags != nil ? "|" + dynamicTags! : "") : (dynamicTags != nil ? dynamicTags : nil)
+            
+            if let proposedTags = proposedTags(jsonTags) {
+                tags = tags != nil ? tags! + "|" + proposedTags : proposedTags
+            }
+            
+            if let proposedTags = proposedTags(savedTags) {
+                tags = tags != nil ? tags! + "|" + proposedTags : proposedTags
+            }
+            
+            if let proposedTags = proposedTags(dynamicTags) {
+                tags = tags != nil ? tags! + "|" + proposedTags : proposedTags
+            }
             
 //            print(tags)
             
@@ -1551,16 +1616,17 @@ class MediaItem : NSObject {
         return CachedString(index: nil)
     }()
     
-    func markedFullNotesHTML(searchText:String?,index:Bool) -> String?
+    func markedFullNotesHTML(searchText:String?,wholeWordsOnly:Bool,index:Bool) -> String?
     {
         guard (stripHead(fullNotesHTML) != nil) else {
             return nil
         }
         
         if (searchText != nil) && (searchText != Constants.EMPTY_STRING) {
-            if searchMarkedFullNotesHTML?[searchText] != nil {
-                return searchMarkedFullNotesHTML?[searchText]
-            }
+            // If we pull this with a different wholeWordsOnly than before we'll get the wrong answer...so don't reuse it.
+//            if searchMarkedFullNotesHTML?[searchText] != nil {
+//                return searchMarkedFullNotesHTML?[searchText]
+//            }
         } else {
             let string = "No Occurrences of \"\(searchText!)\" were found.<br/>"
             
@@ -1589,18 +1655,39 @@ class MediaItem : NSObject {
                     stringBefore = string.substring(to: range.lowerBound)
                     stringAfter = string.substring(from: range.upperBound)
                     
+                    var skip = false
+                    
+                    let tokenDelimiters = "$\"' :-!;,.()?&/<>[]"
+                    
+                    if wholeWordsOnly {
+                        if let characterAfter:Character = stringAfter.characters.first {
+                            if !CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterAfter))!) {
+                                skip = true
+                            }
+                        }
+                        if let characterBefore:Character = stringBefore.characters.last {
+                            if !CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterBefore))!) {
+                                skip = true
+                            }
+                        }
+                    }
+
                     foundString = string.substring(from: range.lowerBound)
                     let newRange = foundString.lowercased().range(of: searchText!.lowercased())
                     foundString = foundString.substring(to: newRange!.upperBound)
-                    
-                    markCounter += 1
-                    foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
-                    
+
+                    if !skip {
+                        markCounter += 1
+                        foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
+                    }
+
                     newString = newString + stringBefore + foundString
                     
                     stringBefore = stringBefore + foundString
                     
                     string = stringAfter
+                } else {
+                    break
                 }
             }
             
@@ -1610,7 +1697,7 @@ class MediaItem : NSObject {
         }
 
         var newString:String = Constants.EMPTY_STRING
-        var string:String = stripHead(fullNotesHTML)!
+        var string:String = notesHTML! // stripHead(fullNotesHTML)!
         
         while let searchRange = string.range(of: "<") {
             let searchString = string.substring(to: searchRange.lowerBound)
@@ -1654,12 +1741,20 @@ class MediaItem : NSObject {
                 indexString = indexString + "<br/><br/></div>"
             }
             
-            newString = newString.replacingOccurrences(of: "<body>", with: "<body>"+indexString)
+//            newString = newString.replacingOccurrences(of: "<body>", with: "<body>"+indexString)
         }
         
 //        newString = newString + stringAfter
         
-        searchMarkedFullNotesHTML?[searchText] = insertHead(newString,fontSize: Constants.FONT_SIZE)
+        var htmlString = "<!DOCTYPE html><html><body>"
+        
+        if index {
+            htmlString = htmlString + indexString
+        }
+
+        htmlString = htmlString + headerHTML! + newString + "</body></html>"
+
+        searchMarkedFullNotesHTML?[searchText] = insertHead(htmlString,fontSize: Constants.FONT_SIZE) // insertHead(newString,fontSize: Constants.FONT_SIZE)
         
         return searchMarkedFullNotesHTML?[searchText]
     }
@@ -2307,6 +2402,14 @@ class MediaItem : NSObject {
                 string = string! + "\n\(scriptureReference!)"
             }
             
+            if hasClassName {
+                string = string! + "\n\(className!)"
+            }
+            
+            if hasEventName {
+                string = string! + "\n\(eventName!)"
+            }
+            
             return string
         }
     }
@@ -2388,6 +2491,7 @@ class MediaItem : NSObject {
     }
     
     lazy var mediaItemSettings:MediaItemSettings? = {
+        [unowned self] in
         return MediaItemSettings(mediaItem:self)
     }()
     
@@ -2435,6 +2539,7 @@ class MediaItem : NSObject {
     }
     
     lazy var multiPartSettings:MultiPartSettings? = {
+        [unowned self] in
         return MultiPartSettings(mediaItem:self)
     }()
     

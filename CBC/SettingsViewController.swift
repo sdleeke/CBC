@@ -15,6 +15,10 @@ class SettingsViewController: UIViewController {
     
     @IBAction func searchTranscriptsAction(_ sender: UISwitch) {
         globals.search.transcripts = sender.isOn
+        
+        DispatchQueue.main.async(execute: { () -> Void in
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
+        })
     }
     
     @IBOutlet weak var autoAdvanceSwitch: UISwitch!

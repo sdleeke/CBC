@@ -632,7 +632,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 if let list:[MediaItem]? = globals.media.toSearch?.lexicon?.words?[searchText]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
                     return tuple.0
                 }) {
-                    updateSearch(searchText:searchText,mediaItems: list)
+                    updateSearches(searchText:searchText,mediaItems: list)
                     updateDisplay(searchText:searchText)
                 }
             }
@@ -2500,9 +2500,15 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
             
             var strings = [Constants.All]
             
-            strings.append(contentsOf: globals.media.all!.mediaItemTags!)
+            if let mediaItemTags = globals.media.all?.mediaItemTags {
+                strings.append(contentsOf: mediaItemTags)
+            }
             
-            print(globals.media.all!.proposedTags)
+//            if let proposedTags = globals.media.all?.proposedTags {
+//                strings.append(contentsOf: proposedTags)
+//            }
+//            
+//            print(globals.media.all!.proposedTags)
             
             popover.section.strings = strings.sorted(by: { stringWithoutPrefixes($0)! < stringWithoutPrefixes($1)! })
             
@@ -2525,10 +2531,10 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
         }
     }
     
-    func updateSearchResults(for searchController: UISearchController)
-    {
-        updateSearchResults(globals.search.text,completion: nil)
-    }
+//    func updateSearchResults(for searchController: UISearchController)
+//    {
+//        updateSearchResults(globals.search.text,completion: nil)
+//    }
     
     func updateDisplay(searchText:String?)
     {
@@ -2554,7 +2560,7 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
         })
     }
 
-    func updateSearch(searchText:String?,mediaItems: [MediaItem]?)
+    func updateSearches(searchText:String?,mediaItems: [MediaItem]?)
     {
         guard let searchText = searchText?.uppercased() else {
             return
@@ -2642,7 +2648,7 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
                             }
                             
                             if ((searchMediaItems!.count % Constants.SEARCH_RESULTS_BETWEEN_UPDATES) == 0) {
-                                self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
+                                self.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
                                 self.updateDisplay(searchText:searchText)
                             }
                         }
@@ -2650,7 +2656,7 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
                 }
                 
                 if !abort {
-                    self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
+                    self.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
                     self.updateDisplay(searchText:searchText)
                 } else {
                     globals.media.toSearch?.searches?[searchText] = nil
@@ -2662,26 +2668,29 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
                         
                         self.setupListActivityIndicator()
                         
-                        var searchHit = false
-                        
-                        if (searchMediaItems == nil) || !searchMediaItems!.contains(mediaItem) {
-                            searchHit = mediaItem.searchFullNotesHTML(searchText)
-                        }
+//                        var searchHit = false
 
-                        abort = abort || shouldAbort()
+                        let searchHit = mediaItem.searchFullNotesHTML(searchText)
+
+//                        if (searchMediaItems == nil) || !searchMediaItems!.contains(mediaItem) {
+//                        }
+
+                        abort = abort || shouldAbort() || !globals.search.transcripts
                         
                         if abort {
                             globals.media.toSearch?.searches?[searchText] = nil
                             break
                         } else {
                             if searchHit {
-                                if searchMediaItems == nil {
-                                    searchMediaItems = [mediaItem]
-                                } else {
-                                    searchMediaItems?.append(mediaItem)
+                                if (searchMediaItems == nil) || !searchMediaItems!.contains(mediaItem) {
+                                    if searchMediaItems == nil {
+                                        searchMediaItems = [mediaItem]
+                                    } else {
+                                        searchMediaItems?.append(mediaItem)
+                                    }
                                 }
                                 
-                                self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
+                                self.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
                                 self.updateDisplay(searchText:searchText)
                             }
                         }
@@ -2696,7 +2705,7 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
             if abort {
                 globals.media.toSearch?.searches?[searchText] = nil
             } else {
-                self.updateSearch(searchText:searchText,mediaItems: searchMediaItems)
+                self.updateSearches(searchText:searchText,mediaItems: searchMediaItems)
                 self.updateDisplay(searchText:searchText)
             }
             
@@ -2878,15 +2887,28 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
         }
     }
     
+    func updateSearch()
+    {
+        guard globals.search.valid else {
+            return
+        }
+        
+        updateSearchResults(globals.search.text,completion: nil)
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        DispatchQueue.main.async {
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
-            
-//            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.editing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.EDITING), object: self.tableView)
-//            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.notEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_EDITING), object: self.tableView)
-        }
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateSearch), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
+
+//        DispatchQueue.main.async {
+//            
+////            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.editing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.EDITING), object: self.tableView)
+////            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.notEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_EDITING), object: self.tableView)
+//        }
+        
+        navigationController?.isToolbarHidden = false
         
         updateUI()
         
@@ -2925,8 +2947,6 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
         setupBarButtons()
 
         setupListActivityIndicator()
-        
-        navigationController?.isToolbarHidden = false
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -3562,7 +3582,7 @@ extension MediaTableViewController : UITableViewDelegate
                 var htmlString:String?
                 
                 if globals.search.valid && globals.search.transcripts {
-                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
+                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false, index: true)
                 } else {
                     htmlString = mediaItem.fullNotesHTML
                 }
@@ -3572,7 +3592,7 @@ extension MediaTableViewController : UITableViewDelegate
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
                     if globals.search.valid && globals.search.transcripts {
-                        return mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
+                        return mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false,index: true)
                     } else {
                         return mediaItem.fullNotesHTML
                     }

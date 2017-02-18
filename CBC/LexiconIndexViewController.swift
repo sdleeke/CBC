@@ -332,6 +332,7 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
             DispatchQueue.main.async(execute: { () -> Void in
                 self.updateActionMenu()
                 self.tableView.reloadData()
+                self.updateUI()
             })
             return
         }
@@ -942,6 +943,8 @@ class LexiconIndexViewController: UIViewController, UIPopoverPresentationControl
         
         navigationController?.setToolbarHidden(false, animated: true)
 
+        toolbarItems?[1].isEnabled = results?.mediaItems?.count > 0
+        
         spinner.isHidden = true
         spinner.stopAnimating()
         
@@ -1068,17 +1071,13 @@ extension LexiconIndexViewController : UITableViewDelegate
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
                 
-                htmlString = mediaItem.markedFullNotesHTML(searchText:searchText,index: true)
+                htmlString = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true,index: true)
                 
                 popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
-                    if globals.search.valid && globals.search.transcripts {
-                        return mediaItem.markedFullNotesHTML(searchText:searchText,index: true)
-                    } else {
-                        return mediaItem.fullNotesHTML
-                    }
+                    return mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true,index: true)
                 }, completion: { (data:Any?) in
                     if let htmlString = data as? String {
                         popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)

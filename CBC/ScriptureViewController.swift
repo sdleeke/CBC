@@ -650,6 +650,8 @@ class ScriptureViewController : UIViewController, UIPopoverPresentationControlle
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
+        NotificationCenter.default.addObserver(self, selector: #selector(ScriptureViewController.setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
+
         navigationController?.setToolbarHidden(true, animated: false)
         
         preferredContentSize = CGSize(width:  view.frame.width,
@@ -746,10 +748,6 @@ class ScriptureViewController : UIViewController, UIPopoverPresentationControlle
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        
-        DispatchQueue.main.async {
-            NotificationCenter.default.addObserver(self, selector: #selector(ScriptureViewController.setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
-        }
         
         //        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
         navigationItem.leftItemsSupplementBackButton = true

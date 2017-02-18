@@ -1708,21 +1708,26 @@ extension ScriptureIndexViewController : UITableViewDelegate
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
                 
-                if globals.search.valid && globals.search.transcripts {
-                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
-                } else {
-                    htmlString = mediaItem.fullNotesHTML
-                }
-                
+//                if globals.search.valid && globals.search.transcripts {
+//                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false,index: true)
+//                } else {
+//                    htmlString = mediaItem.fullNotesHTML
+//                }
+
+                htmlString = mediaItem.fullNotesHTML
+
                 popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
-                    if globals.search.valid && globals.search.transcripts {
-                        return mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
-                    } else {
-                        return mediaItem.fullNotesHTML
-                    }
+                    
+//                    if globals.search.valid && globals.search.transcripts {
+//                        return mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false,index: true)
+//                    } else {
+//                        return mediaItem.fullNotesHTML
+//                    }
+
+                    return mediaItem.fullNotesHTML
                 }, completion: { (data:Any?) in
                     if let htmlString = data as? String {
                         popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)

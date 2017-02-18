@@ -59,7 +59,7 @@ extension WebViewController : PopoverPickerControllerDelegate
             self.activityIndicator.startAnimating()
         })
         
-        html.string = selectedMediaItem?.markedFullNotesHTML(searchText:searchText, index: true)
+        html.string = selectedMediaItem?.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
         html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
         
         _ = self.wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
@@ -152,7 +152,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 self.activityIndicator.isHidden = false
                 self.activityIndicator.startAnimating()
                 
-                self.html.string = insertHead(stripHead(self.selectedMediaItem?.markedFullNotesHTML(searchText:searchText, index: true)),fontSize: self.html.fontSize)
+                self.html.string = insertHead(stripHead(self.selectedMediaItem?.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
                 
                 _ = self.wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
             })
@@ -310,7 +310,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             activityIndicator.isHidden = false
             activityIndicator.startAnimating()
             
-            html.string = selectedMediaItem?.markedFullNotesHTML(searchText:searchText, index: true)
+            html.string = selectedMediaItem?.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
             html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
             
             _ = wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
