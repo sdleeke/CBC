@@ -15,6 +15,21 @@ protocol PopoverPickerControllerDelegate
     func stringPicked(_ string:String?)
 }
 
+extension PopoverPickerViewController : UIAdaptivePresentationControllerDelegate
+{
+    // MARK: UIAdaptivePresentationControllerDelegate
+    
+    // Specifically for Plus size iPhones.
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+        return UIModalPresentationStyle.none
+    }
+}
+
 extension PopoverPickerViewController : UIPickerViewDataSource
 {
     // MARK: UIPickerViewDataSource
@@ -326,35 +341,13 @@ extension PopoverPickerViewController : UIPickerViewDelegate
     }
 }
 
-class PopoverPickerViewController : UIViewController, UIPopoverPresentationControllerDelegate, PopoverTableViewControllerDelegate
+extension PopoverPickerViewController : UIPopoverPresentationControllerDelegate
 {
-    var delegate : PopoverPickerControllerDelegate?
     
-    var mediaListGroupSort:MediaListGroupSort?
-    var pickerSelections = [Int:Int]()
-    var root:StringNode?
-    
-    var lexicon:Lexicon?
-    {
-        get {
-            return mediaListGroupSort?.lexicon
-        }
-    }
-    
-    var strings:[String]?
-    var string:String?
-    
-    @IBOutlet weak var spinner: UIActivityIndicatorView!
-    @IBOutlet weak var picker: UIPickerView!
-    
-    @IBOutlet weak var selectButton: UIButton!
-    
-    @IBAction func selectButtonAction(sender: UIButton)
-    {
-//        print("\(string)")
-        delegate?.stringPicked(string)
-    }
-    
+}
+
+extension PopoverPickerViewController : PopoverTableViewControllerDelegate
+{
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose: PopoverPurpose, mediaItem: MediaItem?)
     {
         guard Thread.isMainThread else {
@@ -362,7 +355,7 @@ class PopoverPickerViewController : UIViewController, UIPopoverPresentationContr
             return
         }
         
-//        dismiss(animated: true, completion: nil)
+        //        dismiss(animated: true, completion: nil)
         
         guard let string = strings?[index] else {
             return
@@ -371,17 +364,17 @@ class PopoverPickerViewController : UIViewController, UIPopoverPresentationContr
         switch purpose {
         case .selectingAction:
             switch string {
-            case Constants.View_List:
+            case Constants.Expanded_View:
                 process(viewController: self, work: { () -> (Any?) in
                     var bodyHTML = "<!DOCTYPE html>"
                     
                     bodyHTML = bodyHTML + "<html><body>"
                     
                     bodyHTML = bodyHTML + "<center>"
-
+                    
                     if let roots = self.lexicon?.stringTree.root?.stringNodes {
                         bodyHTML = bodyHTML + "<table><tr>"
-
+                        
                         for root in roots {
                             if let string = root.string {
                                 bodyHTML = bodyHTML + "<td>" + "<a id=\"index\(string)\" name=\"index\(string)\" href=#\(string)>" + string + "</a>" + "</td>"
@@ -389,7 +382,7 @@ class PopoverPickerViewController : UIViewController, UIPopoverPresentationContr
                         }
                         
                         bodyHTML = bodyHTML + "</tr></table>"
-
+                        
                         bodyHTML = bodyHTML + "<table>"
                         
                         for root in roots {
@@ -426,6 +419,36 @@ class PopoverPickerViewController : UIViewController, UIPopoverPresentationContr
             break
         }
     }
+}
+
+class PopoverPickerViewController : UIViewController
+{
+    var delegate : PopoverPickerControllerDelegate?
+    
+    var mediaListGroupSort:MediaListGroupSort?
+    var pickerSelections = [Int:Int]()
+    var root:StringNode?
+    
+    var lexicon:Lexicon?
+    {
+        get {
+            return mediaListGroupSort?.lexicon
+        }
+    }
+    
+    var strings:[String]?
+    var string:String?
+    
+    @IBOutlet weak var spinner: UIActivityIndicatorView!
+    @IBOutlet weak var picker: UIPickerView!
+    
+    @IBOutlet weak var selectButton: UIButton!
+    
+    @IBAction func selectButtonAction(sender: UIButton)
+    {
+//        print("\(string)")
+        delegate?.stringPicked(string)
+    }
     
     func actions()
     {
@@ -447,7 +470,7 @@ class PopoverPickerViewController : UIViewController, UIPopoverPresentationContr
             
             var actionMenu = [String]()
             
-            actionMenu.append(Constants.View_List)
+            actionMenu.append(Constants.Expanded_View)
             
             popover.section.strings = actionMenu
             

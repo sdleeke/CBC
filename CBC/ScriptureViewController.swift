@@ -375,7 +375,12 @@ extension ScriptureViewController : MFMailComposeViewControllerDelegate
     }
 }
 
-class ScriptureViewController : UIViewController, UIPopoverPresentationControllerDelegate
+extension ScriptureViewController : UIPopoverPresentationControllerDelegate
+{
+    
+}
+
+class ScriptureViewController : UIViewController
 {
     var actionButton:UIBarButtonItem?
     var minusButton:UIBarButtonItem?

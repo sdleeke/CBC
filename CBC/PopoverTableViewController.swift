@@ -13,6 +13,21 @@ protocol PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index:Int, strings:[String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
 }
 
+extension PopoverTableViewController : UIAdaptivePresentationControllerDelegate
+{
+    // MARK: UIAdaptivePresentationControllerDelegate
+    
+    // Specifically for Plus size iPhones.
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+        return UIModalPresentationStyle.none
+    }
+}
+
 //extension PopoverTableViewController: UISearchControllerDelegate {
 //    // MARK: UISearchControllerDelegate
 //    
@@ -205,10 +220,57 @@ extension PopoverTableViewController: UISearchBarDelegate
 //    var indexes:[Int]?
 //}
 
-class PopoverTableViewController: UIViewController {
+extension PopoverTableViewController : PopoverTableViewControllerDelegate {
+    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose: PopoverPurpose, mediaItem: MediaItem?)
+    {
+        guard Thread.isMainThread else {
+            return
+        }
+        
+        dismiss(animated: true, completion: nil)
+        
+        guard let string = strings?[index] else {
+            return
+        }
+        
+//        print(vc)
+        
+//        guard let vc = (vc as? MediaTableViewController) else {
+//            return
+//        }
+        
+        switch string {
+        case "Alphabetical":
+            sorting = "Alphabetical"
+            break
+            
+        case "Frequency":
+            sorting = "Frequency"
+            break
+            
+        default:
+            break
+        }
+    }
+}
+
+extension PopoverTableViewController : UIPopoverPresentationControllerDelegate {
+    
+}
+
+class PopoverTableViewController : UIViewController {
     var vc:UIViewController?
     
     var selectedText:String!
+
+    var sorting : String? = "Alphabetical"
+    {
+        didSet {
+            if sorting != oldValue {
+//                print(sorting)
+            }
+        }
+    }
     
     var search          = false
     var searchActive    = false
@@ -230,35 +292,11 @@ class PopoverTableViewController: UIViewController {
     var allowsSelection:Bool = true
     var allowsMultipleSelection:Bool = false
     
-//    var showIndex:Bool = false
-//    var showSectionHeaders:Bool = false
-    
     var mediaListGroupSort:MediaListGroupSort?
-    
-//    var indexStrings:[String]?
-    
-//    var strings:[String]?
-    
-//    var _section = Section()
     
     var section = Section()
         
-//    {
-//        get {
-//            if let section = mediaListGroupSort?.lexicon?.section {
-//                return section
-//            } else {
-//                return _section
-//            }
-//        }
-//    }
-    
-//    var filteredStrings:[String]?
     var filteredSection = Section()
-    
-//    var transform:((String?)->String?)?
-    
-//    var section:Section!
     
     func setPreferredContentSize()
     {
@@ -438,33 +476,9 @@ class PopoverTableViewController: UIViewController {
         searchBar.autocapitalizationType = .none
 
         if !search {
-//            searchBar.isHidden = !search
-//            searchBar.frame = CGRect(origin: searchBar.frame.origin, size: CGSize(width: searchBar.frame.width, height: 0))
-//            tableView.frame.origin = CGPoint.zero
-//            view.setNeedsLayout()
             searchBar.removeFromSuperview()
             tableViewTopConstraint.constant = 0
         }
-        
-//        if search {
-//            definesPresentationContext = true // ABSOLUTE ESSENTIAL TO SEARCH BAR BEING CORRECTLY PLACED WHEN ACTIVATED
-//
-//            searchController = UISearchController(searchResultsController: nil)
-//            
-//            searchController?.searchResultsUpdater = self
-//            searchController?.searchBar.sizeToFit()
-//
-//            searchController?.delegate = self
-//
-//            searchController?.searchBar.delegate = self
-//
-//            searchController?.hidesNavigationBarDuringPresentation = true
-//            
-//            searchController?.dimsBackgroundDuringPresentation = false
-//  
-////            view.addSubview(searchController!.searchBar)
-//            tableView.tableHeaderView = searchController?.searchBar
-//        }
         
         if mediaListGroupSort != nil {
             addRefreshControl()
@@ -754,11 +768,44 @@ class PopoverTableViewController: UIViewController {
         }
     }
     
+    func sort()
+    {
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            navigationController.modalPresentationStyle = .popover
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+            
+            //                popover.navigationItem.title = Constants.Actions
+            
+            popover.navigationController?.isNavigationBarHidden = true
+            
+            popover.delegate = self
+            popover.purpose = .selectingSorting
+            
+            popover.section.strings = ["Alphabetical","Frequency"]
+            
+            popover.section.showIndex = false
+            popover.section.showHeaders = false
+            
+            popover.vc = self
+            
+            present(navigationController, animated: true, completion: nil)
+        }
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
         
         navigationController?.setToolbarHidden(true, animated: false)
+        
+        if selectedMediaItem != nil {
+            navigationItem.setRightBarButton(UIBarButtonItem(title: "Sort", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.sort)),animated: true)
+        }
         
         if mediaListGroupSort != nil {
 //            searchController?.hidesNavigationBarDuringPresentation = false
@@ -872,110 +919,6 @@ class PopoverTableViewController: UIViewController {
         // Dispose of any resources that can be recreated.
         globals.freeMemory()
     }
-
-
-//    func tableView(_ tableView: UITableView, didUnhighlightRowAt indexPath: IndexPath)
-//    {
-//        var index = -1
-//        
-//        if (showIndex) {
-//           // if let active = self.searchController?.isActive, active {
-//            if searchActive {
-//                index = filteredSection.indexes != nil ? filteredSection.indexes![indexPath.section] + indexPath.row : -1
-//                print(filteredStrings?[index])
-//            } else {
-//                index = section.indexes != nil ? section.indexes![indexPath.section] + indexPath.row : -1
-//                print(strings?[index])
-//            }
-//        } else {
-//            index = indexPath.row
-//            print(strings?[index])
-//        }
-//    }
-//    
-//    func tableView(_ tableView: UITableView, didHighlightRowAt indexPath: IndexPath)
-//    {
-//        var index = -1
-//        
-//        if (showIndex) {
-//    //        if let active = self.searchController?.isActive, active {
-//    if searchActive {
-//                index = filteredSection.indexes != nil ? filteredSection.indexes![indexPath.section] + indexPath.row : -1
-//                print(filteredStrings?[index])
-//            } else {
-//                index = section.indexes != nil ? section.indexes![indexPath.section] + indexPath.row : -1
-//                print(strings?[index])
-//            }
-//        } else {
-//            index = indexPath.row
-//            print(strings?[index])
-//        }
-//    }
-//    
-//    func tableView(_ tableView:UITableView, didDeselectRowAt indexPath: IndexPath)
-//    {
-//        var index = -1
-//        
-//        if (showIndex) {
-//    //        if let active = self.searchController?.isActive, active {
-//    if searchActive {
-//                index = filteredSection.indexes != nil ? filteredSection.indexes![indexPath.section] + indexPath.row : -1
-//                print(filteredStrings?[index])
-//            } else {
-//                index = section.indexes != nil ? section.indexes![indexPath.section] + indexPath.row : -1
-//                print(strings?[index])
-//            }
-//        } else {
-//            index = indexPath.row
-//            print(strings?[index])
-//        }
-//    }
-    
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        // Return NO if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if editingStyle == .Delete {
-            // Delete the row from the data source
-            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-        } else if editingStyle == .Insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(tableView: UITableView, moveRowAtIndexPath fromIndexPath: NSIndexPath, toIndexPath: NSIndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(tableView: UITableView, canMoveRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        // Return NO if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using [segue destinationViewController].
-        // Pass the selected object to the new view controller.
-    }
-    */
-
 }
 
 extension PopoverTableViewController : UITableViewDataSource
@@ -1103,22 +1046,23 @@ extension PopoverTableViewController : UITableViewDataSource
             index = indexPath.row
         }
         
-        if index == -1 {
+        guard index > -1 else {
             print("ERROR")
+            return cell
+        }
+        
+        var string:String!
+        
+        if searchActive {
+            string = filteredSection.strings?[index]
+        } else {
+            string = section.strings?[index]
         }
         
         // Configure the cell...
         switch purpose! {
         case .selectingTags:
             //            print("strings: \(strings[indexPath.row]) mediaItemTag: \(globals.mediaItemTag)")
-            var string:String!
-            
-            //        if let active = self.searchController?.isActive, active {
-            if searchActive {
-                string = filteredSection.strings?[index]
-            } else {
-                string = section.strings?[index]
-            }
             
             switch globals.media.tags.showing! {
             case Constants.TAGGED:
@@ -1156,6 +1100,15 @@ extension PopoverTableViewController : UITableViewDataSource
             } else {
                 cell.accessoryType = UITableViewCellAccessoryType.none
             }
+            
+            if let sorting = (vc as? PopoverTableViewController)?.sorting {
+//                print(sorting, string)
+                if sorting == string {
+                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
+                } else {
+                    cell.accessoryType = UITableViewCellAccessoryType.none
+                }
+            }
             break
             
         default:
@@ -1180,6 +1133,41 @@ extension PopoverTableViewController : UITableViewDataSource
         
         return cell
     }
+
+    /*
+     // Override to support conditional editing of the table view.
+     override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+     // Return NO if you do not want the specified item to be editable.
+     return true
+     }
+     */
+    
+    /*
+     // Override to support editing the table view.
+     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+     if editingStyle == .Delete {
+     // Delete the row from the data source
+     tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+     } else if editingStyle == .Insert {
+     // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
+     }
+     }
+     */
+    
+    /*
+     // Override to support rearranging the table view.
+     override func tableView(tableView: UITableView, moveRowAtIndexPath fromIndexPath: NSIndexPath, toIndexPath: NSIndexPath) {
+     
+     }
+     */
+    
+    /*
+     // Override to support conditional rearranging of the table view.
+     override func tableView(tableView: UITableView, canMoveRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+     // Return NO if you do not want the item to be re-orderable.
+     return true
+     }
+     */
 }
 
 extension PopoverTableViewController : UITableViewDelegate
@@ -1241,4 +1229,63 @@ extension PopoverTableViewController : UITableViewDelegate
             break
         }
     }
+    
+//    func tableView(_ tableView: UITableView, didUnhighlightRowAt indexPath: IndexPath)
+//    {
+//        var index = -1
+//
+//        if (showIndex) {
+//           // if let active = self.searchController?.isActive, active {
+//            if searchActive {
+//                index = filteredSection.indexes != nil ? filteredSection.indexes![indexPath.section] + indexPath.row : -1
+//                print(filteredStrings?[index])
+//            } else {
+//                index = section.indexes != nil ? section.indexes![indexPath.section] + indexPath.row : -1
+//                print(strings?[index])
+//            }
+//        } else {
+//            index = indexPath.row
+//            print(strings?[index])
+//        }
+//    }
+//
+//    func tableView(_ tableView: UITableView, didHighlightRowAt indexPath: IndexPath)
+//    {
+//        var index = -1
+//
+//        if (showIndex) {
+//    //        if let active = self.searchController?.isActive, active {
+//    if searchActive {
+//                index = filteredSection.indexes != nil ? filteredSection.indexes![indexPath.section] + indexPath.row : -1
+//                print(filteredStrings?[index])
+//            } else {
+//                index = section.indexes != nil ? section.indexes![indexPath.section] + indexPath.row : -1
+//                print(strings?[index])
+//            }
+//        } else {
+//            index = indexPath.row
+//            print(strings?[index])
+//        }
+//    }
+//
+//    func tableView(_ tableView:UITableView, didDeselectRowAt indexPath: IndexPath)
+//    {
+//        var index = -1
+//
+//        if (showIndex) {
+//    //        if let active = self.searchController?.isActive, active {
+//    if searchActive {
+//                index = filteredSection.indexes != nil ? filteredSection.indexes![indexPath.section] + indexPath.row : -1
+//                print(filteredStrings?[index])
+//            } else {
+//                index = section.indexes != nil ? section.indexes![indexPath.section] + indexPath.row : -1
+//                print(strings?[index])
+//            }
+//        } else {
+//            index = indexPath.row
+//            print(strings?[index])
+//        }
+//    }
+    
+    
 }

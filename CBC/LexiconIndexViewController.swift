@@ -223,7 +223,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
     }
 }
 
-extension LexiconIndexViewController: MFMailComposeViewControllerDelegate
+extension LexiconIndexViewController : MFMailComposeViewControllerDelegate
 {
     // MARK: MFMailComposeViewControllerDelegate Method
 
@@ -233,7 +233,12 @@ extension LexiconIndexViewController: MFMailComposeViewControllerDelegate
     }
 }
 
-class LexiconIndexViewController: UIViewController, UIPopoverPresentationControllerDelegate
+extension LexiconIndexViewController : UIPopoverPresentationControllerDelegate
+{
+    
+}
+
+class LexiconIndexViewController : UIViewController
 {
     var mediaListGroupSort:MediaListGroupSort?
     
@@ -1038,22 +1043,24 @@ extension LexiconIndexViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-            return false
-        }
+        return editActionsForIndexPath(tableView,indexPath: indexPath) != nil
         
-        guard let mediaItem = cell.mediaItem else {
-            return false
-        }
-        
-        guard let searchText = cell.searchText else {
-            return false
-        }
-        
-        return mediaItem.hasNotesHTML || (mediaItem.books?.count > 0)
+//        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+//            return false
+//        }
+//        
+//        guard let mediaItem = cell.mediaItem else {
+//            return false
+//        }
+//        
+//        guard let searchText = cell.searchText else {
+//            return false
+//        }
+//        
+//        return mediaItem.hasNotesHTML || (mediaItem.books?.count > 0)
     }
     
-    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
+    func editActionsForIndexPath(_ tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
     {
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
             return nil
@@ -1131,7 +1138,12 @@ extension LexiconIndexViewController : UITableViewDelegate
             actions.append(transcript)
         }
         
-        return actions
+        return actions.count > 0 ? actions : nil
+    }
+    
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
+    {
+        return editActionsForIndexPath(tableView, indexPath: indexPath)
     }
 }
 

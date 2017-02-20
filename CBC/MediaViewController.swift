@@ -522,7 +522,54 @@ extension MediaViewController : WKNavigationDelegate
     }
 }
 
-class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPresentationControllerDelegate
+extension MediaViewController: UIScrollViewDelegate
+{
+    func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        //        print("scrollViewDidZoom")
+    }
+    
+    func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
+        //        print("scrollViewDidEndZooming")
+        if let view = scrollView.superview as? WKWebView {
+            captureContentOffset(view)
+            captureZoomScale(view)
+        }
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        //        print("scrollViewDidScroll")
+    }
+    
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        //        print("scrollViewDidEndScrollingAnimation")
+        if let view = scrollView.superview as? WKWebView {
+            captureContentOffset(view)
+        }
+    }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
+    {
+        //        print("scrollViewDidEndDecelerating")
+        if let view = scrollView.superview as? WKWebView {
+            captureContentOffset(view)
+        }
+    }
+    
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool)
+    {
+        //        print("scrollViewDidEndDragging")
+        if !decelerate {
+            scrollViewDidEndDecelerating(scrollView)
+        }
+    }
+}
+
+extension MediaViewController: UIPopoverPresentationControllerDelegate
+{
+    
+}
+
+class MediaViewController: UIViewController
 {
     @IBOutlet weak var controlView: ControlView!
     
@@ -1884,45 +1931,6 @@ class MediaViewController: UIViewController, UIScrollViewDelegate, UIPopoverPres
         mediaItemNotesAndSlides.addConstraint(widthYNotes)
         
         mediaItemNotesAndSlides.setNeedsLayout()
-    }
-    
-    func scrollViewDidZoom(_ scrollView: UIScrollView) {
-//        print("scrollViewDidZoom")
-    }
-    
-    func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
-//        print("scrollViewDidEndZooming")
-        if let view = scrollView.superview as? WKWebView {
-            captureContentOffset(view)
-            captureZoomScale(view)
-        }
-    }
-    
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        print("scrollViewDidScroll")
-    }
-    
-    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-//        print("scrollViewDidEndScrollingAnimation")
-        if let view = scrollView.superview as? WKWebView {
-            captureContentOffset(view)
-        }
-    }
-    
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
-    {
-//        print("scrollViewDidEndDecelerating")
-        if let view = scrollView.superview as? WKWebView {
-            captureContentOffset(view)
-        }
-    }
-    
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool)
-    {
-//        print("scrollViewDidEndDragging")
-        if !decelerate {
-            scrollViewDidEndDecelerating(scrollView)
-        }
     }
     
     func readyToPlay()
@@ -3881,18 +3889,20 @@ extension MediaViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-            return false
-        }
+        return editActionsAtIndexPath(tableView,indexPath:indexPath) != nil
         
-        guard let mediaItem = cell.mediaItem else {
-            return false
-        }
-        
-        return mediaItem.hasNotesHTML || (mediaItem.books?.count > 0)
+//        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+//            return false
+//        }
+//        
+//        guard let mediaItem = cell.mediaItem else {
+//            return false
+//        }
+//        
+//        return mediaItem.hasNotesHTML || (mediaItem.books?.count > 0)
     }
     
-    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
+    func editActionsAtIndexPath(_ tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
     {
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
             return nil
@@ -3914,23 +3924,23 @@ extension MediaViewController : UITableViewDataSource
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
                 
-//                if globals.search.valid && globals.search.transcripts {
-//                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
-//                } else {
-//                    htmlString = mediaItem.fullNotesHTML
-//                }
-
+                //                if globals.search.valid && globals.search.transcripts {
+                //                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
+                //                } else {
+                //                    htmlString = mediaItem.fullNotesHTML
+                //                }
+                
                 htmlString = mediaItem.fullNotesHTML
                 popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
                     
-//                    if globals.search.valid && globals.search.transcripts {
-//                        return mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false, index: true)
-//                    } else {
-//                        return mediaItem.fullNotesHTML
-//                    }
+                    //                    if globals.search.valid && globals.search.transcripts {
+                    //                        return mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false, index: true)
+                    //                    } else {
+                    //                        return mediaItem.fullNotesHTML
+                    //                    }
                     
                     return mediaItem.fullNotesHTML
                 }, completion: { (data:Any?) in
@@ -3978,7 +3988,12 @@ extension MediaViewController : UITableViewDataSource
             actions.append(transcript)
         }
         
-        return actions
+        return actions.count > 0 ? actions : nil
+    }
+    
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
+    {
+        return editActionsAtIndexPath(tableView, indexPath: indexPath)
     }
 
     /*

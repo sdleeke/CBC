@@ -1077,7 +1077,12 @@ extension MediaTableViewController : URLSessionDownloadDelegate
     }
 }
 
-class MediaTableViewController : UIViewController, UIPopoverPresentationControllerDelegate
+extension MediaTableViewController : UIPopoverPresentationControllerDelegate
+{
+    
+}
+
+class MediaTableViewController : UIViewController
 {
     var changesPending = false
     
@@ -2270,6 +2275,10 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
     
     func startAnimating()
     {
+        if loadingView == nil {
+            setupLoadingView()
+        }
+
         guard loadingView != nil else {
             return
         }
@@ -2284,18 +2293,52 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
             self.loadingView.isHidden = false
             self.actInd.startAnimating()
         })
+    }
+    
+    func setupLoadingView()
+    {
+        guard (loadingView == nil) else {
+            return
+        }
         
-        // Doesn't work to center the loadingView, instead resetting the center in viewWillTransition
+        loadingView = UIView(frame: CGRect(x: 0, y: 0, width: 80, height: 80))
+        
+        loadingView.center = CGPoint(x: view.frame.width / 2, y: view.frame.height / 2)
+        //            print("1",loadingView.center)
+        
+        loadingView.backgroundColor = UIColor.gray.withAlphaComponent(0.75)
+        
+        loadingView.clipsToBounds = true
+        loadingView.layer.cornerRadius = 10
+        
+        actInd = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
+        
+        actInd.frame = CGRect(x: 0, y: 0, width: 40, height: 40);
+        actInd.center = CGPoint(x: loadingView.frame.width / 2, y: loadingView.frame.height / 2)
+        
+        loadingView.addSubview(actInd)
+        
+        view.addSubview(loadingView)
+
+        // For some reason this causes problems in this case.
+        //        loadingView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+
+        
+        // Doesn't matter which way we setup constraints.  Neither WORK!  When rotating or coming back from the desktop, the loadingView is only centered when
+        // the center is forcibly set such as in viewWillTransition.
         
 //        let centerX = NSLayoutConstraint(item: loadingView!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: loadingView!.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
 //        loadingView?.superview?.addConstraint(centerX)
 //        
 //        let centerY = NSLayoutConstraint(item: loadingView!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: loadingView!.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
 //        loadingView?.superview?.addConstraint(centerY)
-//        
-//        loadingView?.superview?.layoutSubviews()
+        
+        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-[loadingView]-|", options: [.alignAllCenterY], metrics: nil, views: ["loadingView":loadingView]))
+        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-[loadingView]-|", options: [.alignAllCenterX], metrics: nil, views: ["loadingView":loadingView]))
+        
+        view.setNeedsLayout()
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -2951,39 +2994,8 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
-        if loadingView == nil {
-            loadingView = UIView(frame: CGRect(x: 0, y: 0, width: 80, height: 80))
-            
-            //        loadingView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
-            
-            loadingView.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
-            
-            loadingView.backgroundColor = UIColor.gray.withAlphaComponent(0.75)
-            
-            loadingView.clipsToBounds = true
-            loadingView.layer.cornerRadius = 10
-            
-            actInd = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
-            
-            actInd.frame = CGRect(x: 0, y: 0, width: 40, height: 40);
-            actInd.center = CGPoint(x: loadingView.bounds.width / 2, y: loadingView.bounds.height / 2)
-            
-            loadingView.addSubview(actInd)
-            
-            view.addSubview(loadingView)
 
-            view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-[loadingView]-|", options: [.alignAllCenterY], metrics: nil, views: ["loadingView":loadingView]))
-            view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-[loadingView]-|", options: [.alignAllCenterX], metrics: nil, views: ["loadingView":loadingView]))
-
-//            let views = ["loadingView": loadingView,"view": view]
-//            
-//            let horizontalContraints = NSLayoutConstraint.constraints(withVisualFormat: "H:|-[loadingView]-|", options: [.alignAllCenterY], metrics: nil, views: views)
-//            let verticalContraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-[loadingView]-|", options: [.alignAllCenterX], metrics: nil, views: views)
-//            
-//            view.addConstraints(horizontalContraints)
-//            view.addConstraints(verticalContraints)
-        }
+//        setupLoadingView()
         
         //Do we want to do this?  If someone has selected something farther down the list to view, not play, when they come back
         //the list will scroll to whatever is playing or paused.
@@ -3204,34 +3216,49 @@ class MediaTableViewController : UIViewController, UIPopoverPresentationControll
     {
         super.viewWillTransition(to: size, with: coordinator)
 
-        var indexPath:IndexPath?
-        
-        if self.tableView.isEditing {
-            for cell in self.tableView.visibleCells {
-                if cell.isEditing {
-                    indexPath = self.tableView.indexPath(for: cell)
-                    break
-                }
-            }
-            self.dismiss(animated: true, completion: nil)
-            self.tableView.setEditing(false, animated: true)
-        }
+//        var indexPath:IndexPath?
+//        
+//        if self.tableView.isEditing {
+//            for cell in self.tableView.visibleCells {
+//                if cell.isEditing {
+//                    indexPath = self.tableView.indexPath(for: cell)
+//                    break
+//                }
+//            }
+////            self.dismiss(animated: true, completion: nil)
+////            self.tableView.setEditing(false, animated: true)
+//        }
 
         if !UIApplication.shared.isRunningInFullScreen() {
             _ = self.navigationController?.popToRootViewController(animated: true)
         }
 
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            if self.loadingView != nil {
-                self.loadingView.center = CGPoint(x: self.view.bounds.width / 2, y: self.view.bounds.height / 2)
+            if (self.loadingView != nil) && (UIApplication.shared.applicationState == UIApplicationState.active) {
+                self.loadingView.center = CGPoint(x: self.view.frame.width / 2, y: self.view.frame.height / 2)
+//                print("2",self.loadingView.center)
             }
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            if indexPath != nil {
-                self.tableView.scrollToRow(at: indexPath!, at: .middle, animated: true)
-//                let cell = self.tableView.cellForRow(at: indexPath!)
-//                cell?.setEditing(true, animated: true)
-//                self.tableView.reloadRows(at: [indexPath!], with: UITableViewRowAnimation.left)
-            }
+//            if indexPath != nil {
+//                var newIndexPath:IndexPath?
+//                for cell in self.tableView.visibleCells {
+//                    if cell.isEditing {
+//                        newIndexPath = self.tableView.indexPath(for: cell)
+//                        break
+//                    }
+//                }
+//                
+//                if newIndexPath == nil {
+////                    self.tableView.scrollToRow(at: indexPath!, at: .middle, animated: true)
+////                    let cell = self.tableView.cellForRow(at: indexPath!)
+////                    cell?.setEditing(true, animated: true)
+////                    self.tableView.reloadRows(at: [indexPath!], with: UITableViewRowAnimation.left)
+////                    DispatchQueue.main.async(execute: { () -> Void in
+////                        self.tableView.setEditing(false, animated: false)
+////                        self.dismiss(animated: true, completion: nil)
+////                    })
+//                }
+//            }
 
             self.setupShowHide()
             if !UIApplication.shared.isRunningInFullScreen() {
@@ -3441,18 +3468,20 @@ extension MediaTableViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-            return false
-        }
+        return actionsAtIndexPath(tableView, indexPath: indexPath) != nil
         
-        guard let mediaItem = cell.mediaItem else {
-            return false
-        }
-        
-        return true // globals.search.complete
+//        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+//            return false
+//        }
+//        
+//        guard let mediaItem = cell.mediaItem else {
+//            return false
+//        }
+//        
+//        return true // globals.search.complete
     }
     
-    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
+    func actionsAtIndexPath(_ tableView: UITableView, indexPath:IndexPath) -> [UITableViewRowAction]?
     {
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
             return nil
@@ -3586,7 +3615,7 @@ extension MediaTableViewController : UITableViewDelegate
                 } else {
                     htmlString = mediaItem.fullNotesHTML
                 }
-
+                
                 popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
             } else {
                 process(viewController: self, work: { () -> (Any?) in
@@ -3612,8 +3641,10 @@ extension MediaTableViewController : UITableViewDelegate
         scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
             let sourceView = cell.subviews[0]
             let sourceRectView = cell.subviews[0].subviews[actions.index(of: scripture)!]
-
+            
             if let reference = mediaItem.scriptureReference {
+                //                mediaItem.scripture?.html?[reference] = nil // REMOVE THIS LATER
+                
                 if mediaItem.scripture?.html?[reference] != nil {
                     popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
                 } else {
@@ -3633,19 +3664,24 @@ extension MediaTableViewController : UITableViewDelegate
         }
         
         scripture.backgroundColor = UIColor.orange
-
+        
         if mediaItem.books != nil {
             actions.append(scripture)
         }
-
+        
         actions.append(search)
-
+        
         if mediaItem.hasNotesHTML {
             actions.append(words)
             actions.append(transcript)
         }
-
-        return actions
+        
+        return actions.count > 0 ? actions : nil
+    }
+    
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
+    {
+        return actionsAtIndexPath(tableView, indexPath: indexPath)
     }
     
     /*

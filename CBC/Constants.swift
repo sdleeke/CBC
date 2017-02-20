@@ -163,7 +163,13 @@ struct Constants {
 
     struct NOTIFICATION {
         static let FREE_MEMORY              = "FREE MEMORY"
-
+        
+        static let DID_BECOME_ACTIVE        = "DID BECOME ACTIVE"
+        static let WILL_TERMINATE           = "WILL TERMINATE"
+        
+        static let WILL_ENTER_FORGROUND     = "WILL ENTER FORGROUND"
+        static let DID_ENTER_BACKGROUND     = "DID ENTER BACKGROUND"
+        
         static let SET_PREFERRED_CONTENT_SIZE = "SET PREFERRED CONTENT SIZE"
         
         static let UPDATE_SEARCH            = "UPDATE SEARCH"
@@ -605,6 +611,8 @@ struct Constants {
     
     static let Lexicon = "Lexicon"
     static let Lexicon_Index = "Lexicon Index"
+    
+    static let Expanded_View = "Expanded View"
     
     static let View_List = "View List"
     static let List = "List"

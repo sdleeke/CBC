@@ -197,9 +197,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
                 
-                //                popover.navigationItem.title = Constants.Actions
+                popover.navigationItem.title = Constants.Search
                 
-                popover.navigationController?.isNavigationBarHidden = true
+                popover.navigationController?.isNavigationBarHidden = false
                 
                 popover.delegate = self
                 popover.purpose = .selectingWord
@@ -444,7 +444,74 @@ extension WebViewController : WKNavigationDelegate
     }
 }
 
-class WebViewController: UIViewController, UIScrollViewDelegate, UIPopoverPresentationControllerDelegate
+extension WebViewController: UIScrollViewDelegate
+{
+    func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        //        print("scrollViewDidZoom")
+    }
+    
+    func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
+        //        print("scrollViewDidEndZooming")
+        if let _ = scrollView.superview as? WKWebView {
+            switch content {
+            case .document:
+                captureContentOffsetAndZoomScale()
+                break
+            case .html:
+                captureHTMLContentOffsetAndZoomScale()
+                break
+            }
+        }
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        //        print("scrollViewDidScroll")
+    }
+    
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        //        print("scrollViewDidEndScrollingAnimation")
+        if let _ = scrollView.superview as? WKWebView {
+            switch content {
+            case .document:
+                captureContentOffsetAndZoomScale()
+                break
+            case .html:
+                captureHTMLContentOffsetAndZoomScale()
+                break
+            }
+        }
+    }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
+    {
+        //        print("scrollViewDidEndDecelerating")
+        if let _ = scrollView.superview as? WKWebView {
+            switch content {
+            case .document:
+                captureContentOffsetAndZoomScale()
+                break
+            case .html:
+                captureHTMLContentOffsetAndZoomScale()
+                break
+            }
+        }
+    }
+    
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool)
+    {
+        //        print("scrollViewDidEndDragging")
+        if !decelerate {
+            scrollViewDidEndDecelerating(scrollView)
+        }
+    }
+}
+
+extension WebViewController: UIPopoverPresentationControllerDelegate
+{
+
+}
+
+class WebViewController: UIViewController
 {
     enum Content {
         case document
@@ -527,7 +594,7 @@ class WebViewController: UIViewController, UIScrollViewDelegate, UIPopoverPresen
             case .downloaded:
                 break
             }
-    }
+        }
     }
     
     var selectedMediaItem:MediaItem? {
@@ -553,65 +620,6 @@ class WebViewController: UIViewController, UIScrollViewDelegate, UIPopoverPresen
     override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?) {
         if (splitViewController == nil) {
             globals.motionEnded(motion,event: event)
-        }
-    }
-    
-    func scrollViewDidZoom(_ scrollView: UIScrollView) {
-//        print("scrollViewDidZoom")
-    }
-    
-    func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
-//        print("scrollViewDidEndZooming")
-        if let _ = scrollView.superview as? WKWebView {
-            switch content {
-            case .document:
-                captureContentOffsetAndZoomScale()
-                break
-            case .html:
-                captureHTMLContentOffsetAndZoomScale()
-                break
-            }
-        }
-    }
-    
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        print("scrollViewDidScroll")
-    }
-    
-    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-//        print("scrollViewDidEndScrollingAnimation")
-        if let _ = scrollView.superview as? WKWebView {
-            switch content {
-            case .document:
-                captureContentOffsetAndZoomScale()
-                break
-            case .html:
-                captureHTMLContentOffsetAndZoomScale()
-                break
-            }
-        }
-    }
-    
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
-    {
-//        print("scrollViewDidEndDecelerating")
-        if let _ = scrollView.superview as? WKWebView {
-            switch content {
-            case .document:
-                captureContentOffsetAndZoomScale()
-                break
-            case .html:
-                captureHTMLContentOffsetAndZoomScale()
-                break
-            }
-        }
-    }
-    
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool)
-    {
-//        print("scrollViewDidEndDragging")
-        if !decelerate {
-            scrollViewDidEndDecelerating(scrollView)
         }
     }
     

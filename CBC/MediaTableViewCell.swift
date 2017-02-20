@@ -24,7 +24,12 @@ extension MediaTableViewCell : UIAdaptivePresentationControllerDelegate
     }
 }
 
-class MediaTableViewCell: UITableViewCell, UIPopoverPresentationControllerDelegate
+extension MediaTableViewCell : UIPopoverPresentationControllerDelegate
+{
+    
+}
+
+class MediaTableViewCell: UITableViewCell
 {
 //    var downloadObserver:Timer?
 

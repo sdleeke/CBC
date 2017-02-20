@@ -2000,9 +2000,10 @@ class MediaItem : NSObject {
     
     func booksAndChaptersAndVerses() -> BooksChaptersVerses?
     {
-        if self.booksChaptersVerses != nil {
-            return self.booksChaptersVerses
-        }
+        // PUT THIS BACK LATER
+//        if self.booksChaptersVerses != nil {
+//            return self.booksChaptersVerses
+//        }
         
         guard (scripture != nil) else {
             return nil
@@ -2030,16 +2031,34 @@ class MediaItem : NSObject {
         }
         
         scriptures.append(string)
+
+        var lastBook:String?
         
         for scripture in scriptures {
-            for book in books! {
-                if (scripture.range(of: book) != nil) {
-                    booksAndChaptersAndVerses[book] = chaptersAndVersesFromScripture(book:book,reference:scripture.substring(from: scripture.range(of: book)!.upperBound))
-                    if let chapters = booksAndChaptersAndVerses[book]?.keys {
-                        for chapter in chapters {
-                            if booksAndChaptersAndVerses[book]?[chapter] == nil {
-                                print(description,book,chapter)
-                            }
+            var book = booksFromScriptureReference(scripture)?.first
+            
+            if book == nil {
+                book = lastBook
+            } else {
+                lastBook = book
+            }
+            
+            if let book = book {
+                var reference = scripture
+                
+                if let range = scripture.range(of: book) {
+                    reference = scripture.substring(from: range.upperBound)
+                }
+                
+//                print(book,reference)
+                
+                // What if a reference includes the book more than once?
+                booksAndChaptersAndVerses[book] = chaptersAndVersesFromScripture(book:book,reference:reference)
+                
+                if let chapters = booksAndChaptersAndVerses[book]?.keys {
+                    for chapter in chapters {
+                        if booksAndChaptersAndVerses[book]?[chapter] == nil {
+                            print(description,book,chapter)
                         }
                     }
                 }

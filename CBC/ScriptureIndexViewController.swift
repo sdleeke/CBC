@@ -451,7 +451,12 @@ extension ScriptureIndexViewController : MFMailComposeViewControllerDelegate
     }
 }
 
-class ScriptureIndexViewController : UIViewController, UIPopoverPresentationControllerDelegate
+extension ScriptureIndexViewController : UIPopoverPresentationControllerDelegate
+{
+    
+}
+
+class ScriptureIndexViewController : UIViewController
 {
     var finished:Float = 0.0
     var progress:Float = 0.0 {
@@ -1675,18 +1680,20 @@ extension ScriptureIndexViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-            return false
-        }
+        return editActionsAtIndexPath(tableView, indexPath: indexPath) != nil
         
-        guard let mediaItem = cell.mediaItem else {
-            return false
-        }
-        
-        return mediaItem.hasNotesHTML || (mediaItem.books?.count > 0)
+//        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+//            return false
+//        }
+//        
+//        guard let mediaItem = cell.mediaItem else {
+//            return false
+//        }
+//        
+//        return mediaItem.hasNotesHTML || (mediaItem.books?.count > 0)
     }
     
-    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
+    func editActionsAtIndexPath(_ tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
     {
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
             return nil
@@ -1708,25 +1715,25 @@ extension ScriptureIndexViewController : UITableViewDelegate
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
                 
-//                if globals.search.valid && globals.search.transcripts {
-//                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false,index: true)
-//                } else {
-//                    htmlString = mediaItem.fullNotesHTML
-//                }
-
+                //                if globals.search.valid && globals.search.transcripts {
+                //                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false,index: true)
+                //                } else {
+                //                    htmlString = mediaItem.fullNotesHTML
+                //                }
+                
                 htmlString = mediaItem.fullNotesHTML
-
+                
                 popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
                     
-//                    if globals.search.valid && globals.search.transcripts {
-//                        return mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false,index: true)
-//                    } else {
-//                        return mediaItem.fullNotesHTML
-//                    }
-
+                    //                    if globals.search.valid && globals.search.transcripts {
+                    //                        return mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false,index: true)
+                    //                    } else {
+                    //                        return mediaItem.fullNotesHTML
+                    //                    }
+                    
                     return mediaItem.fullNotesHTML
                 }, completion: { (data:Any?) in
                     if let htmlString = data as? String {
@@ -1773,7 +1780,12 @@ extension ScriptureIndexViewController : UITableViewDelegate
             actions.append(transcript)
         }
         
-        return actions
+        return actions.count > 0 ? actions : nil
+    }
+    
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
+    {
+        return editActionsAtIndexPath(tableView, indexPath: indexPath)
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -1787,7 +1799,9 @@ extension ScriptureIndexViewController : UITableViewDelegate
             }
         }
         
-        print(selectedMediaItem?.booksChaptersVerses?.data as Any)
+        print(selectedMediaItem?.booksAndChaptersAndVerses()?.data as Any)
+        
+//        print(selectedMediaItem?.booksChaptersVerses?.data as Any)
         
         if (splitViewController != nil) && (splitViewController!.viewControllers.count > 1) {
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,

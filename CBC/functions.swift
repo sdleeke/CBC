@@ -803,23 +803,68 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 chaptersAndVerses[currentChapter] = [Int]()
                             }
                             chaptersAndVerses[currentChapter]?.append(startVerse)
+                            
                             startVerse = 0
                         }
-                        
-                        if tokens.first == ":" {
+
+                        if let first = tokens.first, let number = Int(first) {
                             tokens.remove(at: 0)
-                            if let number = Int(first) {
-                                startChapter = number
-                                currentChapter = number
-                            }
-                        } else {
-                            if let number = Int(first) {
+                            
+                            if let first = tokens.first {
+                                switch first {
+                                case ":":
+                                    tokens.remove(at: 0)
+                                    startVerses = true
+                                    
+                                    startChapter = number
+                                    currentChapter = number
+                                    break
+                                    
+                                case "-":
+                                    tokens.remove(at: 0)
+                                    startVerse = number
+                                    if let first = tokens.first, let number = Int(first) {
+                                        tokens.remove(at: 0)
+                                        endVerse = number
+                                        if chaptersAndVerses[currentChapter] == nil {
+                                            chaptersAndVerses[currentChapter] = [Int]()
+                                        }
+                                        for verse in startVerse...endVerse {
+                                            chaptersAndVerses[currentChapter]?.append(verse)
+                                        }
+                                        startVerse = 0
+                                    }
+                                    break
+                                    
+                                default:
+                                    if chaptersAndVerses[currentChapter] == nil {
+                                        chaptersAndVerses[currentChapter] = [Int]()
+                                    }
+                                    chaptersAndVerses[currentChapter]?.append(number)
+                                    break
+                                }
+                            } else {
                                 if chaptersAndVerses[currentChapter] == nil {
                                     chaptersAndVerses[currentChapter] = [Int]()
                                 }
                                 chaptersAndVerses[currentChapter]?.append(number)
                             }
+                            
+                            if tokens.first == nil {
+                                startChapter = 0
+                            }
                         }
+
+//                        if tokens.first == ":" {
+//                            tokens.remove(at: 0)
+//                            startVerses = true
+//                            
+//                            if let number = Int(first) {
+//                                startChapter = number
+//                                currentChapter = number
+//                            }
+//                        } else {
+//                        }
                     }
                     break
                     

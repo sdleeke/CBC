@@ -87,7 +87,11 @@ extension AboutViewController : PopoverTableViewControllerDelegate
     }
 }
 
-class AboutViewController: UIViewController, UIPopoverPresentationControllerDelegate
+extension AboutViewController : UIPopoverPresentationControllerDelegate {
+    
+}
+
+class AboutViewController: UIViewController
 {
     override var canBecomeFirstResponder : Bool {
         return true //splitViewController == nil
