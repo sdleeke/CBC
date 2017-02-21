@@ -83,6 +83,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                 
             case Constants.View_Scripture:
                 if let reference = scripture?.selected.reference {
+                    scripture?.reference = reference
                     if scripture?.html?[reference] != nil {
                         popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:self.navigationItem.rightBarButtonItem,sourceView:nil,sourceRectView:nil,htmlString:scripture?.html?[reference])
                     } else {
@@ -1226,7 +1227,7 @@ class ScriptureIndexViewController : UIViewController
             
             popover.section.strings = actionMenuItems()
             
-            popover.section.showIndex = false //(globals.grouping == .series)
+            popover.section.showIndex = false
             popover.section.showHeaders = false
             
             popover.vc = self
@@ -1362,7 +1363,10 @@ class ScriptureIndexViewController : UIViewController
         //Eliminates blank cells at end.
         tableView.tableFooterView = UIView()
 
-        navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(ScriptureIndexViewController.actions)), animated: true) //
+        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureIndexViewController.actions))
+        actionButton.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
+
+        navigationItem.setRightBarButton(actionButton, animated: true) //
 
         isHiddenUI(false)
         disableBarButtons()

@@ -252,7 +252,7 @@ struct Media {
                 break
             }
             
-            if globals.search.valid {
+            if globals.search.active {
                 if let searchText = globals.search.text?.uppercased() {
                     mediaItems = mediaItems?.searches?[searchText] 
                 }
@@ -457,11 +457,11 @@ struct Search {
     
     var text:String? {
         didSet {
-            if (text != nil) {
-                active = active || !text!.isEmpty //( == Constants.EMPTY_STRING)) || (text != Constants.EMPTY_STRING)
-            } else {
-                active = false
-            }
+//            if (text != nil) {
+//                active = active || !text!.isEmpty //( == Constants.EMPTY_STRING)) || (text != Constants.EMPTY_STRING)
+//            } else {
+//                active = false
+//            }
             
             if (text != oldValue) && !globals.isLoading {
                 if valid { //  && !lexicon

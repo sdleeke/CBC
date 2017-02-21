@@ -2001,9 +2001,9 @@ class MediaItem : NSObject {
     func booksAndChaptersAndVerses() -> BooksChaptersVerses?
     {
         // PUT THIS BACK LATER
-//        if self.booksChaptersVerses != nil {
-//            return self.booksChaptersVerses
-//        }
+        if self.booksChaptersVerses != nil {
+            return self.booksChaptersVerses
+        }
         
         guard (scripture != nil) else {
             return nil

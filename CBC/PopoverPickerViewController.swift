@@ -474,7 +474,7 @@ class PopoverPickerViewController : UIViewController
             
             popover.section.strings = actionMenu
             
-            popover.section.showIndex = false //(globals.grouping == .series)
+            popover.section.showIndex = false
             popover.section.showHeaders = false
             
             popover.vc = self
@@ -491,7 +491,10 @@ class PopoverPickerViewController : UIViewController
     func setupActionButton()
     {
         if mediaListGroupSort != nil {
-            navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(PopoverPickerViewController.actions)), animated: false)
+            let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverPickerViewController.actions))
+            actionButton.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
+
+            navigationItem.setRightBarButton(actionButton, animated: false)
         }
     }
 

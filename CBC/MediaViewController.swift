@@ -1814,7 +1814,7 @@ class MediaViewController: UIViewController
             
             popover.section.strings = actionMenu
             
-            popover.section.showIndex = false //(globals.grouping == .series)
+            popover.section.showIndex = false
             popover.section.showHeaders = false
             
             popover.vc = self
@@ -2723,7 +2723,9 @@ class MediaViewController: UIViewController
 
         var barButtons = [UIBarButtonItem]()
         
-        actionButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(MediaViewController.actions))
+        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.actions))
+        actionButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
+
         barButtons.append(actionButton!)
     
         if (selectedMediaItem!.hasTags) {

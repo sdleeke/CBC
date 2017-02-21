@@ -276,6 +276,11 @@ struct Constants {
         }
     }
     
+    struct Sort {
+        static let Alphabetical = "Alphabetical"
+        static let Frequency    = "Frequency"
+    }
+    
     struct SCRIPTURE_URL {
         static let PREFIX = "https://www.biblegateway.com/passage/?search="
         static let POSTFIX = "&version=NASB"
@@ -471,6 +476,8 @@ struct Constants {
         
         static let LARGER = "\u{f0d8}"
         static let SMALLER = "\u{f0d7}"
+        
+        static let ACTION = "\u{f150}"
         
         static let PLAYING = "\u{f028}"
 

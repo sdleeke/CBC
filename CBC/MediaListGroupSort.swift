@@ -67,6 +67,9 @@ class BooksChaptersVerses : Swift.Comparable {
         
         if (lhsBooks == nil) && (rhsBooks == nil) {
         } else
+        // JUST ADDED
+        if (lhsBooks?.count == 0) && (rhsBooks?.count == 0) {
+        } else
             if (lhsBooks != nil) && (rhsBooks == nil) {
                 return false
             } else
@@ -905,7 +908,10 @@ class StringTree {
 class Lexicon : NSObject {
     weak var mediaListGroupSort:MediaListGroupSort?
     
-    init(_ mlgs:MediaListGroupSort?){
+    init(_ mlgs:MediaListGroupSort?)
+    {
+        super.init()
+        
         self.mediaListGroupSort = mlgs
     }
     
@@ -1110,7 +1116,7 @@ class Lexicon : NSObject {
         return words?[word!]?.count
     }
     
-    func occurences(_ word:String?) -> Int? // nil => not found
+    func occurrences(_ word:String?) -> Int? // nil => not found
     {
         guard word != nil else {
             return nil

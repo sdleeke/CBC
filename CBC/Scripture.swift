@@ -57,76 +57,76 @@ struct XML {
     var text:[String:[String:[String:String]]]?
 }
 
-extension Scripture : XMLParserDelegate
-{
-    // MARK: XMLParserDelegate
-    
-    func parserDidStartDocument(_ parser: XMLParser) {
-        
-    }
-    
-    func parserDidEndDocument(_ parser: XMLParser) {
-        
-    }
-    
-    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
-        print(parseError.localizedDescription)
-    }
-    
-    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
-        
-        //        print(elementName)
-    }
-    
-    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
-        //        print(elementName)
-        
-        if xml.text == nil {
-            xml.text = [String:[String:[String:String]]]()
-        }
-        
-        switch elementName {
-        case "bookname":
-            xml.book = xml.string
-            
-            if xml.text?[xml.book!] == nil {
-                xml.text?[xml.book!] = [String:[String:String]]()
-            }
-            break
-            
-        case "chapter":
-            xml.chapter = xml.string
-            
-            if xml.text?[xml.book!]?[xml.chapter!] == nil {
-                xml.text?[xml.book!]?[xml.chapter!] = [String:String]()
-            }
-            break
-            
-        case "verse":
-            xml.verse = xml.string
-            break
-            
-        case "text":
-            xml.text?[xml.book!]?[xml.chapter!]?[xml.verse!] = xml.string
-            //            print(scriptureText)
-            break
-            
-        default:
-            break
-        }
-        
-        xml.string = nil
-    }
-    
-    func parser(_ parser: XMLParser, foundElementDeclarationWithName elementName: String, model: String) {
-        //        print(elementName)
-    }
-    
-    func parser(_ parser: XMLParser, foundCharacters string: String) {
-        //        print(string)
-        xml.string = (xml.string != nil ? xml.string! + string : string).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-    }
-}
+//extension Scripture : XMLParserDelegate
+//{
+//    // MARK: XMLParserDelegate
+//    
+//    func parserDidStartDocument(_ parser: XMLParser) {
+//        
+//    }
+//    
+//    func parserDidEndDocument(_ parser: XMLParser) {
+//        
+//    }
+//    
+//    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
+//        print(parseError.localizedDescription)
+//    }
+//    
+//    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
+//        
+//        //        print(elementName)
+//    }
+//    
+//    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
+//        //        print(elementName)
+//        
+//        if xml.text == nil {
+//            xml.text = [String:[String:[String:String]]]()
+//        }
+//        
+//        switch elementName {
+//        case "bookname":
+//            xml.book = xml.string
+//            
+//            if xml.text?[xml.book!] == nil {
+//                xml.text?[xml.book!] = [String:[String:String]]()
+//            }
+//            break
+//            
+//        case "chapter":
+//            xml.chapter = xml.string
+//            
+//            if xml.text?[xml.book!]?[xml.chapter!] == nil {
+//                xml.text?[xml.book!]?[xml.chapter!] = [String:String]()
+//            }
+//            break
+//            
+//        case "verse":
+//            xml.verse = xml.string
+//            break
+//            
+//        case "text":
+//            xml.text?[xml.book!]?[xml.chapter!]?[xml.verse!] = xml.string
+//            //            print(scriptureText)
+//            break
+//            
+//        default:
+//            break
+//        }
+//        
+//        xml.string = nil
+//    }
+//    
+//    func parser(_ parser: XMLParser, foundElementDeclarationWithName elementName: String, model: String) {
+//        //        print(elementName)
+//    }
+//    
+//    func parser(_ parser: XMLParser, foundCharacters string: String) {
+//        //        print(string)
+//        xml.string = (xml.string != nil ? xml.string! + string : string).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+//    }
+//}
 
 class Scripture : NSObject
 {
@@ -134,18 +134,83 @@ class Scripture : NSObject
 
     var selected = Selected()
 
-    var xml = XML()
+//    var xml = XML()
+    
+    var booksChaptersVerses:BooksChaptersVerses?
     
     var reference:String?
+    {
+        didSet {
+            setupBooksChaptersVerses()
+        }
+    }
     
     init(reference:String?)
     {
+        super.init()
+        
         self.reference = reference
+        setupBooksChaptersVerses()
     }
     
     lazy var html:CachedString? = {
         return CachedString(index: nil)
     }()
+    
+    func setupBooksChaptersVerses()
+    {
+        if let scriptureReference = reference?.replacingOccurrences(of: "Psalm ", with: "Psalms ") {
+            let booksAndChaptersAndVerses = BooksChaptersVerses()
+            
+            var scriptures = [String]()
+            
+            var string = scriptureReference
+            
+            let separator = ";"
+            
+            while (string.range(of: separator) != nil) {
+                scriptures.append(string.substring(to: string.range(of: separator)!.lowerBound))
+                string = string.substring(from: string.range(of: separator)!.upperBound)
+            }
+            
+            scriptures.append(string)
+            
+            var lastBook:String?
+            
+            for scripture in scriptures {
+                var book = booksFromScriptureReference(scripture)?.first
+                
+                if book == nil {
+                    book = lastBook
+                } else {
+                    lastBook = book
+                }
+                
+                if let book = book {
+                    var reference = scripture
+                    
+                    if let range = scripture.range(of: book) {
+                        reference = scripture.substring(from: range.upperBound)
+                    }
+                    
+                    //                print(book,reference)
+                    
+                    // What if a reference includes the book more than once?
+                    booksAndChaptersAndVerses[book] = chaptersAndVersesFromScripture(book:book,reference:reference)
+                    
+                    if let chapters = booksAndChaptersAndVerses[book]?.keys {
+                        for chapter in chapters {
+                            if booksAndChaptersAndVerses[book]?[chapter] == nil {
+                                print(description,book,chapter)
+                            }
+                        }
+                    }
+                }
+            }
+            
+            booksChaptersVerses = booksAndChaptersAndVerses.data?.count > 0 ? booksAndChaptersAndVerses : nil
+        }
+    }
     
     func jsonFromURL(url:String) -> [String:Any]?
     {
@@ -157,9 +222,11 @@ class Scripture : NSObject
                 
                 let initial = string.substring(from: "(".endIndex)
                 
-                if let range = initial.range(of: ");") {
-                    final = initial.substring(to: range.lowerBound)
-                }
+                final = initial.substring(to:initial.index(initial.endIndex, offsetBy: -");".characters.count))
+                
+//                if let range = initial.range(of: ");") {
+//                    final = initial.substring(to: range.lowerBound)
+//                }
                 
                 print(final)
             }
@@ -211,57 +278,57 @@ class Scripture : NSObject
         bodyString = bodyString! + "Scripture: " + reference! // + "<br/><br/>"
         
         if let scriptureReference = reference?.replacingOccurrences(of: "Psalm ", with: "Psalms ") {
-            let booksAndChaptersAndVerses = BooksChaptersVerses()
-            
-            var scriptures = [String]()
-            
-            var string = scriptureReference
-            
-            let separator = ";"
-            
-            while (string.range(of: separator) != nil) {
-                scriptures.append(string.substring(to: string.range(of: separator)!.lowerBound))
-                string = string.substring(from: string.range(of: separator)!.upperBound)
-            }
-            
-            scriptures.append(string)
-            
-            var lastBook:String?
-            
-            for scripture in scriptures {
-                var book = booksFromScriptureReference(scripture)?.first
-                
-                if book == nil {
-                    book = lastBook
-                } else {
-                    lastBook = book
-                }
-                
-                if let book = book {
-                    var reference = scripture
-                    
-                    if let range = scripture.range(of: book) {
-                        reference = scripture.substring(from: range.upperBound)
-                    }
-                    
-                    //                print(book,reference)
-                    
-                    // What if a reference includes the book more than once?
-                    booksAndChaptersAndVerses[book] = chaptersAndVersesFromScripture(book:book,reference:reference)
-                    
-                    if let chapters = booksAndChaptersAndVerses[book]?.keys {
-                        for chapter in chapters {
-                            if booksAndChaptersAndVerses[book]?[chapter] == nil {
-                                print(description,book,chapter)
-                            }
-                        }
-                    }
-                }
-            }
+//            let booksAndChaptersAndVerses = BooksChaptersVerses()
+//            
+//            var scriptures = [String]()
+//            
+//            var string = scriptureReference
+//            
+//            let separator = ";"
+//            
+//            while (string.range(of: separator) != nil) {
+//                scriptures.append(string.substring(to: string.range(of: separator)!.lowerBound))
+//                string = string.substring(from: string.range(of: separator)!.upperBound)
+//            }
+//            
+//            scriptures.append(string)
+//            
+//            var lastBook:String?
+//            
+//            for scripture in scriptures {
+//                var book = booksFromScriptureReference(scripture)?.first
+//                
+//                if book == nil {
+//                    book = lastBook
+//                } else {
+//                    lastBook = book
+//                }
+//                
+//                if let book = book {
+//                    var reference = scripture
+//                    
+//                    if let range = scripture.range(of: book) {
+//                        reference = scripture.substring(from: range.upperBound)
+//                    }
+//                    
+//                    //                print(book,reference)
+//                    
+//                    // What if a reference includes the book more than once?
+//                    booksAndChaptersAndVerses[book] = chaptersAndVersesFromScripture(book:book,reference:reference)
+//                    
+//                    if let chapters = booksAndChaptersAndVerses[book]?.keys {
+//                        for chapter in chapters {
+//                            if booksAndChaptersAndVerses[book]?[chapter] == nil {
+//                                print(description,book,chapter)
+//                            }
+//                        }
+//                    }
+//                }
+//            }
 
-            print(booksAndChaptersAndVerses.data)
+            print(booksChaptersVerses?.data)
             
-            if let data = booksAndChaptersAndVerses.data {
+            if let data = booksChaptersVerses?.data {
                 for book in data.keys {
                     if let chapters = data[book]?.keys.sorted() {
                         for chapter in chapters {

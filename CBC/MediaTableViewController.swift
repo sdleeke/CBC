@@ -141,6 +141,8 @@ extension MediaTableViewController : UISearchBarDelegate
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar)
     {
+        globals.search.active = true
+        
         guard Thread.isMainThread else {
             userAlert(title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidBeginEditing")
             return
@@ -180,6 +182,8 @@ extension MediaTableViewController : UISearchBarDelegate
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar)
     {
+        globals.search.active = false
+        
         guard Thread.isMainThread else {
             userAlert(title: "Not Main Thread", message: "MediaTableViewController:searchBarCancelButtonClicked")
             return
@@ -1265,7 +1269,7 @@ class MediaTableViewController : UIViewController
             
             popover.section.strings = showMenu
             
-            popover.section.showIndex = false //(globals.grouping == .series)
+            popover.section.showIndex = false
             popover.section.showHeaders = false
             
             popover.vc = self

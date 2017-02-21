@@ -182,7 +182,7 @@ class AboutViewController: UIViewController
             
             popover.section.strings = actionMenu
             
-            popover.section.showIndex = false //(globals.grouping == .series)
+            popover.section.showIndex = false
             popover.section.showHeaders = false
             
             present(navigationController, animated: true, completion: nil)

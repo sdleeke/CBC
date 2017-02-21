@@ -204,6 +204,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 popover.delegate = self
                 popover.purpose = .selectingWord
                 
+                popover.sort.function = sort
+                
                 if mediaItem!.hasNotesHTML {
                     if mediaItem?.notesTokens == nil {
                         popover.stringsFunction = {
@@ -233,19 +235,14 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     }
                 }
                 
-                popover.section.showIndex = true //(globals.grouping == .series)
+                popover.section.showIndex = true
                 popover.section.showHeaders = true
                 
                 popover.search = true
                 
                 popover.vc = self
                 
-                present(navigationController, animated: true, completion: {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
-                        navigationController.popoverPresentationController?.passthroughViews = nil
-                    })
-                })
+                present(navigationController, animated: true, completion: nil)
             }
             break
             
@@ -359,7 +356,7 @@ extension WebViewController : WKNavigationDelegate
                 DispatchQueue.main.async(execute: { () -> Void in
                     //                    print(wkWebView.scrollView.contentSize.width,wkWebView.scrollView.contentSize.height)
                     
-                    self.preferredContentSize = CGSize(width: wkWebView.scrollView.contentSize.width,height: wkWebView.scrollView.contentSize.height)
+//                    self.preferredContentSize = CGSize(width: wkWebView.scrollView.contentSize.width,height: wkWebView.scrollView.contentSize.height)
                     
                     wkWebView.isHidden = false
                     wkWebView.scrollView.contentOffset = CGPoint(x: 0, y: 0)
@@ -714,17 +711,12 @@ class WebViewController: UIViewController
             
             popover.section.strings = actionMenu
             
-            popover.section.showIndex = false //(globals.grouping == .series)
+            popover.section.showIndex = false
             popover.section.showHeaders = false
             
             popover.vc = self
             
-            present(navigationController, animated: true, completion: {
-                DispatchQueue.main.async(execute: { () -> Void in
-                    // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
-                    navigationController.popoverPresentationController?.passthroughViews = nil
-                })
-            })
+            present(navigationController, animated: true, completion: nil)
         }
     }
     
@@ -770,14 +762,13 @@ class WebViewController: UIViewController
     
     fileprivate func setupActionButton()
     {
-        actionButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(WebViewController.actions))
+        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.actions))
+        actionButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
 
         plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.increaseFontSize))
-        
         plusButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
         
         minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.decreaseFontSize))
-        
         minusButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
         
         navigationItem.setRightBarButtonItems([actionButton!,minusButton!,plusButton!], animated: true)
@@ -1212,8 +1203,17 @@ class WebViewController: UIViewController
         }
     }
     
+    func setPreferredContentSize()
+    {
+        if let size = wkWebView?.scrollView.contentSize {
+            preferredContentSize = CGSize(width: size.width,height: size.height)
+        }
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+
+        NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
 
         if let title = selectedMediaItem?.title {
             navigationItem.title = title
@@ -1307,6 +1307,8 @@ class WebViewController: UIViewController
         wkWebView?.scrollView.delegate = nil
         
         loadTimer?.invalidate()
+        
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func didReceiveMemoryWarning() {

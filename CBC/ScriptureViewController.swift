@@ -531,6 +531,7 @@ class ScriptureViewController : UIViewController
     func showScripture()
     {
         if let reference = self.scripture?.selected.reference {
+            scripture?.reference = reference
             if self.scripture?.html?[reference] != nil {
                 if let string = self.scripture?.html?[reference] {
                     self.webViewController?.html.string = string
@@ -603,17 +604,12 @@ class ScriptureViewController : UIViewController
             
             popover.section.strings = actionMenuItems()
             
-            popover.section.showIndex = false //(globals.grouping == .series)
+            popover.section.showIndex = false
             popover.section.showHeaders = false
             
             popover.vc = self
             
-            present(navigationController, animated: true, completion: {
-                DispatchQueue.main.async(execute: { () -> Void in
-                    // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
-                    navigationController.popoverPresentationController?.passthroughViews = nil
-                })
-            })
+            present(navigationController, animated: true, completion: nil)
         }
     }
     
@@ -635,14 +631,13 @@ class ScriptureViewController : UIViewController
     
     fileprivate func setupBarButtons()
     {
-        actionButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(ScriptureViewController.actions))
+        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureViewController.actions))
+        actionButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
         
         plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(ScriptureViewController.increaseFontSize))
-        
         plusButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
         
         minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(ScriptureViewController.decreaseFontSize))
-        
         minusButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
         
         navigationItem.setRightBarButtonItems([actionButton!,minusButton!,plusButton!], animated: true)
@@ -652,7 +647,8 @@ class ScriptureViewController : UIViewController
         }
     }
     
-    override func viewWillAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool)
+    {
         super.viewWillAppear(animated)
         
         NotificationCenter.default.addObserver(self, selector: #selector(ScriptureViewController.setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
@@ -668,21 +664,32 @@ class ScriptureViewController : UIViewController
             DispatchQueue.global(qos: .background).async {
                 self.scripture?.load(reference)
                 
-                // Take the first one in the Scripture reference?
-                if let books:[String] = self.scripture?.xml.text?.keys.map({ (string:String) -> String in
-                    return string
-                }).sorted(by: { reference.range(of: $0)?.lowerBound < reference.range(of: $1)?.lowerBound }), books.count > 0 {
+                if let books = self.scripture?.booksChaptersVerses?.data?.keys.sorted(by: { bookNumberInBible($0) < bookNumberInBible($1) }) {
                     let book = books[0]
                     
                     self.scripture?.selected.testament = self.testament(book)
                     self.scripture?.selected.book = book
                     
-                    if let chapters:[Int] = self.scripture?.xml.text?[book]?.keys.map({ (string:String) -> Int in
-                        return Int(string)!
-                    }).sorted(), chapters.count > 0 {
+                    if let chapters = self.scripture?.booksChaptersVerses?.data?[book]?.keys.sorted() {
                         self.scripture?.selected.chapter = chapters[0]
                     }
                 }
+                
+//                // Take the first one in the Scripture reference?
+//                if let books:[String] = self.scripture?.xml.text?.keys.map({ (string:String) -> String in
+//                    return string
+//                }).sorted(by: { reference.range(of: $0)?.lowerBound < reference.range(of: $1)?.lowerBound }), books.count > 0 {
+//                    let book = books[0]
+//
+//                    self.scripture?.selected.testament = self.testament(book)
+//                    self.scripture?.selected.book = book
+//
+//                    if let chapters:[Int] = self.scripture?.xml.text?[book]?.keys.map({ (string:String) -> Int in
+//                        return Int(string)!
+//                    }).sorted(), chapters.count > 0 {
+//                        self.scripture?.selected.chapter = chapters[0]
+//                    }
+//                }
                 
                 // Sort by book and take the first one?
                 //                if let books:[String] = scripture?.xml.text?.keys.map({ (string:String) -> String in
@@ -756,8 +763,6 @@ class ScriptureViewController : UIViewController
         
         //        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
         navigationItem.leftItemsSupplementBackButton = true
-        
-//        navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(ScriptureIndexViewController.actions)), animated: true) //
     }
     
     func updatePicker()

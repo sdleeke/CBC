@@ -84,6 +84,34 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
         }
         
         switch action {
+        case "Sorting":
+            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .popover
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+                
+                //                popover.navigationItem.title = Constants.Actions
+                
+                popover.navigationController?.isNavigationBarHidden = true
+                
+                popover.delegate = self
+                popover.purpose = .selectingSorting
+                
+                popover.section.strings = [Constants.Sort.Alphabetical,Constants.Sort.Frequency]
+                
+                popover.section.showIndex = false
+                popover.section.showHeaders = false
+                
+                popover.vc = self
+                
+                present(navigationController, animated: true, completion: nil)
+            }
+            break
+            
         case Constants.Word_Picker:
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
@@ -133,14 +161,47 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             return
         }
         
+        guard index < strings.count else {
+            return
+        }
+        
+        let string = strings[index]
+        
         switch purpose {
+        case .selectingSorting:
+            ptvc.sort.method = string
+            
+            ptvc.section.strings = ptvc.sort.function?(ptvc.sort.method,ptvc.section.strings)
+            
+            switch string {
+            case Constants.Sort.Alphabetical:
+                ptvc.section.showIndex = true
+                break
+                
+            case Constants.Sort.Frequency:
+                ptvc.section.showIndex = false
+                break
+                
+            default:
+                break
+            }
+            
+            ptvc.section.indexStrings = ptvc.section.strings?.map({ (string:String) -> String in
+                return ptvc.section.indexTransform != nil ? ptvc.section.indexTransform!(string.uppercased())! : string.uppercased()
+            })
+            
+            ptvc.section.build()
+            
+            ptvc.tableView.reloadData()
+            break
+            
         case .selectingSection:
             dismiss(animated: true, completion: nil)
             
             if let titles = results?.section?.titles {
                 var i = 0
-                for string in titles {
-                    if string == strings[index] {
+                for title in titles {
+                    if title == string {
                         break
                     }
                     
@@ -171,31 +232,27 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingLexicon:
-            if index < strings.count {
-                let string = strings[index]
+            if let range = string.range(of: " (") {
+                searchText = string.substring(to: range.lowerBound).uppercased()
                 
-                if let range = string.range(of: " (") {
-                    searchText = string.substring(to: range.lowerBound).uppercased()
-                    
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.tableView.setEditing(false, animated: true)
-                    })
-                    
-                    updateSearchResults()
-                }
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.tableView.setEditing(false, animated: true)
+                })
+                
+                updateSearchResults()
             }
             break
             
         case .selectingAction:
             dismiss(animated: true, completion: nil)
 
-            actionMenu(action:strings[index],mediaItem:mediaItem)
+            actionMenu(action:string,mediaItem:mediaItem)
             break
             
         case .selectingCellAction:
             dismiss(animated: true, completion: nil)
             
-            switch strings[index] {
+            switch string {
             case Constants.Download_Audio:
                 mediaItem?.audioDownload?.download()
                 break
@@ -531,7 +588,7 @@ class LexiconIndexViewController : UIViewController
                     }
                 }
                 
-                bodyString = bodyString! + " \(appearances) Appearances in \(mediaItems.count) Documents<br/><br/>"
+                bodyString = bodyString! + " \(appearances) Occurrences in \(mediaItems.count) Documents<br/><br/>"
             }
         }
         
@@ -761,6 +818,7 @@ class LexiconIndexViewController : UIViewController
     {
         var actionMenu = [String]()
 
+        actionMenu.append("Sorting")
         actionMenu.append(Constants.Word_Picker)
 
         if results?.list?.count > 0 {
@@ -793,7 +851,7 @@ class LexiconIndexViewController : UIViewController
             
             popover.section.strings = actionMenuItems()
             
-            popover.section.showIndex = false //(globals.grouping == .series)
+            popover.section.showIndex = false
             popover.section.showHeaders = false
             
             popover.vc = self
@@ -897,7 +955,10 @@ class LexiconIndexViewController : UIViewController
         //Eliminates blank cells at end.
         tableView.tableFooterView = UIView()
         
-        navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.action, target: self, action: #selector(LexiconIndexViewController.actions)), animated: true) //
+        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(LexiconIndexViewController.actions))
+        actionButton.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
+
+        navigationItem.setRightBarButton(actionButton, animated: true) //
     }
     
     func updateText()
