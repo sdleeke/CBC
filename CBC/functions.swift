@@ -443,6 +443,97 @@ func yearsFromMediaItems(_ mediaItems:[MediaItem]?, sorting: String?) -> [Int]?
         : nil
 }
 
+func verifyNASB()
+{
+    if Constants.OLD_TESTAMENT_BOOKS.count != 39 {
+        print("ERROR: ","\(Constants.OLD_TESTAMENT_BOOKS.count)")
+    }
+    
+    for book in Constants.OLD_TESTAMENT_BOOKS {
+        
+        // Constants.OLD_TESTAMENT_BOOKS.index(of: book) > Constants.OLD_TESTAMENT_BOOKS.index(of: "Malachi"),
+        
+        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
+            let chapters = Constants.OLD_TESTAMENT_CHAPTERS[index]
+            
+            let dict = Scripture(reference: "\(book) \(chapters+1):1").loadJSONVerseFromURL()
+            
+            let passages = (((dict?["response"] as? [String:Any])?["search"] as? [String:Any])?["result"] as? [String:Any])?["passages"] as? [[String:Any]]
+            
+            if passages?.count != 0 {
+                print("ERROR: ","\(book) \(chapters)")
+                print(passages)
+            }
+            
+            if Constants.OLD_TESTAMENT_VERSES[index].count != chapters {
+                print("ERROR: WRONG COUNT IN VERSES ARRAY: ",book)
+            }
+            
+            for chapter in 0..<chapters {
+                let verses = Constants.OLD_TESTAMENT_VERSES[index][chapter]
+                
+                let dict1 = Scripture(reference: "\(book) \(chapter+1):\(verses)").loadJSONVerseFromURL()
+                
+                let passages1 = (((dict1?["response"] as? [String:Any])?["search"] as? [String:Any])?["result"] as? [String:Any])?["passages"] as? [[String:Any]]
+                
+                let dict2 = Scripture(reference: "\(book) \(chapter+1):\(verses + 1)").loadJSONVerseFromURL()
+                
+                let passages2 = (((dict2?["response"] as? [String:Any])?["search"] as? [String:Any])?["result"] as? [String:Any])?["passages"] as? [[String:Any]]
+                
+                if (passages1?.count != 1) || (passages2?.count != 0) {
+                    print("ERROR: ","\(book) \(chapter+1):\(verses)")
+                    print(passages1)
+                    print(passages2)
+                }
+            }
+        }
+    }
+    
+    if Constants.NEW_TESTAMENT_BOOKS.count != 27 {
+        print("ERROR: ","\(Constants.NEW_TESTAMENT_BOOKS.count)")
+    }
+    
+    for book in Constants.NEW_TESTAMENT_BOOKS {
+        
+        // Constants.NEW_TESTAMENT_BOOKS.index(of: book) > Constants.NEW_TESTAMENT_BOOKS.index(of: "1 Corinthians"),
+        
+        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
+            let chapters = Constants.NEW_TESTAMENT_CHAPTERS[index]
+            
+            let dict = Scripture(reference: "\(book) \(chapters+1):1").loadJSONVerseFromURL()
+            
+            let passages = (((dict?["response"] as? [String:Any])?["search"] as? [String:Any])?["result"] as? [String:Any])?["passages"] as? [[String:Any]]
+            
+            if passages?.count != 0 {
+                print("ERROR: ","\(book) \(chapters)")
+                print(passages)
+            }
+            
+            if Constants.NEW_TESTAMENT_VERSES[index].count != chapters {
+                print("ERROR: WRONG COUNT IN VERSES ARRAY: ",book)
+            }
+            
+            for chapter in 0..<chapters {
+                let verses = Constants.NEW_TESTAMENT_VERSES[index][chapter]
+                
+                let dict1 = Scripture(reference: "\(book) \(chapter+1):\(verses)").loadJSONVerseFromURL()
+                
+                let passages1 = (((dict1?["response"] as? [String:Any])?["search"] as? [String:Any])?["result"] as? [String:Any])?["passages"] as? [[String:Any]]
+                
+                let dict2 = Scripture(reference: "\(book) \(chapter+1):\(verses + 1)").loadJSONVerseFromURL()
+                
+                let passages2 = (((dict2?["response"] as? [String:Any])?["search"] as? [String:Any])?["result"] as? [String:Any])?["passages"] as? [[String:Any]]
+                
+                if (passages1?.count != 1) || (passages2?.count != 0) {
+                    print("ERROR: ","\(book) \(chapter+1):\(verses)")
+                    print(passages1)
+                    print(passages2)
+                }
+            }
+        }
+    }
+}
+
 func testament(_ book:String) -> String
 {
     let book = (book == "Psalm") ? "Psalms" : book
@@ -668,16 +759,16 @@ func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
             let book = (book == "Psalm") ? "Psalms" : book
 
             let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!)
-            print(Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!,Constants.OLD_TESTAMENT_VERSES.count,Constants.OLD_TESTAMENT_VERSES[index!].count)
+//            print(Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!,Constants.OLD_TESTAMENT_VERSES.count,Constants.OLD_TESTAMENT_VERSES[index!].count)
             break
         case Constants.New_Testament:
             let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!)
-            print(Constants.NEW_TESTAMENT_BOOKS.index(of: book!)!,Constants.NEW_TESTAMENT_VERSES.count,Constants.NEW_TESTAMENT_VERSES[index!].count)
+//            print(Constants.NEW_TESTAMENT_BOOKS.index(of: book!)!,Constants.NEW_TESTAMENT_VERSES.count,Constants.NEW_TESTAMENT_VERSES[index!].count)
             break
         default:
             break
         }
-        print(book!,index,chapter)
+//        print(book!,index,chapter)
     }
     
     return verses.count > 0 ? verses : nil
@@ -822,17 +913,70 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                     
                                 case "-":
                                     tokens.remove(at: 0)
-                                    startVerse = number
-                                    if let first = tokens.first, let number = Int(first) {
-                                        tokens.remove(at: 0)
-                                        endVerse = number
-                                        if chaptersAndVerses[currentChapter] == nil {
-                                            chaptersAndVerses[currentChapter] = [Int]()
-                                        }
-                                        for verse in startVerse...endVerse {
-                                            chaptersAndVerses[currentChapter]?.append(verse)
-                                        }
+                                    if endVerse > 0, number < endVerse {
+                                        // This is a chapter!
                                         startVerse = 0
+                                        endVerse = 0
+                                        
+                                        startChapter = number
+                                        
+                                        if let first = tokens.first, let number = Int(first) {
+                                            tokens.remove(at: 0)
+                                            endChapter = number
+
+                                            for chapter in startChapter...endChapter {
+                                                startVerse = 1
+                                                
+                                                switch testament(book!) {
+                                                case Constants.Old_Testament:
+                                                    let book = (book == "Psalm") ? "Psalms" : book
+                                                    
+                                                    if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
+                                                        index < Constants.OLD_TESTAMENT_VERSES.count,
+                                                        chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
+                                                        endVerse = Constants.OLD_TESTAMENT_VERSES[index][chapter - 1]
+                                                    }
+                                                    break
+                                                case Constants.New_Testament:
+                                                    if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!),
+                                                        index < Constants.NEW_TESTAMENT_VERSES.count,
+                                                        chapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
+                                                        endVerse = Constants.NEW_TESTAMENT_VERSES[index][chapter - 1]
+                                                    }
+                                                    break
+                                                default:
+                                                    break
+                                                }
+                                                
+                                                if endVerse >= startVerse {
+                                                    if chaptersAndVerses[chapter] == nil {
+                                                        chaptersAndVerses[chapter] = [Int]()
+                                                    }
+                                                    if startVerse == endVerse {
+                                                        chaptersAndVerses[chapter]?.append(startVerse)
+                                                    } else {
+                                                        for verse in startVerse...endVerse {
+                                                            chaptersAndVerses[chapter]?.append(verse)
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            startChapter = 0
+                                        }
+                                    } else {
+                                        startVerse = number
+                                        if let first = tokens.first, let number = Int(first) {
+                                            tokens.remove(at: 0)
+                                            endVerse = number
+                                            if chaptersAndVerses[currentChapter] == nil {
+                                                chaptersAndVerses[currentChapter] = [Int]()
+                                            }
+                                            for verse in startVerse...endVerse {
+                                                chaptersAndVerses[currentChapter]?.append(verse)
+                                            }
+                                            startVerse = 0
+                                        }
                                     }
                                     break
                                     
@@ -924,7 +1068,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             debug("Done w/ startChapter")
                             
                             startVerse = 0
-                            endVerse = 0
+//                            endVerse = 0
                             
                             debug("Now determine whether there are any chapters between the first and the last in the reference")
                             
@@ -1001,7 +1145,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 debug("Done w/ verses")
                                 
                                 startVerse = 0
-                                endVerse = 0
+//                                endVerse = 0
                             }
                             
                             debug("Done w/ endChapter")
@@ -1045,7 +1189,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             debug("Done w/ startChapter")
                             
                             startVerse = 0
-                            endVerse = 0
+//                            endVerse = 0
                             
                             debug("Now determine whether there are any chapters between the first and the last in the reference")
                             
@@ -1137,7 +1281,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             debug("Done w/ verses")
                             
                             startVerse = 0
-                            endVerse = 0
+//                            endVerse = 0
                             
                             debug("Done w/ endChapter")
                         }
@@ -1191,7 +1335,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 debug("Done w/ verses")
                                 
                                 startVerse = 0
-                                endVerse = 0
+//                                endVerse = 0
                                 
                                 debug("Now determine whehter there are any chapters between the first and the last in the reference")
                                 
@@ -1266,7 +1410,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                     debug("Done w/ verses")
                                     
                                     startVerse = 0
-                                    endVerse = 0
+//                                    endVerse = 0
                                 }
                             } else {
                                 debug("reference is not split across chapters")
@@ -1289,7 +1433,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 debug("Done w/ verses")
                                 
                                 startVerse = 0
-                                endVerse = 0
+//                                endVerse = 0
                             }
                             
                             debug("Done w/ chapters")
@@ -1627,7 +1771,7 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
     }
     
 //    print(books)
-    return books.count > 0 ? books.sorted() { bookNumberInBible($0) < bookNumberInBible($1) } : nil
+    return books.count > 0 ? books.sorted() { scriptureReference?.range(of: $0)?.lowerBound < scriptureReference?.range(of: $1)?.lowerBound } : nil // redundant
 }
 
 func multiPartMediaItems(_ mediaItem:MediaItem?) -> [MediaItem]?
@@ -2601,8 +2745,10 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
         }
         
         let view = viewController.view!
-        
+
 //        view.translatesAutoresizingMaskIntoConstraints = false
+        
+//        let container = view
         
         let container: UIView = UIView()
         
@@ -2690,7 +2836,12 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
             DispatchQueue.main.async(execute: { () -> Void in
                 // present the view controller
                 actInd.stopAnimating()
-                container.removeFromSuperview()
+
+                if container != viewController.view {
+                    container.removeFromSuperview()
+                } else {
+                    loadingView.removeFromSuperview()
+                }
                 
                 if let buttons = viewController.navigationItem.rightBarButtonItems {
                     for button in buttons {
@@ -3122,7 +3273,31 @@ func insertHead(_ string:String?,fontSize:Int) -> String?
 {
     // <meta name=\"viewport\" content=\"width=device-width,initial-size=1.0\"/>
     
-    let head = "<html><head><meta name=\"viewport\" content=\"width=device-width,initial-size=1.0\"/><style>body{font: -apple-system-body;font-size:\(fontSize)pt;}href{font: -apple-system-body;font-size:\(fontSize)pt;}td{font: -apple-system-body;font-size:\(fontSize)pt;}p{font: -apple-system-body;font-size:\(fontSize)pt;}a{font: -apple-system-body;font-size:\(fontSize)pt;}mark{background-color:silver}</style></head>"
+    var head = "<html><head><meta name=\"viewport\" content=\"width=device-width,initial-size=1.0\"/>"
+    
+    var style = "<style>"
+    
+    style = style + "body{font: -apple-system-body;font-size:\(fontSize)pt;}"
+    
+    style = style + "href{font: -apple-system-body;font-size:\(fontSize)pt;}"
+    
+    style = style + "td{font: -apple-system-body;font-size:\(fontSize)pt;}"
+    
+    style = style + "p{font: -apple-system-body;font-size:\(fontSize)pt;}"
+    style = style + "p.q1{margin-top: 0em;margin-bottom: 0em;}"
+    style = style + "p.q2{margin-top: 0em;margin-bottom: 0em;}"
+    style = style + "p.copyright{font-size:\(fontSize-3)pt;}"
+
+    style = style + "a{font: -apple-system-body;font-size:\(fontSize)pt;}"
+    
+    style = style + "mark{background-color:silver;}"
+    
+    style = style + "span.it{font-style: italic;}"
+    style = style + "span.sc{font-size:\(fontSize-2)pt;}"
+    
+    style = style + "</style>"
+    
+    head = head + style + "</head>"
     
     return string?.replacingOccurrences(of: "<html>", with: head)
 }

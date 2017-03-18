@@ -169,6 +169,8 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
         
         switch purpose {
         case .selectingSorting:
+            dismiss(animated: true, completion: nil)
+
             ptvc.sort.method = string
             
             ptvc.section.strings = ptvc.sort.function?(ptvc.sort.method,ptvc.section.strings)
@@ -434,6 +436,8 @@ class LexiconIndexViewController : UIViewController
 //                print("SHOW WORD LIST")
                 if let destination = dvc as? PopoverTableViewController {
                     ptvc = destination
+                    
+                    ptvc.sort.function = sort
                     
                     destination.delegate = self
                     destination.purpose = .selectingLexicon
@@ -818,7 +822,7 @@ class LexiconIndexViewController : UIViewController
     {
         var actionMenu = [String]()
 
-        actionMenu.append("Sorting")
+//        actionMenu.append("Sorting")
         actionMenu.append(Constants.Word_Picker)
 
         if results?.list?.count > 0 {
@@ -1063,7 +1067,9 @@ extension LexiconIndexViewController : UITableViewDelegate
         
         if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
             mediaItem = cell.mediaItem // mediaItems?[indexPath.row]
-            
+
+            globals.addToHistory(mediaItem)
+
             if (splitViewController != nil) && (splitViewController!.viewControllers.count > 1) {
                 if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
                     let viewController = navigationController.viewControllers[0] as? MediaViewController {
@@ -1176,7 +1182,7 @@ extension LexiconIndexViewController : UITableViewDelegate
                     popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
                 } else {
                     process(viewController: self, work: { () -> (Any?) in
-                        mediaItem.scripture?.load(reference)
+                        mediaItem.scripture?.load() // reference
                         return mediaItem.scripture?.html?[reference]
                     }, completion: { (data:Any?) in
                         if let htmlString = data as? String {

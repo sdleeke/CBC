@@ -214,7 +214,9 @@ extension PopoverTableViewController: UISearchBarDelegate
         unfilteredSection.showHeaders = filteredSection.showHeaders
 
         // In case the method changed
-        section.strings = sort.function?(sort.method,section.strings)
+        if let function = sort.function {
+            section.strings = function(sort.method,section.strings)
+        }
 
         section.build()
         
@@ -242,15 +244,23 @@ extension PopoverTableViewController : PopoverTableViewControllerDelegate {
         
         dismiss(animated: true, completion: nil)
         
-        guard let string = strings?[index] else {
+        guard let strings = strings else {
             return
         }
+        
+        guard index < strings.count else {
+            return
+        }
+        
+        let string = strings[index]
         
         switch purpose {
         case .selectingSorting:
             sort.method = string
             
-            section.strings = sort.function?(sort.method,section.strings)
+            if let function = sort.function {
+                section.strings = function(sort.method,section.strings)
+            }
             
             switch string {
             case Constants.Sort.Alphabetical:
@@ -372,6 +382,8 @@ class PopoverTableViewController : UIViewController {
         }
         
         switch self.purpose! {
+        case .selectingCategory:
+            fallthrough
         case .selectingTags:
             fallthrough
         case .selectingGrouping:
@@ -434,6 +446,8 @@ class PopoverTableViewController : UIViewController {
         width += margins * marginSpace
         
         switch self.purpose! {
+        case .selectingCategory:
+            fallthrough
         case .selectingTags:
             fallthrough
         case .selectingGrouping:
@@ -706,12 +720,28 @@ class PopoverTableViewController : UIViewController {
                 self.navigationItem.title = "Lexicon \(count) of \(total)"
             }
         })
+
+        unfilteredSection.strings = mediaListGroupSort?.lexicon?.section.strings
         
-        section.counts = mediaListGroupSort?.lexicon?.section.counts
-        section.indexes = mediaListGroupSort?.lexicon?.section.indexes
-        section.titles = mediaListGroupSort?.lexicon?.section.titles
-        section.strings = mediaListGroupSort?.lexicon?.section.strings
-        section.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
+        if let function = sort.function {
+            unfilteredSection.strings = function(sort.method,unfilteredSection.strings)
+        }
+
+        if sort.method == Constants.Sort.Alphabetical {
+            unfilteredSection.titles = mediaListGroupSort?.lexicon?.section.titles
+            unfilteredSection.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
+        }
+
+        unfilteredSection.build()
+
+//        section.counts = mediaListGroupSort?.lexicon?.section.counts
+//        section.indexes = mediaListGroupSort?.lexicon?.section.indexes
+//        
+//        section.titles = mediaListGroupSort?.lexicon?.section.titles
+//        
+//        section.strings = mediaListGroupSort?.lexicon?.section.strings
+//        
+//        section.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
         
 //        self.section.strings = section.strings
         
@@ -767,11 +797,27 @@ class PopoverTableViewController : UIViewController {
             self.activityIndicator?.isHidden = false
         })
         
-        section.counts = mediaListGroupSort?.lexicon?.section.counts
-        section.indexes = mediaListGroupSort?.lexicon?.section.indexes
-        section.titles = mediaListGroupSort?.lexicon?.section.titles
-        section.strings = mediaListGroupSort?.lexicon?.section.strings
-        section.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
+        unfilteredSection.strings = mediaListGroupSort?.lexicon?.section.strings
+        
+        if let function = sort.function {
+            unfilteredSection.strings = function(sort.method,unfilteredSection.strings)
+        }
+
+        if sort.method == Constants.Sort.Alphabetical {
+            unfilteredSection.titles = mediaListGroupSort?.lexicon?.section.titles
+            unfilteredSection.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
+        }
+        
+        unfilteredSection.build()
+
+//        section.counts = mediaListGroupSort?.lexicon?.section.counts
+//        section.indexes = mediaListGroupSort?.lexicon?.section.indexes
+//        
+//        section.titles = mediaListGroupSort?.lexicon?.section.titles
+//        
+//        section.strings = mediaListGroupSort?.lexicon?.section.strings
+//        
+//        section.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
         
 //        self.strings = section.section.strings
 
@@ -910,11 +956,27 @@ class PopoverTableViewController : UIViewController {
                 
                 //                self.navigationItem.title = "Lexicon Complete"
                 
-                section.counts = mediaListGroupSort?.lexicon?.section.counts
-                section.indexes = mediaListGroupSort?.lexicon?.section.indexes
-                section.titles = mediaListGroupSort?.lexicon?.section.titles
-                section.strings = mediaListGroupSort?.lexicon?.section.strings
-                section.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
+                unfilteredSection.strings = mediaListGroupSort?.lexicon?.section.strings
+                
+                if let function = sort.function {
+                    unfilteredSection.strings = function(sort.method,unfilteredSection.strings)
+                }
+                
+                if sort.method == Constants.Sort.Alphabetical {
+                    unfilteredSection.titles = mediaListGroupSort?.lexicon?.section.titles
+                    unfilteredSection.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
+                }
+                
+                unfilteredSection.build()
+                
+//                section.counts = mediaListGroupSort?.lexicon?.section.counts
+//                section.indexes = mediaListGroupSort?.lexicon?.section.indexes
+//                
+//                section.titles = mediaListGroupSort?.lexicon?.section.titles
+//                
+//                section.strings = mediaListGroupSort?.lexicon?.section.strings
+//                
+//                section.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
                 
 //                self.section.strings = section.strings
                 
@@ -1181,6 +1243,14 @@ extension PopoverTableViewController : UITableViewDataSource
             }
             break
             
+        case .selectingCategory:
+            if (globals.mediaCategory.names?[index] == globals.mediaCategory.selected) {
+                cell.accessoryType = UITableViewCellAccessoryType.checkmark
+            } else {
+                cell.accessoryType = UITableViewCellAccessoryType.none
+            }
+            break
+            
         case .selectingGrouping:
             if (globals.groupings[index] == globals.grouping) {
                 cell.accessoryType = UITableViewCellAccessoryType.checkmark
@@ -1197,7 +1267,16 @@ extension PopoverTableViewController : UITableViewDataSource
             }
             
             if let sorting = (vc as? PopoverTableViewController)?.sort.method {
-//                print(sorting, string)
+                //                print(sorting, string)
+                if sorting == string {
+                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
+                } else {
+                    cell.accessoryType = UITableViewCellAccessoryType.none
+                }
+            }
+            
+            if let sorting = (vc as? LexiconIndexViewController)?.ptvc.sort.method {
+                //                print(sorting, string)
                 if sorting == string {
                     cell.accessoryType = UITableViewCellAccessoryType.checkmark
                 } else {

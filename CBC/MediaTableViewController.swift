@@ -45,6 +45,8 @@ enum PopoverPurpose {
     
     case selectingWord
     
+    case selectingCategory
+    
     case selectingTags
 
     case showingTags
@@ -194,7 +196,8 @@ extension MediaTableViewController : UISearchBarDelegate
         didDismissSearch()
     }
     
-    func didDismissSearch() {
+    func didDismissSearch()
+    {
         guard Thread.isMainThread else {
             userAlert(title: "Not Main Thread", message: "MediaTableViewController:didDismissSearch")
             return
@@ -575,7 +578,88 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             return
         }
         
+        guard index < strings.count else {
+            return
+        }
+        
+        let string = strings[index]
+        
         switch purpose {
+        case .selectingCategory:
+            guard (globals.mediaCategory.selected != string) || (globals.mediaRepository.list == nil) else {
+                return
+            }
+            
+            globals.mediaCategory.selected = string
+            
+            globals.unobservePlayer()
+            
+            if globals.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM) {
+                globals.mediaPlayer.pause() // IfPlaying
+            }
+            
+            globals.cancelAllDownloads()
+            globals.clearDisplay()
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.tableView.reloadData()
+                
+                if self.splitViewController != nil {
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
+                }
+            })
+            
+            tagLabel.text = nil
+            
+            // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
+            globals.media = Media()
+            
+            loadMediaItems()
+                {
+                    if globals.mediaRepository.list == nil {
+                        let alert = UIAlertController(title: "No media available.",
+                                                      message: "Please check your network connection and try again.",
+                                                      preferredStyle: UIAlertControllerStyle.alert)
+                        
+                        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                            if globals.isRefreshing {
+                                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                                    
+                                })
+                            } else {
+                                self.setupListActivityIndicator()
+                            }
+                        })
+                        alert.addAction(action)
+                        
+                        self.present(alert, animated: true, completion: nil)
+                    } else {
+                        self.selectedMediaItem = globals.selectedMediaItem.master
+                        
+                        if globals.search.active && !globals.search.complete {
+                            self.updateSearchResults(globals.search.text,completion: {
+                                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                                    DispatchQueue.main.async(execute: { () -> Void in
+                                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                                    })
+                                })
+                            })
+                        } else {
+                            // Reload the table
+                            self.tableView.reloadData()
+                            
+                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                                DispatchQueue.main.async(execute: { () -> Void in
+                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                                })
+                            })
+                        }
+                    }
+                    
+                    self.tableView.isHidden = false
+            }
+            break
+            
         case .selectingCellSearch:
             var searchText = strings[index].uppercased()
             
@@ -583,6 +667,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 searchText = searchText.substring(to: range.lowerBound)
             }
             
+            globals.search.active = true
             globals.search.text = searchText
             
             tableView.setEditing(false, animated: true)
@@ -624,6 +709,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             if let range = string.range(of: " (") {
                 let searchText = string.substring(to: range.lowerBound).uppercased()
                 
+                globals.search.active = true
                 globals.search.text = searchText
                 
                 DispatchQueue.main.async(execute: { () -> Void in
@@ -1111,35 +1197,62 @@ class MediaTableViewController : UIViewController
     var session:URLSession? // Used for JSON
     
     @IBOutlet weak var mediaCategoryButton: UIButton!
-    @IBAction func mediaCategoryButtonAction(_ button: UIButton) {
+    @IBAction func mediaCategoryButtonAction(_ button: UIButton)
+    {
 //        print("categoryButtonAction")
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
-            let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
+        
+        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            
             navigationController.modalPresentationStyle = .popover
-            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
-            
-            navigationController.popoverPresentationController?.permittedArrowDirections = UIPopoverArrowDirection(rawValue: UIPopoverArrowDirection.up.rawValue + UIPopoverArrowDirection.down.rawValue)
-            
+
             navigationController.popoverPresentationController?.sourceView = self.view
             navigationController.popoverPresentationController?.sourceRect = mediaCategoryButton.frame
-            
+
             popover.navigationItem.title = Constants.Select_Category
             
             popover.delegate = self
+            popover.purpose = .selectingCategory
             
-    //                popover.section.strings = ["All Media"]
-    //                
-    //                if (globals.mediaCategory.names != nil) {
-    //                    popover.section.strings?.append(contentsOf: globals.mediaCategory.names!)
-    //                }
+            popover.section.strings = globals.mediaCategory.names
             
-            popover.strings = globals.mediaCategory.names
+            popover.section.showIndex = false
+            popover.section.showHeaders = false
             
-            popover.string = globals.mediaCategory.selected
+            popover.vc = self
             
             present(navigationController, animated: true, completion: nil)
         }
+
+//        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
+//            let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
+//            navigationController.modalPresentationStyle = .popover
+//            
+//            navigationController.popoverPresentationController?.delegate = self
+//            
+//            navigationController.popoverPresentationController?.permittedArrowDirections = UIPopoverArrowDirection(rawValue: UIPopoverArrowDirection.up.rawValue + UIPopoverArrowDirection.down.rawValue)
+//            
+//            navigationController.popoverPresentationController?.sourceView = self.view
+//            navigationController.popoverPresentationController?.sourceRect = mediaCategoryButton.frame
+//            
+//            popover.navigationItem.title = Constants.Select_Category
+//            
+//            popover.delegate = self
+//            
+//    //                popover.section.strings = ["All Media"]
+//    //                
+//    //                if (globals.mediaCategory.names != nil) {
+//    //                    popover.section.strings?.append(contentsOf: globals.mediaCategory.names!)
+//    //                }
+//            
+//            popover.strings = globals.mediaCategory.names
+//            
+//            popover.string = globals.mediaCategory.selected
+//            
+//            present(navigationController, animated: true, completion: nil)
+//        }
     }
     
     @IBOutlet weak var listActivityIndicator: UIActivityIndicatorView!
@@ -1736,7 +1849,7 @@ class MediaTableViewController : UIViewController
             
             return mediaItemDicts.count > 0 ? mediaItemDicts : nil
         } else {
-            print("could not get json from file, make sure that file contains valid json.")
+            print("could not get json from URL, make sure that URL contains valid json.")
         }
         
         return nil
@@ -3485,6 +3598,40 @@ extension MediaTableViewController : UITableViewDelegate
 //        return true // globals.search.complete
     }
     
+    func authentication()
+    {
+//        let value = Data("17iPVurdk9fn2ZKLVnnfqN4HKKIb9WXMKzN0l5K5:X".utf8).base64EncodedString()
+//        
+//        print(value)
+//        
+////        request.setValue("Basic realm=\"ABS API\"", forHTTPHeaderField: "Www-Authenticate")
+//        request.setValue("Basic " + value, forHTTPHeaderField: "Authorization")
+        
+//        let loginID = "17iPVurdk9fn2ZKLVnnfqN4HKKIb0l5K5"
+//        let pwd = "X"
+//        let postString:NSString = "\(loginID)" as NSString
+//        
+//        request.httpBody = postString.data(using: String.Encoding.utf8.rawValue)
+        
+        var request = URLRequest(url: URL(string: "https://17iPVurdk9fn2ZKLVnnfqN4HKKIb9WXMKzN0l5K5:@bibles.org/v2/eng-NASB/passages.js?q[]=")!)
+        request.httpMethod = "GET"
+        
+        let task = URLSession.shared.dataTask(with: request) {
+            data, response, error in
+            
+            if error != nil {
+                print("error=\(error)")
+                return
+            }
+            
+            print("response = \(response)")
+            
+            let responseString = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
+            print("responseString = \(responseString)")
+        }
+        task.resume()
+    }
+
     func actionsAtIndexPath(_ tableView: UITableView, indexPath:IndexPath) -> [UITableViewRowAction]?
     {
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
@@ -3643,6 +3790,8 @@ extension MediaTableViewController : UITableViewDelegate
         transcript.backgroundColor = UIColor.purple
         
         scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
+//            self.authentication()
+            
             let sourceView = cell.subviews[0]
             let sourceRectView = cell.subviews[0].subviews[actions.index(of: scripture)!]
             
@@ -3653,7 +3802,7 @@ extension MediaTableViewController : UITableViewDelegate
                     popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
                 } else {
                     process(viewController: self, work: { () -> (Any?) in
-                        mediaItem.scripture?.load(mediaItem.scripture?.reference)
+                        mediaItem.scripture?.loadJSON() // mediaItem.scripture?.reference
                         return mediaItem.scripture?.html?[reference]
                     }, completion: { (data:Any?) in
                         if let htmlString = data as? String {

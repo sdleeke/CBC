@@ -15,7 +15,7 @@ enum State {
     case none
 }
 
-class Download {
+class Download : NSObject {
     weak var mediaItem:MediaItem?
     
     var observer:Selector?

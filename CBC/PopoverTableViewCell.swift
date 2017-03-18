@@ -8,8 +8,7 @@
 
 import UIKit
 
-class PopoverTableViewCell: UITableViewCell {
-    
+class PopoverTableViewCell: UITableViewCell
+{
     @IBOutlet weak var title: UILabel!
-    
 }

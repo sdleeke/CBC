@@ -98,7 +98,8 @@ class MediaPlayer {
     
     var observerActive = false
     var observedItem:AVPlayerItem?
-    //    var playerObserver:Timer?
+    
+    var playerObserver:Timer?
     
     var url : URL? {
         get {

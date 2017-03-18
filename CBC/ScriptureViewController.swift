@@ -539,7 +539,7 @@ class ScriptureViewController : UIViewController
                 }
             } else {
                 process(viewController: self, work: { () -> (Any?) in
-                    self.scripture?.load(reference)
+                    self.scripture?.load() // reference
                     return self.scripture?.html?[reference]
                 }) { (data:Any?) in
                     if let string = data as? String {
@@ -662,9 +662,10 @@ class ScriptureViewController : UIViewController
         
         if scripture?.selected.reference == nil, let reference = scripture?.reference, let books = booksFromScriptureReference(reference), books.count > 0 {
             DispatchQueue.global(qos: .background).async {
-                self.scripture?.load(reference)
+                self.scripture?.reference = reference
+                self.scripture?.load() // reference
                 
-                if let books = self.scripture?.booksChaptersVerses?.data?.keys.sorted(by: { bookNumberInBible($0) < bookNumberInBible($1) }) {
+                if let books = self.scripture?.booksChaptersVerses?.data?.keys.sorted(by: { self.scripture?.reference?.range(of: $0)?.lowerBound < self.scripture?.reference?.range(of: $1)?.lowerBound }) {
                     let book = books[0]
                     
                     self.scripture?.selected.testament = self.testament(book)

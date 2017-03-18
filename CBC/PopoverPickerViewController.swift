@@ -119,8 +119,14 @@ extension PopoverPickerViewController : UIPickerViewDataSource
             
             label.textAlignment = .left
         } else {
+            guard component == 0 else {
+                label.text = "ERROR"
+                return label
+            }
+            
             if let string = strings?[row] {
                 label.attributedText = NSAttributedString(string: string,attributes: normal)
+//                print("LAST: ",string)
             }
             
             label.textAlignment = .center
@@ -326,6 +332,10 @@ extension PopoverPickerViewController : UIPickerViewDelegate
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         if mediaListGroupSort != nil {
             pickerSelections[component] = row
             
@@ -336,7 +346,12 @@ extension PopoverPickerViewController : UIPickerViewDelegate
                 self.updatePicker()
             }
         } else {
+            guard component == 0 else {
+                return
+            }
+            
             string = strings?[row]
+            print(row, string)
         }
     }
 }

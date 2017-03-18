@@ -590,7 +590,7 @@ class MediaViewController: UIViewController
     
     var panning = false
     
-//    var sliderObserver:Timer?
+    var sliderObserver:Timer?
 
 //    var showScripture = false
     
@@ -2181,9 +2181,13 @@ class MediaViewController: UIViewController
         }
     }
     
-    func downloadFailed()
+    func downloadFailed(_ notification:NSNotification)
     {
-        if let showing = document?.showing(self.selectedMediaItem), showing {
+        // let state = document?.download?.state, state == .none, 
+        
+        // , let showing = document?.showing(self.selectedMediaItem), showing
+        
+        if let download = notification.object as? Download, document?.download == download {
             if let purpose = document?.purpose {
                 switch purpose {
                 case Purpose.slides:
@@ -2240,7 +2244,7 @@ class MediaViewController: UIViewController
                         mediaItemNotesAndSlides.bringSubview(toFront: progressIndicator)
                     }
 
-                    NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: document?.download)
+                    NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: document?.download)
 
 //                    DispatchQueue.main.async {
 //                    }
@@ -3273,7 +3277,7 @@ class MediaViewController: UIViewController
         
         NotificationCenter.default.removeObserver(self) // Catch-all.
         
-//        sliderObserver?.invalidate()
+        sliderObserver?.invalidate()
     }
 
     override func didReceiveMemoryWarning() {
@@ -3517,7 +3521,7 @@ class MediaViewController: UIViewController
             }
         }
     }
-
+    
     func sliderTimer()
     {
         guard Thread.isMainThread else {
@@ -3631,7 +3635,8 @@ class MediaViewController: UIViewController
     
     func removeSliderObserver()
     {
-//        sliderObserver?.invalidate()
+        sliderObserver?.invalidate()
+        sliderObserver = nil
         
         if globals.mediaPlayer.sliderTimerReturn != nil {
             globals.mediaPlayer.player?.removeTimeObserver(globals.mediaPlayer.sliderTimerReturn!)
@@ -3643,13 +3648,13 @@ class MediaViewController: UIViewController
     {
         removeSliderObserver()
         
-//        DispatchQueue.main.async(execute: { () -> Void in
-//            self.sliderObserver = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.SLIDER, target: self, selector: #selector(MediaViewController.sliderTimer), userInfo: nil, repeats: true)
-//        })
-
-        globals.mediaPlayer.sliderTimerReturn = globals.mediaPlayer.player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(0.1,Constants.CMTime_Resolution), queue: DispatchQueue.main, using: { [weak self] (time:CMTime) in
-            self?.sliderTimer()
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.sliderObserver = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.SLIDER, target: self, selector: #selector(MediaViewController.sliderTimer), userInfo: nil, repeats: true)
         })
+
+//        globals.mediaPlayer.sliderTimerReturn = globals.mediaPlayer.player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(0.1,Constants.CMTime_Resolution), queue: DispatchQueue.main, using: { [weak self] (time:CMTime) in
+//            self?.sliderTimer()
+//        })
     }
 
     func playCurrentMediaItem(_ mediaItem:MediaItem?)
@@ -3967,7 +3972,7 @@ extension MediaViewController : UITableViewDataSource
                     popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
                 } else {
                     process(viewController: self, work: { () -> (Any?) in
-                        mediaItem.scripture?.load(mediaItem.scripture?.reference)
+                        mediaItem.scripture?.load() // mediaItem.scripture?.reference
                         return mediaItem.scripture?.html?[reference]
                     }, completion: { (data:Any?) in
                         if let htmlString = data as? String {

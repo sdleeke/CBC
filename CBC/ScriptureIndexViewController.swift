@@ -42,6 +42,8 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
             return
         }
         
+        tableView.setEditing(false, animated: true)
+        
         switch purpose {
         case .selectingSection:
             dismiss(animated: true, completion: nil)
@@ -88,7 +90,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                         popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:self.navigationItem.rightBarButtonItem,sourceView:nil,sourceRectView:nil,htmlString:scripture?.html?[reference])
                     } else {
                         process(viewController: self, work: { () -> (Any?) in
-                            self.scripture?.load(reference)
+                            self.scripture?.load() // reference
                             return self.scripture?.html?[reference]
                         }, completion: { (data:Any?) in
                             if let htmlString = data as? String {
@@ -164,6 +166,8 @@ extension ScriptureIndexViewController : UIPickerViewDelegate
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
     {
+        scripturePicker.isUserInteractionEnabled = false
+        
         switch component {
         case 0: // Testament
             switch row {
@@ -739,6 +743,7 @@ class ScriptureIndexViewController : UIViewController
             DispatchQueue.main.async(execute: { () -> Void in
                 self.updateUI()
                 self.tableView.reloadData()
+                self.scripturePicker.isUserInteractionEnabled = true
             })
             return
         }
@@ -770,6 +775,7 @@ class ScriptureIndexViewController : UIViewController
                     if self.scriptureIndex?.byTestament[testament]?.count > 0 {
                         self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
                     }
+                    self.scripturePicker.isUserInteractionEnabled = true
                 })
             })
             return
@@ -802,6 +808,7 @@ class ScriptureIndexViewController : UIViewController
                     if self.scriptureIndex?.byBook[testament]?[selectedBook]?.count > 0 {
                         self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
                     }
+                    self.scripturePicker.isUserInteractionEnabled = true
                 })
             })
             return
@@ -835,6 +842,7 @@ class ScriptureIndexViewController : UIViewController
                     if self.scriptureIndex?.byChapter[testament]?[selectedBook]?[selectedChapter]?.count > 0 {
                         self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
                     }
+                    self.scripturePicker.isUserInteractionEnabled = true
                 })
             })
             return
@@ -869,6 +877,7 @@ class ScriptureIndexViewController : UIViewController
                 if self.scriptureIndex?.byVerse[testament]?[selectedBook]?[selectedChapter]?[selectedVerse]?.count > 0 {
                     self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
                 }
+                self.scripturePicker.isUserInteractionEnabled = true
             })
         })
     }
@@ -975,9 +984,12 @@ class ScriptureIndexViewController : UIViewController
     
 //        updateSwitches()
 
+        self.scripturePicker.isUserInteractionEnabled = false
+
         if let completed = scriptureIndex?.completed, completed {
             setup()
             updateUI()
+            self.scripturePicker.isUserInteractionEnabled = true
         }
     }
     
@@ -1761,7 +1773,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
                     popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
                 } else {
                     process(viewController: self, work: { () -> (Any?) in
-                        mediaItem.scripture?.load(reference)
+                        mediaItem.scripture?.load() // reference
                         return mediaItem.scripture?.html?[reference]
                     }, completion: { (data:Any?) in
                         if let htmlString = data as? String {
@@ -1792,7 +1804,8 @@ extension ScriptureIndexViewController : UITableViewDelegate
         return editActionsAtIndexPath(tableView, indexPath: indexPath)
     }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
+    {
         print("didSelectRowAtIndexPath")
         
         if let _ = scriptureIndex?.selectedBook {
@@ -1802,6 +1815,8 @@ extension ScriptureIndexViewController : UITableViewDelegate
                 selectedMediaItem = sections?[sectionTitle]?[indexPath.row]
             }
         }
+        
+        globals.addToHistory(selectedMediaItem)
         
         print(selectedMediaItem?.booksAndChaptersAndVerses()?.data as Any)
         

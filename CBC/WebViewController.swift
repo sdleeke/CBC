@@ -294,9 +294,15 @@ extension WebViewController : PopoverTableViewControllerDelegate
             return
         }
         
+        guard index < strings.count else {
+            return
+        }
+        
+        let string = strings[index]
+        
         switch purpose {
         case .selectingWord:
-            var searchText = strings[index]
+            var searchText = string
             
             if let range = searchText.range(of: " (") {
                 searchText = searchText.substring(to: range.lowerBound)
@@ -314,7 +320,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingAction:
-            actionMenu(action: strings[index], mediaItem:mediaItem)
+            actionMenu(action: string, mediaItem:mediaItem)
             break
             
         default:

@@ -982,7 +982,7 @@ class MediaItem : NSObject {
         let json = singleJSONFromURL() // jsonDataFromDocumentsDirectory()
         
         if json != JSON.null {
-//            print("single json:\(jsaon)")
+            print("single json:\(json)")
             
             let mediaItems = json[Constants.JSON.ARRAY_KEY.SINGLE_ENTRY]
             
@@ -1001,7 +1001,7 @@ class MediaItem : NSObject {
             
             return mediaItemDicts.count > 0 ? mediaItemDicts[0] : nil
         } else {
-            print("could not get json from file, make sure that file contains valid json.")
+            print("could not get json from URL, make sure that URL contains valid json.")
         }
         
         return nil
@@ -1850,38 +1850,63 @@ class MediaItem : NSObject {
     
     var hasAudio:Bool {
         get {
-            return files != nil ? files!.contains("A") : false
+            if let contains = files?.contains("A") {
+                return contains
+            } else {
+                return false
+            }
         }
     }
     
     var hasVideo:Bool {
         get {
-            return files != nil ? files!.contains("V") : false
+            if let contains = files?.contains("V") {
+                return contains
+            } else {
+                return false
+            }
         }
     }
     
     var hasSlides:Bool {
         get {
-            return files != nil ? files!.contains("S") : false
+            if let contains = files?.contains("S") {
+                return contains
+            } else {
+                return false
+            }
         }
     }
     
     var hasNotes:Bool {
         get {
-            return files != nil ? files!.contains("T") : false
+            if let contains = files?.contains("T") {
+                return contains
+            } else {
+                return false
+            }
         }
     }
     
     var hasNotesHTML:Bool {
         get {
 //            print(files)
-            return files != nil ? files!.contains("H") : false
+            
+            if let contains = files?.contains("H") {
+                return contains && hasNotes
+            } else {
+                return false
+            }
         }
     }
     
     var hasOutline:Bool {
         get {
-            return files != nil ? files!.contains("O") : false
+            if let contains = files?.contains("O") {
+                return contains
+            } else {
+                return false
+            }
         }
     }
     
