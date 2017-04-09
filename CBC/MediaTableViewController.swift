@@ -1149,7 +1149,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
         //        removeTempFiles()
         
         let filename = task.taskDescription
-        print("filename: \(filename!) error: \(error)")
+        print("filename: \(filename!) error: \(String(describing: error))")
         
         session.invalidateAndCancel()
         
@@ -1991,7 +1991,7 @@ class MediaTableViewController : UIViewController
                     
                 case .direct:
                     // From URL
-                    print(globals.mediaCategory.filename)
+                    print(globals.mediaCategory.filename as Any)
                     if let filename = globals.mediaCategory.filename, let mediaItemDicts = self.loadJSONDictsFromURL(url: url!,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES,filename: filename) {
                         globals.mediaRepository.list = self.mediaItemsFromMediaItemDicts(mediaItemDicts)
                     } else {
@@ -3620,14 +3620,14 @@ extension MediaTableViewController : UITableViewDelegate
             data, response, error in
             
             if error != nil {
-                print("error=\(error)")
+                print("error=\(String(describing: error))")
                 return
             }
             
-            print("response = \(response)")
+            print("response = \(String(describing: response))")
             
             let responseString = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
-            print("responseString = \(responseString)")
+            print("responseString = \(String(describing: responseString))")
         }
         task.resume()
     }

@@ -26,11 +26,11 @@ class LiveViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
+        setupLivePlayerView()
+        
         // Chage spaces before am/pm to be unbreakable
         textView.text = textView.text.replacingOccurrences(of: " am", with: "\u{00a0}am")
         textView.text = textView.text.replacingOccurrences(of: " pm", with: "\u{00a0}pm")
-        
-        setupLivePlayerView()
     }
 
     func clearView()

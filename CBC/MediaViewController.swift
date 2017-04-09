@@ -146,7 +146,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 if (UIApplication.shared.canOpenURL(selectedMediaItem!.websiteURL!)) { // Reachability.isConnectedToNetwork() &&
                     UIApplication.shared.openURL(selectedMediaItem!.websiteURL!)
                 } else {
-                    networkUnavailable("Unable to open transcript in browser at: \(selectedMediaItem?.websiteURL)")
+                    networkUnavailable("Unable to open transcript in browser at: \(String(describing: selectedMediaItem?.websiteURL))")
                 }
             }
             break
@@ -156,7 +156,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 if (UIApplication.shared.canOpenURL(selectedMediaItem!.downloadURL!)) { // Reachability.isConnectedToNetwork() &&
                     UIApplication.shared.openURL(selectedMediaItem!.downloadURL!)
                 } else {
-                    networkUnavailable("Unable to open transcript in browser at: \(selectedMediaItem?.downloadURL)")
+                    networkUnavailable("Unable to open transcript in browser at: \(String(describing: selectedMediaItem?.downloadURL))")
                 }
             }
             break
@@ -787,7 +787,7 @@ class MediaViewController: UIViewController
                 print("observedItem != player?.currentItem")
             }
             if observedItem != nil {
-                print("MVC removeObserver: ",player?.currentItem?.observationInfo)
+                print("MVC removeObserver: ",player?.currentItem?.observationInfo as Any)
                 
                 observedItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: &PlayerContext)
                 observedItem = nil
@@ -829,7 +829,7 @@ class MediaViewController: UIViewController
                 if let url = selectedMediaItem?.playingURL {
                     playerURL(url: url)
                 } else {
-                    print(selectedMediaItem?.dict)
+                    print(selectedMediaItem?.dict as Any)
                     networkUnavailable("Media Not Available")
                 }
 
@@ -2339,7 +2339,7 @@ class MediaViewController: UIViewController
                         print("document!.download nil")
                     }
                     if (document!.download!.downloadURL == nil) {
-                        print("\(self.selectedMediaItem?.title)")
+                        print("\(String(describing: self.selectedMediaItem?.title))")
                         print("document!.download!.downloadURL nil")
                     }
                     
@@ -2637,22 +2637,23 @@ class MediaViewController: UIViewController
         if (selectedMediaItem == globals.mediaPlayer.mediaItem) && (globals.mediaPlayer.state != nil) {
             playPauseButton.isEnabled = globals.mediaPlayer.loaded || globals.mediaPlayer.loadFailed
             
-            switch globals.mediaPlayer.state! {
-            case .playing:
-                if (globals.mediaPlayer.rate == 0) {
-                    globals.mediaPlayer.pause() // IfPlaying
-                }
-                break
-                
-            case .paused:
-                if (globals.mediaPlayer.rate > 0) {
-                    globals.mediaPlayer.play() // IfPlaying
-                }
-                break
-                
-            default:
-                break
-            }
+            // Don't handle this here.  This is setting up a button for crying out loud.  Handle this in a timer.  I.e. sliderTimer()
+//            switch globals.mediaPlayer.state! {
+//            case .playing:
+//                if (globals.mediaPlayer.rate == 0) {
+//                    globals.mediaPlayer.pause() // IfPlaying
+//                }
+//                break
+//                
+//            case .paused:
+//                if (globals.mediaPlayer.rate > 0) {
+//                    globals.mediaPlayer.play() // IfPlaying
+//                }
+//                break
+//                
+//            default:
+//                break
+//            }
             
             switch globals.mediaPlayer.state! {
             case .playing:
@@ -3282,7 +3283,7 @@ class MediaViewController: UIViewController
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        print("didReceiveMemoryWarning: \(selectedMediaItem?.title)")
+        print("didReceiveMemoryWarning: \(String(describing: selectedMediaItem?.title))")
         // Dispose of any resources that can be recreated.
         globals.freeMemory()
     }
@@ -3323,6 +3324,11 @@ class MediaViewController: UIViewController
 
     fileprivate func setTimes(timeNow:Double, length:Double)
     {
+        guard Thread.isMainThread else {
+            userAlert(title: "Not Main Thread", message: "MediaViewController:setTimes")
+            return
+        }
+        
 //        print("timeNow:",timeNow,"length:",length)
         
         let elapsedHours = Int(timeNow / (60*60))
@@ -3362,112 +3368,117 @@ class MediaViewController: UIViewController
     
     fileprivate func setSliderAndTimesToAudio()
     {   
-        if (globals.mediaPlayer.duration != nil) {
-            let length = globals.mediaPlayer.duration!.seconds
+        guard (globals.mediaPlayer.duration != nil) else {
+            return
+        }
+        
+        let length = globals.mediaPlayer.duration!.seconds
 //            print(length)
-            
-            //Crashes if currentPlaybackTime is not a number (NaN) or infinite!  I.e. when nothing has been playing.  This is only a problem on the iPad, I think.
-            
-            let playingCurrentTime = Double(globals.mediaPlayer.mediaItem!.currentTime!)!
-            
-            let playerCurrentTime = globals.mediaPlayer.currentTime!.seconds
-            
-            var progress:Double = -1.0
+        
+        //Crashes if currentPlaybackTime is not a number (NaN) or infinite!  I.e. when nothing has been playing.  This is only a problem on the iPad, I think.
+        
+        let playingCurrentTime = Double(globals.mediaPlayer.mediaItem!.currentTime!)!
+        
+        let playerCurrentTime = globals.mediaPlayer.currentTime!.seconds
+        
+        var progress:Double = -1.0
 
 //            print("currentTime",selectedMediaItem?.currentTime)
 //            print("timeNow",timeNow)
 //            print("length",length)
 //            print("progress",progress)
-            
-            if (length > 0) && (globals.mediaPlayer.state != nil) {
-                switch globals.mediaPlayer.state! {
-                case .playing:
-                    if (playingCurrentTime >= 0) && (playerCurrentTime <= globals.mediaPlayer.duration!.seconds) {
-                        progress = playerCurrentTime / length
-                        
-                        if controlView.sliding && (Int(progress*100) == Int(playingCurrentTime/length*100)) {
-                            print("DONE SLIDING")
-                            controlView.sliding = false
-                        }
+        
+        if (length > 0) && (globals.mediaPlayer.state != nil) {
+            switch globals.mediaPlayer.state! {
+            case .playing:
+                if (playingCurrentTime >= 0) && (playerCurrentTime <= globals.mediaPlayer.duration!.seconds) {
+                    progress = playerCurrentTime / length
+                    
+                    if controlView.sliding && (Int(progress*100) == Int(playingCurrentTime/length*100)) {
+                        print("DONE SLIDING")
+                        controlView.sliding = false
+                    }
 
-                        if !controlView.sliding && globals.mediaPlayer.loaded {
+                    if !controlView.sliding && globals.mediaPlayer.loaded {
 //                            print("playing")
 //                            print("slider.value",slider.value)
 //                            print("progress",progress)
 //                            print("length",length)
-                            
-                            if playerCurrentTime == 0 {
-                                progress = playingCurrentTime / length
-                                slider.value = Float(progress)
-                                setTimes(timeNow: playingCurrentTime,length: length)
-                            } else {
-                                slider.value = Float(progress)
-                                setTimes(timeNow: playerCurrentTime,length: length)
-                            }
+                        
+                        if playerCurrentTime == 0 {
+                            progress = playingCurrentTime / length
+                            slider.value = Float(progress)
+                            setTimes(timeNow: playingCurrentTime,length: length)
+                        } else {
+                            slider.value = Float(progress)
+                            setTimes(timeNow: playerCurrentTime,length: length)
                         }
-
-                        elapsed.isHidden = false
-                        remaining.isHidden = false
-                        slider.isHidden = false
-                        slider.isEnabled = true
                     }
-                    break
-                    
-                case .paused:
+
+                    elapsed.isHidden = false
+                    remaining.isHidden = false
+                    slider.isHidden = false
+                    slider.isEnabled = true
+                }
+                break
+                
+            case .paused:
 //                    if selectedMediaItem?.currentTime != playerCurrentTime.description {
-                        progress = playingCurrentTime / length
+                    progress = playingCurrentTime / length
 
 //                        print("paused")
 //                        print("timeNow",timeNow)
 //                        print("progress",progress)
 //                        print("length",length)
-                        
-                        slider.value = Float(progress)
-                        setTimes(timeNow: playingCurrentTime,length: length)
-                        
-                        elapsed.isHidden = false
-                        remaining.isHidden = false
-                        slider.isHidden = false
-                        slider.isEnabled = true
-//                    }
-                    break
                     
-                case .stopped:
+                    slider.value = Float(progress)
+                    setTimes(timeNow: playingCurrentTime,length: length)
+                    
+                    elapsed.isHidden = false
+                    remaining.isHidden = false
+                    slider.isHidden = false
+                    slider.isEnabled = true
+//                    }
+                break
+                
+            case .stopped:
 //                    if selectedMediaItem?.currentTime != playerCurrentTime.description {
-                        progress = playingCurrentTime / length
-                        
+                    progress = playingCurrentTime / length
+                    
 //                        print("stopped")
 //                        print("timeNow",timeNow)
 //                        print("progress",progress)
 //                        print("length",length)
-                        
-                        slider.value = Float(progress)
-                        setTimes(timeNow: playingCurrentTime,length: length)
-                        
-                        elapsed.isHidden = false
-                        remaining.isHidden = false
-                        slider.isHidden = false
-                        slider.isEnabled = true
-//                    }
-                    break
                     
-                default:
-                    break
-                }
+                    slider.value = Float(progress)
+                    setTimes(timeNow: playingCurrentTime,length: length)
+                    
+                    elapsed.isHidden = false
+                    remaining.isHidden = false
+                    slider.isHidden = false
+                    slider.isEnabled = true
+//                    }
+                break
+                
+            default:
+                break
             }
         }
     }
     
-    fileprivate func setTimesToSlider() {
+    fileprivate func setTimesToSlider()
+    {
         assert(globals.mediaPlayer.player != nil,"globals.mediaPlayer.player should not be nil if we're updating the times to the slider, i.e. the slider is showing")
         
-        if (globals.mediaPlayer.player != nil) {
-            let length = globals.mediaPlayer.duration!.seconds
-            
-            let timeNow = Double(slider.value) * length
-            
-            setTimes(timeNow: timeNow,length: length)
+        guard (globals.mediaPlayer.player != nil) else {
+            return
         }
+
+        let length = globals.mediaPlayer.duration!.seconds
+        
+        let timeNow = Double(slider.value) * length
+        
+        setTimes(timeNow: timeNow,length: length)
     }
     
     fileprivate func setupSliderAndTimes()
@@ -3545,13 +3556,18 @@ class MediaViewController: UIViewController
         setupPlayPauseButton()
         setupSpinner()
         
+        func showState(_ state:String)
+        {
+//            print(state)
+        }
+        
         switch globals.mediaPlayer.state! {
         case .none:
-//                print("none")
+            showState("none")
             break
             
         case .playing:
-//                print("playing")
+            showState("playing")
             
             setupSpinner()
             
@@ -3559,7 +3575,7 @@ class MediaViewController: UIViewController
                 setSliderAndTimesToAudio()
                 
                 if (globals.mediaPlayer.rate == 0) {
-                    globals.mediaPlayer.pause() // IfPlaying
+                    globals.mediaPlayer.play() // Supposed to be playing
                     setupPlayPauseButton()
                     
 //                    if globals.mediaPlayer.mediaItem?.playing == Playing.video,
@@ -3574,14 +3590,14 @@ class MediaViewController: UIViewController
             break
             
         case .paused:
-//                print("paused")
+            showState("paused")
             
             setupSpinner()
             
             if globals.mediaPlayer.loaded {
                 if (globals.mediaPlayer.rate > 0) {
 //                    globals.mediaPlayer.updateCurrentTimeExact()
-                    globals.mediaPlayer.play() // IfPlaying
+                    globals.mediaPlayer.pause() // Supposed to be paused.
                     setupPlayPauseButton()
                 }
 
@@ -3590,16 +3606,16 @@ class MediaViewController: UIViewController
             break
             
         case .stopped:
-//                print("stopped")
+            showState("stopped")
             break
             
         case .seekingForward:
-//                print("seekingForward")
+            showState("seekingForward")
             setupSpinner()
             break
             
         case .seekingBackward:
-//                print("seekingBackward")
+            showState("seekingBackward")
             setupSpinner()
             break
         }
@@ -3699,10 +3715,11 @@ class MediaViewController: UIViewController
         }
     }
 
-    fileprivate func reloadCurrentMediaItem(_ mediaItem:MediaItem?) {
+    fileprivate func reloadCurrentMediaItem(_ mediaItem:MediaItem?)
+    {
         //This guarantees a fresh start.
         globals.mediaPlayer.playOnLoad = true
-        globals.reloadPlayer(mediaItem)
+        globals.reloadPlayer()
         addSliderObserver()
         setupPlayPauseButton()
     }

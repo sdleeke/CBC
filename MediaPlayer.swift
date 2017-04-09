@@ -155,6 +155,19 @@ class MediaPlayer {
     //        }
     //    }
     
+    func reload()
+    {
+        guard (mediaItem != nil) else {
+            return
+        }
+
+        unload()
+        
+        player?.replaceCurrentItem(with: AVPlayerItem(url: url!))
+        
+        stateTime = PlayerStateTime(mediaItem)
+    }
+    
     func play()
     {
         guard (url != nil) else {
@@ -164,6 +177,10 @@ class MediaPlayer {
         switch url!.absoluteString {
         case Constants.URL.LIVE_STREAM:
             player?.play()
+            
+            if (stateTime == nil) || (stateTime?.mediaItem != nil) {
+                stateTime = PlayerStateTime()
+            }
             break
             
         default:
@@ -173,8 +190,6 @@ class MediaPlayer {
                 }
                 
                 stateTime?.startTime = mediaItem?.currentTime
-                
-                stateTime?.state = .playing
                 
                 DispatchQueue.main.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
@@ -188,6 +203,8 @@ class MediaPlayer {
             }
             break
         }
+        
+        stateTime?.state = .playing
         
         controller?.allowsPictureInPicturePlayback = true
         
@@ -203,6 +220,10 @@ class MediaPlayer {
         switch url!.absoluteString {
         case Constants.URL.LIVE_STREAM:
             player?.pause()
+
+            if (stateTime == nil) || (stateTime?.mediaItem != nil) {
+                stateTime = PlayerStateTime()
+            }
             break
             
         default:
@@ -214,8 +235,6 @@ class MediaPlayer {
                 stateTime = PlayerStateTime(mediaItem)
             }
             
-            stateTime?.state = .paused
-            
             DispatchQueue.main.async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
 //            })
@@ -225,6 +244,8 @@ class MediaPlayer {
             })
             break
         }
+        
+        stateTime?.state = .paused
         
         setupPlayingInfoCenter()
     }
@@ -239,10 +260,14 @@ class MediaPlayer {
         guard (url != nil) else {
             return
         }
-        
+
         switch url!.absoluteString {
         case Constants.URL.LIVE_STREAM:
             player?.pause()
+            
+            if (stateTime == nil) || (stateTime?.mediaItem != nil) {
+                stateTime = PlayerStateTime()
+            }
             break
             
         default:
@@ -256,8 +281,6 @@ class MediaPlayer {
                 stateTime = PlayerStateTime(mediaItem)
             }
             
-            stateTime?.state = .stopped
-            
 //            DispatchQueue.main.async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
 //            })
@@ -268,6 +291,8 @@ class MediaPlayer {
 //            })
             break
         }
+        
+        stateTime?.state = .stopped
         
         setupPlayingInfoCenter()
     }

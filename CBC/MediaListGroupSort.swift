@@ -1805,7 +1805,7 @@ class MediaListGroupSort {
                     let sortTag = stringWithoutPrefixes(tag)
                     
                     if sortTag == "" {
-                        print(sortTag)
+                        print(sortTag as Any)
                     }
 
                     if tagMediaItems?[sortTag!] == nil {

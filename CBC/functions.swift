@@ -370,7 +370,7 @@ func stringWithoutPrefixes(_ fromString:String?) -> String?
     }
 
     if sortString == "" {
-        print(sortString)
+        print(sortString as Any)
     }
 
     return sortString
@@ -462,7 +462,7 @@ func verifyNASB()
             
             if passages?.count != 0 {
                 print("ERROR: ","\(book) \(chapters)")
-                print(passages)
+                print(passages as Any)
             }
             
             if Constants.OLD_TESTAMENT_VERSES[index].count != chapters {
@@ -482,8 +482,8 @@ func verifyNASB()
                 
                 if (passages1?.count != 1) || (passages2?.count != 0) {
                     print("ERROR: ","\(book) \(chapter+1):\(verses)")
-                    print(passages1)
-                    print(passages2)
+                    print(passages1 as Any)
+                    print(passages2 as Any)
                 }
             }
         }
@@ -506,7 +506,7 @@ func verifyNASB()
             
             if passages?.count != 0 {
                 print("ERROR: ","\(book) \(chapters)")
-                print(passages)
+                print(passages as Any)
             }
             
             if Constants.NEW_TESTAMENT_VERSES[index].count != chapters {
@@ -526,8 +526,8 @@ func verifyNASB()
                 
                 if (passages1?.count != 1) || (passages2?.count != 0) {
                     print("ERROR: ","\(book) \(chapter+1):\(verses)")
-                    print(passages1)
-                    print(passages2)
+                    print(passages1 as Any)
+                    print(passages2 as Any)
                 }
             }
         }
@@ -756,13 +756,13 @@ func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
     if verses.count == 0 {
         switch testament(book!) {
         case Constants.Old_Testament:
-            let book = (book == "Psalm") ? "Psalms" : book
+//            let book = (book == "Psalm") ? "Psalms" : book
 
-            let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!)
+//            let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!)
 //            print(Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!,Constants.OLD_TESTAMENT_VERSES.count,Constants.OLD_TESTAMENT_VERSES[index!].count)
             break
         case Constants.New_Testament:
-            let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!)
+//            let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!)
 //            print(Constants.NEW_TESTAMENT_BOOKS.index(of: book!)!,Constants.NEW_TESTAMENT_VERSES.count,Constants.NEW_TESTAMENT_VERSES[index!].count)
             break
         default:
@@ -2446,7 +2446,7 @@ func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
                 }
                 
                 if (mediaItem.audio == nil) {
-                    print("No Audio file for: \(mediaItem.title) can't test for PDF's")
+                    print("No Audio file for: \(String(describing: mediaItem.title)) can't test for PDF's")
                 } else {
                     if (mediaItem.notes == nil) {
                         if ((try? Data(contentsOf: mediaItem.notesURL!)) != nil) {
@@ -3208,7 +3208,7 @@ func shareHTML(viewController:UIViewController,htmlString:String?)
 
     let activityItems = [htmlString] // as [Any]
     
-    let activityViewController = UIActivityViewController(activityItems:activityItems, applicationActivities: nil)
+    let activityViewController = UIActivityViewController(activityItems:[activityItems], applicationActivities: nil)
     
     // exclude some activity types from the list (optional)
     
@@ -3943,26 +3943,37 @@ var alert:UIAlertController!
 
 func networkUnavailable(_ message:String?)
 {
-    if (alert == nil) && (UIApplication.shared.applicationState == UIApplicationState.active) {
-        //        DispatchQueue.main.async(execute: { () -> Void in
-        //            UIApplication.shared.keyWindow?.rootViewController?.dismiss(animated: true, completion: nil)
-        //        })
-        
-        alert = UIAlertController(title:Constants.Network_Error,
-                                      message: message,
-                                      preferredStyle: UIAlertControllerStyle.alert)
-        
-        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-            alert = nil
-        })
-        alert.addAction(action)
-        
-        //        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
-        
-        DispatchQueue.main.async(execute: { () -> Void in
-            UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
-        })
+    alert(title:Constants.Network_Error,message:message)
+}
+
+func alert(title:String?,message:String?)
+{
+    guard alert == nil else {
+        return
     }
+
+    guard UIApplication.shared.applicationState == UIApplicationState.active else {
+        return
+    }
+
+    //        DispatchQueue.main.async(execute: { () -> Void in
+    //            UIApplication.shared.keyWindow?.rootViewController?.dismiss(animated: true, completion: nil)
+    //        })
+    
+    alert = UIAlertController(title:title,
+                              message: message,
+                              preferredStyle: UIAlertControllerStyle.alert)
+    
+    let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+        alert = nil
+    })
+    alert.addAction(action)
+    
+    //        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
+    
+    DispatchQueue.main.async(execute: { () -> Void in
+        UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
+    })
 }
 
 func userAlert(title:String?,message:String?)

@@ -204,13 +204,14 @@ class MediaTableViewCell: UITableViewCell
             
             var title:String?
             
-            if (mediaItem?.title?.range(of: " (Part ") != nil) {
-                let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
-                let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
-                title = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
-            } else {
+            // This causes searching for "(Part " to present a blank title.
+//            if (mediaItem?.title?.range(of: " (Part ") != nil) {
+//                let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
+//                let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
+//                title = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
+//            } else {
                 title = mediaItem?.title
-            }
+//            }
             
             if let searchHit = mediaItem?.searchHit(searchText).title, searchHit {
                 var string:String?
@@ -768,7 +769,7 @@ class MediaTableViewCell: UITableViewCell
             return
         }
         
-        DispatchQueue.main.async(execute: { () -> Void in
+//        DispatchQueue.main.async(execute: { () -> Void in
             self.downloadToolbar = UIToolbar(frame: self.downloadButton.frame)
             self.downloadToolbar?.setItems([UIBarButtonItem(title: nil, style: .plain, target: self, action: nil)], animated: false)
             self.downloadToolbar?.isHidden = true
@@ -793,7 +794,7 @@ class MediaTableViewCell: UITableViewCell
             //        self.addConstraint(height)
             
             self.setNeedsLayout()
-        })
+//        })
     }
     
     var tagsToolbar: UIToolbar?

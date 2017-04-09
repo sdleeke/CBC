@@ -112,11 +112,11 @@ extension Scripture : XMLParserDelegate
     {
         print("\n\nStart Element\n")
         
-        print("parentElementName",xml.elementNames.last)
+        print("parentElementName",xml.elementNames.last as Any)
         
         print("elementName",elementName)
-        print("namespaceURI",namespaceURI)
-        print("qName",qName)
+        print("namespaceURI",namespaceURI as Any)
+        print("qName",qName as Any)
         print("attributeDict",attributeDict)
         
         guard let currentDict = xml.dicts.last else {
@@ -160,8 +160,8 @@ extension Scripture : XMLParserDelegate
         print("\n\nEnd Element\n")
         
         print("elementName",elementName)
-        print("namespaceURI",namespaceURI)
-        print("qName",qName)
+        print("namespaceURI",namespaceURI as Any)
+        print("qName",qName as Any)
         
 //        if (xml.currentDict == nil) {
 //            xml.currentDict = xml.dict
@@ -179,7 +179,7 @@ extension Scripture : XMLParserDelegate
         
         xml.elementNames.removeLast()
         
-        print("parent elementName",xml.elementNames.last)
+        print("parent elementName",xml.elementNames.last as Any)
         
         print(xml.dict)
 
@@ -316,10 +316,10 @@ class Scripture : NSObject
                     // What if a reference includes the book more than once?
                     
                     if let chaptersAndVerses = chaptersAndVersesFromScripture(book:book,reference:reference) {
-                        if let bcv = booksAndChaptersAndVerses[book] {
+                        if let _ = booksAndChaptersAndVerses[book] {
                             for key in chaptersAndVerses.keys {
                                 if let verses = chaptersAndVerses[key] {
-                                    if let chapter = booksAndChaptersAndVerses[book]?[key] {
+                                    if let _ = booksAndChaptersAndVerses[book]?[key] {
                                         booksAndChaptersAndVerses[book]?[key]?.append(contentsOf: verses)
                                     } else {
                                         booksAndChaptersAndVerses[book]?[key] = verses
@@ -577,7 +577,7 @@ class Scripture : NSObject
         
         bodyString = bodyString! + "Scripture: " + reference! // + "<br/><br/>"
         
-        guard let scriptureReference = reference?.replacingOccurrences(of: "Psalm ", with: "Psalms ") else {
+        guard let _ = reference?.replacingOccurrences(of: "Psalm ", with: "Psalms ") else {
             return
         }
         
@@ -639,7 +639,7 @@ class Scripture : NSObject
                         return
                     }
                     
-                    print(dict["book"])
+                    print(dict["book"] as Any)
                     
                     if let bookDicts = dict["book"] as? [[String:Any]] {
                         var header = false
@@ -980,7 +980,7 @@ class Scripture : NSObject
         
         bodyString = bodyString! + "</html></body>"
         
-        print(bodyString)
+        print(bodyString as Any)
         
         html?[reference!] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
     }

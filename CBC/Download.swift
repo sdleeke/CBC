@@ -161,9 +161,9 @@ class Download : NSObject {
     func download()
     {
         guard (downloadURL != nil) else {
-            print(mediaItem?.title)
-            print(purpose)
-            print(fileSystemURL)
+            print(mediaItem?.title as Any)
+            print(purpose as Any)
+            print(fileSystemURL as Any)
             return
         }
         

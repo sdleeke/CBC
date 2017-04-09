@@ -626,7 +626,7 @@ class ScriptureIndexViewController : UIViewController
     }
     var selectedMediaItem:MediaItem? {
         didSet {
-            print(selectedMediaItem)
+            print(selectedMediaItem as Any)
         }
     }
     

@@ -351,7 +351,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
             }
             
             string = strings?[row]
-            print(row, string)
+            print(row, string as Any)
         }
     }
 }

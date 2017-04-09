@@ -167,8 +167,8 @@ extension MediaItem : URLSessionDownloadDelegate
             
             debug("URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:")
             
-            debug("session: \(session.sessionDescription)")
-            debug("downloadTask: \(downloadTask.taskDescription)")
+            debug("session: \(String(describing: session.sessionDescription))")
+            debug("downloadTask: \(String(describing: downloadTask.taskDescription))")
             
             if (download?.fileSystemURL != nil) {
                 debug("path: \(download!.fileSystemURL!.path)")
@@ -228,8 +228,8 @@ extension MediaItem : URLSessionDownloadDelegate
         
         debug("URLSession:downloadTask:didFinishDownloadingToURL:")
         
-        debug("session: \(session.sessionDescription)")
-        debug("downloadTask: \(downloadTask.taskDescription)")
+        debug("session: \(String(describing: session.sessionDescription))")
+        debug("downloadTask: \(String(describing: downloadTask.taskDescription))")
         
         debug("purpose: \(download!.purpose!)")
         
@@ -292,7 +292,7 @@ extension MediaItem : URLSessionDownloadDelegate
         }
 
         guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
-            print("DOWNLOAD ERROR:",task.taskDescription,(task.response as? HTTPURLResponse)?.statusCode)
+            print("DOWNLOAD ERROR:",task.taskDescription as Any,(task.response as? HTTPURLResponse)?.statusCode as Any)
             DispatchQueue.main.async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
                 UIApplication.shared.isNetworkActivityIndicatorVisible = false
@@ -308,8 +308,8 @@ extension MediaItem : URLSessionDownloadDelegate
         
         debug("URLSession:task:didCompleteWithError:")
         
-        debug("session: \(session.sessionDescription)")
-        debug("task: \(task.taskDescription)")
+        debug("session: \(String(describing: session.sessionDescription))")
+        debug("task: \(String(describing: task.taskDescription))")
         
         debug("purpose: \(download!.purpose!)")
         
@@ -383,7 +383,7 @@ extension MediaItem : URLSessionDownloadDelegate
         
         debug("URLSession:didBecomeInvalidWithError:")
         
-        debug("session: \(session.sessionDescription)")
+        debug("session: \(String(describing: session.sessionDescription))")
         
         debug("purpose: \(download!.purpose!)")
         
@@ -601,7 +601,23 @@ class MediaItem : NSObject {
 //                print(multiPartSort)
                 if (globals.media.all?.groupSort?[Grouping.TITLE]?[multiPartSort!]?[Sorting.CHRONOLOGICAL] == nil) {
                     mediaItemParts = globals.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
-                        return (testMediaItem.multiPartName == multiPartName) && (testMediaItem.category == category)
+                        var tagsMatch = false
+                        
+                        if (tagsSet == nil) {
+                            if (testMediaItem.tagsSet == nil) {
+                                tagsMatch = true
+                            }
+                        } else {
+                            for tag in tagsSet! {
+                                if  tag != Constants.Video, tag != Constants.Slides, tag != Constants.Transcript, tag != Constants.Lexicon, 
+                                    let contains = testMediaItem.tagsSet?.contains(tag), contains {
+                                    tagsMatch = true
+                                    break
+                                }
+                            }
+                        }
+                        
+                        return (testMediaItem.multiPartName == multiPartName) && (testMediaItem.category == category) && tagsMatch
                     })
 
                 } else {
