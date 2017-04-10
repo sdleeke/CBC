@@ -13,6 +13,57 @@ import MessageUI
 import WebKit
 import MediaPlayer
 
+//struct PlayPauseState {
+//    static var playing  = UInt(1 << 16)
+//    static var paused   = UInt(1 << 17)
+//}
+//
+//class PlayPauseButton : UIButton {
+//    var customState : UInt = 0
+//    
+//    var isPlaying : Bool
+//    {
+//        get {
+//            return (customState & PlayPauseState.playing) != 0
+//        }
+//        set {
+//            switch newValue {
+//            case true:
+//                customState = PlayPauseState.playing
+//                break
+//                
+//            case false:
+//                customState = PlayPauseState.paused
+//                break
+//            }
+//        }
+//    }
+//    
+//    var isPaused : Bool
+//    {
+//        get {
+//            return (customState & PlayPauseState.paused) != 0
+//        }
+//        set {
+//            switch newValue {
+//            case true:
+//                customState = PlayPauseState.paused
+//                break
+//                
+//            case false:
+//                customState = PlayPauseState.playing
+//                break
+//            }
+//        }
+//    }
+//    
+//    override var state : UIControlState {
+//        get {
+//            return UIControlState(rawValue:super.state.rawValue | customState)
+//        }
+//    }
+//}
+
 class Document {
     var loadTimer:Timer? // Each document has its own loadTimer because each has its own WKWebView.  This is only used when a direct load is used, not when a document is cached and then loaded.
     
@@ -998,7 +1049,8 @@ class MediaViewController: UIViewController
         }
     }
 
-    @IBOutlet weak var playPauseButton: UIButton!
+    @IBOutlet weak var playPauseButton: UIButton! // UIButton!
+    
     @IBOutlet weak var spinner: UIActivityIndicatorView!
     
     @IBOutlet weak var stvControl: UISegmentedControl!
@@ -1176,7 +1228,7 @@ class MediaViewController: UIViewController
         var videoIndex = 0
 
         let attr = [NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.ICONS_FONT_SIZE)!]
-        stvControl.setTitleTextAttributes(attr, for: UIControlState())
+        stvControl.setTitleTextAttributes(attr, for: UIControlState.normal)
         
         // This order: Transcript (aka Notes), Slides, Video matches the CBC web site.
         
@@ -1241,26 +1293,31 @@ class MediaViewController: UIViewController
 
     @IBAction func playPause(_ sender: UIButton)
     {
-        guard (globals.mediaPlayer.state != nil) && (globals.mediaPlayer.mediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) else {
+//        guard (globals.mediaPlayer.state != nil) && (globals.mediaPlayer.mediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) else {
+        guard (selectedMediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) else {
             playNewMediaItem(selectedMediaItem)
             return
         }
 
+        func showState(_ state:String)
+        {
+            print(state)
+        }
+        
         switch globals.mediaPlayer.state! {
         case .none:
-//                print("none")
+            showState("none")
             break
             
         case .playing:
-//                print("playing")
-            globals.mediaPlayer.pause() // IfPlaying
-
+            showState("playing")
+            globals.mediaPlayer.pause()
             setupPlayPauseButton()
             setupSpinner()
             break
             
         case .paused:
-//                print("paused")
+            showState("paused")
             if globals.mediaPlayer.loaded && (globals.mediaPlayer.url == selectedMediaItem?.playingURL) {
                 playCurrentMediaItem(selectedMediaItem)
             } else {
@@ -1269,19 +1326,19 @@ class MediaViewController: UIViewController
             break
             
         case .stopped:
-//                print("stopped")
+            showState("stopped")
             break
             
         case .seekingForward:
-//                print("seekingForward")
-            globals.mediaPlayer.pause() // IfPlaying
-//                setupPlayPauseButton()
+            showState("seekingForward")
+            globals.mediaPlayer.pause()
+            setupPlayPauseButton()
             break
             
         case .seekingBackward:
-//                print("seekingBackward")
-            globals.mediaPlayer.pause() // IfPlaying
-//                setupPlayPauseButton()
+            showState("seekingBackward")
+            globals.mediaPlayer.pause()
+            setupPlayPauseButton()
             break
         }
     }
@@ -2043,7 +2100,8 @@ class MediaViewController: UIViewController
         })
     }
 
-    override func viewDidLoad() {
+    override func viewDidLoad()
+    {
         // Do any additional setup after loading the view.
         super.viewDidLoad()
 
@@ -2634,7 +2692,12 @@ class MediaViewController: UIViewController
             return
         }
 
-        if (selectedMediaItem == globals.mediaPlayer.mediaItem) && (globals.mediaPlayer.state != nil) {
+        func showState(_ state:String)
+        {
+//            print(state)
+        }
+
+        if (selectedMediaItem == globals.mediaPlayer.mediaItem) {
             playPauseButton.isEnabled = globals.mediaPlayer.loaded || globals.mediaPlayer.loadFailed
             
             // Don't handle this here.  This is setting up a button for crying out loud.  Handle this in a timer.  I.e. sliderTimer()
@@ -2655,24 +2718,35 @@ class MediaViewController: UIViewController
 //                break
 //            }
             
-            switch globals.mediaPlayer.state! {
-            case .playing:
-//                    print("Pause")
-                playPauseButton.setTitle(Constants.FA.PAUSE, for: UIControlState())
-                break
-                
-            case .paused:
-//                    print("Play")
-                playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState())
-                break
-                
-            default:
-                break
+            if let state = globals.mediaPlayer.state {
+                switch state {
+                case .playing:
+                    showState("Playing -> Pause")
+                    
+//                    playPauseButton.isPlaying = true
+                    
+                    playPauseButton.setTitle(Constants.FA.PAUSE, for: UIControlState.normal) // UIControlState()
+                    break
+                    
+                case .paused:
+                    showState("Paused -> Play")
+                    
+//                    playPauseButton.isPaused = true
+                  
+                    playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState.normal)
+                    break
+                    
+                default:
+                    break
+                }
             }
         } else {
-//                print("Play2")
+            showState("Global not selected")
             playPauseButton.isEnabled = true
-            playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState())
+            
+//            playPauseButton.isPaused = true
+
+            playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState.normal)
         }
 
         playPauseButton.isHidden = false
@@ -2729,7 +2803,7 @@ class MediaViewController: UIViewController
         var barButtons = [UIBarButtonItem]()
         
         actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.actions))
-        actionButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
+        actionButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState.normal)
 
         barButtons.append(actionButton!)
     
@@ -2740,7 +2814,7 @@ class MediaViewController: UIViewController
                 tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.tags(_:)))
             }
             
-            tagsButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.TAGS_FONT_SIZE)!], for: UIControlState())
+            tagsButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.TAGS_FONT_SIZE)!], for: UIControlState.normal)
             
             barButtons.append(tagsButton!)
         } else {
@@ -3052,7 +3126,7 @@ class MediaViewController: UIViewController
 
             let attr = [NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.ICONS_FONT_SIZE)!]
             
-            audioOrVideoControl.setTitleTextAttributes(attr, for: UIControlState())
+            audioOrVideoControl.setTitleTextAttributes(attr, for: UIControlState.normal)
             
             audioOrVideoControl.setTitle(Constants.FA.AUDIO, forSegmentAt: Constants.AV_SEGMENT_INDEX.AUDIO) // Audio
 
@@ -3110,6 +3184,9 @@ class MediaViewController: UIViewController
         guard Thread.isMainThread else {
             return
         }
+        
+//        playPauseButton.setTitle(Constants.FA.PAUSE, for: UIControlState(rawValue: UIControlState.normal.rawValue | PlayPauseState.playing))
+//        playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState(rawValue: UIControlState.normal.rawValue | PlayPauseState.paused))
         
         navigationController?.isToolbarHidden = true
 
@@ -3513,7 +3590,9 @@ class MediaViewController: UIViewController
                     //                        print("progress",progress)
                     //                        print("length",length)
                     
-                    slider.value = Float(progress)
+                    if !controlView.sliding {
+                        slider.value = Float(progress)
+                    }
                     setTimes(timeNow: timeNow,length: length)
                     
                     elapsed.isHidden = false
@@ -3611,12 +3690,12 @@ class MediaViewController: UIViewController
             
         case .seekingForward:
             showState("seekingForward")
-            setupSpinner()
+            //            setupSpinner()  // Already done above.
             break
             
         case .seekingBackward:
             showState("seekingBackward")
-            setupSpinner()
+            //            setupSpinner()  // Already done above.
             break
         }
         

@@ -146,11 +146,11 @@
                                             </constraints>
                                             <variation key="default">
                                                 <mask key="constraints">
-                                                    <exclude reference="5FT-Q6-VJv"/>
-                                                    <exclude reference="HPy-XA-usn"/>
                                                     <exclude reference="Hr0-2Q-hSo"/>
                                                     <exclude reference="XRO-eg-eR8"/>
                                                     <exclude reference="vst-kA-c8f"/>
+                                                    <exclude reference="5FT-Q6-VJv"/>
+                                                    <exclude reference="HPy-XA-usn"/>
                                                 </mask>
                                             </variation>
                                         </tableViewCellContentView>
@@ -217,7 +217,7 @@
                                         </connections>
                                     </segmentedControl>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="M7W-zJ-CBC" userLabel="Play Pause">
-                                        <rect key="frame" x="66" y="5" width="20" height="36"/>
+                                        <rect key="frame" x="66" y="3" width="20" height="40"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="20" id="zH0-7Q-jyh"/>
                                         </constraints>

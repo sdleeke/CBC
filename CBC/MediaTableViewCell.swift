@@ -105,15 +105,15 @@ class MediaTableViewCell: UITableViewCell
         DispatchQueue.main.async {
             switch self.mediaItem!.audioDownload!.state {
             case .none:
-                self.downloadButton.setTitle(Constants.FA.DOWNLOAD, for: UIControlState())
+                self.downloadButton.setTitle(Constants.FA.DOWNLOAD, for: UIControlState.normal)
                 break
                 
             case .downloaded:
-                self.downloadButton.setTitle(Constants.FA.DOWNLOADED, for: UIControlState())
+                self.downloadButton.setTitle(Constants.FA.DOWNLOADED, for: UIControlState.normal)
                 break
                 
             case .downloading:
-                self.downloadButton.setTitle(Constants.FA.DOWNLOADING, for: UIControlState())
+                self.downloadButton.setTitle(Constants.FA.DOWNLOADING, for: UIControlState.normal)
                 break
             }
         }
@@ -701,9 +701,9 @@ class MediaTableViewCell: UITableViewCell
             
             if (self.mediaItem!.hasTags) {
                 if (self.mediaItem?.self.tagsSet?.count > 1) {
-                    self.tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState())
+                    self.tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState.normal)
                 } else {
-                    self.tagsButton.setTitle(Constants.FA.TAG, for: UIControlState())
+                    self.tagsButton.setTitle(Constants.FA.TAG, for: UIControlState.normal)
                 }
             } else {
                 self.tagsButton.isHidden = true

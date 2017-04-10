@@ -960,7 +960,7 @@ class LexiconIndexViewController : UIViewController
         tableView.tableFooterView = UIView()
         
         let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(LexiconIndexViewController.actions))
-        actionButton.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
+        actionButton.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState.normal)
 
         navigationItem.setRightBarButton(actionButton, animated: true) //
     }

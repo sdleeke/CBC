@@ -1618,7 +1618,7 @@ class MediaTableViewController : UIViewController
         let showButton = navigationItem.leftBarButtonItem
         
         showButton?.title = Constants.FA.REORDER
-        showButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState())
+        showButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState.normal)
         
         showButton?.isEnabled = (globals.media.all != nil) //&& !globals.mediaItemsSortingOrGrouping
     }
@@ -2597,13 +2597,13 @@ class MediaTableViewController : UIViewController
                     break
                     
 //                case 1: // Never happens because if there is one we add the All tag.
-//                    self.tagsButton.setTitle(Constants.FA.TAG, for: UIControlState())
+//                    self.tagsButton.setTitle(Constants.FA.TAG, for: UIControlState.normal)
 //                    self.tagsButton.isEnabled = true
 //                    self.tagsButton.isHidden = false
 //                    break
                     
                 default:
-                    self.tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState())
+                    self.tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState.normal)
                     self.tagsButton.isEnabled = true
                     self.tagsButton.isHidden = false
                     break
