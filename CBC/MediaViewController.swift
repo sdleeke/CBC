@@ -1554,24 +1554,22 @@ class MediaViewController: UIViewController
     
     fileprivate func adjustAudioAfterUserMovedSlider()
     {
-        guard globals.mediaPlayer.player != nil else {
+        guard let length = globals.mediaPlayer.duration?.seconds else {
             return
         }
         
         if (slider.value < 1.0) {
-            if let length = globals.mediaPlayer.duration?.seconds {
-                let seekToTime = Double(slider.value) * length
-                
-                globals.mediaPlayer.seek(to: seekToTime)
-                
-                globals.mediaPlayer.mediaItem?.currentTime = seekToTime.description
-            }
+            let seekToTime = Double(slider.value) * length
+            
+            globals.mediaPlayer.seek(to: seekToTime)
+            
+            globals.mediaPlayer.mediaItem?.currentTime = seekToTime.description
         } else {
             globals.mediaPlayer.pause()
             
-            globals.mediaPlayer.seek(to: globals.mediaPlayer.duration?.seconds)
+            globals.mediaPlayer.seek(to: length)
             
-            globals.mediaPlayer.mediaItem?.currentTime = globals.mediaPlayer.duration!.seconds.description
+            globals.mediaPlayer.mediaItem?.currentTime = length.description
         }
         
         switch globals.mediaPlayer.state! {
@@ -2004,13 +2002,24 @@ class MediaViewController: UIViewController
             return
         }
         
-        if globals.mediaPlayer.isPaused && globals.mediaPlayer.mediaItem!.hasCurrentTime() {
-            globals.mediaPlayer.seek(to: Double(globals.mediaPlayer.mediaItem!.currentTime!))
-        }
-        
         if (selectedMediaItem?.playing == Playing.video) {
             globals.mediaPlayer.view?.isHidden = false
             mediaItemNotesAndSlides.bringSubview(toFront: globals.mediaPlayer.view!)
+            
+            if globals.mediaPlayer.playOnLoad {
+                if globals.mediaPlayer.mediaItem!.atEnd {
+                    globals.mediaPlayer.mediaItem!.currentTime = Constants.ZERO
+                    globals.mediaPlayer.seek(to: 0)
+                    globals.mediaPlayer.mediaItem?.atEnd = false
+                }
+                globals.mediaPlayer.playOnLoad = false
+                
+                DispatchQueue.global(qos: .background).async(execute: {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        globals.mediaPlayer.play()
+                    })
+                })
+            }
         }
         
         setupSpinner()
@@ -2725,7 +2734,7 @@ class MediaViewController: UIViewController
                     
 //                    playPauseButton.isPlaying = true
                     
-                    playPauseButton.setTitle(Constants.FA.PAUSE, for: UIControlState.normal) // UIControlState()
+                    playPauseButton.setTitle(Constants.FA.PAUSE, for: UIControlState.normal)
                     break
                     
                 case .paused:
@@ -3177,6 +3186,12 @@ class MediaViewController: UIViewController
         setupActionAndTagsButtons()
     }
     
+    func doneSeeking()
+    {
+        controlView.sliding = false
+        print("DONE SEEKING")
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -3191,6 +3206,8 @@ class MediaViewController: UIViewController
         navigationController?.isToolbarHidden = true
 
         // Shouldn't some or all of these have object values of selectedMediaItem?
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.doneSeeking), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.showPlaying), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SHOW_PLAYING), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.paused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
@@ -3444,19 +3461,26 @@ class MediaViewController: UIViewController
     
     
     fileprivate func setSliderAndTimesToAudio()
-    {   
-        guard (globals.mediaPlayer.duration != nil) else {
+    {
+        guard let state = globals.mediaPlayer.state else {
             return
         }
         
-        let length = globals.mediaPlayer.duration!.seconds
+        guard let length = globals.mediaPlayer.duration?.seconds, length > 0 else {
+            return
+        }
+        
+        guard let playerCurrentTime = globals.mediaPlayer.currentTime?.seconds, playerCurrentTime >= 0, playerCurrentTime <= length else {
+            return
+        }
+
+        guard let mediaItemCurrentTime = globals.mediaPlayer.mediaItem?.currentTime, let playingCurrentTime = Double(mediaItemCurrentTime), playingCurrentTime >= 0, playingCurrentTime <= length else {
+            return
+        }
+
 //            print(length)
         
         //Crashes if currentPlaybackTime is not a number (NaN) or infinite!  I.e. when nothing has been playing.  This is only a problem on the iPad, I think.
-        
-        let playingCurrentTime = Double(globals.mediaPlayer.mediaItem!.currentTime!)!
-        
-        let playerCurrentTime = globals.mediaPlayer.currentTime!.seconds
         
         var progress:Double = -1.0
 
@@ -3465,81 +3489,91 @@ class MediaViewController: UIViewController
 //            print("length",length)
 //            print("progress",progress)
         
-        if (length > 0) && (globals.mediaPlayer.state != nil) {
-            switch globals.mediaPlayer.state! {
-            case .playing:
-                if (playingCurrentTime >= 0) && (playerCurrentTime <= globals.mediaPlayer.duration!.seconds) {
-                    progress = playerCurrentTime / length
+        switch state {
+        case .playing:
+            progress = playerCurrentTime / length
+            
+//            if controlView.sliding && (Int(progress*100) == Int(playingCurrentTime/length*100)) {
+//                print("DONE SLIDING")
+//                controlView.sliding = false
+//            }
+            
+            if !controlView.sliding {
+                if globals.mediaPlayer.loaded {
+                    //                            print("playing")
+                    //                            print("slider.value",slider.value)
+                    //                            print("progress",progress)
+                    //                            print("length",length)
                     
-                    if controlView.sliding && (Int(progress*100) == Int(playingCurrentTime/length*100)) {
-                        print("DONE SLIDING")
-                        controlView.sliding = false
+                    if playerCurrentTime == 0 {
+                        progress = playingCurrentTime / length
+                        slider.value = Float(progress)
+                        setTimes(timeNow: playingCurrentTime,length: length)
+                    } else {
+                        slider.value = Float(progress)
+                        setTimes(timeNow: playerCurrentTime,length: length)
                     }
-
-                    if !controlView.sliding && globals.mediaPlayer.loaded {
-//                            print("playing")
-//                            print("slider.value",slider.value)
-//                            print("progress",progress)
-//                            print("length",length)
-                        
-                        if playerCurrentTime == 0 {
-                            progress = playingCurrentTime / length
-                            slider.value = Float(progress)
-                            setTimes(timeNow: playingCurrentTime,length: length)
-                        } else {
-                            slider.value = Float(progress)
-                            setTimes(timeNow: playerCurrentTime,length: length)
-                        }
-                    }
-
-                    elapsed.isHidden = false
-                    remaining.isHidden = false
-                    slider.isHidden = false
-                    slider.isEnabled = true
+                } else {
+                    print("not loaded")
                 }
-                break
-                
-            case .paused:
-//                    if selectedMediaItem?.currentTime != playerCurrentTime.description {
-                    progress = playingCurrentTime / length
-
-//                        print("paused")
-//                        print("timeNow",timeNow)
-//                        print("progress",progress)
-//                        print("length",length)
-                    
-                    slider.value = Float(progress)
-                    setTimes(timeNow: playingCurrentTime,length: length)
-                    
-                    elapsed.isHidden = false
-                    remaining.isHidden = false
-                    slider.isHidden = false
-                    slider.isEnabled = true
-//                    }
-                break
-                
-            case .stopped:
-//                    if selectedMediaItem?.currentTime != playerCurrentTime.description {
-                    progress = playingCurrentTime / length
-                    
-//                        print("stopped")
-//                        print("timeNow",timeNow)
-//                        print("progress",progress)
-//                        print("length",length)
-                    
-                    slider.value = Float(progress)
-                    setTimes(timeNow: playingCurrentTime,length: length)
-                    
-                    elapsed.isHidden = false
-                    remaining.isHidden = false
-                    slider.isHidden = false
-                    slider.isEnabled = true
-//                    }
-                break
-                
-            default:
-                break
+            } else {
+                print("still sliding")
             }
+            
+            elapsed.isHidden = false
+            remaining.isHidden = false
+            slider.isHidden = false
+            slider.isEnabled = true
+            break
+            
+        case .paused:
+            //                    if selectedMediaItem?.currentTime != playerCurrentTime.description {
+            progress = playingCurrentTime / length
+            
+            //                        print("paused")
+            //                        print("timeNow",timeNow)
+            //                        print("progress",progress)
+            //                        print("length",length)
+            
+            if !controlView.sliding {
+                slider.value = Float(progress)
+            } else {
+                print("still sliding")
+            }
+            setTimes(timeNow: playingCurrentTime,length: length)
+            
+            elapsed.isHidden = false
+            remaining.isHidden = false
+            slider.isHidden = false
+            slider.isEnabled = true
+            //                    }
+            break
+            
+        case .stopped:
+            //                    if selectedMediaItem?.currentTime != playerCurrentTime.description {
+            progress = playingCurrentTime / length
+            
+            //                        print("stopped")
+            //                        print("timeNow",timeNow)
+            //                        print("progress",progress)
+            //                        print("length",length)
+            
+            if !controlView.sliding {
+                slider.value = Float(progress)
+            } else {
+                print("still sliding")
+            }
+            setTimes(timeNow: playingCurrentTime,length: length)
+            
+            elapsed.isHidden = false
+            remaining.isHidden = false
+            slider.isHidden = false
+            slider.isEnabled = true
+            //                    }
+            break
+            
+        default:
+            break
         }
     }
     
@@ -3592,6 +3626,8 @@ class MediaViewController: UIViewController
                     
                     if !controlView.sliding {
                         slider.value = Float(progress)
+                    } else {
+                        print("still sliding")
                     }
                     setTimes(timeNow: timeNow,length: length)
                     
@@ -3868,31 +3904,42 @@ class MediaViewController: UIViewController
             }
         } else {
             if globals.mediaPlayer.isPlaying {
-                switch globals.mediaPlayer.mediaItem!.playing! {
-                case Playing.audio:
-                    if (globals.mediaPlayer.currentTime!.seconds > Double(globals.mediaPlayer.mediaItem!.currentTime!)!) {
-                        if spinner.isAnimating {
-                            spinner.isHidden = true
-                            spinner.stopAnimating()
-                        }
-                    } else {
-                        if !spinner.isAnimating {
-                            spinner.isHidden = false
-                            spinner.startAnimating()
-                        }
-                    }
-                    break
-                    
-                case Playing.video:
+                if !controlView.sliding && (globals.mediaPlayer.currentTime!.seconds > Double(globals.mediaPlayer.mediaItem!.currentTime!)!) {
                     if spinner.isAnimating {
                         spinner.isHidden = true
                         spinner.stopAnimating()
                     }
-                    break
-                    
-                default:
-                    break
+                } else {
+                    if !spinner.isAnimating {
+                        spinner.isHidden = false
+                        spinner.startAnimating()
+                    }
                 }
+//                switch globals.mediaPlayer.mediaItem!.playing! {
+//                case Playing.audio:
+//                    if !controlView.sliding && (globals.mediaPlayer.currentTime!.seconds > Double(globals.mediaPlayer.mediaItem!.currentTime!)!) {
+//                        if spinner.isAnimating {
+//                            spinner.isHidden = true
+//                            spinner.stopAnimating()
+//                        }
+//                    } else {
+//                        if !spinner.isAnimating {
+//                            spinner.isHidden = false
+//                            spinner.startAnimating()
+//                        }
+//                    }
+//                    break
+//                    
+//                case Playing.video:
+//                    if spinner.isAnimating {
+//                        spinner.isHidden = true
+//                        spinner.stopAnimating()
+//                    }
+//                    break
+//                    
+//                default:
+//                    break
+//                }
             } else {
                 if spinner.isAnimating {
                     spinner.isHidden = true

@@ -1046,19 +1046,20 @@ class Globals : NSObject {
                         } else {
                             mediaPlayer.seek(to: Double(mediaPlayer.mediaItem!.currentTime!)!)
                         }
+                        
+                        if mediaPlayer.isPaused {
+                            mediaPlayer.seek(to: Double(mediaPlayer.mediaItem!.currentTime!))
+                        }
                     } else {
                         mediaPlayer.mediaItem?.currentTime = Constants.ZERO
                         mediaPlayer.seek(to: 0)
                     }
-                    
-                    if mediaPlayer.playOnLoad {
-                        if mediaPlayer.mediaItem!.atEnd {
-                            mediaPlayer.mediaItem!.currentTime = Constants.ZERO
-                            mediaPlayer.seek(to: 0)
-                            mediaPlayer.mediaItem?.atEnd = false
+
+                    if (self.mediaPlayer.mediaItem?.playing == Playing.audio) {
+                        if globals.mediaPlayer.playOnLoad {
+                            globals.mediaPlayer.playOnLoad = false
+                            globals.mediaPlayer.play()
                         }
-                        mediaPlayer.playOnLoad = false
-                        mediaPlayer.play()
                     }
                     
                     DispatchQueue.main.async(execute: { () -> Void in

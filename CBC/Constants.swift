@@ -164,6 +164,8 @@ struct Constants {
     struct NOTIFICATION {
         static let FREE_MEMORY              = "FREE MEMORY"
         
+        static let DONE_SEEKING             = "DONE SEEKING"
+        
         static let DID_BECOME_ACTIVE        = "DID BECOME ACTIVE"
         static let WILL_TERMINATE           = "WILL TERMINATE"
         

@@ -342,31 +342,42 @@ class MediaPlayer {
     
     func seek(to: Double?)
     {
-        guard (to != nil) else {
+        guard let to = to else {
             return
         }
         
-        guard (url != nil) else {
+        guard let url = url else {
             return
         }
         
-        switch url!.absoluteString {
+        guard let length = currentItem?.duration.seconds else {
+            return
+        }
+        
+        switch url.absoluteString {
         case Constants.URL.LIVE_STREAM:
             break
             
         default:
             if loaded {
-                var seek = to!
+                var seek = to
                 
-                if seek > currentItem!.duration.seconds {
-                    seek = currentItem!.duration.seconds
+                if seek > length {
+                    seek = length
                 }
                 
                 if seek < 0 {
                     seek = 0
                 }
                 
-                player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution))
+                player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
+                             completionHandler: { (finished:Bool) in
+                                if finished {
+                                    DispatchQueue.main.async(execute: { () -> Void in
+                                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
+                                    })
+                                }
+                })
                 
                 mediaItem?.currentTime = seek.description
                 stateTime?.startTime = seek.description
