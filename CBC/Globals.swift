@@ -1056,9 +1056,9 @@ class Globals : NSObject {
                     }
 
                     if (self.mediaPlayer.mediaItem?.playing == Playing.audio) {
-                        if globals.mediaPlayer.playOnLoad {
-                            globals.mediaPlayer.playOnLoad = false
-                            globals.mediaPlayer.play()
+                        if mediaPlayer.playOnLoad {
+                            mediaPlayer.playOnLoad = false
+                            mediaPlayer.play()
                         }
                     }
                     
@@ -1413,29 +1413,43 @@ class Globals : NSObject {
             break
             
         case .playing:
-            if !mediaPlayer.loaded && !mediaPlayer.loadFailed && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM)) {
-                if (mediaPlayer.stateTime?.timeElapsed > Constants.MIN_PLAY_TIME) {
-                    mediaPlayer.pause()
+//            if !mediaPlayer.loaded && !mediaPlayer.loadFailed && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM)) {
 
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-                    })
-
-                    if (UIApplication.shared.applicationState == UIApplicationState.active) {
-                        alert(title: "Unable to Play Content", message: "Please check your network connection and try to play it again.")
+//            var buffering = true
+//            
+//            if #available(iOS 10.0, *) {
+////                print(mediaPlayer.player?.timeControlStatus)
+////                print(mediaPlayer.player?.reasonForWaitingToPlay)
+//                buffering = (mediaPlayer.player?.timeControlStatus == .waitingToPlayAtSpecifiedRate) && ((mediaPlayer.player?.reasonForWaitingToPlay == AVPlayerWaitingToMinimizeStallsReason) ||
+//                    (mediaPlayer.player?.reasonForWaitingToPlay == AVPlayerWaitingWhileEvaluatingBufferingRateReason))
+//            } else {
+//                // Fallback on earlier versions
+//            }
+            
+            if !mediaPlayer.loadFailed && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM)) {
+                    if (mediaPlayer.rate == 0) && (mediaPlayer.stateTime?.startTime == mediaPlayer.mediaItem?.currentTime) && (mediaPlayer.stateTime?.timeElapsed > Constants.MIN_PLAY_TIME) {
+                        mediaPlayer.pause()
+                        
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+                        })
+                        
+                        if (UIApplication.shared.applicationState == UIApplicationState.active) {
+                            alert(title: "Unable to Play Content", message: "Please check your network connection and try again.")
+                        }
+                    } else {
+                        // Wait so the player can keep trying.
                     }
-                } else {
-                    // Wait so the player can keep trying.
-                }
             }
             
-            if mediaPlayer.loaded, let rate = mediaPlayer.rate, (rate == 0) {
-                mediaPlayer.play()
-
+            // Bad idea since it overrides automatic system pauses for phone calls and Siri
+//            if mediaPlayer.loaded, let rate = mediaPlayer.rate, (rate == 0) {
+//                mediaPlayer.play()
+//
 //                if (UIApplication.shared.applicationState == UIApplicationState.active) {
 //                    UIAlertView(title: "Attempting to Play", message: "Your network connection may be intermittent.", delegate: self, cancelButtonTitle: "OK").show()
 //                }
-            }
+//            }
             break
             
         case .paused:
@@ -1444,7 +1458,7 @@ class Globals : NSObject {
                     mediaPlayer.loadFailed = true
 
                     if (UIApplication.shared.applicationState == UIApplicationState.active) {
-                        alert(title: "Unable to Play Content", message: "Please check your network connection and try to play it again.")
+                        alert(title: "Unable to Play Content", message: "Please check your network connection and try again.")
                     }
                 }
             }

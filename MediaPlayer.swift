@@ -185,6 +185,8 @@ class MediaPlayer {
             
         default:
             if loaded {
+                player?.play()
+                
                 if (mediaItem != stateTime?.mediaItem) || (stateTime?.mediaItem == nil) {
                     stateTime = PlayerStateTime(mediaItem)
                 }
@@ -198,8 +200,6 @@ class MediaPlayer {
 //                DispatchQueue(label: "CBC").async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                 })
-                
-                player?.play()
             }
             break
         }

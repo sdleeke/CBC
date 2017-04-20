@@ -107,41 +107,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
         // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
         print("applicationWillEnterForeground")
 
-        if (globals.mediaPlayer.rate == 0) && (globals.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
-            //It is paused, possibly not by us, but by the system
-            if globals.mediaPlayer.isPlaying {
-                globals.mediaPlayer.pause() // IfPlaying
-                if let currentTime = globals.mediaPlayer.mediaItem?.currentTime, let time = Double(currentTime) {
-                    let newCurrentTime = (time - Constants.BACK_UP_TIME) < 0 ? 0 : time - Constants.BACK_UP_TIME
-                    globals.mediaPlayer.mediaItem?.currentTime = (Double(newCurrentTime) - 1).description
-                }
-            }
-
-            // Is this the way to solve the dropped connection after an extended pause?  Might not since the app might stay in the foreground, but this will probably cover teh vast majority of the cases.
-            if (globals.mediaPlayer.mediaItem != nil) && globals.mediaPlayer.mediaItem!.hasVideo && (globals.mediaPlayer.mediaItem!.playing == Playing.video) {
-                // This assumes that the player is paused because it is playing video and it is coming out of the background.  This may prove to be false.  Be careful.
-                globals.mediaPlayer.playOnLoad = false
-                globals.reloadPlayer()
-            } else {
-                DispatchQueue.main.async(execute: { () -> Void in
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-                })
-            }
-        }
-
-        if (globals.mediaPlayer.rate != 0) && (globals.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
-            if globals.mediaPlayer.isPaused {
-                globals.mediaPlayer.pause()
-
-                DispatchQueue.main.async(execute: { () -> Void in
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-                })
-            }
-        }
-        
-        globals.mediaPlayer.setupPlayingInfoCenter()
-        
-//        
+//
 //        if (globals.mediaPlayer.url != nil) {
 //            switch globals.mediaPlayer.url!.absoluteString {
 //            case Constants.URL.LIVE_STREAM:
@@ -163,6 +129,41 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
     {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
         print("applicationDidBecomeActive")
+        
+        if (globals.mediaPlayer.rate == 0) && (globals.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+            //It is paused, possibly not by us, but by the system
+            if globals.mediaPlayer.isPlaying {
+                globals.mediaPlayer.pause() // IfPlaying
+                if let currentTime = globals.mediaPlayer.mediaItem?.currentTime, let time = Double(currentTime) {
+                    let newCurrentTime = (time - Constants.BACK_UP_TIME) < 0 ? 0 : time - Constants.BACK_UP_TIME
+                    globals.mediaPlayer.mediaItem?.currentTime = (Double(newCurrentTime) - 1).description
+                }
+            }
+            
+            // Is this the way to solve the dropped connection after an extended pause?  Might not since the app might stay in the foreground, but this will probably cover teh vast majority of the cases.
+            if (globals.mediaPlayer.mediaItem != nil) && globals.mediaPlayer.mediaItem!.hasVideo && (globals.mediaPlayer.mediaItem!.playing == Playing.video) {
+                // This assumes that the player is paused because it is playing video and it is coming out of the background.  This may prove to be false.  Be careful.
+                globals.mediaPlayer.playOnLoad = false
+                globals.reloadPlayer()
+            } else {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+                })
+            }
+        }
+        
+        if (globals.mediaPlayer.rate != 0) && (globals.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+            if globals.mediaPlayer.isPaused {
+                globals.mediaPlayer.pause()
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+                })
+            }
+        }
+        
+        globals.mediaPlayer.setupPlayingInfoCenter()
+        
         DispatchQueue.main.async(execute: { () -> Void in
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DID_BECOME_ACTIVE), object: nil)
         })

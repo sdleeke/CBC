@@ -3688,11 +3688,13 @@ class MediaViewController: UIViewController
             
             if globals.mediaPlayer.loaded {
                 setSliderAndTimesToAudio()
+                setupPlayPauseButton()
                 
-                if (globals.mediaPlayer.rate == 0) {
-                    globals.mediaPlayer.play() // Supposed to be playing
-                    setupPlayPauseButton()
-                    
+                // Should be done in global playerObserver
+//                if (globals.mediaPlayer.rate == 0) {
+//                    globals.mediaPlayer.play() // Supposed to be playing
+//                    setupPlayPauseButton()
+//
 //                    if globals.mediaPlayer.mediaItem?.playing == Playing.video,
 //                        let currentTime = globals.mediaPlayer.mediaItem?.currentTime,
 //                        let time = Double(currentTime) {
@@ -3700,7 +3702,7 @@ class MediaViewController: UIViewController
 //                        globals.mediaPlayer.mediaItem?.currentTime = (Double(newCurrentTime) - 1).description
 //                        globals.mediaPlayer.seek(to: newCurrentTime)
 //                    }
-                }
+//                }
             }
             break
             
@@ -3710,13 +3712,14 @@ class MediaViewController: UIViewController
             setupSpinner()
             
             if globals.mediaPlayer.loaded {
-                if (globals.mediaPlayer.rate > 0) {
-//                    globals.mediaPlayer.updateCurrentTimeExact()
-                    globals.mediaPlayer.pause() // Supposed to be paused.
-                    setupPlayPauseButton()
-                }
-
                 setSliderAndTimesToAudio()
+                setupPlayPauseButton()
+
+                // Should be done in global playerObserver
+//                if (globals.mediaPlayer.rate > 0) {
+//                    globals.mediaPlayer.updateCurrentTimeExact()
+//                    globals.mediaPlayer.pause() // Supposed to be paused.
+//                }
             }
             break
             
