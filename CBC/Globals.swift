@@ -1413,6 +1413,19 @@ class Globals : NSObject {
             break
             
         case .playing:
+//            if (globals.mediaPlayer.rate == 0) {
+//                globals.mediaPlayer.pause() // IfPlaying
+//                
+//                //            if let currentTime = globals.mediaPlayer.mediaItem?.currentTime, let time = Double(currentTime) {
+//                //                let newCurrentTime = (time - Constants.BACK_UP_TIME) < 0 ? 0 : time - Constants.BACK_UP_TIME
+//                //                globals.mediaPlayer.mediaItem?.currentTime = (Double(newCurrentTime) - 1).description
+//                //            }
+//                
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+//                })
+//            }
+
 //            if !mediaPlayer.loaded && !mediaPlayer.loadFailed && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM)) {
 
 //            var buffering = true
@@ -1426,21 +1439,21 @@ class Globals : NSObject {
 //                // Fallback on earlier versions
 //            }
             
-            if !mediaPlayer.loadFailed && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM)) {
-                    if (mediaPlayer.rate == 0) && (mediaPlayer.stateTime?.startTime == mediaPlayer.mediaItem?.currentTime) && (mediaPlayer.stateTime?.timeElapsed > Constants.MIN_PLAY_TIME) {
-                        mediaPlayer.pause()
-                        
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-                        })
-                        
-                        if (UIApplication.shared.applicationState == UIApplicationState.active) {
-                            alert(title: "Unable to Play Content", message: "Please check your network connection and try again.")
-                        }
-                    } else {
-                        // Wait so the player can keep trying.
-                    }
-            }
+//            if !mediaPlayer.loadFailed && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM)) {
+//                    if (mediaPlayer.rate == 0) && (mediaPlayer.stateTime?.startTime == mediaPlayer.mediaItem?.currentTime) && (mediaPlayer.stateTime?.timeElapsed > Constants.MIN_PLAY_TIME) {
+//                        mediaPlayer.pause()
+//                        
+//                        DispatchQueue.main.async(execute: { () -> Void in
+//                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+//                        })
+//                        
+//                        if (UIApplication.shared.applicationState == UIApplicationState.active) {
+//                            alert(title: "Unable to Play Content", message: "Please check your network connection and try again.")
+//                        }
+//                    } else {
+//                        // Wait so the player can keep trying.
+//                    }
+//            }
             
             // Bad idea since it overrides automatic system pauses for phone calls and Siri
 //            if mediaPlayer.loaded, let rate = mediaPlayer.rate, (rate == 0) {
@@ -1453,6 +1466,14 @@ class Globals : NSObject {
             break
             
         case .paused:
+            if mediaPlayer.loaded && (mediaPlayer.rate != 0) && (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+                mediaPlayer.pause()
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+                })
+            }
+            
             if !mediaPlayer.loaded && !mediaPlayer.loadFailed && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM)) {
                 if (mediaPlayer.stateTime!.timeElapsed > Constants.MIN_LOAD_TIME) {
                     mediaPlayer.loadFailed = true
@@ -1486,7 +1507,8 @@ class Globals : NSObject {
         }
     }
     
-    func motionEnded(_ motion: UIEventSubtype, event: UIEvent?) {
+    func motionEnded(_ motion: UIEventSubtype, event: UIEvent?)
+    {
         if (motion == .motionShake) {
             if (mediaPlayer.mediaItem != nil) {
                 if mediaPlayer.isPaused {

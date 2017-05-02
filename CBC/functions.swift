@@ -2083,10 +2083,26 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
         return nil
     }
     
+//    if var str = string?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased(), str.contains("satan") {
+//        var count = 0
+//        repeat {
+//            if let upperBound = str.range(of: "satan")?.upperBound {
+//                str = str.substring(from: upperBound)
+//                count += 1
+//            }
+//        } while str.contains("satan")
+//        
+//        if count > 28 {
+//            print(string!)
+//            print(str)
+//        }
+//    }
+    
     var tokens = [String:Int]()
     
     var str = string?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
     
+    // TOKENIZING A TITLE RATHER THAN THE BODY, THIS MAY CAUSE PROBLEMS FOR BODY TEXT.
     if let range = str?.range(of: Constants.PART_INDICATOR_SINGULAR) {
         str = str?.substring(to: range.lowerBound)
     }
@@ -2134,12 +2150,19 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
     
     for char in str!.characters {
         //        print(char)
+        
         if UnicodeScalar(String(char)) != nil {
             if CharacterSet(charactersIn: "\" :-!;,.()?&/<>[]").contains(UnicodeScalar(String(char))!) {
+//                if token.uppercased().contains("SATAN") {
+//                    print(token)
+//                }
                 processToken()
             } else {
                 if !CharacterSet(charactersIn: "$0123456789").contains(UnicodeScalar(String(char))!) {
-                    token.append(char)
+                    if (String(char) != "\'") || (token != Constants.EMPTY_STRING) {
+                        // DO NOT WANT LEADING SINGLE QUOTE
+                        token.append(char)
+                    }
                 }
             }
         }
@@ -2723,6 +2746,11 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
         return
     }
     
+    
+    guard let loadingViewController = viewController.storyboard?.instantiateViewController(withIdentifier: "Loading View Controller") else {
+        return
+    }
+    
     // to share
     
     DispatchQueue.main.async(execute: { () -> Void in
@@ -2745,12 +2773,14 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
         }
         
         let view = viewController.view!
-
+        
 //        view.translatesAutoresizingMaskIntoConstraints = false
         
 //        let container = view
         
-        let container: UIView = UIView()
+//        let container: UIView = UIView()
+
+        let container = loadingViewController.view!
         
         container.frame = view.frame
         container.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
@@ -2764,68 +2794,68 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
         
         // NONE OF THESE PROGRAMMATIC CONSTRAINTS APPEAR TO WORK.
         
-        let containerx = NSLayoutConstraint.constraints(withVisualFormat: "H:|[container]|", options: [], metrics: nil, views: ["container":container])
-        view.addConstraints(containerx)
-        NSLayoutConstraint.activate(containerx)
-        
-        let containery = NSLayoutConstraint.constraints(withVisualFormat: "V:|[container]|", options: [], metrics: nil, views: ["container":container])
-        view.addConstraints(containery)
-        NSLayoutConstraint.activate(containery)
-        
-        let loadingView: UIView = UIView()
-        
-        loadingView.frame = CGRect(x: 0, y: 0, width: 80, height: 80)
-        loadingView.center = CGPoint(x: container.bounds.width / 2, y: container.bounds.height / 2)
-        
-        loadingView.backgroundColor = UIColor.gray.withAlphaComponent(0.75)
-        
-        loadingView.clipsToBounds = true
-        loadingView.layer.cornerRadius = 10
+//        let containerx = NSLayoutConstraint.constraints(withVisualFormat: "H:|[container]|", options: [], metrics: nil, views: ["container":container])
+//        view.addConstraints(containerx)
+//        NSLayoutConstraint.activate(containerx)
+//        
+//        let containery = NSLayoutConstraint.constraints(withVisualFormat: "V:|[container]|", options: [], metrics: nil, views: ["container":container])
+//        view.addConstraints(containery)
+//        NSLayoutConstraint.activate(containery)
+//        
+//        let loadingView: UIView = UIView()
+//        
+//        loadingView.frame = CGRect(x: 0, y: 0, width: 80, height: 80)
+//        loadingView.center = CGPoint(x: container.bounds.width / 2, y: container.bounds.height / 2)
+//        
+//        loadingView.backgroundColor = UIColor.gray.withAlphaComponent(0.75)
+//        
+//        loadingView.clipsToBounds = true
+//        loadingView.layer.cornerRadius = 10
         
         // Causes loadingView to not be visible.
 //        loadingView.translatesAutoresizingMaskIntoConstraints = false
         
-        container.addSubview(loadingView)
+//        container.addSubview(loadingView)
         
         // NONE OF THESE PROGRAMMATIC CONSTRAINTS APPEAR TO WORK.
         
-        let loadingViewx = NSLayoutConstraint(item: loadingView, attribute: .centerX, relatedBy: .equal, toItem: loadingView.superview, attribute: .centerX, multiplier: 1, constant: 0)
-        loadingView.superview?.addConstraint(loadingViewx)
-        loadingViewx.isActive = true
-        
-        let loadingViewy = NSLayoutConstraint(item: loadingView, attribute: .centerY, relatedBy: .equal, toItem: loadingView.superview, attribute: .centerY, multiplier: 1, constant: 0)
-        loadingView.superview?.addConstraint(loadingViewy)
-        loadingViewy.isActive = true
+//        let loadingViewx = NSLayoutConstraint(item: loadingView, attribute: .centerX, relatedBy: .equal, toItem: loadingView.superview, attribute: .centerX, multiplier: 1, constant: 0)
+////        loadingView.superview?.addConstraint(loadingViewx)
+//        loadingViewx.isActive = true
+//        
+//        let loadingViewy = NSLayoutConstraint(item: loadingView, attribute: .centerY, relatedBy: .equal, toItem: loadingView.superview, attribute: .centerY, multiplier: 1, constant: 0)
+////        loadingView.superview?.addConstraint(loadingViewy)
+//        loadingViewy.isActive = true
         
 //        container.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-[loadingView]-|", options: [.alignAllCenterY], metrics: nil, views: ["loadingView":loadingView]))
 //        container.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-[loadingView]-|", options: [.alignAllCenterX], metrics: nil, views: ["loadingView":loadingView]))
         
-        let actInd = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
-        
-        actInd.frame = CGRect(x: 0, y: 0, width: 40, height: 40);
-        actInd.center = CGPoint(x: loadingView.bounds.width / 2, y: loadingView.bounds.height / 2)
+//        let actInd = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
+//        
+//        actInd.frame = CGRect(x: 0, y: 0, width: 40, height: 40);
+//        actInd.center = CGPoint(x: loadingView.bounds.width / 2, y: loadingView.bounds.height / 2)
         
         // Causes loadingView to not be visible.
 //        actInd.translatesAutoresizingMaskIntoConstraints = false
         
-        loadingView.addSubview(actInd)
+//        loadingView.addSubview(actInd)
         
         // NONE OF THESE PROGRAMMATIC CONSTRAINTS APPEAR TO WORK.
         
-        let actIndx = NSLayoutConstraint(item: actInd, attribute: .centerX, relatedBy: .equal, toItem: actInd.superview, attribute: .centerX, multiplier: 1, constant: 0)
-        loadingView.superview?.addConstraint(actIndx)
-        actIndx.isActive = true
-        
-        let actIndy = NSLayoutConstraint(item: actInd, attribute: .centerY, relatedBy: .equal, toItem: actInd.superview, attribute: .centerY, multiplier: 1, constant: 0)
-        loadingView.superview?.addConstraint(actIndy)
-        actIndy.isActive = true
+//        let actIndx = NSLayoutConstraint(item: actInd, attribute: .centerX, relatedBy: .equal, toItem: actInd.superview, attribute: .centerX, multiplier: 1, constant: 0)
+////        loadingView.superview?.addConstraint(actIndx)
+//        actIndx.isActive = true
+//        
+//        let actIndy = NSLayoutConstraint(item: actInd, attribute: .centerY, relatedBy: .equal, toItem: actInd.superview, attribute: .centerY, multiplier: 1, constant: 0)
+////        loadingView.superview?.addConstraint(actIndy)
+//        actIndy.isActive = true
         
 //        loadingView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-[actInd]-|", options: [.alignAllCenterY], metrics: nil, views: ["actInd":actInd]))
 //        loadingView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-[actInd]-|", options: [.alignAllCenterX], metrics: nil, views: ["actInd":actInd]))
         
-        view.setNeedsLayout()
+//        view.setNeedsLayout()
         
-        actInd.startAnimating()
+//        actInd.startAnimating()
         
         DispatchQueue.global(qos: .background).async {
             let data = work?()
@@ -2835,12 +2865,12 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
             
             DispatchQueue.main.async(execute: { () -> Void in
                 // present the view controller
-                actInd.stopAnimating()
+//                actInd.stopAnimating()
 
                 if container != viewController.view {
                     container.removeFromSuperview()
                 } else {
-                    loadingView.removeFromSuperview()
+//                    loadingView.removeFromSuperview()
                 }
                 
                 if let buttons = viewController.navigationItem.rightBarButtonItems {
@@ -3206,9 +3236,9 @@ func shareHTML(viewController:UIViewController,htmlString:String?)
 //    let formatter = UIMarkupTextPrintFormatter(markupText: htmlString!)
 //    formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
 
-    let activityItems = [htmlString] // as [Any]
+    let activityItems = [htmlString as Any]
     
-    let activityViewController = UIActivityViewController(activityItems:[activityItems], applicationActivities: nil)
+    let activityViewController = UIActivityViewController(activityItems:activityItems , applicationActivities: nil)
     
     // exclude some activity types from the list (optional)
     
@@ -3405,6 +3435,16 @@ func stripHTML(_ string:String?) -> String?
     
     bodyString = bodyString?.replacingOccurrences(of: "</body>", with: "")
     bodyString = bodyString?.replacingOccurrences(of: "</html>", with: "")
+
+    bodyString = bodyString?.replacingOccurrences(of: "<em>", with: "")
+    bodyString = bodyString?.replacingOccurrences(of: "</em>", with: "")
+    
+    bodyString = bodyString?.replacingOccurrences(of: "<p>", with: "")
+    bodyString = bodyString?.replacingOccurrences(of: "</p>", with: "")
+    
+//    if (bodyString?.lowercased().contains("satan"))! {
+//        print(bodyString)
+//    }
     
     return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
 }

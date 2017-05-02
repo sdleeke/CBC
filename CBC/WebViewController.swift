@@ -1211,9 +1211,21 @@ class WebViewController: UIViewController
     
     func setPreferredContentSize()
     {
-        if let size = wkWebView?.scrollView.contentSize {
-            preferredContentSize = CGSize(width: size.width,height: size.height)
+        guard let title = navigationItem.title?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE),
+            let size = wkWebView?.scrollView.contentSize else {
+                //                preferredContentSize = CGSize(width: size.width,height: size.height)
+            return
         }
+        
+        let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
+//        let heightSize: CGSize = CGSize(width: size.width, height: .greatestFiniteMagnitude)
+        
+        let width = title.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0)], context: nil).width + 150
+        
+//        let stringHeight = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: nil, context: nil).height // + 150
+//        let stringWidth = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: nil, context: nil).height // + 150
+                
+        preferredContentSize = CGSize(width: max(width,size.width),height: size.height)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -1223,16 +1235,6 @@ class WebViewController: UIViewController
 
         if let title = selectedMediaItem?.title {
             navigationItem.title = title
-        }
-        
-        if let title = navigationItem.title {
-            let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-            
-            let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
-
-            let width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0)], context: nil).width + 150
-
-            preferredContentSize = CGSize(width: width,height: 44)
         }
         
         logo.isHidden = true
@@ -1273,6 +1275,18 @@ class WebViewController: UIViewController
             break
         }
         
+//        if let title = navigationItem.title {
+//            let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+//            
+//            let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
+//            
+//            let width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0)], context: nil).width + 150
+//            
+//            preferredContentSize = CGSize(width: width,height: 44)
+//        }
+
+        preferredContentSize = CGSize(width: 0,height: 44)
+
         barButtonItems(isEnabled: false)
     }
 

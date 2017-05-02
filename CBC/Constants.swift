@@ -166,10 +166,14 @@ struct Constants {
         
         static let DONE_SEEKING             = "DONE SEEKING"
         
+        static let WILL_RESIGN_ACTIVE       = "WILL RESIGN ACTIVE"
+        
         static let DID_BECOME_ACTIVE        = "DID BECOME ACTIVE"
+
         static let WILL_TERMINATE           = "WILL TERMINATE"
         
         static let WILL_ENTER_FORGROUND     = "WILL ENTER FORGROUND"
+        
         static let DID_ENTER_BACKGROUND     = "DID ENTER BACKGROUND"
         
         static let SET_PREFERRED_CONTENT_SIZE = "SET PREFERRED CONTENT SIZE"
@@ -355,6 +359,8 @@ struct Constants {
     static let Slides = "Slides"
     static let Transcript = "Transcript"
     static let Scripture = "Scripture"
+    
+    static let Constant_Tags:Set = [Constants.Video,Constants.Slides,Constants.Transcript,Constants.Lexicon]
     
     static let EMAIL_SUBJECT = CBC.LONG
     static let EMAIL_ONE_SUBJECT = CBC.LONG + " Media"

@@ -2369,11 +2369,16 @@ class MediaTableViewController : UIViewController
 //        changesPending = false
 //    }
     
+    var container:UIView!
     var loadingView:UIView!
     var actInd:UIActivityIndicatorView!
 
     func stopAnimating()
     {
+        guard container != nil else {
+            return
+        }
+        
         guard loadingView != nil else {
             return
         }
@@ -2387,12 +2392,13 @@ class MediaTableViewController : UIViewController
         DispatchQueue.main.async(execute: { () -> Void in
             self.actInd.stopAnimating()
             self.loadingView.isHidden = true
+            self.container.isHidden = true
         })
     }
     
     func startAnimating()
     {
-        if loadingView == nil {
+        if container == nil { // loadingView
             setupLoadingView()
         }
 
@@ -2407,6 +2413,7 @@ class MediaTableViewController : UIViewController
 //        print("startAnimating")
         
         DispatchQueue.main.async(execute: { () -> Void in
+            self.container.isHidden = false
             self.loadingView.isHidden = false
             self.actInd.startAnimating()
         })
@@ -2418,24 +2425,45 @@ class MediaTableViewController : UIViewController
             return
         }
         
-        loadingView = UIView(frame: CGRect(x: 0, y: 0, width: 80, height: 80))
+        guard let loadingViewController = self.storyboard?.instantiateViewController(withIdentifier: "Loading View Controller") else {
+            return
+        }
+
+        container = loadingViewController.view!
         
-        loadingView.center = CGPoint(x: view.frame.width / 2, y: view.frame.height / 2)
-        //            print("1",loadingView.center)
+        container.backgroundColor = UIColor.clear//.white.withAlphaComponent(0.0)
+
+        container.frame = view.frame
+        container.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
         
-        loadingView.backgroundColor = UIColor.gray.withAlphaComponent(0.75)
+        container.isUserInteractionEnabled = false
         
-        loadingView.clipsToBounds = true
-        loadingView.layer.cornerRadius = 10
+        loadingView = loadingViewController.view.subviews[0]
         
-        actInd = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
+        loadingView.isUserInteractionEnabled = false
         
-        actInd.frame = CGRect(x: 0, y: 0, width: 40, height: 40);
-        actInd.center = CGPoint(x: loadingView.frame.width / 2, y: loadingView.frame.height / 2)
+        actInd = loadingView.subviews[0] as! UIActivityIndicatorView
         
-        loadingView.addSubview(actInd)
+        actInd.isUserInteractionEnabled = false
         
-        view.addSubview(loadingView)
+//        loadingView = UIView(frame: CGRect(x: 0, y: 0, width: 80, height: 80))
+//        
+//        loadingView.center = CGPoint(x: view.frame.width / 2, y: view.frame.height / 2)
+//        //            print("1",loadingView.center)
+//        
+//        loadingView.backgroundColor = UIColor.gray.withAlphaComponent(0.75)
+//        
+//        loadingView.clipsToBounds = true
+//        loadingView.layer.cornerRadius = 10
+//        
+//        actInd = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
+//        
+//        actInd.frame = CGRect(x: 0, y: 0, width: 40, height: 40);
+//        actInd.center = CGPoint(x: loadingView.frame.width / 2, y: loadingView.frame.height / 2)
+//        
+//        loadingView.addSubview(actInd)
+        
+        view.addSubview(container) // loadingView
 
         // For some reason this causes problems in this case.
         //        loadingView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
@@ -2450,10 +2478,10 @@ class MediaTableViewController : UIViewController
 //        let centerY = NSLayoutConstraint(item: loadingView!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: loadingView!.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
 //        loadingView?.superview?.addConstraint(centerY)
         
-        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-[loadingView]-|", options: [.alignAllCenterY], metrics: nil, views: ["loadingView":loadingView]))
-        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-[loadingView]-|", options: [.alignAllCenterX], metrics: nil, views: ["loadingView":loadingView]))
-        
-        view.setNeedsLayout()
+//        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-[loadingView]-|", options: [.alignAllCenterY], metrics: nil, views: ["loadingView":loadingView]))
+//        view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-[loadingView]-|", options: [.alignAllCenterX], metrics: nil, views: ["loadingView":loadingView]))
+//        
+//        view.setNeedsLayout()
     }
 
     override func viewDidLoad() {

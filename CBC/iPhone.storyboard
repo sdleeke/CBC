@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12118" systemVersion="16E195" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="T8F-64-B2A">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12120" systemVersion="16E195" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="T8F-64-B2A">
     <device id="retina4_0" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12086"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12088"/>
         <capability name="Alignment constraints with different attributes" minToolsVersion="5.1"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
@@ -217,7 +217,7 @@
                                         </connections>
                                     </segmentedControl>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="M7W-zJ-CBC" userLabel="Play Pause">
-                                        <rect key="frame" x="66" y="3" width="20" height="40"/>
+                                        <rect key="frame" x="66" y="5" width="20" height="36"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="20" id="zH0-7Q-jyh"/>
                                         </constraints>
@@ -1087,23 +1087,23 @@ Email: cbcstaff@countrysidebible.org</string>
                         <viewControllerLayoutGuide type="bottom" id="B9d-oL-eyL"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="iEh-1k-NWu">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="432"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fMW-fs-A1c" userLabel="WebView">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="432"/>
                                 <subviews>
                                     <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="32f-tz-uDW">
-                                        <rect key="frame" x="150" y="242" width="20" height="20"/>
+                                        <rect key="frame" x="290" y="206" width="20" height="20"/>
                                     </activityIndicatorView>
                                     <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="s1B-pf-2oT">
-                                        <rect key="frame" x="85" y="251" width="150" height="2"/>
+                                        <rect key="frame" x="225" y="215" width="150" height="2"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="150" id="FA9-Bu-8Zo"/>
                                         </constraints>
                                     </progressView>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="SWG-El-9IY">
-                                        <rect key="frame" x="20" y="216" width="279" height="72"/>
+                                        <rect key="frame" x="160" y="180" width="279" height="72"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>
@@ -1602,14 +1602,17 @@ Web site: www.countrysidebible.org</string>
                                     <outlet property="delegate" destination="wee-q6-cfV" id="0ya-QY-d0Z"/>
                                 </connections>
                             </pickerView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="j5e-q2-ulD">
-                                <rect key="frame" x="20" y="209" width="0.0" height="0.0"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Found:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="j5e-q2-ulD">
+                                <rect key="frame" x="20" y="209" width="53" height="20.5"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="53" id="WBm-sq-5h5"/>
+                                </constraints>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="NN" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="sBp-uI-wRq">
-                                <rect key="frame" x="20" y="209" width="25" height="21"/>
+                                <rect key="frame" x="81" y="209" width="25" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
@@ -1739,7 +1742,7 @@ Web site: www.countrysidebible.org</string>
                             <constraint firstItem="Jsz-cR-imf" firstAttribute="centerX" secondItem="ozW-b7-UfR" secondAttribute="centerX" id="VQj-fn-8Rc"/>
                             <constraint firstItem="ozW-b7-UfR" firstAttribute="top" secondItem="Kbr-RM-cJj" secondAttribute="bottom" constant="8" symbolic="YES" id="Vqb-pj-yGE"/>
                             <constraint firstItem="j5e-q2-ulD" firstAttribute="top" secondItem="ozW-b7-UfR" secondAttribute="bottom" id="X1u-KD-0MZ"/>
-                            <constraint firstItem="sBp-uI-wRq" firstAttribute="leading" secondItem="j5e-q2-ulD" secondAttribute="trailing" id="ZHb-jx-jNF"/>
+                            <constraint firstItem="sBp-uI-wRq" firstAttribute="leading" secondItem="j5e-q2-ulD" secondAttribute="trailing" constant="8" symbolic="YES" id="ZHb-jx-jNF"/>
                             <constraint firstItem="vIk-wa-38u" firstAttribute="leading" secondItem="o5w-aM-om3" secondAttribute="trailing" constant="8" symbolic="YES" id="bPg-6U-vlp"/>
                             <constraint firstItem="Jsz-cR-imf" firstAttribute="centerX" secondItem="ozW-b7-UfR" secondAttribute="centerX" id="bjb-VI-ejl"/>
                             <constraint firstItem="Jsz-cR-imf" firstAttribute="centerY" secondItem="ozW-b7-UfR" secondAttribute="centerY" id="bzp-YY-FAJ"/>
@@ -2357,6 +2360,50 @@ Web site: www.countrysidebible.org</string>
             </objects>
             <point key="canvasLocation" x="3491" y="-1793"/>
         </scene>
+        <!--Loading View Controller-->
+        <scene sceneID="3EW-te-g9y">
+            <objects>
+                <viewController storyboardIdentifier="Loading View Controller" id="3TV-Oz-LsR" userLabel="Loading View Controller" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="qnV-pd-PyD"/>
+                        <viewControllerLayoutGuide type="bottom" id="fFK-By-eNe"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="9ce-Xy-8l6">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" alpha="0.75" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Bsj-VJ-ifg" userLabel="Loading View">
+                                <rect key="frame" x="120" y="244" width="80" height="80"/>
+                                <subviews>
+                                    <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="wgF-sB-DAa">
+                                        <rect key="frame" x="21.5" y="21.5" width="37" height="37"/>
+                                    </activityIndicatorView>
+                                </subviews>
+                                <color key="backgroundColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="80" id="2os-gi-XQH"/>
+                                    <constraint firstItem="wgF-sB-DAa" firstAttribute="centerX" secondItem="Bsj-VJ-ifg" secondAttribute="centerX" id="3pU-gL-ivJ"/>
+                                    <constraint firstItem="wgF-sB-DAa" firstAttribute="centerY" secondItem="Bsj-VJ-ifg" secondAttribute="centerY" id="lEE-Kt-nmx"/>
+                                    <constraint firstAttribute="height" constant="80" id="pYc-Ki-TKc"/>
+                                </constraints>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                        <integer key="value" value="10"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="Bsj-VJ-ifg" firstAttribute="centerX" secondItem="9ce-Xy-8l6" secondAttribute="centerX" id="77m-vG-sON"/>
+                            <constraint firstItem="Bsj-VJ-ifg" firstAttribute="centerY" secondItem="9ce-Xy-8l6" secondAttribute="centerY" id="NA0-3F-8yU"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="4ZI-sz-tZa" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2342" y="-1794"/>
+        </scene>
     </scenes>
     <resources>
         <image name="CBC_logo" width="279" height="72"/>
@@ -2364,6 +2411,6 @@ Web site: www.countrysidebible.org</string>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="wKS-0J-tYC"/>
-        <segue reference="m58-6R-TkB"/>
+        <segue reference="a3l-pm-T8G"/>
     </inferredMetricsTieBreakers>
 </document>

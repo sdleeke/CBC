@@ -596,30 +596,65 @@ class MediaItem : NSObject {
     
     var multiPartMediaItems:[MediaItem]? {
         get {
+            let tags = tagsSet?.subtracting(Constants.Constant_Tags)
+            
             if (hasMultipleParts) {
                 var mediaItemParts:[MediaItem]?
 //                print(multiPartSort)
                 if (globals.media.all?.groupSort?[Grouping.TITLE]?[multiPartSort!]?[Sorting.CHRONOLOGICAL] == nil) {
                     mediaItemParts = globals.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
-                        var tagsMatch = false
-                        
-                        if (tagsSet == nil) {
-                            if (testMediaItem.tagsSet == nil) {
-                                tagsMatch = true
-                            }
+                        if testMediaItem.hasMultipleParts {
+//                            var tagsMatch = false
+//                            
+//                            let testTags = testMediaItem.tagsSet?.subtracting(Constants.Constant_Tags)
+//                            
+//                            if tags != nil {
+//                                if testTags != nil {
+//                                    // THIS IS A TERRIBLE APPROACH.  We need a way to determine if mediaItems are in the same multi-part set of mediaItems based on not tags but something else.
+//                                    // OTHERWISE mediaItems w/ the same multiPartName in different years (i.e. different "series") show up in the same list!
+//                                    
+//                                    // Requiring they all be in the same year or even sequential Sundays is also problematic!
+//                                    
+//                                    // AND IF THEY HAVE THE SAME JSON tag we can't tell them apart!
+//                                    
+//                                    tagsMatch = tags!.intersection(testTags!).count > 0
+//                                    
+//                                        //                                    for tag in tags! {
+//                                        //    //                                    if multiPartName!.contains("Trilemma") && testMediaItem.multiPartName!.contains("Trilemma") {
+//                                        //    //                                        print(self)
+//                                        //    //                                        print(testMediaItem)
+//                                        //    //                                        print(tagsMatch)
+//                                        //    //                                        print(multiPartName,testMediaItem.multiPartName)
+//                                        //    //                                        print(category,testMediaItem.category)
+//                                        //    //                                    }
+//                                        //                                        
+//                                        //                                        if let contains = testTags?.contains(tag), contains {
+//                                        //                                            tagsMatch = true
+//                                        //                                            break
+//                                        //                                        }
+//                                        //                                    }
+//                                } else {
+//                                    tagsMatch = tags!.isEmpty
+//                                }
+//                            } else {
+//                                tagsMatch = true
+//                            }
+                            
+//                            if multiPartName!.contains("Faithful God;") && testMediaItem.multiPartName!.contains("Faithful God;") {
+//                                print(self)
+//                                print(testMediaItem)
+//                                print(tags,testTags,tagsMatch)
+//                                print(multiPartName,testMediaItem.multiPartName)
+//                                print(category,testMediaItem.category)
+//                            }
+                            
+                            // tagsMatch && 
+                            
+                            return (testMediaItem.category == category) && (testMediaItem.multiPartName == multiPartName)
                         } else {
-                            for tag in tagsSet! {
-                                if  tag != Constants.Video, tag != Constants.Slides, tag != Constants.Transcript, tag != Constants.Lexicon, 
-                                    let contains = testMediaItem.tagsSet?.contains(tag), contains {
-                                    tagsMatch = true
-                                    break
-                                }
-                            }
+                            return false
                         }
-                        
-                        return (testMediaItem.multiPartName == multiPartName) && (testMediaItem.category == category) && tagsMatch
                     })
-
                 } else {
                     mediaItemParts = globals.media.all?.groupSort?[Grouping.TITLE]?[multiPartSort!]?[Sorting.CHRONOLOGICAL]?.filter({ (testMediaItem:MediaItem) -> Bool in
                         return (testMediaItem.multiPartName == multiPartName) && (testMediaItem.category == category)
@@ -630,17 +665,49 @@ class MediaItem : NSObject {
 //                print(id.range(of: "s")?.lowerBound)
 //                print("flYYMMDD".endIndex)
                 
+//                print(mediaItemParts)
+                
                 // Filter for conference series
+                
                 if conferenceCode != nil {
-                    return sortMediaItemsByYear(mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
+                    mediaItemParts = sortMediaItemsByYear(mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
                         return testMediaItem.conferenceCode == conferenceCode
                     }),sorting: Sorting.CHRONOLOGICAL)
                 } else {
-                    return sortMediaItemsByYear(mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
-                        //                        print(classCode,testMediaItem.classCode)
-                        return testMediaItem.classCode == classCode
-                    }),sorting: Sorting.CHRONOLOGICAL)
+                    if hasClassName {
+                        mediaItemParts = sortMediaItemsByYear(mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
+                            //                        print(classCode,testMediaItem.classCode)
+                            return testMediaItem.classCode == classCode
+                        }),sorting: Sorting.CHRONOLOGICAL)
+                    } else {
+                        mediaItemParts = sortMediaItemsByYear(mediaItemParts,sorting: Sorting.CHRONOLOGICAL)
+                    }
                 }
+                
+                // Filter for multiple series of the same name
+                var mediaList = [MediaItem]()
+                
+                if mediaItemParts?.count > 1 {
+                    var number = 0
+                    
+                    for mediaItem in mediaItemParts! {
+                        if let part = mediaItem.part, let partNumber = Int(part) {
+                            if partNumber > number {
+                                mediaList.append(mediaItem)
+                                number = partNumber
+                            } else {
+                                if (mediaList.count > 0) && mediaList.contains(self) {
+                                    break
+                                } else {
+                                    mediaList = [mediaItem]
+                                    number = partNumber
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                return mediaList.count > 0 ? mediaList : nil
             } else {
                 return [self]
             }
@@ -1339,23 +1406,31 @@ class MediaItem : NSObject {
                 dynamicTags = dynamicTags != nil ? dynamicTags! + "|" + eventName! : eventName!
             }
             
+            return dynamicTags
+        }
+    }
+    
+    var constantTags:String? {
+        get {
+            var constantTags:String?
+            
             if hasSlides {
-                dynamicTags = dynamicTags != nil ? dynamicTags! + "|" + Constants.Slides : Constants.Slides
+                constantTags = constantTags != nil ? constantTags! + "|" + Constants.Slides : Constants.Slides
             }
             
             if hasNotes {
-                dynamicTags = dynamicTags != nil ? dynamicTags! + "|" + Constants.Transcript : Constants.Transcript
+                constantTags = constantTags != nil ? constantTags! + "|" + Constants.Transcript : Constants.Transcript
             }
             
             if hasNotesHTML {
-                dynamicTags = dynamicTags != nil ? dynamicTags! + "|" + Constants.Lexicon : Constants.Lexicon
+                constantTags = constantTags != nil ? constantTags! + "|" + Constants.Lexicon : Constants.Lexicon
             }
             
             if hasVideo {
-                dynamicTags = dynamicTags != nil ? dynamicTags! + "|" + Constants.Video : Constants.Video
+                constantTags = constantTags != nil ? constantTags! + "|" + Constants.Video : Constants.Video
             }
 
-            return dynamicTags
+            return constantTags
         }
     }
     
@@ -1384,6 +1459,8 @@ class MediaItem : NSObject {
             tags = tags != nil ? tags! + (savedTags != nil ? "|" + savedTags! : "") : (savedTags != nil ? savedTags : nil)
             
             tags = tags != nil ? tags! + (dynamicTags != nil ? "|" + dynamicTags! : "") : (dynamicTags != nil ? dynamicTags : nil)
+            
+            tags = tags != nil ? tags! + (constantTags != nil ? "|" + constantTags! : "") : (constantTags != nil ? constantTags : nil)
             
             if let proposedTags = proposedTags(jsonTags) {
                 tags = tags != nil ? tags! + "|" + proposedTags : proposedTags
@@ -1519,23 +1596,29 @@ class MediaItem : NSObject {
         return tags
     }
     
+    func tagsToSet(_ tags:String?) -> Set<String>?
+    {
+        guard var tags = tags else {
+            return nil
+        }
+        
+        var tag:String
+        var tagsSet = Set<String>()
+        
+        while (tags.range(of: Constants.TAGS_SEPARATOR) != nil) {
+            tag = tags.substring(to: tags.range(of: Constants.TAGS_SEPARATOR)!.lowerBound)
+            tagsSet.insert(tag)
+            tags = tags.substring(from: tags.range(of: Constants.TAGS_SEPARATOR)!.upperBound)
+        }
+        
+        tagsSet.insert(tags)
+        
+        return tagsSet.count == 0 ? nil : tagsSet
+    }
+    
     var tagsSet:Set<String>? {
         get {
-            var tag:String
-            var tags = self.tags
-            var tagsSet = Set<String>()
-            
-            while (tags?.range(of: Constants.TAGS_SEPARATOR) != nil) {
-                tag = tags!.substring(to: tags!.range(of: Constants.TAGS_SEPARATOR)!.lowerBound)
-                tagsSet.insert(tag)
-                tags = tags!.substring(from: tags!.range(of: Constants.TAGS_SEPARATOR)!.upperBound)
-            }
-            
-            if (tags != nil) {
-                tagsSet.insert(tags!)
-            }
-            
-            return tagsSet.count == 0 ? nil : tagsSet
+            return tagsToSet(self.tags)
         }
     }
     
