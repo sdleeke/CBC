@@ -166,6 +166,10 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         }
         
         switch action {
+        case Constants.Swap_Video_Location:
+            swapVideoLocation()
+            break
+            
         case Constants.Print_Slides:
             fallthrough
         case Constants.Print_Transcript:
@@ -620,11 +624,18 @@ extension MediaViewController: UIPopoverPresentationControllerDelegate
     
 }
 
+enum VideoLocation {
+    case withDocuments
+    case withTableView
+}
+
 class MediaViewController: UIViewController
 {
     @IBOutlet weak var controlView: ControlView!
     
     @IBOutlet weak var controlViewTop: NSLayoutConstraint!
+    
+    var videoLocation : VideoLocation = .withDocuments
     
     var scripture:Scripture? {
         get {
@@ -1242,7 +1253,7 @@ class MediaViewController: UIViewController
             slidesIndex = index
             index += 1
         }
-        if selectedMediaItem!.hasVideo { //  && !globals.mediaPlayer.loadFailed
+        if selectedMediaItem!.hasVideo && (videoLocation == .withDocuments) { //  && !globals.mediaPlayer.loadFailed
             if (selectedMediaItem == globals.mediaPlayer.mediaItem) && globals.mediaPlayer.loaded {
                 if (selectedMediaItem?.playing == Playing.video) { //  && (selectedMediaItem?.showing == Showing.video)
                     stvControl.insertSegment(withTitle: Constants.STV_SEGMENT_TITLE.VIDEO, at: index, animated: false)
@@ -1348,7 +1359,18 @@ class MediaViewController: UIViewController
         var minConstraintConstant:CGFloat
         var maxConstraintConstant:CGFloat
         
-        minConstraintConstant = tableView.rowHeight*0 + 28 + 16 //margin on top and bottom of slider
+        var minRows:CGFloat = 0
+        
+        switch videoLocation {
+        case .withDocuments:
+            break
+            
+        case .withTableView:
+            minRows = 1
+            break
+        }
+        
+        minConstraintConstant = tableView.rowHeight * minRows + 28 + 16 //margin on top and bottom of slider
 
         maxConstraintConstant = height - 31 - (navigationController != nil ? navigationController!.navigationBar.bounds.height : 0) + 11
 
@@ -1366,41 +1388,54 @@ class MediaViewController: UIViewController
     
     fileprivate func shouldShowLogo() -> Bool
     {
-        var result = (selectedMediaItem == nil)
-
-        if (document != nil) {
+        guard selectedMediaItem != nil, let showing = selectedMediaItem?.showing else {
+            return true
+        }
+        
+        var result = false
+        
+        switch showing {
+        case Showing.slides:
+            fallthrough
+        case Showing.notes:
             result = ((wkWebView == nil) || (wkWebView!.isHidden == true)) && progressIndicator.isHidden
-        } else {
-            if (selectedMediaItem?.showing == Showing.video) {
-                result = false
-            }
-            if (selectedMediaItem?.showing == Showing.none) {
-                result = true
-            }
-        }
-
-        if (selectedMediaItem != nil) && (documents[selectedMediaItem!.id] != nil) {
-            var nilCount = 0
-            var hiddenCount = 0
+            break
+        
+        case Showing.video:
+            result = !globals.mediaPlayer.loaded
+            break
             
-            for key in documents[selectedMediaItem!.id]!.keys {
-                let wkWebView = documents[selectedMediaItem!.id]![key]!.wkWebView
-                if (wkWebView == nil) {
-                    nilCount += 1
-                }
-                if (wkWebView != nil) && (wkWebView!.isHidden == true) {
-                    hiddenCount += 1
-                }
-            }
-            
-            if (nilCount == documents[selectedMediaItem!.id]!.keys.count) {
-                result = true
-            } else {
-                if (hiddenCount > 0) {
-                    result = progressIndicator.isHidden
-                }
-            }
+        default:
+            result = true
+            break
         }
+        
+        // WHY DOES THIS EXIST?
+//        if (documents[selectedMediaItem!.id] != nil) {
+//            var nilCount = 0
+//            var hiddenCount = 0
+//            
+//            for key in documents[selectedMediaItem!.id]!.keys {
+//                let wkWebView = documents[selectedMediaItem!.id]![key]!.wkWebView
+//                if (wkWebView == nil) {
+//                    nilCount += 1
+//                } else {
+//                    if (wkWebView!.isHidden == true) {
+//                        hiddenCount += 1
+//                    }
+//                }
+//            }
+//            
+//            if (nilCount == documents[selectedMediaItem!.id]!.keys.count) {
+//                result = true
+//            } else {
+//                if (hiddenCount > 0) { // DOESN'T IT MATTER WHICH ONE IS HIDDEN?
+//                    result = progressIndicator.isHidden
+//                }
+//            }
+//        }
+        
+//        print(result)
 
         return result
     }
@@ -1692,6 +1727,16 @@ class MediaViewController: UIViewController
             
             var actionMenu = [String]()
 
+            if (selectedMediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) {
+                let hasVideo = selectedMediaItem!.hasVideo
+                let hasSlides = selectedMediaItem!.hasSlides
+                let hasNotes = selectedMediaItem!.hasNotes
+                
+                if hasVideo && (hasSlides || hasNotes) && (selectedMediaItem?.playing == Playing.video) {
+                        actionMenu.append(Constants.Swap_Video_Location)
+                }
+            }
+            
             actionMenu.append(Constants.Scripture_Viewer)
             
             if selectedMediaItem!.hasFavoritesTag {
@@ -1921,39 +1966,77 @@ class MediaViewController: UIViewController
         }
     }
     
+    func swapVideoLocation()
+    {
+        switch videoLocation {
+        case .withDocuments:
+            selectedMediaItem?.showing = selectedMediaItem?.wasShowing
+            videoLocation = .withTableView
+            break
+            
+        case .withTableView:
+            selectedMediaItem?.showing = Showing.video
+            videoLocation = .withDocuments
+            break
+        }
+        
+        if globals.mediaPlayer.mediaItem == selectedMediaItem {
+            updateUI()
+//            setupPlayerView(globals.mediaPlayer.view)
+//            globals.mediaPlayer.view?.isHidden = false
+        }
+    }
+    
     fileprivate func setupPlayerView(_ view:UIView?)
     {
         guard (view != nil) else {
             return
         }
 
+        var parentView : UIView!
+
+        switch videoLocation {
+        case .withDocuments:
+            parentView = mediaItemNotesAndSlides!
+//            tableView.bounces = true
+            tableView.isScrollEnabled = true
+            break
+            
+        case .withTableView:
+            parentView = tableView!
+            tableView.scrollToRow(at: IndexPath(row:0,section:0), at: UITableViewScrollPosition.top, animated: false)
+//            tableView.bounces = false
+            tableView.isScrollEnabled = false
+            break
+        }
+        
         view?.isHidden = true
         view?.removeFromSuperview()
         
-        if mediaItemNotesAndSlides != nil {
-            view?.frame = mediaItemNotesAndSlides.bounds
-            
-            view?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
-            
-            mediaItemNotesAndSlides.addSubview(view!)
-            
-            //            print(view)
-            //            print(view?.superview)
-            
-            let centerX = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
-            mediaItemNotesAndSlides.addConstraint(centerX)
-            
-            let centerY = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-            mediaItemNotesAndSlides.addConstraint(centerY)
-            
-            let width = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
-            mediaItemNotesAndSlides.addConstraint(width)
-            
-            let height = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
-            mediaItemNotesAndSlides.addConstraint(height)
-            
-            mediaItemNotesAndSlides.setNeedsLayout()
+        view?.frame = parentView.bounds
+        
+        view?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+        
+        if let contain = parentView?.subviews.contains(view!), !contain {
+            parentView.addSubview(view!)
         }
+        
+        //            print(view)
+        //            print(view?.superview)
+        
+        let centerX = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
+        parentView.addConstraint(centerX)
+        
+        let centerY = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+        parentView.addConstraint(centerY)
+        
+        let width = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
+        parentView.addConstraint(width)
+        
+        let height = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
+        parentView.addConstraint(height)
+        
+        parentView.setNeedsLayout()
     }
     
     fileprivate func setupWKWebView(_ wkWebView:WKWebView?)
@@ -1990,6 +2073,10 @@ class MediaViewController: UIViewController
     
     func readyToPlay()
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         guard globals.mediaPlayer.loaded else {
             return
         }
@@ -2004,6 +2091,7 @@ class MediaViewController: UIViewController
         
         if (selectedMediaItem?.playing == Playing.video) {
             globals.mediaPlayer.view?.isHidden = false
+            
             mediaItemNotesAndSlides.bringSubview(toFront: globals.mediaPlayer.view!)
             
             if globals.mediaPlayer.playOnLoad {
@@ -2551,25 +2639,29 @@ class MediaViewController: UIViewController
         
         switch selectedMediaItem!.showing! {
         case Showing.notes:
-            globals.mediaPlayer.view?.isHidden = true
+            globals.mediaPlayer.view?.isHidden = videoLocation == .withDocuments
             logo.isHidden = true
             
             hideOtherDocuments()
             
             if (wkWebView != nil) {
-//                    wkWebView?.isHidden = false
+                if let isLoading = wkWebView?.isLoading {
+                    wkWebView?.isHidden = isLoading
+                }
                 mediaItemNotesAndSlides.bringSubview(toFront: wkWebView!)
             }
             break
             
         case Showing.slides:
-            globals.mediaPlayer.view?.isHidden = true
+            globals.mediaPlayer.view?.isHidden = videoLocation == .withDocuments
             logo.isHidden = true
             
             hideOtherDocuments()
             
             if (wkWebView != nil) {
-//                    wkWebView?.isHidden = false
+                if let isLoading = wkWebView?.isLoading {
+                    wkWebView?.isHidden = isLoading
+                }
                 mediaItemNotesAndSlides.bringSubview(toFront: wkWebView!)
             }
             break
@@ -3014,11 +3106,13 @@ class MediaViewController: UIViewController
         
         let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
         
-        newConstraintConstant = minConstraintConstant + tableView.rowHeight * (mediaItems!.count > 1 ? 1 : 1)
+//        newConstraintConstant = minConstraintConstant + tableView.rowHeight * (mediaItems!.count > 1 ? 1 : 1)
         
-        if newConstraintConstant > ((maxConstraintConstant+minConstraintConstant)/2) {
-            newConstraintConstant = (maxConstraintConstant+minConstraintConstant)/2
-        }
+        newConstraintConstant = self.view.bounds.height / 2
+        
+//        if newConstraintConstant > ((maxConstraintConstant+minConstraintConstant)/2) {
+//            newConstraintConstant = (maxConstraintConstant+minConstraintConstant)/2
+//        }
         
         if (newConstraintConstant >= minConstraintConstant) && (newConstraintConstant <= maxConstraintConstant) {
             self.mediaItemNotesAndSlidesConstraint.constant = newConstraintConstant

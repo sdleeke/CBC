@@ -596,7 +596,7 @@ class MediaItem : NSObject {
     
     var multiPartMediaItems:[MediaItem]? {
         get {
-            let tags = tagsSet?.subtracting(Constants.Constant_Tags)
+//            let tags = tagsSet?.subtracting(Constants.Constant_Tags)
             
             if (hasMultipleParts) {
                 var mediaItemParts:[MediaItem]?
@@ -705,9 +705,11 @@ class MediaItem : NSObject {
                             }
                         }
                     }
+                    
+                    return mediaList.count > 0 ? mediaList : nil
+                } else {
+                    return mediaItemParts
                 }
-                
-                return mediaList.count > 0 ? mediaList : nil
             } else {
                 return [self]
             }

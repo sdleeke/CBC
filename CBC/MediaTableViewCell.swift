@@ -56,6 +56,14 @@ class MediaTableViewCell: UITableViewCell
     
     @IBOutlet weak var countLabel: UILabel!
     
+    func clear()
+    {
+        DispatchQueue.main.async {
+            self.title.attributedText = nil
+            self.detail.attributedText = nil
+        }
+    }
+    
     func hideUI()
     {
         guard Thread.isMainThread else {
@@ -121,349 +129,354 @@ class MediaTableViewCell: UITableViewCell
     
     func setupText()
     {
-        //        if (globals.search.active && ((vc as? MediaTableViewController) != nil)) || ((vc as? LexiconIndexViewController) != nil) {
-        if searchText != nil {
-            let titleString = NSMutableAttributedString()
+        clear()
+
+        let titleString = NSMutableAttributedString()
+        
+        let normal = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
+        
+        let bold = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
+        
+        let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+                            NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
+        
+        let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+                                NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
+        
+        if let searchHit = mediaItem?.searchHit(searchText).formattedDate, searchHit, let formattedDate = mediaItem?.formattedDate {
+            var string:String?
+            var before:String?
+            var after:String?
             
-            let normal = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
-            
-            let bold = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
-            
-            let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-                                NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
-            
-            let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-                                    NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
-            
-            if let searchHit = mediaItem?.searchHit(searchText).formattedDate, searchHit, let formattedDate = mediaItem?.formattedDate {
-                var string:String?
-                var before:String?
-                var after:String?
+            if let range = formattedDate.lowercased().range(of: searchText!.lowercased()) {
+                before = formattedDate.substring(to: range.lowerBound)
+                string = formattedDate.substring(with: range)
+                after = formattedDate.substring(from: range.upperBound)
                 
-                if let range = formattedDate.lowercased().range(of: searchText!.lowercased()) {
-                    before = formattedDate.substring(to: range.lowerBound)
-                    string = formattedDate.substring(with: range)
-                    after = formattedDate.substring(from: range.upperBound)
-                    
-                    if let before = before {
-                        titleString.append(NSAttributedString(string: before,   attributes: bold))
-                    }
-                    if let string = string {
-                        titleString.append(NSAttributedString(string: string,   attributes: boldHighlighted))
-                    }
-                    if let after = after {
-                        titleString.append(NSAttributedString(string: after,   attributes: bold))
-                    }
+                if let before = before {
+                    titleString.append(NSAttributedString(string: before,   attributes: normal))
                 }
-            } else {
-                titleString.append(NSAttributedString(string:mediaItem!.formattedDate!, attributes: bold))
+                if let string = string {
+                    titleString.append(NSAttributedString(string: string,   attributes: highlighted))
+                }
+                if let after = after {
+                    titleString.append(NSAttributedString(string: after,   attributes: normal))
+                }
             }
+        } else {
+            titleString.append(NSAttributedString(string:mediaItem!.formattedDate!, attributes: normal))
+        }
+        
+        if !titleString.string.isEmpty {
+            titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
+        }
+        titleString.append(NSAttributedString(string: mediaItem!.service!, attributes: normal))
+        
+        if let searchHit = mediaItem?.searchHit(searchText).speaker, searchHit, let speaker = mediaItem?.speaker {
+            var string:String?
+            var before:String?
+            var after:String?
             
-            if !titleString.string.isEmpty {
-                titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
-            }
-            titleString.append(NSAttributedString(string: mediaItem!.service!, attributes: bold))
-            
-            if let searchHit = mediaItem?.searchHit(searchText).speaker, searchHit, let speaker = mediaItem?.speaker {
-                var string:String?
-                var before:String?
-                var after:String?
+            if let range = speaker.lowercased().range(of: searchText!.lowercased()) {
+                before = speaker.substring(to: range.lowerBound)
+                string = speaker.substring(with: range)
+                after = speaker.substring(from: range.upperBound)
                 
-                if let range = speaker.lowercased().range(of: searchText!.lowercased()) {
-                    before = speaker.substring(to: range.lowerBound)
-                    string = speaker.substring(with: range)
-                    after = speaker.substring(from: range.upperBound)
-                    
-                    if !titleString.string.isEmpty {
-                        titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
-                    }
-                    
-                    if let before = before {
-                        titleString.append(NSAttributedString(string: before,   attributes: bold))
-                    }
-                    if let string = string {
-                        titleString.append(NSAttributedString(string: string,   attributes: boldHighlighted))
-                    }
-                    if let after = after {
-                        titleString.append(NSAttributedString(string: after,   attributes: bold))
-                    }
-                }
-            } else {
                 if !titleString.string.isEmpty {
                     titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
                 }
-                titleString.append(NSAttributedString(string:mediaItem!.speaker!, attributes: bold))
-            }
-            
-            DispatchQueue.main.async {
-                //                print(titleString.string)
-                self.title.attributedText = titleString // NSAttributedString(string: "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)", attributes: normal)
-            }
-            
-            let detailString = NSMutableAttributedString()
-            
-            var title:String?
-            
-            // This causes searching for "(Part " to present a blank title.
-//            if (mediaItem?.title?.range(of: " (Part ") != nil) {
-//                let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
-//                let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
-//                title = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
-//            } else {
-                title = mediaItem?.title
-//            }
-            
-            if let searchHit = mediaItem?.searchHit(searchText).title, searchHit {
-                var string:String?
-                var before:String?
-                var after:String?
                 
-                if let range = title?.lowercased().range(of: searchText!.lowercased()) {
-                    before = title?.substring(to: range.lowerBound)
-                    string = title?.substring(with: range)
-                    after = title?.substring(from: range.upperBound)
-                    
-                    if let before = before {
-                        detailString.append(NSAttributedString(string: before,   attributes: normal))
-                    }
-                    if let string = string {
-                        detailString.append(NSAttributedString(string: string,   attributes: highlighted))
-                    }
-                    if let after = after {
-                        detailString.append(NSAttributedString(string: after,   attributes: normal))
-                    }
+                if let before = before {
+                    titleString.append(NSAttributedString(string: before,   attributes: normal))
                 }
-            } else {
-                if let title = title {
-                    detailString.append(NSAttributedString(string: title,   attributes: normal))
+                if let string = string {
+                    titleString.append(NSAttributedString(string: string,   attributes: highlighted))
+                }
+                if let after = after {
+                    titleString.append(NSAttributedString(string: after,   attributes: normal))
                 }
             }
-            
-            if let searchHit = mediaItem?.searchHit(searchText).scriptureReference, searchHit, let scriptureReference = mediaItem?.scriptureReference {
-                var string:String?
-                var before:String?
-                var after:String?
-                
-                if let range = scriptureReference.lowercased().range(of: searchText!.lowercased()) {
-                    before = scriptureReference.substring(to: range.lowerBound)
-                    string = scriptureReference.substring(with: range)
-                    after = scriptureReference.substring(from: range.upperBound)
-                    
-                    if !detailString.string.isEmpty {
-                        detailString.append(NSAttributedString(string: "\n"))
-                    }
-                    if let before = before {
-                        detailString.append(NSAttributedString(string: before,   attributes: normal))
-                    }
-                    if let string = string {
-                        detailString.append(NSAttributedString(string: string,   attributes: highlighted))
-                    }
-                    if let after = after {
-                        detailString.append(NSAttributedString(string: after,   attributes: normal))
-                    }
-                }
-            } else {
-                if let scriptureReference = mediaItem?.scriptureReference {
-                    if !detailString.string.isEmpty {
-                        detailString.append(NSAttributedString(string: "\n"))
-                    }
-                    detailString.append(NSAttributedString(string: scriptureReference,   attributes: normal))
-                }
-            }
-            
-            //            if let _ = vc as? MediaTableViewController {
-            //                if globals.grouping != Grouping.CLASS {
-            //                    if mediaItem!.searchHit!.className {
-            //                        var string:String?
-            //                        var before:String?
-            //                        var after:String?
-            //
-            //                        if let range = mediaItem?.className?.lowercased().range(of: globals.search.text!.lowercased()) {
-            //                            before = mediaItem?.className?.substring(to: range.lowerBound)
-            //                            string = mediaItem?.className?.substring(with: range)
-            //                            after = mediaItem?.className?.substring(from: range.upperBound)
-            //
-            //                            detailString.append(NSAttributedString(string: "\n" + before!,   attributes: normal))
-            //                            detailString.append(NSAttributedString(string: string!,   attributes: highlighted))
-            //                            detailString.append(NSAttributedString(string: after!,    attributes: normal))
-            //                        }
-            //                    } else {
-            //                        detailString.append(NSAttributedString(string: "\n" + mediaItem!.className!, attributes: normal))
-            //                    }
-            //                }
-            //            } else {
-            //                if mediaItem!.searchHit!.className {
-            //                    var string:String?
-            //                    var before:String?
-            //                    var after:String?
-            //
-            //                    if let range = mediaItem?.className?.lowercased().range(of: globals.search.text!.lowercased()) {
-            //                        before = mediaItem?.className?.substring(to: range.lowerBound)
-            //                        string = mediaItem?.className?.substring(with: range)
-            //                        after = mediaItem?.className?.substring(from: range.upperBound)
-            //
-            //                        detailString.append(NSAttributedString(string: "\n" + before!,   attributes: normal))
-            //                        detailString.append(NSAttributedString(string: string!,   attributes: highlighted))
-            //                        detailString.append(NSAttributedString(string: after!,    attributes: normal))
-            //                    }
-            //                } else {
-            //                    detailString.append(NSAttributedString(string: "\n" + mediaItem!.className!, attributes: normal))
-            //                }
-            //            }
-            
-            if mediaItem!.searchHit(searchText).className {
-                var string:String?
-                var before:String?
-                var after:String?
-                
-                if let range = mediaItem?.className?.lowercased().range(of: searchText!.lowercased()) {
-                    before = mediaItem?.className?.substring(to: range.lowerBound)
-                    string = mediaItem?.className?.substring(with: range)
-                    after = mediaItem?.className?.substring(from: range.upperBound)
-                    
-                    if !detailString.string.isEmpty {
-                        detailString.append(NSAttributedString(string: "\n"))
-                    }
-                    if let before = before {
-                        detailString.append(NSAttributedString(string: before,   attributes: normal))
-                    }
-                    if let string = string {
-                        detailString.append(NSAttributedString(string: string,   attributes: highlighted))
-                    }
-                    if let after = after {
-                        detailString.append(NSAttributedString(string: after,   attributes: normal))
-                    }
-                }
-            } else {
-                if let className = mediaItem?.className {
-                    if !detailString.string.isEmpty {
-                        detailString.append(NSAttributedString(string: "\n"))
-                    }
-                    detailString.append(NSAttributedString(string: className, attributes: normal))
-                }
-            }
-            
-            if mediaItem!.searchHit(searchText).eventName {
-                var string:String?
-                var before:String?
-                var after:String?
-                
-                if let range = mediaItem?.eventName?.lowercased().range(of: searchText!.lowercased()) {
-                    before = mediaItem?.eventName?.substring(to: range.lowerBound)
-                    string = mediaItem?.eventName?.substring(with: range)
-                    after = mediaItem?.eventName?.substring(from: range.upperBound)
-                    
-                    if !detailString.string.isEmpty {
-                        detailString.append(NSAttributedString(string: "\n"))
-                    }
-                    if let before = before {
-                        detailString.append(NSAttributedString(string: before,   attributes: normal))
-                    }
-                    if let string = string {
-                        detailString.append(NSAttributedString(string: string,   attributes: highlighted))
-                    }
-                    if let after = after {
-                        detailString.append(NSAttributedString(string: after,   attributes: normal))
-                    }
-                }
-            } else {
-                if let eventName = mediaItem?.eventName {
-                    if !detailString.string.isEmpty {
-                        detailString.append(NSAttributedString(string: "\n"))
-                    }
-                    detailString.append(NSAttributedString(string: eventName, attributes: normal))
-                }
-            }
-            
-            DispatchQueue.main.async {
-                //                print(detailString.string)
-                self.detail.attributedText = detailString
-            }
-            
-            //                if (mediaItem?.title?.range(of: " (Part ") != nil) {
-            //                    let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
-            //                    let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
-            //                    let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
-            //                    detail.text = "\(combined)\n\(mediaItem!.scriptureReference!)"
-            //                } else {
-            //                    detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scriptureReference!)"
-            //                }
         } else {
-            DispatchQueue.main.async {
-                if let formattedDate = self.mediaItem?.formattedDate {
-                    self.title.text = formattedDate
-                }
-                if let service = self.mediaItem?.service {
-                    if let isEmpty = self.title.text?.isEmpty, !isEmpty {
-                        self.title.text?.append(Constants.SINGLE_SPACE)
-                    }
-                    self.title.text?.append(service)
-                }
-                if let speaker = self.mediaItem?.speaker {
-                    if let isEmpty = self.title.text?.isEmpty, !isEmpty {
-                        self.title.text?.append(Constants.SINGLE_SPACE)
-                    }
-                    self.title.text?.append(speaker)
-                }
-                //                self.title.text = "\(self.mediaItem!.formattedDate!) \(self.mediaItem!.service!) \(self.mediaItem!.speaker!)"
+            if !titleString.string.isEmpty {
+                titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
             }
+            titleString.append(NSAttributedString(string:mediaItem!.speaker!, attributes: normal))
+        }
+        
+        DispatchQueue.main.async {
+            //                print(titleString.string)
+            self.title.attributedText = titleString // NSAttributedString(string: "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)", attributes: normal)
+        }
+        
+        let detailString = NSMutableAttributedString()
+        
+        var title:String?
+        
+        if (searchText == nil) && (mediaItem?.title?.range(of: " (Part ") != nil) {
+            // This causes searching for "(Part " to present a blank title.
+            let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
+            let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
+            title = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
+        } else {
+            title = mediaItem?.title
+        }
+        
+        if let searchHit = mediaItem?.searchHit(searchText).title, searchHit {
+            var string:String?
+            var before:String?
+            var after:String?
             
-            //            print(mediaItem?.title)
-            
-            if var title = mediaItem?.title {
-                if (title.range(of: " (Part ") != nil) {
-                    let first = title.substring(to: (title.range(of: " (Part")?.upperBound)!)
-                    let second = title.substring(from: (title.range(of: " (Part ")?.upperBound)!)
-                    let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
-                    
-                    title = combined
+            if let range = title?.lowercased().range(of: searchText!.lowercased()) {
+                before = title?.substring(to: range.lowerBound)
+                string = title?.substring(with: range)
+                after = title?.substring(from: range.upperBound)
+                
+                if let before = before {
+                    detailString.append(NSAttributedString(string: before,   attributes: bold))
                 }
-                
-                DispatchQueue.main.async {
-                    self.detail.text = title
-                    
-                    if let scriptureReference = self.mediaItem?.scriptureReference {
-                        if let isEmpty = self.detail.text?.isEmpty, !isEmpty {
-                            self.detail.text?.append("\n")
-                        }
-                        self.detail.text?.append(scriptureReference)
-                    }
-                    
-                    if let className = self.mediaItem?.className {
-                        if let isEmpty = self.detail.text?.isEmpty, !isEmpty {
-                            self.detail.text?.append("\n")
-                        }
-                        self.detail.text?.append(className)
-                    }
-                    
-                    if let eventName = self.mediaItem?.eventName {
-                        if let isEmpty = self.detail.text?.isEmpty, !isEmpty {
-                            self.detail.text?.append("\n")
-                        }
-                        self.detail.text?.append(eventName)
-                    }
+                if let string = string {
+                    detailString.append(NSAttributedString(string: string,   attributes: boldHighlighted))
                 }
-                
-                //                if let _ = vc as? MediaTableViewController {
-                //                    if globals.grouping != Grouping.CLASS, let className = mediaItem?.className {
-                //                        DispatchQueue.main.async {
-                //                            self.detail.text = self.detail.text! + "\n" + className
-                //                        }
-                //                    }
-                //                } else {
-                //                    if let className = mediaItem?.className {
-                //                        DispatchQueue.main.async {
-                //                            self.detail.text = self.detail.text! + "\n" + className
-                //                        }
-                //                    }
-                //                }
-                
-                
-                //                    if globals.mediaCategory.selected == "All Media" {
-                //                        detail.text = "\(mediaItem!.category!)\n" + detail.text!
-                //                    }
+                if let after = after {
+                    detailString.append(NSAttributedString(string: after,   attributes: bold))
+                }
+            }
+        } else {
+            if let title = title {
+                detailString.append(NSAttributedString(string: title,   attributes: bold))
             }
         }
+        
+        if let searchHit = mediaItem?.searchHit(searchText).scriptureReference, searchHit, let scriptureReference = mediaItem?.scriptureReference {
+            var string:String?
+            var before:String?
+            var after:String?
+            
+            if let range = scriptureReference.lowercased().range(of: searchText!.lowercased()) {
+                before = scriptureReference.substring(to: range.lowerBound)
+                string = scriptureReference.substring(with: range)
+                after = scriptureReference.substring(from: range.upperBound)
+                
+                if !detailString.string.isEmpty {
+                    detailString.append(NSAttributedString(string: "\n"))
+                }
+                if let before = before {
+                    detailString.append(NSAttributedString(string: before,   attributes: normal))
+                }
+                if let string = string {
+                    detailString.append(NSAttributedString(string: string,   attributes: highlighted))
+                }
+                if let after = after {
+                    detailString.append(NSAttributedString(string: after,   attributes: normal))
+                }
+            }
+        } else {
+            if let scriptureReference = mediaItem?.scriptureReference {
+                if !detailString.string.isEmpty {
+                    detailString.append(NSAttributedString(string: "\n"))
+                }
+                detailString.append(NSAttributedString(string: scriptureReference,   attributes: normal))
+            }
+        }
+        
+        //            if let _ = vc as? MediaTableViewController {
+        //                if globals.grouping != Grouping.CLASS {
+        //                    if mediaItem!.searchHit!.className {
+        //                        var string:String?
+        //                        var before:String?
+        //                        var after:String?
+        //
+        //                        if let range = mediaItem?.className?.lowercased().range(of: globals.search.text!.lowercased()) {
+        //                            before = mediaItem?.className?.substring(to: range.lowerBound)
+        //                            string = mediaItem?.className?.substring(with: range)
+        //                            after = mediaItem?.className?.substring(from: range.upperBound)
+        //
+        //                            detailString.append(NSAttributedString(string: "\n" + before!,   attributes: normal))
+        //                            detailString.append(NSAttributedString(string: string!,   attributes: highlighted))
+        //                            detailString.append(NSAttributedString(string: after!,    attributes: normal))
+        //                        }
+        //                    } else {
+        //                        detailString.append(NSAttributedString(string: "\n" + mediaItem!.className!, attributes: normal))
+        //                    }
+        //                }
+        //            } else {
+        //                if mediaItem!.searchHit!.className {
+        //                    var string:String?
+        //                    var before:String?
+        //                    var after:String?
+        //
+        //                    if let range = mediaItem?.className?.lowercased().range(of: globals.search.text!.lowercased()) {
+        //                        before = mediaItem?.className?.substring(to: range.lowerBound)
+        //                        string = mediaItem?.className?.substring(with: range)
+        //                        after = mediaItem?.className?.substring(from: range.upperBound)
+        //
+        //                        detailString.append(NSAttributedString(string: "\n" + before!,   attributes: normal))
+        //                        detailString.append(NSAttributedString(string: string!,   attributes: highlighted))
+        //                        detailString.append(NSAttributedString(string: after!,    attributes: normal))
+        //                    }
+        //                } else {
+        //                    detailString.append(NSAttributedString(string: "\n" + mediaItem!.className!, attributes: normal))
+        //                }
+        //            }
+        
+        if mediaItem!.searchHit(searchText).className {
+            var string:String?
+            var before:String?
+            var after:String?
+            
+            if let range = mediaItem?.className?.lowercased().range(of: searchText!.lowercased()) {
+                before = mediaItem?.className?.substring(to: range.lowerBound)
+                string = mediaItem?.className?.substring(with: range)
+                after = mediaItem?.className?.substring(from: range.upperBound)
+                
+                if !detailString.string.isEmpty {
+                    detailString.append(NSAttributedString(string: "\n"))
+                }
+                if let before = before {
+                    detailString.append(NSAttributedString(string: before,   attributes: normal))
+                }
+                if let string = string {
+                    detailString.append(NSAttributedString(string: string,   attributes: highlighted))
+                }
+                if let after = after {
+                    detailString.append(NSAttributedString(string: after,   attributes: normal))
+                }
+            }
+        } else {
+            if let className = mediaItem?.className {
+                if !detailString.string.isEmpty {
+                    detailString.append(NSAttributedString(string: "\n"))
+                }
+                detailString.append(NSAttributedString(string: className, attributes: normal))
+            }
+        }
+        
+        if mediaItem!.searchHit(searchText).eventName {
+            var string:String?
+            var before:String?
+            var after:String?
+            
+            if let range = mediaItem?.eventName?.lowercased().range(of: searchText!.lowercased()) {
+                before = mediaItem?.eventName?.substring(to: range.lowerBound)
+                string = mediaItem?.eventName?.substring(with: range)
+                after = mediaItem?.eventName?.substring(from: range.upperBound)
+                
+                if !detailString.string.isEmpty {
+                    detailString.append(NSAttributedString(string: "\n"))
+                }
+                if let before = before {
+                    detailString.append(NSAttributedString(string: before,   attributes: normal))
+                }
+                if let string = string {
+                    detailString.append(NSAttributedString(string: string,   attributes: highlighted))
+                }
+                if let after = after {
+                    detailString.append(NSAttributedString(string: after,   attributes: normal))
+                }
+            }
+        } else {
+            if let eventName = mediaItem?.eventName {
+                if !detailString.string.isEmpty {
+                    detailString.append(NSAttributedString(string: "\n"))
+                }
+                detailString.append(NSAttributedString(string: eventName, attributes: normal))
+            }
+        }
+        
+        DispatchQueue.main.async {
+            //                print(detailString.string)
+            self.detail.attributedText = detailString
+        }
+        
+        //                if (mediaItem?.title?.range(of: " (Part ") != nil) {
+        //                    let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
+        //                    let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
+        //                    let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
+        //                    detail.text = "\(combined)\n\(mediaItem!.scriptureReference!)"
+        //                } else {
+        //                    detail.text = "\(mediaItem!.title!)\n\(mediaItem!.scriptureReference!)"
+        //                }
+
+        
+        
+        //        if (globals.search.active && ((vc as? MediaTableViewController) != nil)) || ((vc as? LexiconIndexViewController) != nil) {
+//        if searchText != nil {
+//        } else {
+//            DispatchQueue.main.async {
+//                if let formattedDate = self.mediaItem?.formattedDate {
+//                    self.title.text = formattedDate
+//                }
+//                if let service = self.mediaItem?.service {
+//                    if let isEmpty = self.title.text?.isEmpty, !isEmpty {
+//                        self.title.text?.append(Constants.SINGLE_SPACE)
+//                    }
+//                    self.title.text?.append(service)
+//                }
+//                if let speaker = self.mediaItem?.speaker {
+//                    if let isEmpty = self.title.text?.isEmpty, !isEmpty {
+//                        self.title.text?.append(Constants.SINGLE_SPACE)
+//                    }
+//                    self.title.text?.append(speaker)
+//                }
+//                //                self.title.text = "\(self.mediaItem!.formattedDate!) \(self.mediaItem!.service!) \(self.mediaItem!.speaker!)"
+//            }
+//            
+//            //            print(mediaItem?.title)
+//            
+//            if var title = mediaItem?.title {
+//                if (title.range(of: " (Part ") != nil) {
+//                    let first = title.substring(to: (title.range(of: " (Part")?.upperBound)!)
+//                    let second = title.substring(from: (title.range(of: " (Part ")?.upperBound)!)
+//                    let combined = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
+//                    
+//                    title = combined
+//                }
+//                
+//                DispatchQueue.main.async {
+//                    self.detail.text = title
+//                    
+//                    if let scriptureReference = self.mediaItem?.scriptureReference {
+//                        if let isEmpty = self.detail.text?.isEmpty, !isEmpty {
+//                            self.detail.text?.append("\n")
+//                        }
+//                        self.detail.text?.append(scriptureReference)
+//                    }
+//                    
+//                    if let className = self.mediaItem?.className {
+//                        if let isEmpty = self.detail.text?.isEmpty, !isEmpty {
+//                            self.detail.text?.append("\n")
+//                        }
+//                        self.detail.text?.append(className)
+//                    }
+//                    
+//                    if let eventName = self.mediaItem?.eventName {
+//                        if let isEmpty = self.detail.text?.isEmpty, !isEmpty {
+//                            self.detail.text?.append("\n")
+//                        }
+//                        self.detail.text?.append(eventName)
+//                    }
+//                }
+//                
+//                //                if let _ = vc as? MediaTableViewController {
+//                //                    if globals.grouping != Grouping.CLASS, let className = mediaItem?.className {
+//                //                        DispatchQueue.main.async {
+//                //                            self.detail.text = self.detail.text! + "\n" + className
+//                //                        }
+//                //                    }
+//                //                } else {
+//                //                    if let className = mediaItem?.className {
+//                //                        DispatchQueue.main.async {
+//                //                            self.detail.text = self.detail.text! + "\n" + className
+//                //                        }
+//                //                    }
+//                //                }
+//                
+//                
+//                //                    if globals.mediaCategory.selected == "All Media" {
+//                //                        detail.text = "\(mediaItem!.category!)\n" + detail.text!
+//                //                    }
+//            }
+//        }
     }
     
     func updateUI()

@@ -337,6 +337,8 @@
                                 <exclude reference="qMh-ym-tB8"/>
                             </mask>
                             <mask key="constraints">
+                                <exclude reference="fE0-Dt-Uu6"/>
+                                <exclude reference="xPF-Eg-4cf"/>
                                 <exclude reference="5Ox-qw-Cxc"/>
                                 <exclude reference="9UL-wv-Rln"/>
                                 <exclude reference="bZQ-Q1-YlX"/>
@@ -348,8 +350,6 @@
                                 <exclude reference="Bdh-RU-Ujt"/>
                                 <exclude reference="N3A-Dg-JyS"/>
                                 <exclude reference="U9f-RM-b5B"/>
-                                <exclude reference="fE0-Dt-Uu6"/>
-                                <exclude reference="xPF-Eg-4cf"/>
                             </mask>
                         </variation>
                         <variation key="heightClass=compact">
@@ -358,6 +358,8 @@
                                 <include reference="qMh-ym-tB8"/>
                             </mask>
                             <mask key="constraints">
+                                <include reference="fE0-Dt-Uu6"/>
+                                <include reference="xPF-Eg-4cf"/>
                                 <include reference="5Ox-qw-Cxc"/>
                                 <include reference="9UL-wv-Rln"/>
                                 <include reference="bZQ-Q1-YlX"/>
@@ -374,8 +376,6 @@
                                 <exclude reference="xGf-GK-dMf"/>
                                 <exclude reference="MEY-EB-hzF"/>
                                 <include reference="U9f-RM-b5B"/>
-                                <include reference="fE0-Dt-Uu6"/>
-                                <include reference="xPF-Eg-4cf"/>
                             </mask>
                         </variation>
                     </view>

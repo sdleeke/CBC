@@ -599,6 +599,8 @@ struct Constants {
     static let Clear_History = "Clear History"
     
     static let Scripture_Index = "Scripture Index"
+
+    static let Swap_Video_Location = "Swap Video Location"
     
     static let Print = "Print"
     static let Print_All = "Print All"
