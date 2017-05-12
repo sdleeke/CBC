@@ -188,9 +188,9 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 break
             }
             
-            ptvc.section.indexStrings = ptvc.section.strings?.map({ (string:String) -> String in
-                return ptvc.section.indexTransform != nil ? ptvc.section.indexTransform!(string.uppercased())! : string.uppercased()
-            })
+//            ptvc.section.indexStrings = ptvc.section.strings?.map({ (string:String) -> String in
+//                return ptvc.section.indexTransform != nil ? ptvc.section.indexTransform!(string.uppercased())! : string.uppercased()
+//            })
             
             ptvc.section.build()
             

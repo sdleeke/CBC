@@ -992,6 +992,8 @@ class MediaViewController: UIViewController
                     
                     globals.mediaPlayer.view?.isHidden = true
                     
+                    videoLocation = .withDocuments
+                    
                     setupSpinner()
                     
                     removeSliderObserver()
@@ -1112,8 +1114,6 @@ class MediaViewController: UIViewController
                 toView = globals.mediaPlayer.view
                 selectedMediaItem?.showing = Showing.video
                 mediaItemNotesAndSlides.gestureRecognizers = nil
-                let pan = UIPanGestureRecognizer(target: self, action: #selector(MediaViewController.showHideSlider(_:)))
-                mediaItemNotesAndSlides?.addGestureRecognizer(pan)
                 break
                 
             default:
@@ -1732,7 +1732,11 @@ class MediaViewController: UIViewController
                 let hasSlides = selectedMediaItem!.hasSlides
                 let hasNotes = selectedMediaItem!.hasNotes
                 
-                if hasVideo && (hasSlides || hasNotes) && (selectedMediaItem?.playing == Playing.video) {
+                if (hasVideo && (hasSlides || hasNotes)) && (selectedMediaItem?.playing == Playing.video) &&
+                    (
+                        ((videoLocation == .withDocuments) && (selectedMediaItem?.showing == Showing.video)) ||
+                        ((videoLocation == .withTableView) && (selectedMediaItem?.showing != Showing.video))
+                    ) {
                         actionMenu.append(Constants.Swap_Video_Location)
                 }
             }
@@ -1998,18 +2002,20 @@ class MediaViewController: UIViewController
         switch videoLocation {
         case .withDocuments:
             parentView = mediaItemNotesAndSlides!
-//            tableView.bounces = true
             tableView.isScrollEnabled = true
             break
             
         case .withTableView:
             parentView = tableView!
             tableView.scrollToRow(at: IndexPath(row:0,section:0), at: UITableViewScrollPosition.top, animated: false)
-//            tableView.bounces = false
             tableView.isScrollEnabled = false
             break
         }
         
+        view?.gestureRecognizers = nil
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(MediaViewController.showHideSlider(_:)))
+        view?.addGestureRecognizer(pan)
+
         view?.isHidden = true
         view?.removeFromSuperview()
         
@@ -2025,18 +2031,18 @@ class MediaViewController: UIViewController
         //            print(view?.superview)
         
         let centerX = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
-        parentView.addConstraint(centerX)
+        view?.superview?.addConstraint(centerX)
         
         let centerY = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-        parentView.addConstraint(centerY)
+        view?.superview?.addConstraint(centerY)
         
         let width = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
-        parentView.addConstraint(width)
+        view?.superview?.addConstraint(width)
         
         let height = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
-        parentView.addConstraint(height)
+        view?.superview?.addConstraint(height)
         
-        parentView.setNeedsLayout()
+        view?.superview?.setNeedsLayout()
     }
     
     fileprivate func setupWKWebView(_ wkWebView:WKWebView?)
@@ -2088,26 +2094,32 @@ class MediaViewController: UIViewController
         guard (selectedMediaItem == globals.mediaPlayer.mediaItem) else {
             return
         }
+
+        if globals.mediaPlayer.playOnLoad {
+            if (selectedMediaItem?.playing == Playing.video) && (selectedMediaItem?.showing != Showing.video) {
+                selectedMediaItem?.showing = Showing.video
+            }
+        }
         
-        if (selectedMediaItem?.playing == Playing.video) {
+        if (selectedMediaItem?.playing == Playing.video) && (selectedMediaItem?.showing == Showing.video) {
             globals.mediaPlayer.view?.isHidden = false
             
             mediaItemNotesAndSlides.bringSubview(toFront: globals.mediaPlayer.view!)
-            
-            if globals.mediaPlayer.playOnLoad {
-                if globals.mediaPlayer.mediaItem!.atEnd {
-                    globals.mediaPlayer.mediaItem!.currentTime = Constants.ZERO
-                    globals.mediaPlayer.seek(to: 0)
-                    globals.mediaPlayer.mediaItem?.atEnd = false
-                }
-                globals.mediaPlayer.playOnLoad = false
-                
-                DispatchQueue.global(qos: .background).async(execute: {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        globals.mediaPlayer.play()
-                    })
-                })
+        }
+
+        if globals.mediaPlayer.playOnLoad {
+            if globals.mediaPlayer.mediaItem!.atEnd {
+                globals.mediaPlayer.mediaItem!.currentTime = Constants.ZERO
+                globals.mediaPlayer.seek(to: 0)
+                globals.mediaPlayer.mediaItem?.atEnd = false
             }
+            globals.mediaPlayer.playOnLoad = false
+            
+            DispatchQueue.global(qos: .background).async(execute: {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    globals.mediaPlayer.play()
+                })
+            })
         }
         
         setupSpinner()
@@ -2322,17 +2334,21 @@ class MediaViewController: UIViewController
     {
 //        print("setupDocument")
         
+        guard document != nil else {
+            return
+        }
+        
         if document?.wkWebView == nil {
 //            document?.wkWebView?.removeFromSuperview()
             document?.wkWebView = WKWebView(frame: mediaItemNotesAndSlides.bounds)
         }
-
-        if (document != nil) && !document!.loaded {
-            loadDocument(document)
-        }
         
         if !mediaItemNotesAndSlides.subviews.contains(document!.wkWebView!) {
             setupWKWebView(document?.wkWebView)
+        }
+
+        if !document!.loaded {
+            loadDocument(document)
         }
     }
     
@@ -2643,10 +2659,16 @@ class MediaViewController: UIViewController
             logo.isHidden = true
             
             hideOtherDocuments()
-            
+
             if (wkWebView != nil) {
-                if let isLoading = wkWebView?.isLoading {
+                if let isLoading = wkWebView?.isLoading, isLoading {
                     wkWebView?.isHidden = isLoading
+                } else {
+                    if globals.cacheDownloads {
+                        wkWebView?.isHidden = (document?.download?.state != .downloaded)
+                    } else {
+                        wkWebView?.isHidden = false
+                    }
                 }
                 mediaItemNotesAndSlides.bringSubview(toFront: wkWebView!)
             }
@@ -2657,10 +2679,16 @@ class MediaViewController: UIViewController
             logo.isHidden = true
             
             hideOtherDocuments()
-            
+
             if (wkWebView != nil) {
-                if let isLoading = wkWebView?.isLoading {
+                if let isLoading = wkWebView?.isLoading, isLoading {
                     wkWebView?.isHidden = isLoading
+                } else {
+                    if globals.cacheDownloads {
+                        wkWebView?.isHidden = (document?.download?.state != .downloaded)
+                    } else {
+                        wkWebView?.isHidden = false
+                    }
                 }
                 mediaItemNotesAndSlides.bringSubview(toFront: wkWebView!)
             }
@@ -2972,7 +3000,7 @@ class MediaViewController: UIViewController
         if (self.view.window == nil) {
             return
         }
-
+        
         if (self.splitViewController != nil) {
             let (oldMinConstraintConstant,oldMaxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
             let (newMinConstraintConstant,newMaxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(size.height)
@@ -3051,7 +3079,13 @@ class MediaViewController: UIViewController
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
             DispatchQueue.main.async(execute: { () -> Void in
                 self.setupTitle()
-                self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
+                
+                if self.videoLocation == .withTableView {
+                    self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: false)
+                } else {
+                    self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
+                }
+                
                 self.setupWKContentOffsets()
             })
         }

@@ -227,11 +227,11 @@ extension WebViewController : PopoverTableViewControllerDelegate
                         }).sorted()
                         
                         // Why Array(Set())?  Duplicates?
-                        let array = Array(Set(popover.section.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
+//                        let array = Array(Set(popover.section.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
                         
-                        popover.section.indexStrings = array.map({ (string:String) -> String in
-                            return string.uppercased()
-                        })
+//                        popover.section.indexStrings = array.map({ (string:String) -> String in
+//                            return string.uppercased()
+//                        })
                     }
                 }
                 
@@ -1220,7 +1220,7 @@ class WebViewController: UIViewController
         let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
 //        let heightSize: CGSize = CGSize(width: size.width, height: .greatestFiniteMagnitude)
         
-        let width = title.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0)], context: nil).width + 150
+        let width = title.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)], context: nil).width + 150
         
 //        let stringHeight = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: nil, context: nil).height // + 150
 //        let stringWidth = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: nil, context: nil).height // + 150
@@ -1280,7 +1280,7 @@ class WebViewController: UIViewController
 //            
 //            let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
 //            
-//            let width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0)], context: nil).width + 150
+//            let width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)], context: nil).width + 150
 //            
 //            preferredContentSize = CGSize(width: width,height: 44)
 //        }

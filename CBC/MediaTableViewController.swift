@@ -594,9 +594,13 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
             globals.unobservePlayer()
             
-            if globals.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM) {
-                globals.mediaPlayer.pause() // IfPlaying
-            }
+            let liveStream = globals.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM)
+
+            globals.mediaPlayer.pause() // IfPlaying
+
+//            if globals.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM) {
+//                globals.mediaPlayer.pause() // IfPlaying
+//            }
             
             globals.cancelAllDownloads()
             globals.clearDisplay()
@@ -616,6 +620,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
             loadMediaItems()
                 {
+                    if liveStream {
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
+                        })
+                    }
+                    
                     if globals.mediaRepository.list == nil {
                         let alert = UIAlertController(title: "No media available.",
                                                       message: "Please check your network connection and try again.",
@@ -1488,42 +1498,43 @@ class MediaTableViewController : UIViewController
                 
 //                    print(popover.section.strings)
                 
-                popover.section.indexStrings = popover.section.strings
+//                popover.section.indexStrings = popover.section.strings
 
                 popover.section.showIndex = false
                 popover.section.showHeaders = false
                 break
                 
             case Grouping.TITLE:
-                popover.section.indexTransform = stringWithoutPrefixes
+//                popover.section.indexTransform = stringWithoutPrefixes
                 popover.section.strings = globals.media.active?.section?.titles
-                popover.section.indexStrings = globals.media.active?.section?.indexTitles
+//                popover.section.indexStrings = globals.media.active?.section?.indexTitles
                 popover.section.showIndex = true
                 popover.section.showHeaders = true
                 popover.search = popover.section.strings?.count > 10
                 break
                 
             case Grouping.CLASS:
-                popover.section.indexTransform = stringWithoutPrefixes
+//                popover.section.indexTransform = stringWithoutPrefixes
                 popover.section.strings = globals.media.active?.section?.titles
-                popover.section.indexStrings = globals.media.active?.section?.indexTitles
+//                popover.section.indexStrings = globals.media.active?.section?.indexTitles
                 popover.section.showIndex = true
                 popover.section.showHeaders = true
                 popover.search = popover.section.strings?.count > 10
                 break
                 
             case Grouping.SPEAKER:
-                popover.section.indexTransform = lastNameFromName
+                popover.indexTransform = lastNameFromName
                 popover.section.strings = globals.media.active?.section?.titles
-                popover.section.indexStrings = globals.media.active?.section?.indexTitles
+//                popover.section.indexStrings = globals.media.active?.section?.indexTitles
                 popover.section.showIndex = true
                 popover.section.showHeaders = true
                 popover.search = popover.section.strings?.count > 10
                 break
                 
             default:
+//                popover.section.indexTransform = stringWithoutPrefixes
                 popover.section.strings = globals.media.active?.section?.titles
-                popover.section.indexStrings = globals.media.active?.section?.indexTitles
+//                popover.section.indexStrings = globals.media.active?.section?.indexTitles
                 popover.section.showIndex = false
                 popover.section.showHeaders = false
                 break
@@ -2700,14 +2711,16 @@ class MediaTableViewController : UIViewController
             
             popover.section.strings = strings.sorted(by: { stringWithoutPrefixes($0)! < stringWithoutPrefixes($1)! })
             
-            popover.section.indexStrings = popover.section.strings?.map({ (string:String) -> String in
-                return stringWithoutPrefixes(string)!.lowercased()
-            })
+//            popover.section.indexStrings = popover.section.strings?.map({ (string:String) -> String in
+//                return stringWithoutPrefixes(string)!.uppercased()
+//            })
             
             //                    print(globals.media.all!.mediaItemTags)
             
             popover.section.showIndex = true
             popover.section.showHeaders = true
+            
+//            popover.section.indexTransform = stringWithoutPrefixes
             
             popover.search = popover.section.strings?.count > 10
             
@@ -3745,11 +3758,11 @@ extension MediaTableViewController : UITableViewDelegate
                 popover.search = popover.section.strings?.count > 10
                 
                 if (popover.section.strings != nil) {
-                    let array = Array(Set(popover.section.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
+//                    let array = Array(Set(popover.section.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
                     
-                    popover.section.indexStrings = array.map({ (string:String) -> String in
-                        return string.uppercased()
-                    })
+//                    popover.section.indexStrings = array.map({ (string:String) -> String in
+//                        return string.uppercased()
+//                    })
                     
                     popover.section.showIndex = true
                     popover.section.showHeaders = true

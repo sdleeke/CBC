@@ -337,8 +337,6 @@
                                 <exclude reference="qMh-ym-tB8"/>
                             </mask>
                             <mask key="constraints">
-                                <exclude reference="fE0-Dt-Uu6"/>
-                                <exclude reference="xPF-Eg-4cf"/>
                                 <exclude reference="5Ox-qw-Cxc"/>
                                 <exclude reference="9UL-wv-Rln"/>
                                 <exclude reference="bZQ-Q1-YlX"/>
@@ -350,6 +348,8 @@
                                 <exclude reference="Bdh-RU-Ujt"/>
                                 <exclude reference="N3A-Dg-JyS"/>
                                 <exclude reference="U9f-RM-b5B"/>
+                                <exclude reference="fE0-Dt-Uu6"/>
+                                <exclude reference="xPF-Eg-4cf"/>
                             </mask>
                         </variation>
                         <variation key="heightClass=compact">
@@ -358,8 +358,6 @@
                                 <include reference="qMh-ym-tB8"/>
                             </mask>
                             <mask key="constraints">
-                                <include reference="fE0-Dt-Uu6"/>
-                                <include reference="xPF-Eg-4cf"/>
                                 <include reference="5Ox-qw-Cxc"/>
                                 <include reference="9UL-wv-Rln"/>
                                 <include reference="bZQ-Q1-YlX"/>
@@ -376,6 +374,8 @@
                                 <exclude reference="xGf-GK-dMf"/>
                                 <exclude reference="MEY-EB-hzF"/>
                                 <include reference="U9f-RM-b5B"/>
+                                <include reference="fE0-Dt-Uu6"/>
+                                <include reference="xPF-Eg-4cf"/>
                             </mask>
                         </variation>
                     </view>
@@ -2018,7 +2018,7 @@ Web site: www.countrysidebible.org</string>
                     <value key="contentSizeForViewInPopover" type="size" width="250" height="475"/>
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
                     <size key="freeformSize" width="250" height="475"/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="nVy-i3-WiX">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="nVy-i3-WiX">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>

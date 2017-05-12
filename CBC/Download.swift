@@ -167,7 +167,7 @@ class Download : NSObject {
             return
         }
         
-        print(state)
+//        print(state)
         if (state == .none) {
             state = .downloading
 

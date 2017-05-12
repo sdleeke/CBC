@@ -1021,9 +1021,9 @@ class Lexicon : NSObject {
             
             section.strings = strings
             
-            section.indexStrings = section.strings?.map({ (string:String) -> String in
-                return string.uppercased()
-            })
+//            section.indexStrings = section.strings?.map({ (string:String) -> String in
+//                return string.uppercased()
+//            })
             
             //            print(tokens)
             //            print(gcr)

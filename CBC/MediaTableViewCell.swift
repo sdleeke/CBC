@@ -133,16 +133,6 @@ class MediaTableViewCell: UITableViewCell
 
         let titleString = NSMutableAttributedString()
         
-        let normal = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
-        
-        let bold = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
-        
-        let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-                            NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
-        
-        let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-                                NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
-        
         if let searchHit = mediaItem?.searchHit(searchText).formattedDate, searchHit, let formattedDate = mediaItem?.formattedDate {
             var string:String?
             var before:String?
@@ -154,23 +144,23 @@ class MediaTableViewCell: UITableViewCell
                 after = formattedDate.substring(from: range.upperBound)
                 
                 if let before = before {
-                    titleString.append(NSAttributedString(string: before,   attributes: normal))
+                    titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
                 }
                 if let string = string {
-                    titleString.append(NSAttributedString(string: string,   attributes: highlighted))
+                    titleString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
                 }
                 if let after = after {
-                    titleString.append(NSAttributedString(string: after,   attributes: normal))
+                    titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
                 }
             }
         } else {
-            titleString.append(NSAttributedString(string:mediaItem!.formattedDate!, attributes: normal))
+            titleString.append(NSAttributedString(string:mediaItem!.formattedDate!, attributes: Constants.Fonts.Attributes.normal))
         }
         
         if !titleString.string.isEmpty {
             titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
         }
-        titleString.append(NSAttributedString(string: mediaItem!.service!, attributes: normal))
+        titleString.append(NSAttributedString(string: mediaItem!.service!, attributes: Constants.Fonts.Attributes.normal))
         
         if let searchHit = mediaItem?.searchHit(searchText).speaker, searchHit, let speaker = mediaItem?.speaker {
             var string:String?
@@ -187,20 +177,20 @@ class MediaTableViewCell: UITableViewCell
                 }
                 
                 if let before = before {
-                    titleString.append(NSAttributedString(string: before,   attributes: normal))
+                    titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
                 }
                 if let string = string {
-                    titleString.append(NSAttributedString(string: string,   attributes: highlighted))
+                    titleString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
                 }
                 if let after = after {
-                    titleString.append(NSAttributedString(string: after,   attributes: normal))
+                    titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
                 }
             }
         } else {
             if !titleString.string.isEmpty {
                 titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
             }
-            titleString.append(NSAttributedString(string:mediaItem!.speaker!, attributes: normal))
+            titleString.append(NSAttributedString(string:mediaItem!.speaker!, attributes: Constants.Fonts.Attributes.normal))
         }
         
         DispatchQueue.main.async {
@@ -232,18 +222,18 @@ class MediaTableViewCell: UITableViewCell
                 after = title?.substring(from: range.upperBound)
                 
                 if let before = before {
-                    detailString.append(NSAttributedString(string: before,   attributes: bold))
+                    detailString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.bold))
                 }
                 if let string = string {
-                    detailString.append(NSAttributedString(string: string,   attributes: boldHighlighted))
+                    detailString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.boldHighlighted))
                 }
                 if let after = after {
-                    detailString.append(NSAttributedString(string: after,   attributes: bold))
+                    detailString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.bold))
                 }
             }
         } else {
             if let title = title {
-                detailString.append(NSAttributedString(string: title,   attributes: bold))
+                detailString.append(NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold))
             }
         }
         
@@ -261,13 +251,13 @@ class MediaTableViewCell: UITableViewCell
                     detailString.append(NSAttributedString(string: "\n"))
                 }
                 if let before = before {
-                    detailString.append(NSAttributedString(string: before,   attributes: normal))
+                    detailString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
                 }
                 if let string = string {
-                    detailString.append(NSAttributedString(string: string,   attributes: highlighted))
+                    detailString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
                 }
                 if let after = after {
-                    detailString.append(NSAttributedString(string: after,   attributes: normal))
+                    detailString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
                 }
             }
         } else {
@@ -275,7 +265,7 @@ class MediaTableViewCell: UITableViewCell
                 if !detailString.string.isEmpty {
                     detailString.append(NSAttributedString(string: "\n"))
                 }
-                detailString.append(NSAttributedString(string: scriptureReference,   attributes: normal))
+                detailString.append(NSAttributedString(string: scriptureReference,   attributes: Constants.Fonts.Attributes.normal))
             }
         }
         
@@ -333,13 +323,13 @@ class MediaTableViewCell: UITableViewCell
                     detailString.append(NSAttributedString(string: "\n"))
                 }
                 if let before = before {
-                    detailString.append(NSAttributedString(string: before,   attributes: normal))
+                    detailString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
                 }
                 if let string = string {
-                    detailString.append(NSAttributedString(string: string,   attributes: highlighted))
+                    detailString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
                 }
                 if let after = after {
-                    detailString.append(NSAttributedString(string: after,   attributes: normal))
+                    detailString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
                 }
             }
         } else {
@@ -347,7 +337,7 @@ class MediaTableViewCell: UITableViewCell
                 if !detailString.string.isEmpty {
                     detailString.append(NSAttributedString(string: "\n"))
                 }
-                detailString.append(NSAttributedString(string: className, attributes: normal))
+                detailString.append(NSAttributedString(string: className, attributes: Constants.Fonts.Attributes.normal))
             }
         }
         
@@ -365,13 +355,13 @@ class MediaTableViewCell: UITableViewCell
                     detailString.append(NSAttributedString(string: "\n"))
                 }
                 if let before = before {
-                    detailString.append(NSAttributedString(string: before,   attributes: normal))
+                    detailString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
                 }
                 if let string = string {
-                    detailString.append(NSAttributedString(string: string,   attributes: highlighted))
+                    detailString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
                 }
                 if let after = after {
-                    detailString.append(NSAttributedString(string: after,   attributes: normal))
+                    detailString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
                 }
             }
         } else {
@@ -379,7 +369,7 @@ class MediaTableViewCell: UITableViewCell
                 if !detailString.string.isEmpty {
                     detailString.append(NSAttributedString(string: "\n"))
                 }
-                detailString.append(NSAttributedString(string: eventName, attributes: normal))
+                detailString.append(NSAttributedString(string: eventName, attributes: Constants.Fonts.Attributes.normal))
             }
         }
         
@@ -828,50 +818,50 @@ class MediaTableViewCell: UITableViewCell
         if (searchText != nil) {
             let attrString = NSMutableAttributedString()
             
-            let normal = [ NSFontAttributeName: UIFont(name: "FontAwesome", size: 12.0)! ]
-            
-            let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-                                NSFontAttributeName: UIFont(name: "FontAwesome", size: 12.0)! ]
+//            let normal = [ NSFontAttributeName: UIFont(name: "FontAwesome", size: 12.0)! ]
+//            
+//            let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+//                                NSFontAttributeName: UIFont(name: "FontAwesome", size: 12.0)! ]
             
             if (globals.mediaPlayer.mediaItem == mediaItem) && (globals.mediaPlayer.state == .playing) {
-                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAYING, attributes: normal))
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAYING, attributes: Constants.Fonts.Attributes.normal))
             }
 
             if (mediaItem!.hasTags) {
                 if (mediaItem?.tagsSet?.count > 1) {
                     if mediaItem!.searchHit(searchText).tags {
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: highlighted))
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: Constants.Fonts.Attributes.highlighted))
                     } else {
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: normal))
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: Constants.Fonts.Attributes.normal))
                     }
                 } else {
                     if mediaItem!.searchHit(searchText).tags {
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: highlighted))
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: Constants.Fonts.Attributes.highlighted))
                     } else {
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: normal))
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: Constants.Fonts.Attributes.normal))
                     }
                 }
             }
 
             if (mediaItem!.hasNotes) {
                 if globals.search.transcripts && mediaItem!.searchHit(searchText).transcriptHTML {
-                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: highlighted))
+                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.Fonts.Attributes.highlighted))
                 } else {
 //                    print(searchText!)
-                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: normal))
+                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.Fonts.Attributes.normal))
                 }
             }
             
             if (mediaItem!.hasSlides) {
-                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.SLIDES, attributes: normal))
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.SLIDES, attributes: Constants.Fonts.Attributes.normal))
             }
             
             if (mediaItem!.hasVideo) {
-                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.VIDEO, attributes: normal))
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.VIDEO, attributes: Constants.Fonts.Attributes.normal))
             }
             
             if (mediaItem!.hasAudio) {
-                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.AUDIO, attributes: normal))
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.AUDIO, attributes: Constants.Fonts.Attributes.normal))
             }
             
             DispatchQueue.main.async {

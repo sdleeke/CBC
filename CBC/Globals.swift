@@ -16,10 +16,17 @@ struct MediaNeed {
 }
 
 class Section {
-    var strings:[String]?
+    var strings:[String]? {
+        didSet {
+            indexStrings = strings?.map({ (string:String) -> String in
+                return indexTransform != nil ? indexTransform!(string.uppercased())! : string.uppercased()
+            })
+        }
+    }
+    
     var indexStrings:[String]?
     
-    var indexTransform:((String?)->String?)?
+    var indexTransform:((String?)->String?)? = stringWithoutPrefixes
     
     var showHeaders = false
     var showIndex = false
@@ -50,13 +57,17 @@ class Section {
         
         let a = "A"
         
-        titles = Array(Set(indexStrings!.map({ (string:String) -> String in
-            if string.endIndex >= a.endIndex {
-                return string.substring(to: a.endIndex).uppercased()
-            } else {
-                return string
-            }
-        }))).sorted() { $0 < $1 }
+        titles = Array(Set(indexStrings!
+            
+            .map({ (string:String) -> String in
+                if string.endIndex >= a.endIndex {
+                    return string.substring(to: a.endIndex).uppercased()
+                } else {
+                    return string
+                }
+            })
+            
+        )).sorted() { $0 < $1 }
 
         if titles?.count == 0 {
             titles = nil
@@ -497,9 +508,34 @@ struct Search {
 
 var globals:Globals!
 
-class Globals : NSObject {
+enum PIP {
+    case started
+    case stopped
+}
+
+class Globals : NSObject, AVPlayerViewControllerDelegate {
 //    var finished = 0
 //    var progress = 0
+    
+    var pip : PIP = .stopped
+    
+    func playerViewControllerDidStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
+        print("playerViewControllerDidStopPictureInPicture")
+        pip = .stopped
+    }
+
+    func playerViewControllerWillStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
+        print("playerViewControllerWillStopPictureInPicture")
+    }
+
+    func playerViewControllerDidStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
+        print("playerViewControllerDidStartPictureInPicture")
+        pip = .started
+    }
+    
+    func playerViewControllerWillStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
+        print("playerViewControllerWillStartPictureInPicture")
+    }
     
     var loadSingles = true
     
@@ -1037,7 +1073,9 @@ class Globals : NSObject {
                     mediaPlayer.loaded = true
                     
                     if (mediaPlayer.mediaItem?.playing == Playing.video) {
-                        mediaPlayer.mediaItem?.showing = Showing.video
+                        if mediaPlayer.mediaItem?.showing == Showing.none {
+                            mediaPlayer.mediaItem?.showing = Showing.video
+                        }
                     }
 
                     if mediaPlayer.mediaItem!.hasCurrentTime() {
@@ -1247,6 +1285,8 @@ class Globals : NSObject {
         
         mediaPlayer.controller = AVPlayerViewController()
         
+        mediaPlayer.controller?.delegate = globals
+        
         mediaPlayer.controller?.showsPlaybackControls = false
         
         if #available(iOS 10.0, *) {
@@ -1413,6 +1453,20 @@ class Globals : NSObject {
             break
             
         case .playing:
+            if (globals.pip == .started) {
+                if (mediaPlayer.rate == 0) {
+                    mediaPlayer.pause()
+                }
+            } else {
+//                if mediaPlayer.loaded && (mediaPlayer.rate == 0) && (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+//                    mediaPlayer.pause()
+//                    
+////                    DispatchQueue.main.async(execute: { () -> Void in
+////                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+////                    })
+//                }
+            }
+
 //            if (globals.mediaPlayer.rate == 0) {
 //                globals.mediaPlayer.pause() // IfPlaying
 //                
@@ -1466,12 +1520,18 @@ class Globals : NSObject {
             break
             
         case .paused:
-            if mediaPlayer.loaded && (mediaPlayer.rate != 0) && (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
-                mediaPlayer.pause()
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-                })
+            if (globals.pip == .started) {
+                if (mediaPlayer.rate != 0) {
+                    mediaPlayer.play()
+                }
+            } else {
+                if mediaPlayer.loaded && (mediaPlayer.rate != 0) && (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+                    mediaPlayer.pause()
+                    
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+//                    })
+                }
             }
             
             if !mediaPlayer.loaded && !mediaPlayer.loadFailed && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM)) {

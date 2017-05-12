@@ -469,7 +469,25 @@ struct Constants {
         static let MORNING = "AM"
         static let EVENING = "PM"
     }
-
+    
+    struct Fonts {
+        static let body = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
+        
+        static let bold = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
+        
+        struct Attributes {
+            static let normal = [ NSFontAttributeName: Fonts.body ]
+            
+            static let bold = [ NSFontAttributeName: Fonts.bold ]
+            
+            static let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+                                       NSFontAttributeName: Fonts.body ]
+            
+            static let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
+                                           NSFontAttributeName: Fonts.bold ]
+        }
+    }
+    
     struct FA {
         static let name = "FontAwesome"
         

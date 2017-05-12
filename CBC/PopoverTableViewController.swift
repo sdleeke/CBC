@@ -105,13 +105,13 @@ extension PopoverTableViewController: UISearchBarDelegate
             if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
                 return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
             }) {
-                self.filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
+                filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
                 
                 //                print(self.filteredStrings)
                 
-                filteredSection.indexStrings = self.filteredSection.strings?.map({ (string:String) -> String in
-                    return section.indexTransform != nil ? section.indexTransform!(string.uppercased())! : string.uppercased()
-                })
+//                filteredSection.indexStrings = self.filteredSection.strings?.map({ (string:String) -> String in
+//                    return section.indexTransform != nil ? section.indexTransform!(string.uppercased())! : string.uppercased()
+//                })
                 
                 filteredSection.build()
                 
@@ -138,9 +138,9 @@ extension PopoverTableViewController: UISearchBarDelegate
                 
                 //                print(self.filteredStrings)
                 
-                filteredSection.indexStrings = self.filteredSection.strings?.map({ (string:String) -> String in
-                    return section.indexTransform != nil ? section.indexTransform!(string.uppercased())! : string.uppercased()
-                })
+//                filteredSection.indexStrings = self.filteredSection.strings?.map({ (string:String) -> String in
+//                    return section.indexTransform != nil ? section.indexTransform!(string.uppercased())! : string.uppercased()
+//                })
                 
                 filteredSection.build()
                 
@@ -173,9 +173,9 @@ extension PopoverTableViewController: UISearchBarDelegate
                 
 //                print(self.filteredStrings)
                 
-                filteredSection.indexStrings = filteredSection.strings?.map({ (string:String) -> String in
-                    return section.indexTransform != nil ? section.indexTransform!(string.uppercased())! : string.uppercased()
-                })
+//                filteredSection.indexStrings = filteredSection.strings?.map({ (string:String) -> String in
+//                    return section.indexTransform != nil ? section.indexTransform!(string.uppercased())! : string.uppercased()
+//                })
 
                 filteredSection.build()
                 
@@ -275,9 +275,9 @@ extension PopoverTableViewController : PopoverTableViewControllerDelegate {
                 break
             }
             
-            section.indexStrings = section.strings?.map({ (string:String) -> String in
-                return section.indexTransform != nil ? section.indexTransform!(string.uppercased())! : string.uppercased()
-            })
+//            section.indexStrings = section.strings?.map({ (string:String) -> String in
+//                return section.indexTransform != nil ? section.indexTransform!(string.uppercased())! : string.uppercased()
+//            })
             
             section.build()
             
@@ -336,6 +336,13 @@ class PopoverTableViewController : UIViewController {
     
     var mediaListGroupSort:MediaListGroupSort?
     
+    var indexTransform:((String?)->String?)? = stringWithoutPrefixes {
+        didSet {
+            filteredSection.indexTransform = indexTransform
+            unfilteredSection.indexTransform = indexTransform
+        }
+    }
+    
     var filteredSection = Section()
     var unfilteredSection = Section()
     
@@ -358,6 +365,10 @@ class PopoverTableViewController : UIViewController {
     
     func setPreferredContentSize()
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         guard (section.strings != nil) else {
             return
         }
@@ -396,6 +407,10 @@ class PopoverTableViewController : UIViewController {
             break
         }
         
+        let normal = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
+        
+        let bold = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
+
         var viewWidth = self.view.frame.width
         
         if (self.vc?.splitViewController != nil) && (self.vc!.splitViewController!.viewControllers.count > 1) {
@@ -410,7 +425,7 @@ class PopoverTableViewController : UIViewController {
         if let title = self.navigationItem.title {
             let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
             
-            width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18.0)], context: nil).width
+            width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: bold], context: nil).width
         }
         
         //        print(strings)
@@ -418,9 +433,9 @@ class PopoverTableViewController : UIViewController {
         for string in self.section.strings! {
             let string = string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
             
-            let maxWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
+            let maxWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: normal], context: nil)
             
-            let maxHeight = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16.0)], context: nil)
+            let maxHeight = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: normal], context: nil)
             
             //            print(string)
             //            print(maxSize)
@@ -465,8 +480,8 @@ class PopoverTableViewController : UIViewController {
             height += self.tableView.sectionHeaderHeight * CGFloat(self.section.indexStrings!.count)
         }
         
-        //        print(height)
-        //        print(width)
+//        print(height)
+//        print(width)
         
         self.preferredContentSize = CGSize(width: width, height: height)
     }
@@ -729,7 +744,7 @@ class PopoverTableViewController : UIViewController {
 
         if sort.method == Constants.Sort.Alphabetical {
             unfilteredSection.titles = mediaListGroupSort?.lexicon?.section.titles
-            unfilteredSection.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
+//            unfilteredSection.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
         }
 
         unfilteredSection.build()
@@ -759,9 +774,9 @@ class PopoverTableViewController : UIViewController {
                 
                 //                        print(self.filteredStrings)
                 
-                filteredSection.indexStrings = self.filteredSection.strings?.map({ (string:String) -> String in
-                    return string.uppercased()
-                })
+//                filteredSection.indexStrings = self.filteredSection.strings?.map({ (string:String) -> String in
+//                    return string.uppercased()
+//                })
                 
                 self.filteredSection.build()
                 
@@ -805,7 +820,7 @@ class PopoverTableViewController : UIViewController {
 
         if sort.method == Constants.Sort.Alphabetical {
             unfilteredSection.titles = mediaListGroupSort?.lexicon?.section.titles
-            unfilteredSection.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
+//            unfilteredSection.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
         }
         
         unfilteredSection.build()
@@ -835,9 +850,9 @@ class PopoverTableViewController : UIViewController {
                 
 //                    print(self.filteredStrings)
                 
-                filteredSection.indexStrings = filteredSection.strings?.map({ (string:String) -> String in
-                    return string.uppercased()
-                })
+//                filteredSection.indexStrings = filteredSection.strings?.map({ (string:String) -> String in
+//                    return string.uppercased()
+//                })
                 
                 self.filteredSection.build()
                 
@@ -964,7 +979,7 @@ class PopoverTableViewController : UIViewController {
                 
                 if sort.method == Constants.Sort.Alphabetical {
                     unfilteredSection.titles = mediaListGroupSort?.lexicon?.section.titles
-                    unfilteredSection.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
+//                    unfilteredSection.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
                 }
                 
                 unfilteredSection.build()
@@ -1012,11 +1027,11 @@ class PopoverTableViewController : UIViewController {
                 self.section.strings = self.stringsFunction?()
                 
                 if self.section.strings != nil {
-                    let array = Array(Set(self.section.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
-                    
-                    self.section.indexStrings = array.map({ (string:String) -> String in
-                        return string.uppercased()
-                    })
+//                    let array = Array(Set(self.section.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
+//                    
+//                    self.section.indexStrings = array.map({ (string:String) -> String in
+//                        return string.uppercased()
+//                    })
                     
                     self.section.build()
                     
@@ -1187,6 +1202,7 @@ extension PopoverTableViewController : UITableViewDataSource
         let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.POPOVER_CELL, for: indexPath) as! PopoverTableViewCell
         
         cell.title.text = nil
+        cell.title.attributedText = nil
         
         var index = -1
         
@@ -1294,7 +1310,37 @@ extension PopoverTableViewController : UITableViewDataSource
         
         //        if let active = self.searchController?.isActive, active {
         if (index >= 0) && (index < section.strings?.count) {
-            cell.title.text = section.strings?[index]
+            if let title = section.strings?[index] {
+                if search, let searchText = searchBar.text, title.lowercased().contains(searchText.lowercased()) {
+                    let titleString = NSMutableAttributedString()
+                    
+                    var before:String?
+                    var string:String?
+                    var after:String?
+                    
+                    if let range = title.lowercased().range(of: searchText.lowercased()) {
+                        before = title.substring(to: range.lowerBound)
+                        string = title.substring(with: range)
+                        after = title.substring(from: range.upperBound)
+                        
+                        if let before = before {
+                            titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
+                        }
+                        if let string = string {
+                            titleString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
+                        }
+                        if let after = after {
+                            titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
+                        }
+                    }
+
+                    cell.title.text = title
+                    cell.title.attributedText = titleString
+                } else {
+                    cell.title.text = title
+                    cell.title.attributedText = NSAttributedString(string:title,attributes:Constants.Fonts.Attributes.normal)
+                }
+            }
         }
 //        if searchActive {
 //            if (index >= 0) && (index < filteredSection.strings?.count) {
