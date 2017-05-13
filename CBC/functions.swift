@@ -2083,21 +2083,6 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
         return nil
     }
     
-//    if var str = string?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased(), str.contains("satan") {
-//        var count = 0
-//        repeat {
-//            if let upperBound = str.range(of: "satan")?.upperBound {
-//                str = str.substring(from: upperBound)
-//                count += 1
-//            }
-//        } while str.contains("satan")
-//        
-//        if count > 28 {
-//            print(string!)
-//            print(str)
-//        }
-//    }
-    
     var tokens = [String:Int]()
     
     var str = string?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
@@ -2111,6 +2096,8 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
     //        print(string)
     
     var token = Constants.EMPTY_STRING
+    let trimChars = Constants.UNBREAKABLE_SPACE + Constants.QUOTES + " '" // ‘”
+    let breakChars = "\" :-!;,.()?&/<>[]" + trimChars // ‘“
     
     func processToken()
     {
@@ -2133,9 +2120,14 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
                 }
             }
             
-            token = token.trimmingCharacters(in: CharacterSet(charactersIn: "‘“'"))
+            if token != token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars)) {
+//                print("\(token)")
+                token = token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars))
+//                print("\(token)")
+            }
             
             if token != Constants.EMPTY_STRING {
+//                print(token.uppercased())
                 if let count = tokens[token.uppercased()] {
                     tokens[token.uppercased()] = count + 1
                 } else {
@@ -2152,16 +2144,16 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
         //        print(char)
         
         if UnicodeScalar(String(char)) != nil {
-            if CharacterSet(charactersIn: "\" :-!;,.()?&/<>[]").contains(UnicodeScalar(String(char))!) {
-//                if token.uppercased().contains("SATAN") {
-//                    print(token)
-//                }
+            if CharacterSet(charactersIn: breakChars).contains(UnicodeScalar(String(char))!) {
+//                print(token)
                 processToken()
             } else {
                 if !CharacterSet(charactersIn: "$0123456789").contains(UnicodeScalar(String(char))!) {
-                    if (String(char) != "\'") || (token != Constants.EMPTY_STRING) {
-                        // DO NOT WANT LEADING SINGLE QUOTE
+                    if !CharacterSet(charactersIn: trimChars).contains(UnicodeScalar(String(char))!) || (token != Constants.EMPTY_STRING) {
+                        // DO NOT WANT LEADING CHARS IN SET
+//                        print(token)
                         token.append(char)
+//                        print(token)
                     }
                 }
             }
@@ -3378,6 +3370,24 @@ func stripHTML(_ string:String?) -> String?
     bodyString = bodyString?.replacingOccurrences(of: "<html>", with: "")
     bodyString = bodyString?.replacingOccurrences(of: "<body>", with: "")
 
+    while bodyString?.range(of: "<p ") != nil {
+        if let startRange = bodyString?.range(of: "<p ") {
+            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
+                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
+                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+            }
+        }
+    }
+    
+    while bodyString?.range(of: "<span ") != nil {
+        if let startRange = bodyString?.range(of: "<span ") {
+            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
+                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
+                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+            }
+        }
+    }
+    
     while bodyString?.range(of: "<font") != nil {
         if let startRange = bodyString?.range(of: "<font") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
@@ -3442,9 +3452,7 @@ func stripHTML(_ string:String?) -> String?
     bodyString = bodyString?.replacingOccurrences(of: "<p>", with: "")
     bodyString = bodyString?.replacingOccurrences(of: "</p>", with: "")
     
-//    if (bodyString?.lowercased().contains("satan"))! {
 //        print(bodyString)
-//    }
     
     return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
 }

@@ -1238,8 +1238,7 @@ class MediaViewController: UIViewController
         var notesIndex = 0
         var videoIndex = 0
 
-        let attr = [NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.ICONS_FONT_SIZE)!]
-        stvControl.setTitleTextAttributes(attr, for: UIControlState.normal)
+        stvControl.setTitleTextAttributes(Constants.FA.Fonts.Attributes.icons, for: UIControlState.normal)
         
         // This order: Transcript (aka Notes), Slides, Video matches the CBC web site.
         
@@ -1996,7 +1995,15 @@ class MediaViewController: UIViewController
         guard (view != nil) else {
             return
         }
-
+        
+        guard (mediaItemNotesAndSlides != nil) else {
+            return
+        }
+        
+        guard (tableView != nil) else {
+            return
+        }
+        
         var parentView : UIView!
 
         switch videoLocation {
@@ -2932,7 +2939,7 @@ class MediaViewController: UIViewController
         var barButtons = [UIBarButtonItem]()
         
         actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.actions))
-        actionButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState.normal)
+        actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
 
         barButtons.append(actionButton!)
     
@@ -2943,7 +2950,7 @@ class MediaViewController: UIViewController
                 tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.tags(_:)))
             }
             
-            tagsButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.TAGS_FONT_SIZE)!], for: UIControlState.normal)
+            tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags, for: UIControlState.normal)
             
             barButtons.append(tagsButton!)
         } else {
@@ -3261,9 +3268,7 @@ class MediaViewController: UIViewController
                 break
             }
 
-            let attr = [NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.ICONS_FONT_SIZE)!]
-            
-            audioOrVideoControl.setTitleTextAttributes(attr, for: UIControlState.normal)
+            audioOrVideoControl.setTitleTextAttributes(Constants.FA.Fonts.Attributes.icons, for: UIControlState.normal)
             
             audioOrVideoControl.setTitle(Constants.FA.AUDIO, forSegmentAt: Constants.AV_SEGMENT_INDEX.AUDIO) // Audio
 

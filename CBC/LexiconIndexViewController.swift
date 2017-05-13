@@ -960,7 +960,7 @@ class LexiconIndexViewController : UIViewController
         tableView.tableFooterView = UIView()
         
         let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(LexiconIndexViewController.actions))
-        actionButton.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState.normal)
+        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
 
         navigationItem.setRightBarButton(actionButton, animated: true) //
     }
@@ -1286,7 +1286,7 @@ extension LexiconIndexViewController : UITableViewDataSource
         
         let heightSize: CGSize = CGSize(width: tableView.frame.width - 20, height: .greatestFiniteMagnitude)
         
-        let height = title.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)], context: nil).height
+        let height = title.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).height
         
         //        print(height,max(Constants.HEADER_HEIGHT,height + 28))
         
@@ -1305,9 +1305,7 @@ extension LexiconIndexViewController : UITableViewDataSource
             label.numberOfLines = 0
             label.lineBreakMode = .byWordWrapping
             
-            let bold = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
-            
-            label.attributedText = NSAttributedString(string: title,   attributes: bold)
+            label.attributedText = NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold)
             
             label.translatesAutoresizingMaskIntoConstraints = false
 

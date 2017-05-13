@@ -386,7 +386,15 @@ struct Constants {
     static let WORD_ENDING = EMPTY_STRING
     
     static let SINGLE_SPACE = " "
-    static let UNBREAKABLE_SPACE = "\u{00a0}"
+    static let UNBREAKABLE_SPACE = "\u{00A0}"
+
+    static let LEFT_SINGLE_QUOTE = "\u{2018}"
+    static let RIGHT_SINGLE_QUOTE = "\u{2019}"
+    
+    static let LEFT_DOUBLE_QUOTE = "\u{201C}"
+    static let RIGHT_DOUBLE_QUOTE = "\u{201D}"
+    
+    static let QUOTES = LEFT_SINGLE_QUOTE + RIGHT_SINGLE_QUOTE + LEFT_DOUBLE_QUOTE + RIGHT_DOUBLE_QUOTE
     
     static let SINGLE_UNDERSCORE = "_"
     
@@ -490,7 +498,27 @@ struct Constants {
     
     struct FA {
         static let name = "FontAwesome"
-        
+
+        struct Fonts {
+            static let tags     = UIFont(name: "FontAwesome", size: TAGS_FONT_SIZE)!
+            static let show     = UIFont(name: "FontAwesome", size: SHOW_FONT_SIZE)!
+            static let icons    = UIFont(name: "FontAwesome", size: ICONS_FONT_SIZE)!
+            static let download = UIFont(name: "FontAwesome", size: DOWNLOAD_FONT_SIZE)!
+            
+            struct Attributes {
+                static let icons = [ NSFontAttributeName: Fonts.icons ]
+                
+                static let highlightedIcons = [ NSBackgroundColorAttributeName: UIColor.yellow,
+                                                NSFontAttributeName: Fonts.icons ]
+                
+                static let tags = [ NSFontAttributeName: Fonts.tags ]
+                
+                static let show = [ NSFontAttributeName: Fonts.show ]
+                
+                static let download = [ NSFontAttributeName: Fonts.download ]
+            }
+        }
+
         static let SEARCH = "\u{f002}"
         static let WORDS = "\u{f00e}"
         static let SCRIPTURE = "\u{f02d}"

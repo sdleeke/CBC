@@ -102,19 +102,9 @@ extension PopoverPickerViewController : UIPickerViewDataSource
             label = UILabel()
         }
         
-        let normal = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
-        
-        //        let bold = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
-        //
-        //        let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-        //                            NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
-        //
-        //        let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-        //                                NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
-        
         if mediaListGroupSort != nil {
             if let title = title(forRow: row, forComponent: component) {
-                label.attributedText = NSAttributedString(string: title,attributes: normal)
+                label.attributedText = NSAttributedString(string: title,attributes: Constants.Fonts.Attributes.normal)
             }
             
             label.textAlignment = .left
@@ -125,7 +115,7 @@ extension PopoverPickerViewController : UIPickerViewDataSource
             }
             
             if let string = strings?[row] {
-                label.attributedText = NSAttributedString(string: string,attributes: normal)
+                label.attributedText = NSAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
 //                print("LAST: ",string)
             }
             
@@ -277,7 +267,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
                     
                 default:
                     for stringNode in stringNodes {
-                        if let stringWidth = stringNode.string?.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)], context: nil).width {
+                        if let stringWidth = stringNode.string?.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width {
                             if stringWidth > width {
                                 width = stringWidth
                             }
@@ -316,7 +306,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
                     //                print(stringNode.string)
                     let string = string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
                     
-                    let stringWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)], context: nil).width
+                    let stringWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width
                     
                     if stringWidth > width {
                         width = stringWidth
@@ -507,7 +497,7 @@ class PopoverPickerViewController : UIViewController
     {
         if mediaListGroupSort != nil {
             let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverPickerViewController.actions))
-            actionButton.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState.normal)
+            actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
 
             navigationItem.setRightBarButton(actionButton, animated: false)
         }

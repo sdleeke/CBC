@@ -410,18 +410,8 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
             label = UILabel()
         }
         
-        let normal = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
-        
-        //        let bold = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
-        //
-        //        let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-        //                            NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body) ]
-        //
-        //        let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-        //                                NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
-        
         if let title = title(forRow: row, forComponent: component) {
-            label.attributedText = NSAttributedString(string: title,attributes: normal)
+            label.attributedText = NSAttributedString(string: title,attributes: Constants.Fonts.Attributes.normal)
         }
         
         return label
@@ -1376,7 +1366,7 @@ class ScriptureIndexViewController : UIViewController
         tableView.tableFooterView = UIView()
 
         let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureIndexViewController.actions))
-        actionButton.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState.normal)
+        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
 
         navigationItem.setRightBarButton(actionButton, animated: true) //
 

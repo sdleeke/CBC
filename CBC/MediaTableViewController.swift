@@ -1629,7 +1629,7 @@ class MediaTableViewController : UIViewController
         let showButton = navigationItem.leftBarButtonItem
         
         showButton?.title = Constants.FA.REORDER
-        showButton?.setTitleTextAttributes([NSFontAttributeName:UIFont(name: Constants.FA.name, size: Constants.FA.SHOW_FONT_SIZE)!], for: UIControlState.normal)
+        showButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
         
         showButton?.isEnabled = (globals.media.all != nil) //&& !globals.mediaItemsSortingOrGrouping
     }
@@ -3507,7 +3507,7 @@ extension MediaTableViewController : UITableViewDataSource
         
         let heightSize: CGSize = CGSize(width: tableView.frame.width - 20, height: .greatestFiniteMagnitude)
         
-        let height = title.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)], context: nil).height
+        let height = title.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).height
         
 //        print(height,max(Constants.HEADER_HEIGHT,height + 28))
         
@@ -3526,9 +3526,7 @@ extension MediaTableViewController : UITableViewDataSource
             label.numberOfLines = 0
             label.lineBreakMode = .byWordWrapping
 
-            let bold = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
-
-            label.attributedText = NSAttributedString(string: title,   attributes: bold)
+            label.attributedText = NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold)
             
             label.translatesAutoresizingMaskIntoConstraints = false
 
@@ -3746,6 +3744,8 @@ extension MediaTableViewController : UITableViewDelegate
                 
                 popover.navigationController?.isNavigationBarHidden = false
                 
+                popover.sort.function = sort
+
                 popover.delegate = self
                 popover.purpose = .selectingCellSearch
                 

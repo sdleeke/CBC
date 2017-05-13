@@ -407,10 +407,6 @@ class PopoverTableViewController : UIViewController {
             break
         }
         
-        let normal = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
-        
-        let bold = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
-
         var viewWidth = self.view.frame.width
         
         if (self.vc?.splitViewController != nil) && (self.vc!.splitViewController!.viewControllers.count > 1) {
@@ -425,7 +421,7 @@ class PopoverTableViewController : UIViewController {
         if let title = self.navigationItem.title {
             let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
             
-            width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: bold], context: nil).width
+            width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).width
         }
         
         //        print(strings)
@@ -433,9 +429,9 @@ class PopoverTableViewController : UIViewController {
         for string in self.section.strings! {
             let string = string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
             
-            let maxWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: normal], context: nil)
+            let maxWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil)
             
-            let maxHeight = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: normal], context: nil)
+            let maxHeight = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil)
             
             //            print(string)
             //            print(maxSize)

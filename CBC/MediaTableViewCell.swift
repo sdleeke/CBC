@@ -818,50 +818,45 @@ class MediaTableViewCell: UITableViewCell
         if (searchText != nil) {
             let attrString = NSMutableAttributedString()
             
-//            let normal = [ NSFontAttributeName: UIFont(name: "FontAwesome", size: 12.0)! ]
-//            
-//            let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
-//                                NSFontAttributeName: UIFont(name: "FontAwesome", size: 12.0)! ]
-            
             if (globals.mediaPlayer.mediaItem == mediaItem) && (globals.mediaPlayer.state == .playing) {
-                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAYING, attributes: Constants.Fonts.Attributes.normal))
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAYING, attributes: Constants.FA.Fonts.Attributes.icons))
             }
 
             if (mediaItem!.hasTags) {
                 if (mediaItem?.tagsSet?.count > 1) {
                     if mediaItem!.searchHit(searchText).tags {
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: Constants.Fonts.Attributes.highlighted))
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
                     } else {
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: Constants.Fonts.Attributes.normal))
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: Constants.FA.Fonts.Attributes.icons))
                     }
                 } else {
                     if mediaItem!.searchHit(searchText).tags {
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: Constants.Fonts.Attributes.highlighted))
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
                     } else {
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: Constants.Fonts.Attributes.normal))
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: Constants.FA.Fonts.Attributes.icons))
                     }
                 }
             }
 
             if (mediaItem!.hasNotes) {
                 if globals.search.transcripts && mediaItem!.searchHit(searchText).transcriptHTML {
-                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.Fonts.Attributes.highlighted))
+                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
                 } else {
 //                    print(searchText!)
-                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.Fonts.Attributes.normal))
+                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
                 }
             }
             
             if (mediaItem!.hasSlides) {
-                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.SLIDES, attributes: Constants.Fonts.Attributes.normal))
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.SLIDES, attributes: Constants.FA.Fonts.Attributes.icons))
             }
             
             if (mediaItem!.hasVideo) {
-                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.VIDEO, attributes: Constants.Fonts.Attributes.normal))
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.VIDEO, attributes: Constants.FA.Fonts.Attributes.icons))
             }
             
             if (mediaItem!.hasAudio) {
-                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.AUDIO, attributes: Constants.Fonts.Attributes.normal))
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.AUDIO, attributes: Constants.FA.Fonts.Attributes.icons))
             }
             
             DispatchQueue.main.async {
