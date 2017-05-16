@@ -736,8 +736,10 @@ class ScriptureViewController : UIViewController
         //        navigationItem.hidesBackButton = false
     }
     
-    func testament(_ book:String) -> String
+    func testament(_ book:String) -> String?
     {
+//        let book = (book == "Psalm") ? "Psalms" : book
+        
         if (Constants.OLD_TESTAMENT_BOOKS.contains(book)) {
             return Constants.OT
         } else
@@ -745,7 +747,7 @@ class ScriptureViewController : UIViewController
                 return Constants.NT
         }
         
-        return Constants.EMPTY_STRING
+        return nil
     }
     
     override func viewDidLoad()
@@ -766,51 +768,53 @@ class ScriptureViewController : UIViewController
             scripture?.selected.testament = Constants.OT
         }
         
-        if let selectedTestament = scripture?.selected.testament {
-            switch selectedTestament {
-            case Constants.OT:
-                scripture?.picker.books = Constants.OLD_TESTAMENT_BOOKS
-                break
-                
-            case Constants.NT:
-                scripture?.picker.books = Constants.NEW_TESTAMENT_BOOKS
-                break
-                
-            default:
-                break
-            }
-
-            if scripture?.selected.book == nil {
-                scripture?.selected.book = scripture?.picker.books?[0]
-            }
+        guard let selectedTestament = scripture?.selected.testament, !selectedTestament.isEmpty else {
+            return
+        }
+        
+        switch selectedTestament {
+        case Constants.OT:
+            scripture?.picker.books = Constants.OLD_TESTAMENT_BOOKS
+            break
             
-            var maxChapters = 0
-            switch selectedTestament {
-            case Constants.OT:
-                if let index = bookNumberInBible(scripture?.selected.book) {
-                    maxChapters = Constants.OLD_TESTAMENT_CHAPTERS[index]
-                }
-                break
-                
-            case Constants.NT:
-                if let index = bookNumberInBible(scripture?.selected.book) {
-                    maxChapters = Constants.NEW_TESTAMENT_CHAPTERS[index - Constants.OLD_TESTAMENT_BOOKS.count]
-                }
-                break
-                
-            default:
-                break
-            }
-
-            var chapters = [Int]()
-            for i in 1...maxChapters {
-                chapters.append(i)
-            }
-            scripture?.picker.chapters = chapters
+        case Constants.NT:
+            scripture?.picker.books = Constants.NEW_TESTAMENT_BOOKS
+            break
             
-            if scripture?.selected.chapter == 0 {
-                scripture?.selected.chapter = scripture!.picker.chapters![0]
+        default:
+            break
+        }
+
+        if scripture?.selected.book == nil {
+            scripture?.selected.book = scripture?.picker.books?[0]
+        }
+        
+        var maxChapters = 0
+        switch selectedTestament {
+        case Constants.OT:
+            if let index = bookNumberInBible(scripture?.selected.book) {
+                maxChapters = Constants.OLD_TESTAMENT_CHAPTERS[index]
             }
+            break
+            
+        case Constants.NT:
+            if let index = bookNumberInBible(scripture?.selected.book) {
+                maxChapters = Constants.NEW_TESTAMENT_CHAPTERS[index - Constants.OLD_TESTAMENT_BOOKS.count]
+            }
+            break
+            
+        default:
+            break
+        }
+
+        var chapters = [Int]()
+        for i in 1...maxChapters {
+            chapters.append(i)
+        }
+        scripture?.picker.chapters = chapters
+            
+        if scripture?.selected.chapter == 0 {
+            scripture?.selected.chapter = scripture!.picker.chapters![0]
         }
 
         scripturePicker.reloadAllComponents()

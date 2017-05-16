@@ -10,7 +10,19 @@ import Foundation
 
 struct Selected {
     var testament:String?
+//    {
+//        didSet {
+//            print(testament)
+//        }
+//    }
+
     var book:String?
+//    {
+//        didSet {
+//            print(book)
+//        }
+//    }
+    
     var chapter:Int = 0
     var verse:Int = 0
     
@@ -265,7 +277,6 @@ class Scripture : NSObject
         super.init()
         
         self.reference = reference
-        setupBooksChaptersVerses()
     }
     
     lazy var html:CachedString? = {
@@ -274,75 +285,82 @@ class Scripture : NSObject
     
     func setupBooksChaptersVerses()
     {
-        if let scriptureReference = reference?.replacingOccurrences(of: "Psalm ", with: "Psalms ") {
-            let booksAndChaptersAndVerses = BooksChaptersVerses()
-            
-            var scriptures = [String]()
-            
-            var string = scriptureReference
-            
-            let separator = ";"
+        guard let scriptureReference = reference else {
+            return
+        }
+        
+//        if let scriptureReference = reference?.replacingOccurrences(of: "Psalm ", with: "Psalms ") {
+        
+        let booksAndChaptersAndVerses = BooksChaptersVerses()
+        
+        var scriptures = [String]()
+        
+        var string = scriptureReference
+        
+        let separator = ";"
 
-            while (string.range(of: separator) != nil) {
-                if let lowerBound = string.range(of: separator)?.lowerBound {
-                    scriptures.append(string.substring(to: lowerBound))
-                }
-                
-                string = string.substring(from: string.range(of: separator)!.upperBound)
+        while (string.range(of: separator) != nil) {
+            if let lowerBound = string.range(of: separator)?.lowerBound {
+                scriptures.append(string.substring(to: lowerBound))
             }
             
-            scriptures.append(string)
+            string = string.substring(from: string.range(of: separator)!.upperBound)
+        }
+        
+        scriptures.append(string)
+        
+        var lastBook:String?
+        
+        for scripture in scriptures {
+            var book = booksFromScriptureReference(scripture)?.first
             
-            var lastBook:String?
+            if book == nil {
+                book = lastBook
+            } else {
+                lastBook = book
+            }
             
-            for scripture in scriptures {
-                var book = booksFromScriptureReference(scripture)?.first
+            if let book = book {
+                var reference = scripture
                 
-                if book == nil {
-                    book = lastBook
-                } else {
-                    lastBook = book
+                if let range = scripture.range(of: book) {
+                    reference = scripture.substring(from: range.upperBound)
                 }
                 
-                if let book = book {
-                    var reference = scripture
-                    
-                    if let range = scripture.range(of: book) {
-                        reference = scripture.substring(from: range.upperBound)
-                    }
-                    
-                    //                print(book,reference)
-                    
-                    // What if a reference includes the book more than once?
-                    
-                    if let chaptersAndVerses = chaptersAndVersesFromScripture(book:book,reference:reference) {
-                        if let _ = booksAndChaptersAndVerses[book] {
-                            for key in chaptersAndVerses.keys {
-                                if let verses = chaptersAndVerses[key] {
-                                    if let _ = booksAndChaptersAndVerses[book]?[key] {
-                                        booksAndChaptersAndVerses[book]?[key]?.append(contentsOf: verses)
-                                    } else {
-                                        booksAndChaptersAndVerses[book]?[key] = verses
-                                    }
+                //                print(book,reference)
+                
+                // What if a reference includes the book more than once?
+                
+                if let chaptersAndVerses = chaptersAndVersesFromScripture(book:book,reference:reference) {
+                    if let _ = booksAndChaptersAndVerses[book] {
+                        for key in chaptersAndVerses.keys {
+                            if let verses = chaptersAndVerses[key] {
+                                if let _ = booksAndChaptersAndVerses[book]?[key] {
+                                    booksAndChaptersAndVerses[book]?[key]?.append(contentsOf: verses)
+                                } else {
+                                    booksAndChaptersAndVerses[book]?[key] = verses
                                 }
                             }
-                        } else {
-                            booksAndChaptersAndVerses[book] = chaptersAndVerses
                         }
+                    } else {
+                        booksAndChaptersAndVerses[book] = chaptersAndVerses
                     }
-                    
-                    if let chapters = booksAndChaptersAndVerses[book]?.keys {
-                        for chapter in chapters {
-                            if booksAndChaptersAndVerses[book]?[chapter] == nil {
-                                print(description,book,chapter)
-                            }
+                }
+                
+                if let chapters = booksAndChaptersAndVerses[book]?.keys {
+                    for chapter in chapters {
+                        if booksAndChaptersAndVerses[book]?[chapter] == nil {
+                            print(description,book,chapter)
                         }
                     }
                 }
             }
-            
-            booksChaptersVerses = booksAndChaptersAndVerses.data?.count > 0 ? booksAndChaptersAndVerses : nil
         }
+        
+        booksChaptersVerses = booksAndChaptersAndVerses.data?.count > 0 ? booksAndChaptersAndVerses : nil
+        
+//        }
+
     }
     
     func jsonFromURL(url:String) -> [String:Any]?
@@ -512,59 +530,65 @@ class Scripture : NSObject
             return nil
         }
         
+        guard let scriptureReference = reference?.replacingOccurrences(of: " ", with: "%20") else {
+            return nil
+        }
+    
         xml.text = nil
         
-        if let scriptureReference = reference?.replacingOccurrences(of: "Psalm ", with: "Psalms ").replacingOccurrences(of: " ", with: "%20") {
-            let urlString = "http://www.esvapi.org/v2/rest/passageQuery?key=5b906fb1eeed04e1&passage=\(scriptureReference)&include-audio-link=false&include-headings=false&output-format=crossway-xml-1.0"
+//        if let scriptureReference = reference?.replacingOccurrences(of: "Psalm ", with: "Psalms ").replacingOccurrences(of: " ", with: "%20") {
+        
+        let urlString = "http://www.esvapi.org/v2/rest/passageQuery?key=5b906fb1eeed04e1&passage=\(scriptureReference)&include-audio-link=false&include-headings=false&output-format=crossway-xml-1.0"
+        
+        if let url = URL(string: urlString) {
+            self.xml.parser = XMLParser(contentsOf: url)
             
-            if let url = URL(string: urlString) {
-                self.xml.parser = XMLParser(contentsOf: url)
+            self.xml.parser?.delegate = self
+            
+            if let success = self.xml.parser?.parse(), success {
+                var bodyString:String?
                 
-                self.xml.parser?.delegate = self
+                bodyString = "<!DOCTYPE html><html><body>"
                 
-                if let success = self.xml.parser?.parse(), success {
-                    var bodyString:String?
+                bodyString = bodyString! + "Scripture: " + reference! + "<br/><br/>"
+                
+                if let books = xml.text?.keys.sorted(by: {
                     
-                    bodyString = "<!DOCTYPE html><html><body>"
+                    reference?.range(of: $0)?.lowerBound < reference?.range(of: $1)?.lowerBound
                     
-                    bodyString = bodyString! + "Scripture: " + reference! + "<br/><br/>"
-                    
-                    if let books = xml.text?.keys.sorted(by: {
-                        
-                        reference?.range(of: $0)?.lowerBound < reference?.range(of: $1)?.lowerBound
-                        
-                        //                        bookNumberInBible($0) < bookNumberInBible($1)
-                    }) {
-                        for book in books {
-                            bodyString = bodyString! + book // + "<br/>"
-                            if let chapters = xml.text?[book]?.keys.sorted(by: { Int($0) < Int($1) }) {
-                                //                                bodyString = bodyString! + "<br/>"
-                                for chapter in chapters {
+                    //                        bookNumberInBible($0) < bookNumberInBible($1)
+                }) {
+                    for book in books {
+                        bodyString = bodyString! + book // + "<br/>"
+                        if let chapters = xml.text?[book]?.keys.sorted(by: { Int($0) < Int($1) }) {
+                            //                                bodyString = bodyString! + "<br/>"
+                            for chapter in chapters {
+                                bodyString = bodyString! + "<br/>"
+                                if !Constants.NO_CHAPTER_BOOKS.contains(book) {
+                                    bodyString = bodyString! + "Chapter " + chapter + "<br/><br/>"
+                                }
+                                if let verses = xml.text?[book]?[chapter]?.keys.sorted(by: { Int($0) < Int($1) }) {
+                                    for verse in verses {
+                                        if let text = xml.text?[book]?[chapter]?[verse] {
+                                            bodyString = bodyString! + "<sup>" + verse + "</sup>" + text + " "
+                                        } // <font size=\"-1\"></font>
+                                    }
                                     bodyString = bodyString! + "<br/>"
-                                    if !Constants.NO_CHAPTER_BOOKS.contains(book) {
-                                        bodyString = bodyString! + "Chapter " + chapter + "<br/><br/>"
-                                    }
-                                    if let verses = xml.text?[book]?[chapter]?.keys.sorted(by: { Int($0) < Int($1) }) {
-                                        for verse in verses {
-                                            if let text = xml.text?[book]?[chapter]?[verse] {
-                                                bodyString = bodyString! + "<sup>" + verse + "</sup>" + text + " "
-                                            } // <font size=\"-1\"></font>
-                                        }
-                                        bodyString = bodyString! + "<br/>"
-                                    }
                                 }
                             }
                         }
                     }
-                    
-                    bodyString = bodyString! + "</html></body>"
-                    
-                    html?[reference!] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
                 }
                 
-                xml.parser = nil
+                bodyString = bodyString! + "</html></body>"
+                
+                html?[reference!] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
             }
+            
+            xml.parser = nil
         }
+        
+//        }
         
         return xml.dict.data
     }
@@ -577,9 +601,9 @@ class Scripture : NSObject
         
         bodyString = bodyString! + "Scripture: " + reference! // + "<br/><br/>"
         
-        guard let _ = reference?.replacingOccurrences(of: "Psalm ", with: "Psalms ") else {
-            return
-        }
+//        guard let _ = reference?.replacingOccurrences(of: "Psalm ", with: "Psalms ") else {
+//            return
+//        }
         
         guard let data = booksChaptersVerses?.data else {
             return
@@ -631,7 +655,7 @@ class Scripture : NSObject
                         }
                     }
                     
-                    scriptureReference = scriptureReference.replacingOccurrences(of: "Psalm ", with: "Psalms ")
+//                    scriptureReference = scriptureReference.replacingOccurrences(of: "Psalm ", with: "Psalms ")
                     
                     print(scriptureReference)
                     
@@ -816,7 +840,7 @@ class Scripture : NSObject
                         }
                     }
                     
-                    scriptureReference = scriptureReference.replacingOccurrences(of: "Psalm ", with: "Psalms ")
+//                    scriptureReference = scriptureReference.replacingOccurrences(of: "Psalm ", with: "Psalms ")
                     
                     print(scriptureReference)
                     

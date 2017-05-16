@@ -206,6 +206,7 @@ struct Constants {
         static let CLEAR_VIEW               = "CLEAR VIEW"
         
         static let LIVE_VIEW                = "LIVE VIEW"
+        static let PLAYER_VIEW              = "PLAYER VIEW"
         
         static let MEDIA_UPDATE_CELL        = "MEDIA UPDATE CELL"
         
@@ -393,6 +394,10 @@ struct Constants {
     
     static let LEFT_DOUBLE_QUOTE = "\u{201C}"
     static let RIGHT_DOUBLE_QUOTE = "\u{201D}"
+    
+    static let SINGLE_QUOTES = LEFT_SINGLE_QUOTE + RIGHT_SINGLE_QUOTE
+    
+    static let DOUBLE_QUOTES = LEFT_DOUBLE_QUOTE + RIGHT_DOUBLE_QUOTE
     
     static let QUOTES = LEFT_SINGLE_QUOTE + RIGHT_SINGLE_QUOTE + LEFT_DOUBLE_QUOTE + RIGHT_DOUBLE_QUOTE
     

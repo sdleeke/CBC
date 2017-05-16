@@ -372,11 +372,15 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
         case 1:
             if (scriptureIndex?.selectedTestament != nil) {
                 if let book = scripture?.picker.books?[row] {
-                    if book == "Psalm" {
-                        return "Psalms"
-                    } else {
-                        return book
-                    }
+                    return book
+                    
+//                    return (book == "Psalm") ? "Psalms" : book
+
+//                    if book == "Psalm" {
+//                        return "Psalms"
+//                    } else {
+//                        return book
+//                    }
                 }
             }
             break

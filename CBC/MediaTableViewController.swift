@@ -404,7 +404,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
         case Constants.Media_Paused:
             globals.gotoPlayingPaused = true
-            globals.mediaPlayer.controller?.allowsPictureInPicturePlayback = false
+            
+            globals.mediaPlayer.killPIP = true
+
             performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: self)
             break
             
@@ -535,7 +537,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Live:
-            globals.mediaPlayer.controller?.allowsPictureInPicturePlayback = false
+            globals.mediaPlayer.killPIP = true
             performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: self)
             break
             
@@ -3097,12 +3099,29 @@ class MediaTableViewController : UIViewController
         updateSearchResults(globals.search.text,completion: nil)
     }
     
+    func liveView()
+    {
+        globals.mediaPlayer.killPIP = true
+        performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: self)
+    }
+    
+    func playerView()
+    {
+        globals.gotoPlayingPaused = true
+//        globals.mediaPlayer.killPIP = true
+        performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: self)
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateSearch), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
 
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.playerView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYER_VIEW), object: nil)
+
+        
 //        DispatchQueue.main.async {
 //            
 ////            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.editing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.EDITING), object: self.tableView)
@@ -3232,7 +3251,8 @@ class MediaTableViewController : UIViewController
     }
     
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?)
+    {
         // Get the new view controller using [segue destinationViewController].
         // Pass the selected object to the new view controller.
         var dvc = segue.destination as UIViewController
@@ -3264,7 +3284,7 @@ class MediaTableViewController : UIViewController
                 break
                 
             case Constants.SEGUE.SHOW_MEDIAITEM:
-                if globals.mediaPlayer.url == URL(string:Constants.URL.LIVE_STREAM) {
+                if globals.mediaPlayer.url == URL(string:Constants.URL.LIVE_STREAM) && (globals.mediaPlayer.pip == .stopped) {
                     globals.mediaPlayer.stop()
                     globals.mediaPlayer.playOnLoad = false
                 }
@@ -3373,7 +3393,7 @@ class MediaTableViewController : UIViewController
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
     {
         super.viewWillTransition(to: size, with: coordinator)
-
+        
 //        var indexPath:IndexPath?
 //        
 //        if self.tableView.isEditing {
@@ -3388,6 +3408,17 @@ class MediaTableViewController : UIViewController
 //        }
 
         if !UIApplication.shared.isRunningInFullScreen() {
+            // This is a HACK.  
+            
+            // If the Scripture VC or Lexicon VC is showing and the SplitViewController has ONE viewController showing (i.e. the SVC or LVC) and
+            // the device is rotation and the SplitViewController will show TWO viewControllers when it finishes, then the SVC or LVC will be 
+            // put in the detail view controller's position!
+            
+            // Unfortuantely I know of NO way to determine if the device is rotating or whether the split view controller is going from one view controller to two.
+            
+            // So, since this is called for situations that DO NOT involve rotation or changes in the number of split view controller's view controllers, this
+            // causes popping to root in lots of other cases where I wish it did not.
+            
             _ = self.navigationController?.popToRootViewController(animated: true)
         }
 

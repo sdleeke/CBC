@@ -517,24 +517,56 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
 //    var finished = 0
 //    var progress = 0
     
-    var pip : PIP = .stopped
+    func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool
+    {
+        return true
+    }
+    
+    func playerViewController(_ playerViewController: AVPlayerViewController, restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void)
+    {
+//        if !mediaPlayer.killPIP {
+//            if globals.mediaPlayer.url == URL(string:Constants.URL.LIVE_STREAM) {
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
+//                })
+//            } else {
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PLAYER_VIEW), object: nil)
+//                })
+//            }
+//        } else {
+//            mediaPlayer.killPIP = false
+//        }
+
+        completionHandler(true)
+    }
+    
+    func playerViewController(_ playerViewController: AVPlayerViewController, failedToStartPictureInPictureWithError error: Error)
+    {
+        print("failedToStartPictureInPictureWithError \(error.localizedDescription)")
+        mediaPlayer.pip = .stopped
+    }
+    
+    func playerViewControllerWillStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
+        print("playerViewControllerWillStopPictureInPicture")
+        mediaPlayer.stoppingPIP = true
+    }
     
     func playerViewControllerDidStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
         print("playerViewControllerDidStopPictureInPicture")
-        pip = .stopped
+        mediaPlayer.pip = .stopped
+        mediaPlayer.stoppingPIP = false
     }
 
-    func playerViewControllerWillStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
-        print("playerViewControllerWillStopPictureInPicture")
-    }
-
-    func playerViewControllerDidStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
-        print("playerViewControllerDidStartPictureInPicture")
-        pip = .started
-    }
-    
     func playerViewControllerWillStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
         print("playerViewControllerWillStartPictureInPicture")
+        mediaPlayer.startingPIP = true
+    }
+    
+    func playerViewControllerDidStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
+        print("playerViewControllerDidStartPictureInPicture")
+        mediaPlayer.pip = .started
+        mediaPlayer.startingPIP = false
     }
     
     var loadSingles = true
@@ -1250,7 +1282,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
         
         do {
             try audioSession.setCategory(AVAudioSessionCategoryPlayback)
-            try audioSession.setActive(true)
+//            try audioSession.setActive(true)
         } catch _ {
             print("failed to setCategory(AVAudioSessionCategoryPlayback)")
             print("failed to audioSession.setActive(true)")
@@ -1453,9 +1485,19 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
             break
             
         case .playing:
-            if (globals.pip == .started) {
+//            if (globals.pip == .stopped) && (UIApplication.shared.applicationState == UIApplicationState.active) {
+//                if (mediaPlayer.rate == 0) {
+//                    mediaPlayer.play()
+//                }
+//            }
+            
+            if (globals.mediaPlayer.pip == .started) { //  && !globals.stoppingPIP
                 if (mediaPlayer.rate == 0) {
-                    mediaPlayer.pause()
+                    if globals.mediaPlayer.stoppingPIP {
+                        mediaPlayer.play()
+                    } else {
+                        mediaPlayer.pause()
+                    }
                 }
             } else {
 //                if mediaPlayer.loaded && (mediaPlayer.rate == 0) && (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
@@ -1520,7 +1562,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
             break
             
         case .paused:
-            if (globals.pip == .started) {
+            if (globals.mediaPlayer.pip == .started) {
                 if (mediaPlayer.rate != 0) {
                     mediaPlayer.play()
                 }

@@ -250,6 +250,23 @@ class MediaPlayer {
         setupPlayingInfoCenter()
     }
     
+    var pip : PIP = .stopped
+    
+    var startingPIP = false
+    var stoppingPIP = false
+    
+    var killPIP = false {
+        didSet {
+            if pip == .started {
+                if killPIP {
+                    controller?.allowsPictureInPicturePlayback = false
+                }
+            } else {
+                killPIP = false
+            }
+        }
+    }
+
     func stop()
     {
         guard Thread.isMainThread else {
@@ -271,7 +288,7 @@ class MediaPlayer {
             break
             
         default:
-            controller?.allowsPictureInPicturePlayback = false
+            killPIP = true
             
             player?.pause()
             

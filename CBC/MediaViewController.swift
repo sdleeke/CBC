@@ -2150,6 +2150,7 @@ class MediaViewController: UIViewController
         
         if (selectedMediaItem == globals.mediaPlayer.mediaItem) {
             if (selectedMediaItem?.showing == Showing.video) {
+                globals.mediaPlayer.view?.isHidden = true
                 logo.isHidden = false
                 mediaItemNotesAndSlides.bringSubview(toFront: logo)
             }
@@ -3286,6 +3287,7 @@ class MediaViewController: UIViewController
         if (selectedMediaItem != nil) && (selectedMediaItem == globals.mediaPlayer.mediaItem) {
             if (globals.mediaPlayer.url != selectedMediaItem?.playingURL) {
                 //            ((globals.mediaPlayer.url != selectedMediaItem?.videoURL) && (globals.mediaPlayer.url != selectedMediaItem?.audioURL)) {
+                globals.mediaPlayer.killPIP = true
                 globals.mediaPlayer.pause()
                 globals.setupPlayer(selectedMediaItem,playOnLoad:false)
             } else {
@@ -3481,6 +3483,10 @@ class MediaViewController: UIViewController
         super.viewWillDisappear(animated)
         
         navigationItem.rightBarButtonItem = nil
+        
+        if videoLocation == .withTableView {
+            selectedMediaItem?.showing = Showing.video
+        }
         
         // Remove these lines and this view will crash the app.
         for key in documents.keys {

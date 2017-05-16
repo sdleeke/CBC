@@ -1192,7 +1192,7 @@ class MediaItem : NSObject {
     
     var scriptureReference:String? {
         get {
-            return dict![Field.scripture]
+            return dict![Field.scripture]?.replacingOccurrences(of: "Psalm ", with: "Psalms ")
         }
     }
     
@@ -1758,7 +1758,7 @@ class MediaItem : NSObject {
                     
                     var skip = false
                     
-                    let tokenDelimiters = "$\"' :-!;,.()?&/<>[]"
+                    let tokenDelimiters = "$\" :-!;,.()?&/<>[]" // '
                     
                     if wholeWordsOnly {
                         if let characterAfter:Character = stringAfter.characters.first {

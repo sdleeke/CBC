@@ -536,7 +536,7 @@ func verifyNASB()
 
 func testament(_ book:String) -> String
 {
-    let book = (book == "Psalm") ? "Psalms" : book
+//    let book = (book == "Psalm") ? "Psalms" : book
 
     if (Constants.OLD_TESTAMENT_BOOKS.contains(book)) {
         return Constants.Old_Testament
@@ -668,7 +668,7 @@ func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
     
     switch testament(book!) {
     case Constants.Old_Testament:
-        let book = (book == "Psalm") ? "Psalms" : book
+//        let book = (book == "Psalm") ? "Psalms" : book
         
         endChapter = Constants.OLD_TESTAMENT_CHAPTERS[Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!]
         break
@@ -686,7 +686,7 @@ func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
         
         switch testament(book!) {
         case Constants.Old_Testament:
-            let book = (book == "Psalm") ? "Psalms" : book
+//            let book = (book == "Psalm") ? "Psalms" : book
             
             endVerse = Constants.OLD_TESTAMENT_VERSES[Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!][chapter - 1]
             break
@@ -724,7 +724,7 @@ func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
     
     switch testament(book!) {
     case Constants.Old_Testament:
-        let book = (book == "Psalm") ? "Psalms" : book
+//        let book = (book == "Psalm") ? "Psalms" : book
         
         if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
             index < Constants.OLD_TESTAMENT_VERSES.count,
@@ -929,7 +929,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                                 
                                                 switch testament(book!) {
                                                 case Constants.Old_Testament:
-                                                    let book = (book == "Psalm") ? "Psalms" : book
+//                                                    let book = (book == "Psalm") ? "Psalms" : book
                                                     
                                                     if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
                                                         index < Constants.OLD_TESTAMENT_VERSES.count,
@@ -1033,7 +1033,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             
                             switch testament(book!) {
                             case Constants.Old_Testament:
-                                let book = (book == "Psalm") ? "Psalms" : book
+//                                let book = (book == "Psalm") ? "Psalms" : book
                                 
                                 if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
                                     index < Constants.OLD_TESTAMENT_VERSES.count,
@@ -1083,7 +1083,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                     
                                     switch testament(book!) {
                                     case Constants.Old_Testament:
-                                        let book = (book == "Psalm") ? "Psalms" : book
+//                                        let book = (book == "Psalm") ? "Psalms" : book
                                         
                                         if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
                                             index < Constants.OLD_TESTAMENT_VERSES.count,
@@ -1154,7 +1154,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             
                             switch testament(book!) {
                             case Constants.Old_Testament:
-                                let book = (book == "Psalm") ? "Psalms" : book
+//                                let book = (book == "Psalm") ? "Psalms" : book
 
                                 if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
                                     index < Constants.OLD_TESTAMENT_VERSES.count,
@@ -1204,7 +1204,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                     
                                     switch testament(book!) {
                                     case Constants.Old_Testament:
-                                        let book = (book == "Psalm") ? "Psalms" : book
+//                                        let book = (book == "Psalm") ? "Psalms" : book
 
                                         if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
                                             index < Constants.OLD_TESTAMENT_VERSES.count,
@@ -1246,7 +1246,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             
                             switch testament(book!) {
                             case Constants.Old_Testament:
-                                let book = (book == "Psalm") ? "Psalms" : book
+//                                let book = (book == "Psalm") ? "Psalms" : book
                                 
                                 if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
                                     index < Constants.OLD_TESTAMENT_VERSES.count,
@@ -1308,7 +1308,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 
                                 switch testament(book!) {
                                 case Constants.Old_Testament:
-                                    let book = (book == "Psalm") ? "Psalms" : book
+//                                    let book = (book == "Psalm") ? "Psalms" : book
                                     
                                     endVerse = Constants.OLD_TESTAMENT_VERSES[Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!][currentChapter - 1]
                                     break
@@ -1353,7 +1353,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                         
                                         switch testament(book!) {
                                         case Constants.Old_Testament:
-                                            let book = (book == "Psalm") ? "Psalms" : book
+//                                            let book = (book == "Psalm") ? "Psalms" : book
                                             
                                             if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
                                                 index < Constants.OLD_TESTAMENT_VERSES.count,
@@ -1690,7 +1690,8 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
         var otBooks = [String]()
         
         for book in Constants.OLD_TESTAMENT_BOOKS {
-            let book = (book == "Psalms") ? "Psalm" : book
+//            let book = (book == "Psalms") ? "Psalm" : book
+            
             if string?.range(of: book) != nil {
                 otBooks.append(book)
                 string = string!.substring(to: string!.range(of: book)!.lowerBound) + Constants.SINGLE_SPACE + string!.substring(from: string!.range(of: book)!.upperBound)
@@ -1730,8 +1731,11 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
                     
                     books = [String]()
                     
-                    let first = (books[0] == "Psalm") ? "Psalms" : books[0]
-                    let last = (books[1] == "Psalm") ? "Psalms" : books[1]
+//                    let first = (books[0] == "Psalm") ? "Psalms" : books[0]
+//                    let last = (books[1] == "Psalm") ? "Psalms" : books[1]
+                    
+                    let first = books[0]
+                    let last = books[1]
                     
                     if Constants.OLD_TESTAMENT_BOOKS.contains(first) && Constants.OLD_TESTAMENT_BOOKS.contains(last) {
                         if let firstIndex = Constants.OLD_TESTAMENT_BOOKS.index(of: first),
@@ -1950,7 +1954,7 @@ func bookNumberInBible(_ book:String?) -> Int?
         return nil
     }
 
-    let book = (book == "Psalm") ? "Psalms" : book
+//    let book = (book == "Psalm") ? "Psalms" : book
 
     if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!) {
         return index
@@ -2097,7 +2101,7 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
     
     var token = Constants.EMPTY_STRING
     let trimChars = Constants.UNBREAKABLE_SPACE + Constants.QUOTES + " '" // ‘”
-    let breakChars = "\" :-!;,.()?&/<>[]" + trimChars // ‘“
+    let breakChars = "\" :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES // ‘“
     
     func processToken()
     {
