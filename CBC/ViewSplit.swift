@@ -55,65 +55,65 @@ class ViewSplit: UIView {
     
     override func draw(_ rect: CGRect)
     {
-        if let startingPoint = splitCenter {
-            let context = UIGraphicsGetCurrentContext()
-            context!.saveGState()
-
-            let indicatorPath = UIBezierPath()
-            
-            let height:CGFloat = bounds.width/4
-            
-            let left = CGPoint(x: startingPoint.x - bounds.width/2, y: startingPoint.y)
-            indicatorPath.move(to: left)
-
-            let right = CGPoint(x: startingPoint.x + bounds.width/2, y: startingPoint.y)
-            indicatorPath.addLine(to: right)
-            
-//            print("startingPoint.y: \(round(startingPoint.y)) min: \(round(min)) max: \(round(max))")
-            
-            if (round(startingPoint.y) > (bounds.height - round(max))) {
-                let bottom = CGPoint(x: startingPoint.x, y: startingPoint.y - height)
-                indicatorPath.move(to: bottom)
-                indicatorPath.addLine(to: left)
-                indicatorPath.move(to: bottom)
-                indicatorPath.addLine(to: right)
-            }
-
-            if (round(startingPoint.y) < (bounds.height - round(min))) {
-                let top = CGPoint(x: startingPoint.x, y: startingPoint.y + height)
-                indicatorPath.move(to: top)
-                indicatorPath.addLine(to: left)
-                indicatorPath.move(to: top)
-                indicatorPath.addLine(to: right)
-            }
-            
-            indicatorPath.lineWidth = lineWidth
-            color.set()
-            indicatorPath.stroke()
-
-            let boundsPath = UIBezierPath()
-            
-            boundsPath.move(to: bounds.origin)
-            boundsPath.addLine(to: CGPoint(x: bounds.origin.x + bounds.width, y: bounds.origin.y))
-            
-//            if (splitViewController == nil) {
-                boundsPath.addLine(to: CGPoint(x: bounds.origin.x + bounds.width,    y: splitCenter!.y))
-                boundsPath.addLine(to: CGPoint(x: bounds.origin.x,                   y: splitCenter!.y))
-//            } else {
-//                boundsPath.addLine(to: CGPoint(x: bounds.origin.x + bounds.width,    y: bounds.origin.y + bounds.height))
-//                boundsPath.addLine(to: CGPoint(x: bounds.origin.x,                   y: bounds.origin.y + bounds.height))
+//        if let startingPoint = splitCenter {
+//            let context = UIGraphicsGetCurrentContext()
+//            context!.saveGState()
+//
+//            let indicatorPath = UIBezierPath()
+//            
+//            let height:CGFloat = bounds.width/4
+//            
+//            let left = CGPoint(x: startingPoint.x - bounds.width/2, y: startingPoint.y)
+//            indicatorPath.move(to: left)
+//
+//            let right = CGPoint(x: startingPoint.x + bounds.width/2, y: startingPoint.y)
+//            indicatorPath.addLine(to: right)
+//            
+////            print("startingPoint.y: \(round(startingPoint.y)) min: \(round(min)) max: \(round(max))")
+//            
+//            if (round(startingPoint.y) > (bounds.height - round(max))) {
+//                let bottom = CGPoint(x: startingPoint.x, y: startingPoint.y - height)
+//                indicatorPath.move(to: bottom)
+//                indicatorPath.addLine(to: left)
+//                indicatorPath.move(to: bottom)
+//                indicatorPath.addLine(to: right)
 //            }
-            
-            boundsPath.addLine(to: bounds.origin)
-
-            boundsPath.lineWidth = lineWidth / 2
-            color.set()
-            boundsPath.stroke()
-
-            context!.restoreGState()
-        } else {
-            print("No starting point!")
-        }
+//
+//            if (round(startingPoint.y) < (bounds.height - round(min))) {
+//                let top = CGPoint(x: startingPoint.x, y: startingPoint.y + height)
+//                indicatorPath.move(to: top)
+//                indicatorPath.addLine(to: left)
+//                indicatorPath.move(to: top)
+//                indicatorPath.addLine(to: right)
+//            }
+//            
+//            indicatorPath.lineWidth = lineWidth
+//            color.set()
+//            indicatorPath.stroke()
+//
+//            let boundsPath = UIBezierPath()
+//            
+//            boundsPath.move(to: bounds.origin)
+//            boundsPath.addLine(to: CGPoint(x: bounds.origin.x + bounds.width, y: bounds.origin.y))
+//            
+////            if (splitViewController == nil) {
+//                boundsPath.addLine(to: CGPoint(x: bounds.origin.x + bounds.width,    y: splitCenter!.y))
+//                boundsPath.addLine(to: CGPoint(x: bounds.origin.x,                   y: splitCenter!.y))
+////            } else {
+////                boundsPath.addLine(to: CGPoint(x: bounds.origin.x + bounds.width,    y: bounds.origin.y + bounds.height))
+////                boundsPath.addLine(to: CGPoint(x: bounds.origin.x,                   y: bounds.origin.y + bounds.height))
+////            }
+//            
+//            boundsPath.addLine(to: bounds.origin)
+//
+//            boundsPath.lineWidth = lineWidth / 2
+//            color.set()
+//            boundsPath.stroke()
+//
+//            context!.restoreGState()
+//        } else {
+//            print("No starting point!")
+//        }
     }
 }
 

@@ -268,7 +268,10 @@ class Scripture : NSObject
     var reference:String?
     {
         didSet {
-            setupBooksChaptersVerses()
+            if reference != oldValue {
+                // MUST update the data structure.
+                setupBooksChaptersVerses()
+            }
         }
     }
     
@@ -277,6 +280,7 @@ class Scripture : NSObject
         super.init()
         
         self.reference = reference
+        setupBooksChaptersVerses() // MUST BE HERE.  DIDSET NOT CALLED IN INITIALIZER
     }
     
     lazy var html:CachedString? = {
@@ -786,9 +790,9 @@ class Scripture : NSObject
         
         print(data)
         
-        var copyright:String!
+        var copyright:String?
         
-        var fums:String!
+        var fums:String?
         
         for book in books {
             if let chapters = data[book]?.keys.sorted(by: { (first:Int, second:Int) -> Bool in
@@ -997,8 +1001,10 @@ class Scripture : NSObject
             }
         }
         
-        bodyString = bodyString! + "<p class=\"copyright\">" +  copyright.replacingOccurrences(of: ",1", with: ", 1") + "</p>"
-        bodyString = bodyString! + fums
+        if let fums = fums, let copyright = copyright {
+            bodyString = bodyString! + "<p class=\"copyright\">" +  copyright.replacingOccurrences(of: ",1", with: ", 1") + "</p>"
+            bodyString = bodyString! + fums
+        }
 
 //        bodyString = bodyString! + "<br/>"
         

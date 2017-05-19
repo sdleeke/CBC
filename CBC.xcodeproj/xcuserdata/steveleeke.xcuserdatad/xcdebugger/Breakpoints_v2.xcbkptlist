@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2707"
-            endingLineNumber = "2707"
+            startingLineNumber = "2705"
+            endingLineNumber = "2705"
             landmarkName = "setupDocumentsAndVideo()"
             landmarkType = "7">
          </BreakpointContent>
@@ -26,11 +26,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2738"
-            endingLineNumber = "2738"
+            startingLineNumber = "2736"
+            endingLineNumber = "2736"
             landmarkName = "setupDocumentsAndVideo()"
             landmarkType = "7">
          </BreakpointContent>
@@ -42,11 +42,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2686"
-            endingLineNumber = "2686"
+            startingLineNumber = "2684"
+            endingLineNumber = "2684"
             landmarkName = "setupDocumentsAndVideo()"
             landmarkType = "7">
          </BreakpointContent>
@@ -58,11 +58,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2701"
-            endingLineNumber = "2701"
+            startingLineNumber = "2699"
+            endingLineNumber = "2699"
             landmarkName = "setupDocumentsAndVideo()"
             landmarkType = "7">
          </BreakpointContent>
@@ -106,7 +106,23 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2623"
+            endingLineNumber = "2623"
+            landmarkName = "setupDocumentsAndVideo()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaViewController.swift"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "2625"
@@ -122,11 +138,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2627"
-            endingLineNumber = "2627"
+            startingLineNumber = "2626"
+            endingLineNumber = "2626"
             landmarkName = "setupDocumentsAndVideo()"
             landmarkType = "7">
          </BreakpointContent>
@@ -138,11 +154,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2628"
-            endingLineNumber = "2628"
+            startingLineNumber = "2629"
+            endingLineNumber = "2629"
             landmarkName = "setupDocumentsAndVideo()"
             landmarkType = "7">
          </BreakpointContent>
@@ -154,12 +170,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2631"
-            endingLineNumber = "2631"
-            landmarkName = "setupDocumentsAndVideo()"
+            startingLineNumber = "2347"
+            endingLineNumber = "2347"
+            landmarkName = "setupDocument(_:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -170,7 +186,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "2349"
@@ -186,11 +202,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2351"
-            endingLineNumber = "2351"
+            startingLineNumber = "2356"
+            endingLineNumber = "2356"
             landmarkName = "setupDocument(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -202,11 +218,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2358"
-            endingLineNumber = "2358"
+            startingLineNumber = "2357"
+            endingLineNumber = "2357"
             landmarkName = "setupDocument(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -218,27 +234,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2359"
-            endingLineNumber = "2359"
-            landmarkName = "setupDocument(_:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2407"
-            endingLineNumber = "2407"
+            startingLineNumber = "2405"
+            endingLineNumber = "2405"
             landmarkName = "loadDocument(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -250,11 +250,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2426"
-            endingLineNumber = "2426"
+            startingLineNumber = "2424"
+            endingLineNumber = "2424"
             landmarkName = "loadDocument(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -266,11 +266,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2423"
-            endingLineNumber = "2423"
+            startingLineNumber = "2421"
+            endingLineNumber = "2421"
             landmarkName = "loadDocument(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -282,11 +282,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516369471.026815"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2061"
-            endingLineNumber = "2061"
+            startingLineNumber = "2059"
+            endingLineNumber = "2059"
             landmarkName = "setupWKWebView(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -298,11 +298,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2404"
-            endingLineNumber = "2404"
+            startingLineNumber = "2402"
+            endingLineNumber = "2402"
             landmarkName = "loadDocument(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -314,11 +314,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2397"
-            endingLineNumber = "2397"
+            startingLineNumber = "2395"
+            endingLineNumber = "2395"
             landmarkName = "loadDocument(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -330,11 +330,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2401"
-            endingLineNumber = "2401"
+            startingLineNumber = "2399"
+            endingLineNumber = "2399"
             landmarkName = "loadDocument(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -346,11 +346,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2584"
-            endingLineNumber = "2584"
+            startingLineNumber = "2582"
+            endingLineNumber = "2582"
             landmarkName = "setupDocumentsAndVideo()"
             landmarkType = "7">
          </BreakpointContent>
@@ -362,11 +362,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2600"
-            endingLineNumber = "2600"
+            startingLineNumber = "2598"
+            endingLineNumber = "2598"
             landmarkName = "setupDocumentsAndVideo()"
             landmarkType = "7">
          </BreakpointContent>
@@ -378,11 +378,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516369471.026815"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2034"
-            endingLineNumber = "2034"
+            startingLineNumber = "2032"
+            endingLineNumber = "2032"
             landmarkName = "setupPlayerView(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -394,11 +394,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2713"
-            endingLineNumber = "2713"
+            startingLineNumber = "2711"
+            endingLineNumber = "2711"
             landmarkName = "setupDocumentsAndVideo()"
             landmarkType = "7">
          </BreakpointContent>
@@ -442,11 +442,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516539966.372485"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "3494"
-            endingLineNumber = "3494"
+            startingLineNumber = "3492"
+            endingLineNumber = "3492"
             landmarkName = "viewWillDisappear(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -490,11 +490,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2346"
-            endingLineNumber = "2346"
+            startingLineNumber = "2344"
+            endingLineNumber = "2344"
             landmarkName = "setupDocument(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -506,11 +506,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516369471.026815"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2058"
-            endingLineNumber = "2058"
+            startingLineNumber = "2056"
+            endingLineNumber = "2056"
             landmarkName = "setupWKWebView(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -522,11 +522,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2284"
-            endingLineNumber = "2284"
+            startingLineNumber = "2282"
+            endingLineNumber = "2282"
             landmarkName = "setupDefaultDocuments()"
             landmarkType = "7">
          </BreakpointContent>
@@ -538,11 +538,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2296"
-            endingLineNumber = "2296"
+            startingLineNumber = "2294"
+            endingLineNumber = "2294"
             landmarkName = "setupDefaultDocuments()"
             landmarkType = "7">
          </BreakpointContent>
@@ -586,11 +586,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2435"
-            endingLineNumber = "2435"
+            startingLineNumber = "2433"
+            endingLineNumber = "2433"
             landmarkName = "loadDocument(_:)"
             landmarkType = "7">
             <Locations>
@@ -634,11 +634,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2495"
-            endingLineNumber = "2495"
+            startingLineNumber = "2493"
+            endingLineNumber = "2493"
             landmarkName = "loadDocument(_:)"
             landmarkType = "7">
             <Locations>
@@ -649,8 +649,8 @@
                   symbolName = "CBC.MediaViewController.(loadDocument in _382DC6CC526137072A6F461B5AF5C562) (Swift.Optional&lt;CBC.Document&gt;) -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/MediaViewController.swift"
-                  timestampString = "516629755.122568"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/MediaViewController.swift"
+                  timestampString = "516878017.05161"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "2495"
@@ -664,8 +664,8 @@
                   symbolName = "CBC.MediaViewController.((loadDocument in _382DC6CC526137072A6F461B5AF5C562) (Swift.Optional&lt;CBC.Document&gt;) -&gt; ()).(closure #2)"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/MediaViewController.swift"
-                  timestampString = "516629755.124789"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/MediaViewController.swift"
+                  timestampString = "516878017.055481"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "2496"
@@ -682,11 +682,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2531"
-            endingLineNumber = "2531"
+            startingLineNumber = "2529"
+            endingLineNumber = "2529"
             landmarkName = "loadDocument(_:)"
             landmarkType = "7">
             <Locations>
@@ -697,8 +697,8 @@
                   symbolName = "CBC.MediaViewController.(loadDocument in _382DC6CC526137072A6F461B5AF5C562) (Swift.Optional&lt;CBC.Document&gt;) -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/MediaViewController.swift"
-                  timestampString = "516629755.129836"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/MediaViewController.swift"
+                  timestampString = "516878017.062381"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "2531"
@@ -712,8 +712,8 @@
                   symbolName = "CBC.MediaViewController.((loadDocument in _382DC6CC526137072A6F461B5AF5C562) (Swift.Optional&lt;CBC.Document&gt;) -&gt; ()).(closure #3)"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/MediaViewController.swift"
-                  timestampString = "516629755.132108"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/MediaViewController.swift"
+                  timestampString = "516878017.064796"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "2532"
@@ -730,11 +730,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2433"
-            endingLineNumber = "2433"
+            startingLineNumber = "2431"
+            endingLineNumber = "2431"
             landmarkName = "loadDocument(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -746,11 +746,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2308"
-            endingLineNumber = "2308"
+            startingLineNumber = "2306"
+            endingLineNumber = "2306"
             landmarkName = "setupDefaultDocuments()"
             landmarkType = "7">
          </BreakpointContent>
@@ -810,11 +810,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2558"
-            endingLineNumber = "2558"
+            startingLineNumber = "2556"
+            endingLineNumber = "2556"
             landmarkName = "hideOtherDocuments()"
             landmarkType = "7">
          </BreakpointContent>
@@ -826,11 +826,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2570"
-            endingLineNumber = "2570"
+            startingLineNumber = "2568"
+            endingLineNumber = "2568"
             landmarkName = "hideAllDocuments()"
             landmarkType = "7">
          </BreakpointContent>
@@ -842,11 +842,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2621"
-            endingLineNumber = "2621"
+            startingLineNumber = "2619"
+            endingLineNumber = "2619"
             landmarkName = "setupDocumentsAndVideo()"
             landmarkType = "7">
          </BreakpointContent>
@@ -858,11 +858,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2633"
-            endingLineNumber = "2633"
+            startingLineNumber = "2631"
+            endingLineNumber = "2631"
             landmarkName = "setupDocumentsAndVideo()"
             landmarkType = "7">
          </BreakpointContent>
@@ -874,11 +874,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2421"
-            endingLineNumber = "2421"
+            startingLineNumber = "2419"
+            endingLineNumber = "2419"
             landmarkName = "loadDocument(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -890,11 +890,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2693"
-            endingLineNumber = "2693"
+            startingLineNumber = "2691"
+            endingLineNumber = "2691"
             landmarkName = "setupDocumentsAndVideo()"
             landmarkType = "7">
          </BreakpointContent>
@@ -906,11 +906,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516482834.496526"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2673"
-            endingLineNumber = "2673"
+            startingLineNumber = "2671"
+            endingLineNumber = "2671"
             landmarkName = "setupDocumentsAndVideo()"
             landmarkType = "7">
          </BreakpointContent>
@@ -938,11 +938,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516369471.026815"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1729"
-            endingLineNumber = "1729"
+            startingLineNumber = "1727"
+            endingLineNumber = "1727"
             landmarkName = "actions()"
             landmarkType = "7">
          </BreakpointContent>
@@ -954,11 +954,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516369471.026815"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1730"
-            endingLineNumber = "1730"
+            startingLineNumber = "1728"
+            endingLineNumber = "1728"
             landmarkName = "actions()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1466,11 +1466,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaViewController.swift"
-            timestampString = "516485958.537082"
+            timestampString = "516880389.251109"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "3290"
-            endingLineNumber = "3290"
+            startingLineNumber = "3288"
+            endingLineNumber = "3288"
             landmarkName = "updateUI()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1562,11 +1562,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/Scripture.swift"
-            timestampString = "516629589.767403"
+            timestampString = "516879098.114895"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "656"
-            endingLineNumber = "656"
+            startingLineNumber = "660"
+            endingLineNumber = "660"
             landmarkName = "loadXML(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1578,11 +1578,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/Scripture.swift"
-            timestampString = "516629589.767403"
+            timestampString = "516879098.114895"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "841"
-            endingLineNumber = "841"
+            startingLineNumber = "845"
+            endingLineNumber = "845"
             landmarkName = "loadJSON()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1594,11 +1594,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/Scripture.swift"
-            timestampString = "516629589.767403"
+            timestampString = "516879098.114895"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "843"
-            endingLineNumber = "843"
+            startingLineNumber = "847"
+            endingLineNumber = "847"
             landmarkName = "loadJSON()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1622,23 +1622,23 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/Scripture.swift"
-            timestampString = "516629589.767403"
+            timestampString = "516879098.114895"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "285"
-            endingLineNumber = "285"
-            landmarkName = "setupBooksChaptersVerses()"
-            landmarkType = "7">
+            startingLineNumber = "289"
+            endingLineNumber = "289"
+            landmarkName = "Scripture"
+            landmarkType = "3">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/Scripture.swift"
@@ -1647,8 +1647,55 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "14"
             endingLineNumber = "14"
-            landmarkName = "testament"
-            landmarkType = "24">
+            landmarkName = "Selected"
+            landmarkType = "14">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.Selected.book.getter : Swift.Optional&lt;Swift.String&gt;"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/Scripture.swift"
+                  timestampString = "516675247.400366"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "19"
+                  endingLineNumber = "19"
+                  offsetFromSymbolStart = "160">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.Selected.book.setter : Swift.Optional&lt;Swift.String&gt;"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/Scripture.swift"
+                  timestampString = "516675247.403113"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "19"
+                  endingLineNumber = "19"
+                  offsetFromSymbolStart = "156">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.Selected.init () -&gt; CBC.Selected"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/Scripture.swift"
+                  timestampString = "516675247.405899"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "19"
+                  endingLineNumber = "19"
+                  offsetFromSymbolStart = "168">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -1673,13 +1720,13 @@
                   symbolName = "CBC.ScriptureViewController.(viewWillAppear (Swift.Bool) -&gt; ()).(closure #1)"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/ScriptureViewController.swift"
-                  timestampString = "516629755.23848"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878017.201214"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "664"
                   endingLineNumber = "664"
-                  offsetFromSymbolStart = "2231">
+                  offsetFromSymbolStart = "2255">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
@@ -1688,13 +1735,13 @@
                   symbolName = "CBC.ScriptureViewController.(viewWillAppear (Swift.Bool) -&gt; ()).(closure #1)"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/ScriptureViewController.swift"
-                  timestampString = "516629755.240663"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878017.203711"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "664"
                   endingLineNumber = "664"
-                  offsetFromSymbolStart = "3187">
+                  offsetFromSymbolStart = "3211">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -1702,7 +1749,7 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/Scripture.swift"
@@ -1801,13 +1848,13 @@
                   symbolName = "CBC.ScriptureViewController.updatePicker () -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/ScriptureViewController.swift"
-                  timestampString = "516629755.266174"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878017.237116"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "795"
                   endingLineNumber = "795"
-                  offsetFromSymbolStart = "5049">
+                  offsetFromSymbolStart = "5071">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
@@ -1816,13 +1863,13 @@
                   symbolName = "CBC.ScriptureViewController.updatePicker () -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/ScriptureViewController.swift"
-                  timestampString = "516629755.268309"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878017.240803"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "795"
                   endingLineNumber = "795"
-                  offsetFromSymbolStart = "5581">
+                  offsetFromSymbolStart = "5603">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -1849,13 +1896,13 @@
                   symbolName = "CBC.ScriptureViewController.updatePicker () -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/ScriptureViewController.swift"
-                  timestampString = "516629755.273385"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878017.24674"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "801"
                   endingLineNumber = "801"
-                  offsetFromSymbolStart = "5983">
+                  offsetFromSymbolStart = "6005">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
@@ -1864,13 +1911,13 @@
                   symbolName = "CBC.ScriptureViewController.updatePicker () -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/ScriptureViewController.swift"
-                  timestampString = "516629755.275516"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878017.249461"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "801"
                   endingLineNumber = "801"
-                  offsetFromSymbolStart = "6515">
+                  offsetFromSymbolStart = "6537">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -1913,8 +1960,8 @@
                   symbolName = "CBC.ScriptureViewController.showScripture () -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/ScriptureViewController.swift"
-                  timestampString = "516629755.285021"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878017.262398"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "523"
@@ -1928,8 +1975,8 @@
                   symbolName = "CBC.ScriptureViewController.showScripture () -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/ScriptureViewController.swift"
-                  timestampString = "516629755.287198"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878017.26473"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "523"
@@ -1977,13 +2024,13 @@
                   symbolName = "CBC.ScriptureViewController.updatePicker () -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/ScriptureViewController.swift"
-                  timestampString = "516629755.297912"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878017.275499"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "822"
                   endingLineNumber = "822"
-                  offsetFromSymbolStart = "9024">
+                  offsetFromSymbolStart = "9046">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
@@ -1992,13 +2039,13 @@
                   symbolName = "CBC.ScriptureViewController.updatePicker () -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/ScriptureViewController.swift"
-                  timestampString = "516629755.300747"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878017.277639"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "822"
                   endingLineNumber = "822"
-                  offsetFromSymbolStart = "9570">
+                  offsetFromSymbolStart = "9592">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -2057,13 +2104,13 @@
                   symbolName = "CBC.ScriptureViewController.updatePicker () -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/ScriptureViewController.swift"
-                  timestampString = "516629755.315082"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878017.293375"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "827"
                   endingLineNumber = "827"
-                  offsetFromSymbolStart = "10117">
+                  offsetFromSymbolStart = "10139">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
@@ -2072,13 +2119,13 @@
                   symbolName = "CBC.ScriptureViewController.updatePicker () -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/ScriptureViewController.swift"
-                  timestampString = "516629755.317419"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878017.295598"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "827"
                   endingLineNumber = "827"
-                  offsetFromSymbolStart = "10652">
+                  offsetFromSymbolStart = "10674">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -2121,13 +2168,13 @@
                   symbolName = "CBC.ScriptureViewController.updatePicker () -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/ScriptureViewController.swift"
-                  timestampString = "516629755.328502"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878017.305987"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "831"
                   endingLineNumber = "831"
-                  offsetFromSymbolStart = "11863">
+                  offsetFromSymbolStart = "11885">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
@@ -2136,13 +2183,13 @@
                   symbolName = "CBC.ScriptureViewController.updatePicker () -&gt; ()"
                   moduleName = "CBC"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v23/CBC/ScriptureViewController.swift"
-                  timestampString = "516629755.331551"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878017.308641"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "831"
                   endingLineNumber = "831"
-                  offsetFromSymbolStart = "13570">
+                  offsetFromSymbolStart = "13592">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -2182,7 +2229,7 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/Scripture.swift"
@@ -2191,8 +2238,55 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "19"
             endingLineNumber = "19"
-            landmarkName = "book"
-            landmarkType = "24">
+            landmarkName = "Selected"
+            landmarkType = "14">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.Selected.book.getter : Swift.Optional&lt;Swift.String&gt;"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/Scripture.swift"
+                  timestampString = "516675247.53635"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "19"
+                  endingLineNumber = "19"
+                  offsetFromSymbolStart = "160">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.Selected.book.setter : Swift.Optional&lt;Swift.String&gt;"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/Scripture.swift"
+                  timestampString = "516675247.539067"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "19"
+                  endingLineNumber = "19"
+                  offsetFromSymbolStart = "156">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.Selected.init () -&gt; CBC.Selected"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/Scripture.swift"
+                  timestampString = "516675247.541632"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "19"
+                  endingLineNumber = "19"
+                  offsetFromSymbolStart = "168">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -2224,6 +2318,645 @@
             startingLineNumber = "666"
             endingLineNumber = "666"
             landmarkName = "viewWillAppear(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaTableViewController.swift"
+            timestampString = "516675240.162418"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "3883"
+            endingLineNumber = "3883"
+            landmarkName = "actionsAtIndexPath(_:indexPath:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaViewController.swift"
+            timestampString = "516880389.251109"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "4264"
+            endingLineNumber = "4264"
+            landmarkName = "editActionsAtIndexPath(_:indexPath:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/ScriptureIndexViewController.swift"
+            timestampString = "516675253.435945"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "99"
+            endingLineNumber = "99"
+            landmarkName = "rowClickedAtIndex(_:strings:purpose:mediaItem:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/ScriptureIndexViewController.swift"
+            timestampString = "516675257.51672"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "1776"
+            endingLineNumber = "1776"
+            landmarkName = "editActionsAtIndexPath(_:indexPath:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/LexiconIndexViewController.swift"
+            timestampString = "516675264.917949"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "1191"
+            endingLineNumber = "1191"
+            landmarkName = "editActionsForIndexPath(_:indexPath:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "782"
+            endingLineNumber = "782"
+            landmarkName = "loadJSON()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "788"
+            endingLineNumber = "788"
+            landmarkName = "loadJSON()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaItem.swift"
+            timestampString = "516675430.90442"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2131"
+            endingLineNumber = "2131"
+            landmarkName = "booksAndChaptersAndVerses()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaItem.swift"
+            timestampString = "516675432.376161"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2135"
+            endingLineNumber = "2135"
+            landmarkName = "booksAndChaptersAndVerses()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaItem.swift"
+            timestampString = "516675434.340397"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2140"
+            endingLineNumber = "2140"
+            landmarkName = "booksAndChaptersAndVerses()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "282"
+            endingLineNumber = "282"
+            landmarkName = "init(reference:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "293"
+            endingLineNumber = "293"
+            landmarkName = "setupBooksChaptersVerses()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "298"
+            endingLineNumber = "298"
+            landmarkName = "setupBooksChaptersVerses()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "797"
+            endingLineNumber = "797"
+            landmarkName = "loadJSON()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/ScriptureViewController.swift"
+            timestampString = "516878188.172176"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "524"
+            endingLineNumber = "524"
+            landmarkName = "showScripture()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/ScriptureViewController.swift"
+            timestampString = "516878189.746855"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "525"
+            endingLineNumber = "525"
+            landmarkName = "showScripture()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/ScriptureViewController.swift"
+            timestampString = "516878190.861052"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "526"
+            endingLineNumber = "526"
+            landmarkName = "showScripture()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.ScriptureViewController.showScripture () -&gt; ()"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878190.868327"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "526"
+                  endingLineNumber = "526"
+                  offsetFromSymbolStart = "1697">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.ScriptureViewController.showScripture () -&gt; ()"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878190.872095"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "526"
+                  endingLineNumber = "526"
+                  offsetFromSymbolStart = "2273">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/ScriptureViewController.swift"
+            timestampString = "516878195.450783"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "531"
+            endingLineNumber = "531"
+            landmarkName = "showScripture()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.ScriptureViewController.showScripture () -&gt; ()"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878195.455738"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "531"
+                  endingLineNumber = "531"
+                  offsetFromSymbolStart = "3402">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.ScriptureViewController.(showScripture () -&gt; ()).(closure #1)"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/ScriptureViewController.swift"
+                  timestampString = "516878195.458505"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "532"
+                  endingLineNumber = "532"
+                  offsetFromSymbolStart = "37">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516878204.28222"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "49"
+            endingLineNumber = "49"
+            landmarkName = "reference"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/ScriptureViewController.swift"
+            timestampString = "516878662.552924"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "535"
+            endingLineNumber = "535"
+            landmarkName = "showScripture()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "798"
+            endingLineNumber = "798"
+            landmarkName = "loadJSON()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.Scripture.loadJSON () -&gt; ()"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/Scripture.swift"
+                  timestampString = "516878714.062543"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "795"
+                  endingLineNumber = "795"
+                  offsetFromSymbolStart = "1167">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.Scripture.loadJSON () -&gt; ()"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/Scripture.swift"
+                  timestampString = "516878714.065581"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "795"
+                  endingLineNumber = "795"
+                  offsetFromSymbolStart = "1753">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.Scripture.(loadJSON () -&gt; ()).(closure #1)"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/Scripture.swift"
+                  timestampString = "516878714.06895"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "796"
+                  endingLineNumber = "796"
+                  offsetFromSymbolStart = "34">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "805"
+            endingLineNumber = "805"
+            landmarkName = "loadJSON()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "799"
+            endingLineNumber = "799"
+            landmarkName = "loadJSON()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.Scripture.(loadJSON () -&gt; ()).(closure #1)"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/Scripture.swift"
+                  timestampString = "516878725.323729"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "796"
+                  endingLineNumber = "796"
+                  offsetFromSymbolStart = "34">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.Scripture.(loadJSON () -&gt; ()).(closure #1)"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox%20(Personal)/Development/CBC%20v24/CBC/Scripture.swift"
+                  timestampString = "516878725.326485"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "796"
+                  endingLineNumber = "796"
+                  offsetFromSymbolStart = "892">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "849"
+            endingLineNumber = "849"
+            landmarkName = "loadJSON()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "852"
+            endingLineNumber = "852"
+            landmarkName = "loadJSON()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "856"
+            endingLineNumber = "856"
+            landmarkName = "loadJSON()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "860"
+            endingLineNumber = "860"
+            landmarkName = "loadJSON()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "866"
+            endingLineNumber = "866"
+            landmarkName = "loadJSON()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "870"
+            endingLineNumber = "870"
+            landmarkName = "loadJSON()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "874"
+            endingLineNumber = "874"
+            landmarkName = "loadJSON()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/Scripture.swift"
+            timestampString = "516879098.114895"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "877"
+            endingLineNumber = "877"
+            landmarkName = "loadJSON()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

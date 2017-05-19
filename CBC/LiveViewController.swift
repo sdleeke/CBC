@@ -98,7 +98,7 @@ class LiveViewController: UIViewController {
             break
             
         case .changed:
-            let translation = pan.translation(in: view)
+            let translation = pan.translation(in: pan.view)
             
             if translation.y != 0 {
                 if textViewHeight.constant - translation.y < 0 {
@@ -114,7 +114,7 @@ class LiveViewController: UIViewController {
             self.view.setNeedsLayout()
             //                self.view.layoutSubviews()
             
-            pan.setTranslation(CGPoint.zero, in: view)
+            pan.setTranslation(CGPoint.zero, in: pan.view)
             break
             
         default:

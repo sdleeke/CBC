@@ -1282,11 +1282,15 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
         
         do {
             try audioSession.setCategory(AVAudioSessionCategoryPlayback)
-//            try audioSession.setActive(true)
         } catch _ {
             print("failed to setCategory(AVAudioSessionCategoryPlayback)")
-            print("failed to audioSession.setActive(true)")
         }
+        
+//        do {
+//            try audioSession.setActive(true)
+//        } catch _ {
+//            print("failed to audioSession.setActive(true)")
+//        }
         
         UIApplication.shared.beginReceivingRemoteControlEvents()
     }

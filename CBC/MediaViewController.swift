@@ -129,7 +129,7 @@ class ControlView : UIView {
         if !sliding {
 //            print("checking views")
             for view in subviews {
-                if view.frame.contains(point) {
+                if view.frame.contains(point) && view.isUserInteractionEnabled {
                     return true
                 }
             }
@@ -1279,8 +1279,6 @@ class MediaViewController: UIViewController
         case Showing.video:
             stvControl.selectedSegmentIndex = videoIndex
             mediaItemNotesAndSlides?.gestureRecognizers = nil
-            let pan = UIPanGestureRecognizer(target: self, action: #selector(MediaViewController.showHideSlider(_:)))
-            mediaItemNotesAndSlides?.addGestureRecognizer(pan)
             break
             
         case Showing.none:
@@ -1477,7 +1475,7 @@ class MediaViewController: UIViewController
             break
             
         case .changed:
-            let translation = pan.translation(in: hSlideView)
+            let translation = pan.translation(in: pan.view)
             
             if translation.y != 0 {
                 if controlViewTop.constant + translation.y < -46 {
@@ -1493,7 +1491,7 @@ class MediaViewController: UIViewController
 //                self.view.layoutSubviews()
             }
 
-            pan.setTranslation(CGPoint.zero, in: hSlideView)
+            pan.setTranslation(CGPoint.zero, in: pan.view)
             break
             
         default:
@@ -1516,7 +1514,7 @@ class MediaViewController: UIViewController
             break
             
         case .changed:
-            let translation = pan.translation(in: hSlideView)
+            let translation = pan.translation(in: pan.view)
             
             if translation.x != 0 {
                 setTableViewWidth(width: tableViewWidth.constant + -translation.x)
@@ -1524,7 +1522,7 @@ class MediaViewController: UIViewController
 //                self.view.layoutSubviews()
             }
             
-            pan.setTranslation(CGPoint.zero, in: hSlideView)
+            pan.setTranslation(CGPoint.zero, in: pan.view)
             break
             
         default:
@@ -1533,8 +1531,8 @@ class MediaViewController: UIViewController
     }
 
     
-    @IBAction func viewSplitPan(_ gesture: UIPanGestureRecognizer) {
-        switch gesture.state {
+    @IBAction func viewSplitPan(_ pan: UIPanGestureRecognizer) {
+        switch pan.state {
         case .began:
             for document in documents[selectedMediaItem!.id]!.values {
 //                document.wkWebView?.isHidden = true
@@ -1556,10 +1554,10 @@ class MediaViewController: UIViewController
             break
         
         case .changed:
-            let translation = gesture.translation(in: viewSplit)
+            let translation = pan.translation(in: pan.view)
             let change = -translation.y
             if change != 0 {
-                gesture.setTranslation(CGPoint.zero, in: viewSplit)
+                pan.setTranslation(CGPoint.zero, in: pan.view)
                 setMediaItemNotesAndSlidesConstraint(change)
                 self.view.setNeedsLayout()
                 self.view.layoutSubviews()
@@ -1928,7 +1926,7 @@ class MediaViewController: UIViewController
         }
     }
     
-    func showHideSlider(_ pan:UIPanGestureRecognizer)
+    func videoPan(_ pan:UIPanGestureRecognizer)
     {
         if controlViewTop != nil { // Implies landscape mode
             switch pan.state {
@@ -1940,7 +1938,7 @@ class MediaViewController: UIViewController
                 break
                 
             case .changed:
-                let translation = pan.translation(in: mediaItemNotesAndSlides)
+                let translation = pan.translation(in: pan.view)
                 
                 if translation.y != 0 {
                     if controlViewTop.constant + translation.y < -46 {
@@ -1960,7 +1958,7 @@ class MediaViewController: UIViewController
                 self.view.setNeedsLayout()
                 //                self.view.layoutSubviews()
                 
-                pan.setTranslation(CGPoint.zero, in: mediaItemNotesAndSlides)
+                pan.setTranslation(CGPoint.zero, in: pan.view)
                 break
                 
             default:
@@ -2020,7 +2018,7 @@ class MediaViewController: UIViewController
         }
         
         view?.gestureRecognizers = nil
-        let pan = UIPanGestureRecognizer(target: self, action: #selector(MediaViewController.showHideSlider(_:)))
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(MediaViewController.videoPan(_:)))
         view?.addGestureRecognizer(pan)
 
         view?.isHidden = true
