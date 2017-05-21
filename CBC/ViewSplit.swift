@@ -16,27 +16,63 @@ import UIKit
 class ViewSplit: UIView {
 //    weak var splitViewController:UISplitViewController?
     
-    var lineWidth: CGFloat = 1.0 { didSet { setNeedsDisplay() } }
+    var lineWidth: CGFloat = 1.0
+    {
+        willSet {
+            
+        }
+        didSet {
+            setNeedsDisplay()
+        }
+    }
     
-    var color: UIColor = UIColor.black { didSet { setNeedsDisplay() } }
+    var color: UIColor = UIColor.black
+    {
+        willSet {
+            
+        }
+        didSet {
+            setNeedsDisplay()
+        }
+    }
     
-    var scale: CGFloat = 1.0 { didSet { setNeedsDisplay() } }
+    var scale: CGFloat = 1.0
+    {
+        willSet {
+            
+        }
+        didSet {
+            setNeedsDisplay()
+        }
+    }
 
-    var height:CGFloat = 200 {
+    var height:CGFloat = 200
+    {
+        willSet {
+            
+        }
         didSet {
             //            print("Height: \(height)")
             setNeedsDisplay()
         }
     }
     
-    var min:CGFloat = 50 {
+    var min:CGFloat = 50
+    {
+        willSet {
+            
+        }
         didSet {
             //            print("Height: \(min)")
             setNeedsDisplay()
         }
     }
     
-    var max:CGFloat = 500 {
+    var max:CGFloat = 500
+    {
+        willSet {
+            
+        }
         didSet {
             //            print("Height: \(max)")
             setNeedsDisplay()

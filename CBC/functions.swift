@@ -2018,7 +2018,9 @@ func tokensFromString(_ string:String?) -> [String]?
     //        print(string)
     
     var token = Constants.EMPTY_STRING
-    
+    let trimChars = Constants.UNBREAKABLE_SPACE + Constants.QUOTES + " '" // ‘”
+    let breakChars = "\" :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.DOUBLE_QUOTES // ‘“
+
     func processToken()
     {
         if (token.endIndex > "XX".endIndex) {
@@ -2040,7 +2042,11 @@ func tokensFromString(_ string:String?) -> [String]?
                 }
             }
             
-            token = token.trimmingCharacters(in: CharacterSet(charactersIn: "‘“'"))
+            if token != token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars)) {
+                //                print("\(token)")
+                token = token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars))
+                //                print("\(token)")
+            }
             
             if token != Constants.EMPTY_STRING {
                 tokens.insert(token.uppercased())
@@ -2053,12 +2059,28 @@ func tokensFromString(_ string:String?) -> [String]?
     
     for char in str!.characters {
         //        print(char)
+//        if UnicodeScalar(String(char)) != nil {
+//            if CharacterSet(charactersIn: "\" :-!;,.()?&/<>[]").contains(UnicodeScalar(String(char))!) {
+//                processToken()
+//            } else {
+//                if !CharacterSet(charactersIn: "$0123456789").contains(UnicodeScalar(String(char))!) {
+//                    token.append(char)
+//                }
+//            }
+//        }
+        
         if UnicodeScalar(String(char)) != nil {
-            if CharacterSet(charactersIn: "\" :-!;,.()?&/<>[]").contains(UnicodeScalar(String(char))!) {
+            if CharacterSet(charactersIn: breakChars).contains(UnicodeScalar(String(char))!) {
+                //                print(token)
                 processToken()
             } else {
                 if !CharacterSet(charactersIn: "$0123456789").contains(UnicodeScalar(String(char))!) {
-                    token.append(char)
+                    if !CharacterSet(charactersIn: trimChars).contains(UnicodeScalar(String(char))!) || (token != Constants.EMPTY_STRING) {
+                        // DO NOT WANT LEADING CHARS IN SET
+                        //                        print(token)
+                        token.append(char)
+                        //                        print(token)
+                    }
                 }
             }
         }

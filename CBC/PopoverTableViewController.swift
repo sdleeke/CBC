@@ -298,7 +298,10 @@ struct Sort {
     var function : ((String,[String]?)->[String]?)?
     
     var method : String = Constants.Sort.Alphabetical
-        {
+    {
+        willSet {
+            
+        }
         didSet {
             if method != oldValue {
 //                print(method)
@@ -337,6 +340,9 @@ class PopoverTableViewController : UIViewController {
     var mediaListGroupSort:MediaListGroupSort?
     
     var indexTransform:((String?)->String?)? = stringWithoutPrefixes {
+        willSet {
+            
+        }
         didSet {
             filteredSection.indexTransform = indexTransform
             unfilteredSection.indexTransform = indexTransform

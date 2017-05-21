@@ -313,6 +313,9 @@ class LexiconIndexViewController : UIViewController
     }
     
     var searchText:String? {
+        willSet {
+            
+        }
         didSet {
             ptvc.selectedText = searchText
             
@@ -402,8 +405,8 @@ class LexiconIndexViewController : UIViewController
         }
 
         // Show the results directly rather than by executing a search
-        results = MediaListGroupSort(mediaItems: self.lexicon?.words?[self.searchText!]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
-            return tuple.0
+        results = MediaListGroupSort(mediaItems: self.lexicon?.words?[self.searchText!]?.map({ (mediaItemFrequency:(key:MediaItem,value:Int)) -> MediaItem in
+            return mediaItemFrequency.key
         }))
         
         DispatchQueue.main.async(execute: { () -> Void in

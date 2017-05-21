@@ -100,6 +100,9 @@ class Document {
     }
     
     var wkWebView:WKWebView? {
+        willSet {
+            
+        }
         didSet {
             if (wkWebView == nil) {
                 oldValue?.scrollView.delegate = nil
@@ -693,6 +696,9 @@ class MediaViewController: UIViewController
     }
     
     var notesDocument:Document? {
+        willSet {
+            
+        }
         didSet {
             oldValue?.wkWebView?.removeFromSuperview()
             oldValue?.wkWebView?.scrollView.delegate = nil
@@ -807,6 +813,9 @@ class MediaViewController: UIViewController
     }
     
     var slidesDocument:Document? {
+        willSet {
+            
+        }
         didSet {
             oldValue?.wkWebView?.removeFromSuperview()
             oldValue?.wkWebView?.scrollView.delegate = nil
@@ -882,6 +891,9 @@ class MediaViewController: UIViewController
     }
     
     var selectedMediaItem:MediaItem? {
+        willSet {
+            
+        }
         didSet {
             if oldValue != nil {
                 NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: oldValue)
@@ -1502,6 +1514,7 @@ class MediaViewController: UIViewController
     @IBOutlet weak var hSlideView: UIView!
     @IBAction func hSlideTap(_ sender: UITapGestureRecognizer) {
         setTableViewWidth(width: self.view.bounds.size.width / 2)
+        captureSlideSplit()
         self.view.setNeedsLayout()
     }
     @IBAction func hSlidePan(_ pan: UIPanGestureRecognizer) {
@@ -1928,42 +1941,44 @@ class MediaViewController: UIViewController
     
     func videoPan(_ pan:UIPanGestureRecognizer)
     {
-        if controlViewTop != nil { // Implies landscape mode
-            switch pan.state {
-            case .began:
-                break
-                
-            case .ended:
-                captureSlideSplit()
-                break
-                
-            case .changed:
-                let translation = pan.translation(in: pan.view)
-                
-                if translation.y != 0 {
-                    if controlViewTop.constant + translation.y < -46 {
-                        controlViewTop.constant = -46
-                    } else
-                        if controlViewTop.constant + translation.y > 0 {
-                            controlViewTop.constant = 0
-                        } else {
-                            controlViewTop.constant += translation.y
-                    }
+        guard controlViewTop != nil else { // Implies landscape mode
+            return
+        }
+        
+        switch pan.state {
+        case .began:
+            break
+            
+        case .ended:
+            captureSlideSplit()
+            break
+            
+        case .changed:
+            let translation = pan.translation(in: pan.view)
+            
+            if translation.y != 0 {
+                if controlViewTop.constant + translation.y < -46 {
+                    controlViewTop.constant = -46
+                } else
+                    if controlViewTop.constant + translation.y > 0 {
+                        controlViewTop.constant = 0
+                    } else {
+                        controlViewTop.constant += translation.y
                 }
-                
-                if translation.x != 0 {
-                    setTableViewWidth(width: tableViewWidth.constant + -translation.x)
-                }
-                
-                self.view.setNeedsLayout()
-                //                self.view.layoutSubviews()
-                
-                pan.setTranslation(CGPoint.zero, in: pan.view)
-                break
-                
-            default:
-                break
             }
+            
+            if translation.x != 0 {
+                setTableViewWidth(width: tableViewWidth.constant + -translation.x)
+            }
+            
+            self.view.setNeedsLayout()
+            //                self.view.layoutSubviews()
+            
+            pan.setTranslation(CGPoint.zero, in: pan.view)
+            break
+            
+        default:
+            break
         }
     }
     
@@ -3069,7 +3084,7 @@ class MediaViewController: UIViewController
                 //Capturing the viewSplit on a rotation from portrait to landscape for an iPhone
                 captureViewSplit()
                 
-                if let ratio = ratioForSlideView(viewSplit) {
+                if let ratio = ratioForSlideView() {
                     //            print("\(self.view.bounds.height)")
                     setTableViewWidth(width: size.width * ratio)
                 } else {
@@ -3109,7 +3124,7 @@ class MediaViewController: UIViewController
         return ratio
     }
     
-    func ratioForSlideView(_ sender: UIView) -> CGFloat?
+    func ratioForSlideView() -> CGFloat?
     {
         var ratio:CGFloat?
         
@@ -3174,7 +3189,7 @@ class MediaViewController: UIViewController
     {
         if splitViewController == nil {
             if (UIDeviceOrientationIsLandscape(UIDevice.current.orientation)) {
-                if let ratio = ratioForSlideView(viewSplit) {
+                if let ratio = ratioForSlideView() {
                     //            print("\(self.view.bounds.height)")
                     setTableViewWidth(width: self.view.bounds.width * ratio)
                 } else {
@@ -3425,16 +3440,21 @@ class MediaViewController: UIViewController
     fileprivate func captureSlideSplit()
     {
         //        print("captureViewSplit: \(mediaItemSelected?.title)")
+        guard self.view != nil else {
+            return
+        }
+        
+        guard controlViewTop != nil else {
+            return
+        }
 
-        if (self.view != nil) && (viewSplit.bounds.size.width == 0) {
-            if (selectedMediaItem != nil) {
-                //                print("\(self.view.bounds.height)")
-                let ratio = self.tableViewWidth.constant / self.view.bounds.width
-                
-                //            print("captureViewSplit ratio: \(ratio)")
-                
-                selectedMediaItem?.slideSplit = "\(ratio)"
-            }
+        if (selectedMediaItem != nil) {
+            //                print("\(self.view.bounds.height)")
+            let ratio = self.tableViewWidth.constant / self.view.bounds.width
+            
+            //            print("captureViewSplit ratio: \(ratio)")
+            
+            selectedMediaItem?.slideSplit = "\(ratio)"
         }
     }
     

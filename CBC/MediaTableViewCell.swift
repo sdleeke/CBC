@@ -498,12 +498,18 @@ class MediaTableViewCell: UITableViewCell
     }
     
     var searchText:String? {
+        willSet {
+            
+        }
         didSet {
             updateUI()
         }
     }
     
     var mediaItem:MediaItem? {
+        willSet {
+            
+        }
         didSet {
 //            DispatchQueue.main.async {
 //                NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateTagsButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_CELL_TAG), object: nil)

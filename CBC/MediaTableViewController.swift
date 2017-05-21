@@ -731,8 +731,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 })
                 
                 // Show the results directly rather than by executing a search
-                if let list:[MediaItem]? = globals.media.toSearch?.lexicon?.words?[searchText]?.map({ (tuple:(MediaItem, Int)) -> MediaItem in
-                    return tuple.0
+                if let list:[MediaItem]? = globals.media.toSearch?.lexicon?.words?[searchText]?.map({ (mediaItemFrequency:(key: MediaItem,value: Int)) -> MediaItem in
+                    return mediaItemFrequency.key
                 }) {
                     updateSearches(searchText:searchText,mediaItems: list)
                     updateDisplay(searchText:searchText)
@@ -1409,6 +1409,9 @@ class MediaTableViewController : UIViewController
     }
     
     var selectedMediaItem:MediaItem? {
+        willSet {
+            
+        }
         didSet {
             globals.selectedMediaItem.master = selectedMediaItem
         }

@@ -23,12 +23,18 @@ enum PlayerState {
 
 class PlayerStateTime {
     var mediaItem:MediaItem? {
+        willSet {
+            
+        }
         didSet {
             startTime = mediaItem?.currentTime
         }
     }
     
     var state:PlayerState = .none {
+        willSet {
+            
+        }
         didSet {
             if (state != oldValue) {
                 dateEntered = Date()
@@ -256,6 +262,9 @@ class MediaPlayer {
     var stoppingPIP = false
     
     var killPIP = false {
+        willSet {
+            
+        }
         didSet {
             if pip == .started {
                 if killPIP {
@@ -492,6 +501,9 @@ class MediaPlayer {
     //    var observer: Timer?
     
     var mediaItem:MediaItem? {
+        willSet {
+            
+        }
         didSet {
             globals.mediaCategory.playing = mediaItem?.id
 

@@ -459,6 +459,9 @@ class ScriptureIndexViewController : UIViewController
 {
     var finished:Float = 0.0
     var progress:Float = 0.0 {
+        willSet {
+            
+        }
         didSet {
             //            print(progress)
             //            print(finished)
@@ -479,6 +482,9 @@ class ScriptureIndexViewController : UIViewController
         }()
     
     var mediaListGroupSort:MediaListGroupSort? {
+        willSet {
+            
+        }
         didSet {
 //            scriptureIndex?.active = true
         }
@@ -583,6 +589,9 @@ class ScriptureIndexViewController : UIViewController
     
     var mediaItems:[MediaItem]?
     {
+        willSet {
+            
+        }
         didSet {
             guard self.sections == nil else {
                 return
@@ -619,6 +628,9 @@ class ScriptureIndexViewController : UIViewController
         }
     }
     var selectedMediaItem:MediaItem? {
+        willSet {
+            
+        }
         didSet {
             print(selectedMediaItem as Any)
         }

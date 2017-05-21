@@ -1758,12 +1758,25 @@ class MediaItem : NSObject {
                     
                     var skip = false
                     
-                    let tokenDelimiters = "$\" :-!;,.()?&/<>[]" // '
+//                    let trimChars = " '" // ‘”
+//                    let breakChars = "$\" :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE // ‘“
+
+                    let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
                     
                     if wholeWordsOnly {
                         if let characterAfter:Character = stringAfter.characters.first {
                             if !CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterAfter))!) {
                                 skip = true
+                            }
+                            
+                            print(characterAfter)
+                            if stringAfter.endIndex >= "'s".endIndex {
+                                if (stringAfter.substring(to: "'s".endIndex) == "'s") {
+                                    skip = false
+                                }
+                                if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                                    skip = true
+                                }
                             }
                         }
                         if let characterBefore:Character = stringBefore.characters.last {

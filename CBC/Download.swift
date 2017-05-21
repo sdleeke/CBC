@@ -25,6 +25,9 @@ class Download : NSObject {
     var downloadURL:URL?
     
     var fileSystemURL:URL? {
+        willSet {
+            
+        }
         didSet {
             state = isDownloaded() ? .downloaded : .none
         }
@@ -50,6 +53,9 @@ class Download : NSObject {
     }
 
     var state:State = .none {
+        willSet {
+            
+        }
         didSet {
             if state != oldValue {
                 switch state {

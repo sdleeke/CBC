@@ -267,6 +267,9 @@ class Scripture : NSObject
     
     var reference:String?
     {
+        willSet {
+            
+        }
         didSet {
             if reference != oldValue {
                 // MUST update the data structure.

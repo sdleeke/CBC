@@ -211,7 +211,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                         popover.stringsFunction = {
                             mediaItem?.loadNotesHTML()
                             
-                            if let notesTokens = tokensAndCountsFromString(mediaItem?.notesHTML) {
+                            if let notesTokens = tokensAndCountsFromString(stripHTML(mediaItem?.notesHTML)) {
                                 mediaItem?.notesTokens = notesTokens
                                 
                                 return notesTokens.map({ (string:String,count:Int) -> String in
@@ -601,6 +601,9 @@ class WebViewController: UIViewController
     }
     
     var selectedMediaItem:MediaItem? {
+        willSet {
+            
+        }
         didSet {
             if oldValue != nil {
                 NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: oldValue?.download)

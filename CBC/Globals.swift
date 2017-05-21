@@ -17,6 +17,9 @@ struct MediaNeed {
 
 class Section {
     var strings:[String]? {
+        willSet {
+            
+        }
         didSet {
             indexStrings = strings?.map({ (string:String) -> String in
                 return indexTransform != nil ? indexTransform!(string.uppercased())! : string.uppercased()
@@ -111,6 +114,9 @@ struct Display {
 
 struct MediaRepository {
     var list:[MediaItem]? { //Not in any specific order
+        willSet {
+            
+        }
         didSet {
             index = nil
             classes = nil
@@ -453,6 +459,9 @@ struct Search {
     var complete:Bool = true
 
     var active:Bool = false {
+        willSet {
+            
+        }
         didSet {
             if !active {
                 complete = true
@@ -473,6 +482,9 @@ struct Search {
     }
     
     var text:String? {
+        willSet {
+            
+        }
         didSet {
 //            if (text != nil) {
 //                active = active || !text!.isEmpty //( == Constants.EMPTY_STRING)) || (text != Constants.EMPTY_STRING)
@@ -629,6 +641,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
     var groupingTitles = Constants.GroupingTitles
     
     var grouping:String? = Grouping.YEAR {
+        willSet {
+            
+        }
         didSet {
             media.need.grouping = (grouping != oldValue)
             
@@ -648,6 +663,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
     }
     
     var sorting:String? = Sorting.REVERSE_CHRONOLOGICAL {
+        willSet {
+            
+        }
         didSet {
             media.need.sorting = (sorting != oldValue)
             

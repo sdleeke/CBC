@@ -341,6 +341,9 @@ class ScriptureIndex {
     var selectedTestament:String? = Constants.OT
     
     var selectedBook:String? {
+        willSet {
+            
+        }
         didSet {
             if selectedBook == nil {
                 selectedChapter = 0
@@ -350,6 +353,9 @@ class ScriptureIndex {
     }
     
     var selectedChapter:Int = 0 {
+        willSet {
+            
+        }
         didSet {
             if selectedChapter == 0 {
                 selectedVerse = 0
@@ -1008,6 +1014,9 @@ class Lexicon : NSObject {
     }
     
     var words:Words? {
+        willSet {
+            
+        }
         didSet {
             var strings = [String]()
             
@@ -1069,9 +1078,9 @@ class Lexicon : NSObject {
 
             // Using flatMap
             return Array(Set(
-                words!.flatMap({ (tuple:(key: String, value: [MediaItem : Int])) -> [MediaItem] in
+                words!.flatMap({ (mediaItemFrequency:(key: String, value: [MediaItem : Int])) -> [MediaItem] in
                     // .map is required below to return an array of MediaItem, otherwise it returns a LazyMapCollection and I haven't figured that out.
-                    return tuple.value.keys.map({ (mediaItem:MediaItem) -> MediaItem in
+                    return mediaItemFrequency.value.keys.map({ (mediaItem:MediaItem) -> MediaItem in
                         return mediaItem
                     })
                 })
@@ -1159,10 +1168,10 @@ class Lexicon : NSObject {
                         
                         if let notesTokens = mediaItem.notesTokens {
                             for token in notesTokens {
-                                if dict[token.0] == nil {
-                                    dict[token.0] = [mediaItem:token.1]
+                                if dict[token.key] == nil {
+                                    dict[token.key] = [mediaItem:token.1]
                                 } else {
-                                    dict[token.0]?[mediaItem] = token.1
+                                    dict[token.key]?[mediaItem] = token.1
                                 }
 
                                 if globals.isRefreshing || globals.isLoading {
@@ -1230,10 +1239,10 @@ class Lexicon : NSObject {
                 
                 if let notesTokens = mediaItem.notesTokens {
                     for token in notesTokens {
-                        if dict[token.0] == nil {
-                            dict[token.0] = [mediaItem:token.1]
+                        if dict[token.key] == nil {
+                            dict[token.key] = [mediaItem:token.1]
                         } else {
-                            dict[token.0]?[mediaItem] = token.1
+                            dict[token.key]?[mediaItem] = token.1
                         }
                     }
                 }
@@ -1255,14 +1264,14 @@ class Lexicon : NSObject {
                 for key in keys {
                     string = string + key + "\n"
                     if let mediaItems = words?[key]?.sorted(by: { (first, second) -> Bool in
-                        if first.1 == second.1 {
-                            return first.0.fullDate!.isOlderThan(second.0.fullDate!)
+                        if first.value == second.value {
+                            return first.key.fullDate!.isOlderThan(second.key.fullDate!)
                         } else {
-                            return first.1 > second.1
+                            return first.value > second.value
                         }
                     }) {
                         for mediaItem in mediaItems {
-                            string = string + "(\(mediaItem.0,mediaItem.1))\n"
+                            string = string + "(\(mediaItem.key,mediaItem.value))\n"
                         }
                     }
                 }
@@ -1305,6 +1314,9 @@ class MediaListGroupSort {
     }()
     
     var list:[MediaItem]? { //Not in any specific order
+        willSet {
+            
+        }
         didSet {
             if (list != nil) {
                 index = [String:MediaItem]()
