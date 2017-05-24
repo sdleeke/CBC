@@ -1769,7 +1769,7 @@ class MediaItem : NSObject {
                                 skip = true
                             }
                             
-                            print(characterAfter)
+//                            print(characterAfter)
                             if stringAfter.endIndex >= "'s".endIndex {
                                 if (stringAfter.substring(to: "'s".endIndex) == "'s") {
                                     skip = false

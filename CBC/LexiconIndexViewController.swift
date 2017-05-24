@@ -313,10 +313,12 @@ class LexiconIndexViewController : UIViewController
     }
     
     var searchText:String? {
-        willSet {
-            
+        get {
+            return lexicon?.selected
         }
-        didSet {
+        set {
+            lexicon?.selected = newValue
+
             ptvc.selectedText = searchText
             
             DispatchQueue.main.async(execute: { () -> Void in
@@ -532,6 +534,8 @@ class LexiconIndexViewController : UIViewController
         
 //        disableBarButtons()
         
+        selectedWord.text = searchText
+
         updateLocateButton()
 
         DispatchQueue(label: "CBC").async(execute: { () -> Void in
@@ -549,8 +553,7 @@ class LexiconIndexViewController : UIViewController
             self.navigationItem.title = "Lexicon Index \(count) of \(total)"
         }
         
-        updateActionMenu()
-        
+        updateSearchResults()
         updateUI()
     }
     

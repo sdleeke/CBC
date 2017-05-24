@@ -914,6 +914,8 @@ class StringTree {
 class Lexicon : NSObject {
     weak var mediaListGroupSort:MediaListGroupSort?
     
+    var selected:String?
+    
     init(_ mlgs:MediaListGroupSort?)
     {
         super.init()
@@ -1018,17 +1020,23 @@ class Lexicon : NSObject {
             
         }
         didSet {
-            var strings = [String]()
-            
             if let keys = self.words?.keys.sorted() {
+                var strings = [String]()
+                
                 for word in keys {
-                    if let count = self.words?[word]?.count {
-                        strings.append("\(word) (\(count))")
+                    if let count = documents(word), let occurrences = occurrences(word) { // self.words?[word]?.count
+                        strings.append("\(word) (\(occurrences) in \(count))")
                     }
                 }
+                
+                section.strings = strings
+                
+                section.build()
+
+                DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
+                })
             }
-            
-            section.strings = strings
             
 //            section.indexStrings = section.strings?.map({ (string:String) -> String in
 //                return string.uppercased()
@@ -1044,17 +1052,12 @@ class Lexicon : NSObject {
             //            }
             
 //            print("Before section.build: ",Date())
-            self.section.build()
             
 //            print("Before buildStringTree: ",Date())
 //            DispatchQueue.global(qos: .background).async {
 //                self.buildStringTree()
 //            }
 //            print("After buildStringTree: ",Date())
-            
-            DispatchQueue(label: "CBC").async(execute: { () -> Void in
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
-            })
         }
     }
     
@@ -1131,9 +1134,11 @@ class Lexicon : NSObject {
             return nil
         }
         
-        return words?[word!]?.values.map({ (count:Int) -> Int in
-            return count
-        }).reduce(0, +)
+        return words?[word!]?.values
+//            .map({ (count:Int) -> Int in
+//            return count
+//        })
+            .reduce(0, +)
     }
     
     func build()
@@ -1150,7 +1155,7 @@ class Lexicon : NSObject {
             return
         }
         
-        if let list = eligible {
+        if var list = eligible {
             creating = true
             
             DispatchQueue.global(qos: .background).async {
@@ -1162,40 +1167,39 @@ class Lexicon : NSObject {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self)
                 })
                 
-                for mediaItem in list {
-                    if mediaItem.hasNotesHTML {
+                repeat {
+                    if let mediaItem = list.first {
                         mediaItem.loadNotesTokens()
                         
                         if let notesTokens = mediaItem.notesTokens {
+                            if let index = list.index(of: mediaItem) {
+                                list.remove(at: index)
+                            } else {
+                                print("ERROR")
+                            }
+                            
                             for token in notesTokens {
                                 if dict[token.key] == nil {
-                                    dict[token.key] = [mediaItem:token.1]
+                                    dict[token.key] = [mediaItem:token.value]
                                 } else {
-                                    dict[token.key]?[mediaItem] = token.1
+                                    dict[token.key]?[mediaItem] = token.value
                                 }
-
+                                
                                 if globals.isRefreshing || globals.isLoading {
                                     break
                                 }
                             }
+                        } else {
+                            print("NO NOTES TOKENS!")
                         }
                         
                         if globals.isRefreshing || globals.isLoading {
                             break
                         }
-                        
-                        //                        var strings = [String]()
-                        //
-                        //                        let words = dict.keys.sorted()
-                        //                        for word in words {
-                        //                            if let count = dict[word]?.count {
-                        //                                strings.append("\(word) (\(count))")
-                        //                            }
-                        //                        }
-                        
+
                         if !self.pauseUpdates {
                             if date.timeIntervalSinceNow < -2 {
-//                                print(date)
+                                //                                print(date)
                                 
                                 self.words = dict.count > 0 ? dict : nil
                                 
@@ -1207,7 +1211,54 @@ class Lexicon : NSObject {
                     if globals.isRefreshing || globals.isLoading {
                         break
                     }
-                }
+                } while list.count > 0
+                
+//                for mediaItem in list {
+//                    if mediaItem.hasNotesHTML {
+//                        mediaItem.loadNotesTokens()
+//                        
+//                        if let notesTokens = mediaItem.notesTokens {
+//                            for token in notesTokens {
+//                                if dict[token.key] == nil {
+//                                    dict[token.key] = [mediaItem:token.value]
+//                                } else {
+//                                    dict[token.key]?[mediaItem] = token.value
+//                                }
+//
+//                                if globals.isRefreshing || globals.isLoading {
+//                                    break
+//                                }
+//                            }
+//                        }
+//                        
+//                        if globals.isRefreshing || globals.isLoading {
+//                            break
+//                        }
+//                        
+//                        //                        var strings = [String]()
+//                        //
+//                        //                        let words = dict.keys.sorted()
+//                        //                        for word in words {
+//                        //                            if let count = dict[word]?.count {
+//                        //                                strings.append("\(word) (\(count))")
+//                        //                            }
+//                        //                        }
+//                        
+//                        if !self.pauseUpdates {
+//                            if date.timeIntervalSinceNow < -2 {
+////                                print(date)
+//                                
+//                                self.words = dict.count > 0 ? dict : nil
+//                                
+//                                date = Date()
+//                            }
+//                        }
+//                    }
+//                    
+//                    if globals.isRefreshing || globals.isLoading {
+//                        break
+//                    }
+//                }
                 
                 self.words = dict.count > 0 ? dict : nil
                 
@@ -1222,6 +1273,8 @@ class Lexicon : NSObject {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self)
                 })
             }
+        } else {
+            print("NIL ELIGIBLE MEDIALIST FOR LEXICON INDEX")
         }
     }
     
@@ -1240,9 +1293,9 @@ class Lexicon : NSObject {
                 if let notesTokens = mediaItem.notesTokens {
                     for token in notesTokens {
                         if dict[token.key] == nil {
-                            dict[token.key] = [mediaItem:token.1]
+                            dict[token.key] = [mediaItem:token.value]
                         } else {
-                            dict[token.key]?[mediaItem] = token.1
+                            dict[token.key]?[mediaItem] = token.value
                         }
                     }
                 }

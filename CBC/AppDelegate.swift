@@ -277,7 +277,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
             if let download = mediaItem.downloads.filter({ (key:String, value:Download) -> Bool in
                 //                print("handleEventsForBackgroundURLSession: \(filename) \(key)")
                 return value.task?.taskDescription == filename
-            }).first?.1 {
+            }).first?.value {
                 download.session = URLSession(configuration: configuration, delegate: mediaItem, delegateQueue: nil)
                 download.completionHandler = completionHandler
                 break

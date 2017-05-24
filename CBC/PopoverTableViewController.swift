@@ -500,20 +500,22 @@ class PopoverTableViewController : UIViewController {
         DispatchQueue.main.async(execute: { () -> Void in
             refreshControl.beginRefreshing()
         })
+
+        self.lexiconUpdated()
         
 //        view.isUserInteractionEnabled = false
         
-        if let pause = mediaListGroupSort?.lexicon?.pauseUpdates, pause {
-            isRefreshing = true
-            mediaListGroupSort?.lexicon?.pauseUpdates = false
-            DispatchQueue.global(qos: .userInitiated).async {
-                self.lexiconUpdated()
-            }
-        } else {
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.refreshControl?.endRefreshing()
-            })
-        }
+//        if let pause = mediaListGroupSort?.lexicon?.pauseUpdates, pause {
+//            isRefreshing = true
+//            mediaListGroupSort?.lexicon?.pauseUpdates = false
+//            DispatchQueue.global(qos: .userInitiated).async {
+//                self.lexiconUpdated()
+//            }
+//        } else {
+//            DispatchQueue.main.async(execute: { () -> Void in
+//                self.refreshControl?.endRefreshing()
+//            })
+//        }
     }
     
     var refreshControl:UIRefreshControl?
@@ -726,16 +728,17 @@ class PopoverTableViewController : UIViewController {
         }
         
         DispatchQueue.main.async(execute: { () -> Void in
-            self.activityIndicator.startAnimating()
-            self.activityIndicator?.isHidden = false
+            if let completed = self.mediaListGroupSort?.lexicon?.completed, !completed {
+                self.activityIndicator.startAnimating()
+                self.activityIndicator?.isHidden = false
+            }
         })
         
         DispatchQueue.main.async(execute: { () -> Void in
-            if  let pause = self.mediaListGroupSort?.lexicon?.pauseUpdates, !pause,
-                let count = self.mediaListGroupSort?.lexicon?.entries?.count,
-                let total = self.mediaListGroupSort?.lexicon?.eligible?.count {
-                self.navigationItem.title = "Lexicon \(count) of \(total)"
-            }
+            self.updateTitle()
+//            if  let pause = self.mediaListGroupSort?.lexicon?.pauseUpdates, !pause {
+//                self.updateTitle()
+//            }
         })
 
         unfilteredSection.strings = mediaListGroupSort?.lexicon?.section.strings
@@ -793,6 +796,10 @@ class PopoverTableViewController : UIViewController {
         })
         
         DispatchQueue.main.async(execute: { () -> Void in
+            if let completed = self.mediaListGroupSort?.lexicon?.completed, completed {
+                self.activityIndicator.stopAnimating()
+                self.activityIndicator?.isHidden = true
+            }
             if #available(iOS 10.0, *) {
                 if let refreshing = self.tableView.refreshControl?.isRefreshing, refreshing {
                     self.refreshControl?.endRefreshing()
@@ -875,12 +882,9 @@ class PopoverTableViewController : UIViewController {
                 }
             }
             
-            self.removeRefreshControl()
+//            self.removeRefreshControl()
 
-            if  let count = self.mediaListGroupSort?.lexicon?.entries?.count,
-                let total = self.mediaListGroupSort?.lexicon?.eligible?.count {
-                self.navigationItem.title = "Lexicon \(count) of \(total)"
-            }
+            self.updateTitle()
             
 //                self.navigationItem.title = "Lexicon Complete"
 
@@ -942,6 +946,14 @@ class PopoverTableViewController : UIViewController {
         }
     }
     
+    func updateTitle()
+    {
+        if  let count = self.mediaListGroupSort?.lexicon?.entries?.count,
+            let total = self.mediaListGroupSort?.lexicon?.eligible?.count {
+            self.navigationItem.title = "Lexicon \(count) of \(total)"
+        }
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -961,62 +973,64 @@ class PopoverTableViewController : UIViewController {
                 NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconCompleted), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self.mediaListGroupSort?.lexicon)
             })
             
-            // Start lexicon creation if it isn't already being created.
-            if  let completed = mediaListGroupSort?.lexicon?.completed, !completed,
-                let creating = mediaListGroupSort?.lexicon?.creating, !creating {
-                mediaListGroupSort?.lexicon?.build()
+            if  let completed = mediaListGroupSort?.lexicon?.completed, !completed {
+                // Start lexicon creation if it isn't already being created.
+                if let creating = mediaListGroupSort?.lexicon?.creating, !creating {
+                    mediaListGroupSort?.lexicon?.build()
+                }
+                lexiconUpdated()
             } else {
-                if  let count = self.mediaListGroupSort?.lexicon?.entries?.count,
-                    let total = self.mediaListGroupSort?.lexicon?.eligible?.count {
-                    self.navigationItem.title = "Lexicon \(count) of \(total)"
-                }
-                
-                //                self.navigationItem.title = "Lexicon Complete"
-                
-                unfilteredSection.strings = mediaListGroupSort?.lexicon?.section.strings
-                
-                if let function = sort.function {
-                    unfilteredSection.strings = function(sort.method,unfilteredSection.strings)
-                }
-                
-                if sort.method == Constants.Sort.Alphabetical {
-                    unfilteredSection.titles = mediaListGroupSort?.lexicon?.section.titles
-//                    unfilteredSection.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
-                }
-                
-                unfilteredSection.build()
-                
-//                section.counts = mediaListGroupSort?.lexicon?.section.counts
-//                section.indexes = mediaListGroupSort?.lexicon?.section.indexes
+                lexiconCompleted()
+            }
+            
+//            } else {
 //                
-//                section.titles = mediaListGroupSort?.lexicon?.section.titles
+//                //                self.navigationItem.title = "Lexicon Complete"
 //                
-//                section.strings = mediaListGroupSort?.lexicon?.section.strings
+//                unfilteredSection.strings = mediaListGroupSort?.lexicon?.section.strings
 //                
-//                section.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
-                
-//                self.section.strings = section.strings
-                
-                removeRefreshControl()
-
-                tableView.reloadData()
-                
-                if let completed = mediaListGroupSort?.lexicon?.completed, !completed {
-                    activityIndicator?.startAnimating()
-                    activityIndicator?.isHidden = false
-                } else {
-                    activityIndicator?.stopAnimating()
-                    activityIndicator?.isHidden = true
-                }
-                
-                selectString(selectedText,scroll: false,select: true)
-                
-//                if self.strings?.count > 0 {
-//                    self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: .top, animated: true)
+//                if let function = sort.function {
+//                    unfilteredSection.strings = function(sort.method,unfilteredSection.strings)
 //                }
 //                
-//                self.tableView.setContentOffset(CGPoint(x:0, y:0), animated: false)
-            }
+//                if sort.method == Constants.Sort.Alphabetical {
+//                    unfilteredSection.titles = mediaListGroupSort?.lexicon?.section.titles
+////                    unfilteredSection.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
+//                }
+//                
+//                unfilteredSection.build()
+//                
+////                section.counts = mediaListGroupSort?.lexicon?.section.counts
+////                section.indexes = mediaListGroupSort?.lexicon?.section.indexes
+////                
+////                section.titles = mediaListGroupSort?.lexicon?.section.titles
+////                
+////                section.strings = mediaListGroupSort?.lexicon?.section.strings
+////                
+////                section.indexStrings = mediaListGroupSort?.lexicon?.section.indexStrings
+//                
+////                self.section.strings = section.strings
+//                
+//                removeRefreshControl()
+//
+//                tableView.reloadData()
+//                
+//                if let completed = mediaListGroupSort?.lexicon?.completed, !completed {
+//                    activityIndicator?.startAnimating()
+//                    activityIndicator?.isHidden = false
+//                } else {
+//                    activityIndicator?.stopAnimating()
+//                    activityIndicator?.isHidden = true
+//                }
+//                
+//                selectString(selectedText,scroll: false,select: true)
+//                
+////                if self.strings?.count > 0 {
+////                    self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: .top, animated: true)
+////                }
+////                
+////                self.tableView.setContentOffset(CGPoint(x:0, y:0), animated: false)
+//            }
         } else
 
         if stringsFunction != nil {

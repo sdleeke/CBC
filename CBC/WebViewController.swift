@@ -209,17 +209,11 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 if mediaItem!.hasNotesHTML {
                     if mediaItem?.notesTokens == nil {
                         popover.stringsFunction = {
-                            mediaItem?.loadNotesHTML()
-                            
-                            if let notesTokens = tokensAndCountsFromString(stripHTML(mediaItem?.notesHTML)) {
-                                mediaItem?.notesTokens = notesTokens
-                                
-                                return notesTokens.map({ (string:String,count:Int) -> String in
-                                    return "\(string) (\(count))"
-                                }).sorted()
-                            } else {
-                                return nil
-                            }
+                            mediaItem?.loadNotesTokens()
+
+                            return mediaItem?.notesTokens?.map({ (string:String,count:Int) -> String in
+                                return "\(string) (\(count))"
+                            }).sorted()
                         }
                     } else {
                         popover.section.strings = mediaItem?.notesTokens?.map({ (string:String,count:Int) -> String in
