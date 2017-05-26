@@ -608,8 +608,8 @@ class PopoverTableViewController : UIViewController {
         selectedText = string
         
 //        if let active = self.searchController?.isActive, active {
-        if let selectedText = self.selectedText,  let index = self.section.strings?.index(where: { (string:String) -> Bool in
-            return selectedText == string.substring(to: string.range(of: " (")!.lowerBound).uppercased()
+        if let selectedText = selectedText,  let index = section.strings?.index(where: { (string:String) -> Bool in
+            return selectedText.uppercased() == string.substring(to: string.range(of: " (")!.lowerBound).uppercased()
         }) {
             //                if let selectedText = self.selectedText, let index = self.filteredStrings?.index(of: selectedText) {
             var i = 0

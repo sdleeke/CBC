@@ -574,6 +574,8 @@ class LexiconIndexViewController : UIViewController
         
         //        navigationController?.navigationBar.backItem?.title = Constants.Back
         //        navigationItem.hidesBackButton = false
+        
+        ptvc.selectString(searchText,scroll: true,select: true)
     }
     
     func setupMediaItemsHTMLLexicon(includeURLs:Bool,includeColumns:Bool) -> String?

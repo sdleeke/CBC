@@ -1474,11 +1474,21 @@ class MediaViewController: UIViewController
     
     
     @IBOutlet weak var vSlideView: UIView!
-    @IBAction func vSlideTap(_ sender: UITapGestureRecognizer) {
+    @IBAction func vSlideTap(_ sender: UITapGestureRecognizer)
+    {
+        guard controlViewTop != nil else {
+            return
+        }
+        
         controlViewTop.constant = 0
         self.view.setNeedsLayout()
     }
-    @IBAction func vSlidePan(_ pan: UIPanGestureRecognizer) {
+    @IBAction func vSlidePan(_ pan: UIPanGestureRecognizer)
+    {
+        guard controlViewTop != nil else {
+            return
+        }
+        
         switch pan.state {
         case .began:
             break
@@ -1512,12 +1522,22 @@ class MediaViewController: UIViewController
     }
     
     @IBOutlet weak var hSlideView: UIView!
-    @IBAction func hSlideTap(_ sender: UITapGestureRecognizer) {
+    @IBAction func hSlideTap(_ sender: UITapGestureRecognizer)
+    {
+        guard tableViewWidth != nil else {
+            return
+        }
+        
         setTableViewWidth(width: self.view.bounds.size.width / 2)
         captureSlideSplit()
         self.view.setNeedsLayout()
     }
-    @IBAction func hSlidePan(_ pan: UIPanGestureRecognizer) {
+    @IBAction func hSlidePan(_ pan: UIPanGestureRecognizer)
+    {
+        guard tableViewWidth != nil else {
+            return
+        }
+        
         switch pan.state {
         case .began:
             break
@@ -1544,7 +1564,12 @@ class MediaViewController: UIViewController
     }
 
     
-    @IBAction func viewSplitPan(_ pan: UIPanGestureRecognizer) {
+    @IBAction func viewSplitPan(_ pan: UIPanGestureRecognizer)
+    {
+        guard viewSplit != nil else {
+            return
+        }
+        
         switch pan.state {
         case .began:
             for document in documents[selectedMediaItem!.id]!.values {
@@ -1942,6 +1967,10 @@ class MediaViewController: UIViewController
     func videoPan(_ pan:UIPanGestureRecognizer)
     {
         guard controlViewTop != nil else { // Implies landscape mode
+            return
+        }
+        
+        guard tableViewWidth != nil else { // Implies landscape mode
             return
         }
         
@@ -3022,78 +3051,110 @@ class MediaViewController: UIViewController
             return
         }
         
-        if (self.splitViewController != nil) {
-            let (oldMinConstraintConstant,oldMaxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
-            let (newMinConstraintConstant,newMaxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(size.height)
-            
-            switch self.mediaItemNotesAndSlidesConstraint.constant {
-            case oldMinConstraintConstant:
-                self.mediaItemNotesAndSlidesConstraint.constant = newMinConstraintConstant
-                break
-                
-            case oldMaxConstraintConstant:
-                self.mediaItemNotesAndSlidesConstraint.constant = newMaxConstraintConstant
-                break
-                
-            default:
-                let ratio = (mediaItemNotesAndSlidesConstraint.constant - oldMinConstraintConstant) / (oldMaxConstraintConstant - oldMinConstraintConstant)
-                
-                self.mediaItemNotesAndSlidesConstraint.constant = (ratio * (newMaxConstraintConstant - newMinConstraintConstant)) + newMinConstraintConstant
-                
-                if self.mediaItemNotesAndSlidesConstraint.constant < newMinConstraintConstant { self.mediaItemNotesAndSlidesConstraint.constant = newMinConstraintConstant }
-                if self.mediaItemNotesAndSlidesConstraint.constant > newMaxConstraintConstant { self.mediaItemNotesAndSlidesConstraint.constant = newMaxConstraintConstant }
-                break
-            }
-            
-            //            print("min: \(minConstraintConstant) max: \(maxConstraintConstant)")
-            
-            viewSplit.min = newMinConstraintConstant
-            viewSplit.max = newMaxConstraintConstant
-            viewSplit.height = mediaItemNotesAndSlidesConstraint.constant
-            
-            self.view.setNeedsLayout()
-        } else {
-            if (UIDeviceOrientationIsPortrait(UIDevice.current.orientation)) {
-                captureSlideSplit()
+//        if self.splitViewController?.viewControllers.count > 1 {
+//            let (oldMinConstraintConstant,oldMaxConstraintConstant) = self.mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
+//            let (newMinConstraintConstant,newMaxConstraintConstant) = self.mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height) // size.height
+//            
+//            switch self.mediaItemNotesAndSlidesConstraint.constant {
+//            case oldMinConstraintConstant:
+//                self.mediaItemNotesAndSlidesConstraint.constant = newMinConstraintConstant
+//                break
+//                
+//            case oldMaxConstraintConstant:
+//                self.mediaItemNotesAndSlidesConstraint.constant = newMaxConstraintConstant
+//                break
+//                
+//            default:
+//                let ratio = (self.mediaItemNotesAndSlidesConstraint.constant - oldMinConstraintConstant) / (oldMaxConstraintConstant - oldMinConstraintConstant)
+//                
+//                self.mediaItemNotesAndSlidesConstraint.constant = (ratio * (newMaxConstraintConstant - newMinConstraintConstant)) + newMinConstraintConstant
+//                
+//                if self.mediaItemNotesAndSlidesConstraint.constant < newMinConstraintConstant { self.mediaItemNotesAndSlidesConstraint.constant = newMinConstraintConstant }
+//                if self.mediaItemNotesAndSlidesConstraint.constant > newMaxConstraintConstant { self.mediaItemNotesAndSlidesConstraint.constant = newMaxConstraintConstant }
+//                break
+//            }
+//            
+//            //            print("min: \(minConstraintConstant) max: \(maxConstraintConstant)")
+//            
+//            self.viewSplit.min = newMinConstraintConstant
+//            self.viewSplit.max = newMaxConstraintConstant
+//            self.viewSplit.height = self.mediaItemNotesAndSlidesConstraint.constant
+//            
+//            self.view.setNeedsLayout()
+//        }
 
-                setTableViewWidth(width: size.width)
-                
-                //If we started out in landscape on an iPhone and segued to this view and then transitioned to Portrait
-                //The constraint is not setup because it is not active in landscape so we have to set it up
-                if let split = selectedMediaItem?.viewSplit {
-                    var newConstraintConstant = size.height * CGFloat(Float(split)!)
-                    
-                    let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(size.height - 12) //Adjustment of 12 for difference in NavBar height between landscape (shorter) and portrait (taller by 12)
-                    
-                    //                    print("min: \(minConstraintConstant) max: \(maxConstraintConstant)")
-                    
-                    if newConstraintConstant < minConstraintConstant { newConstraintConstant = minConstraintConstant }
-                    if newConstraintConstant > maxConstraintConstant { newConstraintConstant = maxConstraintConstant }
-                    
-                    self.mediaItemNotesAndSlidesConstraint.constant = newConstraintConstant
-                    
-                    //                    print("\(viewSplit) \(size) \(mediaItemNotesAndSlidesConstraint.constant)")
-                    
-                    viewSplit.min = minConstraintConstant
-                    viewSplit.max = maxConstraintConstant
-                    viewSplit.height = self.mediaItemNotesAndSlidesConstraint.constant
-                    
-                    self.view.setNeedsLayout()
-                }
-            } else {
-                //Capturing the viewSplit on a rotation from portrait to landscape for an iPhone
-                captureViewSplit()
-                
-                if let ratio = ratioForSlideView() {
-                    //            print("\(self.view.bounds.height)")
-                    setTableViewWidth(width: size.width * ratio)
-                } else {
-                    setTableViewWidth(width: size.width / 2)
-                }
-                
-                self.view.setNeedsLayout()
-            }
-        }
+//        if (self.splitViewController != nil) {
+//            let (oldMinConstraintConstant,oldMaxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
+//            let (newMinConstraintConstant,newMaxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(size.height)
+//            
+//            switch self.mediaItemNotesAndSlidesConstraint.constant {
+//            case oldMinConstraintConstant:
+//                self.mediaItemNotesAndSlidesConstraint.constant = newMinConstraintConstant
+//                break
+//                
+//            case oldMaxConstraintConstant:
+//                self.mediaItemNotesAndSlidesConstraint.constant = newMaxConstraintConstant
+//                break
+//                
+//            default:
+//                let ratio = (mediaItemNotesAndSlidesConstraint.constant - oldMinConstraintConstant) / (oldMaxConstraintConstant - oldMinConstraintConstant)
+//                
+//                self.mediaItemNotesAndSlidesConstraint.constant = (ratio * (newMaxConstraintConstant - newMinConstraintConstant)) + newMinConstraintConstant
+//                
+//                if self.mediaItemNotesAndSlidesConstraint.constant < newMinConstraintConstant { self.mediaItemNotesAndSlidesConstraint.constant = newMinConstraintConstant }
+//                if self.mediaItemNotesAndSlidesConstraint.constant > newMaxConstraintConstant { self.mediaItemNotesAndSlidesConstraint.constant = newMaxConstraintConstant }
+//                break
+//            }
+//            
+//            //            print("min: \(minConstraintConstant) max: \(maxConstraintConstant)")
+//            
+//            viewSplit.min = newMinConstraintConstant
+//            viewSplit.max = newMaxConstraintConstant
+//            viewSplit.height = mediaItemNotesAndSlidesConstraint.constant
+//            
+//            self.view.setNeedsLayout()
+//        } else {
+//            if (UIDeviceOrientationIsPortrait(UIDevice.current.orientation)) {
+//                captureSlideSplit()
+//
+//                setTableViewWidth(width: size.width)
+//                
+//                //If we started out in landscape on an iPhone and segued to this view and then transitioned to Portrait
+//                //The constraint is not setup because it is not active in landscape so we have to set it up
+//                if let split = selectedMediaItem?.viewSplit {
+//                    var newConstraintConstant = size.height * CGFloat(Float(split)!)
+//                    
+//                    let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(size.height - 12) //Adjustment of 12 for difference in NavBar height between landscape (shorter) and portrait (taller by 12)
+//                    
+//                    //                    print("min: \(minConstraintConstant) max: \(maxConstraintConstant)")
+//                    
+//                    if newConstraintConstant < minConstraintConstant { newConstraintConstant = minConstraintConstant }
+//                    if newConstraintConstant > maxConstraintConstant { newConstraintConstant = maxConstraintConstant }
+//                    
+//                    self.mediaItemNotesAndSlidesConstraint.constant = newConstraintConstant
+//                    
+//                    //                    print("\(viewSplit) \(size) \(mediaItemNotesAndSlidesConstraint.constant)")
+//                    
+//                    viewSplit.min = minConstraintConstant
+//                    viewSplit.max = maxConstraintConstant
+//                    viewSplit.height = self.mediaItemNotesAndSlidesConstraint.constant
+//                    
+//                    self.view.setNeedsLayout()
+//                }
+//            } else {
+//                //Capturing the viewSplit on a rotation from portrait to landscape for an iPhone
+//                captureViewSplit()
+//                
+//                if let ratio = ratioForSlideView() {
+//                    //            print("\(self.view.bounds.height)")
+//                    setTableViewWidth(width: size.width * ratio)
+//                } else {
+//                    setTableViewWidth(width: size.width / 2)
+//                }
+//                
+//                self.view.setNeedsLayout()
+//            }
+//        }
         
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
             
@@ -3108,10 +3169,17 @@ class MediaViewController: UIViewController
                 }
                 
                 self.setupWKContentOffsets()
+                
+                if self.viewSplit != nil {
+                    self.setupViewSplit()
+                }
+                
+                if self.tableViewWidth != nil {
+                    self.setupSlideSplit()
+                }
             })
         }
     }
-
     
     func ratioForSplitView(_ sender: ViewSplit) -> CGFloat?
     {
@@ -3137,11 +3205,19 @@ class MediaViewController: UIViewController
     
     func defaultTableViewWidth()
     {
+        guard tableViewWidth != nil else {
+            return
+        }
+        
         tableViewWidth.constant = self.view!.bounds.size.width / 2
     }
     
     func setTableViewWidth(width:CGFloat)
     {
+        guard tableViewWidth != nil else {
+            return
+        }
+        
         if (width >= 0) && (width <= self.view.bounds.size.width) {
             tableViewWidth.constant = width
         }
@@ -3155,6 +3231,14 @@ class MediaViewController: UIViewController
     
     func resetConstraint()
     {
+        guard viewSplit != nil else {
+            return
+        }
+        
+        guard mediaItemNotesAndSlidesConstraint != nil else {
+            return
+        }
+        
         var newConstraintConstant:CGFloat
         
         //        print("setupViewSplit ratio: \(ratio)")
@@ -3180,25 +3264,25 @@ class MediaViewController: UIViewController
         viewSplit.max = maxConstraintConstant
         viewSplit.height = self.mediaItemNotesAndSlidesConstraint.constant
         
-        captureViewSplit()
-        
         self.view.setNeedsLayout()
+        
+        captureViewSplit()
     }
     
     fileprivate func setupSlideSplit()
     {
-        if splitViewController == nil {
-            if (UIDeviceOrientationIsLandscape(UIDevice.current.orientation)) {
-                if let ratio = ratioForSlideView() {
-                    //            print("\(self.view.bounds.height)")
-                    setTableViewWidth(width: self.view.bounds.width * ratio)
-                } else {
-                    setTableViewWidth(width: self.view.bounds.width / 2)
-                }
-                
-                self.view.setNeedsLayout()
-            }
+        guard tableViewWidth != nil else {
+            return
         }
+        
+        if let ratio = ratioForSlideView() {
+            //            print("\(self.view.bounds.height)")
+            setTableViewWidth(width: self.view.bounds.width * ratio)
+        } else {
+            setTableViewWidth(width: self.view.bounds.width / 2)
+        }
+        
+        self.view.setNeedsLayout()
     }
     
     fileprivate func setupViewSplit()
@@ -3416,30 +3500,53 @@ class MediaViewController: UIViewController
         }
     }
     
-    override func viewDidAppear(_ animated: Bool) {
+    override func viewDidAppear(_ animated: Bool)
+    {
         super.viewDidAppear(animated)
 
+        if globals.isLoading && (navigationController?.visibleViewController == self) && (splitViewController?.viewControllers.count == 1) {
+            if let navigationController = splitViewController?.viewControllers[0] as? UINavigationController {
+                navigationController.popToRootViewController(animated: false)
+            }
+        }
     }
     
     fileprivate func captureViewSplit()
     {
+        guard self.view != nil else {
+            return
+        }
+        
+        guard self.view.bounds.height > 0 else {
+            return
+        }
+        
+        guard viewSplit != nil else {
+            return
+        }
+        
+        guard mediaItemNotesAndSlidesConstraint != nil else {
+            return
+        }
+        
+        guard selectedMediaItem != nil else {
+            return
+        }
+        
         //        print("captureViewSplit: \(mediaItemSelected?.title)")
         
-        if (self.view != nil) && (viewSplit.bounds.size.width > 0) {
-            if (selectedMediaItem != nil) {
-                //                print("\(self.view.bounds.height)")
-                let ratio = self.mediaItemNotesAndSlidesConstraint.constant / self.view.bounds.height
-                
-                //            print("captureViewSplit ratio: \(ratio)")
-                
-                selectedMediaItem?.viewSplit = "\(ratio)"
-            }
-        }
+        //                print("\(self.view.bounds.height)")
+        let ratio = self.mediaItemNotesAndSlidesConstraint.constant / self.view.bounds.height
+        
+        //            print("captureViewSplit ratio: \(ratio)")
+        
+        selectedMediaItem?.viewSplit = "\(ratio)"
     }
     
     fileprivate func captureSlideSplit()
     {
         //        print("captureViewSplit: \(mediaItemSelected?.title)")
+        
         guard self.view != nil else {
             return
         }
@@ -3448,6 +3555,10 @@ class MediaViewController: UIViewController
             return
         }
 
+        guard tableViewWidth != nil else {
+            return
+        }
+        
         if (selectedMediaItem != nil) {
             //                print("\(self.view.bounds.height)")
             let ratio = self.tableViewWidth.constant / self.view.bounds.width

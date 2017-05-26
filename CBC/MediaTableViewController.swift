@@ -3115,7 +3115,8 @@ class MediaTableViewController : UIViewController
         performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: self)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool)
+    {
         super.viewWillAppear(animated)
         
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
@@ -3410,8 +3411,12 @@ class MediaTableViewController : UIViewController
 ////            self.tableView.setEditing(false, animated: true)
 //        }
 
-        if !UIApplication.shared.isRunningInFullScreen() {
-            // This is a HACK.  
+        let livc = navigationController?.visibleViewController as? LexiconIndexViewController
+        
+        let sivc = navigationController?.visibleViewController as? ScriptureIndexViewController
+        
+        if splitViewController != nil { // !UIApplication.shared.isRunningInFullScreen()
+            // This is a HACK.
             
             // If the Scripture VC or Lexicon VC is showing and the SplitViewController has ONE viewController showing (i.e. the SVC or LVC) and
             // the device is rotation and the SplitViewController will show TWO viewControllers when it finishes, then the SVC or LVC will be 
@@ -3422,7 +3427,13 @@ class MediaTableViewController : UIViewController
             // So, since this is called for situations that DO NOT involve rotation or changes in the number of split view controller's view controllers, this
             // causes popping to root in lots of other cases where I wish it did not.
             
-            _ = self.navigationController?.popToRootViewController(animated: true)
+            if livc != nil {
+                _ = self.navigationController?.popToRootViewController(animated: false)
+            }
+            
+            if sivc != nil {
+                _ = self.navigationController?.popToRootViewController(animated: false)
+            }
         }
 
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
@@ -3457,6 +3468,39 @@ class MediaTableViewController : UIViewController
                 self.dismiss(animated: true, completion: nil)
             }
             self.setupTitle()
+            
+            if self.splitViewController != nil { // !UIApplication.shared.isRunningInFullScreen()
+                // This is a HACK.
+                
+                // If the Scripture VC or Lexicon VC is showing and the SplitViewController has ONE viewController showing (i.e. the SVC or LVC) and
+                // the device is rotation and the SplitViewController will show TWO viewControllers when it finishes, then the SVC or LVC will be
+                // put in the detail view controller's position!
+                
+                // Unfortuantely I know of NO way to determine if the device is rotating or whether the split view controller is going from one view controller to two.
+                
+                // So, since this is called for situations that DO NOT involve rotation or changes in the number of split view controller's view controllers, this
+                // causes popping to root in lots of other cases where I wish it did not.
+                
+                if let _ = self.navigationController?.visibleViewController as? MediaViewController {
+                    if livc != nil {
+                        self.navigationController?.viewControllers.insert(livc!, at: 1)
+                    }
+                    
+                    if sivc != nil {
+                        self.navigationController?.viewControllers.insert(sivc!, at: 1)
+                    }
+                }
+                
+                if self.navigationController?.visibleViewController == self {
+                    if livc != nil {
+                        self.navigationController?.pushViewController(livc!, animated: false)
+                    }
+                    
+                    if sivc != nil {
+                        self.navigationController?.pushViewController(sivc!, animated: false)
+                    }
+                }
+            }
         }
     }
 }
