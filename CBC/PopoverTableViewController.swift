@@ -413,11 +413,11 @@ class PopoverTableViewController : UIViewController {
             break
         }
         
-        var viewWidth = self.view.frame.width
+        let viewWidth = vc!.splitViewController!.view.frame.width
         
-        if (self.vc?.splitViewController != nil) && (self.vc!.splitViewController!.viewControllers.count > 1) {
-            viewWidth = self.vc!.splitViewController!.view.frame.width
-        }
+//        if (vc!.splitViewController?.viewControllers.count > 1) {
+//            viewWidth = vc!.splitViewController!.view.frame.width
+//        }
         
         //        print(view.frame.width - deducts)
         

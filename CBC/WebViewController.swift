@@ -368,7 +368,7 @@ extension WebViewController : WKNavigationDelegate
     }
     
     func webView(_ wkWebView: WKWebView, didFail navigation: WKNavigation!, withError: Error) {
-        if (splitViewController != nil) || (self == navigationController?.visibleViewController) {
+        if (splitViewController?.viewControllers.count > 1) || (self == navigationController?.visibleViewController) {
             print("wkDidFail navigation")
             activityIndicator.stopAnimating()
             activityIndicator.isHidden = true
@@ -382,7 +382,7 @@ extension WebViewController : WKNavigationDelegate
     }
     
     func webView(_ wkWebView: WKWebView, didFailProvisionalNavigation: WKNavigation!, withError: Error) {
-        if (splitViewController != nil) || (self == navigationController?.visibleViewController) {
+        if (splitViewController?.viewControllers.count > 1) || (self == navigationController?.visibleViewController) {
             print("wkDidFailProvisionalNavigation")
             activityIndicator.stopAnimating()
             activityIndicator.isHidden = true

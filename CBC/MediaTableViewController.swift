@@ -285,7 +285,7 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
         DispatchQueue.main.async(execute: { () -> Void in
             self.tableView.reloadData()
             
-            if self.splitViewController != nil {
+            if self.splitViewController?.viewControllers.count > 1 {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
             }
         })
@@ -610,7 +610,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             DispatchQueue.main.async(execute: { () -> Void in
                 self.tableView.reloadData()
                 
-                if self.splitViewController != nil {
+                if self.splitViewController?.viewControllers.count > 1 {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
                 }
             })
@@ -1299,7 +1299,7 @@ class MediaTableViewController : UIViewController
             
             var showMenu = [String]()
             
-            if (self.splitViewController != nil) {
+            if (splitViewController?.viewControllers.count > 1) {
                 // What if it is collapsed and the detail view is showing?
                 if (!globals.showingAbout) {
                     showMenu.append(Constants.About)
@@ -1334,7 +1334,7 @@ class MediaTableViewController : UIViewController
                     show = Constants.Media_Paused
                 }
                 
-                if (self.splitViewController != nil) {
+                if (splitViewController?.viewControllers.count > 1) {
                     if let nvc = self.splitViewController!.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
                         if let myvc = nvc.topViewController as? MediaViewController {
                             if (myvc.selectedMediaItem != nil) {
@@ -1687,7 +1687,7 @@ class MediaTableViewController : UIViewController
             })
         })
         
-        if (splitViewController != nil) {
+        if (splitViewController?.viewControllers.count > 1) {
             DispatchQueue.main.async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
             })
@@ -3070,7 +3070,7 @@ class MediaTableViewController : UIViewController
             if (globals.media.all == nil) {
                 splitViewController?.preferredDisplayMode = .primaryOverlay//iPad only
             } else {
-                if (splitViewController != nil) {
+                if (self.splitViewController?.viewControllers.count > 1) {
                     if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
                         if let _ = nvc.visibleViewController as? WebViewController {
                             splitViewController?.preferredDisplayMode = .primaryHidden //iPad only
@@ -3081,7 +3081,7 @@ class MediaTableViewController : UIViewController
                 }
             }
         } else {
-            if (splitViewController != nil) {
+            if (self.splitViewController?.viewControllers.count > 1) {
                 if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
                     if let _ = nvc.visibleViewController as? WebViewController {
                         splitViewController?.preferredDisplayMode = .primaryHidden //iPad only
@@ -3331,7 +3331,7 @@ class MediaTableViewController : UIViewController
         
         //        globals.mediaPlayer.controller?.player?.setFullscreen(!globals.mediaPlayer.controller?.player!.isFullscreen, animated: true)
         
-        if splitViewController != nil {
+        if splitViewController?.viewControllers.count > 1 {
 //            print(splitViewController!.displayMode.rawValue)
             
             switch splitViewController!.displayMode {
@@ -3415,7 +3415,9 @@ class MediaTableViewController : UIViewController
         
         let sivc = navigationController?.visibleViewController as? ScriptureIndexViewController
         
-        if splitViewController != nil { // !UIApplication.shared.isRunningInFullScreen()
+        let wasNotFullScreen = !UIApplication.shared.isRunningInFullScreen()
+        
+        if wasNotFullScreen { //
             // This is a HACK.
             
             // If the Scripture VC or Lexicon VC is showing and the SplitViewController has ONE viewController showing (i.e. the SVC or LVC) and
@@ -3469,7 +3471,7 @@ class MediaTableViewController : UIViewController
             }
             self.setupTitle()
             
-            if self.splitViewController != nil { // !UIApplication.shared.isRunningInFullScreen()
+            if wasNotFullScreen { // || !UIApplication.shared.isRunningInFullScreen() 
                 // This is a HACK.
                 
                 // If the Scripture VC or Lexicon VC is showing and the SplitViewController has ONE viewController showing (i.e. the SVC or LVC) and

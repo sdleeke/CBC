@@ -978,7 +978,13 @@ class MediaViewController: UIViewController
     
     @IBOutlet weak var progressIndicator: UIProgressView!
 
-    @IBOutlet weak var viewSplit: ViewSplit!
+    @IBOutlet weak var viewSplit: ViewSplit! {
+        didSet {
+            let tap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.resetConstraint))
+            tap.numberOfTapsRequired = 2
+            viewSplit?.addGestureRecognizer(tap)
+        }
+    }
 
     @IBOutlet weak var audioOrVideoControl: UISegmentedControl!
     @IBOutlet weak var audioOrVideoWidthConstraint: NSLayoutConstraint!
@@ -2272,10 +2278,6 @@ class MediaViewController: UIViewController
 //        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
         navigationItem.leftItemsSupplementBackButton = true
         
-        let tap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.resetConstraint))
-        tap.numberOfTapsRequired = 2
-        viewSplit?.addGestureRecognizer(tap)
-        
 //        viewSplit.splitViewController = splitViewController
 
         //Eliminates blank cells at end.
@@ -3448,7 +3450,9 @@ class MediaViewController: UIViewController
         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.readyToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.setupPlayPauseButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
         
-        if (self.splitViewController != nil) {
+        if (self.splitViewController?.viewControllers.count > 1) {
+            updateView()
+            
             NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
         }

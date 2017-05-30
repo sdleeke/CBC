@@ -133,15 +133,15 @@ class LiveViewController: UIViewController {
         
         globals.mediaPlayer.showsPlaybackControls = true
         
-        view.gestureRecognizers = nil
-        let pan = UIPanGestureRecognizer(target: self, action: #selector(LiveViewController.showHideNotice(_:)))
-        view.addGestureRecognizer(pan)
-
         textView.sizeToFit()
         
         if (globals.mediaPlayer.view != nil) {
             let view = globals.mediaPlayer.view
 
+            view?.gestureRecognizers = nil
+            let pan = UIPanGestureRecognizer(target: self, action: #selector(LiveViewController.showHideNotice(_:)))
+            view?.addGestureRecognizer(pan)
+            
             view?.isHidden = true
             view?.removeFromSuperview()
             

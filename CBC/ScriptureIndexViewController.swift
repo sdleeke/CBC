@@ -1828,7 +1828,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
         
 //        print(selectedMediaItem?.booksChaptersVerses?.data as Any)
         
-        if (splitViewController != nil) && (splitViewController!.viewControllers.count > 1) {
+        if (splitViewController?.viewControllers.count > 1) {
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
                 let viewController = navigationController.viewControllers[0] as? MediaViewController {
                 viewController.selectedMediaItem = selectedMediaItem
