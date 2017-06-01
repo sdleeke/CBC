@@ -374,6 +374,49 @@ extension MediaViewController : WKNavigationDelegate
 {
     // MARK: WKNavigationDelegate
     
+    func webView(_ wkWebView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void)
+    {
+        //        print(navigationAction.request.url!.absoluteString)
+        //        print(navigationAction.navigationType.rawValue)
+        
+        if (navigationAction.navigationType == .other) {
+            decisionHandler(WKNavigationActionPolicy.allow)
+        } else {
+            //            print(navigationAction.request.url?.absoluteString)
+            if let url = navigationAction.request.url?.absoluteString, let range = url.range(of: "%23") {
+                let tag = url.substring(to: range.lowerBound)
+                
+                if tag == "about:blank" {
+                    decisionHandler(WKNavigationActionPolicy.allow)
+                } else {
+                    decisionHandler(WKNavigationActionPolicy.cancel)
+                }
+                
+                //                switch tag.lowercased() {
+                //                case "index":
+                //                    fallthrough
+                //
+                //                case "locations":
+                //                    decisionHandler(WKNavigationActionPolicy.allow)
+                //                    break
+                //
+                //                default:
+                //                    if Int(tag) != nil {
+                //                        decisionHandler(WKNavigationActionPolicy.allow)
+                //                    }
+                //                    break
+                //                }
+            } else {
+                if let url = navigationAction.request.url {
+                    if UIApplication.shared.canOpenURL(url) { // Reachability.isConnectedToNetwork() &&
+                        UIApplication.shared.openURL(url)
+                    }
+                }
+                decisionHandler(WKNavigationActionPolicy.cancel)
+            }
+        }
+    }
+
     func webView(_ webView: WKWebView,
                  decidePolicyFor navigationResponse: WKNavigationResponse,
                  decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void)
@@ -453,7 +496,8 @@ extension MediaViewController : WKNavigationDelegate
 //        }
     }
     
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!)
+    {
         print("wkWebViewDidFinishNavigation Loading:\(webView.isLoading)")
         
         //        print("Frame: \(webView.frame)")
@@ -3164,12 +3208,17 @@ class MediaViewController: UIViewController
             DispatchQueue.main.async(execute: { () -> Void in
                 self.setupTitle()
                 
-                let hClass = self.splitViewController!.traitCollection.horizontalSizeClass
-                let vClass = self.splitViewController!.traitCollection.verticalSizeClass
-
-                if let navigationController = self.splitViewController!.viewControllers[self.splitViewController!.viewControllers.count-1] as? UINavigationController {
-                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-                        navigationController.topViewController!.navigationItem.leftBarButtonItem = self.splitViewController!.displayModeButtonItem
+                if self.splitViewController == nil {
+                    print("splitViewController == nil")
+                }
+                
+                if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+                    let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
+                    let count = self.splitViewController?.viewControllers.count {
+                    if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
+                        if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+                            navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+                        }
                     }
                 }
 
@@ -3751,7 +3800,7 @@ class MediaViewController: UIViewController
             return
         }
 
-        guard let mediaItemCurrentTime = globals.mediaPlayer.mediaItem?.currentTime, let playingCurrentTime = Double(mediaItemCurrentTime), playingCurrentTime >= 0, playingCurrentTime <= length else {
+        guard let mediaItemCurrentTime = globals.mediaPlayer.mediaItem?.currentTime, let playingCurrentTime = Double(mediaItemCurrentTime), playingCurrentTime >= 0, Int(playingCurrentTime) <= Int(length) else {
             return
         }
 

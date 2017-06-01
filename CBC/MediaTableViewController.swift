@@ -1365,6 +1365,10 @@ class MediaTableViewController : UIViewController
                 showMenu.append(Constants.View_List)
             }
             
+            if splitViewController == nil {
+                print("splitViewController == nil")
+            }
+            
             if let vClass = splitViewController?.traitCollection.verticalSizeClass,
                 let isCollapsed = splitViewController?.isCollapsed,
                 (vClass != UIUserInterfaceSizeClass.compact) || isCollapsed {
@@ -3373,12 +3377,16 @@ class MediaTableViewController : UIViewController
             return
         }
         
-        let hClass = self.splitViewController!.traitCollection.horizontalSizeClass
-        let vClass = self.splitViewController!.traitCollection.verticalSizeClass
+        if splitViewController == nil {
+            print("splitViewController == nil")
+        }
         
-        if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-            navigationItem.rightBarButtonItem = nil
-            return
+        if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+            let vClass = self.splitViewController?.traitCollection.verticalSizeClass {
+            if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+                navigationItem.rightBarButtonItem = nil
+                return
+            }
         }
 
         if (splitViewController?.viewControllers.count > 1) { //  && isFullScreen
@@ -3500,12 +3508,17 @@ class MediaTableViewController : UIViewController
             self.setupShowHide()
             self.setupTitle()
             
-            let hClass = self.splitViewController!.traitCollection.horizontalSizeClass
-            let vClass = self.splitViewController!.traitCollection.verticalSizeClass
+            if self.splitViewController == nil {
+                print("splitViewController == nil")
+            }
             
-            if let navigationController = self.splitViewController!.viewControllers[self.splitViewController!.viewControllers.count-1] as? UINavigationController {
-                if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-                    navigationController.topViewController!.navigationItem.leftBarButtonItem = self.splitViewController!.displayModeButtonItem
+            if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+                let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
+                let count = self.splitViewController?.viewControllers.count {
+                if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
+                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+                    }
                 }
             }
             
