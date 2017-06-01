@@ -1365,12 +1365,16 @@ class MediaTableViewController : UIViewController
                 showMenu.append(Constants.View_List)
             }
             
-            if (globals.media.active?.scriptureIndex?.eligible != nil) {
-                showMenu.append(Constants.Scripture_Index)
-            }
-            
-            if (globals.media.active?.lexicon?.eligible != nil) {
-                showMenu.append(Constants.Lexicon_Index)
+            if let vClass = splitViewController?.traitCollection.verticalSizeClass,
+                let isCollapsed = splitViewController?.isCollapsed,
+                (vClass != UIUserInterfaceSizeClass.compact) || isCollapsed {
+                if (globals.media.active?.scriptureIndex?.eligible != nil) {
+                    showMenu.append(Constants.Scripture_Index)
+                }
+                
+                if (globals.media.active?.lexicon?.eligible != nil) {
+                    showMenu.append(Constants.Lexicon_Index)
+                }
             }
             
             if globals.history != nil {
@@ -3369,6 +3373,14 @@ class MediaTableViewController : UIViewController
             return
         }
         
+        let hClass = self.splitViewController!.traitCollection.horizontalSizeClass
+        let vClass = self.splitViewController!.traitCollection.verticalSizeClass
+        
+        if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+            navigationItem.rightBarButtonItem = nil
+            return
+        }
+
         if (splitViewController?.viewControllers.count > 1) { //  && isFullScreen
             switch splitViewController!.displayMode {
             case .automatic:
@@ -3411,13 +3423,29 @@ class MediaTableViewController : UIViewController
 ////            self.tableView.setEditing(false, animated: true)
 //        }
 
-        let livc = navigationController?.visibleViewController as? LexiconIndexViewController
+        var livc : LexiconIndexViewController?
         
-        let sivc = navigationController?.visibleViewController as? ScriptureIndexViewController
+        if let viewControllers = navigationController?.viewControllers {
+            for viewController in viewControllers {
+                if let _ = viewController as? LexiconIndexViewController {
+                    livc = viewController as? LexiconIndexViewController
+                }
+            }
+        }
+        
+        var sivc : ScriptureIndexViewController?
+        
+        if let viewControllers = navigationController?.viewControllers {
+            for viewController in viewControllers {
+                if let _ = viewController as? ScriptureIndexViewController {
+                    sivc = viewController as? ScriptureIndexViewController
+                }
+            }
+        }
         
         let wasNotFullScreen = !UIApplication.shared.isRunningInFullScreen()
         
-        if wasNotFullScreen { //
+        if wasNotFullScreen || (DeviceType.IS_IPHONE_6P_7P && splitViewController!.isCollapsed) { //
             // This is a HACK.
             
             // If the Scripture VC or Lexicon VC is showing and the SplitViewController has ONE viewController showing (i.e. the SVC or LVC) and
@@ -3436,6 +3464,10 @@ class MediaTableViewController : UIViewController
             if sivc != nil {
                 _ = self.navigationController?.popToRootViewController(animated: false)
             }
+        }
+        
+        if wasNotFullScreen || splitViewController!.isCollapsed {
+            self.dismiss(animated: true, completion: nil)
         }
 
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
@@ -3466,12 +3498,18 @@ class MediaTableViewController : UIViewController
 //            }
 
             self.setupShowHide()
-            if !UIApplication.shared.isRunningInFullScreen() {
-                self.dismiss(animated: true, completion: nil)
-            }
             self.setupTitle()
             
-            if wasNotFullScreen { // || !UIApplication.shared.isRunningInFullScreen() 
+            let hClass = self.splitViewController!.traitCollection.horizontalSizeClass
+            let vClass = self.splitViewController!.traitCollection.verticalSizeClass
+            
+            if let navigationController = self.splitViewController!.viewControllers[self.splitViewController!.viewControllers.count-1] as? UINavigationController {
+                if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+                    navigationController.topViewController!.navigationItem.leftBarButtonItem = self.splitViewController!.displayModeButtonItem
+                }
+            }
+            
+            if wasNotFullScreen { //
                 // This is a HACK.
                 
                 // If the Scripture VC or Lexicon VC is showing and the SplitViewController has ONE viewController showing (i.e. the SVC or LVC) and
@@ -3483,25 +3521,25 @@ class MediaTableViewController : UIViewController
                 // So, since this is called for situations that DO NOT involve rotation or changes in the number of split view controller's view controllers, this
                 // causes popping to root in lots of other cases where I wish it did not.
                 
-                if let _ = self.navigationController?.visibleViewController as? MediaViewController {
-                    if livc != nil {
-                        self.navigationController?.viewControllers.insert(livc!, at: 1)
-                    }
-                    
-                    if sivc != nil {
-                        self.navigationController?.viewControllers.insert(sivc!, at: 1)
-                    }
-                }
-                
-                if self.navigationController?.visibleViewController == self {
-                    if livc != nil {
-                        self.navigationController?.pushViewController(livc!, animated: false)
-                    }
-                    
-                    if sivc != nil {
-                        self.navigationController?.pushViewController(sivc!, animated: false)
-                    }
-                }
+//                if let _ = self.navigationController?.visibleViewController as? MediaViewController {
+//                    if livc != nil {
+//                        self.navigationController?.viewControllers.insert(livc!, at: 1)
+//                    }
+//                    
+//                    if sivc != nil {
+//                        self.navigationController?.viewControllers.insert(sivc!, at: 1)
+//                    }
+//                }
+//                
+//                if self.navigationController?.visibleViewController == self {
+//                    if livc != nil {
+//                        self.navigationController?.pushViewController(livc!, animated: false)
+//                    }
+//                    
+//                    if sivc != nil {
+//                        self.navigationController?.pushViewController(sivc!, animated: false)
+//                    }
+//                }
             }
         }
     }

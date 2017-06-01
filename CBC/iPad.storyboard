@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12120" systemVersion="16F73" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="Xai-Yi-pif">
-    <device id="retina4_0" orientation="landscape">
+    <device id="retina5_5" orientation="landscape">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
@@ -39,38 +39,38 @@
                         <viewControllerLayoutGuide type="bottom" id="KAY-ks-SIC"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="NpF-M6-DhB">
-                        <rect key="frame" x="0.0" y="64" width="568" height="256"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="350"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VOM-jg-qMI" userLabel="Category Button">
-                                <rect key="frame" x="269" y="0.0" width="30" height="34"/>
+                                <rect key="frame" x="145" y="0.0" width="30" height="34"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="18"/>
                                 <connections>
                                     <action selector="mediaCategoryButtonAction:" destination="aFI-YW-IUs" eventType="touchUpInside" id="zZ9-SA-ehY"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5VA-jO-Uu5">
-                                <rect key="frame" x="530" y="3" width="30" height="31"/>
+                                <rect key="frame" x="282" y="3" width="30" height="31"/>
                                 <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="18"/>
                                 <connections>
                                     <action selector="selectingTagsAction:" destination="aFI-YW-IUs" eventType="touchUpInside" id="X6j-Pw-1h0"/>
                                 </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="UID-2k-GxM" userLabel="Tag Label">
-                                <rect key="frame" x="6" y="34" width="556" height="0.0"/>
+                                <rect key="frame" x="6" y="34" width="308" height="0.0"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="VIx-eq-98g">
-                                <rect key="frame" x="0.0" y="83" width="568" height="173"/>
+                                <rect key="frame" x="0.0" y="83" width="320" height="267"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="MediaItem" id="a5x-WU-NNC" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="22" width="568" height="100"/>
+                                        <rect key="frame" x="0.0" y="22" width="320" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="a5x-WU-NNC" id="A01-fJ-FMH">
-                                            <rect key="frame" x="0.0" y="0.0" width="568" height="99.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="99.666666666666671"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="749" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Xkb-5P-JA1">
@@ -184,17 +184,17 @@
                                 </connections>
                             </tableView>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="UJe-f8-3w6" userLabel="List Activity Indicator">
-                                <rect key="frame" x="274" y="118" width="20" height="20"/>
+                                <rect key="frame" x="150" y="165" width="20" height="20"/>
                             </activityIndicatorView>
                             <searchBar contentMode="redraw" translatesAutoresizingMaskIntoConstraints="NO" id="Hkg-p6-JKj">
-                                <rect key="frame" x="0.0" y="40" width="568" height="44"/>
+                                <rect key="frame" x="0.0" y="40" width="320" height="44"/>
                                 <textInputTraits key="textInputTraits" returnKeyType="search"/>
                                 <connections>
                                     <outlet property="delegate" destination="aFI-YW-IUs" id="JYV-bl-aPp"/>
                                 </connections>
                             </searchBar>
                             <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="JeO-c3-71m">
-                                <rect key="frame" x="71" y="127" width="426" height="2"/>
+                                <rect key="frame" x="40" y="174" width="240" height="2"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="150" id="Hlp-uI-WvN"/>
                                 </constraints>
@@ -272,11 +272,11 @@
                         <viewControllerLayoutGuide type="bottom" id="hyM-uV-ueX"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="ev9-lG-hyo">
-                        <rect key="frame" x="0.0" y="0.0" width="568" height="320"/>
+                        <rect key="frame" x="0.0" y="0.0" width="415" height="414"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="i5a-B7-7oc" userLabel="ViewSplit" customClass="ViewSplit" customModule="CBC" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="268" width="320" height="46"/>
+                                <rect key="frame" x="0.0" y="214" width="415" height="46"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <gestureRecognizers/>
                                 <connections>
@@ -284,7 +284,7 @@
                                 </connections>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Bq5-HS-Wzs" userLabel="Control View" customClass="ControlView" customModule="CBC" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="64" width="568" height="46"/>
+                                <rect key="frame" x="0.0" y="214" width="415" height="46"/>
                                 <subviews>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="oDn-Ci-DOw">
                                         <rect key="frame" x="8" y="9" width="50" height="29"/>
@@ -299,7 +299,7 @@
                                             <action selector="audioOrVideoSelectionWithSender:" destination="H2E-ZS-FbW" eventType="valueChanged" id="do2-8C-ohW"/>
                                         </connections>
                                     </segmentedControl>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IOJ-ni-wmp" userLabel="Play Pause">
+                                    <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="749" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IOJ-ni-wmp" userLabel="Play Pause">
                                         <rect key="frame" x="66" y="5" width="20" height="36"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="lessThanOrEqual" constant="20" id="fRb-bR-VJr"/>
@@ -323,7 +323,7 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="Pkj-Y2-Qqf" customClass="OBSlider" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="139" y="8" width="297" height="31"/>
+                                        <rect key="frame" x="139" y="8" width="144" height="31"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="50" id="3Ko-1C-1yT"/>
@@ -336,10 +336,10 @@
                                         </connections>
                                     </slider>
                                     <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="B3S-Ru-eDq">
-                                        <rect key="frame" x="278" y="13" width="20" height="20"/>
+                                        <rect key="frame" x="201.66666666666666" y="13" width="20" height="20"/>
                                     </activityIndicatorView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="00:00" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="S9f-5O-zMH" userLabel="Time Remaining">
-                                        <rect key="frame" x="442" y="15" width="39" height="17"/>
+                                        <rect key="frame" x="289" y="15" width="39" height="17"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" staticText="YES" notEnabled="YES"/>
@@ -352,7 +352,7 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="3yY-29-aOM">
-                                        <rect key="frame" x="489" y="9" width="71" height="29"/>
+                                        <rect key="frame" x="336" y="9" width="71" height="29"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="lessThanOrEqual" constant="75" id="fQF-aT-Yg1"/>
                                         </constraints>
@@ -396,10 +396,10 @@
                                 </variation>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="sSN-Ac-J4R" userLabel="Notes and slides">
-                                <rect key="frame" x="0.0" y="110" width="284" height="210"/>
+                                <rect key="frame" x="0.0" y="64" width="415" height="150"/>
                                 <subviews>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="Ay8-yt-A6W">
-                                        <rect key="frame" x="2.5" y="69" width="279" height="72"/>
+                                        <rect key="frame" x="68" y="39" width="279" height="72"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>
@@ -410,10 +410,10 @@
                                         </constraints>
                                     </imageView>
                                     <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="NEp-ku-QG6">
-                                        <rect key="frame" x="132.5" y="95" width="20" height="20"/>
+                                        <rect key="frame" x="198" y="65" width="20" height="20"/>
                                     </activityIndicatorView>
                                     <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="CSL-J3-OFX">
-                                        <rect key="frame" x="67.5" y="104" width="150" height="2"/>
+                                        <rect key="frame" x="133" y="74" width="150" height="2"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="150" id="eJT-tl-zGY"/>
                                         </constraints>
@@ -431,21 +431,21 @@
                                 </constraints>
                             </view>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="1" sectionFooterHeight="1" translatesAutoresizingMaskIntoConstraints="NO" id="91J-fh-SJo">
-                                <rect key="frame" x="284" y="110" width="284" height="210"/>
+                                <rect key="frame" x="0.0" y="260" width="415" height="154"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="284" id="uAg-i8-kWW"/>
                                 </constraints>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="MultiPartMediaItem" id="pos-sk-GNz" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="1" width="284" height="100"/>
+                                        <rect key="frame" x="0.0" y="1" width="415" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="pos-sk-GNz" id="fzr-9D-Qsi">
-                                            <rect key="frame" x="0.0" y="0.0" width="284" height="99.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="415" height="99.666666666666671"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="749" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Spt-3A-E9i">
-                                                    <rect key="frame" x="20" y="16" width="296" height="20"/>
+                                                    <rect key="frame" x="20" y="16" width="679" height="20"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="n46-8i-ALt"/>
                                                     </constraints>
@@ -454,13 +454,13 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4uZ-39-i9r">
-                                                    <rect key="frame" x="20" y="38" width="270" height="57"/>
+                                                    <rect key="frame" x="20" y="38" width="653" height="57"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iq3-ZA-EGB" userLabel="Download">
-                                                    <rect key="frame" x="298" y="60" width="18" height="31"/>
+                                                    <rect key="frame" x="681" y="60" width="18" height="31"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="Bqj-uH-acL"/>
                                                     </constraints>
@@ -470,13 +470,13 @@
                                                     </connections>
                                                 </button>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="L9x-Xt-BKK" userLabel="Icons">
-                                                    <rect key="frame" x="316" y="91" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="699" y="91" width="0.0" height="0.0"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="nxS-ta-D6R">
-                                                    <rect key="frame" x="20" y="97" width="300" height="2"/>
+                                                    <rect key="frame" x="20" y="97" width="683" height="2"/>
                                                 </progressView>
                                             </subviews>
                                             <constraints>
@@ -530,7 +530,7 @@
                                         <exclude reference="uAg-i8-kWW"/>
                                     </mask>
                                 </variation>
-                                <variation key="heightClass=compact">
+                                <variation key="heightClass=compact-widthClass=compact">
                                     <mask key="constraints">
                                         <include reference="uAg-i8-kWW"/>
                                     </mask>
@@ -541,7 +541,7 @@
                                 </connections>
                             </tableView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="94Q-2f-NGa" userLabel="V Slide View">
-                                <rect key="frame" x="274" y="110" width="20" height="210"/>
+                                <rect key="frame" x="373" y="110" width="20" height="265"/>
                                 <gestureRecognizers/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="20" id="z6E-sw-g1p"/>
@@ -551,7 +551,7 @@
                                         <exclude reference="z6E-sw-g1p"/>
                                     </mask>
                                 </variation>
-                                <variation key="heightClass=compact">
+                                <variation key="heightClass=compact-widthClass=compact">
                                     <mask key="constraints">
                                         <include reference="z6E-sw-g1p"/>
                                     </mask>
@@ -562,7 +562,7 @@
                                 </connections>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Ut8-lg-8ab" userLabel="H Slide View">
-                                <rect key="frame" x="0.0" y="300" width="568" height="20"/>
+                                <rect key="frame" x="0.0" y="355" width="667" height="20"/>
                                 <gestureRecognizers/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="20" id="sED-b0-uFm"/>
@@ -572,7 +572,7 @@
                                         <exclude reference="sED-b0-uFm"/>
                                     </mask>
                                 </variation>
-                                <variation key="heightClass=compact">
+                                <variation key="heightClass=compact-widthClass=compact">
                                     <mask key="constraints">
                                         <include reference="sED-b0-uFm"/>
                                     </mask>
@@ -586,14 +586,13 @@
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="Bq5-HS-Wzs" firstAttribute="top" secondItem="q7U-Fv-YgR" secondAttribute="bottom" id="0Jv-l5-4Tu"/>
-                            <constraint firstAttribute="trailing" secondItem="i5a-B7-7oc" secondAttribute="trailing" id="1GU-tn-Yw8"/>
                             <constraint firstAttribute="trailing" secondItem="91J-fh-SJo" secondAttribute="trailing" id="5BB-Ay-qNn"/>
                             <constraint firstAttribute="trailing" secondItem="Ut8-lg-8ab" secondAttribute="trailing" id="9RS-p5-gJG"/>
                             <constraint firstItem="94Q-2f-NGa" firstAttribute="top" secondItem="Bq5-HS-Wzs" secondAttribute="bottom" id="Bnz-L0-ebT"/>
                             <constraint firstItem="hyM-uV-ueX" firstAttribute="top" secondItem="Ut8-lg-8ab" secondAttribute="bottom" id="EC7-xr-i5p"/>
                             <constraint firstItem="94Q-2f-NGa" firstAttribute="leading" secondItem="sSN-Ac-J4R" secondAttribute="trailing" constant="-10" id="Gee-mK-zaj"/>
                             <constraint firstAttribute="trailing" secondItem="sSN-Ac-J4R" secondAttribute="trailing" id="HEd-vY-teK"/>
-                            <constraint firstAttribute="bottom" secondItem="sSN-Ac-J4R" secondAttribute="bottom" constant="300" id="HOe-Ks-3kR"/>
+                            <constraint firstAttribute="bottom" secondItem="sSN-Ac-J4R" secondAttribute="bottom" constant="200" id="HOe-Ks-3kR"/>
                             <constraint firstItem="i5a-B7-7oc" firstAttribute="bottom" secondItem="Bq5-HS-Wzs" secondAttribute="bottom" id="KCd-mo-EHx"/>
                             <constraint firstItem="i5a-B7-7oc" firstAttribute="leading" secondItem="Bq5-HS-Wzs" secondAttribute="trailing" id="OsV-IC-JLv"/>
                             <constraint firstAttribute="trailing" secondItem="Bq5-HS-Wzs" secondAttribute="trailing" id="Otl-8U-ke8"/>
@@ -621,38 +620,34 @@
                                 <exclude reference="Ut8-lg-8ab"/>
                             </mask>
                             <mask key="constraints">
+                                <exclude reference="hHn-qT-3ih"/>
+                                <exclude reference="0Jv-l5-4Tu"/>
                                 <exclude reference="OsV-IC-JLv"/>
                                 <exclude reference="f9R-Gt-YvP"/>
-                                <exclude reference="0Jv-l5-4Tu"/>
-                                <exclude reference="hHn-qT-3ih"/>
-                                <exclude reference="Bnz-L0-ebT"/>
-                                <exclude reference="Gee-mK-zaj"/>
-                                <exclude reference="9RS-p5-gJG"/>
-                                <exclude reference="XcF-SL-vQ7"/>
                                 <exclude reference="UTu-1b-fA3"/>
                                 <exclude reference="d7L-W7-98W"/>
                                 <exclude reference="EC7-xr-i5p"/>
                                 <exclude reference="UIA-aB-fuC"/>
                                 <exclude reference="wWa-1o-oXk"/>
+                                <exclude reference="9RS-p5-gJG"/>
+                                <exclude reference="XcF-SL-vQ7"/>
+                                <exclude reference="Bnz-L0-ebT"/>
+                                <exclude reference="Gee-mK-zaj"/>
                             </mask>
                         </variation>
-                        <variation key="heightClass=compact">
+                        <variation key="heightClass=compact-widthClass=compact">
                             <mask key="subviews">
                                 <exclude reference="i5a-B7-7oc"/>
                                 <include reference="94Q-2f-NGa"/>
                                 <include reference="Ut8-lg-8ab"/>
                             </mask>
                             <mask key="constraints">
-                                <include reference="0Jv-l5-4Tu"/>
-                                <exclude reference="qUY-iM-EXz"/>
                                 <exclude reference="HEd-vY-teK"/>
                                 <exclude reference="HOe-Ks-3kR"/>
                                 <exclude reference="VmD-wu-0aL"/>
                                 <include reference="hHn-qT-3ih"/>
-                                <include reference="Bnz-L0-ebT"/>
-                                <include reference="Gee-mK-zaj"/>
-                                <include reference="9RS-p5-gJG"/>
-                                <include reference="XcF-SL-vQ7"/>
+                                <include reference="0Jv-l5-4Tu"/>
+                                <exclude reference="qUY-iM-EXz"/>
                                 <include reference="UTu-1b-fA3"/>
                                 <include reference="d7L-W7-98W"/>
                                 <exclude reference="dAk-pk-tVX"/>
@@ -660,6 +655,10 @@
                                 <include reference="EC7-xr-i5p"/>
                                 <include reference="UIA-aB-fuC"/>
                                 <include reference="wWa-1o-oXk"/>
+                                <include reference="9RS-p5-gJG"/>
+                                <include reference="XcF-SL-vQ7"/>
+                                <include reference="Bnz-L0-ebT"/>
+                                <include reference="Gee-mK-zaj"/>
                             </mask>
                         </variation>
                     </view>
@@ -1098,15 +1097,15 @@ Web site: www.countrysidebible.org</string>
                         <viewControllerLayoutGuide type="bottom" id="BnS-sI-BZ8"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="gRo-VW-4dm">
-                        <rect key="frame" x="0.0" y="64" width="568" height="256"/>
+                        <rect key="frame" x="0.0" y="64" width="415" height="350"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="z2d-eT-0hV" userLabel="Web View">
-                                <rect key="frame" x="0.0" y="0.0" width="568" height="223"/>
+                                <rect key="frame" x="0.0" y="0.0" width="415" height="300.33333333333331"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </view>
                             <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="Countryside broadcasts live on Sundays at 9:30 am, 11:05 am, and 6:00 pm." textAlignment="center" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jso-Nw-Fui">
-                                <rect key="frame" x="0.0" y="223" width="568" height="33"/>
+                                <rect key="frame" x="0.0" y="300.33333333333326" width="415" height="49.666666666666686"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="lessThanOrEqual" constant="60" id="0NZ-dK-ch7"/>
@@ -1115,7 +1114,7 @@ Web site: www.countrysidebible.org</string>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                             <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="vLD-jU-3Sf">
-                                <rect key="frame" x="144.5" y="92" width="279" height="72"/>
+                                <rect key="frame" x="68" y="139" width="279" height="72"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                 </accessibility>
@@ -1226,23 +1225,23 @@ Web site: www.countrysidebible.org</string>
                         <viewControllerLayoutGuide type="bottom" id="rGZ-be-gAy"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="4bC-YP-8EI">
-                        <rect key="frame" x="0.0" y="64" width="568" height="256"/>
+                        <rect key="frame" x="0.0" y="64" width="415" height="350"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1ps-Wb-dVz" userLabel="WebView">
-                                <rect key="frame" x="0.0" y="0.0" width="568" height="256"/>
+                                <rect key="frame" x="0.0" y="0.0" width="415" height="350"/>
                                 <subviews>
                                     <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="ti8-5g-rcB">
-                                        <rect key="frame" x="274.5" y="118" width="20" height="20"/>
+                                        <rect key="frame" x="197.66666666666666" y="165" width="20" height="20"/>
                                     </activityIndicatorView>
                                     <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="Vr4-5d-HKg">
-                                        <rect key="frame" x="209.5" y="127" width="150" height="2"/>
+                                        <rect key="frame" x="132.66666666666669" y="174" width="150.00000000000006" height="2"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="150" id="CAL-gT-V8z"/>
                                         </constraints>
                                     </progressView>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="fEx-M0-kF0">
-                                        <rect key="frame" x="145.5" y="92" width="279" height="72"/>
+                                        <rect key="frame" x="68.666666666666686" y="139" width="279" height="72"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>
@@ -1331,7 +1330,7 @@ Web site: www.countrysidebible.org</string>
                                         </connections>
                                     </switch>
                                     <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" verticalHuggingPriority="1000" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="Searching the text of transcripts (where available) may take longer." textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Tn4-h0-vPl" userLabel="Search Transcripts Text View">
-                                        <rect key="frame" x="20" y="59" width="210" height="66.5"/>
+                                        <rect key="frame" x="20" y="59" width="210" height="66.333333333333343"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="70" id="aLu-fl-HRb"/>
@@ -1345,49 +1344,49 @@ Web site: www.countrysidebible.org</string>
                                         </variation>
                                     </textView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Auto Advance" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gnT-dw-7zS">
-                                        <rect key="frame" x="20" y="139.5" width="101" height="20"/>
+                                        <rect key="frame" x="20" y="139.33333333333334" width="101" height="20"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="y4M-HY-Dah">
-                                        <rect key="frame" x="181" y="133.5" width="51" height="31"/>
+                                        <rect key="frame" x="181" y="133.33333333333334" width="51" height="31"/>
                                         <connections>
                                             <action selector="autoAdvanceAction:" destination="2PY-rw-Zwl" eventType="valueChanged" id="azT-R1-wnB"/>
                                         </connections>
                                     </switch>
                                     <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" verticalHuggingPriority="1000" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="If Auto Advance is on and  another part is available, it will automatically play from the beginning.  (Audio only)" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hlW-97-eSd" userLabel="Auto Advance Text View">
-                                        <rect key="frame" x="20" y="172.5" width="210" height="83"/>
+                                        <rect key="frame" x="20" y="172.33333333333331" width="210" height="82.999999999999972"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                     </textView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Use Cache" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5Gu-Cg-PFQ">
-                                        <rect key="frame" x="20" y="269.5" width="79" height="20"/>
+                                        <rect key="frame" x="20" y="269.33333333333331" width="79" height="20"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Cache Size" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3SF-aq-otG">
-                                        <rect key="frame" x="20" y="287.5" width="54" height="12"/>
+                                        <rect key="frame" x="20" y="287.33333333333331" width="54" height="12"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="10"/>
                                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0Sn-mJ-Y8T">
-                                        <rect key="frame" x="181" y="263.5" width="51" height="31"/>
+                                        <rect key="frame" x="181" y="263.33333333333331" width="51" height="31"/>
                                         <connections>
                                             <action selector="cacheAction:" destination="2PY-rw-Zwl" eventType="valueChanged" id="Wvg-H1-QjW"/>
                                         </connections>
                                     </switch>
                                     <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" verticalHuggingPriority="1000" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="When on, documents are downloaded and stored on the device.  (iOS 9 or later)" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="u50-19-12r" userLabel="Cache Text View">
-                                        <rect key="frame" x="20" y="302.5" width="210" height="66.5"/>
+                                        <rect key="frame" x="20" y="302.33333333333331" width="210" height="66.333333333333371"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                     </textView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Audio Download Size" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pLU-YE-rdr">
-                                        <rect key="frame" x="20" y="377" width="102" height="12"/>
+                                        <rect key="frame" x="20" y="376.66666666666669" width="102" height="12"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="10"/>
                                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <nil key="highlightedColor"/>
@@ -1469,14 +1468,14 @@ Web site: www.countrysidebible.org</string>
                         <viewControllerLayoutGuide type="bottom" id="oyd-Rh-9co"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="pxO-Fn-UGW">
-                        <rect key="frame" x="0.0" y="0.0" width="568" height="320"/>
+                        <rect key="frame" x="0.0" y="0.0" width="736" height="414"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" alpha="0.75" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Iqz-bU-Q1W" userLabel="Loading View">
-                                <rect key="frame" x="244" y="120" width="80" height="80"/>
+                                <rect key="frame" x="328" y="167" width="80" height="80"/>
                                 <subviews>
                                     <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="jVC-0A-IH5">
-                                        <rect key="frame" x="21.5" y="21.5" width="37" height="37"/>
+                                        <rect key="frame" x="21.666666666666686" y="21.666666666666657" width="37" height="37"/>
                                     </activityIndicatorView>
                                 </subviews>
                                 <color key="backgroundColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
@@ -1587,7 +1586,7 @@ Web site: www.countrysidebible.org</string>
                                 </variation>
                             </view>
                             <pickerView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="C40-Dl-VBz">
-                                <rect key="frame" x="0.0" y="84" width="300" height="125"/>
+                                <rect key="frame" x="0.0" y="84" width="600" height="125"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="125" id="46s-hq-kiu"/>
                                 </constraints>
@@ -1623,14 +1622,14 @@ Web site: www.countrysidebible.org</string>
                                 </constraints>
                             </imageView>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="1" sectionFooterHeight="1" translatesAutoresizingMaskIntoConstraints="NO" id="Jd8-2E-Az8">
-                                <rect key="frame" x="300" y="0.0" width="300" height="536"/>
+                                <rect key="frame" x="0.0" y="238" width="600" height="298"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="IndexMediaItem" id="O5D-zW-cLl" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="1" width="300" height="100"/>
+                                        <rect key="frame" x="0.0" y="1" width="600" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="O5D-zW-cLl" id="t9J-qH-ixG">
-                                            <rect key="frame" x="0.0" y="0.0" width="300" height="99.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="600" height="99.666666666666671"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="749" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qyy-zD-jgt">
@@ -1706,10 +1705,10 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </tableView>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="sni-g1-BL1">
-                                <rect key="frame" x="140" y="137" width="20" height="20"/>
+                                <rect key="frame" x="290" y="137" width="20" height="20"/>
                             </activityIndicatorView>
                             <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="erd-sN-Jz3">
-                                <rect key="frame" x="75" y="146" width="150" height="2"/>
+                                <rect key="frame" x="225" y="146" width="150" height="2"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="150" id="4ed-g8-Hoq"/>
                                 </constraints>
@@ -1763,7 +1762,7 @@ Web site: www.countrysidebible.org</string>
                                 <exclude reference="xRJ-Dv-qZF"/>
                             </mask>
                         </variation>
-                        <variation key="heightClass=compact">
+                        <variation key="heightClass=compact-widthClass=compact">
                             <mask key="constraints">
                                 <include reference="kpF-tZ-HJc"/>
                                 <exclude reference="t5G-DU-2pm"/>
@@ -1807,29 +1806,29 @@ Web site: www.countrysidebible.org</string>
                         <viewControllerLayoutGuide type="bottom" id="dfF-Sk-vFP"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="vtO-3p-c8v">
-                        <rect key="frame" x="0.0" y="0.0" width="300" height="499"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="231"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <searchBar contentMode="redraw" translatesAutoresizingMaskIntoConstraints="NO" id="iFe-Ke-XMe">
-                                <rect key="frame" x="0.0" y="0.0" width="300" height="44"/>
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="44"/>
                                 <textInputTraits key="textInputTraits"/>
                                 <connections>
                                     <outlet property="delegate" destination="XK5-KT-b8P" id="LLh-fw-9R2"/>
                                 </connections>
                             </searchBar>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="35" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="g8w-6P-vre">
-                                <rect key="frame" x="0.0" y="44" width="300" height="455"/>
+                                <rect key="frame" x="0.0" y="44" width="600" height="187"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" accessoryType="checkmark" indentationWidth="10" reuseIdentifier="PopoverCell" id="gxN-j6-OUN" customClass="PopoverTableViewCell" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="22" width="300" height="35"/>
+                                        <rect key="frame" x="0.0" y="22" width="600" height="35"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="gxN-j6-OUN" id="G1M-4g-45e">
-                                            <rect key="frame" x="0.0" y="0.0" width="261" height="35"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="561" height="35"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gxs-R4-h4B">
-                                                    <rect key="frame" x="8" y="8" width="245" height="19"/>
+                                                    <rect key="frame" x="8" y="8" width="545" height="19"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -1853,7 +1852,7 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </tableView>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="69l-jj-b4O">
-                                <rect key="frame" x="140" y="239.5" width="20" height="20"/>
+                                <rect key="frame" x="290" y="105.66666666666667" width="20" height="20"/>
                             </activityIndicatorView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -1937,18 +1936,18 @@ Web site: www.countrysidebible.org</string>
                         <viewControllerLayoutGuide type="bottom" id="wdT-XU-ePq"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="t4v-6f-9FS">
-                        <rect key="frame" x="0.0" y="0.0" width="568" height="320"/>
+                        <rect key="frame" x="0.0" y="0.0" width="736" height="414"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <pickerView contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="VVz-bi-PtG">
-                                <rect key="frame" x="20" y="64" width="528" height="454"/>
+                            <pickerView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="VVz-bi-PtG">
+                                <rect key="frame" x="20" y="64" width="696" height="300"/>
                                 <connections>
                                     <outlet property="dataSource" destination="aqP-Ze-2L2" id="THR-Kq-ok9"/>
                                     <outlet property="delegate" destination="aqP-Ze-2L2" id="ujg-Fu-fEM"/>
                                 </connections>
                             </pickerView>
-                            <button opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="251" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Yjx-Wd-d8o">
-                                <rect key="frame" x="259" y="526" width="51" height="34"/>
+                            <button opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="251" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Yjx-Wd-d8o">
+                                <rect key="frame" x="343" y="372" width="51" height="34"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="18"/>
                                 <state key="normal" title="Select"/>
                                 <connections>
@@ -1956,7 +1955,7 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </button>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="XYS-iT-MXI">
-                                <rect key="frame" x="274" y="150" width="20" height="20"/>
+                                <rect key="frame" x="358" y="197" width="20" height="20"/>
                             </activityIndicatorView>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -2029,7 +2028,7 @@ Web site: www.countrysidebible.org</string>
                         <viewControllerLayoutGuide type="bottom" id="sSl-Kf-RVh"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="zgz-12-4k5">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="370.5"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="370.33333333333331"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="zOR-Bo-b5Q" userLabel="WebView">
@@ -2142,13 +2141,13 @@ Web site: www.countrysidebible.org</string>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Select the New or Old Testament, then a book, then chapter." textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qcl-au-baW" userLabel="Scripture Directions">
-                                <rect key="frame" x="20" y="20" width="560" height="20.5"/>
+                                <rect key="frame" x="20" y="20" width="560" height="20.666666666666664"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <pickerView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="X57-KO-3fC">
-                                <rect key="frame" x="0.0" y="40.5" width="600" height="125"/>
+                                <rect key="frame" x="0.0" y="40.666666666666657" width="600" height="125"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="125" id="GXP-Z2-amM"/>
                                 </constraints>
@@ -2158,7 +2157,7 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </pickerView>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="2Or-rs-f6C">
-                                <rect key="frame" x="0.0" y="165.5" width="600" height="370.5"/>
+                                <rect key="frame" x="0.0" y="165.66666666666669" width="600" height="370.33333333333331"/>
                                 <connections>
                                     <segue destination="aaa-Ll-LYa" kind="embed" identifier="Show Web View" id="aB1-TK-hgY"/>
                                 </connections>
@@ -2234,25 +2233,25 @@ Web site: www.countrysidebible.org</string>
                                 <nil key="highlightedColor"/>
                             </label>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="0i9-DK-n2A">
-                                <rect key="frame" x="0.0" y="37" width="300" height="499"/>
+                                <rect key="frame" x="0.0" y="37" width="600" height="231"/>
                                 <connections>
                                     <segue destination="XK5-KT-b8P" kind="embed" identifier="Show Word List" id="h1S-N1-N0w"/>
                                 </connections>
                             </containerView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Selected:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ycZ-zi-bn1" userLabel="Selected Label">
-                                <rect key="frame" x="300" y="8" width="72" height="21"/>
+                                <rect key="frame" x="8" y="276" width="72" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="NN" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="VQa-4x-Xe7" userLabel="Selected Word">
-                                <rect key="frame" x="380" y="8" width="25" height="21"/>
+                                <rect key="frame" x="88" y="276" width="25" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="Lyf-na-Uzj">
-                                <rect key="frame" x="311" y="251" width="279" height="72"/>
+                                <rect key="frame" x="161" y="385" width="279" height="72"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                 </accessibility>
@@ -2263,14 +2262,14 @@ Web site: www.countrysidebible.org</string>
                                 </constraints>
                             </imageView>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="100" sectionHeaderHeight="1" sectionFooterHeight="1" translatesAutoresizingMaskIntoConstraints="NO" id="87d-zJ-TEW">
-                                <rect key="frame" x="300" y="37" width="300" height="499"/>
+                                <rect key="frame" x="0.0" y="305" width="600" height="231"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationWidth="0.0" reuseIdentifier="IndexMediaItem" id="Lb7-Td-pZZ" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="1" width="300" height="100"/>
+                                        <rect key="frame" x="0.0" y="1" width="600" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Lb7-Td-pZZ" id="GgB-Ff-LPp">
-                                            <rect key="frame" x="0.0" y="0.0" width="300" height="99.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="600" height="99.666666666666671"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Q0U-i7-ChV">
@@ -2314,7 +2313,7 @@ Web site: www.countrysidebible.org</string>
                                                     <rect key="frame" x="20" y="97" width="580" height="2"/>
                                                 </progressView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ZqQ-Jh-Doi" userLabel="Count">
-                                                    <rect key="frame" x="555.5" y="48" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="555.66666666666663" y="48" width="0.0" height="0.0"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -2359,7 +2358,7 @@ Web site: www.countrysidebible.org</string>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </activityIndicatorView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="df8-uq-4Cb">
-                                <rect key="frame" x="413" y="4" width="47" height="30"/>
+                                <rect key="frame" x="121" y="272" width="47" height="30"/>
                                 <state key="normal" title="Locate"/>
                                 <connections>
                                     <action selector="LocateAction:" destination="3Dc-QY-O2e" eventType="touchUpInside" id="tun-qR-VN4"/>
@@ -2404,12 +2403,12 @@ Web site: www.countrysidebible.org</string>
                                 <exclude reference="Fqj-wf-aMp"/>
                                 <exclude reference="SZ7-Cv-aby"/>
                                 <exclude reference="MIA-rt-a3i"/>
-                                <exclude reference="Zwo-eM-vk1"/>
                                 <exclude reference="lMU-aU-Gsz"/>
+                                <exclude reference="Zwo-eM-vk1"/>
                                 <exclude reference="ts0-Bn-Y8n"/>
                             </mask>
                         </variation>
-                        <variation key="heightClass=compact">
+                        <variation key="heightClass=compact-widthClass=compact">
                             <mask key="constraints">
                                 <include reference="bH1-8o-TGq"/>
                                 <include reference="Fqj-wf-aMp"/>
@@ -2466,7 +2465,7 @@ Web site: www.countrysidebible.org</string>
         <image name="tom_pennington" width="800" height="800"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="lht-fN-efO"/>
+        <segue reference="6Zl-qX-BXN"/>
         <segue reference="aB1-TK-hgY"/>
         <segue reference="h1S-N1-N0w"/>
     </inferredMetricsTieBreakers>

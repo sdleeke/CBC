@@ -3164,6 +3164,15 @@ class MediaViewController: UIViewController
             DispatchQueue.main.async(execute: { () -> Void in
                 self.setupTitle()
                 
+                let hClass = self.splitViewController!.traitCollection.horizontalSizeClass
+                let vClass = self.splitViewController!.traitCollection.verticalSizeClass
+
+                if let navigationController = self.splitViewController!.viewControllers[self.splitViewController!.viewControllers.count-1] as? UINavigationController {
+                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+                        navigationController.topViewController!.navigationItem.leftBarButtonItem = self.splitViewController!.displayModeButtonItem
+                    }
+                }
+
                 if self.videoLocation == .withTableView {
                     self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: false)
                 } else {
@@ -3457,9 +3466,6 @@ class MediaViewController: UIViewController
             NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
         }
 
-//        DispatchQueue.main.async {
-//        }
-
         if (selectedMediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) && globals.mediaPlayer.isPaused && globals.mediaPlayer.mediaItem!.hasCurrentTime() {
             globals.mediaPlayer.seek(to: Double(globals.mediaPlayer.mediaItem!.currentTime!))
         }
@@ -3469,12 +3475,11 @@ class MediaViewController: UIViewController
             splitViewController?.preferredDisplayMode = .allVisible //iPad only
         }
 
-        updateUI()
-        
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.
         DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
             DispatchQueue.main.async(execute: { () -> Void in
                 self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
+                self.updateUI()
             })
         })
     }
