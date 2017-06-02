@@ -44,20 +44,21 @@ extension WebViewController : PopoverPickerControllerDelegate
             return
         }
         
-        self.dismiss(animated: true, completion: nil)
+//        self.dismiss(animated: true, completion: nil)
         
+        ppvcView.isHidden = true
+        view.bringSubview(toFront: wkWebView!)
+
         var searchText = string
         
         if let range = searchText?.range(of: " (") {
             searchText = searchText?.substring(to: range.lowerBound)
         }
         
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.wkWebView?.isHidden = true
-            
-            self.activityIndicator.isHidden = false
-            self.activityIndicator.startAnimating()
-        })
+        self.wkWebView?.isHidden = true
+        
+        self.activityIndicator.isHidden = false
+        self.activityIndicator.startAnimating()
         
         html.string = selectedMediaItem?.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
         html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
@@ -167,77 +168,86 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Word_Picker:
-            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
-                let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
-                navigationController.modalPresentationStyle = .popover
-                
-                navigationController.popoverPresentationController?.delegate = self
-                
-                navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                
-                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-                
-                popover.navigationItem.title = Constants.Word_Picker
-                
-                popover.delegate = self
-                
-                popover.mediaListGroupSort = MediaListGroupSort(mediaItems: [selectedMediaItem!])
-                
-                present(navigationController, animated: true, completion: nil)
-            }
+            ppvcView.isHidden = false
+            view.bringSubview(toFront: ppvcView)
+            setPreferredContentSize()
+
+//            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
+//                let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
+//                navigationController.modalPresentationStyle = .popover
+//                
+//                navigationController.popoverPresentationController?.delegate = self
+//                
+//                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+//                
+//                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+//                
+//                popover.navigationItem.title = Constants.Word_Picker
+//                
+//                popover.delegate = self
+//                
+//                popover.mediaListGroupSort = MediaListGroupSort(mediaItems: [selectedMediaItem!])
+//                
+//                present(navigationController, animated: true, completion: nil)
+//            }
             break
             
         case Constants.Words:
-            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .popover
-                
-                navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                navigationController.popoverPresentationController?.delegate = self
-                
-                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-                
-                popover.navigationItem.title = Constants.Search
-                
-                popover.navigationController?.isNavigationBarHidden = false
-                
-                popover.delegate = self
-                popover.purpose = .selectingWord
-                
-                popover.sort.function = sort
-                
-                if mediaItem!.hasNotesHTML {
-                    if mediaItem?.notesTokens == nil {
-                        popover.stringsFunction = {
-                            mediaItem?.loadNotesTokens()
-
-                            return mediaItem?.notesTokens?.map({ (string:String,count:Int) -> String in
-                                return "\(string) (\(count))"
-                            }).sorted()
-                        }
-                    } else {
-                        popover.section.strings = mediaItem?.notesTokens?.map({ (string:String,count:Int) -> String in
-                            return "\(string) (\(count))"
-                        }).sorted()
-                        
-                        // Why Array(Set())?  Duplicates?
-//                        let array = Array(Set(popover.section.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
-                        
-//                        popover.section.indexStrings = array.map({ (string:String) -> String in
-//                            return string.uppercased()
-//                        })
-                    }
-                }
-                
-                popover.section.showIndex = true
-                popover.section.showHeaders = true
-                
-                popover.search = true
-                
-                popover.vc = self
-                
-                present(navigationController, animated: true, completion: nil)
-            }
+            ptvcView.isHidden = false
+            view.bringSubview(toFront: ptvcView)
+            setPreferredContentSize()
+            
+//            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                
+//                navigationController.modalPresentationStyle = .popover
+//                
+//                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+//                navigationController.popoverPresentationController?.delegate = self
+//                
+//                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+//                
+//                popover.navigationItem.title = Constants.Search
+//                
+//                popover.navigationController?.isNavigationBarHidden = false
+//                
+//                popover.delegate = self
+//                popover.purpose = .selectingWord
+//                
+//                popover.sort.function = sort
+//                
+//                if mediaItem!.hasNotesHTML {
+//                    if mediaItem?.notesTokens == nil {
+//                        popover.stringsFunction = {
+//                            mediaItem?.loadNotesTokens()
+//
+//                            return mediaItem?.notesTokens?.map({ (string:String,count:Int) -> String in
+//                                return "\(string) (\(count))"
+//                            }).sorted()
+//                        }
+//                    } else {
+//                        popover.section.strings = mediaItem?.notesTokens?.map({ (string:String,count:Int) -> String in
+//                            return "\(string) (\(count))"
+//                        }).sorted()
+//                        
+//                        // Why Array(Set())?  Duplicates?
+////                        let array = Array(Set(popover.section.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
+//                        
+////                        popover.section.indexStrings = array.map({ (string:String) -> String in
+////                            return string.uppercased()
+////                        })
+//                    }
+//                }
+//                
+//                popover.section.showIndex = true
+//                popover.section.showHeaders = true
+//                
+//                popover.search = true
+//                
+//                popover.vc = self
+//
+//                present(navigationController, animated: true, completion: nil)
+//            }
             break
             
         case Constants.Email_One:
@@ -282,8 +292,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
             return
         }
         
-        dismiss(animated: true, completion: nil)
-        
         guard let strings = strings else {
             return
         }
@@ -296,6 +304,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
         
         switch purpose {
         case .selectingWord:
+            ptvcView.isHidden = true
+            view.bringSubview(toFront: wkWebView!)
+            
             var searchText = string
             
             if let range = searchText.range(of: " (") {
@@ -314,6 +325,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingAction:
+            dismiss(animated: true, completion: nil)
             actionMenu(action: string, mediaItem:mediaItem)
             break
             
@@ -527,6 +539,12 @@ class WebViewController: UIViewController
     
     var loadTimer:Timer?
     
+    @IBOutlet weak var ppvcView: UIView!
+    var ppvc : PopoverPickerViewController?
+    
+    @IBOutlet weak var ptvcView: UIView!
+    var ptvc : PopoverTableViewController?
+   
     @IBOutlet weak var webView: UIView!
     
     @IBOutlet weak var progressIndicator: UIProgressView!
@@ -1334,15 +1352,106 @@ class WebViewController: UIViewController
         globals.freeMemory()
     }
     
-
+    func cancel()
+    {
+        ppvcView.isHidden = true
+        ptvcView.isHidden = true
+        
+        view.bringSubview(toFront: wkWebView!)
+        
+        wkWebView?.isHidden = true
+        
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
+        
+        html.string = selectedMediaItem?.fullNotesHTML
+        _ = wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
+    }
+    
     /*
     // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
     */
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?)
+    {
+        // Get the new view controller using [segue destinationViewController].
+        // Pass the selected object to the new view controller.
+        var dvc = segue.destination as UIViewController
+        // this next if-statement makes sure the segue prepares properly even
+        //   if the MVC we're seguing to is wrapped in a UINavigationController
+        if let navCon = dvc as? UINavigationController {
+            dvc = navCon.visibleViewController!
+        }
+        
+        if let identifier = segue.identifier {
+            switch identifier {
+            case "PPVCEmbed":
+                ppvc = dvc as? PopoverPickerViewController
+                
+                if let popover = ppvc, selectedMediaItem != nil {
+//                    navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+                    
+                    popover.navigationItem.title = Constants.Word_Picker
+                    
+                    let cancelButton = UIBarButtonItem(title: "Cancel", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.cancel))
+                    popover.navigationItem.leftBarButtonItem = cancelButton
 
+                    popover.delegate = self
+                    
+                    popover.mediaListGroupSort = MediaListGroupSort(mediaItems: [selectedMediaItem!])
+                }
+                break
+                
+            case "PTVCEmbed":
+                ptvc = dvc as? PopoverTableViewController
+                
+                if let popover = ptvc, selectedMediaItem != nil {
+                    popover.navigationItem.title = Constants.Search
+                    
+                    popover.navigationController?.isNavigationBarHidden = false
+                    
+                    let cancelButton = UIBarButtonItem(title: "Cancel", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.cancel))
+                    popover.navigationItem.leftBarButtonItem = cancelButton
+                    
+                    popover.delegate = self
+                    popover.purpose = .selectingWord
+                    
+                    popover.sort.function = sort
+                    
+                    if selectedMediaItem!.hasNotesHTML {
+                        if selectedMediaItem?.notesTokens == nil {
+                            popover.stringsFunction = {
+                                self.selectedMediaItem?.loadNotesTokens()
+                                
+                                return self.selectedMediaItem?.notesTokens?.map({ (string:String,count:Int) -> String in
+                                    return "\(string) (\(count))"
+                                }).sorted()
+                            }
+                        } else {
+                            popover.section.strings = selectedMediaItem?.notesTokens?.map({ (string:String,count:Int) -> String in
+                                return "\(string) (\(count))"
+                            }).sorted()
+                            
+                            // Why Array(Set())?  Duplicates?
+                            //                        let array = Array(Set(popover.section.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
+                            
+                            //                        popover.section.indexStrings = array.map({ (string:String) -> String in
+                            //                            return string.uppercased()
+                            //                        })
+                        }
+                    }
+                    
+                    popover.section.showIndex = true
+                    popover.section.showHeaders = true
+                    
+                    popover.search = true
+                    
+                    popover.vc = self
+                }
+                break
+                
+            default:
+                break
+            }
+        }
+    }
 }

@@ -1729,13 +1729,14 @@ class MediaItem : NSObject {
 //                return searchMarkedFullNotesHTML?[searchText]
 //            }
         } else {
-            let string = "No Occurrences of \"\(searchText!)\" were found.<br/>"
-            
-            if let newString = fullNotesHTML?.replacingOccurrences(of: "<body>", with: "<body>" + string) {
-                return newString
-            } else {
-                return nil
-            }
+            return fullNotesHTML
+//            let string = "No Occurrences of \"\(searchText!)\" were found.<br/>"
+//            
+//            if let newString = fullNotesHTML?.replacingOccurrences(of: "<body>", with: "<body>" + string) {
+//                return newString
+//            } else {
+//                return nil
+//            }
         }
 
         var markCounter = 0
