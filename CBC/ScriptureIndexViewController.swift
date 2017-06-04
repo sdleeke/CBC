@@ -71,7 +71,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
             
         case .selectingAction:
             switch strings[index] {
-            case Constants.View_List:
+            case Constants.Strings.View_List:
                 process(viewController: self, work: { () -> (Any?) in
                     if self.scriptureIndex?.html?.string == nil {
                         self.scriptureIndex?.html?.string = self.setupMediaItemsHTMLScripture(self.mediaItems, includeURLs: true, includeColumns: true)
@@ -83,7 +83,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                 })
                 break
                 
-            case Constants.View_Scripture:
+            case Constants.Strings.View_Scripture:
                 if let reference = scripture?.selected.reference {
                     scripture?.reference = reference
                     if scripture?.html?[reference] != nil {
@@ -110,19 +110,19 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
             
         case .selectingCellAction:
             switch strings[index] {
-            case Constants.Download_Audio:
+            case Constants.Strings.Download_Audio:
                 mediaItem?.audioDownload?.download()
                 break
                 
-            case Constants.Delete_Audio_Download:
+            case Constants.Strings.Delete_Audio_Download:
                 mediaItem?.audioDownload?.delete()
                 break
                 
-            case Constants.Cancel_Audio_Download:
+            case Constants.Strings.Cancel_Audio_Download:
                 mediaItem?.audioDownload?.cancelOrDelete()
                 break
                 
-            case Constants.Download_Audio:
+            case Constants.Strings.Download_Audio:
                 mediaItem?.audioDownload?.download()
                 break
                 
@@ -1212,11 +1212,11 @@ class ScriptureIndexViewController : UIViewController
         var actionMenu = [String]()
         
         if mediaItems?.count > 0 {
-            actionMenu.append(Constants.View_List)
+            actionMenu.append(Constants.Strings.View_List)
         }
         
         if let scriptureReference = scripture?.selected.reference, scriptureReference != scriptureIndex?.selectedBook {
-            actionMenu.append(Constants.View_Scripture)
+            actionMenu.append(Constants.Strings.View_Scripture)
         }
 
         return actionMenu.count > 0 ? actionMenu : nil
@@ -1236,7 +1236,7 @@ class ScriptureIndexViewController : UIViewController
             
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
             
-            //                popover.navigationItem.title = Constants.Actions
+            //                popover.navigationItem.title = Constants.Strings.Actions
             
             popover.navigationController?.isNavigationBarHidden = true
             
@@ -1273,7 +1273,7 @@ class ScriptureIndexViewController : UIViewController
             
             navigationController.popoverPresentationController?.barButtonItem = button
             
-            popover.navigationItem.title = Constants.Menu.Index
+            popover.navigationItem.title = Constants.Strings.Menu.Index
             
             popover.delegate = self
             
@@ -1346,7 +1346,7 @@ class ScriptureIndexViewController : UIViewController
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let indexButton = UIBarButtonItem(title: Constants.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureIndexViewController.index(_:)))
+        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureIndexViewController.index(_:)))
         let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
 
         setToolbarItems([spaceButton,indexButton], animated: false)

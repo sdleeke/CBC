@@ -135,13 +135,15 @@ struct Sorting {
 }
 
 struct Constants {
+    static var SCRIPTURE_BASE_URL = "http://17iPVurdk9fn2ZKLVnnfqN4HKKIb9WXMKzN0l5K5:@bibles.org/v2/eng-NASB/passages.js?q[]="
+    
     struct JSON {
-        static let MEDIA_PATH = "media-mini" //
+        static let MEDIA_PATH = "media" //
         
         static let CATEGORIES_PATH = "categories" //
 
         struct URL {
-            static let BASE = "https://countrysidebible.org/mediafeed.php?return=" // "http://dev.countrysidebible.org/medialist_all.php?return="
+            static let BASE = "https://api.countrysidebible.org/?return=" // "http://countrysidebible.org/medialist_all.php?return="
             
             static let MEDIA = BASE + MEDIA_PATH //
             
@@ -302,7 +304,7 @@ struct Constants {
         static let LONG = "Countryside Bible Church"
         
         struct TITLE {
-            static let POSTFIX  = SINGLE_SPACE + Media
+            static let POSTFIX  = SINGLE_SPACE + Strings.Media
             
             static let SHORT    = CBC.SHORT + POSTFIX
             static let LONG     = CBC.LONG + POSTFIX
@@ -356,38 +358,12 @@ struct Constants {
     
     static let SEARCH_TEXT = "SEARCH TEXT"
     
-    static let Live = "Live"
-    
     static let CONTENT_OFFSET_X_RATIO = "ContentOffsetXRatio"
     static let CONTENT_OFFSET_Y_RATIO = "ContentOffsetYRatio"
     
     static let ZOOM_SCALE = "ZoomScale"
     
-    static let Email_CBC = "E-mail " + CBC.SHORT
-    static let CBC_WebSite = CBC.SHORT + " Website"
-    static let CBC_in_Apple_Maps = CBC.SHORT + " in Apple Maps"
-    static let CBC_in_Google_Maps = CBC.SHORT + " in Google Maps"
-
-    static let Share_This_App = "Share This App"
-    
-    static let Show = "Show"
-    static let Select_Category = "Select Category"
-    
-    static let Search = "Search"
-    static let Words = "Words"
-    static let Word_Picker = "Word Picker"
-
-//    static let Search_Terms = "Search Terms"
-//    static let Search_Transcript = "Search Transcript"
-    
-    static let Sermon = "Sermon"
-    static let Sermons = "Sermons"
-    
-    static let Slides = "Slides"
-    static let Transcript = "Transcript"
-    static let Scripture = "Scripture"
-    
-    static let Constant_Tags:Set = [Constants.Video,Constants.Slides,Constants.Transcript,Constants.Lexicon]
+    static let Constant_Tags:Set = [Constants.Strings.Video,Constants.Strings.Slides,Constants.Strings.Transcript,Constants.Strings.Lexicon]
     
     static let EMAIL_SUBJECT = CBC.LONG
     static let EMAIL_ONE_SUBJECT = CBC.LONG + " Media"
@@ -400,11 +376,6 @@ struct Constants {
     static let ALL = "all"
     static let DOWNLOADED = "downloaded"
 
-//    static let Scripture_Full_Screen = "Scripture Full Screen"
-    static let Scripture_in_Browser = "Scripture in Browser"
-    
-    static let Scripture_Viewer = "Scripture Viewer"
-    
     static let EMPTY_STRING = ""
 
     static let QUOTE = "\""
@@ -434,24 +405,6 @@ struct Constants {
     static let FORWARD_SLASH = "/"
     
     static let TAGS_SEPARATOR = "|"
-    
-    struct Menu {
-        static let Sorting = "Sorting"
-        static let Grouping = "Grouping"
-        static let Index = "Index"
-    }
-    
-    struct Options_Title {
-        static let Sorting = "Sort By"
-        static let Grouping = "Group By"
-    }
-    
-    static let Options = "Options"
-    
-    static let Sorting_Options =  Menu.Sorting + SINGLE_SPACE + Options
-    static let Grouping_Options = Menu.Grouping + SINGLE_SPACE + Options
-    
-    static let Settings = "Settings"
     
     struct USER_SETTINGS {
         static let SEARCH_TRANSCRIPTS = "SEARCH TRANSCRIPTS"
@@ -606,125 +559,179 @@ struct Constants {
 
     static let HTML_MIN_FONT_SIZE = 4
     
-    static let Actions = "Actions"
-    
-    static let Download = "Download"
-    static let Downloaded = Download + "ed"
-    static let Downloads = Download + "s"
-    static let Downloading = Download + "ing"
-    
-    static let Audio = "Audio"
-    static let Video = "Video"
-    
-    static let Download_Audio = Download + SINGLE_SPACE + Audio
-    static let Download_Video = Download + SINGLE_SPACE + Video
-    
-    static let Download_All = Download  + SINGLE_SPACE + All
-    
-    static let Download_All_Audio = Download_All + SINGLE_SPACE + Audio
-    static let Download_All_Video = Download_All + SINGLE_SPACE + Video
-    
-    static let Cancel_All = Cancel + SINGLE_SPACE + All
-    static let Delete_All = Delete + SINGLE_SPACE + All
-    
-    static let Cancel_All_Downloads = Cancel_All + SINGLE_SPACE + Downloads
-    static let Delete_All_Downloads = Delete_All + SINGLE_SPACE + Downloads
-    
-    static let Cancel_All_Audio_Downloads = Cancel_All + SINGLE_SPACE + Audio + SINGLE_SPACE + Downloads
-    static let Delete_All_Audio_Downloads = Delete_All + SINGLE_SPACE + Audio + SINGLE_SPACE + Downloads
-    
-    static let Cancel_Audio_Download = Cancel + SINGLE_SPACE + Audio + SINGLE_SPACE + Download // + QUESTION_MARK
-    static let Delete_Audio_Download = Delete + SINGLE_SPACE + Audio + SINGLE_SPACE + Download // + QUESTION_MARK
-    
-    static let Cancel_Video_Download = Cancel + SINGLE_SPACE + Video + SINGLE_SPACE + Download // + QUESTION_MARK
-    static let Delete_Video_Download = Delete + SINGLE_SPACE + Video + SINGLE_SPACE + Download // + QUESTION_MARK
-    
-    static let Add_to = "Add to"
-    static let Remove_From = "Remove From"
-    static let Add_All_to = "Add All to"
-    static let Remove_All_From = "Remove All From"
+    struct Strings {
+        //    static let Scripture_Full_Screen = "Scripture Full Screen"
+        static let Scripture_in_Browser = "Scripture in Browser"
+        
+        static let Scripture_Viewer = "Scripture Viewer"
+        
+        static let Email_CBC = "E-mail " + CBC.SHORT
+        static let CBC_WebSite = CBC.SHORT + " Website"
+        static let CBC_in_Apple_Maps = CBC.SHORT + " in Apple Maps"
+        static let CBC_in_Google_Maps = CBC.SHORT + " in Google Maps"
+        
+        static let Share_This_App = "Share This App"
+        
+        static let Show = "Show"
+        static let Select_Category = "Select Category"
+        
+        static let Search = "Search"
+        static let Words = "Words"
+        static let Word_Picker = "Word Picker"
+        
+        //    static let Search_Terms = "Search Terms"
+        //    static let Search_Transcript = "Search Transcript"
+        
+        static let Sermon = "Sermon"
+        static let Sermons = "Sermons"
+        
+        static let Slides = "Slides"
+        static let Transcript = "Transcript"
+        static let Scripture = "Scripture"
+        
+        static let Actions = "Actions"
+        
+        static let Download = "Download"
+        static let Downloaded = Download + "ed"
+        static let Downloads = Download + "s"
+        static let Downloading = Download + "ing"
+        
+        static let Audio = "Audio"
+        static let Video = "Video"
+        
+        static let Download_Audio = Download + SINGLE_SPACE + Audio
+        static let Download_Video = Download + SINGLE_SPACE + Video
+        
+        static let Download_All = Download  + SINGLE_SPACE + All
+        
+        static let Download_All_Audio = Download_All + SINGLE_SPACE + Audio
+        static let Download_All_Video = Download_All + SINGLE_SPACE + Video
+        
+        static let Cancel_All = Cancel + SINGLE_SPACE + All
+        static let Delete_All = Delete + SINGLE_SPACE + All
+        
+        static let Cancel_All_Downloads = Cancel_All + SINGLE_SPACE + Downloads
+        static let Delete_All_Downloads = Delete_All + SINGLE_SPACE + Downloads
+        
+        static let Cancel_All_Audio_Downloads = Cancel_All + SINGLE_SPACE + Audio + SINGLE_SPACE + Downloads
+        static let Delete_All_Audio_Downloads = Delete_All + SINGLE_SPACE + Audio + SINGLE_SPACE + Downloads
+        
+        static let Cancel_Audio_Download = Cancel + SINGLE_SPACE + Audio + SINGLE_SPACE + Download // + QUESTION_MARK
+        static let Delete_Audio_Download = Delete + SINGLE_SPACE + Audio + SINGLE_SPACE + Download // + QUESTION_MARK
+        
+        static let Cancel_Video_Download = Cancel + SINGLE_SPACE + Video + SINGLE_SPACE + Download // + QUESTION_MARK
+        static let Delete_Video_Download = Delete + SINGLE_SPACE + Video + SINGLE_SPACE + Download // + QUESTION_MARK
+        
+        static let Add_to = "Add to"
+        static let Remove_From = "Remove From"
+        static let Add_All_to = "Add All to"
+        static let Remove_All_From = "Remove All From"
+        
+        static let Favorites = "Favorites"
+        static let Add_to_Favorites = Add_to + SINGLE_SPACE + Favorites
+        static let Remove_From_Favorites = Remove_From + SINGLE_SPACE + Favorites
+        static let Add_All_to_Favorites = Add_All_to + SINGLE_SPACE + Favorites
+        static let Remove_All_From_Favorites = Remove_All_From + SINGLE_SPACE + Favorites
 
-    static let Favorites = "Favorites"
-    static let Add_to_Favorites = Add_to + SINGLE_SPACE + Favorites
-    static let Remove_From_Favorites = Remove_From + SINGLE_SPACE + Favorites
-    static let Add_All_to_Favorites = Add_All_to + SINGLE_SPACE + Favorites
-    static let Remove_All_From_Favorites = Remove_All_From + SINGLE_SPACE + Favorites
+        static let New = "New"
+        static let All = "All"
+        static let None = "None"
+        static let Okay = "OK"
+        static let Cancel = "Cancel"
+        static let Delete = "Delete"
+        static let About = "About"
+        static let Current_Selection = "Current Selection"
+        static let Tags = "Tags"
+        
+        static let Sorting = "Sorting"
+        
+        static let Back = "Back"
+        
+        static let Media = "Media"
+        static let Media_Playing = Media + SINGLE_SPACE + Playing
+        static let Media_Paused = Media + SINGLE_SPACE + Paused
+        
+        static let History = "History"
+        static let Clear_History = "Clear History"
+        
+        static let Scripture_Index = "Scripture Index"
+        
+        static let Swap_Video_Location = "Swap Video Location"
+        
+        static let Print = "Print"
+        static let Print_All = "Print All"
+        
+        static let Print_Slides = "Print Slides"
+        static let Print_Transcript = "Print Transcript"
+        
+        static let Refresh_Document = "Refresh Document"
+        
+        static let Refresh_Slides = "Refresh Slides"
+        static let Refresh_Transcript = "Refresh Transcript"
+        
+        static let Zoom = "Zoom"
+        static let Full_Screen = "Full Screen"
+        static let Open_in_Browser = "Open in Browser"
+        
+        static let Open_on_CBC_Website = "Open on CBC Web Site"
+        
+        static let Email_One = "E-mail"
+        static let Email_All = "E-mail All"
+
+        static let Lexicon = "Lexicon"
+        static let Lexicon_Index = "Lexicon Index"
+        
+        static let Expanded_View = "Expanded View"
+        
+        static let View_List = "View List"
+        static let List = "List"
+        
+        static let View_Scripture = "View Scripture"
+        
+        static let Share = "Share"
+        static let Share_All = "Share All"
+        
+        static let Share_on = "Share on "
+        static let Share_on_Facebook = Share_on + "Facebook"
+        static let Share_on_Twitter = Share_on + "Twitter"
+        
+        static let Play = "Play"
+        static let Pause = "Pause"
+        
+        static let Playing = "Playing"
+        static let Paused = "Paused"
+
+//        static let Increase_Font_Size = "Increase Font Size"
+//        static let Decrease_Font_Size = "Decrease Font Size"
+        
+        struct Menu {
+            static let Sorting = "Sorting"
+            static let Grouping = "Grouping"
+            static let Index = "Index"
+        }
+        
+        struct Options_Title {
+            static let Sorting = "Sort By"
+            static let Grouping = "Group By"
+        }
+        
+        static let Options = "Options"
+        
+        static let Sorting_Options =  Menu.Sorting + SINGLE_SPACE + Options
+        static let Grouping_Options = Menu.Grouping + SINGLE_SPACE + Options
+        
+        static let Settings = "Settings"
+        static let Live = "Live"
+    }
 
     static let CHECK_FILE_SLEEP_INTERVAL = 0.01
     static let CHECK_FILE_MAX_ITERATIONS = 200
     
 //    static let TRANSCRIPT_PREFIX = "tx-un-"
     
-    static let New = "New"
-    static let All = "All"
-    static let None = "None"
-    static let Okay = "OK"
-    static let Cancel = "Cancel"
-    static let Delete = "Delete"
-    static let About = "About"
-    static let Current_Selection = "Current Selection"
-    static let Tags = "Tags"
-    
-    static let Back = "Back"
-
-    static let Media = "Media"
-    static let Media_Playing = Media + SINGLE_SPACE + Playing
-    static let Media_Paused = Media + SINGLE_SPACE + Paused
-    
     static let HISTORY = "HISTORY"
-    static let History = "History"
-    static let Clear_History = "Clear History"
-    
-    static let Scripture_Index = "Scripture Index"
-
-    static let Swap_Video_Location = "Swap Video Location"
-    
-    static let Print = "Print"
-    static let Print_All = "Print All"
-    
-    static let Print_Slides = "Print Slides"
-    static let Print_Transcript = "Print Transcript"
-    
-    static let Refresh_Document = "Refresh Document"
-    
-    static let Refresh_Slides = "Refresh Slides"
-    static let Refresh_Transcript = "Refresh Transcript"
-    
-    static let Zoom = "Zoom"
-    static let Full_Screen = "Full Screen"
-    static let Open_in_Browser = "Open in Browser"
-    
-    static let Open_on_CBC_Website = "Open on CBC Web Site"
-    
-    static let Email_One = "E-mail"
-    static let Email_All = "E-mail All"
     
     static let FONT_SIZE = 12
-//    static let Increase_Font_Size = "Increase Font Size"
-//    static let Decrease_Font_Size = "Decrease Font Size"
-    
-    static let Lexicon = "Lexicon"
-    static let Lexicon_Index = "Lexicon Index"
-    
-    static let Expanded_View = "Expanded View"
-    
-    static let View_List = "View List"
-    static let List = "List"
-    
-    static let View_Scripture = "View Scripture"
-    
-    static let Share = "Share"
-    static let Share_All = "Share All"
-    
-    static let Share_on = "Share on "
-    static let Share_on_Facebook = Share_on + "Facebook"
-    static let Share_on_Twitter = Share_on + "Twitter"
-
-    static let Play = "Play"
-    static let Pause = "Pause"
-    
-    static let Playing = "Playing"
-    static let Paused = "Paused"
     
     static let CMTime_Resolution = Int32(1000)
     

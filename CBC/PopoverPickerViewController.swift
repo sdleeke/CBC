@@ -369,7 +369,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
         switch purpose {
         case .selectingAction:
             switch string {
-            case Constants.Expanded_View:
+            case Constants.Strings.Expanded_View:
                 process(viewController: self, work: { () -> (Any?) in
                     var bodyHTML = "<!DOCTYPE html>"
                     
@@ -451,6 +451,8 @@ class PopoverPickerViewController : UIViewController
     
     @IBAction func selectButtonAction(sender: UIButton)
     {
+        string = wordFromPicker()
+
 //        print("\(string)")
         delegate?.stringPicked(string)
     }
@@ -475,7 +477,7 @@ class PopoverPickerViewController : UIViewController
             
             var actionMenu = [String]()
             
-            actionMenu.append(Constants.Expanded_View)
+            actionMenu.append(Constants.Strings.Expanded_View)
             
             popover.section.strings = actionMenu
             
@@ -503,13 +505,32 @@ class PopoverPickerViewController : UIViewController
         }
     }
 
-    override func viewDidLoad() {
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
 
         setupActionButton()
     }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
+    {
+        super.viewWillTransition(to: size, with: coordinator)
+        
+        if (self.view.window == nil) {
+            return
+        }
+        
+        //        print("Size: \(size)")
+        
+        coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
+            
+        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
 
-    override func viewWillAppear(_ animated: Bool) {
+        }
+    }
+    
+    override func viewWillAppear(_ animated: Bool)
+    {
         super.viewWillAppear(animated)
 
         updateActionButton()
@@ -546,10 +567,12 @@ class PopoverPickerViewController : UIViewController
             picker.selectRow(index, inComponent: 0, animated: false)
         }
         
-        if mediaListGroupSort != nil {
-            preferredContentSize = CGSize(width: 200, height: 300)
-        } else {
-            preferredContentSize = CGSize(width: 300, height: 300)
+        if (navigationController?.viewControllers.count == 1) {
+            if (mediaListGroupSort != nil) {
+                preferredContentSize = CGSize(width: 200, height: 300)
+            } else {
+                preferredContentSize = CGSize(width: 300, height: 300)
+            }
         }
     }
     
@@ -571,6 +594,13 @@ class PopoverPickerViewController : UIViewController
     {
         guard Thread.isMainThread else {
             userAlert(title: "Not Main Thread", message: "PopoverPickerViewController:setPreferredContentSize")
+            return
+        }
+
+//        print("PPVC \(navigationController!.viewControllers.count)")
+
+        guard navigationController?.viewControllers.count == 1 else {
+//            print("Pushed PPVC \(navigationController!.viewControllers.count)")
             return
         }
         

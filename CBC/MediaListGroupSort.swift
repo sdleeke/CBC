@@ -1519,7 +1519,7 @@ class MediaListGroupSort {
                     if let scriptureReference = mediaItem.scriptureReference?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) {
                         entries = [(scriptureReference,scriptureReference)]
                     } else {
-                        entries = [(Constants.None,Constants.None)]
+                        entries = [(Constants.Strings.None,Constants.Strings.None)]
                     }
                 }
                 //                if entries?.count > 1 {

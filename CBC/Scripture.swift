@@ -442,7 +442,7 @@ class Scripture : NSObject
         
 //        let urlString = "https://getbible.net/json?passage=\(reference!)&version=nasb".replacingOccurrences(of: " ", with: "%20")
         
-        let urlString = "https://17iPVurdk9fn2ZKLVnnfqN4HKKIb9WXMKzN0l5K5:@bibles.org/v2/eng-NASB/passages.js?q[]=\(reference!)&include_marginalia=true".replacingOccurrences(of: " ", with: "%20")
+        let urlString = Constants.SCRIPTURE_BASE_URL + "\(reference!)&include_marginalia=true".replacingOccurrences(of: " ", with: "%20")
         
 //        var mediaItemDicts = [[String:String]]()
         

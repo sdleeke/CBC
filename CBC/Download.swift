@@ -94,11 +94,11 @@ class Download : NSObject {
                         break
                         
                     case .downloaded:
-                        mediaItem?.addTag(Constants.Downloaded)
+                        mediaItem?.addTag(Constants.Strings.Downloaded)
                         break
                         
                     case .none:
-                        mediaItem?.removeTag(Constants.Downloaded)
+                        mediaItem?.removeTag(Constants.Strings.Downloaded)
                         break
                     }
                     

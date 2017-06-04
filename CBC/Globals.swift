@@ -302,7 +302,7 @@ struct MediaCategory {
     var selected:String? {
         get {
             if UserDefaults.standard.object(forKey: Constants.MEDIA_CATEGORY) == nil {
-                UserDefaults.standard.set(Constants.Sermons, forKey: Constants.MEDIA_CATEGORY)
+                UserDefaults.standard.set(Constants.Strings.Sermons, forKey: Constants.MEDIA_CATEGORY)
             }
             
             return UserDefaults.standard.string(forKey: Constants.MEDIA_CATEGORY)
@@ -963,7 +963,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
                 
 //                media.tags.selected = mediaCategory.tag
 
-                if (media.tags.selected == Constants.New) {
+                if (media.tags.selected == Constants.Strings.New) {
                     media.tags.selected = nil
                 }
 
@@ -1134,10 +1134,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
                         } else {
                             mediaPlayer.seek(to: Double(mediaPlayer.mediaItem!.currentTime!)!)
                         }
-                        
-                        if mediaPlayer.isPaused {
-                            mediaPlayer.seek(to: Double(mediaPlayer.mediaItem!.currentTime!))
-                        }
+
+                        // Why was this needed?
+//                        if mediaPlayer.isPaused {
+//                            mediaPlayer.seek(to: Double(mediaPlayer.mediaItem!.currentTime!))
+//                        }
                     } else {
                         mediaPlayer.mediaItem?.currentTime = Constants.ZERO
                         mediaPlayer.seek(to: 0)
@@ -1145,6 +1146,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
 
                     if (self.mediaPlayer.mediaItem?.playing == Playing.audio) {
                         if mediaPlayer.playOnLoad {
+                            if mediaPlayer.mediaItem!.atEnd {
+                                mediaPlayer.mediaItem?.currentTime = Constants.ZERO
+                                mediaPlayer.seek(to: 0)
+                            }
+                            
                             mediaPlayer.playOnLoad = false
                             mediaPlayer.play()
                         }

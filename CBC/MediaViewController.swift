@@ -169,37 +169,37 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         }
         
         switch action {
-        case Constants.Swap_Video_Location:
+        case Constants.Strings.Swap_Video_Location:
             swapVideoLocation()
             break
             
-        case Constants.Print_Slides:
+        case Constants.Strings.Print_Slides:
             fallthrough
-        case Constants.Print_Transcript:
+        case Constants.Strings.Print_Transcript:
             printDocument(viewController: self, documentURL: selectedMediaItem?.downloadURL)
             break
             
-        case Constants.Add_to_Favorites:
-            selectedMediaItem?.addTag(Constants.Favorites)
+        case Constants.Strings.Add_to_Favorites:
+            selectedMediaItem?.addTag(Constants.Strings.Favorites)
             break
             
-        case Constants.Add_All_to_Favorites:
+        case Constants.Strings.Add_All_to_Favorites:
             for mediaItem in mediaItems! {
-                mediaItem.addTag(Constants.Favorites)
+                mediaItem.addTag(Constants.Strings.Favorites)
             }
             break
             
-        case Constants.Remove_From_Favorites:
-            selectedMediaItem?.removeTag(Constants.Favorites)
+        case Constants.Strings.Remove_From_Favorites:
+            selectedMediaItem?.removeTag(Constants.Strings.Favorites)
             break
             
-        case Constants.Remove_All_From_Favorites:
+        case Constants.Strings.Remove_All_From_Favorites:
             for mediaItem in mediaItems! {
-                mediaItem.removeTag(Constants.Favorites)
+                mediaItem.removeTag(Constants.Strings.Favorites)
             }
             break
             
-        case Constants.Open_on_CBC_Website:
+        case Constants.Strings.Open_on_CBC_Website:
             if selectedMediaItem?.websiteURL != nil {
                 if (UIApplication.shared.canOpenURL(selectedMediaItem!.websiteURL!)) { // Reachability.isConnectedToNetwork() &&
                     UIApplication.shared.openURL(selectedMediaItem!.websiteURL!)
@@ -209,7 +209,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.Open_in_Browser:
+        case Constants.Strings.Open_in_Browser:
             if selectedMediaItem?.downloadURL != nil {
                 if (UIApplication.shared.canOpenURL(selectedMediaItem!.downloadURL!)) { // Reachability.isConnectedToNetwork() &&
                     UIApplication.shared.openURL(selectedMediaItem!.downloadURL!)
@@ -219,7 +219,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.Scripture_Viewer:
+        case Constants.Strings.Scripture_Viewer:
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "Scripture View") as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? ScriptureViewController  {
                 
@@ -242,41 +242,41 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.Scripture_in_Browser:
+        case Constants.Strings.Scripture_in_Browser:
             openMediaItemScripture(selectedMediaItem)
             break
             
-        case Constants.Download_Audio:
+        case Constants.Strings.Download_Audio:
             selectedMediaItem?.audioDownload?.download()
             break
             
-        case Constants.Download_All_Audio:
+        case Constants.Strings.Download_All_Audio:
             for mediaItem in mediaItems! {
                 mediaItem.audioDownload?.download()
             }
             break
             
-        case Constants.Cancel_Audio_Download:
+        case Constants.Strings.Cancel_Audio_Download:
             selectedMediaItem?.audioDownload?.cancelOrDelete()
             break
             
-        case Constants.Cancel_All_Audio_Downloads:
+        case Constants.Strings.Cancel_All_Audio_Downloads:
             for mediaItem in mediaItems! {
                 mediaItem.audioDownload?.cancel()
             }
             break
             
-        case Constants.Delete_Audio_Download:
+        case Constants.Strings.Delete_Audio_Download:
             selectedMediaItem?.audioDownload?.delete()
             break
             
-        case Constants.Delete_All_Audio_Downloads:
+        case Constants.Strings.Delete_All_Audio_Downloads:
             for mediaItem in mediaItems! {
                 mediaItem.audioDownload?.delete()
             }
             break
             
-        case Constants.Print:
+        case Constants.Strings.Print:
             process(viewController: self, work: {
                 return setupMediaItemsHTML(self.mediaItems,includeURLs:false,includeColumns:true)
             }, completion: { (data:Any?) in
@@ -284,19 +284,19 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             })
             break
             
-        case Constants.Share:
+        case Constants.Strings.Share:
             shareHTML(viewController: self, htmlString: mediaItem?.webLink)
             break
             
-        case Constants.Share_All:
+        case Constants.Strings.Share_All:
             shareMediaItems(viewController: self, mediaItems: mediaItems, stringFunction: setupMediaItemsHTML)
             break
             
-        case Constants.Refresh_Document:
+        case Constants.Strings.Refresh_Document:
             fallthrough
-        case Constants.Refresh_Transcript:
+        case Constants.Strings.Refresh_Transcript:
             fallthrough
-        case Constants.Refresh_Slides:
+        case Constants.Strings.Refresh_Slides:
             // This only refreshes the visible document.
             download?.cancelOrDelete()
             document?.loaded = false
@@ -324,15 +324,15 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         switch purpose {
         case .selectingCellAction:
             switch strings[index] {
-            case Constants.Download_Audio:
+            case Constants.Strings.Download_Audio:
                 mediaItem?.audioDownload?.download()
                 break
                 
-            case Constants.Delete_Audio_Download:
+            case Constants.Strings.Delete_Audio_Download:
                 mediaItem?.audioDownload?.delete()
                 break
                 
-            case Constants.Cancel_Audio_Download:
+            case Constants.Strings.Cancel_Audio_Download:
                 mediaItem?.audioDownload?.cancelOrDelete()
                 break
                 
@@ -1739,7 +1739,7 @@ class MediaViewController: UIViewController
                                       message: "Your device could not send a text message.  Please check your configuration and try again.",
                                       preferredStyle: UIAlertControllerStyle.alert)
         
-        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+        let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
             
         })
         alert.addAction(action)
@@ -1822,16 +1822,16 @@ class MediaViewController: UIViewController
                         ((videoLocation == .withDocuments) && (selectedMediaItem?.showing == Showing.video)) ||
                         ((videoLocation == .withTableView) && (selectedMediaItem?.showing != Showing.video))
                     ) {
-                        actionMenu.append(Constants.Swap_Video_Location)
+                        actionMenu.append(Constants.Strings.Swap_Video_Location)
                 }
             }
             
-            actionMenu.append(Constants.Scripture_Viewer)
+            actionMenu.append(Constants.Strings.Scripture_Viewer)
             
             if selectedMediaItem!.hasFavoritesTag {
-                actionMenu.append(Constants.Remove_From_Favorites)
+                actionMenu.append(Constants.Strings.Remove_From_Favorites)
             } else {
-                actionMenu.append(Constants.Add_to_Favorites)
+                actionMenu.append(Constants.Strings.Add_to_Favorites)
             }
             
             if mediaItems?.count > 1 {
@@ -1844,32 +1844,32 @@ class MediaViewController: UIViewController
                 }
                 switch favoriteMediaItems {
                 case 0:
-                    actionMenu.append(Constants.Add_All_to_Favorites)
+                    actionMenu.append(Constants.Strings.Add_All_to_Favorites)
                     break
                     
                 case 1:
-                    actionMenu.append(Constants.Add_All_to_Favorites)
+                    actionMenu.append(Constants.Strings.Add_All_to_Favorites)
 
                     if !selectedMediaItem!.hasFavoritesTag {
-                        actionMenu.append(Constants.Remove_All_From_Favorites)
+                        actionMenu.append(Constants.Strings.Remove_All_From_Favorites)
                     }
                     break
                     
                 case mediaItems!.count - 1:
                     if selectedMediaItem!.hasFavoritesTag {
-                        actionMenu.append(Constants.Add_All_to_Favorites)
+                        actionMenu.append(Constants.Strings.Add_All_to_Favorites)
                     }
                     
-                    actionMenu.append(Constants.Remove_All_From_Favorites)
+                    actionMenu.append(Constants.Strings.Remove_All_From_Favorites)
                     break
                     
                 case mediaItems!.count:
-                    actionMenu.append(Constants.Remove_All_From_Favorites)
+                    actionMenu.append(Constants.Strings.Remove_All_From_Favorites)
                     break
                     
                 default:
-                    actionMenu.append(Constants.Add_All_to_Favorites)
-                    actionMenu.append(Constants.Remove_All_From_Favorites)
+                    actionMenu.append(Constants.Strings.Add_All_to_Favorites)
+                    actionMenu.append(Constants.Strings.Remove_All_From_Favorites)
                     break
                 }
             }
@@ -1877,11 +1877,11 @@ class MediaViewController: UIViewController
             if UIPrintInteractionController.isPrintingAvailable, let purpose = document?.purpose  {
                 switch purpose {
                 case Purpose.notes:
-                    actionMenu.append(Constants.Print_Transcript)
+                    actionMenu.append(Constants.Strings.Print_Transcript)
                     break
                     
                 case Purpose.slides:
-                    actionMenu.append(Constants.Print_Slides)
+                    actionMenu.append(Constants.Strings.Print_Slides)
                     break
                     
                 default:
@@ -1890,14 +1890,14 @@ class MediaViewController: UIViewController
             }
 
             if document != nil, globals.cacheDownloads, let purpose = document?.purpose {
-//                actionMenu.append(Constants.Refresh_Document)
+//                actionMenu.append(Constants.Strings.Refresh_Document)
                 switch purpose {
                 case Purpose.notes:
-                    actionMenu.append(Constants.Refresh_Transcript)
+                    actionMenu.append(Constants.Strings.Refresh_Transcript)
                     break
                     
                 case Purpose.slides:
-                    actionMenu.append(Constants.Refresh_Slides)
+                    actionMenu.append(Constants.Strings.Refresh_Slides)
                     break
                     
                 default:
@@ -1907,10 +1907,10 @@ class MediaViewController: UIViewController
 
             // Not needed any more because the CBC Website now has a page for this media w/ any documents
 //            if document != nil {
-//                actionMenu.append(Constants.Open_in_Browser)
+//                actionMenu.append(Constants.Strings.Open_in_Browser)
 //            }
             
-            actionMenu.append(Constants.Open_on_CBC_Website)
+            actionMenu.append(Constants.Strings.Open_on_CBC_Website)
             
 //            if let books = selectedMediaItem?.books {
 //                actionMenu.append(Constants.Scripture_in_Browser)
@@ -1940,52 +1940,52 @@ class MediaViewController: UIViewController
 
                     switch selectedMediaItem!.audioDownload!.state {
                     case .none:
-                        actionMenu.append(Constants.Download_Audio)
+                        actionMenu.append(Constants.Strings.Download_Audio)
                         break
                         
                     case .downloading:
-                        actionMenu.append(Constants.Cancel_Audio_Download)
+                        actionMenu.append(Constants.Strings.Cancel_Audio_Download)
                         break
                         
                     case .downloaded:
-                        actionMenu.append(Constants.Delete_Audio_Download)
+                        actionMenu.append(Constants.Strings.Delete_Audio_Download)
                         break
                     }
                     
                     switch selectedMediaItem!.audioDownload!.state {
                     case .none:
                         if (mediaItemsToDownload > 1) {
-                            actionMenu.append(Constants.Download_All_Audio)
+                            actionMenu.append(Constants.Strings.Download_All_Audio)
                         }
                         if (mediaItemsDownloading > 0) {
-                            actionMenu.append(Constants.Cancel_All_Audio_Downloads)
+                            actionMenu.append(Constants.Strings.Cancel_All_Audio_Downloads)
                         }
                         if (mediaItemsDownloaded > 0) {
-                            actionMenu.append(Constants.Delete_All_Audio_Downloads)
+                            actionMenu.append(Constants.Strings.Delete_All_Audio_Downloads)
                         }
                         break
                         
                     case .downloading:
                         if (mediaItemsToDownload > 0) {
-                            actionMenu.append(Constants.Download_All_Audio)
+                            actionMenu.append(Constants.Strings.Download_All_Audio)
                         }
                         if (mediaItemsDownloading > 1) {
-                            actionMenu.append(Constants.Cancel_All_Audio_Downloads)
+                            actionMenu.append(Constants.Strings.Cancel_All_Audio_Downloads)
                         }
                         if (mediaItemsDownloaded > 0) {
-                            actionMenu.append(Constants.Delete_All_Audio_Downloads)
+                            actionMenu.append(Constants.Strings.Delete_All_Audio_Downloads)
                         }
                         break
                         
                     case .downloaded:
                         if (mediaItemsToDownload > 0) {
-                            actionMenu.append(Constants.Download_All_Audio)
+                            actionMenu.append(Constants.Strings.Download_All_Audio)
                         }
                         if (mediaItemsDownloading > 0) {
-                            actionMenu.append(Constants.Cancel_All_Audio_Downloads)
+                            actionMenu.append(Constants.Strings.Cancel_All_Audio_Downloads)
                         }
                         if (mediaItemsDownloaded > 1) {
-                            actionMenu.append(Constants.Delete_All_Audio_Downloads)
+                            actionMenu.append(Constants.Strings.Delete_All_Audio_Downloads)
                         }
                         break
                     }
@@ -1993,12 +1993,12 @@ class MediaViewController: UIViewController
             }
             
             if selectedMediaItem != nil {
-                actionMenu.append(Constants.Print)
-                actionMenu.append(Constants.Share)
+                actionMenu.append(Constants.Strings.Print)
+                actionMenu.append(Constants.Strings.Share)
             }
             
             if mediaItems?.count > 1 {
-                actionMenu.append(Constants.Share_All)
+                actionMenu.append(Constants.Strings.Share_All)
             }
             
             popover.section.strings = actionMenu
@@ -2997,7 +2997,7 @@ class MediaViewController: UIViewController
             
             navigationController.popoverPresentationController?.barButtonItem = button
             
-            popover.navigationItem.title = Constants.Tags
+            popover.navigationItem.title = Constants.Strings.Tags
             
             popover.delegate = self
             

@@ -1209,7 +1209,7 @@ class MediaItem : NSObject {
     
     var classSection:String! {
         get {
-            return hasClassName ? className! : Constants.None
+            return hasClassName ? className! : Constants.Strings.None
         }
     }
     
@@ -1227,7 +1227,7 @@ class MediaItem : NSObject {
     
     var eventSection:String! {
         get {
-            return hasEventName ? eventName! : Constants.None
+            return hasEventName ? eventName! : Constants.Strings.None
         }
     }
     
@@ -1245,7 +1245,7 @@ class MediaItem : NSObject {
     
     var speakerSection:String! {
         get {
-            return hasSpeaker ? speaker! : Constants.None
+            return hasSpeaker ? speaker! : Constants.Strings.None
         }
     }
     
@@ -1282,7 +1282,7 @@ class MediaItem : NSObject {
 //                    print(speaker)
 //                    print(speakerSort)
                     
-                    dict![Field.speaker_sort] = speakerSort != nil ? speakerSort : Constants.None
+                    dict![Field.speaker_sort] = speakerSort != nil ? speakerSort : Constants.Strings.None
                 }
             }
 
@@ -1417,19 +1417,19 @@ class MediaItem : NSObject {
             var constantTags:String?
             
             if hasSlides {
-                constantTags = constantTags != nil ? constantTags! + "|" + Constants.Slides : Constants.Slides
+                constantTags = constantTags != nil ? constantTags! + "|" + Constants.Strings.Slides : Constants.Strings.Slides
             }
             
             if hasNotes {
-                constantTags = constantTags != nil ? constantTags! + "|" + Constants.Transcript : Constants.Transcript
+                constantTags = constantTags != nil ? constantTags! + "|" + Constants.Strings.Transcript : Constants.Strings.Transcript
             }
             
             if hasNotesHTML {
-                constantTags = constantTags != nil ? constantTags! + "|" + Constants.Lexicon : Constants.Lexicon
+                constantTags = constantTags != nil ? constantTags! + "|" + Constants.Strings.Lexicon : Constants.Strings.Lexicon
             }
             
             if hasVideo {
-                constantTags = constantTags != nil ? constantTags! + "|" + Constants.Video : Constants.Video
+                constantTags = constantTags != nil ? constantTags! + "|" + Constants.Strings.Video : Constants.Strings.Video
             }
 
             return constantTags
@@ -2112,7 +2112,7 @@ class MediaItem : NSObject {
 //                    print([Constants.None])
 //                }
             }
-            return books != nil ? books! : (hasScripture ? [scriptureReference!.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)] : [Constants.None])
+            return books != nil ? books! : (hasScripture ? [scriptureReference!.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)] : [Constants.Strings.None])
         }
     }
     
@@ -2907,7 +2907,7 @@ class MediaItem : NSObject {
     var hasFavoritesTag:Bool
     {
         get {
-            return hasTags ? tagsSet!.contains(Constants.Favorites) : false
+            return hasTags ? tagsSet!.contains(Constants.Strings.Favorites) : false
         }
     }
 }

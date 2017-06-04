@@ -593,14 +593,14 @@ class MediaTableViewCell: UITableViewCell
             if mediaItem!.hasAudio {
                 switch mediaItem!.audioDownload!.state {
                 case .none:
-                    strings.append(Constants.Download_Audio)
+                    strings.append(Constants.Strings.Download_Audio)
                     break
                     
                 case .downloading:
-                    strings.append(Constants.Cancel_Audio_Download)
+                    strings.append(Constants.Strings.Cancel_Audio_Download)
                     break
                 case .downloaded:
-                    strings.append(Constants.Delete_Audio_Download)
+                    strings.append(Constants.Strings.Delete_Audio_Download)
                     break
                 }
             }
@@ -653,13 +653,13 @@ class MediaTableViewCell: UITableViewCell
                 navigationController.popoverPresentationController?.sourceRect = tagsButton.frame
             }
             
-            popover.navigationItem.title = Constants.Show // Show MediaItems Tagged With
+            popover.navigationItem.title = Constants.Strings.Show // Show MediaItems Tagged With
             
             popover.delegate = self.vc as? MediaTableViewController
             popover.purpose = .selectingTags
             
             popover.section.strings = mediaItem!.tagsArray
-            popover.section.strings?.insert(Constants.All,at: 0)
+            popover.section.strings?.insert(Constants.Strings.All,at: 0)
             
             popover.section.showIndex = false
             popover.section.showHeaders = false

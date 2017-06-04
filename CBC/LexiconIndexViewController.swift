@@ -84,7 +84,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
         }
         
         switch action {
-        case "Sorting":
+        case Constants.Strings.Sorting:
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 navigationController.modalPresentationStyle = .popover
@@ -112,7 +112,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.Word_Picker:
+        case Constants.Strings.Word_Picker:
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
                 navigationController.modalPresentationStyle = .popover
@@ -123,7 +123,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
                 navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
                 
-                popover.navigationItem.title = Constants.Word_Picker
+                popover.navigationItem.title = Constants.Strings.Word_Picker
                 
                 popover.delegate = self
                 
@@ -133,7 +133,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.View_List:
+        case Constants.Strings.View_List:
             process(viewController: self, work: { () -> (Any?) in
                 if self.results?.html?.string == nil {
                     self.results?.html?.string = self.setupMediaItemsHTMLLexicon(includeURLs: true, includeColumns: true)
@@ -255,19 +255,19 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             dismiss(animated: true, completion: nil)
             
             switch string {
-            case Constants.Download_Audio:
+            case Constants.Strings.Download_Audio:
                 mediaItem?.audioDownload?.download()
                 break
                 
-            case Constants.Delete_Audio_Download:
+            case Constants.Strings.Delete_Audio_Download:
                 mediaItem?.audioDownload?.delete()
                 break
                 
-            case Constants.Cancel_Audio_Download:
+            case Constants.Strings.Cancel_Audio_Download:
                 mediaItem?.audioDownload?.cancelOrDelete()
                 break
                 
-            case Constants.Download_Audio:
+            case Constants.Strings.Download_Audio:
                 mediaItem?.audioDownload?.download()
                 break
                 
@@ -831,10 +831,10 @@ class LexiconIndexViewController : UIViewController
         var actionMenu = [String]()
 
 //        actionMenu.append("Sorting")
-        actionMenu.append(Constants.Word_Picker)
+        actionMenu.append(Constants.Strings.Word_Picker)
 
         if results?.list?.count > 0 {
-            actionMenu.append(Constants.View_List)
+            actionMenu.append(Constants.Strings.View_List)
         }
         
         return actionMenu.count > 0 ? actionMenu : nil
@@ -932,7 +932,7 @@ class LexiconIndexViewController : UIViewController
             
             navigationController.popoverPresentationController?.barButtonItem = button
             
-            popover.navigationItem.title = Constants.Menu.Index
+            popover.navigationItem.title = Constants.Strings.Menu.Index
             
             popover.delegate = self
             
@@ -952,7 +952,7 @@ class LexiconIndexViewController : UIViewController
     {
         super.viewDidLoad()
         
-        let indexButton = UIBarButtonItem(title: Constants.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(LexiconIndexViewController.index(_:)))
+        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(LexiconIndexViewController.index(_:)))
         let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
         
         self.setToolbarItems([spaceButton,indexButton], animated: false)

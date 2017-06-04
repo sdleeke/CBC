@@ -44,7 +44,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
         switch purpose {
         case .selectingAction:
             switch strings[index] {
-            case Constants.Full_Screen:
+            case Constants.Strings.Full_Screen:
                 if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? WebViewController {
                     // Had to take out the lines below or the searchBar would become unresponsive. No idea why.
@@ -70,7 +70,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 }
                 break
                 
-            case Constants.Print:
+            case Constants.Strings.Print:
                 if webViewController?.html.string != nil, webViewController!.html.string!.contains(" href=") {
                     firstSecondCancel(viewController: self, title: "Remove Links?", message: "This can take some time.",
                                       firstTitle: "Yes",
@@ -92,7 +92,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 }
                 break
                 
-            case Constants.Share:
+            case Constants.Strings.Share:
                 shareHTML(viewController: self, htmlString: webViewController!.html.string!)
                 break
                 
@@ -557,15 +557,15 @@ class ScriptureViewController : UIViewController
         var actionMenu = [String]()
         
         if self.navigationController?.modalPresentationStyle == .popover {
-            actionMenu.append(Constants.Full_Screen)
+            actionMenu.append(Constants.Strings.Full_Screen)
         }
         
         if UIPrintInteractionController.isPrintingAvailable {
-            actionMenu.append(Constants.Print)
+            actionMenu.append(Constants.Strings.Print)
         }
         
         if webViewController?.html.string != nil {
-            actionMenu.append(Constants.Share)
+            actionMenu.append(Constants.Strings.Share)
         }
         
         return actionMenu.count > 0 ? actionMenu : nil

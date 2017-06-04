@@ -302,7 +302,7 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
                                                   message: "Please check your network connection and try again.",
                                                   preferredStyle: UIAlertControllerStyle.alert)
                     
-                    let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                    let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
                         if globals.isRefreshing {
                             DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                                 
@@ -353,11 +353,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         }
         
         switch action {
-        case Constants.About:
+        case Constants.Strings.About:
             about()
             break
             
-        case Constants.Current_Selection:
+        case Constants.Strings.Current_Selection:
             if let mediaItem = selectedMediaItem {
                 if globals.media.active!.mediaItems!.contains(mediaItem) {
                     if tableView.isEditing {
@@ -376,7 +376,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                                   message: "\"\(mediaItem.title!)\" is not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",
                         preferredStyle: UIAlertControllerStyle.alert)
                     
-                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                    let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
                         
                     })
                     alert.addAction(action)
@@ -390,7 +390,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                               message: "Oops, this should never happen!",
                                               preferredStyle: UIAlertControllerStyle.alert)
                 
-                let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
                     
                 })
                 alert.addAction(action)
@@ -399,10 +399,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.Media_Playing:
+        case Constants.Strings.Media_Playing:
             fallthrough
             
-        case Constants.Media_Paused:
+        case Constants.Strings.Media_Paused:
             globals.gotoPlayingPaused = true
             
             globals.mediaPlayer.killPIP = true
@@ -410,13 +410,13 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: self)
             break
             
-        case Constants.Scripture_Index:
+        case Constants.Strings.Scripture_Index:
             if (globals.media.active?.scriptureIndex?.eligible == nil) {
                 let alert = UIAlertController(title:"No Scripture Index Available",
                                               message: "The Scripture references for these media items are not specific.",
                                               preferredStyle: UIAlertControllerStyle.alert)
                 
-                let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
                     
                 })
                 alert.addAction(action)
@@ -434,13 +434,13 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             //                performSegue(withIdentifier: Constants.SEGUE.SHOW_SCRIPTURE_INDEX, sender: nil)
             break
             
-        case Constants.Lexicon_Index:
+        case Constants.Strings.Lexicon_Index:
             if (globals.media.active?.lexicon?.eligible == nil) {
                 let alert = UIAlertController(title:"No Lexicon Index Available",
                                               message: "These media items do not have HTML transcripts.",
                                               preferredStyle: UIAlertControllerStyle.alert)
                 
-                let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
                     
                 })
                 alert.addAction(action)
@@ -456,7 +456,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.View_List:
+        case Constants.Strings.View_List:
             if let string = globals.media.active?.html?.string {
                 presentHTMLModal(viewController: self, medaiItem: nil, title: globals.contextTitle, htmlString: string)
             } else {
@@ -471,7 +471,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.History:
+        case Constants.Strings.History:
             if globals.relevantHistoryList == nil {
                 let alert = UIAlertController(title: "History is empty.",
                                               message: nil,
@@ -493,7 +493,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     
                     navigationController.popoverPresentationController?.barButtonItem = showButton
                     
-                    popover.navigationItem.title = Constants.History
+                    popover.navigationItem.title = Constants.Strings.History
                     
                     popover.delegate = self
                     popover.purpose = .selectingHistory
@@ -515,7 +515,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.Clear_History:
+        case Constants.Strings.Clear_History:
             let alert = UIAlertController(title: "Delete History?",
                                           message: nil,
                                           preferredStyle: UIAlertControllerStyle.alert)
@@ -536,12 +536,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             present(alert, animated: true, completion: nil)
             break
             
-        case Constants.Live:
+        case Constants.Strings.Live:
             globals.mediaPlayer.killPIP = true
             performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: self)
             break
             
-        case Constants.Settings:
+        case Constants.Strings.Settings:
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SETTINGS_NAVCON) as? UINavigationController,
                 let _ = navigationController.viewControllers[0] as? SettingsViewController {
                 navigationController.modalPresentationStyle = .popover
@@ -633,7 +633,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                                       message: "Please check your network connection and try again.",
                                                       preferredStyle: UIAlertControllerStyle.alert)
                         
-                        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                        let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
                             if globals.isRefreshing {
                                 DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                                     
@@ -692,19 +692,19 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
         case .selectingCellAction:
             switch strings[index] {
-            case Constants.Download_Audio:
+            case Constants.Strings.Download_Audio:
                 mediaItem?.audioDownload?.download()
                 break
                 
-            case Constants.Delete_Audio_Download:
+            case Constants.Strings.Delete_Audio_Download:
                 mediaItem?.audioDownload?.delete()
                 break
                 
-            case Constants.Cancel_Audio_Download:
+            case Constants.Strings.Cancel_Audio_Download:
                 mediaItem?.audioDownload?.cancelOrDelete()
                 break
                 
-            case Constants.Download_Audio:
+            case Constants.Strings.Download_Audio:
                 mediaItem?.audioDownload?.download()
                 break
                 
@@ -764,7 +764,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                                       message: "\"\(mediaItem.title!)\" is not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",
                             preferredStyle: UIAlertControllerStyle.alert)
                         
-                        let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                        let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
                             
                         })
                         alert.addAction(action)
@@ -776,7 +776,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                                   message: "Oops, this should never happen!",
                                                   preferredStyle: UIAlertControllerStyle.alert)
                     
-                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+                    let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
                         
                     })
                     alert.addAction(action)
@@ -796,7 +796,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     var new:Bool = false
                     
                     switch strings[index] {
-                    case Constants.All:
+                    case Constants.Strings.All:
                         if (globals.media.tags.showing != Constants.ALL) {
                             new = true
                             //                            globals.media.tags.showing = Constants.ALL
@@ -1125,7 +1125,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                                                   message: "Please try to refresh the list again.",
                                                   preferredStyle: UIAlertControllerStyle.alert)
                     
-                    let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                    let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
                         
                     })
                     alert.addAction(action)
@@ -1223,7 +1223,7 @@ class MediaTableViewController : UIViewController
             navigationController.popoverPresentationController?.sourceView = self.view
             navigationController.popoverPresentationController?.sourceRect = mediaCategoryButton.frame
 
-            popover.navigationItem.title = Constants.Select_Category
+            popover.navigationItem.title = Constants.Strings.Select_Category
             
             popover.delegate = self
             popover.purpose = .selectingCategory
@@ -1302,15 +1302,15 @@ class MediaTableViewController : UIViewController
             if (splitViewController?.viewControllers.count > 1) {
                 // What if it is collapsed and the detail view is showing?
                 if (!globals.showingAbout) {
-                    showMenu.append(Constants.About)
+                    showMenu.append(Constants.Strings.About)
                 }
             } else {
-                showMenu.append(Constants.About)
+                showMenu.append(Constants.Strings.About)
             }
             
             //Because the list extends above and below the visible area, visibleCells is deceptive - the cell can be hidden behind a navbar or toolbar and still returned in the array of visibleCells.
             if (globals.display.mediaItems != nil) && (selectedMediaItem != nil) { // && (globals.display.mediaItems?.indexOf(selectedMediaItem!) != nil)
-                showMenu.append(Constants.Current_Selection)
+                showMenu.append(Constants.Strings.Current_Selection)
             }
             
             if (globals.mediaPlayer.mediaItem != nil) {
@@ -1319,19 +1319,19 @@ class MediaTableViewController : UIViewController
                 if globals.mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM), let state = globals.mediaPlayer.state {
                     switch state {
                     case .paused:
-                        show = Constants.Media_Paused
+                        show = Constants.Strings.Media_Paused
                         break
                         
                     case .playing:
-                        show = Constants.Media_Playing
+                        show = Constants.Strings.Media_Playing
                         break
                         
                     default:
-                        show = Constants.None
+                        show = Constants.Strings.None
                         break
                     }
                 } else {
-                    show = Constants.Media_Paused
+                    show = Constants.Strings.Media_Paused
                 }
                 
                 if (splitViewController?.viewControllers.count > 1) {
@@ -1362,7 +1362,7 @@ class MediaTableViewController : UIViewController
             }
             
             if globals.media.active?.list?.count > 0 {
-                showMenu.append(Constants.View_List)
+                showMenu.append(Constants.Strings.View_List)
             }
             
             if splitViewController == nil {
@@ -1373,22 +1373,22 @@ class MediaTableViewController : UIViewController
                 let isCollapsed = splitViewController?.isCollapsed,
                 (vClass != UIUserInterfaceSizeClass.compact) || isCollapsed {
                 if (globals.media.active?.scriptureIndex?.eligible != nil) {
-                    showMenu.append(Constants.Scripture_Index)
+                    showMenu.append(Constants.Strings.Scripture_Index)
                 }
                 
                 if (globals.media.active?.lexicon?.eligible != nil) {
-                    showMenu.append(Constants.Lexicon_Index)
+                    showMenu.append(Constants.Strings.Lexicon_Index)
                 }
             }
             
             if globals.history != nil {
-                showMenu.append(Constants.History)
-                showMenu.append(Constants.Clear_History)
+                showMenu.append(Constants.Strings.History)
+                showMenu.append(Constants.Strings.Clear_History)
             }
             
-            showMenu.append(Constants.Live)
+            showMenu.append(Constants.Strings.Live)
             
-            showMenu.append(Constants.Settings)
+            showMenu.append(Constants.Strings.Settings)
             
 //            if UIPrintInteractionController.isPrintingAvailable {
 //                showMenu.append(Constants.Print_All)
@@ -1488,7 +1488,7 @@ class MediaTableViewController : UIViewController
             
             navigationController.popoverPresentationController?.barButtonItem = button
             
-            popover.navigationItem.title = Constants.Menu.Index
+            popover.navigationItem.title = Constants.Strings.Menu.Index
             
             popover.delegate = self
             
@@ -1586,7 +1586,7 @@ class MediaTableViewController : UIViewController
             
             navigationController.popoverPresentationController?.barButtonItem = button
             
-            popover.navigationItem.title = Constants.Options_Title.Grouping
+            popover.navigationItem.title = Constants.Strings.Options_Title.Grouping
             
             popover.delegate = self
             
@@ -1621,7 +1621,7 @@ class MediaTableViewController : UIViewController
             
             navigationController.popoverPresentationController?.barButtonItem = button
             
-            popover.navigationItem.title = Constants.Options_Title.Sorting
+            popover.navigationItem.title = Constants.Strings.Options_Title.Sorting
             
             popover.delegate = self
             
@@ -1649,9 +1649,9 @@ class MediaTableViewController : UIViewController
     
     fileprivate func setupSortingAndGroupingOptions()
     {
-        let sortingButton = UIBarButtonItem(title: Constants.Menu.Sorting, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.sorting(_:)))
-        let groupingButton = UIBarButtonItem(title: Constants.Menu.Grouping, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.grouping(_:)))
-        let indexButton = UIBarButtonItem(title: Constants.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.index(_:)))
+        let sortingButton = UIBarButtonItem(title: Constants.Strings.Menu.Sorting, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.sorting(_:)))
+        let groupingButton = UIBarButtonItem(title: Constants.Strings.Menu.Grouping, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.grouping(_:)))
+        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.index(_:)))
 
         let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
 
@@ -1735,7 +1735,7 @@ class MediaTableViewController : UIViewController
                                               message:message,
                                               preferredStyle: UIAlertControllerStyle.alert)
                 
-                let action = UIAlertAction(title: Constants.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
                     
                 })
                 alert.addAction(action)
@@ -2303,7 +2303,7 @@ class MediaTableViewController : UIViewController
                                                   message: "Please check your network connection and try again.",
                         preferredStyle: UIAlertControllerStyle.alert)
                     
-                    let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                    let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
                         if globals.isRefreshing {
                             self.refreshControl?.endRefreshing()
                             globals.isRefreshing = false
@@ -2542,7 +2542,7 @@ class MediaTableViewController : UIViewController
                                                       message: "Please check your network connection and try again.",
                                                       preferredStyle: UIAlertControllerStyle.alert)
                         
-                        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                        let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
                             if globals.isRefreshing {
                                 self.refreshControl?.endRefreshing()
                                 globals.isRefreshing = false
@@ -2703,14 +2703,14 @@ class MediaTableViewController : UIViewController
 
             navigationController.popoverPresentationController?.barButtonItem = tagsToolbar?.items?.first
 
-            popover.navigationItem.title = Constants.Show
+            popover.navigationItem.title = Constants.Strings.Show
             
             popover.delegate = self
             popover.purpose = .selectingTags
             
 //            print(globals.media.all!.mediaItemTags!)
             
-            var strings = [Constants.All]
+            var strings = [Constants.Strings.All]
             
             if let mediaItemTags = globals.media.all?.mediaItemTags {
                 strings.append(contentsOf: mediaItemTags)
@@ -3043,7 +3043,7 @@ class MediaTableViewController : UIViewController
         DispatchQueue.main.async(execute: { () -> Void in
             switch globals.media.tags.showing! {
             case Constants.ALL:
-                self.tagLabel.text = Constants.All // searchBar.placeholder
+                self.tagLabel.text = Constants.Strings.All // searchBar.placeholder
                 break
                 
             case Constants.TAGGED:
@@ -3783,7 +3783,7 @@ extension MediaTableViewController : UITableViewDelegate
 //        
 //        request.httpBody = postString.data(using: String.Encoding.utf8.rawValue)
         
-        var request = URLRequest(url: URL(string: "https://17iPVurdk9fn2ZKLVnnfqN4HKKIb9WXMKzN0l5K5:@bibles.org/v2/eng-NASB/passages.js?q[]=")!)
+        var request = URLRequest(url: URL(string: Constants.SCRIPTURE_BASE_URL)!)
         request.httpMethod = "GET"
         
         let task = URLSession.shared.dataTask(with: request) {
@@ -3832,7 +3832,7 @@ extension MediaTableViewController : UITableViewDelegate
                 navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
                 navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: search)!].frame
                 
-                popover.navigationItem.title = Constants.Search
+                popover.navigationItem.title = Constants.Strings.Search
                 
                 popover.navigationController?.isNavigationBarHidden = false
                 
@@ -3871,7 +3871,7 @@ extension MediaTableViewController : UITableViewDelegate
                 navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
                 navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: words)!].frame
                 
-                popover.navigationItem.title = Constants.Search
+                popover.navigationItem.title = Constants.Strings.Search
                 
                 popover.navigationController?.isNavigationBarHidden = false
                 

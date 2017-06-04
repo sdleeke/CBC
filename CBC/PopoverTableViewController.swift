@@ -375,6 +375,11 @@ class PopoverTableViewController : UIViewController {
             return
         }
         
+        guard navigationController?.viewControllers.count == 1 else {
+//            print("Pushed PTVC \(navigationController!.viewControllers.count)")
+            return
+        }
+
         guard (section.strings != nil) else {
             return
         }
@@ -1263,7 +1268,7 @@ extension PopoverTableViewController : UITableViewDataSource
                 break
                 
             case Constants.ALL:
-                if ((globals.media.tags.selected == nil) && (string == Constants.All)) {
+                if ((globals.media.tags.selected == nil) && (string == Constants.Strings.All)) {
                     cell.accessoryType = UITableViewCellAccessoryType.checkmark
                 } else {
                     cell.accessoryType = UITableViewCellAccessoryType.none

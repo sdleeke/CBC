@@ -56,23 +56,23 @@ extension AboutViewController : PopoverTableViewControllerDelegate
         case .selectingAction:
             switch strings[index] {
                 
-            case Constants.Email_CBC:
+            case Constants.Strings.Email_CBC:
                 mailHTML(viewController: self, to: [Constants.CBC.EMAIL], subject: Constants.EMAIL_SUBJECT, htmlString: "")
                 break
                 
-            case Constants.CBC_WebSite:
+            case Constants.Strings.CBC_WebSite:
                 openWebSite(Constants.CBC.WEBSITE)
                 break
                 
-            case Constants.CBC_in_Apple_Maps:
+            case Constants.Strings.CBC_in_Apple_Maps:
                 openInAppleMaps()
                 break
                 
-            case Constants.CBC_in_Google_Maps:
+            case Constants.Strings.CBC_in_Google_Maps:
                 openInGoogleMaps()
                 break
                 
-            case Constants.Share_This_App:
+            case Constants.Strings.Share_This_App:
                 shareHTML(viewController: self, htmlString: "Countryside Bible Church Media app\n\nhttps://itunes.apple.com/us/app/countryside-bible-church-media/id1166303807?ls=1&mt=8")
                 break
                 
@@ -132,7 +132,7 @@ class AboutViewController: UIViewController
                 message: Constants.EMPTY_STRING,
                 preferredStyle: UIAlertControllerStyle.alert)
             
-            let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+            let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
                 
             })
             alert.addAction(action)
@@ -173,12 +173,12 @@ class AboutViewController: UIViewController
             
             var actionMenu = [String]()
             
-            actionMenu.append(Constants.Email_CBC)
-            actionMenu.append(Constants.CBC_WebSite)
-            actionMenu.append(Constants.CBC_in_Apple_Maps)
-            actionMenu.append(Constants.CBC_in_Google_Maps)
+            actionMenu.append(Constants.Strings.Email_CBC)
+            actionMenu.append(Constants.Strings.CBC_WebSite)
+            actionMenu.append(Constants.Strings.CBC_in_Apple_Maps)
+            actionMenu.append(Constants.Strings.CBC_in_Google_Maps)
             
-            actionMenu.append(Constants.Share_This_App)
+            actionMenu.append(Constants.Strings.Share_This_App)
             
             popover.section.strings = actionMenu
             

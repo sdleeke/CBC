@@ -2646,7 +2646,7 @@ func tagsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
     
     var tagsArray = Array(tagsSet).sorted(by: { stringWithoutPrefixes($0) < stringWithoutPrefixes($1) })
     
-    tagsArray.append(Constants.All)
+    tagsArray.append(Constants.Strings.All)
     
     //    print("Tag Set: \(tagsSet)")
     //    print("Tag Array: \(tagsArray)")
@@ -2942,7 +2942,7 @@ func printJob(viewController:UIViewController,data:Data?,html:String?,orientatio
     
     let pi = UIPrintInfo.printInfo()
     pi.outputType = UIPrintInfoOutputType.general
-    pi.jobName = Constants.Print;
+    pi.jobName = Constants.Strings.Print;
     pi.duplex = UIPrintInfoDuplex.longEdge
     
     let pic = UIPrintInteractionController.shared
@@ -3079,7 +3079,7 @@ func showSendMailErrorAlert(viewController:UIViewController)
                                   message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",
                                   preferredStyle: UIAlertControllerStyle.alert)
     
-    let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+    let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
         
     })
     alert.addAction(action)
@@ -4014,6 +4014,11 @@ func addressString() -> String
 }
 
 var alert:UIAlertController!
+{
+    didSet {
+        print("alert")
+    }
+}
 
 func networkUnavailable(_ message:String?)
 {
@@ -4038,7 +4043,7 @@ func alert(title:String?,message:String?)
                               message: message,
                               preferredStyle: UIAlertControllerStyle.alert)
     
-    let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+    let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
         alert = nil
     })
     alert.addAction(action)
@@ -4061,7 +4066,7 @@ func userAlert(title:String?,message:String?)
                                       message: message,
                                       preferredStyle: UIAlertControllerStyle.alert)
         
-        let action = UIAlertAction(title: Constants.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+        let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
             
         })
         alert.addAction(action)
