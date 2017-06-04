@@ -458,7 +458,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.View_List:
             if let string = globals.media.active?.html?.string {
-                presentHTMLModal(viewController: self, medaiItem: nil, title: globals.contextTitle, htmlString: string)
+                presentHTMLModal(viewController: self, medaiItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: string)
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     if globals.media.active?.html?.string == nil {
@@ -466,7 +466,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     }
                     return globals.media.active?.html?.string
                 }, completion: { (data:Any?) in
-                    presentHTMLModal(viewController: self, medaiItem: nil, title: globals.contextTitle, htmlString: data as? String)
+                    presentHTMLModal(viewController: self, medaiItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: data as? String)
                 })
             }
             break

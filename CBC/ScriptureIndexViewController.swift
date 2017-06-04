@@ -79,7 +79,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                     
                     return self.scriptureIndex?.html?.string
                 }, completion: { (data:Any?) in
-                    presentHTMLModal(viewController: self, medaiItem: nil, title: globals.contextTitle, htmlString: data as? String)
+                    presentHTMLModal(viewController: self, medaiItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: data as? String)
                 })
                 break
                 

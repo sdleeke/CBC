@@ -375,10 +375,10 @@ class PopoverTableViewController : UIViewController {
             return
         }
         
-        guard navigationController?.viewControllers.count == 1 else {
-//            print("Pushed PTVC \(navigationController!.viewControllers.count)")
-            return
-        }
+//        guard navigationController?.viewControllers.count == 1 else {
+////            print("Pushed PTVC \(navigationController!.viewControllers.count)")
+//            return
+//        }
 
         guard (section.strings != nil) else {
             return

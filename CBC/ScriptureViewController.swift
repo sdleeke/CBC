@@ -632,8 +632,18 @@ class ScriptureViewController : UIViewController
         
         navigationItem.setRightBarButtonItems([actionButton!,minusButton!,plusButton!], animated: true)
         
-        if navigationController?.modalPresentationStyle == .overFullScreen {
-            navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureViewController.done)), animated: true)
+        if let presentationStyle = navigationController?.modalPresentationStyle {
+            switch presentationStyle {
+            case .overCurrentContext:
+                fallthrough
+            case .fullScreen:
+                fallthrough
+            case .overFullScreen:
+                navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureViewController.done)), animated: true)
+
+            default:
+                break
+            }
         }
     }
     

@@ -2680,7 +2680,7 @@ func mailMediaItem(viewController:UIViewController, mediaItem:MediaItem?,stringF
     }
 }
 
-func presentHTMLModal(viewController:UIViewController, medaiItem:MediaItem?, title: String?, htmlString: String?)
+func presentHTMLModal(viewController:UIViewController, medaiItem:MediaItem?, style: UIModalPresentationStyle, title: String?, htmlString: String?)
 {
     guard (htmlString != nil) else {
         return
@@ -2692,7 +2692,7 @@ func presentHTMLModal(viewController:UIViewController, medaiItem:MediaItem?, tit
             viewController.dismiss(animated: true, completion: nil)
         })
         
-        navigationController.modalPresentationStyle = .overFullScreen
+        navigationController.modalPresentationStyle = style
 //        navigationController.popoverPresentationController?.permittedArrowDirections = .any
         navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
         

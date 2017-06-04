@@ -141,7 +141,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
                 return self.results?.html?.string
             }, completion: { (data:Any?) in
-                presentHTMLModal(viewController: self, medaiItem: nil, title: "Lexicon Index For: \(self.searchText!)", htmlString: data as? String)
+                presentHTMLModal(viewController: self, medaiItem: nil, style: .overFullScreen, title: "Lexicon Index For: \(self.searchText!)", htmlString: data as? String)
             })
             break
             

@@ -411,7 +411,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                     
                     return bodyHTML
                 }, completion: { (data:Any?) in
-                    presentHTMLModal(viewController: self, medaiItem: nil, title: "Expanded Word Picker", htmlString: data as? String)
+                    presentHTMLModal(viewController: self, medaiItem: nil, style: .overCurrentContext, title: "Expanded Word Picker", htmlString: data as? String)
                 })
                 break
                 
@@ -497,12 +497,14 @@ class PopoverPickerViewController : UIViewController
     
     func setupActionButton()
     {
-        if mediaListGroupSort != nil {
-            let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverPickerViewController.actions))
-            actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-
-            navigationItem.setRightBarButton(actionButton, animated: false)
+        guard mediaListGroupSort != nil else {
+            return
         }
+
+        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverPickerViewController.actions))
+        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+        
+        navigationItem.setRightBarButton(actionButton, animated: false)
     }
 
     override func viewDidLoad()
@@ -599,10 +601,10 @@ class PopoverPickerViewController : UIViewController
 
 //        print("PPVC \(navigationController!.viewControllers.count)")
 
-        guard navigationController?.viewControllers.count == 1 else {
-//            print("Pushed PPVC \(navigationController!.viewControllers.count)")
-            return
-        }
+//        guard navigationController?.viewControllers.count == 1 else {
+////            print("Pushed PPVC \(navigationController!.viewControllers.count)")
+//            return
+//        }
         
         var width:CGFloat = 0
         
