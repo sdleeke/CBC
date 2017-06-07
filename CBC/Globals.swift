@@ -1528,13 +1528,19 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
                     }
                 }
             } else {
-//                if mediaPlayer.loaded && (mediaPlayer.rate == 0) && (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
-//                    mediaPlayer.pause()
-//                    
-////                    DispatchQueue.main.async(execute: { () -> Void in
-////                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-////                    })
-//                }
+                if mediaPlayer.fullScreen {
+                    if mediaPlayer.loaded && (mediaPlayer.rate == 0) && (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+                        mediaPlayer.pause()
+                    }
+                } else {
+                    if mediaPlayer.loaded && (mediaPlayer.rate == 0) && (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+                        mediaPlayer.pause()
+                        
+//                        DispatchQueue.main.async(execute: { () -> Void in
+//                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+//                        })
+                    }
+                }
             }
 
 //            if (globals.mediaPlayer.rate == 0) {
@@ -1595,12 +1601,18 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
                     mediaPlayer.play()
                 }
             } else {
-                if mediaPlayer.loaded && (mediaPlayer.rate != 0) && (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
-                    mediaPlayer.pause()
-                    
-//                    DispatchQueue.main.async(execute: { () -> Void in
-//                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-//                    })
+                if mediaPlayer.fullScreen {
+                    if mediaPlayer.loaded && (mediaPlayer.rate != 0) && (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+                        mediaPlayer.play()
+                    }
+                } else {
+                    if mediaPlayer.loaded && (mediaPlayer.rate != 0) && (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+                        mediaPlayer.pause()
+                        
+//                        DispatchQueue.main.async(execute: { () -> Void in
+//                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+//                        })
+                    }
                 }
             }
             

@@ -107,6 +107,13 @@ class MediaPlayer {
     
     var playerObserver:Timer?
     
+    var fullScreen = false
+    {
+        didSet {
+            print(fullScreen)
+        }
+    }
+    
     var url : URL? {
         get {
             return (currentItem?.asset as? AVURLAsset)?.url

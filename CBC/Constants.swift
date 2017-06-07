@@ -230,6 +230,8 @@ struct Constants {
         
         static let PAUSED                   = "PAUSED"
         
+        static let UPDATE_SHOW_HIDE         = "UPDATE SHOW HIDE"
+        
         static let UPDATE_VIEW              = "UPDATE VIEW"
         static let CLEAR_VIEW               = "CLEAR VIEW"
         
@@ -655,6 +657,8 @@ struct Constants {
         static let Clear_History = "Clear History"
         
         static let Scripture_Index = "Scripture Index"
+        
+        static let Zoom_Video = "Zoom Video"
         
         static let Swap_Video_Location = "Swap Video Location"
         

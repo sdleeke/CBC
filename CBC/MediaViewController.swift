@@ -169,6 +169,10 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         }
         
         switch action {
+        case Constants.Strings.Zoom_Video:
+            zoomVideo()
+            break
+            
         case Constants.Strings.Swap_Video_Location:
             swapVideoLocation()
             break
@@ -1526,7 +1530,7 @@ class MediaViewController: UIViewController
     @IBOutlet weak var vSlideView: UIView!
     @IBAction func vSlideTap(_ sender: UITapGestureRecognizer)
     {
-        guard controlViewTop != nil else {
+        guard controlViewTop.isActive else {
             return
         }
         
@@ -1535,7 +1539,7 @@ class MediaViewController: UIViewController
     }
     @IBAction func vSlidePan(_ pan: UIPanGestureRecognizer)
     {
-        guard controlViewTop != nil else {
+        guard controlViewTop.isActive else {
             return
         }
         
@@ -1574,7 +1578,7 @@ class MediaViewController: UIViewController
     @IBOutlet weak var hSlideView: UIView!
     @IBAction func hSlideTap(_ sender: UITapGestureRecognizer)
     {
-        guard tableViewWidth != nil else {
+        guard tableViewWidth.isActive else {
             return
         }
         
@@ -1584,7 +1588,7 @@ class MediaViewController: UIViewController
     }
     @IBAction func hSlidePan(_ pan: UIPanGestureRecognizer)
     {
-        guard tableViewWidth != nil else {
+        guard tableViewWidth.isActive else {
             return
         }
         
@@ -1616,7 +1620,11 @@ class MediaViewController: UIViewController
     
     @IBAction func viewSplitPan(_ pan: UIPanGestureRecognizer)
     {
-        guard viewSplit != nil else {
+        guard view.subviews.contains(viewSplit) else {
+            return
+        }
+        
+        guard mediaItemNotesAndSlidesConstraint.isActive else {
             return
         }
         
@@ -1817,12 +1825,18 @@ class MediaViewController: UIViewController
                 let hasSlides = selectedMediaItem!.hasSlides
                 let hasNotes = selectedMediaItem!.hasNotes
                 
+                if hasVideo {
+                    actionMenu.append(Constants.Strings.Zoom_Video)
+                }
+                
                 if (hasVideo && (hasSlides || hasNotes)) && (selectedMediaItem?.playing == Playing.video) &&
                     (
                         ((videoLocation == .withDocuments) && (selectedMediaItem?.showing == Showing.video)) ||
                         ((videoLocation == .withTableView) && (selectedMediaItem?.showing != Showing.video))
                     ) {
+                    if !globals.mediaPlayer.fullScreen {
                         actionMenu.append(Constants.Strings.Swap_Video_Location)
+                    }
                 }
             }
             
@@ -2014,13 +2028,69 @@ class MediaViewController: UIViewController
         }
     }
     
-    func videoPan(_ pan:UIPanGestureRecognizer)
+    func zoomVideo()
     {
-        guard controlViewTop != nil else { // Implies landscape mode
-            return
+        if splitViewController?.viewControllers.count > 1 {
+            if globals.mediaPlayer.fullScreen {
+                splitViewController?.preferredDisplayMode = .allVisible
+            } else {
+                splitViewController?.preferredDisplayMode = .primaryOverlay
+            }
         }
         
-        guard tableViewWidth != nil else { // Implies landscape mode
+        globals.mediaPlayer.fullScreen = !globals.mediaPlayer.fullScreen
+
+        if splitViewController?.viewControllers.count > 1 {
+            if (splitViewController?.viewControllers.count > 1) {
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SHOW_HIDE), object: nil)
+                //                DispatchQueue.main.async(execute: { () -> Void in
+                //                })
+            }
+        }
+
+        updateUI()
+    }
+    
+    func videoPinch(_ pinch:UIPinchGestureRecognizer)
+    {
+        switch pinch.state {
+        case .began:
+            break
+            
+        case .ended:
+            if globals.mediaPlayer.fullScreen != (pinch.scale > 1) {
+                globals.mediaPlayer.fullScreen = pinch.scale > 1
+                
+                if globals.mediaPlayer.fullScreen {
+                    splitViewController?.preferredDisplayMode = .primaryHidden
+                } else {
+                    splitViewController?.preferredDisplayMode = .allVisible
+                }
+                
+                globals.mediaPlayer.fullScreen = !globals.mediaPlayer.fullScreen
+                updateUI()
+            }
+            break
+            
+        case .changed:
+            break
+            
+        default:
+            break
+        }
+    }
+    
+    func videoPan(_ pan:UIPanGestureRecognizer)
+    {
+//        guard controlViewTop.isActive else { // Implies Compact width and Compact height aka landscape on phones other han plus models
+//            return
+//        }
+//        
+//        guard tableViewWidth.isActive else { // Implies Compact width and Compact height aka landscape on phones other han plus models
+//            return
+//        }
+        
+        guard !globals.mediaPlayer.fullScreen else {
             return
         }
         
@@ -2030,24 +2100,40 @@ class MediaViewController: UIViewController
             
         case .ended:
             captureSlideSplit()
+            captureViewSplit()
             break
             
         case .changed:
             let translation = pan.translation(in: pan.view)
             
             if translation.y != 0 {
-                if controlViewTop.constant + translation.y < -46 {
-                    controlViewTop.constant = -46
-                } else
-                    if controlViewTop.constant + translation.y > 0 {
-                        controlViewTop.constant = 0
-                    } else {
-                        controlViewTop.constant += translation.y
+                if controlViewTop.isActive {
+                    if controlViewTop.constant + translation.y < -46 {
+                        controlViewTop.constant = -46
+                    } else
+                        if controlViewTop.constant + translation.y > 0 {
+                            controlViewTop.constant = 0
+                        } else {
+                            controlViewTop.constant += translation.y
+                    }
+                } else {
+
+                }
+                
+                if mediaItemNotesAndSlidesConstraint.isActive {
+                    let change = -translation.y
+                    setMediaItemNotesAndSlidesConstraint(change)
+                } else {
+                    
                 }
             }
             
             if translation.x != 0 {
-                setTableViewWidth(width: tableViewWidth.constant + -translation.x)
+                if tableViewWidth.isActive {
+                    setTableViewWidth(width: tableViewWidth.constant + -translation.x)
+                } else {
+                    
+                }
             }
             
             self.view.setNeedsLayout()
@@ -2111,10 +2197,22 @@ class MediaViewController: UIViewController
             break
         }
         
+        if globals.mediaPlayer.fullScreen {
+            if splitViewController?.viewControllers.count > 1 {
+                splitViewController?.preferredDisplayMode = .primaryHidden
+            }
+            parentView = self.view
+        }
+        
+        globals.mediaPlayer.showsPlaybackControls = globals.mediaPlayer.fullScreen
+        
         view?.gestureRecognizers = nil
         let pan = UIPanGestureRecognizer(target: self, action: #selector(MediaViewController.videoPan(_:)))
         view?.addGestureRecognizer(pan)
-
+        
+        let pinch = UIPinchGestureRecognizer(target: self, action: #selector(MediaViewController.videoPinch(_:)))
+        view?.addGestureRecognizer(pinch)
+        
         view?.isHidden = true
         view?.removeFromSuperview()
         
@@ -3054,34 +3152,40 @@ class MediaViewController: UIViewController
 //        return false
 //    }
     
-    func setupWKContentOffsets() {
-        if (selectedMediaItem != nil) {
-            if (documents[selectedMediaItem!.id] != nil) {
-                for document in documents[selectedMediaItem!.id]!.values {
-                    if document.wkWebView != nil {
-                        var contentOffsetXRatio:Float = 0.0
-                        var contentOffsetYRatio:Float = 0.0
-                        
-                        //        print("\(mediaItemNotesWebView!.scrollView.contentSize)")
-                        //        print("\(mediaItemSlidesWebView!.scrollView.contentSize)")
-                        
-                        if let ratio = selectedMediaItem!.mediaItemSettings?[document.purpose! + Constants.CONTENT_OFFSET_X_RATIO] {
-                            contentOffsetXRatio = Float(ratio)!
-                        }
-                        
-                        if let ratio = selectedMediaItem!.mediaItemSettings?[document.purpose! + Constants.CONTENT_OFFSET_Y_RATIO] {
-                            contentOffsetYRatio = Float(ratio)!
-                        }
-                        
-                        let contentOffset = CGPoint(
-                            x: CGFloat(contentOffsetXRatio) * document.wkWebView!.scrollView.contentSize.width,
-                            y: CGFloat(contentOffsetYRatio) * document.wkWebView!.scrollView.contentSize.height)
-                        
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            document.wkWebView!.scrollView.setContentOffset(contentOffset, animated: false)
-                        })
-                    }
+    func setupWKContentOffsets()
+    {
+        guard (selectedMediaItem != nil) else {
+            return
+        }
+        
+        
+        guard (documents[selectedMediaItem!.id] != nil) else {
+            return
+        }
+        
+        for document in documents[selectedMediaItem!.id]!.values {
+            if document.wkWebView != nil {
+                var contentOffsetXRatio:Float = 0.0
+                var contentOffsetYRatio:Float = 0.0
+                
+                //        print("\(mediaItemNotesWebView!.scrollView.contentSize)")
+                //        print("\(mediaItemSlidesWebView!.scrollView.contentSize)")
+                
+                if let ratio = selectedMediaItem!.mediaItemSettings?[document.purpose! + Constants.CONTENT_OFFSET_X_RATIO] {
+                    contentOffsetXRatio = Float(ratio)!
                 }
+                
+                if let ratio = selectedMediaItem!.mediaItemSettings?[document.purpose! + Constants.CONTENT_OFFSET_Y_RATIO] {
+                    contentOffsetYRatio = Float(ratio)!
+                }
+                
+                let contentOffset = CGPoint(
+                    x: CGFloat(contentOffsetXRatio) * document.wkWebView!.scrollView.contentSize.width,
+                    y: CGFloat(contentOffsetYRatio) * document.wkWebView!.scrollView.contentSize.height)
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    document.wkWebView!.scrollView.setContentOffset(contentOffset, animated: false)
+                })
             }
         }
     }
@@ -3090,12 +3194,25 @@ class MediaViewController: UIViewController
     {
         super.viewWillTransition(to: size, with: coordinator)
         
+//        let isFullScreen = UIApplication.shared.delegate!.window!!.frame.equalTo(UIApplication.shared.delegate!.window!!.screen.bounds);
+//        
+//        if (!isFullScreen || (splitViewController?.traitCollection.userInterfaceIdiom == .phone)) && (selectedMediaItem != nil) && (selectedMediaItem == globals.mediaPlayer.mediaItem) && (selectedMediaItem?.playing == Playing.video) {
+//            splitViewController?.preferredDisplayMode = .allVisible
+//            globals.mediaPlayer.fullScreen = false
+//            updateUI()
+//        }
+        
 //        print(splitViewController?.viewControllers.count)
 //        print(navigationController?.viewControllers.count)
         
-        if (self.view.window == nil) {
-            return
-        }
+//        guard (self.view.window != nil) else {
+//            return
+//        }
+        
+//        if  (globals.mediaPlayer.controller?.view.bounds.width  == UIApplication.shared.keyWindow?.bounds.width) &&
+//            (globals.mediaPlayer.controller?.view.bounds.height == (UIApplication.shared.keyWindow!.bounds.height - 64)) {
+//            return
+//        }
         
 //        if self.splitViewController?.viewControllers.count > 1 {
 //            let (oldMinConstraintConstant,oldMaxConstraintConstant) = self.mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
@@ -3203,41 +3320,43 @@ class MediaViewController: UIViewController
 //        }
         
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
+            if self.videoLocation == .withTableView {
+                self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: false)
+            } else {
+                self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
+            }
             
+            self.setupWKContentOffsets()
+            
+            self.setupViewSplit()
+            self.setupSlideSplit()
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.setupTitle()
-                
-                if self.splitViewController == nil {
-                    print("splitViewController == nil")
-                }
-                
-                if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
-                    let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
-                    let count = self.splitViewController?.viewControllers.count {
-                    if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
-                        if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-                            navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
-                        }
+            self.setupTitle()
+            
+            if self.splitViewController == nil {
+                print("splitViewController == nil")
+            }
+            
+            if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+                let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
+                let count = self.splitViewController?.viewControllers.count {
+                if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
+                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
                     }
                 }
-
-                if self.videoLocation == .withTableView {
-                    self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: false)
-                } else {
-                    self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
-                }
-                
-                self.setupWKContentOffsets()
-                
-                if self.viewSplit != nil {
-                    self.setupViewSplit()
-                }
-                
-                if self.tableViewWidth != nil {
-                    self.setupSlideSplit()
-                }
-            })
+            }
+            
+            if self.videoLocation == .withTableView {
+                self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: false)
+            } else {
+                self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
+            }
+            
+            self.setupWKContentOffsets()
+            
+            self.setupViewSplit()
+            self.setupSlideSplit()
         }
     }
     
@@ -3265,7 +3384,7 @@ class MediaViewController: UIViewController
     
     func defaultTableViewWidth()
     {
-        guard tableViewWidth != nil else {
+        guard tableViewWidth.isActive else {
             return
         }
         
@@ -3274,7 +3393,7 @@ class MediaViewController: UIViewController
     
     func setTableViewWidth(width:CGFloat)
     {
-        guard tableViewWidth != nil else {
+        guard tableViewWidth.isActive else {
             return
         }
         
@@ -3291,11 +3410,11 @@ class MediaViewController: UIViewController
     
     func resetConstraint()
     {
-        guard viewSplit != nil else {
+        guard view.subviews.contains(viewSplit) else {
             return
         }
         
-        guard mediaItemNotesAndSlidesConstraint != nil else {
+        guard mediaItemNotesAndSlidesConstraint.isActive else {
             return
         }
         
@@ -3331,7 +3450,7 @@ class MediaViewController: UIViewController
     
     fileprivate func setupSlideSplit()
     {
-        guard tableViewWidth != nil else {
+        guard tableViewWidth.isActive else {
             return
         }
         
@@ -3347,6 +3466,14 @@ class MediaViewController: UIViewController
     
     fileprivate func setupViewSplit()
     {
+        guard view.subviews.contains(viewSplit) else {
+            return
+        }
+        
+        guard mediaItemNotesAndSlidesConstraint.isActive else {
+            return
+        }
+
         var newConstraintConstant:CGFloat
         
 //        print("setupViewSplit ratio: \(ratio)")
@@ -3515,6 +3642,16 @@ class MediaViewController: UIViewController
             NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
         }
 
+        if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+            let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
+            let count = self.splitViewController?.viewControllers.count {
+            if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
+                if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+                    navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+                }
+            }
+        }
+
         if (selectedMediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) && globals.mediaPlayer.isPaused && globals.mediaPlayer.mediaItem!.hasCurrentTime() {
             globals.mediaPlayer.seek(to: Double(globals.mediaPlayer.mediaItem!.currentTime!))
         }
@@ -3524,11 +3661,12 @@ class MediaViewController: UIViewController
             splitViewController?.preferredDisplayMode = .allVisible //iPad only
         }
 
+        self.updateUI()
+
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.
         DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
             DispatchQueue.main.async(execute: { () -> Void in
                 self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
-                self.updateUI()
             })
         })
     }
@@ -3571,19 +3709,15 @@ class MediaViewController: UIViewController
     
     fileprivate func captureViewSplit()
     {
-        guard self.view != nil else {
+        guard view.bounds.height > 0 else {
             return
         }
         
-        guard self.view.bounds.height > 0 else {
+        guard view.subviews.contains(viewSplit) else {
             return
         }
         
-        guard viewSplit != nil else {
-            return
-        }
-        
-        guard mediaItemNotesAndSlidesConstraint != nil else {
+        guard mediaItemNotesAndSlidesConstraint.isActive else {
             return
         }
         
@@ -3609,11 +3743,11 @@ class MediaViewController: UIViewController
             return
         }
         
-        guard controlViewTop != nil else {
+        guard controlViewTop.isActive else { // Technially not needed, but if this isn't active the tableViewWidth constraint shouldn't be either.
             return
         }
 
-        guard tableViewWidth != nil else {
+        guard tableViewWidth.isActive else {
             return
         }
         
@@ -4195,12 +4329,10 @@ class MediaViewController: UIViewController
         
         addSliderObserver()
         
-        if (view.window != nil) {
-            setupSTVControl()
-            setupSliderAndTimes()
-            setupPlayPauseButton()
-            setupActionAndTagsButtons()
-        }
+        setupSTVControl()
+        setupSliderAndTimes()
+        setupPlayPauseButton()
+        setupActionAndTagsButtons()
     }
     
     func setupSpinner()

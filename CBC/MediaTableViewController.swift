@@ -262,7 +262,9 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
     func stringPicked(_ string:String?)
     {
         DispatchQueue.main.async(execute: { () -> Void in
-            self.dismiss(animated: true, completion: nil)
+            self.dismiss(animated: true, completion: {
+                self.presentingVC = nil
+            })
         })
         
         //        print(string)
@@ -506,6 +508,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     popover.vc = self
                     
                     present(navigationController, animated: true, completion: {
+                        self.presentingVC = navigationController
                         DispatchQueue.main.async(execute: { () -> Void in
                             // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
                             navigationController.popoverPresentationController?.passthroughViews = nil
@@ -552,6 +555,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 navigationController.popoverPresentationController?.barButtonItem = showButton
                 
                 present(navigationController, animated: true, completion: {
+                    self.presentingVC = navigationController
                     DispatchQueue.main.async(execute: { () -> Void in
                         // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
                         navigationController.popoverPresentationController?.passthroughViews = nil
@@ -574,7 +578,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             return
         }
         
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: {
+            self.presentingVC = nil
+        })
         
         guard let strings = strings else {
             return
@@ -1188,6 +1194,8 @@ class MediaTableViewController : UIViewController
 {
     var changesPending = false
     
+    var presentingVC : UIViewController?
+    
     var jsonSource:JSONSource = .direct
     
     override var canBecomeFirstResponder : Bool {
@@ -1235,7 +1243,9 @@ class MediaTableViewController : UIViewController
             
             popover.vc = self
             
-            present(navigationController, animated: true, completion: nil)
+            present(navigationController, animated: true, completion: {
+                self.presentingVC = navigationController
+            })
         }
 
 //        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
@@ -1408,6 +1418,7 @@ class MediaTableViewController : UIViewController
             popover.vc = self
 
             present(navigationController, animated: true, completion: {
+                self.presentingVC = navigationController
                 DispatchQueue.main.async(execute: { () -> Void in
                     // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
                     navigationController.popoverPresentationController?.passthroughViews = nil
@@ -1472,7 +1483,9 @@ class MediaTableViewController : UIViewController
     func index(_ object:AnyObject?)
     {
         //In case we have one already showing
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: {
+            self.presentingVC = nil
+        })
 
         //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
@@ -1555,7 +1568,9 @@ class MediaTableViewController : UIViewController
             
             popover.vc = self
             
-            present(navigationController, animated: true, completion: nil)
+            present(navigationController, animated: true, completion: {
+                self.presentingVC = navigationController
+            })
         }
 
         // Too slow
@@ -1570,7 +1585,9 @@ class MediaTableViewController : UIViewController
     func grouping(_ object:AnyObject?)
     {
         //In case we have one already showing
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: {
+            self.presentingVC = nil
+        })
         
         //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
@@ -1598,14 +1615,18 @@ class MediaTableViewController : UIViewController
             
             popover.vc = self
             
-            present(navigationController, animated: true, completion: nil)
+            present(navigationController, animated: true, completion: {
+                self.presentingVC = navigationController
+            })
         }
     }
     
     func sorting(_ object:AnyObject?)
     {
         //In case we have one already showing
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: {
+            self.presentingVC = nil
+        })
         
         //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.mediaItemSections
         //And when the user chooses one, scroll to the first time in that section.
@@ -1633,7 +1654,9 @@ class MediaTableViewController : UIViewController
             
             popover.vc = self
             
-            present(navigationController, animated: true, completion: nil)
+            present(navigationController, animated: true, completion: {
+                self.presentingVC = navigationController
+            })
         }
     }
 
@@ -2740,7 +2763,9 @@ class MediaTableViewController : UIViewController
             popover.vc = self
             
             DispatchQueue.main.async(execute: { () -> Void in
-                self.present(navigationController, animated: true, completion: nil)
+                self.present(navigationController, animated: true, completion: {
+                    self.presentingVC = navigationController
+                })
             })
         }
     }
@@ -3133,7 +3158,10 @@ class MediaTableViewController : UIViewController
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.playerView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYER_VIEW), object: nil)
 
-        
+        if (self.splitViewController?.viewControllers.count > 1) {
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.setupShowHide), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SHOW_HIDE), object: nil)
+        }
+
 //        DispatchQueue.main.async {
 //            
 ////            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.editing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.EDITING), object: self.tableView)
@@ -3181,7 +3209,8 @@ class MediaTableViewController : UIViewController
         setupListActivityIndicator()
     }
 
-    override func viewDidAppear(_ animated: Bool) {
+    override func viewDidAppear(_ animated: Bool)
+    {
         super.viewDidAppear(animated)
 
 //        setupLoadingView()
@@ -3357,6 +3386,9 @@ class MediaTableViewController : UIViewController
                 
             case .primaryOverlay:
                 splitViewController?.preferredDisplayMode = .allVisible
+                if globals.mediaPlayer.fullScreen {
+                    globals.mediaPlayer.fullScreen = false
+                }
                 break
             }
 
@@ -3453,7 +3485,7 @@ class MediaTableViewController : UIViewController
         
         let wasNotFullScreen = !UIApplication.shared.isRunningInFullScreen()
         
-        if wasNotFullScreen || (DeviceType.IS_IPHONE_6P_7P && splitViewController!.isCollapsed) { //
+        if wasNotFullScreen || (DeviceType.IS_IPHONE_6P_7P) { //  && splitViewController!.isCollapsed
             // This is a HACK.
             
             // If the Scripture VC or Lexicon VC is showing and the SplitViewController has ONE viewController showing (i.e. the SVC or LVC) and
@@ -3465,22 +3497,28 @@ class MediaTableViewController : UIViewController
             // So, since this is called for situations that DO NOT involve rotation or changes in the number of split view controller's view controllers, this
             // causes popping to root in lots of other cases where I wish it did not.
             
-            if livc != nil {
+            if (livc != nil) || (sivc != nil) {
                 _ = self.navigationController?.popToRootViewController(animated: false)
             }
             
-            if sivc != nil {
-                _ = self.navigationController?.popToRootViewController(animated: false)
+            if presentingVC != nil {
+                self.dismiss(animated: true, completion: {
+                    self.presentingVC = nil
+                })
             }
         }
         
-        if wasNotFullScreen || splitViewController!.isCollapsed {
-            self.dismiss(animated: true, completion: nil)
-        }
+//        if wasNotFullScreen || splitViewController!.isCollapsed {
+//            if presentingVC != nil {
+//                self.dismiss(animated: true, completion: {
+//                    self.presentingVC = nil
+//                })
+//            }
+//        }
 
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
             if (self.loadingView != nil) && (UIApplication.shared.applicationState == UIApplicationState.active) {
-                self.loadingView.center = CGPoint(x: self.view.frame.width / 2, y: self.view.frame.height / 2)
+//                self.loadingView.center = CGPoint(x: self.view.frame.width / 2, y: self.view.frame.height / 2)
 //                print("2",self.loadingView.center)
             }
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
@@ -3715,6 +3753,10 @@ extension MediaTableViewController : UITableViewDelegate
     {
 //        print("didSelect")
 
+        if globals.mediaPlayer.fullScreen {
+            globals.mediaPlayer.fullScreen = false
+        }
+
         if let cell: MediaTableViewCell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
             selectedMediaItem = cell.mediaItem
 //            print(selectedMediaItem)
@@ -3823,7 +3865,9 @@ extension MediaTableViewController : UITableViewDelegate
             if let searchStrings = mediaItem.searchStrings(),
                 let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                self.dismiss(animated: true, completion: nil)
+                self.dismiss(animated: true, completion: {
+                    self.presentingVC = nil
+                })
                 
                 navigationController.modalPresentationStyle = .popover
                 navigationController.popoverPresentationController?.permittedArrowDirections = .any
@@ -3852,7 +3896,9 @@ extension MediaTableViewController : UITableViewDelegate
                 popover.vc = self
                 
                 DispatchQueue.main.async(execute: { () -> Void in
-                    self.present(navigationController, animated: true, completion:nil)
+                    self.present(navigationController, animated: true, completion:{
+                        self.presentingVC = navigationController
+                    })
                 })
             }
         }
@@ -3862,7 +3908,9 @@ extension MediaTableViewController : UITableViewDelegate
         {
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                self.dismiss(animated: true, completion: nil)
+                self.dismiss(animated: true, completion: {
+                    self.presentingVC = nil
+                })
                 
                 navigationController.modalPresentationStyle = .popover
                 navigationController.popoverPresentationController?.permittedArrowDirections = .any
@@ -3901,7 +3949,9 @@ extension MediaTableViewController : UITableViewDelegate
                     popover.vc = self
                     
                     DispatchQueue.main.async(execute: { () -> Void in
-                        self.present(navigationController, animated: true, completion: nil)
+                        self.present(navigationController, animated: true, completion: {
+                            self.presentingVC = navigationController
+                        })
                     })
                 } else {
                     networkUnavailable("HTML transcript vocabulary unavailable.")
