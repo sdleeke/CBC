@@ -4051,6 +4051,7 @@ func alert(title:String?,message:String?)
     //        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
     
     DispatchQueue.main.async(execute: { () -> Void in
+        UIApplication.shared.keyWindow?.rootViewController?.dismiss(animated: true, completion: nil)
         UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
     })
 }

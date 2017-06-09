@@ -1380,7 +1380,6 @@ class MediaViewController: UIViewController
         
         switch globals.mediaPlayer.state! {
         case .none:
-            showState("none")
             break
             
         case .playing:
@@ -1825,16 +1824,14 @@ class MediaViewController: UIViewController
                 let hasSlides = selectedMediaItem!.hasSlides
                 let hasNotes = selectedMediaItem!.hasNotes
                 
-                if hasVideo {
-                    actionMenu.append(Constants.Strings.Zoom_Video)
-                }
-                
-                if (hasVideo && (hasSlides || hasNotes)) && (selectedMediaItem?.playing == Playing.video) &&
+                if hasVideo && (selectedMediaItem?.playing == Playing.video) &&
                     (
                         ((videoLocation == .withDocuments) && (selectedMediaItem?.showing == Showing.video)) ||
                         ((videoLocation == .withTableView) && (selectedMediaItem?.showing != Showing.video))
                     ) {
-                    if !globals.mediaPlayer.fullScreen {
+                    actionMenu.append(Constants.Strings.Zoom_Video)
+
+                    if (hasSlides || hasNotes) && !globals.mediaPlayer.fullScreen {
                         actionMenu.append(Constants.Strings.Swap_Video_Location)
                     }
                 }
@@ -2306,12 +2303,13 @@ class MediaViewController: UIViewController
 
         if globals.mediaPlayer.playOnLoad {
             if globals.mediaPlayer.mediaItem!.atEnd {
-                globals.mediaPlayer.mediaItem!.currentTime = Constants.ZERO
+//                globals.mediaPlayer.mediaItem!.currentTime = Constants.ZERO
                 globals.mediaPlayer.seek(to: 0)
                 globals.mediaPlayer.mediaItem?.atEnd = false
             }
             globals.mediaPlayer.playOnLoad = false
             
+            // Purely for the delay?
             DispatchQueue.global(qos: .background).async(execute: {
                 DispatchQueue.main.async(execute: { () -> Void in
                     globals.mediaPlayer.play()
@@ -2332,6 +2330,21 @@ class MediaViewController: UIViewController
         setupPlayPauseButton()
     }
     
+    func failedToLoad()
+    {
+        guard (selectedMediaItem != nil) else {
+            return
+        }
+        
+        if (selectedMediaItem == globals.mediaPlayer.mediaItem) {
+            if (selectedMediaItem?.showing == Showing.video) {
+                globals.mediaPlayer.stop()
+            }
+            
+            updateUI()
+        }
+    }
+    
     func failedToPlay()
     {
         guard (selectedMediaItem != nil) else {
@@ -2340,14 +2353,10 @@ class MediaViewController: UIViewController
         
         if (selectedMediaItem == globals.mediaPlayer.mediaItem) {
             if (selectedMediaItem?.showing == Showing.video) {
-                globals.mediaPlayer.view?.isHidden = true
-                logo.isHidden = false
-                mediaItemNotesAndSlides.bringSubview(toFront: logo)
+                globals.mediaPlayer.stop()
             }
             
-            setupSpinner()
-            setupSliderAndTimes()
-            setupPlayPauseButton()
+            updateUI()
         }
     }
     
@@ -3060,6 +3069,7 @@ class MediaViewController: UIViewController
                     break
                     
                 default:
+                    playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState.normal)
                     break
                 }
             }
@@ -3631,7 +3641,9 @@ class MediaViewController: UIViewController
         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.showPlaying), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SHOW_PLAYING), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.paused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
         
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.failedToLoad), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_LOAD), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.failedToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
+
         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.readyToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.setupPlayPauseButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
         
@@ -4033,6 +4045,10 @@ class MediaViewController: UIViewController
             break
             
         default:
+            elapsed.isHidden = true
+            remaining.isHidden = true
+            slider.isHidden = true
+            slider.isEnabled = false
             break
         }
     }
@@ -4293,14 +4309,14 @@ class MediaViewController: UIViewController
         }
     }
 
-    fileprivate func reloadCurrentMediaItem(_ mediaItem:MediaItem?)
-    {
-        //This guarantees a fresh start.
-        globals.mediaPlayer.playOnLoad = true
-        globals.reloadPlayer()
-        addSliderObserver()
-        setupPlayPauseButton()
-    }
+//    fileprivate func reloadCurrentMediaItem(_ mediaItem:MediaItem?)
+//    {
+//        //This guarantees a fresh start.
+//        globals.mediaPlayer.playOnLoad = true
+//        globals.reloadPlayer()
+//        addSliderObserver()
+//        setupPlayPauseButton()
+//    }
     
     fileprivate func playNewMediaItem(_ mediaItem:MediaItem?)
     {

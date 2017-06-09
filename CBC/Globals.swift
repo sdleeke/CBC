@@ -1102,6 +1102,83 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
 //            return
 //        }
         
+        guard (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM)) else {
+            return
+        }
+        
+        if #available(iOS 10.0, *) {
+            if keyPath == #keyPath(AVPlayer.timeControlStatus) {
+                if  let statusNumber = change?[.newKey] as? NSNumber,
+                    let status = AVPlayerTimeControlStatus(rawValue: statusNumber.intValue) {
+                    switch status {
+                    case .waitingToPlayAtSpecifiedRate:
+                        if let reason = mediaPlayer.player?.reasonForWaitingToPlay {
+                            print("waitingToPlayAtSpecifiedRate: ",reason)
+                        } else {
+                            print("waitingToPlayAtSpecifiedRate: no reason")
+                        }
+                        break
+                        
+                    case .paused:
+                        if let state = mediaPlayer.state {
+                            switch state {
+                            case .none:
+                                break
+                                
+                            case .paused:
+                                break
+                                
+                            case .playing:
+                                mediaPlayer.pause()
+                                break
+                                
+                            case .seekingBackward:
+                                mediaPlayer.pause()
+                                break
+                                
+                            case .seekingForward:
+                                mediaPlayer.pause()
+                                break
+                                
+                            case .stopped:
+                                break
+                            }
+                        }
+                        break
+                        
+                    case .playing:
+                        if let state = mediaPlayer.state {
+                            switch state {
+                            case .none:
+                                break
+                                
+                            case .paused:
+                                mediaPlayer.play()
+                                break
+                                
+                            case .playing:
+                                break
+                                
+                            case .seekingBackward:
+                                mediaPlayer.play()
+                                break
+                                
+                            case .seekingForward:
+                                mediaPlayer.play()
+                                break
+                                
+                            case .stopped:
+                                break
+                            }
+                        }
+                        break
+                    }
+                }
+            }
+        } else {
+            // Fallback on earlier versions
+        }
+        
         if keyPath == #keyPath(AVPlayerItem.status) {
             let status: AVPlayerItemStatus
             
@@ -1119,7 +1196,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
                 //                print(player?.currentItem?.duration.value)
                 //                print(player?.currentItem?.duration.timescale)
                 //                print(player?.currentItem?.duration.seconds)
-                if !mediaPlayer.loaded && (mediaPlayer.mediaItem != nil) && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM)) {
+                if !mediaPlayer.loaded && (mediaPlayer.mediaItem != nil) {
                     mediaPlayer.loaded = true
                     
                     if (mediaPlayer.mediaItem?.playing == Playing.video) {
@@ -1147,8 +1224,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
                     if (self.mediaPlayer.mediaItem?.playing == Playing.audio) {
                         if mediaPlayer.playOnLoad {
                             if mediaPlayer.mediaItem!.atEnd {
-                                mediaPlayer.mediaItem?.currentTime = Constants.ZERO
+//                                mediaPlayer.mediaItem?.currentTime = Constants.ZERO
                                 mediaPlayer.seek(to: 0)
+                                mediaPlayer.mediaItem?.atEnd = false
                             }
                             
                             mediaPlayer.playOnLoad = false
@@ -1178,11 +1256,16 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
                 
             case .failed:
                 // Player item failed. See error.
-                networkUnavailable("Media failed to load.")
+
                 mediaPlayer.loadFailed = true
+                
                 DispatchQueue.main.async(execute: { () -> Void in
-                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_LOAD), object: nil)
                 })
+
+                if (UIApplication.shared.applicationState == UIApplicationState.active) {
+                    alert(title: "Failed to Load Content", message: "Please check your network connection and try again.")
+                }
                 break
                 
             case .unknown:
@@ -1251,6 +1334,13 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
             return
         }
         
+        if #available(iOS 10.0, *) {
+            mediaPlayer.player?.addObserver( self,
+                                             forKeyPath: #keyPath(AVPlayer.timeControlStatus),
+                                             options: [.old, .new],
+                                             context: nil) // &GlobalPlayerContext
+        }
+        
         mediaPlayer.currentItem?.addObserver(self,
                                              forKeyPath: #keyPath(AVPlayerItem.status),
                                              options: [.old, .new],
@@ -1265,9 +1355,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
         DispatchQueue.main.async {
             NotificationCenter.default.addObserver(self, selector: #selector(Globals.didPlayToEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
         }
-        
-        // Why was this put here?
-        mediaPlayer.pause()
+//        
+//        // Why was this put here?  To set the state to .paused from .none
+//        mediaPlayer.pause()
     }
     
     func unobservePlayer()
@@ -1289,6 +1379,10 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
                 
                 mediaPlayer.observedItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: nil) // &GlobalPlayerContext
                 
+                if #available(iOS 10.0, *) {
+                    mediaPlayer.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), context: nil) // &GlobalPlayerContext
+                }
+
                 mediaPlayer.observedItem = nil
                 
                 mediaPlayer.observerActive = false
@@ -1338,7 +1432,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
         
         mediaPlayer.unload()
 
-        mediaPlayer.playOnLoad = playOnLoad
         mediaPlayer.showsPlaybackControls = false
         
         unobservePlayer()
@@ -1379,7 +1472,10 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
         mediaPlayer.player?.actionAtItemEnd = .pause
         
         observePlayer()
-        
+
+        mediaPlayer.pause() // affects playOnLoad
+        mediaPlayer.playOnLoad = playOnLoad
+
         MPRemoteCommandCenter.shared().playCommand.isEnabled = (mediaPlayer.player != nil) && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM))
         MPRemoteCommandCenter.shared().skipForwardCommand.isEnabled = (mediaPlayer.player != nil) && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM))
         MPRemoteCommandCenter.shared().skipBackwardCommand.isEnabled = (mediaPlayer.player != nil) && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM))
@@ -1394,39 +1490,12 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
         setupPlayer(url: mediaItem!.playingURL,playOnLoad: playOnLoad)
     }
     
-    // s/b a method "reload" on mediaPlayer and w/o argument
-//    func reloadPlayer(_ mediaItem:MediaItem?)
-//    {
-//        guard (mediaItem != nil) else {
-//            return
-//        }
-//
-//        reloadPlayer(url: mediaItem!.playingURL)
-//        
-//        mediaPlayer.stateTime = PlayerStateTime(mediaPlayer.mediaItem)
-//    }
-//    
-//    func reloadPlayer(url:URL?)
-//    {
-//        guard (url != nil) else {
-//            return
-//        }
-//        
-//        mediaPlayer.unload()
-//        
-//        unobservePlayer()
-//        
-//        mediaPlayer.player?.replaceCurrentItem(with: AVPlayerItem(url: url!))
-//        
-//        observePlayer()
-//    }
-    
     func reloadPlayer()
     {
         unobservePlayer()
         
         mediaPlayer.reload()
-        
+
         observePlayer()
     }
     
@@ -1486,143 +1555,101 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
     
     func playerObserver()
     {
-        guard mediaPlayer.state != nil else {
+        guard (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) else {
             return
         }
         
-//        print(MPNowPlayingInfoCenter.default().nowPlayingInfo)
-
-//        if (globals.mediaPlayer.url != nil) {
-//            switch globals.mediaPlayer.url!.absoluteString {
-//            case Constants.URL.LIVE_STREAM:
-//                globals.setupLivePlayingInfoCenter()
-//                break
-//
-//            default:
-//                globals.setupPlayingInfoCenter()
-//                break
-//            }
-//        }
+//        mediaPlayer.logPlayerState()
         
-        if (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM)) {
-//            mediaPlayer.logPlayerState()
+        guard let state = mediaPlayer.state,
+            let startTime = mediaPlayer.stateTime?.startTime,
+            let start = Double(startTime),
+            let timeElapsed = mediaPlayer.stateTime?.timeElapsed,
+            let currentTime = mediaPlayer.currentTime?.seconds else {
+            return
         }
         
-        switch mediaPlayer.state! {
+        print("startTime",startTime)
+        print("start",start)
+        print("currentTime",currentTime)
+        print("timeElapsed",timeElapsed)
+        
+        switch state {
         case .none:
             break
             
         case .playing:
-//            if (globals.pip == .stopped) && (UIApplication.shared.applicationState == UIApplicationState.active) {
-//                if (mediaPlayer.rate == 0) {
-//                    mediaPlayer.play()
-//                }
-//            }
-            
-            if (globals.mediaPlayer.pip == .started) { //  && !globals.stoppingPIP
+            if (globals.mediaPlayer.pip == .started) || globals.mediaPlayer.fullScreen {
+                // System caused - PIP or fullScreen
                 if (mediaPlayer.rate == 0) {
-                    if globals.mediaPlayer.stoppingPIP {
-                        mediaPlayer.play()
-                    } else {
-                        mediaPlayer.pause()
-                    }
+                    mediaPlayer.pause()
                 }
             } else {
-                if mediaPlayer.fullScreen {
-                    if mediaPlayer.loaded && (mediaPlayer.rate == 0) && (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
-                        mediaPlayer.pause()
+                if mediaPlayer.loaded {
+                    if Int(currentTime) <= Int(start) {
+                        if (timeElapsed > Constants.MIN_LOAD_TIME) {
+                            mediaPlayer.pause()
+                            
+                            DispatchQueue.main.async(execute: { () -> Void in
+                                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
+                            })
+                            
+                            if (UIApplication.shared.applicationState == UIApplicationState.active) {
+                                alert(title: "Unable to Play Content", message: "Please check your network connection and try again.")
+                            }
+                        } else {
+                            // Kick the player in the pants to get it going (audio primarily requiring this when the network is poor)
+                            print("KICK")
+                            mediaPlayer.player?.play()
+                        }
+                    } else {
+                        // Was playing normally and the system paused it.
+                        // This is redundant to KVO monitoring of AVPlayer.timeControlStatus but that is only available in 10.0 and later.
+                        if (mediaPlayer.rate == 0) {
+                            mediaPlayer.pause()
+                        }
                     }
                 } else {
-                    if mediaPlayer.loaded && (mediaPlayer.rate == 0) && (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
-                        mediaPlayer.pause()
-                        
-//                        DispatchQueue.main.async(execute: { () -> Void in
-//                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-//                        })
-                    }
+                    // If it isn't loaded then it shouldn't be playing.
                 }
             }
-
-//            if (globals.mediaPlayer.rate == 0) {
-//                globals.mediaPlayer.pause() // IfPlaying
-//                
-//                //            if let currentTime = globals.mediaPlayer.mediaItem?.currentTime, let time = Double(currentTime) {
-//                //                let newCurrentTime = (time - Constants.BACK_UP_TIME) < 0 ? 0 : time - Constants.BACK_UP_TIME
-//                //                globals.mediaPlayer.mediaItem?.currentTime = (Double(newCurrentTime) - 1).description
-//                //            }
-//                
-//                DispatchQueue.main.async(execute: { () -> Void in
-//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-//                })
-//            }
-
-//            if !mediaPlayer.loaded && !mediaPlayer.loadFailed && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM)) {
-
-//            var buffering = true
-//            
-//            if #available(iOS 10.0, *) {
-////                print(mediaPlayer.player?.timeControlStatus)
-////                print(mediaPlayer.player?.reasonForWaitingToPlay)
-//                buffering = (mediaPlayer.player?.timeControlStatus == .waitingToPlayAtSpecifiedRate) && ((mediaPlayer.player?.reasonForWaitingToPlay == AVPlayerWaitingToMinimizeStallsReason) ||
-//                    (mediaPlayer.player?.reasonForWaitingToPlay == AVPlayerWaitingWhileEvaluatingBufferingRateReason))
-//            } else {
-//                // Fallback on earlier versions
-//            }
-            
-//            if !mediaPlayer.loadFailed && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM)) {
-//                    if (mediaPlayer.rate == 0) && (mediaPlayer.stateTime?.startTime == mediaPlayer.mediaItem?.currentTime) && (mediaPlayer.stateTime?.timeElapsed > Constants.MIN_PLAY_TIME) {
-//                        mediaPlayer.pause()
-//                        
-//                        DispatchQueue.main.async(execute: { () -> Void in
-//                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-//                        })
-//                        
-//                        if (UIApplication.shared.applicationState == UIApplicationState.active) {
-//                            alert(title: "Unable to Play Content", message: "Please check your network connection and try again.")
-//                        }
-//                    } else {
-//                        // Wait so the player can keep trying.
-//                    }
-//            }
-            
-            // Bad idea since it overrides automatic system pauses for phone calls and Siri
-//            if mediaPlayer.loaded, let rate = mediaPlayer.rate, (rate == 0) {
-//                mediaPlayer.play()
-//
-//                if (UIApplication.shared.applicationState == UIApplicationState.active) {
-//                    UIAlertView(title: "Attempting to Play", message: "Your network connection may be intermittent.", delegate: self, cancelButtonTitle: "OK").show()
-//                }
-//            }
             break
             
         case .paused:
-            if (globals.mediaPlayer.pip == .started) {
-                if (mediaPlayer.rate != 0) {
-                    mediaPlayer.play()
-                }
-            } else {
-                if mediaPlayer.fullScreen {
-                    if mediaPlayer.loaded && (mediaPlayer.rate != 0) && (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+            if mediaPlayer.loaded {
+                if (globals.mediaPlayer.pip == .started) || mediaPlayer.fullScreen {
+                    // System caused
+                    if (mediaPlayer.rate != 0) {
                         mediaPlayer.play()
                     }
                 } else {
-                    if mediaPlayer.loaded && (mediaPlayer.rate != 0) && (mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
+                    // What would cause this?
+                    if (mediaPlayer.rate != 0) {
                         mediaPlayer.pause()
-                        
-//                        DispatchQueue.main.async(execute: { () -> Void in
-//                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-//                        })
                     }
                 }
-            }
-            
-            if !mediaPlayer.loaded && !mediaPlayer.loadFailed && (mediaPlayer.url != URL(string: Constants.URL.LIVE_STREAM)) {
-                if (mediaPlayer.stateTime!.timeElapsed > Constants.MIN_LOAD_TIME) {
-                    mediaPlayer.loadFailed = true
+            } else {
+                if !mediaPlayer.loadFailed {
+                    if Int(currentTime) <= Int(start) {
+                        if (timeElapsed > Constants.MIN_LOAD_TIME) {
+                            mediaPlayer.pause() // To reset playOnLoad
+                            mediaPlayer.loadFailed = true
 
-                    if (UIApplication.shared.applicationState == UIApplicationState.active) {
-                        alert(title: "Unable to Play Content", message: "Please check your network connection and try again.")
+                            DispatchQueue.main.async(execute: { () -> Void in
+                                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_LOAD), object: nil)
+                            })
+                            
+                            if (UIApplication.shared.applicationState == UIApplicationState.active) {
+                                alert(title: "Unable to Load Content", message: "Please check your network connection and try again.")
+                            }
+                        } else {
+                            // Wait
+                        }
+                    } else {
+                        // Paused normally
                     }
+                } else {
+                    // Load failed.
                 }
             }
             break

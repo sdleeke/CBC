@@ -60,6 +60,7 @@ class PlayerStateTime {
     {
         self.init()
         self.mediaItem = mediaItem
+        startTime = mediaItem?.currentTime
     }
     
     func log()
@@ -123,6 +124,15 @@ class MediaPlayer {
     var controller:AVPlayerViewController? // = AVPlayerViewController()
     
     var stateTime:PlayerStateTime?
+    {
+        didSet {
+//            print(stateTime?.mediaItem)
+//            print(stateTime?.state.hashValue)
+//            print(stateTime?.dateEntered)
+//            print(stateTime?.timeElapsed)
+//            print(stateTime?.startTime)
+        }
+    }
     
     var showsPlaybackControls:Bool{
         get {
@@ -178,7 +188,7 @@ class MediaPlayer {
         
         player?.replaceCurrentItem(with: AVPlayerItem(url: url!))
         
-        stateTime = PlayerStateTime(mediaItem)
+        pause() // To reset playOnLoad and set state to .paused
     }
     
     func play()
@@ -189,35 +199,24 @@ class MediaPlayer {
         
         switch url!.absoluteString {
         case Constants.URL.LIVE_STREAM:
+            stateTime = PlayerStateTime(mediaItem)
+            stateTime?.state = .playing
             player?.play()
-            
-            if (stateTime == nil) || (stateTime?.mediaItem != nil) {
-                stateTime = PlayerStateTime()
-            }
             break
             
         default:
             if loaded {
+                stateTime = PlayerStateTime(mediaItem)
+                stateTime?.state = .playing
                 player?.play()
-                
-                if (mediaItem != stateTime?.mediaItem) || (stateTime?.mediaItem == nil) {
-                    stateTime = PlayerStateTime(mediaItem)
-                }
-                
-                stateTime?.startTime = mediaItem?.currentTime
                 
                 DispatchQueue.main.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-//                })
-//
-//                DispatchQueue(label: "CBC").async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                 })
             }
             break
         }
-        
-        stateTime?.state = .playing
         
         controller?.allowsPictureInPicturePlayback = true
         
@@ -230,35 +229,24 @@ class MediaPlayer {
             return
         }
         
+        stateTime = PlayerStateTime(mediaItem)
+        stateTime?.state = .paused
+        player?.pause()
+        playOnLoad = false
+
         switch url!.absoluteString {
         case Constants.URL.LIVE_STREAM:
-            player?.pause()
-
-            if (stateTime == nil) || (stateTime?.mediaItem != nil) {
-                stateTime = PlayerStateTime()
-            }
             break
             
         default:
-            player?.pause()
-            
             updateCurrentTimeExact()
-            
-            if (mediaItem != stateTime?.mediaItem) || (stateTime?.mediaItem == nil) {
-                stateTime = PlayerStateTime(mediaItem)
-            }
             
             DispatchQueue.main.async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-//            })
-//            
-//            DispatchQueue(label: "CBC").async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
             })
             break
         }
-        
-        stateTime?.state = .paused
         
         setupPlayingInfoCenter()
     }
@@ -294,38 +282,29 @@ class MediaPlayer {
             return
         }
 
+        stateTime = PlayerStateTime(mediaItem)
+        stateTime?.state = .stopped
+        player?.pause()
+        playOnLoad = false
+
         switch url!.absoluteString {
         case Constants.URL.LIVE_STREAM:
-            player?.pause()
-            
-            if (stateTime == nil) || (stateTime?.mediaItem != nil) {
-                stateTime = PlayerStateTime()
-            }
             break
             
         default:
             killPIP = true
             
-            player?.pause()
-            
             updateCurrentTimeExact()
             
-            if (mediaItem != stateTime?.mediaItem) || (stateTime?.mediaItem == nil) {
-                stateTime = PlayerStateTime(mediaItem)
-            }
-            
-//            DispatchQueue.main.async(execute: { () -> Void in
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-//            })
-//            
-//            DispatchQueue(label: "CBC").async(execute: { () -> Void in
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-                self.mediaItem = nil // This is unique to stop()
-//            })
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
             break
         }
         
-        stateTime?.state = .stopped
+        // This is unique to stop()
+        mediaItem = nil
+        unload()
+        player = nil
         
         setupPlayingInfoCenter()
     }

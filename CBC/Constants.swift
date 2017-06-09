@@ -226,6 +226,8 @@ struct Constants {
         static let READY_TO_PLAY            = "READY TO PLAY"
         static let FAILED_TO_PLAY           = "FAILED TO PLAY"
         
+        static let FAILED_TO_LOAD           = "FAILED TO LOAD"
+        
         static let SHOW_PLAYING             = "SHOW PLAYING"
         
         static let PAUSED                   = "PAUSED"

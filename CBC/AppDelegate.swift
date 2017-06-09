@@ -106,10 +106,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
 
         if (globals.mediaPlayer.rate == 0) && globals.mediaPlayer.isPaused && (globals.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
             // Is this the way to solve the dropped connection after an extended pause?  Might not since the app might stay in the foreground, but this will probably cover teh vast majority of the cases.
-            if (globals.mediaPlayer.mediaItem != nil) && globals.mediaPlayer.mediaItem!.hasVideo && (globals.mediaPlayer.mediaItem!.playing == Playing.video) {
+            
+            // Do we need to do this for audio?
+            
+            if (globals.mediaPlayer.mediaItem != nil) { // && globals.mediaPlayer.mediaItem!.hasVideo && (globals.mediaPlayer.mediaItem!.playing == Playing.video)
                 // This assumes that the player is paused because it is playing video and it is coming out of the background.  This may prove to be false.  Be careful.
-                globals.mediaPlayer.playOnLoad = false
-                globals.reloadPlayer()
+//                if (globals.mediaPlayer.player?.status != .readyToPlay) || (globals.mediaPlayer.currentItem?.status != .readyToPlay) {
+                    globals.mediaPlayer.playOnLoad = false
+                    globals.reloadPlayer()
+//                }
             }
         }
         
@@ -161,68 +166,67 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
         print("applicationDidBecomeActive")
         
-        if #available(iOS 10.0, *) {
-            if let timeControlStatus = globals.mediaPlayer.player?.timeControlStatus {
-                switch timeControlStatus {
-                case .waitingToPlayAtSpecifiedRate:
-                    print("timeControlStatus:waitingToPlayAtSpecifiedRate")
-                    if let state = globals.mediaPlayer.state {
-                        switch state {
-                            case .playing:
-                                // Do nothing
-                                break
-                                
-                            case .paused:
-                                // ???
-                                break
-                                
-                            default:
-                                break
-                        }
-                    }
-                    break
-                    
-                case .playing:
-                    print("timeControlStatus:playing")
-                    if let state = globals.mediaPlayer.state {
-                        switch state {
-                        case .playing:
-                            // Do nothing
-                            break
-                            
-                        case .paused:
-                            // ???
-                            break
-                            
-                        default:
-                            break
-                        }
-                    }
-                    break
-                    
-                case .paused:
-                    print("timeControlStatus:paused")
-                    if let state = globals.mediaPlayer.state {
-                        switch state {
-                        case .playing:
-                            globals.mediaPlayer.pause()
-                            break
-                            
-                        case .paused:
-                            // Do nothing
-                            break
-                            
-                        default:
-                            break
-                        }
-                    }
-                    break
-                }
-            }
-        } else {
-            // Fallback on earlier versions
-        }
-        
+//        if #available(iOS 10.0, *) {
+//            if let timeControlStatus = globals.mediaPlayer.player?.timeControlStatus {
+//                switch timeControlStatus {
+//                case .waitingToPlayAtSpecifiedRate:
+//                    print("timeControlStatus:waitingToPlayAtSpecifiedRate")
+//                    if let state = globals.mediaPlayer.state {
+//                        switch state {
+//                            case .playing:
+//                                // Do nothing
+//                                break
+//                                
+//                            case .paused:
+//                                // ???
+//                                break
+//                                
+//                            default:
+//                                break
+//                        }
+//                    }
+//                    break
+//                    
+//                case .playing:
+//                    print("timeControlStatus:playing")
+//                    if let state = globals.mediaPlayer.state {
+//                        switch state {
+//                        case .playing:
+//                            // Do nothing
+//                            break
+//                            
+//                        case .paused:
+//                            // ???
+//                            break
+//                            
+//                        default:
+//                            break
+//                        }
+//                    }
+//                    break
+//                    
+//                case .paused:
+//                    print("timeControlStatus:paused")
+//                    if let state = globals.mediaPlayer.state {
+//                        switch state {
+//                        case .playing:
+//                            globals.mediaPlayer.pause()
+//                            break
+//                            
+//                        case .paused:
+//                            // Do nothing
+//                            break
+//                            
+//                        default:
+//                            break
+//                        }
+//                    }
+//                    break
+//                }
+//            }
+//        } else {
+//            // Fallback on earlier versions
+//        }
         
 //        if (globals.mediaPlayer.rate == 0) && globals.mediaPlayer.isPaused && (globals.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
 //            //It is paused, possibly not by us, but by the system
@@ -267,7 +271,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
     func applicationWillTerminate(_ application: UIApplication)
     {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-//        print("applicationWillTerminate")
+        print("applicationWillTerminate")
         DispatchQueue.main.async(execute: { () -> Void in
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.WILL_TERMINATE), object: nil)
         })
