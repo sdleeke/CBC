@@ -1585,11 +1585,12 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
                     mediaPlayer.pause()
                 }
             } else {
-                if mediaPlayer.loaded {
+                if mediaPlayer.loaded && !mediaPlayer.loadFailed {
                     if Int(currentTime) <= Int(start) {
                         if (timeElapsed > Constants.MIN_LOAD_TIME) {
                             mediaPlayer.pause()
-                            
+                            mediaPlayer.loadFailed = true
+
                             DispatchQueue.main.async(execute: { () -> Void in
                                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
                             })
@@ -1603,10 +1604,13 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
                             mediaPlayer.player?.play()
                         }
                     } else {
-                        // Was playing normally and the system paused it.
-                        // This is redundant to KVO monitoring of AVPlayer.timeControlStatus but that is only available in 10.0 and later.
-                        if (mediaPlayer.rate == 0) {
-                            mediaPlayer.pause()
+                        if #available(iOS 10.0, *) {
+                        } else {
+                            // Was playing normally and the system paused it.
+                            // This is redundant to KVO monitoring of AVPlayer.timeControlStatus but that is only available in 10.0 and later.
+                            if (mediaPlayer.rate == 0) {
+                                mediaPlayer.pause()
+                            }
                         }
                     }
                 } else {

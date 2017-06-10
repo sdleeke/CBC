@@ -51,14 +51,27 @@ class PlayerStateTime {
         }
     }
     
-    init()
+//    init()
+//    {
+//        dateEntered = Date()
+//    }
+//    
+//    convenience init(_ mediaItem:MediaItem?)
+//    {
+//        self.init()
+//        self.mediaItem = mediaItem
+//        startTime = mediaItem?.currentTime
+//    }
+    
+    init(state: PlayerState)
     {
         dateEntered = Date()
+        self.state = state
     }
     
-    convenience init(_ mediaItem:MediaItem?)
+    convenience init(_ mediaItem:MediaItem?,state: PlayerState)
     {
-        self.init()
+        self.init(state:state)
         self.mediaItem = mediaItem
         startTime = mediaItem?.currentTime
     }
@@ -199,15 +212,13 @@ class MediaPlayer {
         
         switch url!.absoluteString {
         case Constants.URL.LIVE_STREAM:
-            stateTime = PlayerStateTime(mediaItem)
-            stateTime?.state = .playing
+            stateTime = PlayerStateTime(state:.playing)
             player?.play()
             break
             
         default:
             if loaded {
-                stateTime = PlayerStateTime(mediaItem)
-                stateTime?.state = .playing
+                stateTime = PlayerStateTime(mediaItem,state:.playing)
                 player?.play()
                 
                 DispatchQueue.main.async(execute: { () -> Void in
@@ -229,8 +240,7 @@ class MediaPlayer {
             return
         }
         
-        stateTime = PlayerStateTime(mediaItem)
-        stateTime?.state = .paused
+        stateTime = PlayerStateTime(mediaItem,state:.paused)
         player?.pause()
         playOnLoad = false
 
@@ -282,8 +292,7 @@ class MediaPlayer {
             return
         }
 
-        stateTime = PlayerStateTime(mediaItem)
-        stateTime?.state = .stopped
+        stateTime = PlayerStateTime(mediaItem,state:.stopped)
         player?.pause()
         playOnLoad = false
 

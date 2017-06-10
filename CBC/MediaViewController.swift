@@ -1428,13 +1428,13 @@ class MediaViewController: UIViewController
             break
             
         case .withTableView:
-            minRows = 1
+            minRows = 0
             break
         }
         
-        minConstraintConstant = tableView.rowHeight * minRows + 28 + 16 //margin on top and bottom of slider
+        minConstraintConstant = tableView.rowHeight * minRows + 44 // 44 is height of ControlView
 
-        maxConstraintConstant = height - 31 - (navigationController != nil ? navigationController!.navigationBar.bounds.height : 0) + 11
+        maxConstraintConstant = height // This assumes self.view does not go under top bars of any kind.
 
 //        print("height: \(height) logo.bounds.height: \(logo.bounds.height) slider.bounds.height: \(slider.bounds.height) navigationBar.bounds.height: \(navigationController!.navigationBar.bounds.height)")
 //        

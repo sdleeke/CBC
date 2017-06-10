@@ -824,10 +824,33 @@ class MediaTableViewCell: UITableViewCell
         if (searchText != nil) {
             let attrString = NSMutableAttributedString()
             
+            if (globals.mediaPlayer.mediaItem == mediaItem) {
+                if let state = globals.mediaPlayer.state {
+                    switch state {
+                    case .paused:
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAY, attributes: Constants.FA.Fonts.Attributes.icons))
+                        break
+                        
+                    case .playing:
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAYING, attributes: Constants.FA.Fonts.Attributes.icons))
+                        break
+                        
+                    case .stopped:
+                        break
+                        
+                    case .none:
+                        break
+                        
+                    default:
+                        break
+                    }
+                }
+            }
+            
             if (globals.mediaPlayer.mediaItem == mediaItem) && (globals.mediaPlayer.state == .playing) {
                 attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAYING, attributes: Constants.FA.Fonts.Attributes.icons))
             }
-
+            
             if (mediaItem!.hasTags) {
                 if (mediaItem?.tagsSet?.count > 1) {
                     if mediaItem!.searchHit(searchText).tags {
@@ -871,10 +894,29 @@ class MediaTableViewCell: UITableViewCell
         } else {
             var string = String()
             
-            if (globals.mediaPlayer.mediaItem == mediaItem) && (globals.mediaPlayer.state == .playing) {
-                string = string + Constants.SINGLE_SPACE + Constants.FA.PLAYING
+            if (globals.mediaPlayer.mediaItem == mediaItem) {
+                if let state = globals.mediaPlayer.state {
+                    switch state {
+                    case .paused:
+                        string = string + Constants.SINGLE_SPACE + Constants.FA.PLAY
+                        break
+                        
+                    case .playing:
+                        string = string + Constants.SINGLE_SPACE + Constants.FA.PLAYING
+                        break
+                        
+                    case .stopped:
+                        break
+                        
+                    case .none:
+                        break
+                        
+                    default:
+                        break
+                    }
+                }
             }
-            
+
 //            if let books = mediaItem?.books {
 //                string = string + Constants.SINGLE_SPACE + Constants.FA.SCRIPTURE
 //            }
