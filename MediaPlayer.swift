@@ -311,10 +311,15 @@ class MediaPlayer {
         }
         
         // This is unique to stop()
-        mediaItem = nil
         unload()
         player = nil
+        let old = mediaItem
+        mediaItem = nil
         
+        DispatchQueue.main.async(execute: { () -> Void in
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: old)
+        })
+
         setupPlayingInfoCenter()
     }
     

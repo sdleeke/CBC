@@ -28,6 +28,31 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
 {
     // MARK: PopoverTableViewControllerDelegate
 
+    func shareHTML(_ htmlString:String?)
+    {
+        guard htmlString != nil else {
+            return
+        }
+        
+        //    let formatter = UIMarkupTextPrintFormatter(markupText: htmlString!)
+        //    formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
+        
+        let activityItems = [htmlString as Any]
+        
+        activityViewController = UIActivityViewController(activityItems:activityItems , applicationActivities: nil)
+        
+        // exclude some activity types from the list (optional)
+        
+        activityViewController?.excludedActivityTypes = [ .addToReadingList ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+        
+        activityViewController?.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+        
+        // present the view controller
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.present(self.activityViewController!, animated: false, completion: nil)
+        })
+    }
+    
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
@@ -93,7 +118,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Share:
-                shareHTML(viewController: self, htmlString: webViewController!.html.string!)
+                shareHTML(webViewController?.html.string)
                 break
                 
             default:
@@ -571,7 +596,7 @@ class ScriptureViewController : UIViewController
         return actionMenu.count > 0 ? actionMenu : nil
     }
     
-    func actions()
+    func actionMenu()
     {
         //In case we have one already showing
         //        dismiss(animated: true, completion: nil)
@@ -599,6 +624,8 @@ class ScriptureViewController : UIViewController
             
             popover.vc = self
             
+            ptvc = popover
+            
             present(navigationController, animated: true, completion: nil)
         }
     }
@@ -621,7 +648,7 @@ class ScriptureViewController : UIViewController
     
     fileprivate func setupBarButtons()
     {
-        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureViewController.actions))
+        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureViewController.actionMenu))
         actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
         
         plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(ScriptureViewController.increaseFontSize))
@@ -647,9 +674,21 @@ class ScriptureViewController : UIViewController
         }
     }
     
-    override func viewWillAppear(_ animated: Bool)
+    var ptvc:PopoverTableViewController?
+    
+    var activityViewController:UIActivityViewController?
+
+    func deviceOrientationDidChange()
     {
+        // Dismiss any popover
+        ptvc?.dismiss(animated: false, completion: nil)
+        activityViewController?.dismiss(animated: false, completion: nil)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(ScriptureViewController.setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
 

@@ -75,7 +75,32 @@ extension WebViewController : PopoverTableViewControllerDelegate
         dismiss(animated: true, completion: nil)
     }
     
-    func actionMenu(action: String?, mediaItem:MediaItem?)
+    func shareHTML(_ htmlString:String?)
+    {
+        guard htmlString != nil else {
+            return
+        }
+        
+        //    let formatter = UIMarkupTextPrintFormatter(markupText: htmlString!)
+        //    formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
+        
+        let activityItems = [htmlString as Any]
+        
+        activityViewController = UIActivityViewController(activityItems:activityItems , applicationActivities: nil)
+        
+        // exclude some activity types from the list (optional)
+        
+        activityViewController?.excludedActivityTypes = [ .addToReadingList ] // UIActivityType.addToReadingList doesn't work for third party apps - iOS bug.
+        
+        activityViewController?.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+        
+        // present the view controller
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.present(self.activityViewController!, animated: false, completion: nil)
+        })
+    }
+    
+    func actionMenuItems(action: String?, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
             userAlert(title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex")
@@ -90,10 +115,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
         case Constants.Strings.Full_Screen:
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? WebViewController {
-                // Had to take out the lines below or the searchBar would become unresponsive. No idea why.
-                //                    DispatchQueue.main.async(execute: { () -> Void in
-                //                        self.dismiss(animated: true, completion: nil)
-                //                    })
                 
                 navigationController.modalPresentationStyle = .overFullScreen
                 navigationController.popoverPresentationController?.delegate = popover
@@ -136,7 +157,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Share:
-            shareHTML(viewController: self, htmlString: html.string!)
+            shareHTML(html.string)
             break
             
         case Constants.Strings.Search:
@@ -340,7 +361,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingAction:
-            actionMenu(action: string, mediaItem:mediaItem)
+            actionMenuItems(action: string, mediaItem:mediaItem)
             break
             
         default:
@@ -695,7 +716,11 @@ class WebViewController: UIViewController
         dismiss(animated: true, completion: nil)
     }
     
-    func actions()
+    var ptvc:PopoverTableViewController?
+    
+    var activityViewController:UIActivityViewController?
+    
+    func actionMenu()
     {
         //In case we have one already showing
 //        dismiss(animated: true, completion: nil)
@@ -708,8 +733,8 @@ class WebViewController: UIViewController
             navigationController.popoverPresentationController?.delegate = self
             
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-            
-//                popover.navigationItem.title = Constants.Actions
+        
+//            popover.navigationItem.title = Constants.Actions
             
             popover.navigationController?.isNavigationBarHidden = true
             
@@ -719,13 +744,13 @@ class WebViewController: UIViewController
             popover.selectedMediaItem = selectedMediaItem
             
             var actionMenu = [String]()
-
+            
             if (html.string != nil) && (selectedMediaItem != nil) {
                 actionMenu.append(Constants.Strings.Search)
                 actionMenu.append(Constants.Strings.Words)
                 actionMenu.append(Constants.Strings.Word_Picker)
             }
-
+            
             if self.navigationController?.modalPresentationStyle == .popover {
                 actionMenu.append(Constants.Strings.Full_Screen)
             }
@@ -744,6 +769,8 @@ class WebViewController: UIViewController
             popover.section.showHeaders = false
             
             popover.vc = self
+            
+            ptvc = popover
             
             present(navigationController, animated: true, completion: nil)
         }
@@ -791,7 +818,7 @@ class WebViewController: UIViewController
     
     fileprivate func setupActionButton()
     {
-        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.actions))
+        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.actionMenu))
         actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
 
         plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.increaseFontSize))
@@ -1215,8 +1242,17 @@ class WebViewController: UIViewController
         preferredContentSize = CGSize(width: max(width,size.width),height: size.height)
     }
     
+    func deviceOrientationDidChange()
+    {
+        // Dismiss any popover
+        ptvc?.dismiss(animated: false, completion: nil)
+        activityViewController?.dismiss(animated: false, completion: nil)
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+
+        NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
 
         NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
 

@@ -1222,7 +1222,7 @@ class ScriptureIndexViewController : UIViewController
         return actionMenu.count > 0 ? actionMenu : nil
     }
     
-    func actions()
+    func actionMenu()
     {
         //In case we have one already showing
         //        dismiss(animated: true, completion: nil)
@@ -1381,7 +1381,7 @@ class ScriptureIndexViewController : UIViewController
         //Eliminates blank cells at end.
         tableView.tableFooterView = UIView()
 
-        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureIndexViewController.actions))
+        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureIndexViewController.actionMenu))
         actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
 
         navigationItem.setRightBarButton(actionButton, animated: true) //

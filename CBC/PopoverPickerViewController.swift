@@ -457,7 +457,7 @@ class PopoverPickerViewController : UIViewController
         delegate?.stringPicked(string)
     }
     
-    func actions()
+    func actionMenu()
     {
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -486,6 +486,8 @@ class PopoverPickerViewController : UIViewController
             
             popover.vc = self
             
+            ptvc = popover
+            
             present(navigationController, animated: true, completion: nil)
         }
     }
@@ -501,7 +503,7 @@ class PopoverPickerViewController : UIViewController
             return
         }
 
-        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverPickerViewController.actions))
+        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverPickerViewController.actionMenu))
         actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
         
         navigationItem.setRightBarButton(actionButton, animated: false)
@@ -531,10 +533,19 @@ class PopoverPickerViewController : UIViewController
         }
     }
     
-    override func viewWillAppear(_ animated: Bool)
+    var ptvc:PopoverTableViewController?
+    
+    func deviceOrientationDidChange()
     {
+        // Dismiss any popover
+        ptvc?.dismiss(animated: false, completion: nil)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        
         updateActionButton()
         
         if mediaListGroupSort != nil {

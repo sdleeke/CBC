@@ -1309,14 +1309,28 @@ class MediaTableViewController : UIViewController
             
             var showMenu = [String]()
             
-            if (splitViewController?.viewControllers.count > 1) {
-                // What if it is collapsed and the detail view is showing?
-                if (!globals.showingAbout) {
+            if let isCollapsed = splitViewController?.isCollapsed {
+                if isCollapsed {
                     showMenu.append(Constants.Strings.About)
+                } else {
+                    if  let count = splitViewController?.viewControllers.count,
+                        let detailView = splitViewController?.viewControllers[count - 1] as? UINavigationController,
+                        (detailView.viewControllers[0] as? AboutViewController) == nil {
+                        showMenu.append(Constants.Strings.About)
+                    }
                 }
             } else {
-                showMenu.append(Constants.Strings.About)
+                // SHOULD NEVER HAPPEN
             }
+            
+//            if (splitViewController?.viewControllers.count > 1) {
+//                // What if it is collapsed and the detail view is showing?
+//                if (!globals.showingAbout) {
+//                    showMenu.append(Constants.Strings.About)
+//                }
+//            } else {
+//                showMenu.append(Constants.Strings.About)
+//            }
             
             //Because the list extends above and below the visible area, visibleCells is deceptive - the cell can be hidden behind a navbar or toolbar and still returned in the array of visibleCells.
             if (globals.display.mediaItems != nil) && (selectedMediaItem != nil) { // && (globals.display.mediaItems?.indexOf(selectedMediaItem!) != nil)
@@ -1396,7 +1410,19 @@ class MediaTableViewController : UIViewController
                 showMenu.append(Constants.Strings.Clear_History)
             }
             
-            showMenu.append(Constants.Strings.Live)
+            if let isCollapsed = splitViewController?.isCollapsed {
+                if isCollapsed {
+                    showMenu.append(Constants.Strings.Live)
+                } else {
+                    if  let count = splitViewController?.viewControllers.count,
+                        let detailView = splitViewController?.viewControllers[count - 1] as? UINavigationController,
+                        (detailView.viewControllers[0] as? LiveViewController) == nil {
+                        showMenu.append(Constants.Strings.Live)
+                    }
+                }
+            } else {
+                // SHOULD NEVER HAPPEN
+            }
             
             showMenu.append(Constants.Strings.Settings)
             
@@ -3321,16 +3347,16 @@ class MediaTableViewController : UIViewController
             case Constants.SEGUE.SHOW_ABOUT:
                 fallthrough
             case Constants.SEGUE.SHOW_ABOUT2:
-                globals.showingAbout = true
+//                globals.showingAbout = true
                 break
                 
             case Constants.SEGUE.SHOW_MEDIAITEM:
                 if globals.mediaPlayer.url == URL(string:Constants.URL.LIVE_STREAM) && (globals.mediaPlayer.pip == .stopped) {
-                    globals.mediaPlayer.stop()
+                    globals.mediaPlayer.pause() // DO NOT USE STOP HERE AS STOP SETS globals.mediaPlayer.mediaItem (used below) to nil
                     globals.mediaPlayer.playOnLoad = false
                 }
                 
-                globals.showingAbout = false
+//                globals.showingAbout = false
                 if (globals.gotoPlayingPaused) {
                     globals.gotoPlayingPaused = !globals.gotoPlayingPaused
 

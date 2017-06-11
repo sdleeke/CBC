@@ -914,12 +914,14 @@ class PopoverTableViewController : UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-    
-        if mediaListGroupSort != nil {
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: mediaListGroupSort?.lexicon)
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: mediaListGroupSort?.lexicon)
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: mediaListGroupSort?.lexicon)
-        }
+
+        NotificationCenter.default.removeObserver(self)
+        
+//        if mediaListGroupSort != nil {
+//            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: mediaListGroupSort?.lexicon)
+//            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: mediaListGroupSort?.lexicon)
+//            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: mediaListGroupSort?.lexicon)
+//        }
     }
     
     func sortAction()
@@ -947,6 +949,8 @@ class PopoverTableViewController : UIViewController {
             
             popover.vc = self
             
+            ptvc = popover
+            
             present(navigationController, animated: true, completion: nil)
         }
     }
@@ -959,9 +963,18 @@ class PopoverTableViewController : UIViewController {
         }
     }
     
-    override func viewWillAppear(_ animated: Bool)
+    var ptvc:PopoverTableViewController?
+    
+    func deviceOrientationDidChange()
     {
+        // Dismiss any popover
+        ptvc?.dismiss(animated: false, completion: nil)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
         
         navigationController?.setToolbarHidden(true, animated: false)
         

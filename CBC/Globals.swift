@@ -798,7 +798,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
     }
     
     var gotoPlayingPaused:Bool = false
-    var showingAbout:Bool = false
+//    var showingAbout:Bool = false
 
     var mediaPlayer = MediaPlayer()
 
@@ -1569,10 +1569,10 @@ class Globals : NSObject, AVPlayerViewControllerDelegate {
             return
         }
         
-        print("startTime",startTime)
-        print("start",start)
-        print("currentTime",currentTime)
-        print("timeElapsed",timeElapsed)
+//        print("startTime",startTime)
+//        print("start",start)
+//        print("currentTime",currentTime)
+//        print("timeElapsed",timeElapsed)
         
         switch state {
         case .none:
