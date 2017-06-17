@@ -856,9 +856,6 @@ class MediaViewController: UIViewController
                     print(selectedMediaItem?.dict as Any)
                     networkUnavailable("Media Not Available")
                 }
-            } else {
-                removePlayerObserver()
-//                addSliderObserver() // Crashes because it uses UI and this is done before viewWillAppear when the mediaItemSelected is set in prepareForSegue, but it only happens on an iPhone because the MVC isn't setup already.
             }
             
             notesDocument = nil // CRITICAL because it removes the scrollView.delegate from the last one (if any)
@@ -899,6 +896,17 @@ class MediaViewController: UIViewController
                     }
                     documents[key] = nil
                 }
+            }
+            
+            if (selectedMediaItem != nil) && (selectedMediaItem == globals.mediaPlayer.mediaItem) {
+                removePlayerObserver()
+                
+                if globals.mediaPlayer.url != selectedMediaItem?.playingURL {
+                    updateUI()
+                }
+                
+                // Crashes because it uses UI and this is done before viewWillAppear when the mediaItemSelected is set in prepareForSegue, but it only happens on an iPhone because the MVC isn't setup already.
+                //                addSliderObserver()
             }
         }
     }
