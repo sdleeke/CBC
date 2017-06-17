@@ -79,11 +79,6 @@ extension PopoverPickerViewController : UIPickerViewDataSource
             if let count = stringNode?.stringNodes?.count {
                 //                print("Component: ",component," Rows: ",count)
                 return count
-                //                if let wordEnding = stringNode?.wordEnding, wordEnding {
-                //                    return count + 1
-                //                } else {
-                //                    return count
-                //                }
             } else {
                 return 0
             }
@@ -123,21 +118,6 @@ extension PopoverPickerViewController : UIPickerViewDataSource
         }
         
         return label
-        
-        //        var label:UILabel!
-        //
-        //        if view != nil {
-        //            label = view as! UILabel
-        //        } else {
-        //            label = UILabel()
-        //        }
-        //        
-        ////        label.font = UIFont(name: "System", size: 16.0)
-        //        label.textAlignment = .center
-        //        
-        //        label.text = strings?[row]
-        //        
-        //        return label
     }
     
     func title(forRow row:Int, forComponent component:Int) -> String?
@@ -171,29 +151,13 @@ extension PopoverPickerViewController : UIPickerViewDataSource
             //            print("Component: ",component," Row: ",row," String: ",string)
             
             switch count {
-//            case 0:
-//                if let string = stringNode?.stringNodes?[row].string {
-//                    if string != Constants.WORD_ENDING {
-//                        return string
-//                    } else {
-//                        return nil
-//                    }
-//                }
-//                break
-                
+
             default:
                 if let string = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string })[row].string {
                     return string
                 }
                 break
             }
-            //            if let wordEnding = stringNode?.wordEnding, wordEnding {
-            //            } else {
-            //                if let string = stringNode?.stringNodes?[row].string {
-            //                    //                        print("Component: ",component," Row: ",row," String: ",string)
-            //                    return string
-            //                }
-            //            }
         }
         
         return nil
@@ -215,11 +179,6 @@ extension PopoverPickerViewController : UIPickerViewDelegate
     
     func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat
     {
-        //        guard component < pickerView.numberOfComponents else {
-        //            print(component,pickerView.numberOfComponents)
-        //            return 0
-        //        }
-        
         if mediaListGroupSort != nil {
             var stringNode = root
             
@@ -252,18 +211,6 @@ extension PopoverPickerViewController : UIPickerViewDelegate
             
             if let stringNodes = stringNode?.stringNodes {
                 switch stringNodes.count {
-//                case 0:
-//                    if let string = stringNodes[0].string {
-//                        if string != Constants.WORD_ENDING {
-//                            let stringWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)], context: nil).width
-//                            if stringWidth > width {
-//                                width = stringWidth
-//                            }
-//                        } else {
-//                            return 0
-//                        }
-//                    }
-//                    break
                     
                 default:
                     for stringNode in stringNodes {
@@ -278,18 +225,8 @@ extension PopoverPickerViewController : UIPickerViewDelegate
             } else {
                 return 0
             }
-            
-            //            if pickerSelections[component] == nil {
-            //                pickerSelections[component] = 0
-            ////                DispatchQueue.main.async(execute: { () -> Void in
-            //////                    self.picker.reloadAllComponents()
-            //////                    self.picker.setNeedsLayout()
-            ////                    self.setPreferredContentSize()
-            ////                })
-            //            }
-            
+
             //            print("Component: ",component," Width: ",width)
-            
             
             if let index = pickerSelections[component], let string = stringNode?.stringNodes?[index].string, string == Constants.WORD_ENDING {
                 return width + 20
@@ -468,8 +405,6 @@ class PopoverPickerViewController : UIViewController
             
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
             
-            //                popover.navigationItem.title = Constants.Actions
-            
             popover.navigationController?.isNavigationBarHidden = true
             
             popover.delegate = self
@@ -596,11 +531,7 @@ class PopoverPickerViewController : UIViewController
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: nil)
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: nil)
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: nil)
-        
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: nil)
+        NotificationCenter.default.removeObserver(self)
     }
     
     func setPreferredContentSize()
@@ -612,11 +543,6 @@ class PopoverPickerViewController : UIViewController
 
 //        print("PPVC \(navigationController!.viewControllers.count)")
 
-//        guard navigationController?.viewControllers.count == 1 else {
-////            print("Pushed PPVC \(navigationController!.viewControllers.count)")
-//            return
-//        }
-        
         var width:CGFloat = 0
         
         var count:CGFloat = 0
@@ -631,9 +557,6 @@ class PopoverPickerViewController : UIViewController
             }
 
             width += componentWidth
-            
-            // only takes into account the selection row entries with text showing
-//            width += picker.rowSize(forComponent: component).width
         }
     
 //        print(max(200,width + 40 + count*2))
@@ -677,11 +600,6 @@ class PopoverPickerViewController : UIViewController
             pickerSelections[index] = nil
             index += 1
         }
-        //        if i < wordPicker.numberOfComponents {
-        //            for index in i..<wordPicker.numberOfComponents {
-        //                pickerSelections[index] = nil
-        //            }
-        //        }
         
         DispatchQueue.main.async(execute: { () -> Void in
             self.picker.setNeedsLayout()
@@ -783,10 +701,6 @@ class PopoverPickerViewController : UIViewController
                 }
             })
         }
-        
-//        updateTitle()
-        
-//        updateSearchResults()
     }
     
     func started()

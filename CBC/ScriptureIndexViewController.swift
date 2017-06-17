@@ -160,10 +160,6 @@ extension ScriptureIndexViewController : UIPickerViewDelegate
         }
     }
     
-    //    func pickerView(pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
-    //
-    //    }
-    
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
     {
         scripturePicker.isUserInteractionEnabled = false
@@ -192,14 +188,7 @@ extension ScriptureIndexViewController : UIPickerViewDelegate
             default:
                 break
             }
-            //            if row == 0 {
-            //                scriptureIndex?.selectedTestament = Constants.OT
-            //            }
-            //
-            //            if row == 1 {
-            //                scriptureIndex?.selectedTestament = Constants.NT
-            //            }
-            
+
             if (scriptureIndex?.selectedTestament != nil) && bookSwitch.isOn {
                 scripture?.picker.books = scriptureIndex?.byBook[translateTestament(scriptureIndex!.selectedTestament!)]?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
                 scriptureIndex?.selectedBook = scripture?.picker.books?[0]
@@ -373,14 +362,6 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
             if (scriptureIndex?.selectedTestament != nil) {
                 if let book = scripture?.picker.books?[row] {
                     return book
-                    
-//                    return (book == "Psalm") ? "Psalms" : book
-
-//                    if book == "Psalm" {
-//                        return "Psalms"
-//                    } else {
-//                        return book
-//                    }
                 }
             }
             break
@@ -419,20 +400,6 @@ extension ScriptureIndexViewController : UIPickerViewDataSource
         }
         
         return label
-        
-        //        var label:UILabel!
-        //
-        //        if view != nil {
-        //            label = view as! UILabel
-        //        } else {
-        //            label = UILabel()
-        //        }
-        //
-        //        label.font = UIFont(name: "System", size: 12.0)
-        //
-        //        label.text = title(forRow: row, forComponent: component)
-        //        
-        //        return label
     }
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String?
@@ -486,7 +453,7 @@ class ScriptureIndexViewController : UIViewController
             
         }
         didSet {
-//            scriptureIndex?.active = true
+
         }
     }
     
@@ -494,17 +461,7 @@ class ScriptureIndexViewController : UIViewController
         get {
             return mediaListGroupSort?.scriptureIndex
         }
-//        set {
-//            mediaListGroupSort?.scriptureIndex = newValue
-////            scriptureIndex?.active = true
-//        }
     }
-    
-//    var list:[MediaItem]? {
-//        get {
-//            return mediaListGroupSort?.list
-//        }
-//    }
     
     @IBOutlet weak var logo: UIImageView!
     @IBOutlet weak var directionLabel: UILabel!
@@ -643,17 +600,7 @@ class ScriptureIndexViewController : UIViewController
     
     func updateDirectionLabel()
     {
-//        if !bookSwitch.isOn && !chapterSwitch.isOn {
-//            directionLabel.text = "Select a testament to find related media."
-//        }
-//        
-//        if bookSwitch.isOn && !chapterSwitch.isOn {
-//            directionLabel.text = "Select a testament and book to find related media."
-//        }
-//        
-//        if bookSwitch.isOn && chapterSwitch.isOn {
-//            directionLabel.text = "Select a testament, book, and chapter to find related media."
-//        }
+
     }
 
     func disableToolBarButtons()
@@ -736,8 +683,6 @@ class ScriptureIndexViewController : UIViewController
     
     func updateSearchResults()
     {
-//        scriptureText = nil
-        
         scripture?.selected.testament   = scriptureIndex?.selectedTestament
         scripture?.selected.book        = scriptureIndex?.selectedBook
         scripture?.selected.chapter     = scriptureIndex!.selectedChapter
@@ -939,36 +884,6 @@ class ScriptureIndexViewController : UIViewController
         return show
     }
 
-//    func clearView()
-//    {
-//        DispatchQueue.main.async(execute: { () -> Void in
-//            self.navigationItem.title = nil
-//            self.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
-//            for view in self.view.subviews {
-//                view.isHidden = true
-//            }
-//            self.logo.isHidden = false
-//        })
-//    }
-    
-//    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
-//    {
-//        super.viewWillTransition(to: size, with: coordinator)
-//        
-//        if (self.view.window == nil) {
-//            return
-//        }
-//        
-//        //        print("Size: \(size)")
-//        
-//        setupSplitViewController()
-//        
-//        coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
-//        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-//
-//        }
-//    }
-    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
@@ -978,47 +893,29 @@ class ScriptureIndexViewController : UIViewController
             NotificationCenter.default.addObserver(self, selector: #selector(ScriptureIndexViewController.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self.scriptureIndex)
         })
         
-//        DispatchQueue.main.async {
-//            NotificationCenter.default.addObserver(self, selector: #selector(ScriptureIndexViewController.clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
-//        }
-        
         navigationItem.hidesBackButton = false
         
         navigationController?.setToolbarHidden(true, animated: false)
 
-//        navigationController?.isToolbarHidden = true
-    
-//        updateSwitches()
-
-        self.scripturePicker.isUserInteractionEnabled = false
+        scripturePicker.isUserInteractionEnabled = false
 
         if let completed = scriptureIndex?.completed, completed {
             setup()
             updateUI()
-            self.scripturePicker.isUserInteractionEnabled = true
+            scripturePicker.isUserInteractionEnabled = true
         }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-//        saveSettings()
         
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: scriptureIndex)
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_UPDATED), object: scriptureIndex)
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: scriptureIndex)
-
-//        NotificationCenter.default.removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
 
-        // Seems like the following should work but doesn't.
-        //        navigationItem.backBarButtonItem?.title = Constants.Back
-
-//        navigationController?.navigationBar.backItem?.title = Constants.Back
-//        navigationItem.hidesBackButton = false
     }
     
     func setupMediaItemsHTMLScripture(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String?
@@ -1236,8 +1133,6 @@ class ScriptureIndexViewController : UIViewController
             
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
             
-            //                popover.navigationItem.title = Constants.Strings.Actions
-            
             popover.navigationController?.isNavigationBarHidden = true
             
             popover.delegate = self
@@ -1301,10 +1196,6 @@ class ScriptureIndexViewController : UIViewController
         
         if let index = mediaItems?.index(of: mediaItem!) {
             let indexPath = IndexPath(row: index, section: 0)
-            
-//            DispatchQueue.main.async(execute: { () -> Void in
-//                self.tableView.setEditing(false, animated: true)
-//            })
             
             if (select) {
                 DispatchQueue.global(qos: .background).async {
@@ -1373,7 +1264,6 @@ class ScriptureIndexViewController : UIViewController
         
         progressIndicator.isHidden = true
 
-//        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
         navigationItem.leftItemsSupplementBackButton = true
   
         numberOfMediaItems.text = Constants.EMPTY_STRING
@@ -1602,10 +1492,6 @@ class ScriptureIndexViewController : UIViewController
         updateDirectionLabel()
         
         updateText()
-        
-//        enableBarButtons()
-        
-//        tableView.reloadData()
     }
 
     override func didReceiveMemoryWarning() {
@@ -1703,16 +1589,6 @@ extension ScriptureIndexViewController : UITableViewDelegate
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
         return editActionsAtIndexPath(tableView, indexPath: indexPath) != nil
-        
-//        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-//            return false
-//        }
-//        
-//        guard let mediaItem = cell.mediaItem else {
-//            return false
-//        }
-//        
-//        return mediaItem.hasNotesHTML || (mediaItem.books?.count > 0)
     }
     
     func editActionsAtIndexPath(_ tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
@@ -1737,24 +1613,12 @@ extension ScriptureIndexViewController : UITableViewDelegate
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
                 
-                //                if globals.search.valid && globals.search.transcripts {
-                //                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false,index: true)
-                //                } else {
-                //                    htmlString = mediaItem.fullNotesHTML
-                //                }
-                
                 htmlString = mediaItem.fullNotesHTML
                 
                 popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
-                    
-                    //                    if globals.search.valid && globals.search.transcripts {
-                    //                        return mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false,index: true)
-                    //                    } else {
-                    //                        return mediaItem.fullNotesHTML
-                    //                    }
                     
                     return mediaItem.fullNotesHTML
                 }, completion: { (data:Any?) in
@@ -1763,8 +1627,6 @@ extension ScriptureIndexViewController : UITableViewDelegate
                     } else {
                         networkUnavailable("HTML transcript unavailable.")
                     }
-                    
-                    //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
                 })
             }
         }
@@ -1787,7 +1649,6 @@ extension ScriptureIndexViewController : UITableViewDelegate
                         } else {
                             networkUnavailable("Scripture text unavailable.")
                         }
-                        //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
                     })
                 }
             }

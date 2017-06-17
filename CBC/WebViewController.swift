@@ -81,9 +81,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
             return
         }
         
-        //    let formatter = UIMarkupTextPrintFormatter(markupText: htmlString!)
-        //    formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
-        
         let activityItems = [htmlString as Any]
         
         activityViewController = UIActivityViewController(activityItems:activityItems , applicationActivities: nil)
@@ -201,9 +198,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 popover.navigationController?.isNavigationBarHidden = false
 
-//                navigationController.popoverPresentationController?.permittedArrowDirections = .up
-//                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-
                 popover.navigationItem.title = Constants.Strings.Word_Picker
 
                 popover.delegate = self
@@ -214,16 +208,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 popover.navigationItem.leftBarButtonItem = cancelButton
 
                 present(navigationController, animated: true, completion: nil)
-
-//                popover.navigationItem.title = Constants.Strings.Word_Picker
-//                
-//                popover.navigationController?.isNavigationBarHidden = false
-//                
-//                popover.delegate = self
-//                
-//                popover.mediaListGroupSort = MediaListGroupSort(mediaItems: [selectedMediaItem!])
-//
-//                self.navigationController?.pushViewController(popover, animated: true)
             }
             break
             
@@ -235,9 +219,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 navigationController.popoverPresentationController?.delegate = self
                 
                 popover.navigationController?.isNavigationBarHidden = false
-                
-//                navigationController.popoverPresentationController?.permittedArrowDirections = .up
-//                navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
                 
                 popover.navigationItem.title = Constants.Strings.Words
                 
@@ -259,13 +240,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                         popover.section.strings = mediaItem?.notesTokens?.map({ (string:String,count:Int) -> String in
                             return "\(string) (\(count))"
                         }).sorted()
-                        
-                        // Why Array(Set())?  Duplicates?
-//                        let array = Array(Set(popover.section.strings!)).sorted() { $0.uppercased() < $1.uppercased() }
-                        
-//                        popover.section.indexStrings = array.map({ (string:String) -> String in
-//                            return string.uppercased()
-//                        })
                     }
                 }
                 
@@ -280,8 +254,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 popover.navigationItem.leftBarButtonItem = cancelButton
 
                 present(navigationController, animated: true, completion: nil)
-
-//                self.navigationController?.pushViewController(popover, animated: true)
             }
             break
             
@@ -403,8 +375,6 @@ extension WebViewController : WKNavigationDelegate
                 DispatchQueue.main.async(execute: { () -> Void in
                     //                    print(wkWebView.scrollView.contentSize.width,wkWebView.scrollView.contentSize.height)
                     
-//                    self.preferredContentSize = CGSize(width: wkWebView.scrollView.contentSize.width,height: wkWebView.scrollView.contentSize.height)
-                    
                     wkWebView.isHidden = false
                     wkWebView.scrollView.contentOffset = CGPoint(x: 0, y: 0)
                     
@@ -461,21 +431,6 @@ extension WebViewController : WKNavigationDelegate
                 } else {
                     decisionHandler(WKNavigationActionPolicy.cancel)
                 }
-                
-                //                switch tag.lowercased() {
-                //                case "index":
-                //                    fallthrough
-                //
-                //                case "locations":
-                //                    decisionHandler(WKNavigationActionPolicy.allow)
-                //                    break
-                //
-                //                default:
-                //                    if Int(tag) != nil {
-                //                        decisionHandler(WKNavigationActionPolicy.allow)
-                //                    }
-                //                    break
-                //                }
             } else {
                 if let url = navigationAction.request.url {
                     if UIApplication.shared.canOpenURL(url) { // Reachability.isConnectedToNetwork() &&
@@ -688,8 +643,6 @@ class WebViewController: UIViewController
         
         webView.addSubview(wkWebView!)
 
-//        webView.bringSubviewToFront(wkWebView!)
-        
         let centerX = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
         wkWebView?.superview?.addConstraint(centerX)
         
@@ -733,8 +686,6 @@ class WebViewController: UIViewController
             navigationController.popoverPresentationController?.delegate = self
             
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-        
-//            popover.navigationItem.title = Constants.Actions
             
             popover.navigationController?.isNavigationBarHidden = true
             
@@ -963,8 +914,6 @@ class WebViewController: UIViewController
             let contentOffset = CGPoint(x: CGFloat(html.xRatio * Double(wkWebView!.scrollView.contentSize.width)),
                 y: CGFloat(html.yRatio * Double(wkWebView!.scrollView.contentSize.height)))
             
-//            let contentOffset = CGPoint(x: html.x,y: html.y)
-            
             //            print("About to setContentOffset with: \(contentOffset)")
             
             DispatchQueue.main.async(execute: { () -> Void in
@@ -1075,8 +1024,6 @@ class WebViewController: UIViewController
         
 //        print("Size: \(size)")
 
-//        setupSplitViewController()
-        
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
 
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
@@ -1105,19 +1052,19 @@ class WebViewController: UIViewController
         }
     }
     
-    override var prefersStatusBarHidden : Bool {
-        return true // navigationController?.navigationBarHidden ==
+    override var prefersStatusBarHidden : Bool
+    {
+        return true
     }
-    
-//    override func preferredStatusBarUpdateAnimation() -> UIStatusBarAnimation {
-//        return UIStatusBarAnimation.Slide
-//    }
 
-    override func viewDidLoad() {
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
+
+        // Do any additional setup after loading the view.
         
         navigationController?.setToolbarHidden(true, animated: true)
-//        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
+
         navigationItem.leftItemsSupplementBackButton = true
         
         logo.isHidden = true
@@ -1129,8 +1076,6 @@ class WebViewController: UIViewController
         webView.bringSubview(toFront: activityIndicator)
         
         progressIndicator.isHidden = content == .html
-
-        // Do any additional setup after loading the view.
     }
     
     func loadDocument()
@@ -1232,13 +1177,9 @@ class WebViewController: UIViewController
         }
         
         let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
-//        let heightSize: CGSize = CGSize(width: size.width, height: .greatestFiniteMagnitude)
         
         let width = title.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).width + 150
         
-//        let stringHeight = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: nil, context: nil).height // + 150
-//        let stringWidth = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: nil, context: nil).height // + 150
-                
         preferredContentSize = CGSize(width: max(width,size.width),height: size.height)
     }
     
@@ -1249,9 +1190,16 @@ class WebViewController: UIViewController
         activityViewController?.dismiss(animated: false, completion: nil)
     }
     
+    func willResignActive()
+    {
+        dismiss(animated: true, completion: nil)
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.willResignActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
+        
         NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
 
         NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
@@ -1259,18 +1207,6 @@ class WebViewController: UIViewController
         if let title = selectedMediaItem?.title {
             navigationItem.title = title
         }
-        
-//        if content == .html {
-//            if globals.search.valid {
-//                if let htmlString = selectedMediaItem?.markedFullNotesHTML(searchText:globals.search.text,index: true) {
-//                    html.string = htmlString
-//                }
-//            } else {
-//                if let htmlString = selectedMediaItem?.fullNotesHTML {
-//                    html.string = htmlString
-//                }
-//            }
-//        }
 
         if let isHidden = wkWebView?.isHidden, isHidden {
             switch content {
@@ -1288,16 +1224,6 @@ class WebViewController: UIViewController
                 }
                 break
             }
-            
-            //        if let title = navigationItem.title {
-            //            let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-            //
-            //            let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
-            //
-            //            let width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)], context: nil).width + 150
-            //
-            //            preferredContentSize = CGSize(width: width,height: 44)
-            //        }
             
             preferredContentSize = CGSize(width: 0,height: 44)
             
@@ -1332,8 +1258,7 @@ class WebViewController: UIViewController
         super.viewDidAppear(animated)
         
         navigationItem.hidesBackButton = false
-        // Seems like the following should work but doesn't.
-        //        navigationItem.backBarButtonItem?.title = Constants.Strings.Back
+
         navigationController?.navigationBar.backItem?.title = Constants.Strings.Back
     }
     
@@ -1353,19 +1278,6 @@ class WebViewController: UIViewController
         // Dispose of any resources that can be recreated.
         globals.freeMemory()
     }
-    
-//    func cancel()
-//    {
-//        view.bringSubview(toFront: wkWebView!)
-//        
-//        wkWebView?.isHidden = true
-//        
-//        activityIndicator.isHidden = false
-//        activityIndicator.startAnimating()
-//        
-//        html.string = selectedMediaItem?.fullNotesHTML
-//        _ = wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
-//    }
     
     /*
     // MARK: - Navigation

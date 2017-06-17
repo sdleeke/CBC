@@ -188,10 +188,6 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 break
             }
             
-//            ptvc.section.indexStrings = ptvc.section.strings?.map({ (string:String) -> String in
-//                return ptvc.section.indexTransform != nil ? ptvc.section.indexTransform!(string.uppercased())! : string.uppercased()
-//            })
-            
             ptvc.section.build()
             
             ptvc.tableView.reloadData()
@@ -302,8 +298,6 @@ class LexiconIndexViewController : UIViewController
     var mediaListGroupSort:MediaListGroupSort?
     
     var root:StringNode?
-    
-//    var format:Format = .list
     
     var lexicon:Lexicon?
     {
@@ -503,20 +497,6 @@ class LexiconIndexViewController : UIViewController
 //        }
         
         if (self.searchText != nil) {
-//            if let visibleCells = ptvc?.tableView.visibleCells as? [PopoverTableViewCell] {
-//                for cell in visibleCells {
-//                    if let text = cell.title.text {
-//                        if text.substring(to: text.range(of: " (")!.lowerBound).uppercased() == searchText {
-//                            DispatchQueue.main.async(execute: { () -> Void in
-//                                self.locateButton.isHidden = true
-//                                self.locateButton.isEnabled = false
-//                            })
-//                            return
-//                        }
-//                    }
-//                }
-//            }
-            
             DispatchQueue.main.async(execute: { () -> Void in
                 self.locateButton.isHidden = false
                 self.locateButton.isEnabled = true
@@ -531,8 +511,6 @@ class LexiconIndexViewController : UIViewController
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
-//        disableBarButtons()
         
         selectedWord.text = searchText
 
@@ -560,21 +538,13 @@ class LexiconIndexViewController : UIViewController
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: nil)
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: nil)
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: nil)
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
 
-        // Seems like the following should work but doesn't.
-        //        navigationItem.backBarButtonItem?.title = Constants.Back
-        
-        //        navigationController?.navigationBar.backItem?.title = Constants.Back
-        //        navigationItem.hidesBackButton = false
-        
         ptvc.selectString(searchText,scroll: true,select: true)
     }
     
@@ -634,12 +604,6 @@ class LexiconIndexViewController : UIViewController
         bodyString = bodyString! + "Sorted: \(translate(globals.sorting)!)<br/>"
         
         if let keys = results?.section?.indexTitles {
-//            for key in keys {
-//                if let mediaItems = results?.groupSort?[globals.grouping!]?[key]?[globals.sorting!] {
-//                    count += mediaItems.count
-//                }
-//            }
-            
             bodyString = bodyString! + "<br/>"
             
             if includeURLs, (keys.count > 1) {
@@ -1119,20 +1083,6 @@ extension LexiconIndexViewController : UITableViewDelegate
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
         return editActionsForIndexPath(tableView,indexPath: indexPath) != nil
-        
-//        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-//            return false
-//        }
-//        
-//        guard let mediaItem = cell.mediaItem else {
-//            return false
-//        }
-//        
-//        guard let searchText = cell.searchText else {
-//            return false
-//        }
-//        
-//        return mediaItem.hasNotesHTML || (mediaItem.books?.count > 0)
     }
     
     func editActionsForIndexPath(_ tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
@@ -1321,12 +1271,6 @@ extension LexiconIndexViewController : UITableViewDataSource
 
             view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
             view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":label]))
-
-//            let horizontalContraints = NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: views)
-//            let verticalContraints = NSLayoutConstraint.constraints(withVisualFormat: "V:", options: [.alignAllCenterX], metrics: nil, views: views)
-//            
-//            view.addConstraints(horizontalContraints)
-//            view.addConstraints(verticalContraints)
         }
         
         view.alpha = 0.85

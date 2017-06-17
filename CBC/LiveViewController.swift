@@ -53,15 +53,36 @@ class LiveViewController: UIViewController {
         }
     }
     
+    func deviceOrientationDidChange()
+    {
+        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(LiveViewController.done))
+        } else {
+            navigationItem.rightBarButtonItem = nil
+        }
+    }
+    
+    func done()
+    {
+        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
+            self.splitViewController?.preferredDisplayMode = .allVisible
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PLAYING_PAUSED), object: nil)
+        }
+    }
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         logo.isHidden = true
         
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        
         NotificationCenter.default.addObserver(self, selector: #selector(LiveViewController.clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(LiveViewController.liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
 
         navigationController?.isToolbarHidden = true
+        
+        deviceOrientationDidChange()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -70,6 +91,8 @@ class LiveViewController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func didReceiveMemoryWarning() {
@@ -125,7 +148,7 @@ class LiveViewController: UIViewController {
         if (globals.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
             globals.mediaPlayer.pause() // IfPlaying
 
-            globals.setupPlayer(url: URL(string:Constants.URL.LIVE_STREAM),playOnLoad:true)
+            globals.mediaPlayer.setup(url: URL(string:Constants.URL.LIVE_STREAM),playOnLoad:true)
             globals.mediaPlayer.setupPlayingInfoCenter()
         }
         

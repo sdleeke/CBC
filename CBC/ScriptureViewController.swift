@@ -34,9 +34,6 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
             return
         }
         
-        //    let formatter = UIMarkupTextPrintFormatter(markupText: htmlString!)
-        //    formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
-        
         let activityItems = [htmlString as Any]
         
         activityViewController = UIActivityViewController(activityItems:activityItems , applicationActivities: nil)
@@ -72,11 +69,6 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
             case Constants.Strings.Full_Screen:
                 if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? WebViewController {
-                    // Had to take out the lines below or the searchBar would become unresponsive. No idea why.
-                    //                    DispatchQueue.main.async(execute: { () -> Void in
-                    //                        self.dismiss(animated: true, completion: nil)
-                    //                    })
-                    
                     navigationController.modalPresentationStyle = .overFullScreen
                     navigationController.popoverPresentationController?.delegate = popover
                     
@@ -195,20 +187,6 @@ extension ScriptureViewController : UIPickerViewDataSource
         }
         
         return label
-        
-        //        var label:UILabel!
-        //
-        //        if view != nil {
-        //            label = view as! UILabel
-        //        } else {
-        //            label = UILabel()
-        //        }
-        //
-        //        label.font = UIFont(name: "System", size: 12.0)
-        //
-        //        label.text = title(forRow: row, forComponent: component)
-        //
-        //        return label
     }
     
     func title(forRow row:Int, forComponent component:Int) -> String?
@@ -276,10 +254,6 @@ extension ScriptureViewController : UIPickerViewDelegate
             return 0
         }
     }
-    
-    //    func pickerView(pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
-    //
-    //    }
 
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
     {
@@ -407,10 +381,6 @@ class ScriptureViewController : UIViewController
     
     var scripture:Scripture?
     
-//    lazy var scripture:Scripture? = {
-//        return Scripture(reference: nil)
-//    }()
-    
     @IBOutlet weak var directionLabel: UILabel!
     
     @IBOutlet weak var scripturePicker: UIPickerView!
@@ -450,27 +420,7 @@ class ScriptureViewController : UIViewController
     {
 
     }
-    
-//    func translateTestament(_ testament:String) -> String
-//    {
-//        var translation = Constants.EMPTY_STRING
-//        
-//        switch testament {
-//        case Constants.OT:
-//            translation = Constants.Old_Testament
-//            break
-//            
-//        case Constants.NT:
-//            translation = Constants.New_Testament
-//            break
-//            
-//        default:
-//            break
-//        }
-//        
-//        return translation
-//    }
-    
+
     func disableToolBarButtons()
     {
         if let barButtons = toolbarItems {
@@ -536,8 +486,6 @@ class ScriptureViewController : UIViewController
 //            print(self.view.frame.width,self.vc!.view!.frame.height)
             
             DispatchQueue.main.async(execute: { () -> Void in
-//                self.preferredContentSize = CGSize(width:  self.view.frame.width,
-//                                                   height: self.vc!.view!.frame.height)
                 self.setPreferredContentSize()
             })
         }
@@ -609,8 +557,6 @@ class ScriptureViewController : UIViewController
             navigationController.popoverPresentationController?.delegate = self
             
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-            
-            //                popover.navigationItem.title = Constants.Actions
             
             popover.navigationController?.isNavigationBarHidden = true
             
@@ -715,45 +661,6 @@ class ScriptureViewController : UIViewController
                     }
                 }
                 
-//                // Take the first one in the Scripture reference?
-//                if let books:[String] = self.scripture?.xml.text?.keys.map({ (string:String) -> String in
-//                    return string
-//                }).sorted(by: { reference.range(of: $0)?.lowerBound < reference.range(of: $1)?.lowerBound }), books.count > 0 {
-//                    let book = books[0]
-//
-//                    self.scripture?.selected.testament = self.testament(book)
-//                    self.scripture?.selected.book = book
-//
-//                    if let chapters:[Int] = self.scripture?.xml.text?[book]?.keys.map({ (string:String) -> Int in
-//                        return Int(string)!
-//                    }).sorted(), chapters.count > 0 {
-//                        self.scripture?.selected.chapter = chapters[0]
-//                    }
-//                }
-                
-                // Sort by book and take the first one?
-                //                if let books:[String] = scripture?.xml.text?.keys.map({ (string:String) -> String in
-                //                    return string
-                //                }).sorted(by: { bookNumberInBible($0) < bookNumberInBible($1) }), books.count > 0 {
-                //                    let book = books[0].replacingOccurrences(of: "Psalms", with: "Psalm")
-                //
-                //                    scripture?.selected.testament = testament(book)
-                //                    scripture?.selected.book = book
-                //
-                //                    if let chapters:[Int] = scripture?.xml.text?[book]?.keys.map({ (string:String) -> Int in
-                //                        return Int(string)!
-                //                    }).sorted(), chapters.count > 0 {
-                //                        scripture?.selected.chapter = chapters[0]
-                //                    }
-                //                }
-                
-                // Below we are taking the LAST one.
-                //                if let book = scripture?.xml.book?.replacingOccurrences(of: "Psalms", with: "Psalm") {
-                //                    scripture?.selected.testament = testament(book)
-                //                    scripture?.selected.book = book
-                //                }
-                //                scripture?.selected.chapter = Int(scripture!.xml.chapter!)!
-                
                 DispatchQueue.main.async(execute: { () -> Void in
                     self.updatePicker()
                     self.showScripture()
@@ -775,20 +682,10 @@ class ScriptureViewController : UIViewController
     {
         super.viewDidAppear(animated)
 
-//        navigationController?.preferredContentSize = CGSize(width:  view.frame.width,
-//                                                            height: vc!.view.frame.height)
-
-        // Seems like the following should work but doesn't.
-        //        navigationItem.backBarButtonItem?.title = Constants.Back
-        
-        //        navigationController?.navigationBar.backItem?.title = Constants.Back
-        //        navigationItem.hidesBackButton = false
     }
     
     func testament(_ book:String) -> String?
     {
-//        let book = (book == "Psalm") ? "Psalms" : book
-        
         if (Constants.OLD_TESTAMENT_BOOKS.contains(book)) {
             return Constants.OT
         } else
@@ -894,8 +791,6 @@ class ScriptureViewController : UIViewController
     
     func updateUI()
     {
-//        navigationController?.setToolbarHidden(scripture?.selected.book != nil, animated: true)
-        
         updateActionMenu()
         
         updatePicker()

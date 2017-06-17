@@ -596,60 +596,12 @@ class MediaItem : NSObject {
     
     var multiPartMediaItems:[MediaItem]? {
         get {
-//            let tags = tagsSet?.subtracting(Constants.Constant_Tags)
-            
             if (hasMultipleParts) {
                 var mediaItemParts:[MediaItem]?
 //                print(multiPartSort)
                 if (globals.media.all?.groupSort?[Grouping.TITLE]?[multiPartSort!]?[Sorting.CHRONOLOGICAL] == nil) {
                     mediaItemParts = globals.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
                         if testMediaItem.hasMultipleParts {
-//                            var tagsMatch = false
-//                            
-//                            let testTags = testMediaItem.tagsSet?.subtracting(Constants.Constant_Tags)
-//                            
-//                            if tags != nil {
-//                                if testTags != nil {
-//                                    // THIS IS A TERRIBLE APPROACH.  We need a way to determine if mediaItems are in the same multi-part set of mediaItems based on not tags but something else.
-//                                    // OTHERWISE mediaItems w/ the same multiPartName in different years (i.e. different "series") show up in the same list!
-//                                    
-//                                    // Requiring they all be in the same year or even sequential Sundays is also problematic!
-//                                    
-//                                    // AND IF THEY HAVE THE SAME JSON tag we can't tell them apart!
-//                                    
-//                                    tagsMatch = tags!.intersection(testTags!).count > 0
-//                                    
-//                                        //                                    for tag in tags! {
-//                                        //    //                                    if multiPartName!.contains("Trilemma") && testMediaItem.multiPartName!.contains("Trilemma") {
-//                                        //    //                                        print(self)
-//                                        //    //                                        print(testMediaItem)
-//                                        //    //                                        print(tagsMatch)
-//                                        //    //                                        print(multiPartName,testMediaItem.multiPartName)
-//                                        //    //                                        print(category,testMediaItem.category)
-//                                        //    //                                    }
-//                                        //                                        
-//                                        //                                        if let contains = testTags?.contains(tag), contains {
-//                                        //                                            tagsMatch = true
-//                                        //                                            break
-//                                        //                                        }
-//                                        //                                    }
-//                                } else {
-//                                    tagsMatch = tags!.isEmpty
-//                                }
-//                            } else {
-//                                tagsMatch = true
-//                            }
-                            
-//                            if multiPartName!.contains("Faithful God;") && testMediaItem.multiPartName!.contains("Faithful God;") {
-//                                print(self)
-//                                print(testMediaItem)
-//                                print(tags,testTags,tagsMatch)
-//                                print(multiPartName,testMediaItem.multiPartName)
-//                                print(category,testMediaItem.category)
-//                            }
-                            
-                            // tagsMatch && 
-                            
                             return (testMediaItem.category == category) && (testMediaItem.multiPartName == multiPartName)
                         } else {
                             return false
@@ -1443,17 +1395,6 @@ class MediaItem : NSObject {
             
             let savedTags = mediaItemSettings?[Field.tags]
             
-            //                if let books = self.books {
-            //                    for book in books {
-            //                        tags = tags != nil ? tags! + "|Book:" + book : "Book:" + book
-            //                    }
-            //                }
-//            if dict![Field.tags] == nil {
-//                
-//                
-//                dict![Field.tags] = savedTags != nil ? savedTags! + (dynamicTags != nil ? "|" + dynamicTags! : "") : dynamicTags
-//            }
-            
             var tags:String?
 
             tags = tags != nil ? tags! + (jsonTags != nil ? "|" + jsonTags! : "") : (jsonTags != nil ? jsonTags : nil)
@@ -1480,24 +1421,6 @@ class MediaItem : NSObject {
             
             return tags
         }
-//        set {
-//            var tag:String
-//            var tags = newValue
-//            var tagsSet = Set<String>()
-//            
-//            while (tags?.rangeOfString(Constants.TAGS_SEPARATOR) != nil) {
-//                tag = tags!.substringToIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.startIndex)
-//                tagsSet.insert(tag)
-//                tags = tags!.substringFromIndex(tags!.rangeOfString(Constants.TAGS_SEPARATOR)!.endIndex)
-//            }
-//            
-//            if (tags != nil) {
-//                tagsSet.insert(tags!)
-//            }
-
-//            settings?[Field.tags] = newValue
-//            dict![Field.tags] = newValue
-//        }
     }
     
     func addTag(_ tag:String)
@@ -1513,9 +1436,6 @@ class MediaItem : NSObject {
                 mediaItemSettings?[Field.tags] = mediaItemSettings![Field.tags]! + Constants.TAGS_SEPARATOR + tag
             }
             
-//            let tags = tagsArrayFromTagsString(mediaItemSettings![Field.tags])
-//            print(tags)
-
             let sortTag = stringWithoutPrefixes(tag)
             
             if globals.media.all!.tagMediaItems![sortTag!] != nil {
@@ -1627,22 +1547,11 @@ class MediaItem : NSObject {
     var tagsArray:[String]? {
         get {
             return tagsSet == nil ? nil : Array(tagsSet!).sorted() {
-//                let range0 = $0.range(of: "Book:")
-//                let range1 = $1.range(of: "Book:")
-//                
-//                if (range0 != nil) && (range1 != nil) {
-//                    return bookNumberInBible($0.substring(from: range0!.upperBound)) < bookNumberInBible($1.substring(from: range1!.upperBound))
-//                } else {
-                    return $0 < $1
-//                }
+                return $0 < $1
             }
         }
     }
     
-    //    Slides: Constants.BASE_MEDIA_URL+{year}/{mediacode}slides.pdf
-    //    Outline: Constants.BASE_MEDIA_URL+{year}/{mediacode}outline.pdf
-    //    Transcript: Constants.BASE_MEDIA_URL+{year}/{mediacode}transcript.pdf
-
     var audio:String? {
         
         get {
@@ -1730,13 +1639,6 @@ class MediaItem : NSObject {
 //            }
         } else {
             return fullNotesHTML
-//            let string = "No Occurrences of \"\(searchText!)\" were found.<br/>"
-//            
-//            if let newString = fullNotesHTML?.replacingOccurrences(of: "<body>", with: "<body>" + string) {
-//                return newString
-//            } else {
-//                return nil
-//            }
         }
 
         var markCounter = 0
@@ -1759,9 +1661,6 @@ class MediaItem : NSObject {
                     
                     var skip = false
                     
-//                    let trimChars = " '" // ‘”
-//                    let breakChars = "$\" :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE // ‘“
-
                     let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
                     
                     if wholeWordsOnly {
@@ -1855,11 +1754,7 @@ class MediaItem : NSObject {
                 
                 indexString = indexString + "<br/><br/></div>"
             }
-            
-//            newString = newString.replacingOccurrences(of: "<body>", with: "<body>"+indexString)
         }
-        
-//        newString = newString + stringAfter
         
         var htmlString = "<!DOCTYPE html><html><body>"
         
@@ -2322,23 +2217,6 @@ class MediaItem : NSObject {
     var contents:String? {
         get {
             return stripHTML(bodyHTML(order: ["date","title","scripture","speaker"], token: nil, includeURLs: false, includeColumns: false))
-
-            // Don't need these now that there is a web page for each sermon.
-            //    if let audioURL = mediaItem?.audioURL?.absoluteString {
-            //        bodyString = bodyString! + " (<a href=\"" + audioURL + "\">Audio</a>)"
-            //    }
-            //
-            //    if let externalVideo = mediaItem?.externalVideo {
-            //        bodyString = bodyString! + " (<a href=\"" + externalVideo + "\">Video</a>) "
-            //    }
-            //
-            //    if let slidesURL = mediaItem?.slidesURL?.absoluteString {
-            //        bodyString = bodyString! + " (<a href=\"" + slidesURL + "\">Slides</a>)"
-            //    }
-            //
-            //    if let notesURL = mediaItem?.notesURL?.absoluteString {
-            //        bodyString = bodyString! + " (<a href=\"" + notesURL + "\">Transcript</a>) "
-            //    }
         }
     }
 
@@ -2349,23 +2227,6 @@ class MediaItem : NSObject {
             if let string = bodyHTML(order: ["date","title","scripture","speaker"], token: nil, includeURLs: true, includeColumns: true) {
                 bodyString = bodyString + string
             }
-            
-            // Don't need these now that there is a web page for each sermon.
-            //    if let audioURL = mediaItem?.audioURL?.absoluteString {
-            //        bodyString = bodyString! + " (<a href=\"" + audioURL + "\">Audio</a>)"
-            //    }
-            //
-            //    if let externalVideo = mediaItem?.externalVideo {
-            //        bodyString = bodyString! + " (<a href=\"" + externalVideo + "\">Video</a>) "
-            //    }
-            //
-            //    if let slidesURL = mediaItem?.slidesURL?.absoluteString {
-            //        bodyString = bodyString! + " (<a href=\"" + slidesURL + "\">Slides</a>)"
-            //    }
-            //
-            //    if let notesURL = mediaItem?.notesURL?.absoluteString {
-            //        bodyString = bodyString! + " (<a href=\"" + notesURL + "\">Transcript</a>) "
-            //    }
             
             bodyString = bodyString + "</body></htm>"
             
@@ -2730,20 +2591,10 @@ class MediaItem : NSObject {
         return (title != nil) && (title != Constants.EMPTY_STRING)
     }
     
-//    func hasAudio() -> Bool
-//    {
-//        return (audio != nil) && (audio != Constants.EMPTY_STRING)
-//    }
-    
     func playingAudio() -> Bool
     {
         return (playing == Playing.audio)
     }
-    
-//    func hasVideo() -> Bool
-//    {
-//        return (video != nil) && (video != Constants.EMPTY_STRING)
-//    }
     
     var playingVideo:Bool
     {
@@ -2767,7 +2618,6 @@ class MediaItem : NSObject {
             }
             
             return !isEmpty
-//            return (self.scriptureReference != nil) && (self.scriptureReference != Constants.EMPTY_STRING)
         }
     }
     
@@ -2779,7 +2629,6 @@ class MediaItem : NSObject {
             }
             
             return !isEmpty
-            //            return (self.className != nil) && (self.className != Constants.EMPTY_STRING)
         }
     }
     
@@ -2791,7 +2640,6 @@ class MediaItem : NSObject {
             }
             
             return !isEmpty
-            //            return (self.eventName != nil) && (self.eventName != Constants.EMPTY_STRING)
         }
     }
     
@@ -2803,7 +2651,6 @@ class MediaItem : NSObject {
             }
             
             return !isEmpty
-//            return (self.multiPartName != nil) && (self.multiPartName != Constants.EMPTY_STRING)
         }
     }
     
@@ -2815,7 +2662,6 @@ class MediaItem : NSObject {
             }
             
             return !isEmpty
-//            return (self.category != nil) && (self.category != Constants.EMPTY_STRING)
         }
     }
     
@@ -2838,7 +2684,6 @@ class MediaItem : NSObject {
             }
             
             return !isEmpty
-//            return (self.speaker != nil) && (self.speaker != Constants.EMPTY_STRING)
         }
     }
     
@@ -2860,7 +2705,6 @@ class MediaItem : NSObject {
     {
         if !hasNotes { //  && Reachability.isConnectedToNetwork()
             if ((try? Data(contentsOf: notesURL!)) != nil) {
-//                notes = testNotes
                 print("Transcript DOES exist for: \(title!)")
             }
         }
@@ -2877,7 +2721,6 @@ class MediaItem : NSObject {
     {
         if !hasSlides { //  && Reachability.isConnectedToNetwork()
             if ((try? Data(contentsOf: slidesURL!)) != nil) {
-//                slides = testSlides
                 print("Slides DO exist for: \(title!)")
             } else {
                 
@@ -2900,7 +2743,6 @@ class MediaItem : NSObject {
             }
             
             return !isEmpty
-//            return (self.tags != nil) && (self.tags != Constants.EMPTY_STRING)
         }
     }
     

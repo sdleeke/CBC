@@ -51,8 +51,6 @@ func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   }
 }
 
-//typealias GroupTuple = (indexes: [Int]?, counts: [Int]?)
-
 func documentsURL() -> URL?
 {
     let fileManager = FileManager.default
@@ -86,116 +84,6 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
     }
     
     return files.count > 0 ? files : nil
-}
-
-//func removeTempFiles()
-//{
-//    // Clean up temp directory for cancelled downloads
-//    let fileManager = NSFileManager.defaultManager()
-//    let path = NSTemporaryDirectory()
-//    do {
-//        let array = try fileManager.contentsOfDirectoryAtPath(path)
-//        
-//        for name in array {
-//            if (name.rangeOfString(Constants.TMP_FILENAME_EXTENSION)?.endIndex == name.endIndex) {
-//                print("Deleting: \(name)")
-//                try fileManager.removeItemAtPath(path + name)
-//            }
-//        }
-//    } catch _ {
-//        print("failed to remove temp files")
-//    }
-//}
-
-//func promoteTempJSON()
-//{
-//    let fileManager = NSFileManager.defaultManager()
-//    
-//    let sourceURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME + Constants.TMP_FILENAME_EXTENSION)
-//    let destinationURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME)
-//    let oldURL = cachesURL()?.URLByAppendingPathComponent(Constants.SERMONS_JSON_FILENAME + ".old")
-//    
-//    // Check if file exists
-//    if (fileManager.fileExistsAtPath(oldURL!.path!)){
-//        do {
-//            try fileManager.removeItemAtURL(oldURL!)
-//        } catch _ {
-//            print("failed to remove old json file")
-//        }
-//    }
-//    
-//    do {
-//        try fileManager.moveItemAtURL(destinationURL!, toURL: oldURL!)
-//        
-//        do {
-//            try fileManager.moveItemAtURL(sourceURL!, toURL: destinationURL!)
-//            //        try fileManager.copyItemAtURL(sourceURL!, toURL: destinationURL!)
-//            //        try fileManager.removeItemAtURL(sourceURL!)
-//        } catch _ {
-//            print("failed to promote new json file from tmp to final")
-//            
-//            do {
-//                try fileManager.moveItemAtURL(oldURL!, toURL: destinationURL!)
-//            } catch _ {
-//                print("failed to move json file back from old to current")
-//            }
-//        }
-//    } catch _ {
-//        print("failed to move current json file to old")
-//    }
-//}
-
-//func jsonDataFromURL() -> JSON
-//{
-//    if let url = NSURL(string: Constants.JSON_URL_PREFIX + Constants.CBC.SHORT.lowercaseString + "." + Constants.SERMONS_JSON_FILENAME) {
-//        do {
-//            let data = try NSData(contentsOfURL: url, options: NSDataReadingOptions.DataReadingMappedIfSafe)
-//            let json = JSON(data: data)
-//            if json != JSON.null {
-//                return json
-//            } else {
-//                print("could not get json from file, make sure that file contains valid json.")
-//            }
-//        } catch let error as NSError {
-//            NSLog(error.localizedDescription)
-//        }
-//    } else {
-//        print("Invalid filename/path.")
-//    }
-//    
-//    return nil
-//}
-
-//func jsonDataFromBundle(key:String) -> JSON // Constants.JSON_SERMONS_ARRAY_KEY
-//{
-//    if let path = Bundle.main.path(forResource: key, ofType: Constants.JSON_TYPE) {
-//        do {
-//            let data = try Data(contentsOf: URL(fileURLWithPath: path), options: NSData.ReadingOptions.mappedIfSafe)
-//            let json = JSON(data: data)
-//            if json != JSON.null {
-//                return json
-//            } else {
-//                print("could not get json from file, make sure that file contains valid json.")
-//            }
-//        } catch let error as NSError {
-//            NSLog(error.localizedDescription)
-//        }
-//    } else {
-//        print("Invalid filename/path.")
-//    }
-//
-//    return nil
-//}
-
-func removeJSONFromFileSystemDirectory()
-{
-    if let filename = globals.mediaCategory.filename, let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) {
-        do {
-            try FileManager.default.removeItem(atPath: jsonFileSystemURL.path)
-        } catch _ {
-            print("failed to copy mediaItems.json")
-        }
-    }
 }
 
 func jsonToFileSystemDirectory(key:String)
@@ -450,9 +338,6 @@ func verifyNASB()
     }
     
     for book in Constants.OLD_TESTAMENT_BOOKS {
-        
-        // Constants.OLD_TESTAMENT_BOOKS.index(of: book) > Constants.OLD_TESTAMENT_BOOKS.index(of: "Malachi"),
-        
         if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
             let chapters = Constants.OLD_TESTAMENT_CHAPTERS[index]
             
@@ -494,9 +379,6 @@ func verifyNASB()
     }
     
     for book in Constants.NEW_TESTAMENT_BOOKS {
-        
-        // Constants.NEW_TESTAMENT_BOOKS.index(of: book) > Constants.NEW_TESTAMENT_BOOKS.index(of: "1 Corinthians"),
-        
         if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
             let chapters = Constants.NEW_TESTAMENT_CHAPTERS[index]
             
@@ -536,8 +418,6 @@ func verifyNASB()
 
 func testament(_ book:String) -> String
 {
-//    let book = (book == "Psalm") ? "Psalms" : book
-
     if (Constants.OLD_TESTAMENT_BOOKS.contains(book)) {
         return Constants.Old_Testament
     } else
@@ -668,8 +548,6 @@ func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
     
     switch testament(book!) {
     case Constants.Old_Testament:
-//        let book = (book == "Psalm") ? "Psalms" : book
-        
         endChapter = Constants.OLD_TESTAMENT_CHAPTERS[Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!]
         break
         
@@ -686,8 +564,6 @@ func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
         
         switch testament(book!) {
         case Constants.Old_Testament:
-//            let book = (book == "Psalm") ? "Psalms" : book
-            
             endVerse = Constants.OLD_TESTAMENT_VERSES[Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!][chapter - 1]
             break
             
@@ -724,8 +600,6 @@ func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
     
     switch testament(book!) {
     case Constants.Old_Testament:
-//        let book = (book == "Psalm") ? "Psalms" : book
-        
         if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
             index < Constants.OLD_TESTAMENT_VERSES.count,
             chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
@@ -756,8 +630,6 @@ func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
     if verses.count == 0 {
         switch testament(book!) {
         case Constants.Old_Testament:
-//            let book = (book == "Psalm") ? "Psalms" : book
-
 //            let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!)
 //            print(Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!,Constants.OLD_TESTAMENT_VERSES.count,Constants.OLD_TESTAMENT_VERSES[index!].count)
             break
@@ -777,9 +649,7 @@ func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
 func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int]]?
 {
     // This can only comprehend a range of chapters or a range of verses from a single book.
-//    if (book == "Mark") && (reference == " 2:23-3:6") {
-//        print(book,reference)
-//    }
+
     guard (book != nil) else {
         return nil
     }
@@ -863,7 +733,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                     debug(": Verses follow")
                     
                     startVerses = true
-                    //                        startChapter = 0
                     break
                     
                 case ",":
@@ -929,8 +798,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                                 
                                                 switch testament(book!) {
                                                 case Constants.Old_Testament:
-//                                                    let book = (book == "Psalm") ? "Psalms" : book
-                                                    
                                                     if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
                                                         index < Constants.OLD_TESTAMENT_VERSES.count,
                                                         chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
@@ -1033,8 +900,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             
                             switch testament(book!) {
                             case Constants.Old_Testament:
-//                                let book = (book == "Psalm") ? "Psalms" : book
-                                
                                 if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
                                     index < Constants.OLD_TESTAMENT_VERSES.count,
                                     startChapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
@@ -1083,8 +948,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                     
                                     switch testament(book!) {
                                     case Constants.Old_Testament:
-//                                        let book = (book == "Psalm") ? "Psalms" : book
-                                        
                                         if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
                                             index < Constants.OLD_TESTAMENT_VERSES.count,
                                             chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
@@ -1154,8 +1017,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             
                             switch testament(book!) {
                             case Constants.Old_Testament:
-//                                let book = (book == "Psalm") ? "Psalms" : book
-
                                 if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
                                     index < Constants.OLD_TESTAMENT_VERSES.count,
                                     startChapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
@@ -1204,8 +1065,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                     
                                     switch testament(book!) {
                                     case Constants.Old_Testament:
-//                                        let book = (book == "Psalm") ? "Psalms" : book
-
                                         if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
                                             index < Constants.OLD_TESTAMENT_VERSES.count,
                                             chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
@@ -1246,8 +1105,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             
                             switch testament(book!) {
                             case Constants.Old_Testament:
-//                                let book = (book == "Psalm") ? "Psalms" : book
-                                
                                 if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
                                     index < Constants.OLD_TESTAMENT_VERSES.count,
                                     endChapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
@@ -1308,8 +1165,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 
                                 switch testament(book!) {
                                 case Constants.Old_Testament:
-//                                    let book = (book == "Psalm") ? "Psalms" : book
-                                    
                                     endVerse = Constants.OLD_TESTAMENT_VERSES[Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!][currentChapter - 1]
                                     break
                                 case Constants.New_Testament:
@@ -1353,8 +1208,6 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                         
                                         switch testament(book!) {
                                         case Constants.Old_Testament:
-//                                            let book = (book == "Psalm") ? "Psalms" : book
-                                            
                                             if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
                                                 index < Constants.OLD_TESTAMENT_VERSES.count,
                                                 chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
@@ -1542,12 +1395,6 @@ func chaptersFromScriptureReference(_ scriptureReference:String?) -> [Int]?
     if (scriptureReference != nil) {
         let string = scriptureReference?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
         
-        //        if (string!.rangeOfString(Constants.SINGLE_SPACE) != nil) {
-        //            string = string?.substringFromIndex(string!.rangeOfString(Constants.SINGLE_SPACE)!.endIndex)
-        //        } else {
-        //            return []
-        //        }
-        
         if (string == Constants.EMPTY_STRING) {
             return nil
         }
@@ -1690,15 +1537,11 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
         var otBooks = [String]()
         
         for book in Constants.OLD_TESTAMENT_BOOKS {
-//            let book = (book == "Psalms") ? "Psalm" : book
-            
             if string?.range(of: book) != nil {
                 otBooks.append(book)
                 string = string!.substring(to: string!.range(of: book)!.lowerBound) + Constants.SINGLE_SPACE + string!.substring(from: string!.range(of: book)!.upperBound)
             }
         }
-        
-//        string = scripture
         
         for book in Constants.NEW_TESTAMENT_BOOKS.reversed() {
             if string?.range(of: book) != nil {
@@ -1730,9 +1573,6 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
                     //                print(last)
                     
                     books = [String]()
-                    
-//                    let first = (books[0] == "Psalm") ? "Psalms" : books[0]
-//                    let last = (books[1] == "Psalm") ? "Psalms" : books[1]
                     
                     let first = books[0]
                     let last = books[1]
@@ -1954,8 +1794,6 @@ func bookNumberInBible(_ book:String?) -> Int?
         return nil
     }
 
-//    let book = (book == "Psalm") ? "Psalms" : book
-
     if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!) {
         return index
     }
@@ -2059,15 +1897,6 @@ func tokensFromString(_ string:String?) -> [String]?
     
     for char in str!.characters {
         //        print(char)
-//        if UnicodeScalar(String(char)) != nil {
-//            if CharacterSet(charactersIn: "\" :-!;,.()?&/<>[]").contains(UnicodeScalar(String(char))!) {
-//                processToken()
-//            } else {
-//                if !CharacterSet(charactersIn: "$0123456789").contains(UnicodeScalar(String(char))!) {
-//                    token.append(char)
-//                }
-//            }
-//        }
         
         if UnicodeScalar(String(char)) != nil {
             if CharacterSet(charactersIn: breakChars).contains(UnicodeScalar(String(char))!) {
@@ -2199,14 +2028,6 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
 
 func lastNameFromName(_ name:String?) -> String?
 {
-//    if var lastname = name {
-//        while (lastname.range(of: Constants.SINGLE_SPACE) != nil) {
-//            lastname = lastname.substring(from: lastname.range(of: Constants.SINGLE_SPACE)!.upperBound)
-//        }
-//        return lastname
-//    }
-//    return nil
-    
     if let firstName = firstNameFromName(name), let range = name?.range(of: firstName) {
         return name?.substring(from: range.upperBound).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
     } else {
@@ -2693,7 +2514,6 @@ func presentHTMLModal(viewController:UIViewController, medaiItem:MediaItem?, sty
         })
         
         navigationController.modalPresentationStyle = style
-//        navigationController.popoverPresentationController?.permittedArrowDirections = .any
         navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
         
         popover.navigationItem.title = title
@@ -2768,9 +2588,7 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
     guard let loadingViewController = viewController.storyboard?.instantiateViewController(withIdentifier: "Loading View Controller") else {
         return
     }
-    
-    // to share
-    
+
     DispatchQueue.main.async(execute: { () -> Void in
         if let buttons = viewController.navigationItem.rightBarButtonItems {
             for button in buttons {
@@ -2792,12 +2610,6 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
         
         let view = viewController.view!
         
-//        view.translatesAutoresizingMaskIntoConstraints = false
-        
-//        let container = view
-        
-//        let container: UIView = UIView()
-
         let container = loadingViewController.view!
         
         container.frame = view.frame
@@ -2805,90 +2617,14 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
         
         container.backgroundColor = UIColor.white.withAlphaComponent(0.5)
         
-        // Causes loadingView to not be visible.
-//        container.translatesAutoresizingMaskIntoConstraints = false
-        
         view.addSubview(container)
-        
-        // NONE OF THESE PROGRAMMATIC CONSTRAINTS APPEAR TO WORK.
-        
-//        let containerx = NSLayoutConstraint.constraints(withVisualFormat: "H:|[container]|", options: [], metrics: nil, views: ["container":container])
-//        view.addConstraints(containerx)
-//        NSLayoutConstraint.activate(containerx)
-//        
-//        let containery = NSLayoutConstraint.constraints(withVisualFormat: "V:|[container]|", options: [], metrics: nil, views: ["container":container])
-//        view.addConstraints(containery)
-//        NSLayoutConstraint.activate(containery)
-//        
-//        let loadingView: UIView = UIView()
-//        
-//        loadingView.frame = CGRect(x: 0, y: 0, width: 80, height: 80)
-//        loadingView.center = CGPoint(x: container.bounds.width / 2, y: container.bounds.height / 2)
-//        
-//        loadingView.backgroundColor = UIColor.gray.withAlphaComponent(0.75)
-//        
-//        loadingView.clipsToBounds = true
-//        loadingView.layer.cornerRadius = 10
-        
-        // Causes loadingView to not be visible.
-//        loadingView.translatesAutoresizingMaskIntoConstraints = false
-        
-//        container.addSubview(loadingView)
-        
-        // NONE OF THESE PROGRAMMATIC CONSTRAINTS APPEAR TO WORK.
-        
-//        let loadingViewx = NSLayoutConstraint(item: loadingView, attribute: .centerX, relatedBy: .equal, toItem: loadingView.superview, attribute: .centerX, multiplier: 1, constant: 0)
-////        loadingView.superview?.addConstraint(loadingViewx)
-//        loadingViewx.isActive = true
-//        
-//        let loadingViewy = NSLayoutConstraint(item: loadingView, attribute: .centerY, relatedBy: .equal, toItem: loadingView.superview, attribute: .centerY, multiplier: 1, constant: 0)
-////        loadingView.superview?.addConstraint(loadingViewy)
-//        loadingViewy.isActive = true
-        
-//        container.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-[loadingView]-|", options: [.alignAllCenterY], metrics: nil, views: ["loadingView":loadingView]))
-//        container.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-[loadingView]-|", options: [.alignAllCenterX], metrics: nil, views: ["loadingView":loadingView]))
-        
-//        let actInd = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
-//        
-//        actInd.frame = CGRect(x: 0, y: 0, width: 40, height: 40);
-//        actInd.center = CGPoint(x: loadingView.bounds.width / 2, y: loadingView.bounds.height / 2)
-        
-        // Causes loadingView to not be visible.
-//        actInd.translatesAutoresizingMaskIntoConstraints = false
-        
-//        loadingView.addSubview(actInd)
-        
-        // NONE OF THESE PROGRAMMATIC CONSTRAINTS APPEAR TO WORK.
-        
-//        let actIndx = NSLayoutConstraint(item: actInd, attribute: .centerX, relatedBy: .equal, toItem: actInd.superview, attribute: .centerX, multiplier: 1, constant: 0)
-////        loadingView.superview?.addConstraint(actIndx)
-//        actIndx.isActive = true
-//        
-//        let actIndy = NSLayoutConstraint(item: actInd, attribute: .centerY, relatedBy: .equal, toItem: actInd.superview, attribute: .centerY, multiplier: 1, constant: 0)
-////        loadingView.superview?.addConstraint(actIndy)
-//        actIndy.isActive = true
-        
-//        loadingView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-[actInd]-|", options: [.alignAllCenterY], metrics: nil, views: ["actInd":actInd]))
-//        loadingView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-[actInd]-|", options: [.alignAllCenterX], metrics: nil, views: ["actInd":actInd]))
-        
-//        view.setNeedsLayout()
-        
-//        actInd.startAnimating()
         
         DispatchQueue.global(qos: .background).async {
             let data = work?()
             
-            // Uses to introduce a delay to see if the constraints will recenter the spinner.
-//            Thread.sleep(forTimeInterval: 5)
-            
             DispatchQueue.main.async(execute: { () -> Void in
-                // present the view controller
-//                actInd.stopAnimating()
-
                 if container != viewController.view {
                     container.removeFromSuperview()
-                } else {
-//                    loadingView.removeFromSuperview()
                 }
                 
                 if let buttons = viewController.navigationItem.rightBarButtonItems {
@@ -3099,30 +2835,6 @@ func mailMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stri
     
     process(viewController: viewController, work: {
         if let text = stringFunction?(mediaItems,links,columns) {
-//            var itemsToMail:[Any] = [ text ]
-
-            //If we ever want to attach slides and transcripts
-//            if mediaItems?.count == 1 {
-//                if attachments, let mediaItem = mediaItems?[0] {
-//                    if let notesURL = mediaItem.notesURL {
-//                        do {
-//                            let notes = try Data(contentsOf: notesURL)
-//                            itemsToMail.append(notes)
-//                        } catch let error as NSError {
-//                            NSLog(error.localizedDescription)
-//                        }
-//                    }
-//                    if let slidesURL = mediaItem.slidesURL {
-//                        do {
-//                            let slides = try Data(contentsOf: slidesURL)
-//                            itemsToMail.append(slides)
-//                        } catch let error as NSError {
-//                            NSLog(error.localizedDescription)
-//                        }
-//                    }
-//                }
-//            }
-            
             return [text]
         }
         
@@ -3136,20 +2848,6 @@ func mailMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stri
             mailComposeViewController.setSubject(Constants.EMAIL_ALL_SUBJECT)
             
             mailComposeViewController.setMessageBody(itemsToMail[0] as! String, isHTML: true)
-
-            //If we ever want to attach slides and transcripts
-//            if attachments, mediaItems?.count == 1, itemsToMail.count > 1, let mediaItem = mediaItems?[0], let title = mediaItem.title {
-//                if mediaItem.hasSlides && mediaItem.hasNotes {
-//                    mailComposeViewController.addAttachmentData(itemsToMail[1] as! Data, mimeType: "application/pdf", fileName: title + " Slides")
-//                    mailComposeViewController.addAttachmentData(itemsToMail[2] as! Data, mimeType: "application/pdf", fileName: title + " Transcript")
-//                }
-//                if !mediaItem.hasSlides && mediaItem.hasNotes {
-//                    mailComposeViewController.addAttachmentData(itemsToMail[1] as! Data, mimeType: "application/pdf", fileName: title + " Transcript")
-//                }
-//                if mediaItem.hasSlides && !mediaItem.hasNotes {
-//                    mailComposeViewController.addAttachmentData(itemsToMail[1] as! Data, mimeType: "application/pdf", fileName: title + " Slides")
-//                }
-//            }
             
             viewController.present(mailComposeViewController, animated: true, completion: nil)
         }
@@ -3173,35 +2871,6 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
             viewController.dismiss(animated: true, completion: nil)
         })
         
-//        var style:UIModalPresentationStyle = .popover
-//        var direction:UIPopoverArrowDirection = .any
-//        
-//        if (barButtonItem == nil) && (UIDevice.current.model != "iPad") {
-//            direction = .down
-//            
-//            //                            print(self.navigationController!.view.convert(sourceRectView.frame.origin, from: sourceRectView),
-//            //                                  self.navigationController!.view.frame.origin,
-//            //                                  self.prefersStatusBarHidden,
-//            //                                  UIApplication.shared.statusBarFrame.height,
-//            //                                  self.navigationController!.navigationBar.frame.height)
-//            //
-//            //                            print(  self.view.convert(sourceRectView.frame.origin, from: sourceRectView).y -
-//            //                                    self.view.frame.origin.y)
-//
-//            if let frame = sourceRectView?.frame {
-//                let gap =   viewController.navigationController!.view.convert(frame.origin, from: sourceRectView).y -
-//                    viewController.navigationController!.view.frame.origin.y -
-//                    viewController.navigationController!.navigationBar.frame.height -
-//                    UIApplication.shared.statusBarFrame.height
-//                
-//                //                            print(gap)
-//                
-//                if gap < 139 { // Ugh, a magic number.
-//                    style = .overFullScreen
-//                }
-//            }
-//        }
-        
         navigationController.modalPresentationStyle = .popover
         navigationController.popoverPresentationController?.permittedArrowDirections = .any
         navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
@@ -3217,12 +2886,6 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
         if barButtonItem != nil {
             navigationController.popoverPresentationController?.barButtonItem = barButtonItem
         }
-        
-//        if UIDevice.current.model == "iPad" {
-//        } else {
-//            navigationController.modalPresentationStyle = .overFullScreen
-//            navigationController.popoverPresentationController?.delegate = self
-//        }
         
         popover.navigationItem.title = mediaItem?.title
         
@@ -3250,9 +2913,6 @@ func shareHTML(viewController:UIViewController,htmlString:String?)
     guard htmlString != nil else {
         return
     }
-
-//    let formatter = UIMarkupTextPrintFormatter(markupText: htmlString!)
-//    formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
 
     let activityItems = [htmlString as Any]
     
@@ -3363,15 +3023,6 @@ func stripLinks(_ string:String?) -> String?
         }
     }
     
-//    while bodyString?.range(of: "<div id=\"index\">") != nil {
-//        if let startRange = bodyString?.range(of: "<div id=\"locations\">") {
-//            if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: "</div>") {
-//                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
-//                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
-//            }
-//        }
-//    }
-
     bodyString = bodyString?.replacingOccurrences(of: "<a href=\"#index\">Index</a><br/><br/>", with: "")
 
     while bodyString?.range(of: "<a") != nil {
@@ -3643,20 +3294,6 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
             case Grouping.TITLE:
                 let a = "A"
                 
-                //            var indexes = [Int]()
-                //            var counts = [Int]()
-                
-                //            var counter = 0
-                //
-                //            for key in stringIndex.keys.sorted() {
-                //                //                print(stringIndex[key]!)
-                //                indexes.append(counter)
-                //                counts.append(stringIndex[key]!.count)
-                //                counter += stringIndex[key]!.count
-                //            }
-                //
-                //            print(stringIndex)
-                
                 if let indexTitles = globals.media.active?.section?.indexTitles {
                     let titles = Array(Set(indexTitles.map({ (string:String) -> String in
                         if string.endIndex >= a.endIndex {
@@ -3793,26 +3430,6 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
     }
     
     var mediaListSort = [String:[MediaItem]]()
-    
-    // DO NOT sort them, they are expected to come in sorted order. 
-    
-//    var mediaItemList:[MediaItem]?
-//    
-//    mediaItemList = mediaItems?.sorted() {
-//        if stringWithoutPrefixes($0.title) == stringWithoutPrefixes($1.title) {
-//            if ($0.fullDate!.isEqualTo($1.fullDate!)) {
-//                return $0.service < $1.service
-//            } else {
-//                return $0.fullDate!.isOlderThan($1.fullDate!)
-//            }
-//        } else {
-//            return stringWithoutPrefixes($0.title) < stringWithoutPrefixes($1.title)
-//        }
-//    }
-//    
-//    guard (mediaItemList != nil) else {
-//        return nil
-//    }
     
     for mediaItem in mediaItems! {
         if let multiPartName = mediaItem.multiPartName {
@@ -4035,10 +3652,6 @@ func alert(title:String?,message:String?)
         return
     }
 
-    //        DispatchQueue.main.async(execute: { () -> Void in
-    //            UIApplication.shared.keyWindow?.rootViewController?.dismiss(animated: true, completion: nil)
-    //        })
-    
     alert = UIAlertController(title:title,
                               message: message,
                               preferredStyle: UIAlertControllerStyle.alert)
@@ -4047,8 +3660,6 @@ func alert(title:String?,message:String?)
         alert = nil
     })
     alert.addAction(action)
-    
-    //        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
     
     DispatchQueue.main.async(execute: { () -> Void in
         UIApplication.shared.keyWindow?.rootViewController?.dismiss(animated: true, completion: nil)
@@ -4059,10 +3670,6 @@ func alert(title:String?,message:String?)
 func userAlert(title:String?,message:String?)
 {
     if (UIApplication.shared.applicationState == UIApplicationState.active) {
-        //        DispatchQueue.main.async(execute: { () -> Void in
-        //            UIApplication.shared.keyWindow?.rootViewController?.dismiss(animated: true, completion: nil)
-        //        })
-        
         let alert = UIAlertController(title: title,
                                       message: message,
                                       preferredStyle: UIAlertControllerStyle.alert)

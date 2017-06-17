@@ -57,6 +57,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
     {
         let splitViewController = window!.rootViewController as! UISplitViewController
         
+        splitViewController.delegate = self
+        
         let hClass = splitViewController.traitCollection.horizontalSizeClass
         let vClass = splitViewController.traitCollection.verticalSizeClass
         
@@ -64,8 +66,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
             let navigationController = splitViewController.viewControllers[splitViewController.viewControllers.count-1] as! UINavigationController
             navigationController.topViewController!.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem
         }
-        
-        splitViewController.delegate = self
 
         // Override point for customization after application launch.
         globals = Globals()
@@ -75,11 +75,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
         globals.addAccessoryEvents()
         
         globals.startAudio()
-        
-//        DispatchQueue.main.async {
-//            NotificationCenter.default.addObserver(self, selector: #selector(AppDelegate.downloadFailed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: nil)
-//        }
-        
+
         return true
     }
 
@@ -93,7 +89,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
             globals.mediaPlayer.pause()
         }
         
-//        globals.mediaPlayer.view?.isHidden = true
         DispatchQueue.main.async(execute: { () -> Void in
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DID_ENTER_BACKGROUND), object: nil)
         })
@@ -110,11 +105,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
             // Do we need to do this for audio?
             
             if (globals.mediaPlayer.mediaItem != nil) { // && globals.mediaPlayer.mediaItem!.hasVideo && (globals.mediaPlayer.mediaItem!.playing == Playing.video)
-                // This assumes that the player is paused because it is playing video and it is coming out of the background.  This may prove to be false.  Be careful.
-//                if (globals.mediaPlayer.player?.status != .readyToPlay) || (globals.mediaPlayer.currentItem?.status != .readyToPlay) {
-                    globals.mediaPlayer.playOnLoad = false
-                    globals.reloadPlayer()
-//                }
+                globals.mediaPlayer.playOnLoad = false
+                globals.mediaPlayer.reload()
             }
         }
         
@@ -144,122 +136,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
         DispatchQueue.main.async(execute: { () -> Void in
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
         })
-        
-        //        if globals.mediaPlayer.rate == 0 {
-        //            if globals.mediaPlayer.isPlaying {
-        //                //It is paused, possibly not by us, but by the system
-        //                globals.mediaPlayer.pause()
-        //            }
-        //        }
-        //
-        //        if globals.mediaPlayer.isPlaying {
-        //            if globals.mediaPlayer.mediaItem?.playing == Playing.video {
-        //                globals.mediaPlayer.pause()
-        //            }
-        //        } else {
-        //
-        //        }
     }
     
     func applicationDidBecomeActive(_ application: UIApplication)
     {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
         print("applicationDidBecomeActive")
-        
-//        if #available(iOS 10.0, *) {
-//            if let timeControlStatus = globals.mediaPlayer.player?.timeControlStatus {
-//                switch timeControlStatus {
-//                case .waitingToPlayAtSpecifiedRate:
-//                    print("timeControlStatus:waitingToPlayAtSpecifiedRate")
-//                    if let state = globals.mediaPlayer.state {
-//                        switch state {
-//                            case .playing:
-//                                // Do nothing
-//                                break
-//                                
-//                            case .paused:
-//                                // ???
-//                                break
-//                                
-//                            default:
-//                                break
-//                        }
-//                    }
-//                    break
-//                    
-//                case .playing:
-//                    print("timeControlStatus:playing")
-//                    if let state = globals.mediaPlayer.state {
-//                        switch state {
-//                        case .playing:
-//                            // Do nothing
-//                            break
-//                            
-//                        case .paused:
-//                            // ???
-//                            break
-//                            
-//                        default:
-//                            break
-//                        }
-//                    }
-//                    break
-//                    
-//                case .paused:
-//                    print("timeControlStatus:paused")
-//                    if let state = globals.mediaPlayer.state {
-//                        switch state {
-//                        case .playing:
-//                            globals.mediaPlayer.pause()
-//                            break
-//                            
-//                        case .paused:
-//                            // Do nothing
-//                            break
-//                            
-//                        default:
-//                            break
-//                        }
-//                    }
-//                    break
-//                }
-//            }
-//        } else {
-//            // Fallback on earlier versions
-//        }
-        
-//        if (globals.mediaPlayer.rate == 0) && globals.mediaPlayer.isPaused && (globals.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
-//            //It is paused, possibly not by us, but by the system
-////            if globals.mediaPlayer.isPlaying {
-////                globals.mediaPlayer.pause() // IfPlaying
-////                
-//////                if let currentTime = globals.mediaPlayer.mediaItem?.currentTime, let time = Double(currentTime) {
-//////                    let newCurrentTime = (time - Constants.BACK_UP_TIME) < 0 ? 0 : time - Constants.BACK_UP_TIME
-//////                    globals.mediaPlayer.mediaItem?.currentTime = (Double(newCurrentTime) - 1).description
-//////                }
-////                
-////                DispatchQueue.main.async(execute: { () -> Void in
-////                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-////                })
-////            }
-//            
-//            // Is this the way to solve the dropped connection after an extended pause?  Might not since the app might stay in the foreground, but this will probably cover teh vast majority of the cases.
-//            if (globals.mediaPlayer.mediaItem != nil) && globals.mediaPlayer.mediaItem!.hasVideo && (globals.mediaPlayer.mediaItem!.playing == Playing.video) {
-//                // This assumes that the player is paused because it is playing video and it is coming out of the background.  This may prove to be false.  Be careful.
-//                globals.mediaPlayer.playOnLoad = false
-//                globals.reloadPlayer()
-//            }
-//        }
-        
-//        if (globals.mediaPlayer.rate != 0) && (globals.mediaPlayer.url != URL(string:Constants.URL.LIVE_STREAM)) {
-//            if globals.mediaPlayer.isPaused {
-//                globals.mediaPlayer.pause()
-//                
-//                DispatchQueue.main.async(execute: { () -> Void in
-//                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-//                })
-//            }
-//        }
         
         globals.mediaPlayer.setupPlayingInfoCenter()
         

@@ -53,10 +53,6 @@ class SettingsViewController: UIViewController {
         }
     }
     
-//    @IBAction func doneAction(sender: UIButton) {
-//        dismissViewControllerAnimated(true, completion: nil)
-//    }
-    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         

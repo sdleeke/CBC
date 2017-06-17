@@ -25,7 +25,6 @@ struct ScreenSize
 }
 
 struct DeviceType
-    
 {
     static let IS_IPHONE_4_OR_LESS  = UIDevice.current.userInterfaceIdiom == .phone && ScreenSize.SCREEN_MAX_LENGTH < 568.0
     static let IS_IPHONE_5          = UIDevice.current.userInterfaceIdiom == .phone && ScreenSize.SCREEN_MAX_LENGTH == 568.0
@@ -234,6 +233,8 @@ struct Constants {
         
         static let UPDATE_SHOW_HIDE         = "UPDATE SHOW HIDE"
         
+        static let PLAYING_PAUSED           = "PLAYING PAUSED"
+        
         static let UPDATE_VIEW              = "UPDATE VIEW"
         static let CLEAR_VIEW               = "CLEAR VIEW"
         
@@ -282,11 +283,8 @@ struct Constants {
     struct TIMER_INTERVAL {
         static let SLIDER       = 0.1
         static let PLAYER       = 0.1
-//        static let DOWNLOADING  = 0.2
         static let LOADING      = 0.2
         static let PROGRESS     = 0.1
-//        static let WORKING      = 0.1
-//        static let SEEKING      = 0.1
     }
     
     static let MIN_PLAY_TIME = 15.0
@@ -706,9 +704,6 @@ struct Constants {
         
         static let Playing = "Playing"
         static let Paused = "Paused"
-
-//        static let Increase_Font_Size = "Increase Font Size"
-//        static let Decrease_Font_Size = "Decrease Font Size"
         
         struct Menu {
             static let Sorting = "Sorting"

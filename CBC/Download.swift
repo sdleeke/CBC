@@ -102,7 +102,6 @@ class Download : NSObject {
                         break
                     }
                     
-//                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
                     DispatchQueue.main.async(execute: { () -> Void in
                         // The following must appear AFTER we change the state
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
@@ -239,9 +238,6 @@ class Download : NSObject {
     func cancel()
     {
         if (active) {
-            //            download.task?.cancelByProducingResumeData({ (data: NSData?) -> Void in
-            //            })
-            
             task?.cancel()
             task = nil
             

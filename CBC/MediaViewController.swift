@@ -13,57 +13,6 @@ import MessageUI
 import WebKit
 import MediaPlayer
 
-//struct PlayPauseState {
-//    static var playing  = UInt(1 << 16)
-//    static var paused   = UInt(1 << 17)
-//}
-//
-//class PlayPauseButton : UIButton {
-//    var customState : UInt = 0
-//    
-//    var isPlaying : Bool
-//    {
-//        get {
-//            return (customState & PlayPauseState.playing) != 0
-//        }
-//        set {
-//            switch newValue {
-//            case true:
-//                customState = PlayPauseState.playing
-//                break
-//                
-//            case false:
-//                customState = PlayPauseState.paused
-//                break
-//            }
-//        }
-//    }
-//    
-//    var isPaused : Bool
-//    {
-//        get {
-//            return (customState & PlayPauseState.paused) != 0
-//        }
-//        set {
-//            switch newValue {
-//            case true:
-//                customState = PlayPauseState.paused
-//                break
-//                
-//            case false:
-//                customState = PlayPauseState.playing
-//                break
-//            }
-//        }
-//    }
-//    
-//    override var state : UIControlState {
-//        get {
-//            return UIControlState(rawValue:super.state.rawValue | customState)
-//        }
-//    }
-//}
-
 class Document {
     var loadTimer:Timer? // Each document has its own loadTimer because each has its own WKWebView.  This is only used when a direct load is used, not when a document is cached and then loaded.
     
@@ -109,8 +58,6 @@ class Document {
             }
         }
     }
-    
-//    var sliderObserver:Timer?
     
     init(purpose:String,mediaItem:MediaItem?)
     {
@@ -395,21 +342,6 @@ extension MediaViewController : WKNavigationDelegate
                 } else {
                     decisionHandler(WKNavigationActionPolicy.cancel)
                 }
-                
-                //                switch tag.lowercased() {
-                //                case "index":
-                //                    fallthrough
-                //
-                //                case "locations":
-                //                    decisionHandler(WKNavigationActionPolicy.allow)
-                //                    break
-                //
-                //                default:
-                //                    if Int(tag) != nil {
-                //                        decisionHandler(WKNavigationActionPolicy.allow)
-                //                    }
-                //                    break
-                //                }
             } else {
                 if let url = navigationAction.request.url {
                     if UIApplication.shared.canOpenURL(url) { // Reachability.isConnectedToNetwork() &&
@@ -468,36 +400,6 @@ extension MediaViewController : WKNavigationDelegate
         } else {
             decisionHandler(.allow)
         }
-        
-//        if (navigationResponse.response.expectedContentLength > 1000) {
-//            decisionHandler(.allow)
-//        } else {
-//            if document!.showing(self.selectedMediaItem) {
-//                if let purpose = document?.purpose {
-//                    switch purpose {
-//                    case Purpose.slides:
-//                        networkUnavailable("Slides not available.")
-//                        break
-//                        
-//                    case Purpose.notes:
-//                        networkUnavailable("Transcript not available.")
-//                        break
-//                        
-//                    default:
-//                        break
-//                    }
-//                }
-//                DispatchQueue.main.async(execute: { () -> Void in
-//                    self.activityIndicator.stopAnimating()
-//                    self.activityIndicator.isHidden = true
-//                    
-//                    self.logo.isHidden = false
-//                    self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
-//                })
-//            }
-//            
-//            decisionHandler(.cancel)
-//        }
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!)
@@ -954,20 +856,6 @@ class MediaViewController: UIViewController
                     print(selectedMediaItem?.dict as Any)
                     networkUnavailable("Media Not Available")
                 }
-
-//                switch selectedMediaItem!.playing! {
-//                case Playing.video:
-//                    if selectedMediaItem!.hasVideo {
-//                        playerURL(url: selectedMediaItem?.videoURL)
-//                    }
-//                    break
-//
-//                default:
-//                    if selectedMediaItem!.hasAudio {
-//                        playerURL(url: selectedMediaItem?.audioURL!)
-//                    }
-//                    break
-//                }
             } else {
                 removePlayerObserver()
 //                addSliderObserver() // Crashes because it uses UI and this is done before viewWillAppear when the mediaItemSelected is set in prepareForSegue, but it only happens on an iPhone because the MVC isn't setup already.
@@ -995,11 +883,6 @@ class MediaViewController: UIViewController
 
                 mediaItems = selectedMediaItem?.multiPartMediaItems // mediaItemsInMediaItemSeries(selectedMediaItem)
                 
-//                print(selectedMediaItem)
-//                let defaults = UserDefaults.standard
-//                defaults.set(selectedMediaItem!.id,forKey: Constants.SETTINGS.KEY.SELECTED_MEDIA.DETAIL)
-//                defaults.synchronize()
-
                 globals.selectedMediaItem.detail = selectedMediaItem
                 
                 DispatchQueue.main.async {
@@ -1070,10 +953,6 @@ class MediaViewController: UIViewController
                 
                 selectedMediaItem?.playing = Playing.audio // Must come before setupNoteAndSlides()
                 
-//                if (globals.mediaPlayer.mediaItem == selectedMediaItem) {
-//                    globals.setupPlayer(selectedMediaItem, playOnLoad: false)
-//                }
-                
                 playerURL(url: selectedMediaItem?.playingURL)
                 
                 setupSliderAndTimes()
@@ -1103,10 +982,6 @@ class MediaViewController: UIViewController
                 
                 selectedMediaItem?.playing = Playing.video // Must come before setupNoteAndSlides()
                 
-//                if (globals.mediaPlayer.mediaItem == selectedMediaItem) {
-//                    globals.setupPlayer(selectedMediaItem, playOnLoad: false)
-//                }
-
                 playerURL(url: selectedMediaItem?.playingURL)
                 
                 setupSliderAndTimes()
@@ -1156,12 +1031,8 @@ class MediaViewController: UIViewController
             
         }
         
-//        let transitionOptions = UIViewAnimationOptions.TransitionFlipFromLeft
-        
         var toView:UIView?
         
-//        var showing:String?
-
         if (sender.selectedSegmentIndex >= 0) && (sender.selectedSegmentIndex < sender.numberOfSegments){
             switch sender.titleForSegment(at: sender.selectedSegmentIndex)! {
             case Constants.STV_SEGMENT_TITLE.SLIDES:
@@ -1198,7 +1069,6 @@ class MediaViewController: UIViewController
         }
 
         mediaItemNotesAndSlides.bringSubview(toFront: toView!)
-//        selectedMediaItem?.showing = showing
 
         if (fromView != toView) {
             fromView?.isHidden = true
@@ -1233,16 +1103,6 @@ class MediaViewController: UIViewController
                 }
             }
         }
-
-//        UIView.transitionWithView(self.mediaItemNotesAndSlides, duration: Constants.VIEW_TRANSITION_TIME, options: transitionOptions, animations: {
-//            toView?.hidden = false
-//            self.mediaItemNotesAndSlides.bringSubviewToFront(toView!)
-//            self.selectedMediaItem!.showing = purpose
-//        }, completion: { finished in
-//            if (fromView != toView) {
-//                fromView?.hidden = true
-//            }
-//        })
     }
     
     override func observeValue(forKeyPath keyPath: String?,
@@ -1367,7 +1227,6 @@ class MediaViewController: UIViewController
 
     @IBAction func playPause(_ sender: UIButton)
     {
-//        guard (globals.mediaPlayer.state != nil) && (globals.mediaPlayer.mediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) else {
         guard (selectedMediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) else {
             playNewMediaItem(selectedMediaItem)
             return
@@ -1471,31 +1330,6 @@ class MediaViewController: UIViewController
             result = true
             break
         }
-        
-        // WHY DOES THIS EXIST?
-//        if (documents[selectedMediaItem!.id] != nil) {
-//            var nilCount = 0
-//            var hiddenCount = 0
-//            
-//            for key in documents[selectedMediaItem!.id]!.keys {
-//                let wkWebView = documents[selectedMediaItem!.id]![key]!.wkWebView
-//                if (wkWebView == nil) {
-//                    nilCount += 1
-//                } else {
-//                    if (wkWebView!.isHidden == true) {
-//                        hiddenCount += 1
-//                    }
-//                }
-//            }
-//            
-//            if (nilCount == documents[selectedMediaItem!.id]!.keys.count) {
-//                result = true
-//            } else {
-//                if (hiddenCount > 0) { // DOESN'T IT MATTER WHICH ONE IS HIDDEN?
-//                    result = progressIndicator.isHidden
-//                }
-//            }
-//        }
         
 //        print(result)
 
@@ -1630,7 +1464,6 @@ class MediaViewController: UIViewController
         switch pan.state {
         case .began:
             for document in documents[selectedMediaItem!.id]!.values {
-//                document.wkWebView?.isHidden = true
                 document.wkWebView?.scrollView.delegate = nil
             }
 
@@ -1808,8 +1641,6 @@ class MediaViewController: UIViewController
             
             navigationController.popoverPresentationController?.barButtonItem = actionButton
             
-            //                popover.navigationItem.title = Constants.Show
-            
             popover.navigationController?.isNavigationBarHidden = true
             
             popover.delegate = self
@@ -1901,7 +1732,6 @@ class MediaViewController: UIViewController
             }
 
             if document != nil, globals.cacheDownloads, let purpose = document?.purpose {
-//                actionMenu.append(Constants.Strings.Refresh_Document)
                 switch purpose {
                 case Purpose.notes:
                     actionMenu.append(Constants.Strings.Refresh_Transcript)
@@ -1916,16 +1746,7 @@ class MediaViewController: UIViewController
                 }
             }
 
-            // Not needed any more because the CBC Website now has a page for this media w/ any documents
-//            if document != nil {
-//                actionMenu.append(Constants.Strings.Open_in_Browser)
-//            }
-            
             actionMenu.append(Constants.Strings.Open_on_CBC_Website)
-            
-//            if let books = selectedMediaItem?.books {
-//                actionMenu.append(Constants.Scripture_in_Browser)
-//            }
             
             if let mediaItems = mediaItems {
                 var mediaItemsToDownload = 0
@@ -2059,7 +1880,7 @@ class MediaViewController: UIViewController
                 globals.mediaPlayer.fullScreen = pinch.scale > 1
                 
                 if globals.mediaPlayer.fullScreen {
-                    splitViewController?.preferredDisplayMode = .primaryHidden
+                    splitViewController?.preferredDisplayMode = .primaryOverlay
                 } else {
                     splitViewController?.preferredDisplayMode = .allVisible
                 }
@@ -2079,14 +1900,6 @@ class MediaViewController: UIViewController
     
     func videoPan(_ pan:UIPanGestureRecognizer)
     {
-//        guard controlViewTop.isActive else { // Implies Compact width and Compact height aka landscape on phones other han plus models
-//            return
-//        }
-//        
-//        guard tableViewWidth.isActive else { // Implies Compact width and Compact height aka landscape on phones other han plus models
-//            return
-//        }
-        
         guard !globals.mediaPlayer.fullScreen else {
             return
         }
@@ -2160,8 +1973,6 @@ class MediaViewController: UIViewController
         
         if globals.mediaPlayer.mediaItem == selectedMediaItem {
             updateUI()
-//            setupPlayerView(globals.mediaPlayer.view)
-//            globals.mediaPlayer.view?.isHidden = false
         }
     }
     
@@ -2303,7 +2114,6 @@ class MediaViewController: UIViewController
 
         if globals.mediaPlayer.playOnLoad {
             if globals.mediaPlayer.mediaItem!.atEnd {
-//                globals.mediaPlayer.mediaItem!.currentTime = Constants.ZERO
                 globals.mediaPlayer.seek(to: 0)
                 globals.mediaPlayer.mediaItem?.atEnd = false
             }
@@ -2421,16 +2231,9 @@ class MediaViewController: UIViewController
         // Do any additional setup after loading the view.
         super.viewDidLoad()
 
-//        if splitViewController != nil {
-//            navigationItem.setLeftBarButton(UIBarButtonItem(title: Constants.Zoom, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.zoomScreen)),animated: true)
-//        }
-        
         navigationController?.setToolbarHidden(true, animated: false)
-//        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
         navigationItem.leftItemsSupplementBackButton = true
         
-//        viewSplit.splitViewController = splitViewController
-
         //Eliminates blank cells at end.
         tableView.tableFooterView = UIView()
         tableView.allowsSelection = true
@@ -2514,10 +2317,6 @@ class MediaViewController: UIViewController
             if document.showing(selectedMediaItem) {
                 if let estimatedProgress = document.wkWebView?.estimatedProgress {
                     progressIndicator.progress = Float(estimatedProgress)
-
-//                    if estimatedProgress == 1 {
-//                        progressIndicator.isHidden = true
-//                    }
                 }
             }
             
@@ -2542,7 +2341,6 @@ class MediaViewController: UIViewController
         }
         
         if document?.wkWebView == nil {
-//            document?.wkWebView?.removeFromSuperview()
             document?.wkWebView = WKWebView(frame: mediaItemNotesAndSlides.bounds)
         }
         
@@ -2557,10 +2355,6 @@ class MediaViewController: UIViewController
     
     func downloadFailed(_ notification:NSNotification)
     {
-        // let state = document?.download?.state, state == .none, 
-        
-        // , let showing = document?.showing(self.selectedMediaItem), showing
-        
         if let download = notification.object as? Download, document?.download == download {
             if let purpose = document?.purpose {
                 switch purpose {
@@ -2641,48 +2435,6 @@ class MediaViewController: UIViewController
                             })
                             
                             _ = document?.wkWebView?.loadFileURL(fileSystemURL, allowingReadAccessTo: fileSystemURL)
-                            
-//                            if let data = try? Data(contentsOf: fileSystemURL, options: Data.ReadingOptions.mappedIfSafe) {
-//                                if data.count > 1000 {
-//                                    _ = document?.wkWebView?.load(data, mimeType: "application/pdf", characterEncodingName: "utf-8", baseURL: downloadURL.deletingLastPathComponent())
-//                                    
-//                                    DispatchQueue.main.async(execute: { () -> Void in
-//                                        if (document != nil) && document!.showing(self.selectedMediaItem) {
-//                                            self.activityIndicator.startAnimating()
-//                                            self.activityIndicator.isHidden = false
-//                                            
-//                                            self.progressIndicator.progress = 0.0
-//                                            self.progressIndicator.isHidden = true
-//                                        }
-//                                        //                            document?.loadTimer?.invalidate()
-//                                        //                            document?.loadTimer = nil
-//                                    })
-//                                } else {
-//                                    if document!.showing(self.selectedMediaItem) {
-//                                        if let purpose = document?.purpose {
-//                                            switch purpose {
-//                                            case Purpose.slides:
-//                                                networkUnavailable("Slides not available.")
-//                                                break
-//                                                
-//                                            case Purpose.notes:
-//                                                networkUnavailable("Transcript not available.")
-//                                                break
-//                                                
-//                                            default:
-//                                                break
-//                                            }
-//                                        }
-//                                        DispatchQueue.main.async(execute: { () -> Void in
-//                                            self.activityIndicator.stopAnimating()
-//                                            self.activityIndicator.isHidden = true
-//                                            
-//                                            self.logo.isHidden = false
-//                                            self.mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
-//                                        })
-//                                    }
-//                                }
-//                            }
                         }
                     })
                 }
@@ -2701,11 +2453,6 @@ class MediaViewController: UIViewController
                         }
                     })
                     
-//                    document?.wkWebView?.addObserver(self,
-//                                                         forKeyPath: #keyPath(WKWebView.estimatedProgress),
-//                                                         options: [.old, .new],
-//                                                         context: nil) // &GlobalPlayerContext
-                    
                     if (document == nil) {
                         print("document nil")
                     }
@@ -2718,7 +2465,6 @@ class MediaViewController: UIViewController
                     }
                     
                     let request = URLRequest(url: document!.download!.downloadURL!)
-//                    let request = URLRequest(url: document!.download!.downloadURL!, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
                     _ = document?.wkWebView?.load(request)
                 })
             }
@@ -2738,7 +2484,6 @@ class MediaViewController: UIViewController
                 })
                 
                 let request = URLRequest(url: document!.download!.downloadURL!)
-//                let request = URLRequest(url: document!.download!.downloadURL!, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
                 _ = document?.wkWebView?.load(request)
             })
         }
@@ -2914,6 +2659,7 @@ class MediaViewController: UIViewController
                     selectedMediaItem?.showing = Showing.video
                     
                     if (globals.mediaPlayer.player != nil) {
+                        // Why is this commented out?
 //                            mediaItemNotesAndSlides.bringSubview(toFront: globals.mediaPlayer.view!)
                     } else {
                         setupDefaultDocuments()
@@ -3032,38 +2778,16 @@ class MediaViewController: UIViewController
         if (selectedMediaItem == globals.mediaPlayer.mediaItem) {
             playPauseButton.isEnabled = globals.mediaPlayer.loaded || globals.mediaPlayer.loadFailed
             
-            // Don't handle this here.  This is setting up a button for crying out loud.  Handle this in a timer.  I.e. sliderTimer()
-//            switch globals.mediaPlayer.state! {
-//            case .playing:
-//                if (globals.mediaPlayer.rate == 0) {
-//                    globals.mediaPlayer.pause() // IfPlaying
-//                }
-//                break
-//                
-//            case .paused:
-//                if (globals.mediaPlayer.rate > 0) {
-//                    globals.mediaPlayer.play() // IfPlaying
-//                }
-//                break
-//                
-//            default:
-//                break
-//            }
-            
             if let state = globals.mediaPlayer.state {
                 switch state {
                 case .playing:
                     showState("Playing -> Pause")
-                    
-//                    playPauseButton.isPlaying = true
                     
                     playPauseButton.setTitle(Constants.FA.PAUSE, for: UIControlState.normal)
                     break
                     
                 case .paused:
                     showState("Paused -> Play")
-                    
-//                    playPauseButton.isPaused = true
                   
                     playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState.normal)
                     break
@@ -3076,8 +2800,6 @@ class MediaViewController: UIViewController
         } else {
             showState("Global not selected")
             playPauseButton.isEnabled = true
-            
-//            playPauseButton.isPaused = true
 
             playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState.normal)
         }
@@ -3204,131 +2926,6 @@ class MediaViewController: UIViewController
     {
         super.viewWillTransition(to: size, with: coordinator)
         
-//        let isFullScreen = UIApplication.shared.delegate!.window!!.frame.equalTo(UIApplication.shared.delegate!.window!!.screen.bounds);
-//        
-//        if (!isFullScreen || (splitViewController?.traitCollection.userInterfaceIdiom == .phone)) && (selectedMediaItem != nil) && (selectedMediaItem == globals.mediaPlayer.mediaItem) && (selectedMediaItem?.playing == Playing.video) {
-//            splitViewController?.preferredDisplayMode = .allVisible
-//            globals.mediaPlayer.fullScreen = false
-//            updateUI()
-//        }
-        
-//        print(splitViewController?.viewControllers.count)
-//        print(navigationController?.viewControllers.count)
-        
-//        guard (self.view.window != nil) else {
-//            return
-//        }
-        
-//        if  (globals.mediaPlayer.controller?.view.bounds.width  == UIApplication.shared.keyWindow?.bounds.width) &&
-//            (globals.mediaPlayer.controller?.view.bounds.height == (UIApplication.shared.keyWindow!.bounds.height - 64)) {
-//            return
-//        }
-        
-//        if self.splitViewController?.viewControllers.count > 1 {
-//            let (oldMinConstraintConstant,oldMaxConstraintConstant) = self.mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
-//            let (newMinConstraintConstant,newMaxConstraintConstant) = self.mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height) // size.height
-//            
-//            switch self.mediaItemNotesAndSlidesConstraint.constant {
-//            case oldMinConstraintConstant:
-//                self.mediaItemNotesAndSlidesConstraint.constant = newMinConstraintConstant
-//                break
-//                
-//            case oldMaxConstraintConstant:
-//                self.mediaItemNotesAndSlidesConstraint.constant = newMaxConstraintConstant
-//                break
-//                
-//            default:
-//                let ratio = (self.mediaItemNotesAndSlidesConstraint.constant - oldMinConstraintConstant) / (oldMaxConstraintConstant - oldMinConstraintConstant)
-//                
-//                self.mediaItemNotesAndSlidesConstraint.constant = (ratio * (newMaxConstraintConstant - newMinConstraintConstant)) + newMinConstraintConstant
-//                
-//                if self.mediaItemNotesAndSlidesConstraint.constant < newMinConstraintConstant { self.mediaItemNotesAndSlidesConstraint.constant = newMinConstraintConstant }
-//                if self.mediaItemNotesAndSlidesConstraint.constant > newMaxConstraintConstant { self.mediaItemNotesAndSlidesConstraint.constant = newMaxConstraintConstant }
-//                break
-//            }
-//            
-//            //            print("min: \(minConstraintConstant) max: \(maxConstraintConstant)")
-//            
-//            self.viewSplit.min = newMinConstraintConstant
-//            self.viewSplit.max = newMaxConstraintConstant
-//            self.viewSplit.height = self.mediaItemNotesAndSlidesConstraint.constant
-//            
-//            self.view.setNeedsLayout()
-//        }
-
-//        if (self.splitViewController != nil) {
-//            let (oldMinConstraintConstant,oldMaxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
-//            let (newMinConstraintConstant,newMaxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(size.height)
-//            
-//            switch self.mediaItemNotesAndSlidesConstraint.constant {
-//            case oldMinConstraintConstant:
-//                self.mediaItemNotesAndSlidesConstraint.constant = newMinConstraintConstant
-//                break
-//                
-//            case oldMaxConstraintConstant:
-//                self.mediaItemNotesAndSlidesConstraint.constant = newMaxConstraintConstant
-//                break
-//                
-//            default:
-//                let ratio = (mediaItemNotesAndSlidesConstraint.constant - oldMinConstraintConstant) / (oldMaxConstraintConstant - oldMinConstraintConstant)
-//                
-//                self.mediaItemNotesAndSlidesConstraint.constant = (ratio * (newMaxConstraintConstant - newMinConstraintConstant)) + newMinConstraintConstant
-//                
-//                if self.mediaItemNotesAndSlidesConstraint.constant < newMinConstraintConstant { self.mediaItemNotesAndSlidesConstraint.constant = newMinConstraintConstant }
-//                if self.mediaItemNotesAndSlidesConstraint.constant > newMaxConstraintConstant { self.mediaItemNotesAndSlidesConstraint.constant = newMaxConstraintConstant }
-//                break
-//            }
-//            
-//            //            print("min: \(minConstraintConstant) max: \(maxConstraintConstant)")
-//            
-//            viewSplit.min = newMinConstraintConstant
-//            viewSplit.max = newMaxConstraintConstant
-//            viewSplit.height = mediaItemNotesAndSlidesConstraint.constant
-//            
-//            self.view.setNeedsLayout()
-//        } else {
-//            if (UIDeviceOrientationIsPortrait(UIDevice.current.orientation)) {
-//                captureSlideSplit()
-//
-//                setTableViewWidth(width: size.width)
-//                
-//                //If we started out in landscape on an iPhone and segued to this view and then transitioned to Portrait
-//                //The constraint is not setup because it is not active in landscape so we have to set it up
-//                if let split = selectedMediaItem?.viewSplit {
-//                    var newConstraintConstant = size.height * CGFloat(Float(split)!)
-//                    
-//                    let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(size.height - 12) //Adjustment of 12 for difference in NavBar height between landscape (shorter) and portrait (taller by 12)
-//                    
-//                    //                    print("min: \(minConstraintConstant) max: \(maxConstraintConstant)")
-//                    
-//                    if newConstraintConstant < minConstraintConstant { newConstraintConstant = minConstraintConstant }
-//                    if newConstraintConstant > maxConstraintConstant { newConstraintConstant = maxConstraintConstant }
-//                    
-//                    self.mediaItemNotesAndSlidesConstraint.constant = newConstraintConstant
-//                    
-//                    //                    print("\(viewSplit) \(size) \(mediaItemNotesAndSlidesConstraint.constant)")
-//                    
-//                    viewSplit.min = minConstraintConstant
-//                    viewSplit.max = maxConstraintConstant
-//                    viewSplit.height = self.mediaItemNotesAndSlidesConstraint.constant
-//                    
-//                    self.view.setNeedsLayout()
-//                }
-//            } else {
-//                //Capturing the viewSplit on a rotation from portrait to landscape for an iPhone
-//                captureViewSplit()
-//                
-//                if let ratio = ratioForSlideView() {
-//                    //            print("\(self.view.bounds.height)")
-//                    setTableViewWidth(width: size.width * ratio)
-//                } else {
-//                    setTableViewWidth(width: size.width / 2)
-//                }
-//                
-//                self.view.setNeedsLayout()
-//            }
-//        }
-        
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
             if self.videoLocation == .withTableView {
                 self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: false)
@@ -3353,6 +2950,8 @@ class MediaViewController: UIViewController
                 if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
                     if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
                         navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+                    } else {
+                        navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
                     }
                 }
             }
@@ -3434,13 +3033,7 @@ class MediaViewController: UIViewController
         
         let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
         
-//        newConstraintConstant = minConstraintConstant + tableView.rowHeight * (mediaItems!.count > 1 ? 1 : 1)
-        
         newConstraintConstant = self.view.bounds.height / 2
-        
-//        if newConstraintConstant > ((maxConstraintConstant+minConstraintConstant)/2) {
-//            newConstraintConstant = (maxConstraintConstant+minConstraintConstant)/2
-//        }
         
         if (newConstraintConstant >= minConstraintConstant) && (newConstraintConstant <= maxConstraintConstant) {
             self.mediaItemNotesAndSlidesConstraint.constant = newConstraintConstant
@@ -3583,7 +3176,7 @@ class MediaViewController: UIViewController
                 //            ((globals.mediaPlayer.url != selectedMediaItem?.videoURL) && (globals.mediaPlayer.url != selectedMediaItem?.audioURL)) {
                 globals.mediaPlayer.killPIP = true
                 globals.mediaPlayer.pause()
-                globals.setupPlayer(selectedMediaItem,playOnLoad:false)
+                globals.mediaPlayer.setup(selectedMediaItem,playOnLoad:false)
             } else {
                 if globals.mediaPlayer.loadFailed {
                     logo.isHidden = false
@@ -3621,6 +3214,11 @@ class MediaViewController: UIViewController
         print("DONE SEEKING")
     }
     
+    func deviceOrientationDidChange()
+    {
+        
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -3629,12 +3227,11 @@ class MediaViewController: UIViewController
             return
         }
         
-//        playPauseButton.setTitle(Constants.FA.PAUSE, for: UIControlState(rawValue: UIControlState.normal.rawValue | PlayPauseState.playing))
-//        playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState(rawValue: UIControlState.normal.rawValue | PlayPauseState.paused))
-        
         navigationController?.isToolbarHidden = true
 
         // Shouldn't some or all of these have object values of selectedMediaItem?
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.doneSeeking), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
         
@@ -3660,6 +3257,8 @@ class MediaViewController: UIViewController
             if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
                 if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
                     navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+                } else {
+                    navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
                 }
             }
         }
@@ -3829,8 +3428,6 @@ class MediaViewController: UIViewController
                 
                 document.loadTimer?.invalidate()
                 
-//                document.wkWebView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), context: nil)
-                
                 if document.showing(selectedMediaItem) && (document.wkWebView != nil) && document.wkWebView!.scrollView.isDecelerating {
                     captureContentOffset(document)
                 }
@@ -3839,8 +3436,6 @@ class MediaViewController: UIViewController
 
         removeSliderObserver()
         removePlayerObserver()
-
-//        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: nil)
         
         NotificationCenter.default.removeObserver(self) // Catch-all.
         
@@ -3880,7 +3475,6 @@ class MediaViewController: UIViewController
                 splitViewController?.preferredDisplayMode = .primaryHidden
                 setupWKContentOffsets()
                 wvc.selectedMediaItem = sender as? MediaItem
-//                    wvc.showScripture = showScripture
                 break
             default:
                 break
@@ -3964,11 +3558,6 @@ class MediaViewController: UIViewController
         switch state {
         case .playing:
             progress = playerCurrentTime / length
-            
-//            if controlView.sliding && (Int(progress*100) == Int(playingCurrentTime/length*100)) {
-//                print("DONE SLIDING")
-//                controlView.sliding = false
-//            }
             
             if !controlView.sliding {
                 if globals.mediaPlayer.loaded {
@@ -4165,20 +3754,6 @@ class MediaViewController: UIViewController
             if globals.mediaPlayer.loaded {
                 setSliderAndTimesToAudio()
                 setupPlayPauseButton()
-                
-                // Should be done in global playerObserver
-//                if (globals.mediaPlayer.rate == 0) {
-//                    globals.mediaPlayer.play() // Supposed to be playing
-//                    setupPlayPauseButton()
-//
-//                    if globals.mediaPlayer.mediaItem?.playing == Playing.video,
-//                        let currentTime = globals.mediaPlayer.mediaItem?.currentTime,
-//                        let time = Double(currentTime) {
-//                        let newCurrentTime = (time - Constants.BACK_UP_TIME) < 0 ? 0 : time - Constants.BACK_UP_TIME
-//                        globals.mediaPlayer.mediaItem?.currentTime = (Double(newCurrentTime) - 1).description
-//                        globals.mediaPlayer.seek(to: newCurrentTime)
-//                    }
-//                }
             }
             break
             
@@ -4190,12 +3765,6 @@ class MediaViewController: UIViewController
             if globals.mediaPlayer.loaded {
                 setSliderAndTimesToAudio()
                 setupPlayPauseButton()
-
-                // Should be done in global playerObserver
-//                if (globals.mediaPlayer.rate > 0) {
-//                    globals.mediaPlayer.updateCurrentTimeExact()
-//                    globals.mediaPlayer.pause() // Supposed to be paused.
-//                }
             }
             break
             
@@ -4309,15 +3878,6 @@ class MediaViewController: UIViewController
         }
     }
 
-//    fileprivate func reloadCurrentMediaItem(_ mediaItem:MediaItem?)
-//    {
-//        //This guarantees a fresh start.
-//        globals.mediaPlayer.playOnLoad = true
-//        globals.reloadPlayer()
-//        addSliderObserver()
-//        setupPlayPauseButton()
-//    }
-    
     fileprivate func playNewMediaItem(_ mediaItem:MediaItem?)
     {
         globals.mediaPlayer.stop() // IfPlaying
@@ -4337,7 +3897,7 @@ class MediaViewController: UIViewController
         removeSliderObserver()
         
         //This guarantees a fresh start.
-        globals.setupPlayer(mediaItem, playOnLoad: true)
+        globals.mediaPlayer.setup(mediaItem, playOnLoad: true)
         
         if (mediaItem!.hasVideo && (mediaItem!.playing == Playing.video)) {
             setupPlayerView(globals.mediaPlayer.view)
@@ -4392,31 +3952,6 @@ class MediaViewController: UIViewController
                         spinner.startAnimating()
                     }
                 }
-//                switch globals.mediaPlayer.mediaItem!.playing! {
-//                case Playing.audio:
-//                    if !controlView.sliding && (globals.mediaPlayer.currentTime!.seconds > Double(globals.mediaPlayer.mediaItem!.currentTime!)!) {
-//                        if spinner.isAnimating {
-//                            spinner.isHidden = true
-//                            spinner.stopAnimating()
-//                        }
-//                    } else {
-//                        if !spinner.isAnimating {
-//                            spinner.isHidden = false
-//                            spinner.startAnimating()
-//                        }
-//                    }
-//                    break
-//                    
-//                case Playing.video:
-//                    if spinner.isAnimating {
-//                        spinner.isHidden = true
-//                        spinner.stopAnimating()
-//                    }
-//                    break
-//                    
-//                default:
-//                    break
-//                }
             } else {
                 if spinner.isAnimating {
                     spinner.isHidden = true
@@ -4517,16 +4052,6 @@ extension MediaViewController : UITableViewDataSource
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
         return editActionsAtIndexPath(tableView,indexPath:indexPath) != nil
-        
-//        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-//            return false
-//        }
-//        
-//        guard let mediaItem = cell.mediaItem else {
-//            return false
-//        }
-//        
-//        return mediaItem.hasNotesHTML || (mediaItem.books?.count > 0)
     }
     
     func editActionsAtIndexPath(_ tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
@@ -4551,24 +4076,12 @@ extension MediaViewController : UITableViewDataSource
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
                 
-                //                if globals.search.valid && globals.search.transcripts {
-                //                    htmlString = mediaItem.markedFullNotesHTML(searchText:globals.search.text,index: true)
-                //                } else {
-                //                    htmlString = mediaItem.fullNotesHTML
-                //                }
-                
                 htmlString = mediaItem.fullNotesHTML
                 popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
             } else {
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
-                    
-                    //                    if globals.search.valid && globals.search.transcripts {
-                    //                        return mediaItem.markedFullNotesHTML(searchText:globals.search.text, wholeWordsOnly: false, index: true)
-                    //                    } else {
-                    //                        return mediaItem.fullNotesHTML
-                    //                    }
-                    
+
                     return mediaItem.fullNotesHTML
                 }, completion: { (data:Any?) in
                     if let htmlString = data as? String {
@@ -4576,8 +4089,6 @@ extension MediaViewController : UITableViewDataSource
                     } else {
                         networkUnavailable("HTML transcript unavailable.")
                     }
-                    
-                    //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
                 })
             }
         }
@@ -4600,7 +4111,6 @@ extension MediaViewController : UITableViewDataSource
                         } else {
                             networkUnavailable("Scripture text unavailable.")
                         }
-                        //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
                     })
                 }
             }

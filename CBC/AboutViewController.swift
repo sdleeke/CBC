@@ -164,8 +164,6 @@ class AboutViewController: UIViewController
             
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
             
-            //                popover.navigationItem.title = "Actions"
-            
             popover.navigationController?.isNavigationBarHidden = true
             
             popover.delegate = self
@@ -206,13 +204,29 @@ class AboutViewController: UIViewController
         super.viewDidLoad()
 
         navigationController?.setToolbarHidden(true, animated: false)
-//        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
+
         navigationItem.leftItemsSupplementBackButton = true
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setVersion()
+        
+        if self.navigationController?.visibleViewController == self {
+            self.navigationController?.isToolbarHidden = true
+        }
+        
+        if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+            let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
+            let count = self.splitViewController?.viewControllers.count {
+            if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
+                if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+                    navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+                } else {
+                    navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
+                }
+            }
+        }
         
         let geocoder = CLGeocoder()
         geocoder.geocodeAddressString(Constants.CBC.FULL_ADDRESS, completionHandler:{(placemarks, error) -> Void in
@@ -256,6 +270,26 @@ class AboutViewController: UIViewController
         
         if (self.view.window == nil) {
             return
+        }
+        
+        coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
+            
+        }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
+            if self.navigationController?.visibleViewController == self {
+                self.navigationController?.isToolbarHidden = true
+            }
+            
+            if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+                let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
+                let count = self.splitViewController?.viewControllers.count {
+                if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
+                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+                    } else {
+                        navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
+                    }
+                }
+            }
         }
     }
 }
