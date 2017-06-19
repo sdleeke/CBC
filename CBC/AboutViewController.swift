@@ -147,9 +147,11 @@ class AboutViewController: UIViewController
         item?.openInMaps(launchOptions: nil)
     }
     
-    @IBOutlet weak var actionButton: UIBarButtonItem!
-    
-    @IBAction func actions(_ sender: UIBarButtonItem) {
+//    @IBOutlet weak var actionButton: UIBarButtonItem!
+ 
+    // @IBAction 
+    func actions(_ sender: UIBarButtonItem)
+    {
 //        print("action!")
         
         //In case we have one already showing
@@ -165,6 +167,8 @@ class AboutViewController: UIViewController
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
             
             popover.navigationController?.isNavigationBarHidden = true
+            
+            popover.vc = self
             
             popover.delegate = self
             popover.purpose = .selectingAction
@@ -200,12 +204,22 @@ class AboutViewController: UIViewController
 
     @IBOutlet weak var mapView: MKMapView!
     
+    func setupActionButton()
+    {
+        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(AboutViewController.actions))
+        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+        
+        navigationItem.rightBarButtonItem = actionButton
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
         navigationController?.setToolbarHidden(true, animated: false)
 
-        navigationItem.leftItemsSupplementBackButton = true
+//        navigationItem.leftItemsSupplementBackButton = true
+        
+        setupActionButton()
     }
     
     override func viewWillAppear(_ animated: Bool) {

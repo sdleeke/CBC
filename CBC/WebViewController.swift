@@ -1065,7 +1065,7 @@ class WebViewController: UIViewController
         
         navigationController?.setToolbarHidden(true, animated: true)
 
-        navigationItem.leftItemsSupplementBackButton = true
+//        navigationItem.leftItemsSupplementBackButton = true
         
         logo.isHidden = true
         

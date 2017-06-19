@@ -71,7 +71,8 @@ class Document {
     }
 }
 
-class ControlView : UIView {
+class ControlView : UIView
+{
     var sliding = false
     
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
@@ -1582,7 +1583,8 @@ class MediaViewController: UIViewController
     var actionButton:UIBarButtonItem?
     var tagsButton:UIBarButtonItem?
 
-    func showSendMessageErrorAlert() {
+    func showSendMessageErrorAlert()
+    {
         let alert = UIAlertController(title: "Could Not Send a Message",
                                       message: "Your device could not send a text message.  Please check your configuration and try again.",
                                       preferredStyle: UIAlertControllerStyle.alert)
@@ -2180,21 +2182,34 @@ class MediaViewController: UIViewController
     
     func showPlaying()
     {
-        if (globals.mediaPlayer.mediaItem != nil) && (selectedMediaItem?.multiPartMediaItems?.index(of: globals.mediaPlayer.mediaItem!) != nil) {
-            selectedMediaItem = globals.mediaPlayer.mediaItem
-            
-            tableView.reloadData()
-            
-            //Without this background/main dispatching there isn't time to scroll correctly after a reload.
-            
-            DispatchQueue.global(qos: .background).async {
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
-                })
-            }
-            
-            updateUI()
+        guard Thread.isMainThread else {
+            return
         }
+        
+        guard (globals.mediaPlayer.mediaItem != nil) else {
+            removeSliderObserver()
+            playerURL(url: selectedMediaItem?.playingURL)
+            updateUI()
+            return
+        }
+        
+        guard (selectedMediaItem?.multiPartMediaItems?.index(of: globals.mediaPlayer.mediaItem!) != nil) else {
+            return
+        }
+        
+        selectedMediaItem = globals.mediaPlayer.mediaItem
+        
+        //            tableView.reloadData()
+        
+        //Without this background/main dispatching there isn't time to scroll correctly after a reload.
+        
+        DispatchQueue.global(qos: .background).async {
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
+            })
+        }
+        
+        updateUI()
     }
     
     func updateView()
@@ -2240,7 +2255,8 @@ class MediaViewController: UIViewController
         super.viewDidLoad()
 
         navigationController?.setToolbarHidden(true, animated: false)
-        navigationItem.leftItemsSupplementBackButton = true
+        
+//        navigationItem.leftItemsSupplementBackButton = true
         
         //Eliminates blank cells at end.
         tableView.tableFooterView = UIView()
@@ -3419,7 +3435,8 @@ class MediaViewController: UIViewController
         }
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool)
+    {
         super.viewWillDisappear(animated)
         
         navigationItem.rightBarButtonItem = nil
@@ -3450,7 +3467,8 @@ class MediaViewController: UIViewController
         sliderObserver?.invalidate()
     }
 
-    override func didReceiveMemoryWarning() {
+    override func didReceiveMemoryWarning()
+    {
         super.didReceiveMemoryWarning()
         print("didReceiveMemoryWarning: \(String(describing: selectedMediaItem?.title))")
         // Dispose of any resources that can be recreated.
@@ -3499,9 +3517,9 @@ class MediaViewController: UIViewController
         
 //        print("timeNow:",timeNow,"length:",length)
         
-        let elapsedHours = Int(timeNow / (60*60))
-        let elapsedMins = Int((timeNow - (Double(elapsedHours) * 60*60)) / 60)
-        let elapsedSec = Int(timeNow.truncatingRemainder(dividingBy: 60))
+        let elapsedHours = max(Int(timeNow / (60*60)),0)
+        let elapsedMins = max(Int((timeNow - (Double(elapsedHours) * 60*60)) / 60),0)
+        let elapsedSec = max(Int(timeNow.truncatingRemainder(dividingBy: 60)),0)
         
         var elapsed:String
         
@@ -3515,10 +3533,10 @@ class MediaViewController: UIViewController
         
         self.elapsed.text = elapsed
         
-        let timeRemaining = length - timeNow
-        let remainingHours = Int(timeRemaining / (60*60))
-        let remainingMins = Int((timeRemaining - (Double(remainingHours) * 60*60)) / 60)
-        let remainingSec = Int(timeRemaining.truncatingRemainder(dividingBy: 60))
+        let timeRemaining = max(length - timeNow,0)
+        let remainingHours = max(Int(timeRemaining / (60*60)),0)
+        let remainingMins = max(Int((timeRemaining - (Double(remainingHours) * 60*60)) / 60),0)
+        let remainingSec = max(Int(timeRemaining.truncatingRemainder(dividingBy: 60)),0)
         
         var remaining:String
 
@@ -3536,11 +3554,19 @@ class MediaViewController: UIViewController
     
     fileprivate func setSliderAndTimesToAudio()
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         guard let state = globals.mediaPlayer.state else {
             return
         }
         
-        guard let length = globals.mediaPlayer.duration?.seconds, length > 0 else {
+        guard let length = globals.mediaPlayer.duration?.seconds else {
+            return
+        }
+        
+        guard length > 0 else {
             return
         }
         
@@ -3586,7 +3612,7 @@ class MediaViewController: UIViewController
                     print("not loaded")
                 }
             } else {
-                print("still sliding")
+                print("still sliding 1")
             }
             
             elapsed.isHidden = false
@@ -3596,7 +3622,6 @@ class MediaViewController: UIViewController
             break
             
         case .paused:
-            //                    if selectedMediaItem?.currentTime != playerCurrentTime.description {
             progress = playingCurrentTime / length
             
             //                        print("paused")
@@ -3607,19 +3632,18 @@ class MediaViewController: UIViewController
             if !controlView.sliding {
                 slider.value = Float(progress)
             } else {
-                print("still sliding")
+                print("still sliding 2")
             }
+            
             setTimes(timeNow: playingCurrentTime,length: length)
             
             elapsed.isHidden = false
             remaining.isHidden = false
             slider.isHidden = false
             slider.isEnabled = true
-            //                    }
             break
             
         case .stopped:
-            //                    if selectedMediaItem?.currentTime != playerCurrentTime.description {
             progress = playingCurrentTime / length
             
             //                        print("stopped")
@@ -3630,7 +3654,7 @@ class MediaViewController: UIViewController
             if !controlView.sliding {
                 slider.value = Float(progress)
             } else {
-                print("still sliding")
+                print("still sliding 3")
             }
             setTimes(timeNow: playingCurrentTime,length: length)
             
@@ -3638,7 +3662,6 @@ class MediaViewController: UIViewController
             remaining.isHidden = false
             slider.isHidden = false
             slider.isEnabled = true
-            //                    }
             break
             
         default:
@@ -3700,7 +3723,7 @@ class MediaViewController: UIViewController
                     if !controlView.sliding {
                         slider.value = Float(progress)
                     } else {
-                        print("still sliding")
+                        print("still sliding 4")
                     }
                     setTimes(timeNow: timeNow,length: length)
                     
@@ -3771,6 +3794,7 @@ class MediaViewController: UIViewController
             setupSpinner()
             
             if globals.mediaPlayer.loaded {
+//                print("foo")
                 setSliderAndTimesToAudio()
                 setupPlayPauseButton()
             }
@@ -3820,11 +3844,20 @@ class MediaViewController: UIViewController
 //            }
     }
     
+//    var counter = 0
+    
     func removeSliderObserver()
     {
+//        if sliderObserver != nil {
+////            counter -= 1
+////            print("remove counter: ",counter)
+//            sliderObserver?.invalidate()
+//            sliderObserver = nil
+//        }
+
         sliderObserver?.invalidate()
         sliderObserver = nil
-        
+
         if globals.mediaPlayer.sliderTimerReturn != nil {
             globals.mediaPlayer.player?.removeTimeObserver(globals.mediaPlayer.sliderTimerReturn!)
             globals.mediaPlayer.sliderTimerReturn = nil
@@ -3835,9 +3868,13 @@ class MediaViewController: UIViewController
     {
         removeSliderObserver()
         
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.sliderObserver = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.SLIDER, target: self, selector: #selector(MediaViewController.sliderTimer), userInfo: nil, repeats: true)
-        })
+//        self.counter += 1
+//        print("add counter: ",self.counter)
+        
+        self.sliderObserver = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.SLIDER, target: self, selector: #selector(MediaViewController.sliderTimer), userInfo: nil, repeats: true)
+
+//        DispatchQueue.main.async(execute: { () -> Void in
+//        })
 
 //        globals.mediaPlayer.sliderTimerReturn = globals.mediaPlayer.player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(0.1,Constants.CMTime_Resolution), queue: DispatchQueue.main, using: { [weak self] (time:CMTime) in
 //            self?.sliderTimer()

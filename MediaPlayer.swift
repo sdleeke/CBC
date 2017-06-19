@@ -149,6 +149,16 @@ class MediaPlayer : NSObject {
         }
     }
     
+    func checkPlayToEnd()
+    {
+        // didPlayToEnd observer doesn't always work.  This seemds to catch the cases where it doesn't.
+        if let currentTime = currentTime?.seconds,
+            let duration = duration?.seconds,
+            Int(currentTime) >= Int(duration) {
+            didPlayToEnd()
+        }
+    }
+    
     override func observeValue(forKeyPath keyPath: String?,
                                of object: Any?,
                                change: [NSKeyValueChangeKey : Any]?,
@@ -193,11 +203,7 @@ class MediaPlayer : NSObject {
                                 pause()
                                 
                                 // didPlayToEnd observer doesn't always work.  This seemds to catch the cases where it doesn't.
-                                if let currentTime = currentTime?.seconds,
-                                    let duration = duration?.seconds,
-                                    Int(currentTime) >= Int(duration) {
-                                    didPlayToEnd()
-                                }
+                                checkPlayToEnd()
                                 break
                                 
                             case .seekingBackward:
@@ -661,19 +667,16 @@ class MediaPlayer : NSObject {
         
         mediaItem?.atEnd = true
         
-        if globals.autoAdvance && (mediaItem != nil) && mediaItem!.atEnd && (mediaItem?.multiPartMediaItems != nil) {
-            if mediaItem?.playing == Playing.audio,
-                let mediaItems = mediaItem?.multiPartMediaItems,
-                let index = mediaItems.index(of: mediaItem!), index < (mediaItems.count - 1) {
-                let nextMediaItem = mediaItems[index + 1]
-                
-                nextMediaItem.playing = Playing.audio
-                nextMediaItem.currentTime = Constants.ZERO
-                
-                mediaItem = nextMediaItem
-                
-                setup(nextMediaItem,playOnLoad:true)
-            }
+        if globals.autoAdvance, mediaItem != nil, mediaItem?.playing == Playing.audio, mediaItem!.atEnd, mediaItem?.multiPartMediaItems?.count > 1,
+            let mediaItems = mediaItem?.multiPartMediaItems, let index = mediaItems.index(of: mediaItem!), index < (mediaItems.count - 1) {
+            let nextMediaItem = mediaItems[index + 1]
+            
+            nextMediaItem.playing = Playing.audio
+            nextMediaItem.currentTime = Constants.ZERO
+            
+            mediaItem = nextMediaItem
+            
+            setup(nextMediaItem,playOnLoad:true)
         } else {
             stop()
         }
@@ -683,46 +686,12 @@ class MediaPlayer : NSObject {
         })
     }
 
-    func observe()
+    func unobserve()
     {
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.playerObserverTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PLAYER, target: self, selector: #selector(MediaPlayer.playerObserver), userInfo: nil, repeats: true)
-        })
-        
-        unobserve()
-        
-        guard (url != URL(string:Constants.URL.LIVE_STREAM)) else {
+        guard Thread.isMainThread else {
             return
         }
         
-        if #available(iOS 10.0, *) {
-            player?.addObserver( self,
-                                 forKeyPath: #keyPath(AVPlayer.timeControlStatus),
-                                 options: [.old, .new],
-                                 context: nil) // &GlobalPlayerContext
-        }
-        
-        currentItem?.addObserver(self,
-                                 forKeyPath: #keyPath(AVPlayerItem.status),
-                                 options: [.old, .new],
-                                 context: nil) // &GlobalPlayerContext
-        observerActive = true
-        observedItem = currentItem
-        
-        playerTimerReturn = player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1,Constants.CMTime_Resolution), queue: DispatchQueue.main, using: { (time:CMTime) in // [weak self] 
-            self.playerTimer()
-        })
-        
-        DispatchQueue.main.async {
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.didPlayToEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
-        }
-        //
-        //        // Why was this put here?  To set the state to .paused from .none
-        //        pause()
-    }
-    
-    func unobserve()
-    {
         playerObserverTimer?.invalidate()
         playerObserverTimer = nil
         
@@ -753,6 +722,49 @@ class MediaPlayer : NSObject {
         }
         
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
+    }
+    
+    func observe()
+    {
+        guard Thread.isMainThread else {
+            return
+        }
+        
+        self.playerObserverTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PLAYER, target: self, selector: #selector(MediaPlayer.playerObserver), userInfo: nil, repeats: true)
+//        DispatchQueue.main.async(execute: { () -> Void in
+//        })
+        
+        unobserve()
+        
+        guard (url != URL(string:Constants.URL.LIVE_STREAM)) else {
+            return
+        }
+        
+        if #available(iOS 10.0, *) {
+            player?.addObserver( self,
+                                 forKeyPath: #keyPath(AVPlayer.timeControlStatus),
+                                 options: [.old, .new],
+                                 context: nil) // &GlobalPlayerContext
+        }
+        
+        currentItem?.addObserver(self,
+                                 forKeyPath: #keyPath(AVPlayerItem.status),
+                                 options: [.old, .new],
+                                 context: nil) // &GlobalPlayerContext
+        observerActive = true
+        observedItem = currentItem
+        
+        playerTimerReturn = player?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(1,Constants.CMTime_Resolution), queue: DispatchQueue.main, using: { (time:CMTime) in // [weak self] 
+            self.playerTimer()
+        })
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.didPlayToEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.doneSeeking), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
+//        DispatchQueue.main.async {
+//        }
+        //
+        //        // Why was this put here?  To set the state to .paused from .none
+        //        pause()
     }
     
     var pip : PIP = .stopped
@@ -798,6 +810,10 @@ class MediaPlayer : NSObject {
             killPIP = true
             
             updateCurrentTimeExact()
+            
+            if mediaItem?.showing == Showing.video {
+               mediaItem?.showing = nil
+            }
             
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
@@ -872,6 +888,15 @@ class MediaPlayer : NSObject {
             mediaItem?.currentTime = seekToTime.description
         } else {
             print("seekeToTime < 0")
+        }
+    }
+    
+    func doneSeeking()
+    {
+        print("DONE SEEKING")
+        
+        if isPlaying {
+            globals.mediaPlayer.checkPlayToEnd()
         }
     }
     

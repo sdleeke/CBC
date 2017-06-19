@@ -4,8 +4,8 @@
 
 import UIKit
 
-class OBSlider: UISlider {
-	
+class OBSlider: UISlider
+{
 	var scrubbingSpeed: Float = 0.0
 	var realPositionValue: Float = 0.0
 	var beganTrackingLocation: CGPoint?
@@ -14,33 +14,49 @@ class OBSlider: UISlider {
 	
     var scrubbingSpeeds: NSArray = [1.0, 0.5, 0.25, 0.125, 0.00625, 0.0]
 	
-	required init?(coder: NSCoder) {
+	required init?(coder: NSCoder)
+    {
 		super.init(coder: coder)
 		self.scrubbingSpeed = Float(self.scrubbingSpeeds[0] as! NSNumber)
 	}
 	
-	override init(frame: CGRect) {
+	override init(frame: CGRect)
+    {
 		super.init(frame: frame)
 		self.scrubbingSpeed = Float(self.scrubbingSpeeds[0] as! NSNumber)
 	}
     
-	override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+	override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool
+    {
+        guard superview != nil else {
+            return false
+        }
+        
+        let view = superview!.superview
+
 		let beginTracking = super.beginTracking(touch, with: event)
 		
 		if (beginTracking) {
 			self.realPositionValue = self.value
-			self.beganTrackingLocation = CGPoint(x: touch.location(in: self.superview!.superview).x, y: touch.location(in: self.superview!.superview).y)
+			self.beganTrackingLocation = CGPoint(x: touch.location(in: view).x, y: touch.location(in: view).y)
 		}
 		
 		return beginTracking
 	}
 	
-	override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
-		let previousLocation = touch.previousLocation(in: self.superview!.superview)
-		let currentLocation = touch.location(in: self.superview!.superview)
+	override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool
+    {
+        guard superview != nil else {
+            return false
+        }
+        
+        let view = superview!.superview
+        
+		let previousLocation = touch.previousLocation(in: view)
+		let currentLocation = touch.location(in: view)
 		let trackingOffset = currentLocation.x - previousLocation.x // delta x
 		
-		let verticalOffset = fabs(currentLocation.y - beganTrackingLocation!.y)/(self.superview!.superview!.bounds.height - beganTrackingLocation!.y)
+		let verticalOffset = fabs(currentLocation.y - beganTrackingLocation!.y)/(view!.bounds.height - beganTrackingLocation!.y)
 //        print("verticalOffset: \(CGFloat(verticalOffset))")
         
         var scrubbingSpeedChangePosIndex: NSInteger = self.indexOfLowerScrubbingSpeed(scrubbingSpeedChangePositions, forOffset: verticalOffset)

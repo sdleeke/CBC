@@ -923,8 +923,8 @@ class LexiconIndexViewController : UIViewController
 
         navigationController?.toolbar.isTranslucent = false
         
-        //        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
-        navigationItem.leftItemsSupplementBackButton = true
+//        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
+//        navigationItem.leftItemsSupplementBackButton = true
         
         selectedWord.text = Constants.EMPTY_STRING
         

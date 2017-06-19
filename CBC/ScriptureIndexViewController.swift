@@ -1264,7 +1264,7 @@ class ScriptureIndexViewController : UIViewController
         
         progressIndicator.isHidden = true
 
-        navigationItem.leftItemsSupplementBackButton = true
+//        navigationItem.leftItemsSupplementBackButton = true
   
         numberOfMediaItems.text = Constants.EMPTY_STRING
         

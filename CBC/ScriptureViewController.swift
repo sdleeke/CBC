@@ -700,8 +700,8 @@ class ScriptureViewController : UIViewController
     {
         super.viewDidLoad()
         
-        //        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
-        navigationItem.leftItemsSupplementBackButton = true
+//        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
+//        navigationItem.leftItemsSupplementBackButton = true
     }
     
     func updatePicker()

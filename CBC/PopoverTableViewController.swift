@@ -172,7 +172,8 @@ extension PopoverTableViewController: UISearchBarDelegate
     }
 }
 
-extension PopoverTableViewController : PopoverTableViewControllerDelegate {
+extension PopoverTableViewController : PopoverTableViewControllerDelegate
+{
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose: PopoverPurpose, mediaItem: MediaItem?)
     {
         guard Thread.isMainThread else {
@@ -223,11 +224,13 @@ extension PopoverTableViewController : PopoverTableViewControllerDelegate {
     }
 }
 
-extension PopoverTableViewController : UIPopoverPresentationControllerDelegate {
+extension PopoverTableViewController : UIPopoverPresentationControllerDelegate
+{
     
 }
 
-struct Sort {
+struct Sort
+{
     var function : ((String,[String]?)->[String]?)?
     
     var method : String = Constants.Sort.Alphabetical
@@ -243,7 +246,8 @@ struct Sort {
     }
 }
 
-class PopoverTableViewController : UIViewController {
+class PopoverTableViewController : UIViewController
+{
     var vc:UIViewController?
     
     var selectedText:String!
@@ -308,6 +312,10 @@ class PopoverTableViewController : UIViewController {
             return
         }
 
+        guard (vc != nil) else {
+            return
+        }
+        
         guard (section.strings != nil) else {
             return
         }
@@ -757,7 +765,8 @@ class PopoverTableViewController : UIViewController {
         dismiss(animated: true, completion: nil)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool)
+    {
         super.viewWillAppear(animated)
         
         NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.willResignActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
