@@ -3630,41 +3630,56 @@ func addressString() -> String
     return addressString
 }
 
-var alert:UIAlertController!
-{
-    didSet {
-        print("alert")
-    }
-}
+var alert = [UIAlertController]()
+var presenting = false
 
 func networkUnavailable(_ message:String?)
 {
-    alert(title:Constants.Network_Error,message:message)
+    alert(title:Constants.Network_Error,message:message,completion:nil)
 }
 
-func alert(title:String?,message:String?)
+func alert(title:String?,message:String?,completion:((Void)->(Void))?)
 {
-    guard alert == nil else {
-        return
-    }
-
+//    guard alert.first == nil else {
+//        return
+//    }
+    
     guard UIApplication.shared.applicationState == UIApplicationState.active else {
         return
     }
 
-    alert = UIAlertController(title:title,
+    let newAlert = UIAlertController(title:title,
                               message: message,
                               preferredStyle: UIAlertControllerStyle.alert)
     
-    let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-        alert = nil
+    let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+        if let index = alert.index(of: newAlert) {
+            alert.remove(at: index)
+        }
+        
+        completion?()
+        
+        presenting = false
+        
+        if let alert = alert.first {
+            DispatchQueue.main.async(execute: { () -> Void in
+                UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion:  {
+                    presenting = true
+                })
+            })
+        }
     })
-    alert.addAction(action)
+    newAlert.addAction(action)
     
-    DispatchQueue.main.async(execute: { () -> Void in
-        UIApplication.shared.keyWindow?.rootViewController?.dismiss(animated: true, completion: nil)
-        UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
-    })
+    alert.append(newAlert)
+    
+    if !presenting, let alert = alert.first {
+        DispatchQueue.main.async(execute: { () -> Void in
+            UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: {
+                presenting = true
+            })
+        })
+    }
 }
 
 func userAlert(title:String?,message:String?)
@@ -3674,7 +3689,7 @@ func userAlert(title:String?,message:String?)
                                       message: message,
                                       preferredStyle: UIAlertControllerStyle.alert)
         
-        let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+        let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
             
         })
         alert.addAction(action)

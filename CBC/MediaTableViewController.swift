@@ -3293,6 +3293,7 @@ extension MediaTableViewController : UITableViewDelegate
         
         var search:UITableViewRowAction!
         var transcript:UITableViewRowAction!
+        var recognize:UITableViewRowAction!
         var words:UITableViewRowAction!
         var scripture:UITableViewRowAction!
         
@@ -3440,6 +3441,37 @@ extension MediaTableViewController : UITableViewDelegate
         }
         transcript.backgroundColor = UIColor.purple
         
+        recognize = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
+            if mediaItem.voicebase?.transcript == nil {
+                if let transcribing = mediaItem.voicebase?.transcribing, !transcribing {
+                    firstSecondCancel(viewController: self, title: "Begin Transcription?", message: "", firstTitle: "Yes", firstAction: {
+                        DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+                            mediaItem.voicebase?.getTranscript()
+                        })
+                        tableView.setEditing(false, animated: true)
+                    }, secondTitle: "No", secondAction: nil, cancelAction: nil)
+                } else {
+                    alert(title: "Transcription in Progress", message: "You will be notified when the transcript for \(mediaItem.title!) is available.",completion: {
+                        tableView.setEditing(false, animated: true)
+                    })
+                }
+            } else {
+                firstSecondCancel(viewController: self, title: "Machine Transcript", message: "", firstTitle: "Show", firstAction: {
+                    let sourceView = cell.subviews[0]
+                    let sourceRectView = cell.subviews[0].subviews[actions.index(of: recognize)!]
+                    
+                    var htmlString = "<!DOCTYPE html><html><body>"
+                    
+                    htmlString = htmlString + mediaItem.headerHTML! + "<br/><center>MACHINE GENERATED TRANSCRIPT</center><br/>" + mediaItem.voicebase!.transcript! + "</body></html>"
+                    
+                    popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                }, secondTitle: "Delete", secondAction: {
+                    mediaItem.voicebase?.remove()
+                    tableView.setEditing(false, animated: true)
+                }, cancelAction: nil)
+            }
+        }
+        
         scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
             let sourceView = cell.subviews[0]
             let sourceRectView = cell.subviews[0].subviews[actions.index(of: scripture)!]
@@ -3476,6 +3508,15 @@ extension MediaTableViewController : UITableViewDelegate
         if mediaItem.hasNotesHTML {
             actions.append(words)
             actions.append(transcript)
+        }
+    
+        if !mediaItem.hasNotes {
+            if mediaItem.voicebase?.transcript != nil {
+                recognize.backgroundColor = UIColor.lightGray
+            } else {
+                recognize.backgroundColor = UIColor.darkGray
+            }
+            actions.append(recognize)
         }
         
         return actions.count > 0 ? actions : nil

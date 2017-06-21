@@ -570,7 +570,7 @@ class MediaPlayer : NSObject {
         })
         
         if (UIApplication.shared.applicationState == UIApplicationState.active) {
-            alert(title: "Failed to Load Content", message: "Please check your network connection and try again.")
+            alert(title: "Failed to Load Content", message: "Please check your network connection and try again.", completion: nil)
         }
     }
     
@@ -583,7 +583,7 @@ class MediaPlayer : NSObject {
         })
         
         if (UIApplication.shared.applicationState == UIApplicationState.active) {
-            alert(title: "Unable to Play Content", message: "Please check your network connection and try again.")
+            alert(title: "Unable to Play Content", message: "Please check your network connection and try again.",completion: nil)
         }
     }
 
