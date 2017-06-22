@@ -47,6 +47,11 @@ enum PopoverPurpose {
     
     case selectingCategory
     
+    case selectingKeyword
+    case selectingTopic
+    case selectingTopicKeyword
+    case selectingTime
+    
     case selectingTags
 
     case showingTags
@@ -80,7 +85,7 @@ extension MediaTableViewController : UISearchBarDelegate
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewController:searchBar:textDidChange")
+            alert(title: "Not Main Thread", message: "MediaTableViewController:searchBar:textDidChange", completion: nil)
             return
         }
         let searchText = searchText.uppercased()
@@ -102,7 +107,7 @@ extension MediaTableViewController : UISearchBarDelegate
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewController:searchBarSearchButtonClicked")
+            alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarSearchButtonClicked", completion: nil)
             return
         }
         //        print("searchBarSearchButtonClicked:")
@@ -130,7 +135,7 @@ extension MediaTableViewController : UISearchBarDelegate
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewController:searchBarShouldBeginEditing")
+            alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarShouldBeginEditing", completion: nil)
             return false
         }
         
@@ -142,7 +147,7 @@ extension MediaTableViewController : UISearchBarDelegate
         globals.search.active = true
         
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidBeginEditing")
+            alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidBeginEditing", completion: nil)
             return
         }
         
@@ -171,7 +176,7 @@ extension MediaTableViewController : UISearchBarDelegate
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidEndEditing")
+            alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidEndEditing", completion: nil)
             return
         }
         
@@ -183,7 +188,7 @@ extension MediaTableViewController : UISearchBarDelegate
         globals.search.active = false
         
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewController:searchBarCancelButtonClicked")
+            alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarCancelButtonClicked", completion: nil)
             return
         }
         
@@ -195,7 +200,7 @@ extension MediaTableViewController : UISearchBarDelegate
     func didDismissSearch()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewController:didDismissSearch")
+            alert(title: "Not Main Thread", message: "MediaTableViewController:didDismissSearch", completion: nil)
             return
         }
         
@@ -250,14 +255,7 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
     
     func noMediaAvailable(handler:@escaping (UIAlertAction) -> Void)
     {
-        let alert = UIAlertController(title: "No media available.",
-                                      message: "Please check your network connection and try again.",
-                                      preferredStyle: UIAlertControllerStyle.alert)
-        
-        let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler:handler)
-        alert.addAction(action)
-        
-        present(alert, animated: true, completion: nil)
+        alert(title: "No Media Available",message: "Please check your network connection and try again.",completion:nil)
     }
 
     func stringPicked(_ string:String?)
@@ -367,31 +365,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     }
                 } else {
                     //                        dismiss(animated: true, completion: nil)
-                    
-                    let alert = UIAlertController(title:"Not in List",
-                                                  message: "\"\(mediaItem.title!)\" is not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",
-                        preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                        
-                    })
-                    alert.addAction(action)
-                    
-                    present(alert, animated: true, completion: nil)
+                    alert(title: "Not in List",message: "\"\(mediaItem.title!)\" is not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",completion:nil)
                 }
             } else {
                 //                    dismiss(animated: true, completion: nil)
-                
-                let alert = UIAlertController(title:"Media Item Not Found!",
-                                              message: "Oops, this should never happen!",
-                                              preferredStyle: UIAlertControllerStyle.alert)
-                
-                let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                    
-                })
-                alert.addAction(action)
-                
-                present(alert, animated: true, completion: nil)
+                alert(title: "Media Item Not Found!",message: "Oops, this should never happen!",completion:nil)
             }
             break
             
@@ -408,16 +386,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Scripture_Index:
             if (globals.media.active?.scriptureIndex?.eligible == nil) {
-                let alert = UIAlertController(title:"No Scripture Index Available",
-                                              message: "The Scripture references for these media items are not specific.",
-                                              preferredStyle: UIAlertControllerStyle.alert)
-                
-                let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                    
-                })
-                alert.addAction(action)
-                
-                present(alert, animated: true, completion: nil)
+                alert(title:"No Scripture Index Available",message: "The Scripture references for these media items are not specific.",completion:nil)
             } else {
                 if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SCRIPTURE_INDEX) as? ScriptureIndexViewController {
                     
@@ -432,16 +401,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Lexicon_Index:
             if (globals.media.active?.lexicon?.eligible == nil) {
-                let alert = UIAlertController(title:"No Lexicon Index Available",
-                                              message: "These media items do not have HTML transcripts.",
-                                              preferredStyle: UIAlertControllerStyle.alert)
-                
-                let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                    
-                })
-                alert.addAction(action)
-                
-                present(alert, animated: true, completion: nil)
+                alert(title:"No Lexicon Index Available",
+                      message: "These media items do not have HTML transcripts.",
+                      completion:nil)
             } else {
                 if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.LEXICON_INDEX) as? LexiconIndexViewController {
                     
@@ -469,16 +431,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.History:
             if globals.relevantHistoryList == nil {
-                let alert = UIAlertController(title: "History is empty.",
-                                              message: nil,
-                                              preferredStyle: UIAlertControllerStyle.alert)
-                
-                let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                    
-                })
-                alert.addAction(cancelAction)
-                
-                present(alert, animated: true, completion: nil)
+                alert(title: "History is empty.",
+                      message: nil,
+                      completion:nil)
             } else {
                 if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -513,24 +468,15 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Clear_History:
-            let alert = UIAlertController(title: "Delete History?",
-                                          message: nil,
-                                          preferredStyle: UIAlertControllerStyle.alert)
-            
-            let deleteAction = UIAlertAction(title: "Delete", style: UIAlertActionStyle.destructive, handler: { (UIAlertAction) -> Void in
-                globals.history = nil
-                let defaults = UserDefaults.standard
-                defaults.removeObject(forKey: Constants.HISTORY)
-                defaults.synchronize()
-            })
-            alert.addAction(deleteAction)
-            
-            let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                
-            })
-            alert.addAction(cancelAction)
-            
-            present(alert, animated: true, completion: nil)
+            firstSecondCancel(viewController: self, title: "Delete History?", message: nil,
+                              firstTitle: "Delete", firstAction:    {
+                                                                        globals.history = nil
+                                                                        let defaults = UserDefaults.standard
+                                                                        defaults.removeObject(forKey: Constants.HISTORY)
+                                                                        defaults.synchronize()
+                                                                    }, firstStyle: .default,
+                              secondTitle: nil, secondAction: nil, secondStyle: .default,
+                              cancelAction: nil)
             break
             
         case Constants.Strings.Live:
@@ -565,7 +511,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewController:rowClickedAtIndex")
+            alert(title: "Not Main Thread", message: "MediaTableViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -743,29 +689,14 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top) // was Middle
                     } else {
                         //                        dismiss(animated: true, completion: nil)
-                        
-                        let alert = UIAlertController(title:"Not in List",
-                                                      message: "\"\(mediaItem.title!)\" is not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",
-                            preferredStyle: UIAlertControllerStyle.alert)
-                        
-                        let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                            
-                        })
-                        alert.addAction(action)
-                        
-                        present(alert, animated: true, completion: nil)
+                        alert(  title:"Not in List",
+                                message: "\"\(mediaItem.title!)\" is not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",
+                                completion:nil)
                     }
                 } else {
-                    let alert = UIAlertController(title:"Media Item Not Found!",
-                                                  message: "Oops, this should never happen!",
-                                                  preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-                        
-                    })
-                    alert.addAction(action)
-                    
-                    present(alert, animated: true, completion: nil)
+                    alert(title:"Media Item Not Found!",
+                          message: "Oops, this should never happen!",
+                          completion:nil)
                 }
             }
             break
@@ -1025,16 +956,9 @@ extension MediaTableViewController : URLSessionDownloadDelegate
         } else {
             DispatchQueue.main.async(execute: { () -> Void in
                 if (UIApplication.shared.applicationState == UIApplicationState.active) {
-                    let alert = UIAlertController(title:"Unable to Download Media",
-                                                  message: "Please try to refresh the list again.",
-                                                  preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                        
-                    })
-                    alert.addAction(action)
-                    
-                    self.present(alert, animated: true, completion: nil)
+                    alert(title:"Unable to Download Media",
+                          message: "Please try to refresh the list again.",
+                          completion:nil)
                 }
                 
                 self.refreshControl!.endRefreshing()
@@ -1574,18 +1498,9 @@ class MediaTableViewController : UIViewController
     func jsonAlert(title:String,message:String)
     {
         if (UIApplication.shared.applicationState == UIApplicationState.active) {
-            DispatchQueue.main.async(execute: { () -> Void in
-                let alert = UIAlertController(title:title,
-                                              message:message,
-                                              preferredStyle: UIAlertControllerStyle.alert)
-                
-                let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                    
-                })
-                alert.addAction(action)
-                
-                self.present(alert, animated: true, completion: nil)
-            })
+            alert(title:title,
+                  message:message,
+                  completion:nil)
         }
     }
 
@@ -1854,7 +1769,7 @@ class MediaTableViewController : UIViewController
             })
             
             globals.media.all = MediaListGroupSort(mediaItems: globals.mediaRepository.list)
-
+            
 //            print(globals.mediaRepository.list?.count)
 //            print(globals.media.all?.list?.count)
             
@@ -1990,7 +1905,7 @@ class MediaTableViewController : UIViewController
     func handleRefresh(_ refreshControl: UIRefreshControl)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewController:handleRefresh")
+            alert(title: "Not Main Thread", message: "MediaTableViewController:handleRefresh", completion: nil)
             return
         }
         
@@ -2977,7 +2892,7 @@ class MediaTableViewController : UIViewController
     func setupShowHide()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewController:setupShowHide")
+            alert(title: "Not Main Thread", message: "MediaTableViewController:setupShowHide", completion: nil)
             return
         }
         
@@ -3293,7 +3208,8 @@ extension MediaTableViewController : UITableViewDelegate
         
         var search:UITableViewRowAction!
         var transcript:UITableViewRowAction!
-        var recognize:UITableViewRowAction!
+        var recognizeAudio:UITableViewRowAction!
+        var recognizeVideo:UITableViewRowAction!
         var words:UITableViewRowAction!
         var scripture:UITableViewRowAction!
         
@@ -3441,36 +3357,76 @@ extension MediaTableViewController : UITableViewDelegate
         }
         transcript.backgroundColor = UIColor.purple
         
-        recognize = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
-            if mediaItem.voicebase?.transcript == nil {
-                if let transcribing = mediaItem.voicebase?.transcribing, !transcribing {
-                    firstSecondCancel(viewController: self, title: "Begin Transcription?", message: "", firstTitle: "Yes", firstAction: {
-                        DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-                            mediaItem.voicebase?.getTranscript()
-                        })
-                        tableView.setEditing(false, animated: true)
-                    }, secondTitle: "No", secondAction: nil, cancelAction: nil)
-                } else {
-                    alert(title: "Transcription in Progress", message: "You will be notified when the transcript for \(mediaItem.title!) is available.",completion: {
-                        tableView.setEditing(false, animated: true)
-                    })
-                }
-            } else {
-                firstSecondCancel(viewController: self, title: "Machine Transcript", message: "", firstTitle: "Show", firstAction: {
-                    let sourceView = cell.subviews[0]
-                    let sourceRectView = cell.subviews[0].subviews[actions.index(of: recognize)!]
-                    
-                    var htmlString = "<!DOCTYPE html><html><body>"
-                    
-                    htmlString = htmlString + mediaItem.headerHTML! + "<br/><center>MACHINE GENERATED TRANSCRIPT</center><br/>" + mediaItem.voicebase!.transcript! + "</body></html>"
-                    
-                    popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-                }, secondTitle: "Delete", secondAction: {
-                    mediaItem.voicebase?.remove()
-                    tableView.setEditing(false, animated: true)
-                }, cancelAction: nil)
+        func recognizeTVTRA(transcript:VoiceBase?) -> UITableViewRowAction
+        {
+            guard let purpose = transcript?.purpose else {
+                return UITableViewRowAction()
             }
+            
+            var prefix:String!
+            
+            switch purpose {
+            case Purpose.audio:
+                prefix = Constants.FA.AUDIO
+                
+            case Purpose.video:
+                prefix = Constants.FA.VIDEO
+                
+            default:
+                prefix = ""
+                break
+            }
+            
+            var action:UITableViewRowAction!
+            
+            action = UITableViewRowAction(style: .normal, title: prefix + "\n" + Constants.FA.TRANSCRIPT) { action, index in
+                if transcript?.transcript == nil {
+                    if let transcribing = transcript?.transcribing, !transcribing {
+                        firstSecondCancel(viewController: self, title: "Begin Creating Machine Generated Transcript? (\(purpose.lowercased()))", message: "", firstTitle: "Yes", firstAction: {
+                            DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+                                transcript?.getTranscript()
+                            })
+                            tableView.setEditing(false, animated: true)
+                        }, firstStyle: .default, secondTitle: "No", secondAction: nil, secondStyle: .default, cancelAction: nil)
+                    } else {
+                        let completion = transcript?.percentComplete == nil ? "" : " (\(transcript!.percentComplete!)% complete)"
+                        
+                        alert(title: "Machine Generated Transcript in Progress", message: "You will be notified when the machine generated transcript for \(mediaItem.title!)\(completion) is available.",completion: {
+                            tableView.setEditing(false, animated: true)
+                        })
+                    }
+                } else {
+                    firstSecondCancel(viewController: self, title: "Machine Generated Transcript (\(purpose.lowercased()))", message: "This is a machine generated transcript.  Please note that it lacks proper formatting and may have signifcant errors.",
+                                      firstTitle: "Show", firstAction: {
+                                        let sourceView = cell.subviews[0]
+                                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
+                                        
+                                        var htmlString = "<!DOCTYPE html><html><body>"
+                                        
+                                        htmlString = htmlString + mediaItem.headerHTML! +
+                                            "<br/>" +
+                                            "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(transcript!.purpose!))</center>" +
+                                            "<br/>" +
+                                            transcript!.transcript! +
+//                                            "<br/>" +
+//                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
+                                            "</body></html>"
+                                        
+                                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                    }, firstStyle: .default,
+                       
+                       secondTitle: "Delete", secondAction: {
+                        transcript?.remove()
+                        tableView.setEditing(false, animated: true)
+                    }, secondStyle: .default,
+                       cancelAction: nil)
+                }
+            }
+            
+            return action
         }
+        recognizeAudio = recognizeTVTRA(transcript: mediaItem.audioTranscript)
+        recognizeVideo = recognizeTVTRA(transcript: mediaItem.videoTranscript)
         
         scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
             let sourceView = cell.subviews[0]
@@ -3510,14 +3466,27 @@ extension MediaTableViewController : UITableViewDelegate
             actions.append(transcript)
         }
     
-        if !mediaItem.hasNotes {
-            if mediaItem.voicebase?.transcript != nil {
-                recognize.backgroundColor = UIColor.lightGray
+//        if !mediaItem.hasNotes {
+
+        if mediaItem.hasAudio {
+            if mediaItem.audioTranscript?.transcript != nil {
+                recognizeAudio.backgroundColor = UIColor.lightGray
             } else {
-                recognize.backgroundColor = UIColor.darkGray
+                recognizeAudio.backgroundColor = UIColor.darkGray
             }
-            actions.append(recognize)
+            actions.append(recognizeAudio)
         }
+        
+        if mediaItem.hasVideo {
+            if mediaItem.videoTranscript?.transcript != nil {
+                recognizeVideo.backgroundColor = UIColor.lightGray
+            } else {
+                recognizeVideo.backgroundColor = UIColor.darkGray
+            }
+            actions.append(recognizeVideo)
+        }
+
+        //        }
         
         return actions.count > 0 ? actions : nil
     }

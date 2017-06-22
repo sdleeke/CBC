@@ -526,6 +526,7 @@ struct Constants {
         static let TRANSCRIPT = "\u{f0f6}"
         static let AUDIO = "\u{f025}"
         static let VIDEO = "\u{f03d}"
+        static let LIST = "\u{f03a}"
         
         static let DOWNLOAD_FONT_SIZE = CGFloat(18.0)
         static let DOWNLOAD = "\u{f019}"

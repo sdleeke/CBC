@@ -53,7 +53,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "ScriptureViewController:rowClickedAtIndex")
+            alert(title: "Not Main Thread", message: "ScriptureViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -97,11 +97,11 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                                         }, completion: { (data:Any?) in
                                             printHTML(viewController: self, htmlString: data as? String)
                                         })
-                    },
+                    }, firstStyle: .default,
                                       secondTitle: "No",
                                       secondAction: {
                                         printHTML(viewController: self, htmlString: self.webViewController?.html.string)
-                    },
+                    }, secondStyle: .default,
                                       cancelAction: {}
                     )
                 } else {

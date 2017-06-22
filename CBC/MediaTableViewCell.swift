@@ -48,7 +48,7 @@ class MediaTableViewCell: UITableViewCell
     func hideUI()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:hideUI")
+            alert(title: "Not Main Thread", message: "MediaTableViewCell:hideUI", completion: nil)
             return
         }
         
@@ -60,7 +60,7 @@ class MediaTableViewCell: UITableViewCell
     func isHiddenUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:isHiddenUI")
+            alert(title: "Not Main Thread", message: "MediaTableViewCell:isHiddenUI", completion: nil)
             return
         }
         
@@ -79,7 +79,7 @@ class MediaTableViewCell: UITableViewCell
     func updateDownloadButton()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:updateDownloadButton")
+            alert(title: "Not Main Thread", message: "MediaTableViewCell:updateDownloadButton", completion: nil)
             return
         }
         
@@ -323,7 +323,7 @@ class MediaTableViewCell: UITableViewCell
     func updateUI()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:updateUI")
+            alert(title: "Not Main Thread", message: "MediaTableViewCell:updateUI", completion: nil)
             return
         }
         
@@ -394,7 +394,7 @@ class MediaTableViewCell: UITableViewCell
     @IBAction func downloadAction(_ sender: UIButton)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:downloadAction")
+            alert(title: "Not Main Thread", message: "MediaTableViewCell:downloadAction", completion: nil)
             return
         }
         
@@ -466,7 +466,7 @@ class MediaTableViewCell: UITableViewCell
     @IBAction func tagsAction(_ sender: UIButton)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:tagsAction")
+            alert(title: "Not Main Thread", message: "MediaTableViewCell:tagsAction", completion: nil)
             return
         }
         
@@ -536,7 +536,7 @@ class MediaTableViewCell: UITableViewCell
     func updateTagsButton()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:updateTagsButton")
+            alert(title: "Not Main Thread", message: "MediaTableViewCell:updateTagsButton", completion: nil)
             return
         }
         
@@ -567,7 +567,7 @@ class MediaTableViewCell: UITableViewCell
     func setupTagsToolbar()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:setupTagsToolbar")
+            alert(title: "Not Main Thread", message: "MediaTableViewCell:setupTagsToolbar", completion: nil)
             return
         }
         
@@ -610,7 +610,7 @@ class MediaTableViewCell: UITableViewCell
     func setupDownloadButtonToolbar()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:setupDownloadButtonToolbar")
+            alert(title: "Not Main Thread", message: "MediaTableViewCell:setupDownloadButtonToolbar", completion: nil)
             return
         }
         
@@ -649,7 +649,7 @@ class MediaTableViewCell: UITableViewCell
     func setupIcons()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:setupIcons")
+            alert(title: "Not Main Thread", message: "MediaTableViewCell:setupIcons", completion: nil)
             return
         }
         
@@ -786,7 +786,7 @@ class MediaTableViewCell: UITableViewCell
     func setupProgressBarForAudio()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaTableViewCell:setupProgressBarForAudio")
+            alert(title: "Not Main Thread", message: "MediaTableViewCell:setupProgressBarForAudio", completion: nil)
             return
         }
         

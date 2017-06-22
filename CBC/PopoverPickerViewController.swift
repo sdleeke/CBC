@@ -87,6 +87,11 @@ extension PopoverPickerViewController : UIPickerViewDataSource
         }
     }
     
+//    func pickerView(_ pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat
+//    {
+//        return 48.0
+//    }
+    
     func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView
     {
         var label:UILabel!
@@ -96,6 +101,9 @@ extension PopoverPickerViewController : UIPickerViewDataSource
         } else {
             label = UILabel()
         }
+        
+        label.numberOfLines = 0
+        label.lineBreakMode = .byWordWrapping
         
         if mediaListGroupSort != nil {
             if let title = title(forRow: row, forComponent: component) {
@@ -116,7 +124,9 @@ extension PopoverPickerViewController : UIPickerViewDataSource
             
             label.textAlignment = .center
         }
-        
+
+        label.sizeToFit()
+
         return label
     }
     
@@ -241,7 +251,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
             if let strings = strings {
                 for string in strings {
                     //                print(stringNode.string)
-                    let string = string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+//                    let string = string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
                     
                     let stringWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width
                     
@@ -293,7 +303,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose: PopoverPurpose, mediaItem: MediaItem?)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "PopoverPickerViewController:rowClickedAtIndex")
+            alert(title: "Not Main Thread", message: "PopoverPickerViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -537,7 +547,7 @@ class PopoverPickerViewController : UIViewController
     func setPreferredContentSize()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "PopoverPickerViewController:setPreferredContentSize")
+            alert(title: "Not Main Thread", message: "PopoverPickerViewController:setPreferredContentSize",completion:nil)
             return
         }
 

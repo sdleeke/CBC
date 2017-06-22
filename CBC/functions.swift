@@ -2750,36 +2750,11 @@ func printMediaItem(viewController:UIViewController, mediaItem:MediaItem?)
 
 func pageOrientation(viewController:UIViewController,portrait:((Void)->(Void))?,landscape:((Void)->(Void))?,cancel:((Void)->(Void))?)
 {
-    firstSecondCancel(viewController: viewController, title: "Page Orientation", message: "", firstTitle: "Portrait", firstAction: portrait, secondTitle: "Landscape", secondAction: landscape, cancelAction: cancel)
-}
-
-func firstSecondCancel(viewController:UIViewController,title:String,message:String,
-                       firstTitle:String,   firstAction:((Void)->(Void))?,
-                       secondTitle:String,  secondAction:((Void)->(Void))?,
-                       cancelAction:((Void)->(Void))?)
-{
-    let alert = UIAlertController(title: title,
-                                  message: message,
-                                  preferredStyle: UIAlertControllerStyle.alert)
-    
-    let yesAction = UIAlertAction(title: firstTitle, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-        firstAction?()
-    })
-    alert.addAction(yesAction)
-    
-    let noAction = UIAlertAction(title: secondTitle, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
-        secondAction?()
-    })
-    alert.addAction(noAction)
-    
-    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-        cancelAction?()
-    })
-    alert.addAction(cancelAction)
-    
-    DispatchQueue.main.async(execute: { () -> Void in
-        viewController.present(alert, animated: true, completion: nil)
-    })
+    firstSecondCancel(viewController: viewController,
+                      title: "Page Orientation", message: nil,
+                      firstTitle: "Portrait", firstAction: portrait, firstStyle: .default,
+                      secondTitle: "Landscape", secondAction: landscape, secondStyle: .default,
+                      cancelAction: cancel)
 }
 
 func printMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?,Bool,Bool)->String?)?,links:Bool,columns:Bool)
@@ -2811,18 +2786,16 @@ func printMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,str
 
 func showSendMailErrorAlert(viewController:UIViewController)
 {
-    let alert = UIAlertController(title: "Could Not Send Email",
-                                  message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",
-                                  preferredStyle: UIAlertControllerStyle.alert)
-    
-    let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-        
-    })
-    alert.addAction(action)
-    
-    DispatchQueue.main.async(execute: { () -> Void in
-        viewController.present(alert, animated: true, completion: nil)
-    })
+    alert(title: "Could Not Send Email",message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",completion:nil)
+//    
+//    let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+//        
+//    })
+//    alert.addAction(action)
+//    
+//    DispatchQueue.main.async(execute: { () -> Void in
+//        viewController.present(alert, animated: true, completion: nil)
+//    })
 }
 
 
@@ -2852,6 +2825,70 @@ func mailMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stri
             viewController.present(mailComposeViewController, animated: true, completion: nil)
         }
     })
+}
+
+func hmsToSeconds(string:String?) -> Double?
+{
+    guard var string = string?.replacingOccurrences(of: ",", with: ".") else {
+        return nil
+    }
+    
+    var numbers = [Double]()
+    
+    repeat {
+        if let index = string.range(of: ":") {
+            let numberString = string.substring(to: index.lowerBound)
+            
+            if let number = Double(numberString) {
+                numbers.append(number)
+            }
+
+            string = string.substring(from: index.upperBound)
+        }
+    } while string.range(of: ":") != nil
+
+    if !string.isEmpty {
+        if let number = Double(string) {
+            numbers.append(number)
+        }
+    }
+
+    var seconds = 0.0
+    var counter = 0.0
+    
+    for number in numbers.reversed() {
+        seconds = seconds + (counter != 0 ? number * pow(60.0,counter) : number)
+        counter += 1
+    }
+    
+    return seconds
+}
+
+func secondsToHMS(seconds:String?) -> String?
+{
+    guard let seconds = seconds else {
+        return nil
+    }
+    
+    guard let timeNow = Double(seconds) else {
+        return nil
+    }
+    
+    let hours = max(Int(timeNow / (60*60)),0)
+    let mins = max(Int((timeNow - (Double(hours) * 60*60)) / 60),0)
+    let sec = max(Int(timeNow.truncatingRemainder(dividingBy: 60)),0)
+    
+    var hms:String
+    
+    if (hours > 0) {
+        hms = "\(String(format: "%d",hours)):"
+    } else {
+        hms = Constants.EMPTY_STRING
+    }
+    
+    hms = hms + "\(String(format: "%02d",mins)):\(String(format: "%02d",sec))"
+
+    return hms
 }
 
 func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:String?,barButtonItem:UIBarButtonItem?,sourceView:UIView?,sourceRectView:UIView?,htmlString:String?)
@@ -3662,10 +3699,9 @@ func alert(title:String?,message:String?,completion:((Void)->(Void))?)
         presenting = false
         
         if let alert = alert.first {
+            presenting = true
             DispatchQueue.main.async(execute: { () -> Void in
-                UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion:  {
-                    presenting = true
-                })
+                UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
             })
         }
     })
@@ -3674,28 +3710,133 @@ func alert(title:String?,message:String?,completion:((Void)->(Void))?)
     alert.append(newAlert)
     
     if !presenting, let alert = alert.first {
+        presenting = true
         DispatchQueue.main.async(execute: { () -> Void in
-            UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: {
-                presenting = true
-            })
+            UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
         })
     }
 }
 
-func userAlert(title:String?,message:String?)
+func searchAlert(vc:UIViewController?,title:String?,message:String?,searchAction:((_ alert:UIAlertController)->(Void))?)
 {
-    if (UIApplication.shared.applicationState == UIApplicationState.active) {
-        let alert = UIAlertController(title: title,
-                                      message: message,
-                                      preferredStyle: UIAlertControllerStyle.alert)
+    let newAlert = UIAlertController(title: title,
+                                     message: message,
+                                     preferredStyle: .alert)
+    
+    func endAlert()
+    {
+        if let index = alert.index(of: newAlert) {
+            alert.remove(at: index)
+        }
         
-        let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-            
+        presenting = false
+        
+        if let alert = alert.first {
+            presenting = true
+            DispatchQueue.main.async(execute: { () -> Void in
+                UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
+            })
+        }
+    }
+    
+    newAlert.addTextField(configurationHandler: { (textField:UITextField) in
+        textField.placeholder = "search string"
+    })
+    
+    let searchAction = UIAlertAction(title: "Search", style: UIAlertActionStyle.default, handler: {
+        alertItem -> Void in
+        searchAction?(newAlert)
+        endAlert()
+    })
+    newAlert.addAction(searchAction)
+    
+    let cancelAction = UIAlertAction(title: "Cancel", style: .default, handler: {
+        (action : UIAlertAction!) -> Void in
+        endAlert()
+    })
+    newAlert.addAction(cancelAction)
+    
+    alert.append(newAlert)
+    
+    if !presenting, let alert = alert.first {
+        presenting = true
+        DispatchQueue.main.async(execute: { () -> Void in
+            vc?.present(alert, animated: true, completion: nil)
         })
-        alert.addAction(action)
+    }
+}
+
+//func userAlert(title:String?,message:String?)
+//{
+//    if (UIApplication.shared.applicationState == UIApplicationState.active) {
+//        let alert = UIAlertController(title: title,
+//                                      message: message,
+//                                      preferredStyle: UIAlertControllerStyle.alert)
+//        
+//        let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+//            
+//        })
+//        alert.addAction(action)
+//        
+//        //        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
+//        
+//        DispatchQueue.main.async(execute: { () -> Void in
+//            UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
+//        })
+//    }
+//}
+
+func firstSecondCancel(viewController:UIViewController,title:String?,message:String?,
+                       firstTitle:String?,   firstAction:((Void)->(Void))?, firstStyle: UIAlertActionStyle,
+                       secondTitle:String?,  secondAction:((Void)->(Void))?, secondStyle: UIAlertActionStyle,
+                       cancelAction:((Void)->(Void))?)
+{
+    let newAlert = UIAlertController(title: title,
+                                     message: message,
+                                     preferredStyle: UIAlertControllerStyle.alert)
+    
+    func endAlert()
+    {
+        if let index = alert.index(of: newAlert) {
+            alert.remove(at: index)
+        }
         
-        //        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
+        presenting = false
         
+        if let alert = alert.first {
+            presenting = true
+            DispatchQueue.main.async(execute: { () -> Void in
+                UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
+            })
+        }
+    }
+
+    if firstTitle != nil {
+        let yesAction = UIAlertAction(title: firstTitle, style: firstStyle, handler: { (UIAlertAction) -> Void in
+            firstAction?()
+            endAlert()
+        })
+        newAlert.addAction(yesAction)
+    }
+
+    if secondTitle != nil {
+        let noAction = UIAlertAction(title: secondTitle, style: secondStyle, handler: { (UIAlertAction) -> Void in
+            secondAction?()
+            endAlert()
+        })
+        newAlert.addAction(noAction)
+    }
+    
+    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+        cancelAction?()
+        endAlert()
+    })
+    newAlert.addAction(cancelAction)
+    
+    alert.append(newAlert)
+    
+    if !presenting, let alert = alert.first {
+        presenting = true
         DispatchQueue.main.async(execute: { () -> Void in
             UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
         })

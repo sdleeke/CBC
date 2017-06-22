@@ -790,7 +790,7 @@ class MediaPlayer : NSObject {
     func stop()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaPlayer:stop")
+            alert(title: "Not Main Thread", message: "MediaPlayer:stop", completion: nil)
             return
         }
 

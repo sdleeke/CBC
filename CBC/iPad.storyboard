@@ -445,7 +445,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="749" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Spt-3A-E9i">
-                                                    <rect key="frame" x="20" y="16" width="390" height="20"/>
+                                                    <rect key="frame" x="20" y="8" width="390" height="20"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="n46-8i-ALt"/>
                                                     </constraints>
@@ -454,7 +454,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4uZ-39-i9r">
-                                                    <rect key="frame" x="20" y="38" width="364" height="57"/>
+                                                    <rect key="frame" x="20" y="30" width="364" height="65"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
@@ -482,7 +482,7 @@
                                             <constraints>
                                                 <constraint firstAttribute="bottomMargin" secondItem="L9x-Xt-BKK" secondAttribute="bottom" id="11n-tu-yOx"/>
                                                 <constraint firstAttribute="trailing" secondItem="L9x-Xt-BKK" secondAttribute="trailing" constant="4" id="18k-bq-8Go"/>
-                                                <constraint firstItem="Spt-3A-E9i" firstAttribute="top" secondItem="fzr-9D-Qsi" secondAttribute="topMargin" constant="8" id="2Ed-og-0fR"/>
+                                                <constraint firstItem="Spt-3A-E9i" firstAttribute="top" secondItem="fzr-9D-Qsi" secondAttribute="top" constant="8" id="2Ed-og-0fR"/>
                                                 <constraint firstAttribute="bottom" secondItem="4uZ-39-i9r" secondAttribute="bottom" constant="4" id="5LB-F2-m0w"/>
                                                 <constraint firstItem="nxS-ta-D6R" firstAttribute="leading" secondItem="fzr-9D-Qsi" secondAttribute="leading" constant="20" symbolic="YES" id="99D-Hn-WUw"/>
                                                 <constraint firstAttribute="bottomMargin" secondItem="iq3-ZA-EGB" secondAttribute="bottom" id="HW1-xu-Yfl"/>
@@ -1800,18 +1800,18 @@ Web site: www.countrysidebible.org</string>
                         <viewControllerLayoutGuide type="bottom" id="dfF-Sk-vFP"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="vtO-3p-c8v">
-                        <rect key="frame" x="0.0" y="64" width="414" height="672"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="231"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <searchBar contentMode="redraw" translatesAutoresizingMaskIntoConstraints="NO" id="iFe-Ke-XMe">
-                                <rect key="frame" x="0.0" y="0.0" width="414" height="44"/>
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="44"/>
                                 <textInputTraits key="textInputTraits"/>
                                 <connections>
                                     <outlet property="delegate" destination="XK5-KT-b8P" id="LLh-fw-9R2"/>
                                 </connections>
                             </searchBar>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="35" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="g8w-6P-vre">
-                                <rect key="frame" x="0.0" y="44" width="414" height="628"/>
+                                <rect key="frame" x="0.0" y="44" width="600" height="187"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" accessoryType="checkmark" indentationWidth="10" reuseIdentifier="PopoverCell" id="gxN-j6-OUN" customClass="PopoverTableViewCell" customModule="CBC" customModuleProvider="target">
@@ -1846,7 +1846,7 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </tableView>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="69l-jj-b4O">
-                                <rect key="frame" x="197" y="326" width="20" height="20"/>
+                                <rect key="frame" x="290" y="105.66666666666669" width="20" height="20"/>
                             </activityIndicatorView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -2302,7 +2302,7 @@ Web site: www.countrysidebible.org</string>
                                                     <rect key="frame" x="20" y="97" width="580" height="2"/>
                                                 </progressView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ZqQ-Jh-Doi" userLabel="Count">
-                                                    <rect key="frame" x="556" y="48" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="556.33333333333337" y="48" width="0.0" height="0.0"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -2473,6 +2473,6 @@ Web site: www.countrysidebible.org</string>
     <inferredMetricsTieBreakers>
         <segue reference="6Zl-qX-BXN"/>
         <segue reference="aB1-TK-hgY"/>
-        <segue reference="29o-8N-w4i"/>
+        <segue reference="h1S-N1-N0w"/>
     </inferredMetricsTieBreakers>
 </document>

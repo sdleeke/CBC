@@ -40,7 +40,7 @@ extension WebViewController : PopoverPickerControllerDelegate
     func stringPicked(_ string: String?)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "WebViewController:stringPicked")
+            alert(title: "Not Main Thread", message: "WebViewController:stringPicked", completion: nil)
             return
         }
         
@@ -100,7 +100,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
     func actionMenuItems(action: String?, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex")
+            alert(title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -141,11 +141,11 @@ extension WebViewController : PopoverTableViewControllerDelegate
                                     }, completion: { (data:Any?) in
                                         printHTML(viewController: self, htmlString: data as? String)
                                     })
-                },
+                }, firstStyle: .default,
                                   secondTitle: "No",
                                   secondAction: {
                                     printHTML(viewController: self, htmlString: self.html.string)
-                },
+                }, secondStyle: .default,
                                   cancelAction: {}
                 )
             } else {
@@ -158,16 +158,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Search:
-            let alert = UIAlertController(title: "Search",
-                                          message: Constants.EMPTY_STRING,
-                                          preferredStyle: .alert)
-            
-            alert.addTextField(configurationHandler: { (textField:UITextField) in
-                textField.placeholder = "search string"
-            })
-            
-            let searchAction = UIAlertAction(title: "Search", style: UIAlertActionStyle.default, handler: {
-                alertItem -> Void in
+            searchAlert(vc: self, title: "Search", message: nil, searchAction:  { (alert:UIAlertController) -> (Void) in
                 let searchText = (alert.textFields![0] as UITextField).text
                 
                 self.wkWebView?.isHidden = true
@@ -179,14 +170,35 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 _ = self.wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
             })
-            alert.addAction(searchAction)
-            
-            let cancelAction = UIAlertAction(title: "Cancel", style: .default, handler: {
-                (action : UIAlertAction!) -> Void in
-            })
-            alert.addAction(cancelAction)
-            
-            present(alert, animated: true, completion: nil)
+//            let alert = UIAlertController(title: "Search",
+//                                          message: Constants.EMPTY_STRING,
+//                                          preferredStyle: .alert)
+//            
+//            alert.addTextField(configurationHandler: { (textField:UITextField) in
+//                textField.placeholder = "search string"
+//            })
+//            
+//            let searchAction = UIAlertAction(title: "Search", style: UIAlertActionStyle.default, handler: {
+//                alertItem -> Void in
+//                let searchText = (alert.textFields![0] as UITextField).text
+//                
+//                self.wkWebView?.isHidden = true
+//                
+//                self.activityIndicator.isHidden = false
+//                self.activityIndicator.startAnimating()
+//                
+//                self.html.string = insertHead(stripHead(self.selectedMediaItem?.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
+//                
+//                _ = self.wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
+//            })
+//            alert.addAction(searchAction)
+//            
+//            let cancelAction = UIAlertAction(title: "Cancel", style: .default, handler: {
+//                (action : UIAlertAction!) -> Void in
+//            })
+//            alert.addAction(cancelAction)
+//            
+//            present(alert, animated: true, completion: nil)
             break
             
         case Constants.Strings.Word_Picker:
@@ -295,7 +307,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex")
+            alert(title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -661,7 +673,7 @@ class WebViewController: UIViewController
     func done()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "WebViewController:done")
+            alert(title: "Not Main Thread", message: "WebViewController:done", completion: nil)
             return
         }
 

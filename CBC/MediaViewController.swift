@@ -263,19 +263,19 @@ extension MediaViewController : PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaViewController:rowClickedAtIndex")
+            alert(title: "Not Main Thread", message: "MediaViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
-        dismiss(animated: true, completion: nil)
-        
-        guard let strings = strings else {
+        guard let string = strings?[index] else {
             return
         }
         
         switch purpose {
         case .selectingCellAction:
-            switch strings[index] {
+            dismiss(animated: true, completion: nil)
+            
+            switch string {
             case Constants.Strings.Download_Audio:
                 mediaItem?.audioDownload?.download()
                 break
@@ -294,7 +294,90 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingAction:
-            actionMenu(action:strings[index],mediaItem:mediaItem)
+            dismiss(animated: true, completion: nil)
+            actionMenu(action:string,mediaItem:mediaItem)
+            break
+            
+        case .selectingKeyword:
+            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .popover
+                
+                navigationController.popoverPresentationController?.delegate = self
+                
+                popover.navigationController?.isNavigationBarHidden = false
+                
+                popover.navigationItem.title = string
+                
+                popover.selectedMediaItem = self.popover?.selectedMediaItem
+                popover.transcript = self.popover?.transcript
+                
+                popover.delegate = self
+                popover.purpose = .selectingTime
+                popover.section.strings = popover.transcript?.srtTokenTimes(token: string)
+//                    ?.map({ (string:String) -> String in
+//                    return secondsToHMS(seconds: string) ?? "ERROR"
+//                })
+                
+                self.popover?.navigationController?.pushViewController(popover, animated: true)
+            }
+            break
+            
+        case .selectingTopic:
+            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .popover
+                
+                navigationController.popoverPresentationController?.delegate = self
+                
+                popover.navigationController?.isNavigationBarHidden = false
+                
+                popover.navigationItem.title = string
+                
+                popover.selectedMediaItem = self.popover?.selectedMediaItem
+                popover.transcript = self.popover?.transcript
+
+                popover.delegate = self
+                popover.purpose = .selectingTopicKeyword
+                popover.section.strings = popover.transcript?.topicKeywords(topic: string)
+                
+                self.popover?.navigationController?.pushViewController(popover, animated: true)
+            }
+            break
+            
+        case .selectingTopicKeyword:
+            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .popover
+                
+                navigationController.popoverPresentationController?.delegate = self
+                
+                popover.navigationController?.isNavigationBarHidden = false
+                
+                popover.navigationItem.title = string
+                
+                popover.selectedMediaItem = self.popover?.selectedMediaItem
+                popover.transcript = self.popover?.transcript
+
+                popover.delegate = self
+                popover.purpose = .selectingTime
+                
+                if let topic = self.popover?.navigationController?.visibleViewController?.navigationItem.title {
+                    popover.section.strings = popover.transcript?.topicKeywordTimes(topic: topic, keyword: string)?.map({ (string:String) -> String in
+                        return secondsToHMS(seconds: string) ?? "ERROR"
+                    })
+                }
+                
+                self.popover?.navigationController?.pushViewController(popover, animated: true)
+            }
+            break
+
+        case .selectingTime:
+//            dismiss(animated: true, completion: nil)
+            
+            if let seconds = hmsToSeconds(string: string) {
+                globals.mediaPlayer.seek(to: seconds)
+            }
             break
             
         default:
@@ -578,6 +661,20 @@ extension MediaViewController: UIPopoverPresentationControllerDelegate
     
 }
 
+extension MediaViewController : PopoverPickerControllerDelegate
+{
+    func stringPicked(_ string: String?)
+    {
+        dismiss(animated: true, completion: nil)
+    
+        guard Thread.isMainThread else {
+            alert(title: "Not Main Thread", message: "MediaViewController:stringPicked", completion: nil)
+            return
+        }
+        
+    }
+}
+
 enum VideoLocation {
     case withDocuments
     case withTableView
@@ -588,6 +685,8 @@ class MediaViewController: UIViewController
     @IBOutlet weak var controlView: ControlView!
     
     @IBOutlet weak var controlViewTop: NSLayoutConstraint!
+    
+    var popover : PopoverTableViewController?
     
     var videoLocation : VideoLocation = .withDocuments
     
@@ -933,7 +1032,7 @@ class MediaViewController: UIViewController
     {
 //        print(selectedMediaItem!.playing!)
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaViewController:audioOrVideoSelection")
+            alert(title: "Not Main Thread", message: "MediaViewController:audioOrVideoSelection", completion: nil)
             return
         }
         
@@ -948,6 +1047,7 @@ class MediaViewController: UIViewController
                 if (globals.mediaPlayer.mediaItem == selectedMediaItem) {
                     globals.mediaPlayer.stop() // IfPlaying
                     
+                    tableView.isEditing = false
                     globals.mediaPlayer.view?.isHidden = true
                     
                     videoLocation = .withDocuments
@@ -981,6 +1081,7 @@ class MediaViewController: UIViewController
                 if (globals.mediaPlayer.mediaItem == selectedMediaItem) {
                     globals.mediaPlayer.stop() // IfPlaying
                     
+                    tableView.isEditing = false
                     setupSpinner()
                     
                     removeSliderObserver()
@@ -1021,7 +1122,7 @@ class MediaViewController: UIViewController
     @IBAction func stvAction(_ sender: UISegmentedControl)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaViewController:stvAction")
+            alert(title: "Not Main Thread", message: "MediaViewController:stvAction", completion: nil)
             return
         }
         
@@ -1154,7 +1255,7 @@ class MediaViewController: UIViewController
     func setupSTVControl()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaViewController:setupSTVControl")
+            alert(title: "Not Main Thread", message: "MediaViewController:setupSTVControl", completion: nil)
             return
         }
 
@@ -1585,18 +1686,9 @@ class MediaViewController: UIViewController
 
     func showSendMessageErrorAlert()
     {
-        let alert = UIAlertController(title: "Could Not Send a Message",
-                                      message: "Your device could not send a text message.  Please check your configuration and try again.",
-                                      preferredStyle: UIAlertControllerStyle.alert)
-        
-        let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-            
-        })
-        alert.addAction(action)
-        
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.present(alert, animated: true, completion: nil)
-        })
+        alert(title: "Could Not Send a Message",
+              message: "Your device could not send a text message.  Please check your configuration and try again.",
+              completion:nil)
     }
     
     func message(_ mediaItem:MediaItem?)
@@ -1980,6 +2072,8 @@ class MediaViewController: UIViewController
             videoLocation = .withDocuments
             break
         }
+        
+        tableView.isEditing = false
         
         if globals.mediaPlayer.mediaItem == selectedMediaItem {
             updateUI()
@@ -2540,7 +2634,7 @@ class MediaViewController: UIViewController
     fileprivate func setupDocumentsAndVideo()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaViewController:setupDocumentsAndVideo")
+            alert(title: "Not Main Thread", message: "MediaViewController:setupDocumentsAndVideo", completion: nil)
             return
         }
         
@@ -2784,7 +2878,7 @@ class MediaViewController: UIViewController
     func setupPlayPauseButton()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaViewController:setupPlayPauseButton")
+            alert(title: "Not Main Thread", message: "MediaViewController:setupPlayPauseButton", completion: nil)
             return
         }
         
@@ -3511,7 +3605,7 @@ class MediaViewController: UIViewController
     fileprivate func setTimes(timeNow:Double, length:Double)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaViewController:setTimes")
+            alert(title: "Not Main Thread", message: "MediaViewController:setTimes", completion: nil)
             return
         }
         
@@ -3691,7 +3785,7 @@ class MediaViewController: UIViewController
     fileprivate func setupSliderAndTimes()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaViewController:setupSliderAndTimes")
+            alert(title: "Not Main Thread", message: "MediaViewController:setupSliderAndTimes", completion: nil)
             return
         }
         
@@ -3747,7 +3841,7 @@ class MediaViewController: UIViewController
     func sliderTimer()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaViewController:sliderTimer")
+            alert(title: "Not Main Thread", message: "MediaViewController:sliderTimer", completion: nil)
             return
         }
         
@@ -3959,7 +4053,7 @@ class MediaViewController: UIViewController
     func setupSpinner()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "MediaViewController:setupSpinner")
+            alert(title: "Not Main Thread", message: "MediaViewController:setupSpinner", completion: nil)
             return
         }
         
@@ -4094,9 +4188,98 @@ extension MediaViewController : UITableViewDataSource
         return cell
     }
     
+    func cancel()
+    {
+        dismiss(animated: true, completion: nil)
+    }
+    
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
         return editActionsAtIndexPath(tableView,indexPath:indexPath) != nil
+    }
+    
+    func searchVideo()
+    {
+        search(purpose: Purpose.video)
+    }
+    
+    func searchAudio()
+    {
+        search(purpose: Purpose.audio)
+    }
+    
+    func search(purpose:String)
+    {
+        var transcript:VoiceBase?
+        
+        switch purpose {
+        case Purpose.audio:
+            transcript = self.popover?.selectedMediaItem?.audioTranscript
+            break
+        case Purpose.video:
+            transcript = self.popover?.selectedMediaItem?.videoTranscript
+            break
+        default:
+            break
+        }
+        
+        searchAlert(vc: self.popover, title: "Search", message: nil, searchAction:  { (alert:UIAlertController) -> (Void) in
+            guard let searchText = (alert.textFields![0] as UITextField).text else {
+                return
+            }
+
+            if let times = transcript?.searchSRTArrays(string: searchText)?.filter({ (srtArray:[String]) -> Bool in
+                var array = srtArray
+                
+                if let count = array.first {
+                    array.remove(at: 0)
+                } else {
+                    return false
+                }
+                
+                if let timeWindow = array.first {
+                    if let start = timeWindow.components(separatedBy: " --> ").first {
+                        return true
+                    }
+                }
+                
+                return false
+            }).map({ (srtArray:[String]) -> String in
+                var array = srtArray
+                
+                if let count = array.first {
+                    array.remove(at: 0)
+                }
+                
+                if let timeWindow = array.first {
+                    if let start = timeWindow.components(separatedBy: " --> ").first {
+                        return start
+                    }
+                }
+                
+                return "" // should never happen
+            }) {
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                    navigationController.modalPresentationStyle = .popover
+                    
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    popover.navigationController?.isNavigationBarHidden = false
+                    
+                    popover.navigationItem.title = searchText
+                    
+                    popover.selectedMediaItem = self.popover?.selectedMediaItem
+                    popover.transcript = self.popover?.transcript
+                    
+                    popover.delegate = self
+                    popover.purpose = .selectingTime
+                    popover.section.strings = times
+                    
+                    self.popover?.navigationController?.pushViewController(popover, animated: true)
+                }
+            }
+        })
     }
     
     func editActionsAtIndexPath(_ tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
@@ -4112,8 +4295,12 @@ extension MediaViewController : UITableViewDataSource
         var actions = [UITableViewRowAction]()
         
         var transcript:UITableViewRowAction!
-        var recognize:UITableViewRowAction!
+        var recognizeAudio:UITableViewRowAction!
+        var recognizeVideo:UITableViewRowAction!
         var scripture:UITableViewRowAction!
+        var audioKeywords:UITableViewRowAction!
+        var videoKeywords:UITableViewRowAction!
+        var topics:UITableViewRowAction!
         
         transcript = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
             let sourceView = cell.subviews[0]
@@ -4140,35 +4327,76 @@ extension MediaViewController : UITableViewDataSource
         }
         transcript.backgroundColor = UIColor.purple//controlBlue()
         
-        recognize = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
-            if mediaItem.voicebase?.transcript == nil {
-                if let transcribing = mediaItem.voicebase?.transcribing, !transcribing {
-                    firstSecondCancel(viewController: self, title: "Begin Transcription?", message: "", firstTitle: "Yes", firstAction: {
-                        DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-                            mediaItem.voicebase?.getTranscript()
-                        })
-                        tableView.setEditing(false, animated: true)
-                    }, secondTitle: "No", secondAction: nil, cancelAction: nil)
-                } else {
-                    alert(title: "Transcription in Progress", message: "You will be notified when the transcript for \(mediaItem.title!) is available.",completion: {
-                        tableView.setEditing(false, animated: true)
-                    })
-                }
-            } else {
-                firstSecondCancel(viewController: self, title: "Machine Transcript", message: "", firstTitle: "Show", firstAction: {
-                    let sourceView = cell.subviews[0]
-                    let sourceRectView = cell.subviews[0].subviews[actions.index(of: recognize)!]
-                    
-                    var htmlString = "<!DOCTYPE html><html><body>"
-                    
-                    htmlString = htmlString + mediaItem.headerHTML! + "<br/><center>MACHINE GENERATED TRANSCRIPT</center><br/>" + mediaItem.voicebase!.transcript! + "</body></html>"
-                    
-                    popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-                }, secondTitle: "Delete", secondAction: {
-                    mediaItem.voicebase?.remove()
-                }, cancelAction: nil)
+        func recognizeTVTRA(transcript:VoiceBase?) -> UITableViewRowAction
+        {
+            guard let purpose = transcript?.purpose else {
+                return UITableViewRowAction()
             }
+            
+            var prefix:String!
+            
+            switch purpose {
+            case Purpose.audio:
+                prefix = Constants.FA.AUDIO
+            
+            case Purpose.video:
+                prefix = Constants.FA.VIDEO
+            
+            default:
+                prefix = ""
+                break
+            }
+            
+            var action : UITableViewRowAction!
+            
+            action = UITableViewRowAction(style: .normal, title: prefix + "\n" + Constants.FA.TRANSCRIPT) { action, index in
+                if transcript?.transcript == nil {
+                    if let transcribing = transcript?.transcribing, !transcribing {
+                        firstSecondCancel(viewController: self, title: "Begin Creating Machine Generated Transcript? (\(purpose.lowercased()))", message: "", firstTitle: "Yes", firstAction: {
+                            DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+                                transcript?.getTranscript()
+                            })
+                            tableView.setEditing(false, animated: true)
+                        }, firstStyle: .default, secondTitle: "No", secondAction: nil, secondStyle: .default, cancelAction: nil)
+                    } else {
+                        let completion = transcript?.percentComplete == nil ? "" : " (\(transcript!.percentComplete!)% complete)"
+                        
+                        alert(title: "Machine Generated Transcript in Progress", message: "You will be notified when the machine generated transcript for \(mediaItem.title!)\(completion) is available.",completion: {
+                            tableView.setEditing(false, animated: true)
+                        })
+                    }
+                } else {
+                    firstSecondCancel(viewController: self, title: "Machine Generated Transcript (\(purpose.lowercased()))", message: "This is a machine generated transcript.  Please note that it lacks proper formatting and may have signifcant errors.",
+                                      firstTitle: "Show", firstAction: {
+                                        let sourceView = cell.subviews[0]
+                                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
+                                        
+                                        var htmlString = "<!DOCTYPE html><html><body>"
+                                        
+                                        htmlString = htmlString + mediaItem.headerHTML! +
+                                            "<br/>" +
+                                            "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(transcript!.purpose!))</center>" +
+                                            "<br/>" +
+                                            transcript!.transcript! +
+//                                            "<br/>" +
+//                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
+                                            "</body></html>"
+
+                                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                    }, firstStyle: .default,
+                       
+                       secondTitle: "Delete", secondAction: {
+                        transcript?.remove()
+                        tableView.setEditing(false, animated: true)
+                    }, secondStyle: .default,
+                       cancelAction: nil)
+                }
+            }
+            
+            return action
         }
+        recognizeAudio = recognizeTVTRA(transcript: mediaItem.audioTranscript)
+        recognizeVideo = recognizeTVTRA(transcript: mediaItem.videoTranscript)
         
         scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
             let sourceView = cell.subviews[0]
@@ -4193,6 +4421,120 @@ extension MediaViewController : UITableViewDataSource
         }
         scripture.backgroundColor = UIColor.orange
         
+        func keywordsTVTRA(transcript:VoiceBase?) -> UITableViewRowAction
+        {
+            guard let purpose = transcript?.purpose else {
+                return UITableViewRowAction()
+            }
+            
+            var prefix:String!
+            
+            switch purpose {
+            case Purpose.audio:
+                prefix = Constants.FA.AUDIO
+                
+            case Purpose.video:
+                prefix = Constants.FA.VIDEO
+                
+            default:
+                prefix = ""
+                break
+            }
+            
+            var action : UITableViewRowAction!
+            
+            action = UITableViewRowAction(style: .normal, title: prefix + "\n" + Constants.FA.LIST) { action, index in
+                let sourceView = cell.subviews[0]
+                let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
+                
+                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
+                    self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
+                    
+                    navigationController.modalPresentationStyle = .popover
+                    
+                    navigationController.popoverPresentationController?.delegate = self
+                    
+                    navigationController.popoverPresentationController?.sourceView = sourceView
+                    navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
+                    
+                    self.popover?.navigationController?.isNavigationBarHidden = false
+                    
+                    self.popover?.navigationItem.title = "Keywords (\(purpose.lowercased()))"
+                    
+                    self.popover?.selectedMediaItem = mediaItem
+                    self.popover?.transcript = transcript
+                    
+                    self.popover?.search = true
+                    
+                    self.popover?.delegate = self
+                    self.popover?.purpose = .selectingKeyword
+                    
+                    self.popover?.section.showIndex = true
+                    self.popover?.section.showHeaders = true
+                    
+                    self.popover?.section.strings = transcript?.srtTokens?.map({ (string:String) -> String in
+                        return string.lowercased()
+                    }).sorted()
+                    
+                    switch purpose {
+                    case Purpose.audio:
+                        let searchButton = UIBarButtonItem(title: "Search", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchAudio))
+                        self.popover?.navigationItem.rightBarButtonItem = searchButton
+                        
+                    case Purpose.video:
+                        let searchButton = UIBarButtonItem(title: "Search", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchVideo))
+                        self.popover?.navigationItem.rightBarButtonItem = searchButton
+                        
+                    default:
+                        break
+                    }
+                    
+                    self.present(navigationController, animated: true, completion: nil)
+                }
+            }
+            
+            return action
+        }
+        audioKeywords = keywordsTVTRA(transcript: mediaItem.audioTranscript)
+        audioKeywords.backgroundColor = UIColor.brown
+        
+        videoKeywords = keywordsTVTRA(transcript: mediaItem.videoTranscript)
+        videoKeywords.backgroundColor = UIColor.brown
+        
+        topics = UITableViewRowAction(style: .normal, title: Constants.FA.LIST) { action, index in
+            let sourceView = cell.subviews[0]
+            let sourceRectView = cell.subviews[0].subviews[actions.index(of: topics)!]
+            
+            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
+                self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
+                
+                navigationController.modalPresentationStyle = .popover
+                
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.sourceView = sourceView
+                navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
+                
+                self.popover?.navigationController?.isNavigationBarHidden = false
+                
+                self.popover?.navigationItem.title = "Topics"
+                
+                self.popover?.selectedMediaItem = mediaItem
+                
+                self.popover?.search = true
+                
+                self.popover?.delegate = self
+                self.popover?.purpose = .selectingTopic
+                self.popover?.section.strings = mediaItem.audioTranscript?.topics?.sorted()
+                
+//                let cancelButton = UIBarButtonItem(title: "Cancel", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.cancel))
+//                popover.navigationItem.leftBarButtonItem = cancelButton
+                
+                self.present(navigationController, animated: true, completion: nil)
+            }
+        }
+        topics.backgroundColor = UIColor.cyan
+        
         if mediaItem.books != nil {
             actions.append(scripture)
         }
@@ -4201,14 +4543,47 @@ extension MediaViewController : UITableViewDataSource
             actions.append(transcript)
         }
         
-        if !mediaItem.hasNotes {
-            if mediaItem.voicebase?.transcript != nil {
-                recognize.backgroundColor = UIColor.lightGray
+//        if !mediaItem.hasNotes {
+        
+        
+        if mediaItem.hasAudio {
+            if mediaItem.audioTranscript?.transcript != nil {
+                recognizeAudio.backgroundColor = UIColor.lightGray
             } else {
-                recognize.backgroundColor = UIColor.darkGray
+                recognizeAudio.backgroundColor = UIColor.darkGray
             }
-            actions.append(recognize)
+            actions.append(recognizeAudio)
+            
+            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.audio) {
+                if mediaItem.audioTranscript?.keywords != nil {
+                    actions.append(audioKeywords)
+                }
+                
+                //                if mediaItem.audioTranscript?.topics != nil {
+                //                    actions.append(topics)
+                //                }
+            }
         }
+        
+        if mediaItem.hasVideo {
+            if mediaItem.videoTranscript?.transcript != nil {
+                recognizeVideo.backgroundColor = UIColor.lightGray
+            } else {
+                recognizeVideo.backgroundColor = UIColor.darkGray
+            }
+            actions.append(recognizeVideo)
+            
+            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.video) {
+                if mediaItem.videoTranscript?.keywords != nil {
+                    actions.append(videoKeywords)
+                }
+                
+                //                if mediaItem.videoTranscript?.topics != nil {
+                //                    actions.append(videoTopics)
+                //                }
+            }
+        }
+//        }
         
         return actions.count > 0 ? actions : nil
     }

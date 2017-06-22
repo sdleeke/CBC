@@ -32,7 +32,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex")
+            alert(title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -1318,7 +1318,7 @@ class ScriptureIndexViewController : UIViewController
     func updateText()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateText")
+            alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateText", completion: nil)
             return
         }
         
@@ -1364,7 +1364,7 @@ class ScriptureIndexViewController : UIViewController
     func isHiddenUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenUI")
+            alert(title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenUI", completion: nil)
             return
         }
         
@@ -1388,7 +1388,7 @@ class ScriptureIndexViewController : UIViewController
     func isHiddenNumberAndTableUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenNumberAndTableUI")
+            alert(title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenNumberAndTableUI", completion: nil)
             return
         }
         
@@ -1401,7 +1401,7 @@ class ScriptureIndexViewController : UIViewController
     func updatePicker()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "ScriptureIndexViewController:updatePicker")
+            alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updatePicker", completion: nil)
             return
         }
         
@@ -1433,7 +1433,7 @@ class ScriptureIndexViewController : UIViewController
     func updateSwitches()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateSwitches")
+            alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateSwitches", completion: nil)
             return
         }
         
@@ -1471,7 +1471,7 @@ class ScriptureIndexViewController : UIViewController
     func updateUI()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateUI")
+            alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateUI", completion: nil)
             return
         }
     

@@ -61,7 +61,7 @@ extension LexiconIndexViewController : PopoverPickerControllerDelegate
     func stringPicked(_ string: String?)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "LexiconIndexViewController:stringPicked")
+            alert(title: "Not Main Thread", message: "LexiconIndexViewController:stringPicked",completion:nil)
             return
         }
         
@@ -153,7 +153,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "LexiconIndexViewController:rowClickedAtIndex")
+            alert(title: "Not Main Thread", message: "LexiconIndexViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -940,7 +940,7 @@ class LexiconIndexViewController : UIViewController
     func updateText()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "LexiconIndexViewController:updateText")
+            alert(title: "Not Main Thread", message: "LexiconIndexViewController:updateText", completion: nil)
             return
         }
      
@@ -949,7 +949,7 @@ class LexiconIndexViewController : UIViewController
     func isHiddenUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenUI")
+            alert(title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenUI", completion: nil)
             return
         }
         
@@ -964,7 +964,7 @@ class LexiconIndexViewController : UIViewController
     func isHiddenNumberAndTableUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenNumberAndTableUI")
+            alert(title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenNumberAndTableUI", completion: nil)
             return
         }
         
@@ -977,7 +977,7 @@ class LexiconIndexViewController : UIViewController
     func updateActionMenu()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "LexiconIndexViewController:updateActionMenu")
+            alert(title: "Not Main Thread", message: "LexiconIndexViewController:updateActionMenu", completion: nil)
             return
         }
         
@@ -987,7 +987,7 @@ class LexiconIndexViewController : UIViewController
     func updateUI()
     {
         guard Thread.isMainThread else {
-            userAlert(title: "Not Main Thread", message: "LexiconIndexViewController:updateUI")
+            alert(title: "Not Main Thread", message: "LexiconIndexViewController:updateUI", completion: nil)
             return
         }
         
