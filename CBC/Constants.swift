@@ -358,7 +358,7 @@ struct Constants {
     
     static let PLAY_OBSERVER_TIME_INTERVAL = 10.0 // seconds
 
-    static let SKIP_TIME_INTERVAL = 15
+    static let SKIP_TIME_INTERVAL = 10.0
     static let ZERO = "0"
 
     static let MEDIA_CATEGORY = "MEDIA CATEGORY"

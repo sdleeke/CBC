@@ -40,100 +40,102 @@ class VoiceBase {
         
         if let mediaID = mediaItem.mediaItemSettings?["mediaID."+self.purpose!] {
             self.mediaID = mediaID
-            
-            if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!)") {
-                do {
-                    try transcript = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8)
-                    
-                    // This will cause an error.  The tag is created in the constantTags getter while loading.
-//                    mediaItem.addTag("Machine Generated Transcript")
-                    
-                    // Also, the tag would normally be added or removed in teh didSet for transcript but didSet's are not
-                    // called during init()'s which is fortunate.
-                } catch _ {
-                    print("failed to load machine generated transcript for \(mediaItem.description)")
-                }
-            }
-            
-            if transcript == nil {
-                mediaItem.removeTag("Machine Generated Transcript")
-                
-                transcribing = true
 
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(VoiceBase.getProgress), userInfo: nil, repeats: true)
-                })
-            } else {
-                // Overkill to make sure the cloud storage is cleaned-up?
-//                mediaItem.voicebase?.delete()  // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
-                
-//                let fileManager = FileManager.default
-
-                if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).keywords"), let data = try? Data(contentsOf: url) {
+            DispatchQueue.global(qos: .background).async {
+                if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!)") {
                     do {
-                        try keywordsJSON = PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
-                        print(keywordsJSON)
-                        print(keywords)
+                        try self.transcript = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8)
+                        
+                        // This will cause an error.  The tag is created in the constantTags getter while loading.
+                        //                    mediaItem.addTag("Machine Generated Transcript")
+                        
+                        // Also, the tag would normally be added or removed in teh didSet for transcript but didSet's are not
+                        // called during init()'s which is fortunate.
                     } catch _ {
-                        print("failed to load machine generated keywords for \(mediaItem.description)")
+                        print("failed to load machine generated transcript for \(mediaItem.description)")
                     }
                 }
                 
-                if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).topics"), let data = try? Data(contentsOf: url) {
-                    do {
-                        topicsJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
-                        print(topicsJSON)
-                        print(topics)
-                    } catch _ {
-                        print("failed to load machine generated topics for \(mediaItem.description)")
+                if self.transcript == nil {
+                    mediaItem.removeTag("Machine Generated Transcript")
+                    
+                    self.transcribing = true
+                    
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(VoiceBase.getProgress), userInfo: nil, repeats: true)
+                    })
+                } else {
+                    // Overkill to make sure the cloud storage is cleaned-up?
+                    //                mediaItem.voicebase?.delete()  // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
+                    
+                    //                let fileManager = FileManager.default
+                    
+                    if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).keywords"), let data = try? Data(contentsOf: url) {
+                        do {
+                            try self.keywordsJSON = PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
+                            print(self.keywordsJSON)
+                            print(self.keywords)
+                        } catch _ {
+                            print("failed to load machine generated keywords for \(mediaItem.description)")
+                        }
                     }
-                }
-                
-                if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).srt") {
-                    do {
-                        try transcriptSRT = String(contentsOfFile: url.path, encoding: String.Encoding.utf8)
-                        print(transcriptSRT)
-
-                        srtComponents = transcriptSRT?.components(separatedBy: "\n\n")
-                        print(srtComponents)
-
-                        if srtComponents != nil {
-                            var srtArrays = [[String]]()
+                    
+                    if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).topics"), let data = try? Data(contentsOf: url) {
+                        do {
+                            self.topicsJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
+                            print(self.topicsJSON)
+                            print(self.topics)
+                        } catch _ {
+                            print("failed to load machine generated topics for \(mediaItem.description)")
+                        }
+                    }
+                    
+                    if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).srt") {
+                        do {
+                            try self.transcriptSRT = String(contentsOfFile: url.path, encoding: String.Encoding.utf8)
+                            print(self.transcriptSRT)
                             
-                            for srtComponent in srtComponents! {
-                                srtArrays.append(srtComponent.components(separatedBy: "\n"))
-                            }
+                            self.srtComponents = self.transcriptSRT?.components(separatedBy: "\n\n")
+                            print(self.srtComponents)
                             
-                            self.srtArrays = srtArrays.count > 0 ? srtArrays : nil
-                            
-                            var tokenTimes = [String:[String]]()
-                            
-                            if self.srtArrays != nil {
-                                for srtArray in srtArrays {
-                                    if let times = srtArrayTimes(srtArray: srtArray), let startTime = times.first {
-                                        if let tokens = tokensFromString(srtArrayText(srtArray: srtArray)) {
-                                            print(tokens)
-                                            for token in tokens {
-                                                let key = token.lowercased()
-                                                
-                                                if tokenTimes[key] == nil {
-                                                    tokenTimes[key] = [startTime]
-                                                } else {
-                                                    if var times = tokenTimes[key] {
-                                                        times.append(startTime)
-                                                        tokenTimes[key] = Array(Set(times)).sorted()
+                            if self.srtComponents != nil {
+                                var srtArrays = [[String]]()
+                                
+                                for srtComponent in self.srtComponents! {
+                                    srtArrays.append(srtComponent.components(separatedBy: "\n"))
+                                }
+                                
+                                self.srtArrays = srtArrays.count > 0 ? srtArrays : nil
+                                
+                                var tokenTimes = [String:[String]]()
+                                
+                                if self.srtArrays != nil {
+                                    for srtArray in srtArrays {
+                                        if let times = self.srtArrayTimes(srtArray: srtArray), let startTime = times.first {
+                                            if let tokens = tokensFromString(self.srtArrayText(srtArray: srtArray)) {
+                                                print(tokens)
+                                                for token in tokens {
+                                                    let key = token.lowercased()
+                                                    
+                                                    if tokenTimes[key] == nil {
+                                                        tokenTimes[key] = [startTime]
+                                                    } else {
+                                                        if var times = tokenTimes[key] {
+                                                            times.append(startTime)
+                                                            tokenTimes[key] = Array(Set(times)).sorted()
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
                                     }
                                 }
+                                
+                                self.srtTokensTimes = tokenTimes.count > 0 ? tokenTimes : nil
                             }
-                            
-                            srtTokensTimes = tokenTimes.count > 0 ? tokenTimes : nil
+                        } catch _ {
+                            print("failed to load machine generated SRT transcript for \(mediaItem.description)")
                         }
-                    } catch _ {
-                        print("failed to load machine generated SRT transcript for \(mediaItem.description)")
                     }
                 }
             }

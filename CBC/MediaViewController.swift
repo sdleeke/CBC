@@ -1608,7 +1608,33 @@ class MediaViewController: UIViewController
     }
     
     @IBOutlet weak var elapsed: UILabel!
+    
+    @IBOutlet var elapsedTap: UITapGestureRecognizer!
+    @IBAction func elapsedTapAction(_ sender: UITapGestureRecognizer)
+    {
+        guard globals.mediaPlayer.loaded, let currentTime = globals.mediaPlayer.currentTime?.seconds else {
+            return
+        }
+        
+        if selectedMediaItem == globals.mediaPlayer.mediaItem {
+            globals.mediaPlayer.seek(to: currentTime - Constants.SKIP_TIME_INTERVAL)
+        }
+    }
+    
     @IBOutlet weak var remaining: UILabel!
+    
+    @IBOutlet var remainingTap: UITapGestureRecognizer!
+    
+    @IBAction func remainingTapAction(_ sender: UITapGestureRecognizer)
+    {
+        guard globals.mediaPlayer.loaded, let currentTime = globals.mediaPlayer.currentTime?.seconds else {
+            return
+        }
+        
+        if selectedMediaItem == globals.mediaPlayer.mediaItem {
+            globals.mediaPlayer.seek(to: currentTime + Constants.SKIP_TIME_INTERVAL)
+        }
+    }
     
     @IBOutlet weak var mediaItemNotesAndSlidesConstraint: NSLayoutConstraint!
     
@@ -4223,8 +4249,8 @@ extension MediaViewController : UITableViewDataSource
             break
         }
         
-        searchAlert(viewController: self.popover!, title: "Search", message: nil, searchAction:  { (alert:UIAlertController) -> (Void) in
-            guard let searchText = (alert.textFields![0] as UITextField).text else {
+        searchAlert(viewController: self.popover!, title: "Search", message: nil, searchAction:  { (alertViewController:UIAlertController) -> (Void) in
+            guard let searchText = (alertViewController.textFields![0] as UITextField).text else {
                 return
             }
 
@@ -4278,6 +4304,8 @@ extension MediaViewController : UITableViewDataSource
                     
                     self.popover?.navigationController?.pushViewController(popover, animated: true)
                 }
+            } else {
+                alert(viewController:self.popover!,title: "String Not Found", message: searchText,completion:nil)
             }
         })
     }
@@ -4465,6 +4493,8 @@ extension MediaViewController : UITableViewDataSource
                     
                     self.popover?.selectedMediaItem = mediaItem
                     self.popover?.transcript = transcript
+                    
+                    self.popover?.vc = self
                     
                     self.popover?.search = true
                     

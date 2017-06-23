@@ -321,7 +321,7 @@ class PopoverTableViewController : UIViewController
         guard (section.strings != nil) else {
             return
         }
-        
+
         let margins:CGFloat = 2
         let marginSpace:CGFloat = 9
         
@@ -365,6 +365,16 @@ class PopoverTableViewController : UIViewController
             let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
             
             width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).width
+            
+            if let left = navigationItem.leftBarButtonItem?.title {
+                let string = left.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width
+            }
+            
+            if let right = navigationItem.rightBarButtonItem?.title {
+                let string = right.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width
+            }
         }
         
         //        print(strings)
