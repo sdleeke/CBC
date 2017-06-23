@@ -9,6 +9,7 @@
 import UIKit
 import AVFoundation
 import AudioToolbox
+import UserNotifications
 
 extension UIApplication
 {
@@ -50,32 +51,41 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
     
     func downloadFailed()
     {
-        networkUnavailable("Download failed.")
+        globals.alert(title: "Network Error",message: "Download failed.")
     }
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool
     {
-        let splitViewController = window!.rootViewController as! UISplitViewController
+        globals = Globals()
         
-        splitViewController.delegate = self
+        globals.splitViewController = window!.rootViewController as! UISplitViewController
         
-        let hClass = splitViewController.traitCollection.horizontalSizeClass
-        let vClass = splitViewController.traitCollection.verticalSizeClass
+        globals.splitViewController.delegate = self
+        
+        let hClass = globals.splitViewController.traitCollection.horizontalSizeClass
+        let vClass = globals.splitViewController.traitCollection.verticalSizeClass
         
         if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-            let navigationController = splitViewController.viewControllers[splitViewController.viewControllers.count-1] as! UINavigationController
-            navigationController.topViewController!.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem
+            let navigationController = globals.splitViewController.viewControllers[globals.splitViewController.viewControllers.count-1] as! UINavigationController
+            navigationController.topViewController!.navigationItem.leftBarButtonItem = globals.splitViewController.displayModeButtonItem
         }
 
         // Override point for customization after application launch.
-        globals = Globals()
-        
 //        URLCache.shared = URLCache(memoryCapacity: 10 * 1024 * 1024, diskCapacity: 100 * 1024 * 1024, diskPath: nil)
         
         globals.addAccessoryEvents()
         
         globals.startAudio()
-
+        
+//        if #available(iOS 10.0, *) {
+//            let center = UNUserNotificationCenter.current()
+//            center.requestAuthorization(options: [.alert, .sound]) { (granted, error) in
+//                // Enable or disable features based on authorization.
+//            }
+//        } else {
+//            // Fallback on earlier versions
+//        }
+        
         return true
     }
 

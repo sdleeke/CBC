@@ -85,7 +85,7 @@ extension MediaTableViewController : UISearchBarDelegate
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "MediaTableViewController:searchBar:textDidChange", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBar:textDidChange", completion: nil)
             return
         }
         let searchText = searchText.uppercased()
@@ -107,7 +107,7 @@ extension MediaTableViewController : UISearchBarDelegate
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarSearchButtonClicked", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarSearchButtonClicked", completion: nil)
             return
         }
         //        print("searchBarSearchButtonClicked:")
@@ -135,7 +135,7 @@ extension MediaTableViewController : UISearchBarDelegate
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarShouldBeginEditing", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarShouldBeginEditing", completion: nil)
             return false
         }
         
@@ -147,7 +147,7 @@ extension MediaTableViewController : UISearchBarDelegate
         globals.search.active = true
         
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidBeginEditing", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidBeginEditing", completion: nil)
             return
         }
         
@@ -176,7 +176,7 @@ extension MediaTableViewController : UISearchBarDelegate
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidEndEditing", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarTextDidEndEditing", completion: nil)
             return
         }
         
@@ -188,7 +188,7 @@ extension MediaTableViewController : UISearchBarDelegate
         globals.search.active = false
         
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "MediaTableViewController:searchBarCancelButtonClicked", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:searchBarCancelButtonClicked", completion: nil)
             return
         }
         
@@ -200,7 +200,7 @@ extension MediaTableViewController : UISearchBarDelegate
     func didDismissSearch()
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "MediaTableViewController:didDismissSearch", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:didDismissSearch", completion: nil)
             return
         }
         
@@ -255,7 +255,7 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
     
     func noMediaAvailable(handler:@escaping (UIAlertAction) -> Void)
     {
-        alert(title: "No Media Available",message: "Please check your network connection and try again.",completion:nil)
+        alert(viewController:self,title: "No Media Available",message: "Please check your network connection and try again.",completion:nil)
     }
 
     func stringPicked(_ string:String?)
@@ -365,11 +365,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     }
                 } else {
                     //                        dismiss(animated: true, completion: nil)
-                    alert(title: "Not in List",message: "\"\(mediaItem.title!)\" is not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",completion:nil)
+                    alert(viewController:self,title: "Not in List",message: "\"\(mediaItem.title!)\" is not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",completion:nil)
                 }
             } else {
                 //                    dismiss(animated: true, completion: nil)
-                alert(title: "Media Item Not Found!",message: "Oops, this should never happen!",completion:nil)
+                alert(viewController:self,title: "Media Item Not Found!",message: "Oops, this should never happen!",completion:nil)
             }
             break
             
@@ -386,7 +386,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Scripture_Index:
             if (globals.media.active?.scriptureIndex?.eligible == nil) {
-                alert(title:"No Scripture Index Available",message: "The Scripture references for these media items are not specific.",completion:nil)
+                alert(viewController:self,title:"No Scripture Index Available",message: "The Scripture references for these media items are not specific.",completion:nil)
             } else {
                 if let viewController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SCRIPTURE_INDEX) as? ScriptureIndexViewController {
                     
@@ -401,7 +401,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.Lexicon_Index:
             if (globals.media.active?.lexicon?.eligible == nil) {
-                alert(title:"No Lexicon Index Available",
+                alert(viewController:self,title:"No Lexicon Index Available",
                       message: "These media items do not have HTML transcripts.",
                       completion:nil)
             } else {
@@ -431,7 +431,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
         case Constants.Strings.History:
             if globals.relevantHistoryList == nil {
-                alert(title: "History is empty.",
+                alert(viewController:self,title: "History is empty.",
                       message: nil,
                       completion:nil)
             } else {
@@ -511,7 +511,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "MediaTableViewController:rowClickedAtIndex", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -689,12 +689,13 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         selectOrScrollToMediaItem(mediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top) // was Middle
                     } else {
                         //                        dismiss(animated: true, completion: nil)
-                        alert(  title:"Not in List",
+                        alert(  viewController:self,
+                                title:"Not in List",
                                 message: "\"\(mediaItem.title!)\" is not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",
                                 completion:nil)
                     }
                 } else {
-                    alert(title:"Media Item Not Found!",
+                    alert(viewController:self,title:"Media Item Not Found!",
                           message: "Oops, this should never happen!",
                           completion:nil)
                 }
@@ -956,7 +957,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
         } else {
             DispatchQueue.main.async(execute: { () -> Void in
                 if (UIApplication.shared.applicationState == UIApplicationState.active) {
-                    alert(title:"Unable to Download Media",
+                    alert(viewController:self,title:"Unable to Download Media",
                           message: "Please try to refresh the list again.",
                           completion:nil)
                 }
@@ -1498,7 +1499,7 @@ class MediaTableViewController : UIViewController
     func jsonAlert(title:String,message:String)
     {
         if (UIApplication.shared.applicationState == UIApplicationState.active) {
-            alert(title:title,
+            alert(viewController:self,title:title,
                   message:message,
                   completion:nil)
         }
@@ -1553,7 +1554,7 @@ class MediaTableViewController : UIViewController
                 
                 let json = JSON(data: data)
                 if json != JSON.null {
-//                    jsonAlert(title:"Media List Error",message:"Media list read failed.  Last available copy read and loaded.")
+//                    jsonaAlert(title:"Media List Error",message:"Media list read failed.  Last available copy read and loaded.")
                     print("could get json from the file system.")
                     //                        print(json)
                     return json
@@ -1905,7 +1906,7 @@ class MediaTableViewController : UIViewController
     func handleRefresh(_ refreshControl: UIRefreshControl)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "MediaTableViewController:handleRefresh", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:handleRefresh", completion: nil)
             return
         }
         
@@ -2892,7 +2893,7 @@ class MediaTableViewController : UIViewController
     func setupShowHide()
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "MediaTableViewController:setupShowHide", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:setupShowHide", completion: nil)
             return
         }
         
@@ -3302,7 +3303,7 @@ extension MediaTableViewController : UITableViewDelegate
                         })
                     })
                 } else {
-                    networkUnavailable("HTML transcript vocabulary unavailable.")
+                    networkUnavailable(self,"HTML transcript vocabulary unavailable.")
                 }
             }
         }
@@ -3348,7 +3349,7 @@ extension MediaTableViewController : UITableViewDelegate
                     if let htmlString = data as? String {
                         popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
                     } else {
-                        networkUnavailable("HTML transcript unavailable.")
+                        networkUnavailable(self,"HTML transcript unavailable.")
                     }
                     
                     //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
@@ -3386,13 +3387,15 @@ extension MediaTableViewController : UITableViewDelegate
                             DispatchQueue.global(qos: .background).async(execute: { () -> Void in
                                 transcript?.getTranscript()
                             })
-                            tableView.setEditing(false, animated: true)
-                        }, firstStyle: .default, secondTitle: "No", secondAction: nil, secondStyle: .default, cancelAction: nil)
+//                            tableView.setEditing(false, animated: true)
+                        }, firstStyle: .default,
+                           secondTitle: "No", secondAction: nil, secondStyle: .default,
+                           cancelAction: nil)
                     } else {
                         let completion = transcript?.percentComplete == nil ? "" : " (\(transcript!.percentComplete!)% complete)"
                         
-                        alert(title: "Machine Generated Transcript in Progress", message: "You will be notified when the machine generated transcript for \(mediaItem.title!)\(completion) is available.",completion: {
-                            tableView.setEditing(false, animated: true)
+                        alert(viewController:self,title: "Machine Generated Transcript in Progress", message: "You will be notified when the machine generated transcript for \(mediaItem.title!)\(completion) is available.",completion: {
+//                            tableView.setEditing(false, animated: true)
                         })
                     }
                 } else {
@@ -3445,7 +3448,7 @@ extension MediaTableViewController : UITableViewDelegate
                         if let htmlString = data as? String {
                             popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
                         } else {
-                            networkUnavailable("Scripture text unavailable.")
+                            networkUnavailable(self,"Scripture text unavailable.")
                         }
                         //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
                     })

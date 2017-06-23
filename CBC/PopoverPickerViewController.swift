@@ -303,7 +303,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose: PopoverPurpose, mediaItem: MediaItem?)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "PopoverPickerViewController:rowClickedAtIndex",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverPickerViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -547,7 +547,7 @@ class PopoverPickerViewController : UIViewController
     func setPreferredContentSize()
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "PopoverPickerViewController:setPreferredContentSize",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverPickerViewController:setPreferredContentSize",completion:nil)
             return
         }
 

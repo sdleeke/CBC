@@ -569,9 +569,11 @@ class MediaPlayer : NSObject {
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_LOAD), object: nil)
         })
         
-        if (UIApplication.shared.applicationState == UIApplicationState.active) {
-            alert(title: "Failed to Load Content", message: "Please check your network connection and try again.", completion: nil)
-        }
+        globals.alert(title: "Failed to Load Content",message: "Please check your network connection and try again.")
+
+//        if (UIApplication.shared.applicationState == UIApplicationState.active) {
+//            alert(viewController:nil,title: "Failed to Load Content", message: "Please check your network connection and try again.", completion: nil)
+//        }
     }
     
     func failedToPlay()
@@ -582,9 +584,11 @@ class MediaPlayer : NSObject {
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
         })
         
-        if (UIApplication.shared.applicationState == UIApplicationState.active) {
-            alert(title: "Unable to Play Content", message: "Please check your network connection and try again.",completion: nil)
-        }
+        globals.alert(title: "Unable to Play Content",message: "Please check your network connection and try again.")
+
+//        if (UIApplication.shared.applicationState == UIApplicationState.active) {
+//            alert(viewController:nil,title: "Unable to Play Content", message: "Please check your network connection and try again.",completion: nil)
+//        }
     }
 
     func play()
@@ -790,7 +794,7 @@ class MediaPlayer : NSObject {
     func stop()
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "MediaPlayer:stop", completion: nil)
+            print("Not Main Thread")
             return
         }
 

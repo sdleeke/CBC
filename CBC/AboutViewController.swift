@@ -42,7 +42,7 @@ extension AboutViewController : PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "AboutViewController:rowClickedAtIndex",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "AboutViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -115,7 +115,7 @@ class AboutViewController: UIViewController
             if (UIApplication.shared.canOpenURL(url)) { // Reachability.isConnectedToNetwork() &&
                 UIApplication.shared.openURL(url)
             } else {
-                networkUnavailable("Unable to open web site: \(urlString)")
+                networkUnavailable(self,"Unable to open web site: \(urlString)")
             }
         }
     }
@@ -128,7 +128,7 @@ class AboutViewController: UIViewController
             let querystring = "comgooglemaps://?q="+urlAddress
             UIApplication.shared.openURL(URL(string:querystring)!)
         } else {
-            alert(title: "Google Maps is not available", message: "", completion: nil)
+            alert(viewController:self,title: "Google Maps is not available", message: "", completion: nil)
         }
     }
     

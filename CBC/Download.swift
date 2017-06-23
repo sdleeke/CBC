@@ -49,7 +49,7 @@ class Download : NSObject {
 
     @objc func downloadFailed()
     {
-        networkUnavailable("Download failed.")
+        globals.alert(title: "Network Error",message: "Download failed.")
     }
 
     var state:State = .none {

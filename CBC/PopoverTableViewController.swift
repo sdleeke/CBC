@@ -35,7 +35,7 @@ extension PopoverTableViewController: UISearchBarDelegate
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarShouldBeginEditing",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarShouldBeginEditing",completion:nil)
             return false
         }
         
@@ -45,7 +45,7 @@ extension PopoverTableViewController: UISearchBarDelegate
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidBeginEditing",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidBeginEditing",completion:nil)
             return
         }
         
@@ -78,7 +78,7 @@ extension PopoverTableViewController: UISearchBarDelegate
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidEndEditing",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidEndEditing",completion:nil)
             return
         }
         
@@ -105,7 +105,7 @@ extension PopoverTableViewController: UISearchBarDelegate
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBar:textDidChange",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBar:textDidChange",completion:nil)
             return
         }
         
@@ -132,7 +132,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         //        print("searchBarSearchButtonClicked:")
 
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarSearchButtonClicked",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarSearchButtonClicked",completion:nil)
             return
         }
         
@@ -146,7 +146,7 @@ extension PopoverTableViewController: UISearchBarDelegate
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "PopoverTableViewController:searchBarCancelButtonClicked",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarCancelButtonClicked",completion:nil)
             return
         }
         
@@ -429,7 +429,7 @@ class PopoverTableViewController : UIViewController
     func handleRefresh(_ refreshControl: UIRefreshControl)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "PopoverTableViewController:handleRefresh",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:handleRefresh",completion:nil)
             return
         }
         
@@ -556,13 +556,13 @@ class PopoverTableViewController : UIViewController
                                 self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
                             }
                         } else {
-                            alert(title:"String not found!",message:"THIS SHOULD NOT HAPPEN.",completion:nil)
+                            alert(viewController:self,title:"String not found!",message:"THIS SHOULD NOT HAPPEN.",completion:nil)
                         }
                     })
                 }
             }
         } else {
-            alert(title:"String not found!",message:"Search is active and the string \(selectedText!) is not in the results.",completion:nil)
+            alert(viewController:self,title:"String not found!",message:"Search is active and the string \(selectedText!) is not in the results.",completion:nil)
         }
     }
     

@@ -10,6 +10,7 @@ import Foundation
 import MediaPlayer
 import AVKit
 import MessageUI
+import UserNotifications
 
 func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     switch (lhs, rhs) {
@@ -2786,7 +2787,7 @@ func printMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,str
 
 func showSendMailErrorAlert(viewController:UIViewController)
 {
-    alert(title: "Could Not Send Email",message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",completion:nil)
+    alert(viewController:viewController,title: "Could Not Send Email",message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",completion:nil)
 //    
 //    let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
 //        
@@ -3667,15 +3668,39 @@ func addressString() -> String
     return addressString
 }
 
-var alert = [UIAlertController]()
-var presenting = false
+//var alerts = [UIAlertController]()
 
-func networkUnavailable(_ message:String?)
+func networkUnavailable(_ viewController:UIViewController,_ message:String?)
 {
-    alert(title:Constants.Network_Error,message:message,completion:nil)
+    alert(viewController:viewController,title:Constants.Network_Error,message:message,completion:nil)
 }
 
-func alert(title:String?,message:String?,completion:((Void)->(Void))?)
+//func notification(title:String?,message:String?)
+//{
+//    if #available(iOS 10.0, *) {
+//        let content = UNMutableNotificationContent()
+//
+//        content.title = title ?? ""
+//        content.body = message ?? ""
+//        content.sound = UNNotificationSound.default()
+//        
+//        // Deliver the notification in five seconds.
+//        let trigger = UNTimeIntervalNotificationTrigger.init(timeInterval: 1.0, repeats: false)
+//        let request = UNNotificationRequest.init(identifier: "CBC", content: content, trigger: trigger)
+//        
+//        // Schedule the notification.
+//        let center = UNUserNotificationCenter.current()
+//        center.add(request) { (error) in
+//            print(error)
+//        }
+//        
+//        print("should have been added")
+//    } else {
+//        // Fallback on earlier versions
+//    }
+//}
+
+func alert(viewController:UIViewController,title:String?,message:String?,completion:((Void)->(Void))?)
 {
 //    guard alert.first == nil else {
 //        return
@@ -3684,89 +3709,48 @@ func alert(title:String?,message:String?,completion:((Void)->(Void))?)
     guard UIApplication.shared.applicationState == UIApplicationState.active else {
         return
     }
-
-    let newAlert = UIAlertController(title:title,
-                              message: message,
-                              preferredStyle: UIAlertControllerStyle.alert)
+    
+    let alert = UIAlertController(title:title,
+                                  message: message,
+                                  preferredStyle: UIAlertControllerStyle.alert)
     
     let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-        if let index = alert.index(of: newAlert) {
-            alert.remove(at: index)
-        }
-        
         completion?()
-        
-        presenting = false
-        
-        if let alert = alert.first {
-            presenting = true
-            DispatchQueue.main.async(execute: { () -> Void in
-                UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
-            })
-        }
     })
-    newAlert.addAction(action)
+    alert.addAction(action)
     
-    alert.append(newAlert)
-    
-    if !presenting, let alert = alert.first {
-        presenting = true
-        DispatchQueue.main.async(execute: { () -> Void in
-            UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
-        })
-    }
+    DispatchQueue.main.async(execute: { () -> Void in
+        viewController.present(alert, animated: true, completion: nil)
+    })
 }
 
-func searchAlert(vc:UIViewController?,title:String?,message:String?,searchAction:((_ alert:UIAlertController)->(Void))?)
+func searchAlert(viewController:UIViewController,title:String?,message:String?,searchAction:((_ alert:UIAlertController)->(Void))?)
 {
-    let newAlert = UIAlertController(title: title,
-                                     message: message,
-                                     preferredStyle: .alert)
+    let alert = UIAlertController(  title: title,
+                                    message: message,
+                                    preferredStyle: .alert)
     
-    func endAlert()
-    {
-        if let index = alert.index(of: newAlert) {
-            alert.remove(at: index)
-        }
-        
-        presenting = false
-        
-        if let alert = alert.first {
-            presenting = true
-            DispatchQueue.main.async(execute: { () -> Void in
-                UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
-            })
-        }
-    }
-    
-    newAlert.addTextField(configurationHandler: { (textField:UITextField) in
+    alert.addTextField(configurationHandler: { (textField:UITextField) in
         textField.placeholder = "search string"
     })
     
     let searchAction = UIAlertAction(title: "Search", style: UIAlertActionStyle.default, handler: {
         alertItem -> Void in
-        searchAction?(newAlert)
-        endAlert()
+        searchAction?(alert)
     })
-    newAlert.addAction(searchAction)
+    alert.addAction(searchAction)
     
     let cancelAction = UIAlertAction(title: "Cancel", style: .default, handler: {
         (action : UIAlertAction!) -> Void in
-        endAlert()
     })
-    newAlert.addAction(cancelAction)
-    
-    alert.append(newAlert)
-    
-    if !presenting, let alert = alert.first {
-        presenting = true
-        DispatchQueue.main.async(execute: { () -> Void in
-            vc?.present(alert, animated: true, completion: nil)
-        })
-    }
+    alert.addAction(cancelAction)
+
+    DispatchQueue.main.async(execute: { () -> Void in
+        viewController.present(alert, animated: true, completion: nil)
+    })
 }
 
-//func userAlert(title:String?,message:String?)
+//func useralert(viewController:self,title:String?,message:String?)
 //{
 //    if (UIApplication.shared.applicationState == UIApplicationState.active) {
 //        let alert = UIAlertController(title: title,
@@ -3791,55 +3775,31 @@ func firstSecondCancel(viewController:UIViewController,title:String?,message:Str
                        secondTitle:String?,  secondAction:((Void)->(Void))?, secondStyle: UIAlertActionStyle,
                        cancelAction:((Void)->(Void))?)
 {
-    let newAlert = UIAlertController(title: title,
-                                     message: message,
-                                     preferredStyle: UIAlertControllerStyle.alert)
+    let alert = UIAlertController(title: title,
+                                  message: message,
+                                  preferredStyle: UIAlertControllerStyle.alert)
     
-    func endAlert()
-    {
-        if let index = alert.index(of: newAlert) {
-            alert.remove(at: index)
-        }
-        
-        presenting = false
-        
-        if let alert = alert.first {
-            presenting = true
-            DispatchQueue.main.async(execute: { () -> Void in
-                UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
-            })
-        }
-    }
-
     if firstTitle != nil {
         let yesAction = UIAlertAction(title: firstTitle, style: firstStyle, handler: { (UIAlertAction) -> Void in
             firstAction?()
-            endAlert()
         })
-        newAlert.addAction(yesAction)
+        alert.addAction(yesAction)
     }
 
     if secondTitle != nil {
         let noAction = UIAlertAction(title: secondTitle, style: secondStyle, handler: { (UIAlertAction) -> Void in
             secondAction?()
-            endAlert()
         })
-        newAlert.addAction(noAction)
+        alert.addAction(noAction)
     }
     
     let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
         cancelAction?()
-        endAlert()
     })
-    newAlert.addAction(cancelAction)
+    alert.addAction(cancelAction)
     
-    alert.append(newAlert)
-    
-    if !presenting, let alert = alert.first {
-        presenting = true
-        DispatchQueue.main.async(execute: { () -> Void in
-            UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
-        })
-    }
+    DispatchQueue.main.async(execute: { () -> Void in
+        viewController.present(alert, animated: true, completion: nil)
+    })
 }
 

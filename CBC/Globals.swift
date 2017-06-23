@@ -501,8 +501,52 @@ struct Search {
 
 var globals:Globals!
 
+struct Alert {
+    var title : String
+    var message : String?
+}
+
 class Globals : NSObject, AVPlayerViewControllerDelegate
 {
+    var splitViewController:UISplitViewController!
+    
+    var alerts = [Alert]()
+    
+    func alertViewer()
+    {
+        for alert in alerts {
+            print(alert)
+        }
+
+        guard UIApplication.shared.applicationState == UIApplicationState.active else {
+            return
+        }
+        
+        if let alert = alerts.first {
+            let alertVC = UIAlertController(title:alert.title,
+                                          message:alert.message,
+                                          preferredStyle: UIAlertControllerStyle.alert)
+            
+            let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+
+            })
+            alertVC.addAction(action)
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                globals.splitViewController.present(alertVC, animated: true, completion: {
+                    self.alerts.remove(at: 0)
+                })
+            })
+        }
+    }
+
+    var alertTimer : Timer?
+    
+    func alert(title:String,message:String?)
+    {
+        alerts.append(Alert(title: title, message: message))
+    }
+    
     func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool
     {
         return true
@@ -566,6 +610,10 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     {
         super.init()
         
+        DispatchQueue.main.async(execute: { () -> Void in
+            globals.alertTimer = Timer.scheduledTimer(timeInterval: 1.0, target: globals, selector: #selector(Globals.alertViewer), userInfo: nil, repeats: true)
+        })
+
         reachability.whenReachable = { reachability in
             // this is called on a background thread, but UI updates must
             // be on the main thread, like this:

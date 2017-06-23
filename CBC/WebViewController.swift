@@ -40,7 +40,7 @@ extension WebViewController : PopoverPickerControllerDelegate
     func stringPicked(_ string: String?)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "WebViewController:stringPicked", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "WebViewController:stringPicked", completion: nil)
             return
         }
         
@@ -100,7 +100,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
     func actionMenuItems(action: String?, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -158,7 +158,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Search:
-            searchAlert(vc: self, title: "Search", message: nil, searchAction:  { (alert:UIAlertController) -> (Void) in
+            searchAlert(viewController: self, title: "Search", message: nil, searchAction:  { (alert:UIAlertController) -> (Void) in
                 let searchText = (alert.textFields![0] as UITextField).text
                 
                 self.wkWebView?.isHidden = true
@@ -278,7 +278,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 if (UIApplication.shared.canOpenURL(selectedMediaItem!.downloadURL!)) { // Reachability.isConnectedToNetwork() &&
                     UIApplication.shared.openURL(selectedMediaItem!.downloadURL!)
                 } else {
-                    networkUnavailable("Unable to open in browser at: \(selectedMediaItem!.downloadURL!)")
+                    networkUnavailable(self,"Unable to open in browser at: \(selectedMediaItem!.downloadURL!)")
                 }
             }
             break
@@ -307,7 +307,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -402,7 +402,7 @@ extension WebViewController : WKNavigationDelegate
             activityIndicator.stopAnimating()
             activityIndicator.isHidden = true
             progressIndicator.isHidden = true
-            networkUnavailable(withError.localizedDescription)
+            networkUnavailable(self,withError.localizedDescription)
             NSLog(withError.localizedDescription)
         }
         // Keep trying
@@ -416,7 +416,7 @@ extension WebViewController : WKNavigationDelegate
             activityIndicator.stopAnimating()
             activityIndicator.isHidden = true
             progressIndicator.isHidden = true
-            networkUnavailable(withError.localizedDescription)
+            networkUnavailable(self,withError.localizedDescription)
             NSLog(withError.localizedDescription)
         }
     }
@@ -598,7 +598,7 @@ class WebViewController: UIViewController
                     self.webView.bringSubview(toFront: self.logo)
                     
                     // Can't prevent this from getting called twice in succession.
-                    networkUnavailable("Document could not be loaded.")
+                    networkUnavailable(self,"Document could not be loaded.")
                 })
                 break
                 
@@ -673,7 +673,7 @@ class WebViewController: UIViewController
     func done()
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "WebViewController:done", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "WebViewController:done", completion: nil)
             return
         }
 

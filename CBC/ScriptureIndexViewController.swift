@@ -32,7 +32,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -96,7 +96,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                             if let htmlString = data as? String {
                                 popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:self.navigationItem.rightBarButtonItem,sourceView:nil,sourceRectView:nil,htmlString:htmlString)
                             } else {
-                                networkUnavailable("Scripture text unavailable.")
+                                networkUnavailable(self,"Scripture text unavailable.")
                             }
                         })
                     }
@@ -1318,7 +1318,7 @@ class ScriptureIndexViewController : UIViewController
     func updateText()
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateText", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:updateText", completion: nil)
             return
         }
         
@@ -1364,7 +1364,7 @@ class ScriptureIndexViewController : UIViewController
     func isHiddenUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenUI", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenUI", completion: nil)
             return
         }
         
@@ -1388,7 +1388,7 @@ class ScriptureIndexViewController : UIViewController
     func isHiddenNumberAndTableUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenNumberAndTableUI", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:isHiddenNumberAndTableUI", completion: nil)
             return
         }
         
@@ -1401,7 +1401,7 @@ class ScriptureIndexViewController : UIViewController
     func updatePicker()
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updatePicker", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:updatePicker", completion: nil)
             return
         }
         
@@ -1433,7 +1433,7 @@ class ScriptureIndexViewController : UIViewController
     func updateSwitches()
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateSwitches", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:updateSwitches", completion: nil)
             return
         }
         
@@ -1471,7 +1471,7 @@ class ScriptureIndexViewController : UIViewController
     func updateUI()
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "ScriptureIndexViewController:updateUI", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:updateUI", completion: nil)
             return
         }
     
@@ -1625,7 +1625,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
                     if let htmlString = data as? String {
                         popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
                     } else {
-                        networkUnavailable("HTML transcript unavailable.")
+                        networkUnavailable(self,"HTML transcript unavailable.")
                     }
                 })
             }
@@ -1647,7 +1647,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
                         if let htmlString = data as? String {
                             popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
                         } else {
-                            networkUnavailable("Scripture text unavailable.")
+                            networkUnavailable(self,"Scripture text unavailable.")
                         }
                     })
                 }

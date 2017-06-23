@@ -71,7 +71,7 @@ class VoiceBase {
 
                 if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).keywords"), let data = try? Data(contentsOf: url) {
                     do {
-                        keywordsJSON = try! PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
+                        try keywordsJSON = PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
                         print(keywordsJSON)
                         print(keywords)
                     } catch _ {
@@ -193,15 +193,12 @@ class VoiceBase {
         switch purpose! {
         case Purpose.video:
             return mediaItem.mp4
-            break
             
         case Purpose.audio:
             return mediaItem.audio
-            break
-
+            
         default:
             return nil
-            break
         }
     }
     
@@ -242,7 +239,7 @@ class VoiceBase {
             
             if let data = data {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
-                print(string) // object name
+                print(string)
                 
                 if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
                     print(json)
@@ -250,7 +247,21 @@ class VoiceBase {
                     if json["errors"] == nil {
                         self.upload = json
                         self.mediaID = json["mediaId"] as? String
-                        alert(title: "Machine Generated Transcript Started", message: "The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.",completion: nil)
+                        
+//                        if #available(iOS 10.0, *) {
+//                            notification(title: "Machine Generated Transcript Started", message: "The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.")
+//                        } else {
+//                            alert(viewController:nil,title: "Machine Generated Transcript Started", message: "The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.",completion: nil)
+//                        }
+
+//                        alert(viewController:nil,title: "Machine Generated Transcript Started", message: "The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.",completion: nil)
+
+                        globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.")
+                        
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_UPLOAD), object: self)
+                        })
+
                         DispatchQueue.main.async(execute: { () -> Void in
                             self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(VoiceBase.getProgress), userInfo: nil, repeats: true)
                         })
@@ -261,7 +272,21 @@ class VoiceBase {
             
             if failed {
                 // FAIL
-                alert(title: "Transcript Failed", message: "The transcript for \(self.mediaItem.title!) failed to start.  Please try again.",completion: nil)
+                
+//                if #available(iOS 10.0, *) {
+//                    notification(title: "Transcript Failed", message: "The transcript for \(self.mediaItem.title!) failed to start.  Please try again.")
+//                } else {
+//                    alert(viewController:nil,title: "Transcript Failed", message: "The transcript for \(self.mediaItem.title!) failed to start.  Please try again.",completion: nil)
+//                }
+
+//                alert(viewController:nil,title: "Transcript Failed", message: "The transcript for \(self.mediaItem.title!) failed to start.  Please try again.",completion: nil)
+                
+                globals.alert(title: "Transcript Failed",message: "The transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) failed to start.  Please try again.")
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_START), object: self)
+                })
+
                 self.transcribing = false
             }
         })
@@ -298,7 +323,20 @@ class VoiceBase {
                     
                     if let _ = json["errors"] {
                         self.remove()
-                        alert(title: "Transcription Failed", message: "The transcript for \(self.mediaItem.title!) was not completed.  Please try again.",completion: nil)
+                        
+//                        if #available(iOS 10.0, *) {
+//                            notification(title: "Transcript Failed", message: "The transcript for \(self.mediaItem.title!) was not completed.  Please try again.")
+//                        } else {
+//                            alert(viewController:nil,title: "Transcript Failed", message: "The transcript for \(self.mediaItem.title!) was not completed.  Please try again.",completion: nil)
+//                        }
+                        
+//                        alert(viewController:nil,title: "Transcript Failed", message: "The transcript for \(self.mediaItem.title!) was not completed.  Please try again.",completion: nil)
+                        
+                        globals.alert(title: "Transcript Failed",message: "The transcript for \(self.mediaItem.title!) was not completed.  Please try again.")
+                        
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
+                        })
                     }
                     
                     if let status = json["status"] as? String, status == "finished" {
@@ -365,6 +403,8 @@ class VoiceBase {
     
     func remove()
     {
+        delete()
+        
         mediaID = nil
         
         transcript = nil
@@ -708,10 +748,10 @@ class VoiceBase {
                             print("failed to write machine generated transcript topics to cache directory")
                         }
                     }
-                    
-                    self.delete()
                 }
             }
+            
+            self.delete()
         })
         
         task.resume()
@@ -752,8 +792,6 @@ class VoiceBase {
                 let string = String.init(data: data!, encoding: String.Encoding.utf8)
                 print(string) // object name
                 self.transcript = string
-                self.getDetails()
-                self.getTranscriptSRT()
                 self.transcribing = false
                 
                 if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!)") {
@@ -777,10 +815,24 @@ class VoiceBase {
                     print("failed to get destinationURL")
                 }
                 
-                alert(title: "Transcript Ready", message: "The transcript for \(self.mediaItem.title!) is available. (\(self.purpose!.lowercased()))",completion: nil)
+//                if #available(iOS 10.0, *) {
+//                    notification(title: "Transcript Ready", message: "The transcript for \(self.mediaItem.title!) is available. (\(self.purpose!.lowercased()))")
+//                } else {
+//                    alert(viewController:nil,title: "Transcript Ready", message: "The transcript for \(self.mediaItem.title!) is available. (\(self.purpose!.lowercased()))",completion: nil)
+//                }
+
+//                alert(viewController:nil,title: "Transcript Ready", message: "The transcript for \(self.mediaItem.title!) is available. (\(self.purpose!.lowercased()))",completion: nil)
+                
+                globals.alert(title: "Transcript Ready",message: "The transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) is available.")
+
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
+                })
             } else {
                 // Now what?
             }
+
+            self.getTranscriptSRT()
         })
         
         task.resume()
@@ -793,28 +845,28 @@ class VoiceBase {
                 return
             }
             
+            var tokenTimes = [String:[String]]()
+            
             for srtArray in srtArrays {
                 if let times = srtArrayTimes(srtArray: srtArray), let startTime = times.first {
                     if let tokens = tokensFromString(srtArrayText(srtArray: srtArray)) {
-                        var tokenTimes = [String:[String]]()
-                        
                         for token in tokens {
                             let key = token.lowercased()
                             
                             if tokenTimes[key] == nil {
                                 tokenTimes[key] = [startTime]
                             } else {
-                                if var times = tokenTimes[token] {
+                                if var times = tokenTimes[key] {
                                     times.append(startTime)
                                     tokenTimes[key] = Array(Set(times)).sorted()
                                 }
                             }
                         }
-                        
-                        srtTokensTimes = tokenTimes.count > 0 ? tokenTimes : nil
                     }
                 }
             }
+            
+            srtTokensTimes = tokenTimes.count > 0 ? tokenTimes : nil
         }
     }
     
@@ -937,10 +989,11 @@ class VoiceBase {
             self.srtArrays = srtArrays.count > 0 ? srtArrays : nil
         }
     }
+    
     var transcriptSRT:String?
     {
         didSet {
-            let srtComponents = transcriptSRT?.components(separatedBy: "\n\n")
+            srtComponents = transcriptSRT?.components(separatedBy: "\n\n")
             print(srtComponents)
         }
     }
@@ -993,6 +1046,8 @@ class VoiceBase {
             } else {
                 // Now what?
             }
+            
+            self.getDetails()
         })
         
         task.resume()

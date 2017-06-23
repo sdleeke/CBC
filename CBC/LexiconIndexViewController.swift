@@ -61,7 +61,7 @@ extension LexiconIndexViewController : PopoverPickerControllerDelegate
     func stringPicked(_ string: String?)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "LexiconIndexViewController:stringPicked",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:stringPicked",completion:nil)
             return
         }
         
@@ -153,7 +153,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "LexiconIndexViewController:rowClickedAtIndex", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:rowClickedAtIndex", completion: nil)
             return
         }
         
@@ -940,7 +940,7 @@ class LexiconIndexViewController : UIViewController
     func updateText()
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "LexiconIndexViewController:updateText", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:updateText", completion: nil)
             return
         }
      
@@ -949,7 +949,7 @@ class LexiconIndexViewController : UIViewController
     func isHiddenUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenUI", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenUI", completion: nil)
             return
         }
         
@@ -964,7 +964,7 @@ class LexiconIndexViewController : UIViewController
     func isHiddenNumberAndTableUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenNumberAndTableUI", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:isHiddenNumberAndTableUI", completion: nil)
             return
         }
         
@@ -977,7 +977,7 @@ class LexiconIndexViewController : UIViewController
     func updateActionMenu()
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "LexiconIndexViewController:updateActionMenu", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:updateActionMenu", completion: nil)
             return
         }
         
@@ -987,7 +987,7 @@ class LexiconIndexViewController : UIViewController
     func updateUI()
     {
         guard Thread.isMainThread else {
-            alert(title: "Not Main Thread", message: "LexiconIndexViewController:updateUI", completion: nil)
+            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:updateUI", completion: nil)
             return
         }
         
@@ -1122,7 +1122,7 @@ extension LexiconIndexViewController : UITableViewDelegate
                     if let htmlString = data as? String {
                         popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
                     } else {
-                        networkUnavailable("HTML transcript unavailable.")
+                        networkUnavailable(self,"HTML transcript unavailable.")
                     }
                     
                     //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
@@ -1146,7 +1146,7 @@ extension LexiconIndexViewController : UITableViewDelegate
                         if let htmlString = data as? String {
                             popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
                         } else {
-                            networkUnavailable("Scripture text unavailable.")
+                            networkUnavailable(self,"Scripture text unavailable.")
                         }
                         //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
                     })
