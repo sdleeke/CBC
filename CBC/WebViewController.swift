@@ -1637,7 +1637,8 @@ class WebViewController: UIViewController
         }
     }
     
-    override func viewDidAppear(_ animated: Bool) {
+    override func viewDidAppear(_ animated: Bool)
+    {
         super.viewDidAppear(animated)
         
         navigationItem.hidesBackButton = false
@@ -1645,7 +1646,8 @@ class WebViewController: UIViewController
         navigationController?.navigationBar.backItem?.title = Constants.Strings.Back
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool)
+    {
         super.viewWillDisappear(animated)
         
         //Remove the next line and the app will crash

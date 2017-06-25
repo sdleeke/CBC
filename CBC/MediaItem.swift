@@ -57,7 +57,7 @@ class VoiceBase {
                 }
                 
                 if self.transcript == nil {
-                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                    DispatchQueue(label: "CBC").sync(execute: { () -> Void in
                         self.mediaItem.removeTag("Machine Generated Transcript")
                     })
                     
@@ -400,7 +400,7 @@ class VoiceBase {
         topicsJSON = nil
         keywordsJSON = nil
         
-        DispatchQueue(label: "CBC").async(execute: { () -> Void in
+        DispatchQueue(label: "CBC").sync(execute: { () -> Void in
             self.mediaItem.removeTag("Machine Generated Transcript")
         })
         
@@ -745,11 +745,11 @@ class VoiceBase {
     {
         didSet {
             if transcript != nil {
-                DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                DispatchQueue(label: "CBC").sync(execute: { () -> Void in
                     self.mediaItem.addTag("Machine Generated Transcript")
                 })
             } else {
-                DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                DispatchQueue(label: "CBC").sync(execute: { () -> Void in
                     self.mediaItem.removeTag("Machine Generated Transcript")
                 })
             }
@@ -2733,13 +2733,13 @@ class MediaItem : NSObject {
         
         var tags = tagsArrayFromTagsString(mediaItemSettings![Field.tags])
         
-//            print(tags)
+            print(tags)
         
         while tags?.index(of: tag) != nil {
             tags?.remove(at: tags!.index(of: tag)!)
         }
         
-//            print(tags)
+            print(tags)
         
         mediaItemSettings?[Field.tags] = tagsArrayToTagsString(tags)
         

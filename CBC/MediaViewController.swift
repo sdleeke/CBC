@@ -132,13 +132,13 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Add_to_Favorites:
-            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+            DispatchQueue(label: "CBC").sync(execute: { () -> Void in
                 self.selectedMediaItem?.addTag(Constants.Strings.Favorites)
             })
             break
             
         case Constants.Strings.Add_All_to_Favorites:
-            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+            DispatchQueue(label: "CBC").sync(execute: { () -> Void in
                 for mediaItem in self.mediaItems! {
                     mediaItem.addTag(Constants.Strings.Favorites)
                 }
@@ -146,13 +146,13 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Remove_From_Favorites:
-            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+            DispatchQueue(label: "CBC").sync(execute: { () -> Void in
                 self.selectedMediaItem?.removeTag(Constants.Strings.Favorites)
             })
             break
             
         case Constants.Strings.Remove_All_From_Favorites:
-            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+            DispatchQueue(label: "CBC").sync(execute: { () -> Void in
                 for mediaItem in self.mediaItems! {
                     mediaItem.removeTag(Constants.Strings.Favorites)
                 }

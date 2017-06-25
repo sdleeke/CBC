@@ -883,7 +883,8 @@ class ScriptureViewController : UIViewController
         }
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool)
+    {
         super.viewWillDisappear(animated)
         //        saveSettings()
         NotificationCenter.default.removeObserver(self)

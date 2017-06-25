@@ -2006,6 +2006,7 @@ class MediaTableViewController : UIViewController
     func updateList()
     {
         globals.setupDisplay(globals.media.active)
+
         DispatchQueue.main.async(execute: { () -> Void in
             self.tableView.reloadData()
         })
@@ -2091,7 +2092,8 @@ class MediaTableViewController : UIViewController
         view.addSubview(container)
     }
 
-    override func viewDidLoad() {
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
 
         searchBar.autocapitalizationType = .none
@@ -2669,6 +2671,8 @@ class MediaTableViewController : UIViewController
 
     }
     
+    // THIS IS NEVER GETTING CALLED.  WHY?!?!?!?!?!
+    // Had to move all of the code into viewDidAppear
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -2723,7 +2727,27 @@ class MediaTableViewController : UIViewController
     {
         super.viewDidAppear(animated)
 
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateSearch), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.playingPaused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYING_PAUSED), object: nil)
+        
+        if (self.splitViewController?.viewControllers.count > 1) {
+            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.setupShowHide), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SHOW_HIDE), object: nil)
+        }
+        
+        navigationController?.isToolbarHidden = false
+        
         updateUI()
+        
+        // Causes a crash in split screen on first swipe to get MVC to show when only DVC is showing.
+        // Forces MasterViewController to show.  App MUST start in preferredDisplayMode == .automatic or the MVC can't be dragged out after it is hidden!
+        if (splitViewController?.preferredDisplayMode == .automatic) {
+            splitViewController?.preferredDisplayMode = .allVisible //iPad only
+        }
         
         if (!globals.scrolledToMediaItemLastSelected) {
             selectOrScrollToMediaItem(selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
