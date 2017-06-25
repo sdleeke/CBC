@@ -49,7 +49,9 @@ class Download : NSObject {
 
     @objc func downloadFailed()
     {
-        globals.alert(title: "Network Error",message: "Download failed.")
+        DispatchQueue.main.async(execute: { () -> Void in
+            globals.alert(title: "Network Error",message: "Download failed.")
+        })
     }
 
     var state:State = .none {
@@ -94,11 +96,15 @@ class Download : NSObject {
                         break
                         
                     case .downloaded:
-                        mediaItem?.addTag(Constants.Strings.Downloaded)
+                        DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                            self.mediaItem?.addTag(Constants.Strings.Downloaded)
+                        })
                         break
                         
                     case .none:
-                        mediaItem?.removeTag(Constants.Strings.Downloaded)
+                        DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                            self.mediaItem?.removeTag(Constants.Strings.Downloaded)
+                        })
                         break
                     }
                     

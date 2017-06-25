@@ -569,7 +569,9 @@ class MediaPlayer : NSObject {
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_LOAD), object: nil)
         })
         
-        globals.alert(title: "Failed to Load Content",message: "Please check your network connection and try again.")
+        DispatchQueue.main.async(execute: { () -> Void in
+            globals.alert(title: "Failed to Load Content",message: "Please check your network connection and try again.")
+        })
 
 //        if (UIApplication.shared.applicationState == UIApplicationState.active) {
 //            alert(viewController:nil,title: "Failed to Load Content", message: "Please check your network connection and try again.", completion: nil)
@@ -584,7 +586,9 @@ class MediaPlayer : NSObject {
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
         })
         
-        globals.alert(title: "Unable to Play Content",message: "Please check your network connection and try again.")
+        DispatchQueue.main.async(execute: { () -> Void in
+            globals.alert(title: "Unable to Play Content",message: "Please check your network connection and try again.")
+        })
 
 //        if (UIApplication.shared.applicationState == UIApplicationState.active) {
 //            alert(viewController:nil,title: "Unable to Play Content", message: "Please check your network connection and try again.",completion: nil)

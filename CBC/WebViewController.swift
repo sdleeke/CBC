@@ -11,7 +11,16 @@ import WebKit
 import MessageUI
 
 struct HTML {
+    var original:String?
+    
     var string:String?
+    {
+        didSet {
+            if original == nil {
+                original = string
+            }
+        }
+    }
     var fontSize = Constants.FONT_SIZE
     var xRatio = 0.0
     var yRatio = 0.0
@@ -121,6 +130,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 popover.html.fontSize = self.html.fontSize
                 popover.html.string = self.html.string
                 
+                popover.search = self.search
                 popover.selectedMediaItem = self.selectedMediaItem
                 
                 popover.content = self.content
@@ -136,17 +146,17 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 firstSecondCancel(viewController: self, title: "Remove Links?", message: "This can take some time.",
                                   firstTitle: "Yes",
                                   firstAction: {
-                                    process(viewController: self, work: { () -> (Any?) in
-                                        return stripLinks(self.html.string)
-                                    }, completion: { (data:Any?) in
-                                        printHTML(viewController: self, htmlString: data as? String)
-                                    })
-                }, firstStyle: .default,
+                                        process(viewController: self, work: { () -> (Any?) in
+                                            return stripLinks(self.html.string)
+                                        }, completion: { (data:Any?) in
+                                            printHTML(viewController: self, htmlString: data as? String)
+                                        })
+                                    }, firstStyle: .default,
                                   secondTitle: "No",
                                   secondAction: {
-                                    printHTML(viewController: self, htmlString: self.html.string)
-                }, secondStyle: .default,
-                                  cancelAction: {}
+                                        printHTML(viewController: self, htmlString: self.html.string)
+                                    }, secondStyle: .default,
+                                  cancelAction: nil
                 )
             } else {
                 printHTML(viewController: self, htmlString: self.html.string)
@@ -158,15 +168,23 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Search:
-            searchAlert(viewController: self, title: "Search", message: nil, searchAction:  { (alert:UIAlertController) -> (Void) in
-                let searchText = (alert.textFields![0] as UITextField).text
+            searchAlert(viewController: self, title: "Search", message: nil, searchText:searchText, searchAction:  { (alert:UIAlertController) -> (Void) in
+                self.searchText = (alert.textFields![0] as UITextField).text
+                
+                if let isEmpty = self.searchText?.isEmpty, isEmpty, self.html.string == self.html.original {
+                    return
+                }
                 
                 self.wkWebView?.isHidden = true
                 
                 self.activityIndicator.isHidden = false
                 self.activityIndicator.startAnimating()
                 
-                self.html.string = insertHead(stripHead(self.selectedMediaItem?.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
+                if self.selectedMediaItem != nil {
+                    self.html.string = insertHead(stripHead(self.selectedMediaItem?.markedFullNotesHTML(searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
+                } else {
+                    self.html.string = insertHead(stripHead(self.markedHTML(searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
+                }
                 
                 _ = self.wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
             })
@@ -524,6 +542,9 @@ extension WebViewController: UIPopoverPresentationControllerDelegate
 
 class WebViewController: UIViewController
 {
+    var search = false
+    var searchText:String?
+    
     enum Content {
         case document
         case html
@@ -549,6 +570,142 @@ class WebViewController: UIViewController
     
     @IBOutlet weak var logo: UIImageView!
     
+    func markedHTML(searchText:String?,wholeWordsOnly:Bool,index:Bool) -> String?
+    {
+        guard (stripHead(html.original) != nil) else {
+            return nil
+        }
+        
+        guard let isEmpty = searchText?.isEmpty, !isEmpty else {
+            return html.original
+        }
+        
+        var markCounter = 0
+        
+        func mark(_ input:String) -> String
+        {
+            var string = input
+            
+            var stringBefore:String = Constants.EMPTY_STRING
+            var stringAfter:String = Constants.EMPTY_STRING
+            var newString:String = Constants.EMPTY_STRING
+            var foundString:String = Constants.EMPTY_STRING
+            
+            while (string.lowercased().range(of: searchText!.lowercased()) != nil) {
+                //                print(string)
+                
+                if let range = string.lowercased().range(of: searchText!.lowercased()) {
+                    stringBefore = string.substring(to: range.lowerBound)
+                    stringAfter = string.substring(from: range.upperBound)
+                    
+                    var skip = false
+                    
+                    let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
+                    
+                    if wholeWordsOnly {
+                        if let characterAfter:Character = stringAfter.characters.first {
+                            if !CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterAfter))!) {
+                                skip = true
+                            }
+                            
+                            //                            print(characterAfter)
+                            if stringAfter.endIndex >= "'s".endIndex {
+                                if (stringAfter.substring(to: "'s".endIndex) == "'s") {
+                                    skip = false
+                                }
+                                if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                                    skip = true
+                                }
+                            }
+                        }
+                        if let characterBefore:Character = stringBefore.characters.last {
+                            if !CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterBefore))!) {
+                                skip = true
+                            }
+                        }
+                    }
+                    
+                    foundString = string.substring(from: range.lowerBound)
+                    let newRange = foundString.lowercased().range(of: searchText!.lowercased())
+                    foundString = foundString.substring(to: newRange!.upperBound)
+                    
+                    if !skip {
+                        markCounter += 1
+                        foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
+                    }
+                    
+                    newString = newString + stringBefore + foundString
+                    
+                    stringBefore = stringBefore + foundString
+                    
+                    string = stringAfter
+                } else {
+                    break
+                }
+            }
+            
+            newString = newString + stringAfter
+            
+            return newString == Constants.EMPTY_STRING ? string : newString
+        }
+        
+        var newString:String = Constants.EMPTY_STRING
+        var string:String = html.original! // stripHead(fullNotesHTML)!
+        
+        while let searchRange = string.range(of: "<") {
+            let searchString = string.substring(to: searchRange.lowerBound)
+            //            print(searchString)
+            
+            // mark search string
+            newString = newString + mark(searchString)
+            
+            let remainder = string.substring(from: searchRange.lowerBound)
+            
+            if let htmlRange = remainder.range(of: ">") {
+                let html = remainder.substring(to: htmlRange.upperBound)
+                //                print(html)
+                
+                newString = newString + html
+                
+                string = remainder.substring(from: htmlRange.upperBound)
+            }
+        }
+        
+        var indexString:String!
+        
+        if markCounter > 0 {
+            indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText!)\": \(markCounter)<br/>"
+        } else {
+            indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText!)\" were found.<br/>"
+        }
+        
+        // If we want an index of links to the occurrences of the searchText.
+        if index {
+            if markCounter > 0 {
+                indexString = indexString + "<div>Locations: "
+                
+                for counter in 1...markCounter {
+                    if counter > 1 {
+                        indexString = indexString + ", "
+                    }
+                    indexString = indexString + "<a href=\"#\(counter)\">\(counter)</a>"
+                }
+                
+                indexString = indexString + "<br/><br/></div>"
+            }
+        }
+        
+        var htmlString = "<!DOCTYPE html><html><body>"
+        
+        if index {
+            htmlString = htmlString + indexString
+        }
+        
+        htmlString = htmlString + newString + "</body></html>"
+        
+        return insertHead(htmlString,fontSize: Constants.FONT_SIZE) // insertHead(newString,fontSize: Constants.FONT_SIZE)
+    }
+
     func updateDownload()
     {
         //        print(document)
@@ -708,10 +865,13 @@ class WebViewController: UIViewController
             
             var actionMenu = [String]()
             
-            if (html.string != nil) && (selectedMediaItem != nil) {
+            if (html.string != nil) && search {
                 actionMenu.append(Constants.Strings.Search)
-                actionMenu.append(Constants.Strings.Words)
-                actionMenu.append(Constants.Strings.Word_Picker)
+                
+                if (selectedMediaItem != nil) {
+                    actionMenu.append(Constants.Strings.Words)
+                    actionMenu.append(Constants.Strings.Word_Picker)
+                }
             }
             
             if self.navigationController?.modalPresentationStyle == .popover {
@@ -1195,11 +1355,219 @@ class WebViewController: UIViewController
         preferredContentSize = CGSize(width: max(width,size.width),height: size.height)
     }
     
+    var orientation : UIDeviceOrientation?
+    
     func deviceOrientationDidChange()
     {
+        func action()
+        {
+            ptvc?.dismiss(animated: false, completion: nil)
+            activityViewController?.dismiss(animated: false, completion: nil)
+        }
+        
         // Dismiss any popover
-        ptvc?.dismiss(animated: false, completion: nil)
-        activityViewController?.dismiss(animated: false, completion: nil)
+        switch orientation! {
+        case .faceUp:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                action()
+                break
+                
+            case .landscapeRight:
+                action()
+                break
+                
+            case .portrait:
+                break
+                
+            case .portraitUpsideDown:
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .faceDown:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                action()
+                break
+                
+            case .landscapeRight:
+                action()
+                break
+                
+            case .portrait:
+                action()
+                break
+                
+            case .portraitUpsideDown:
+                action()
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .landscapeLeft:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                break
+                
+            case .landscapeRight:
+                action()
+                break
+                
+            case .portrait:
+                action()
+                break
+                
+            case .portraitUpsideDown:
+                action()
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .landscapeRight:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                break
+                
+            case .landscapeRight:
+                break
+                
+            case .portrait:
+                action()
+                break
+                
+            case .portraitUpsideDown:
+                action()
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .portrait:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                action()
+                break
+                
+            case .landscapeRight:
+                action()
+                break
+                
+            case .portrait:
+                break
+                
+            case .portraitUpsideDown:
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .portraitUpsideDown:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                action()
+                break
+                
+            case .landscapeRight:
+                action()
+                break
+                
+            case .portrait:
+                break
+                
+            case .portraitUpsideDown:
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .unknown:
+            break
+        }
+        
+        switch UIDevice.current.orientation {
+        case .faceUp:
+            break
+            
+        case .faceDown:
+            break
+            
+        case .landscapeLeft:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .landscapeRight:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .portrait:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .portraitUpsideDown:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .unknown:
+            break
+        }
     }
     
     func willResignActive()
@@ -1207,8 +1575,11 @@ class WebViewController: UIViewController
         dismiss(animated: true, completion: nil)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool)
+    {
         super.viewWillAppear(animated)
+        
+        orientation = UIDevice.current.orientation
         
         NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.willResignActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
         

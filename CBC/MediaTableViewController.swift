@@ -3399,30 +3399,116 @@ extension MediaTableViewController : UITableViewDelegate
                         })
                     }
                 } else {
-                    firstSecondCancel(viewController: self, title: "Machine Generated Transcript (\(purpose.lowercased()))", message: "This is a machine generated transcript.  Please note that it lacks proper formatting and may have signifcant errors.",
-                                      firstTitle: "Show", firstAction: {
-                                        let sourceView = cell.subviews[0]
-                                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
-                                        
-                                        var htmlString = "<!DOCTYPE html><html><body>"
-                                        
-                                        htmlString = htmlString + mediaItem.headerHTML! +
-                                            "<br/>" +
-                                            "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(transcript!.purpose!))</center>" +
-                                            "<br/>" +
-                                            transcript!.transcript! +
-//                                            "<br/>" +
-//                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
-                                            "</body></html>"
-                                        
-                                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-                    }, firstStyle: .default,
-                       
-                       secondTitle: "Delete", secondAction: {
+                    var alertActions = [AlertAction]()
+                    
+                    alertActions.append(AlertAction(title: "Show", style: .default, action: {
+                        let sourceView = cell.subviews[0]
+                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
+                        
+                        var htmlString = "<!DOCTYPE html><html><body>"
+                        
+                        htmlString = htmlString + mediaItem.headerHTML! +
+                            "<br/>" +
+                            "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(transcript!.purpose!))</center>" +
+                            "<br/>" +
+                            transcript!.transcript! +
+                            //                                            "<br/>" +
+                            //                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
+                        "</body></html>"
+                        
+                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                    }))
+                    
+                    alertActions.append(AlertAction(title: "Show with Timing", style: .default, action: {
+                        let sourceView = cell.subviews[0]
+                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
+                        
+                        var htmlString = "<!DOCTYPE html><html><body>"
+                        
+                        var srtHTML = String()
+                        
+                        srtHTML = srtHTML + "<table>"
+                        
+                        srtHTML = srtHTML + "<tr><td><b>#</b></td><td><b>Start Time</b></td><td><b>End Time</b></td><td><b>Recognized Speech</b></td></tr>"
+                        
+                        if let srtArrays = transcript?.srtArrays {
+                            for array in srtArrays {
+                                if array.count == 1 {
+                                    break
+                                }
+                                
+                                var srtArray = array
+                                
+                                let count = srtArray.first
+                                srtArray.remove(at: 0)
+                                
+                                let timeWindow = srtArray.first
+                                srtArray.remove(at: 0)
+                                
+                                let start = timeWindow?.components(separatedBy: " --> ").first
+                                let end = timeWindow?.components(separatedBy: " --> ").last
+                                
+                                var srtString = String()
+                                
+                                for string in srtArray {
+                                    srtString = srtString + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
+                                }
+                                
+                                let row = "<tr><td>\(count!)</td><td>\(start!)</td><td>\(end!)</td><td>\(srtString)</td></tr>"
+                                
+                                srtHTML = srtHTML + row
+                            }
+                        }
+                        
+                        srtHTML = srtHTML + "</table>"
+                        
+                        htmlString = htmlString + mediaItem.headerHTML! +
+                            "<br/>" +
+                            "<center>MACHINE GENERATED TRANSCRIPT WITH TIMING<br/>(\(transcript!.purpose!))</center>" +
+                            "<br/>" +
+                            
+                            srtHTML +
+                            
+                        "</body></html>"
+                        
+                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                    }))
+                    
+                    alertActions.append(AlertAction(title: "Delete", style: .default, action: {
                         transcript?.remove()
                         tableView.setEditing(false, animated: true)
-                    }, secondStyle: .default,
-                       cancelAction: nil)
+                    }))
+                    
+                    alertActionsCancel(  viewController: self,
+                                         title: "Machine Generated Transcript (\(purpose.lowercased()))",
+                        message: "This is a machine generated transcript.  Please note that it lacks proper formatting and may have signifcant errors.",
+                        alertActions: alertActions,
+                        cancelAction: nil)
+
+//                    firstSecondCancel(viewController: self, title: "Machine Generated Transcript (\(purpose.lowercased()))", message: "This is a machine generated transcript.  Please note that it lacks proper formatting and may have signifcant errors.",
+//                                      firstTitle: "Show", firstAction: {
+//                                        let sourceView = cell.subviews[0]
+//                                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
+//                                        
+//                                        var htmlString = "<!DOCTYPE html><html><body>"
+//                                        
+//                                        htmlString = htmlString + mediaItem.headerHTML! +
+//                                            "<br/>" +
+//                                            "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(transcript!.purpose!))</center>" +
+//                                            "<br/>" +
+//                                            transcript!.transcript! +
+////                                            "<br/>" +
+////                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
+//                                            "</body></html>"
+//                                        
+//                                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+//                    }, firstStyle: .default,
+//                       
+//                       secondTitle: "Delete", secondAction: {
+//                        transcript?.remove()
+//                        tableView.setEditing(false, animated: true)
+//                    }, secondStyle: .default,
+//                       cancelAction: nil)
                 }
             }
             

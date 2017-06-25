@@ -80,11 +80,13 @@ class Section {
             var stringIndex = [String:[String]]()
             
             for indexString in indexStrings! {
-                if stringIndex[indexString.substring(to: a.endIndex)] == nil {
-                    stringIndex[indexString.substring(to: a.endIndex)] = [String]()
+                if indexString.endIndex >= a.endIndex {
+                    if stringIndex[indexString.substring(to: a.endIndex)] == nil {
+                        stringIndex[indexString.substring(to: a.endIndex)] = [String]()
+                    }
+                    //                print(testString,string)
+                    stringIndex[indexString.substring(to: a.endIndex)]?.append(indexString)
                 }
-                //                print(testString,string)
-                stringIndex[indexString.substring(to: a.endIndex)]?.append(indexString)
             }
             
             var counter = 0
@@ -512,6 +514,94 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     var alerts = [Alert]()
     
+    func getAllMedia()
+    {
+        let service = "https://apis.voicebase.com/v2-beta/media"
+        print(service)
+        
+        var request = URLRequest(url: URL(string:service)!)
+        
+        request.httpMethod = "GET"
+        
+        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
+        
+        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+            print((response as? HTTPURLResponse)?.statusCode)
+            if data != nil {
+                let string = String.init(data: data!, encoding: String.Encoding.utf8)
+                print(string) // object name
+                
+                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
+                    print(json)
+                }
+            }
+        })
+        
+        task.resume()
+    }
+    
+    func deleteAllMedia()
+    {
+        let service = "https://apis.voicebase.com/v2-beta/media"
+        print(service)
+        
+        var request = URLRequest(url: URL(string:service)!)
+        
+        request.httpMethod = "GET"
+        
+        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
+        
+        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+            print((response as? HTTPURLResponse)?.statusCode)
+            if data != nil {
+                let string = String.init(data: data!, encoding: String.Encoding.utf8)
+                print(string) // object name
+                
+                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
+                    print(json)
+                    
+                    if let mediaItems = json["media"] as? [[String:Any]] {
+                        for mediaItem in mediaItems {
+                            self.delete(mediaID:mediaItem["mediaId"] as? String)
+                        }
+                    }
+                }
+            }
+        })
+        
+        task.resume()
+    }
+    
+    func delete(mediaID:String?)
+    {
+        guard let mediaID = mediaID else {
+            return
+        }
+        
+        let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)"
+        print(service)
+        
+        var request = URLRequest(url: URL(string:service)!)
+        
+        request.httpMethod = "DELETE"
+        
+        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
+        
+        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+            print((response as? HTTPURLResponse)?.statusCode)
+            if data != nil {
+                let string = String.init(data: data!, encoding: String.Encoding.utf8)
+                print(string) // object name
+                
+                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
+                    print(json)
+                }
+            }
+        })
+        
+        task.resume()
+    }
+
     func alertViewer()
     {
         for alert in alerts {

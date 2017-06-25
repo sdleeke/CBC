@@ -57,7 +57,9 @@ class VoiceBase {
                 }
                 
                 if self.transcript == nil {
-                    mediaItem.removeTag("Machine Generated Transcript")
+                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                        self.mediaItem.removeTag("Machine Generated Transcript")
+                    })
                     
                     self.transcribing = true
                     
@@ -142,8 +144,6 @@ class VoiceBase {
         }
     }
     
-    let TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI3NGNkNTM1Mi01YzE5LTQzYTAtOTU0Ni1lMjNhODUyODJiNzkiLCJ1c2VySWQiOiJhdXRoMHw1OTFkYWU4ZWU1YzMwZjFiYWUxMGFiODkiLCJvcmdhbml6YXRpb25JZCI6ImZkYWMzNjQ3LTAyNGMtZDM5Ny0zNTgzLTBhODA5MWI5MzY2MSIsImVwaGVtZXJhbCI6ZmFsc2UsImlhdCI6MTQ5NTEzMjY3NjQ0MCwiaXNzIjoiaHR0cDovL3d3dy52b2ljZWJhc2UuY29tIn0.z9slz4OGdXDYaH_Lv02Dog0QmADH3up-BXTPWRKFHpY"
- 
     var transcribing = false
     var upload:[String:Any]?
     
@@ -165,32 +165,6 @@ class VoiceBase {
         return body as Data
     }
 
-    func getMedia()
-    {
-        let service = "https://apis.voicebase.com/v2-beta/media"
-        print(service)
-        
-        var request = URLRequest(url: URL(string:service)!)
-        
-        request.httpMethod = "GET"
-        
-        request.addValue("Bearer \(TOKEN)", forHTTPHeaderField: "Authorization")
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            print((response as? HTTPURLResponse)?.statusCode)
-            if data != nil {
-                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                print(string) // object name
-                
-                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
-                    print(json)
-                }
-            }
-        })
-        
-        task.resume()
-    }
-    
     var url:String? {
         switch purpose! {
         case Purpose.video:
@@ -228,7 +202,7 @@ class VoiceBase {
         
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         
-        request.addValue("Bearer \(TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
         
         let body = createBody(parameters: ["media":url],boundary: boundary)
         
@@ -258,7 +232,9 @@ class VoiceBase {
 
 //                        alert(viewController:nil,title: "Machine Generated Transcript Started", message: "The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.",completion: nil)
 
-                        globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.")
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.")
+                        })
                         
                         DispatchQueue.main.async(execute: { () -> Void in
                             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_UPLOAD), object: self)
@@ -283,8 +259,10 @@ class VoiceBase {
 
 //                alert(viewController:nil,title: "Transcript Failed", message: "The transcript for \(self.mediaItem.title!) failed to start.  Please try again.",completion: nil)
                 
-                globals.alert(title: "Transcript Failed",message: "The transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) failed to start.  Please try again.")
-                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    globals.alert(title: "Transcript Failed",message: "The transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) failed to start.  Please try again.")
+                })
+
                 DispatchQueue.main.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_START), object: self)
                 })
@@ -312,7 +290,7 @@ class VoiceBase {
         
         request.httpMethod = "GET"
         
-        request.addValue("Bearer \(TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
             print((response as? HTTPURLResponse)?.statusCode)
@@ -334,8 +312,10 @@ class VoiceBase {
                         
 //                        alert(viewController:nil,title: "Transcript Failed", message: "The transcript for \(self.mediaItem.title!) was not completed.  Please try again.",completion: nil)
                         
-                        globals.alert(title: "Transcript Failed",message: "The transcript for \(self.mediaItem.title!) was not completed.  Please try again.")
-                        
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            globals.alert(title: "Transcript Failed",message: "The transcript for \(self.mediaItem.title!) was not completed.  Please try again.")
+                        })
+
                         DispatchQueue.main.async(execute: { () -> Void in
                             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
                         })
@@ -386,7 +366,7 @@ class VoiceBase {
         
         request.httpMethod = "DELETE"
         
-        request.addValue("Bearer \(TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
             print((response as? HTTPURLResponse)?.statusCode)
@@ -420,7 +400,9 @@ class VoiceBase {
         topicsJSON = nil
         keywordsJSON = nil
         
-        mediaItem.removeTag("Machine Generated Transcript")
+        DispatchQueue(label: "CBC").async(execute: { () -> Void in
+            self.mediaItem.removeTag("Machine Generated Transcript")
+        })
         
         let fileManager = FileManager.default
         
@@ -697,7 +679,7 @@ class VoiceBase {
         
         request.httpMethod = "GET"
         
-        request.addValue("Bearer \(TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
             print((response as? HTTPURLResponse)?.statusCode)
@@ -763,9 +745,13 @@ class VoiceBase {
     {
         didSet {
             if transcript != nil {
-                mediaItem.addTag("Machine Generated Transcript")
+                DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                    self.mediaItem.addTag("Machine Generated Transcript")
+                })
             } else {
-                mediaItem.removeTag("Machine Generated Transcript")
+                DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                    self.mediaItem.removeTag("Machine Generated Transcript")
+                })
             }
         }
     }
@@ -784,7 +770,7 @@ class VoiceBase {
         
         request.httpMethod = "GET"
         
-        request.addValue("Bearer \(TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
         
         request.addValue("text/plain", forHTTPHeaderField: "Accept")
         
@@ -825,7 +811,9 @@ class VoiceBase {
 
 //                alert(viewController:nil,title: "Transcript Ready", message: "The transcript for \(self.mediaItem.title!) is available. (\(self.purpose!.lowercased()))",completion: nil)
                 
-                globals.alert(title: "Transcript Ready",message: "The transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) is available.")
+                DispatchQueue.main.async(execute: { () -> Void in
+                    globals.alert(title: "Transcript Ready",message: "The transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) is available.")
+                })
 
                 DispatchQueue.main.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
@@ -1014,7 +1002,7 @@ class VoiceBase {
         
         request.httpMethod = "GET"
         
-        request.addValue("Bearer \(TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
         
         request.addValue("text/srt", forHTTPHeaderField: "Accept")
         
@@ -1075,7 +1063,7 @@ class VoiceBase {
         
         request.httpMethod = "GET"
         
-        request.addValue("Bearer \(TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
         
 //        request.addValue("text/plain", forHTTPHeaderField: "Accept")
         
@@ -2692,6 +2680,14 @@ class MediaItem : NSObject {
     
     func addTag(_ tag:String)
     {
+        guard mediaItemSettings != nil else {
+            return
+        }
+        
+        guard globals.media.all != nil else {
+            return
+        }
+        
         let tags = tagsArrayFromTagsString(mediaItemSettings![Field.tags])
         
 //        print(tags)
@@ -2731,40 +2727,42 @@ class MediaItem : NSObject {
     
     func removeTag(_ tag:String)
     {
-        if (mediaItemSettings?[Field.tags] != nil) {
-            var tags = tagsArrayFromTagsString(mediaItemSettings![Field.tags])
-            
+        guard mediaItemSettings?[Field.tags] != nil else {
+            return
+        }
+        
+        var tags = tagsArrayFromTagsString(mediaItemSettings![Field.tags])
+        
 //            print(tags)
-            
-            while tags?.index(of: tag) != nil {
-                tags?.remove(at: tags!.index(of: tag)!)
-            }
-            
+        
+        while tags?.index(of: tag) != nil {
+            tags?.remove(at: tags!.index(of: tag)!)
+        }
+        
 //            print(tags)
+        
+        mediaItemSettings?[Field.tags] = tagsArrayToTagsString(tags)
+        
+        let sortTag = stringWithoutPrefixes(tag)
+        
+        if let index = globals.media.all?.tagMediaItems?[sortTag!]?.index(of: self) {
+            globals.media.all?.tagMediaItems?[sortTag!]?.remove(at: index)
+        }
+        
+        if globals.media.all?.tagMediaItems?[sortTag!]?.count == 0 {
+            _ = globals.media.all?.tagMediaItems?.removeValue(forKey: sortTag!)
+        }
+        
+        if (globals.media.tags.selected == tag) {
+            globals.media.tagged[globals.media.tags.selected!] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
             
-            mediaItemSettings?[Field.tags] = tagsArrayToTagsString(tags)
-            
-            let sortTag = stringWithoutPrefixes(tag)
-            
-            if let index = globals.media.all?.tagMediaItems?[sortTag!]?.index(of: self) {
-                globals.media.all?.tagMediaItems?[sortTag!]?.remove(at: index)
-            }
-            
-            if globals.media.all?.tagMediaItems?[sortTag!]?.count == 0 {
-                _ = globals.media.all?.tagMediaItems?.removeValue(forKey: sortTag!)
-            }
-            
-            if (globals.media.tags.selected == tag) {
-                globals.media.tagged[globals.media.tags.selected!] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
-                })
-            }
-            
-            DispatchQueue.main.async {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
-            }
+            DispatchQueue.main.async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
+            })
+        }
+        
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
         }
     }
     

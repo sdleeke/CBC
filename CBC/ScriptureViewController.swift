@@ -624,15 +624,226 @@ class ScriptureViewController : UIViewController
     
     var activityViewController:UIActivityViewController?
 
+    var orientation : UIDeviceOrientation?
+    
     func deviceOrientationDidChange()
     {
+        func action()
+        {
+            ptvc?.dismiss(animated: false, completion: nil)
+            activityViewController?.dismiss(animated: false, completion: nil)
+        }
+        
         // Dismiss any popover
-        ptvc?.dismiss(animated: false, completion: nil)
-        activityViewController?.dismiss(animated: false, completion: nil)
+        switch orientation! {
+        case .faceUp:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                action()
+                break
+                
+            case .landscapeRight:
+                action()
+                break
+                
+            case .portrait:
+                break
+                
+            case .portraitUpsideDown:
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .faceDown:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                action()
+                break
+                
+            case .landscapeRight:
+                action()
+                break
+                
+            case .portrait:
+                action()
+                break
+                
+            case .portraitUpsideDown:
+                action()
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .landscapeLeft:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                break
+                
+            case .landscapeRight:
+                action()
+                break
+                
+            case .portrait:
+                action()
+                break
+                
+            case .portraitUpsideDown:
+                action()
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .landscapeRight:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                break
+                
+            case .landscapeRight:
+                break
+                
+            case .portrait:
+                action()
+                break
+                
+            case .portraitUpsideDown:
+                action()
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .portrait:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                action()
+                break
+                
+            case .landscapeRight:
+                action()
+                break
+                
+            case .portrait:
+                break
+                
+            case .portraitUpsideDown:
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .portraitUpsideDown:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                action()
+                break
+                
+            case .landscapeRight:
+                action()
+                break
+                
+            case .portrait:
+                break
+                
+            case .portraitUpsideDown:
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .unknown:
+            break
+        }
+        
+        switch UIDevice.current.orientation {
+        case .faceUp:
+            break
+            
+        case .faceDown:
+            break
+            
+        case .landscapeLeft:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .landscapeRight:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .portrait:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .portraitUpsideDown:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .unknown:
+            break
+        }
     }
     
-    override func viewWillAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool)
+    {
         super.viewWillAppear(animated)
+        
+        orientation = UIDevice.current.orientation
         
         NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
         

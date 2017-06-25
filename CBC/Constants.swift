@@ -134,6 +134,8 @@ struct Sorting {
 }
 
 struct Constants {
+    static let TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI3NGNkNTM1Mi01YzE5LTQzYTAtOTU0Ni1lMjNhODUyODJiNzkiLCJ1c2VySWQiOiJhdXRoMHw1OTFkYWU4ZWU1YzMwZjFiYWUxMGFiODkiLCJvcmdhbml6YXRpb25JZCI6ImZkYWMzNjQ3LTAyNGMtZDM5Ny0zNTgzLTBhODA5MWI5MzY2MSIsImVwaGVtZXJhbCI6ZmFsc2UsImlhdCI6MTQ5NTEzMjY3NjQ0MCwiaXNzIjoiaHR0cDovL3d3dy52b2ljZWJhc2UuY29tIn0.z9slz4OGdXDYaH_Lv02Dog0QmADH3up-BXTPWRKFHpY"
+    
     static var SCRIPTURE_BASE_URL = "http://17iPVurdk9fn2ZKLVnnfqN4HKKIb9WXMKzN0l5K5:@bibles.org/v2/eng-NASB/passages.js?q[]="
     
     struct JSON {

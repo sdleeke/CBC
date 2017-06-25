@@ -57,7 +57,9 @@ extension PopoverTableViewController: UISearchBarDelegate
         
         searchBar.showsCancelButton = true
         
-        if let text = searchBar.text { // , (text.isEmpty == false)
+        searchText = searchBar.text
+        
+        if let text = searchText { // , (text.isEmpty == false)
             
             // update the search result array by filtering….
             
@@ -82,7 +84,9 @@ extension PopoverTableViewController: UISearchBarDelegate
             return
         }
         
-        if let text = searchBar.text { // , (text.isEmpty == false)
+        searchText = searchBar.text
+        
+        if let text = searchText { // , (text.isEmpty == false)
             
             // update the search result array by filtering….
             
@@ -109,7 +113,9 @@ extension PopoverTableViewController: UISearchBarDelegate
             return
         }
         
-        if let text = searchBar.text { // , (text.isEmpty == false)
+        self.searchText = searchBar.text
+        
+        if let text = self.searchText { // , (text.isEmpty == false)
             
             // update the search result array by filtering….
 
@@ -136,6 +142,8 @@ extension PopoverTableViewController: UISearchBarDelegate
             return
         }
         
+        searchText = searchBar.text
+
         searchBar.resignFirstResponder()
         
         tableView.reloadData()
@@ -150,6 +158,7 @@ extension PopoverTableViewController: UISearchBarDelegate
             return
         }
         
+        searchText = nil
         searchActive = false
         
         // In case they've changed
@@ -251,11 +260,101 @@ class PopoverTableViewController : UIViewController
     var vc:UIViewController?
     
     var selectedText:String!
-
+    
+//    var detail = false
+    var detailAction:((VoiceBase?,String)->Void)?
+    
     var sort = Sort()
+ 
+    var startTimes:[Double]?
+    
+    func follow()
+    {
+        if let seconds = globals.mediaPlayer.currentTime?.seconds {
+            var row = 0
+            
+//            print("seconds: ",seconds)
+            
+            for startTime in startTimes! {
+//                print("startTime: ",startTime)
+                
+                if startTime-0.1 > seconds {
+                    break
+                }
+                row += 1
+            }
+            
+//            print("Row: ",row-1)
+            let indexPath = IndexPath(row: max(row - 1,0), section: 0)
+            
+            if tableView.indexPathForSelectedRow != indexPath {
+                tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
+            }
+        }
+    }
+    
+    func tracking()
+    {
+        if isTracking {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Start Tracking", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
+            isTracking = false
+            trackingTimer?.invalidate()
+        } else {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Stop Tracking", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
+            isTracking = true
+            startTimes = section.strings?.filter({ (string:String) -> Bool in
+                return string.components(separatedBy: "\n").count > 1
+            }).map({ (string:String) -> Double in
+                var srtArray = string.components(separatedBy: "\n")
+                let count = srtArray.first
+                srtArray.remove(at: 0)
+                
+                let timeWindow = srtArray.first
+                srtArray.remove(at: 0)
+                
+                let start = timeWindow?.components(separatedBy: " to ").first
+                let end = timeWindow?.components(separatedBy: " to ").last
+                
+                return hmsToSeconds(string: start)!
+            })
+
+            trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+        }
+    }
+    
+    var track = false
+    {
+        didSet {
+            if track && globals.mediaPlayer.isPlaying {
+                navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Start Tracking", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
+            }
+        }
+    }
+    var isTracking = false
+    var trackingTimer : Timer?
     
     var search          = false
-    var searchActive    = false
+    var searchActive    = false {
+        didSet {
+            if searchActive {
+                if track {
+                    navigationItem.rightBarButtonItem = nil
+                    trackingTimer?.invalidate()
+                    isTracking = false
+                }
+            } else {
+                if track && globals.mediaPlayer.isPlaying {
+                    if isTracking {
+                        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Stop Tracking", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
+                    } else {
+                        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Start Tracking", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
+                    }
+                }
+            }
+        }
+    }
+    var searchText      : String?
+    var wholeWordsOnly  = false
     
     @IBOutlet weak var tableViewTopConstraint: NSLayoutConstraint!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
@@ -361,49 +460,56 @@ class PopoverTableViewController : UIViewController
         let heightSize: CGSize = CGSize(width: viewWidth - deducts, height: .greatestFiniteMagnitude)
         let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 24.0)
         
-        if let title = self.navigationItem.title {
+        if let title = self.navigationItem.title, !title.isEmpty {
             let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
             
             width = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).width
             
             if let left = navigationItem.leftBarButtonItem?.title {
                 let string = left.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width
+                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width + 20
             }
             
             if let right = navigationItem.rightBarButtonItem?.title {
                 let string = right.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width
+                width += string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width + 20
             }
         }
         
         //        print(strings)
         
         for string in self.section.strings! {
-            let string = string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-            
-            let maxWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil)
-            
-            let maxHeight = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil)
-            
-            //            print(string)
-            //            print(maxSize)
-            
-            //            print(string,width,maxWidth.width)
-            
-            if maxWidth.width > width {
-                width = maxWidth.width
+            let strings = string.components(separatedBy: "\n")
+            for stringInStrings in strings {
+                if (strings.count > 1) && (stringInStrings == strings.last) {
+                    break
+                }
+                
+                let string = stringInStrings.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+                
+                let maxWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil)
+                
+                let maxHeight = string.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil)
+                
+                //            print(string)
+                //            print(maxSize)
+                
+                //            print(string,width,maxWidth.width)
+                
+                if maxWidth.width > width {
+                    width = maxWidth.width
+                }
+                
+                //            print(string,maxHeight.height) // baseHeight
+                
+                if tableView.rowHeight != -1 {
+                    height += tableView.rowHeight
+                } else {
+                    height += 2*8 + maxHeight.height // - baseHeight
+                }
+                
+                //            print(maxHeight.height, (Int(maxHeight.height) / 16) - 1)
             }
-            
-            //            print(string,maxHeight.height) // baseHeight
-            
-            if tableView.rowHeight != -1 {
-                height += tableView.rowHeight
-            } else {
-                height += 2*8 + maxHeight.height // - baseHeight
-            }
-            
-            //            print(maxHeight.height, (Int(maxHeight.height) / 16) - 1)
         }
         
         width += margins * marginSpace
@@ -485,7 +591,7 @@ class PopoverTableViewController : UIViewController
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         searchBar.autocapitalizationType = .none
 
         if !search {
@@ -615,7 +721,7 @@ class PopoverTableViewController : UIViewController
 
         if searchActive {
             if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
-                if let text = searchBar.text {
+                if let text = searchText {
                     return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
                 } else {
                     return false
@@ -677,7 +783,7 @@ class PopoverTableViewController : UIViewController
 
         if searchActive {
             if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
-                if let text = searchBar.text {
+                if let text = searchText {
                     return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
                 } else {
                     return false
@@ -720,11 +826,13 @@ class PopoverTableViewController : UIViewController
 
         NotificationCenter.default.removeObserver(self)
         
-        if mediaListGroupSort != nil {
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: mediaListGroupSort?.lexicon)
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: mediaListGroupSort?.lexicon)
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: mediaListGroupSort?.lexicon)
-        }
+        trackingTimer?.invalidate()
+        
+//        if mediaListGroupSort != nil {
+//            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: mediaListGroupSort?.lexicon)
+//            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: mediaListGroupSort?.lexicon)
+//            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: mediaListGroupSort?.lexicon)
+//        }
     }
     
     func sortAction()
@@ -766,10 +874,218 @@ class PopoverTableViewController : UIViewController
     
     var ptvc:PopoverTableViewController?
     
+    var orientation : UIDeviceOrientation?
+    
     func deviceOrientationDidChange()
     {
         // Dismiss any popover
-        ptvc?.dismiss(animated: false, completion: nil)
+        func action()
+        {
+            ptvc?.dismiss(animated: false, completion: nil)
+        }
+        
+        switch orientation! {
+        case .faceUp:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                action()
+                break
+                
+            case .landscapeRight:
+                action()
+                break
+                
+            case .portrait:
+                break
+                
+            case .portraitUpsideDown:
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .faceDown:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                action()
+                break
+                
+            case .landscapeRight:
+                action()
+                break
+                
+            case .portrait:
+                action()
+                break
+                
+            case .portraitUpsideDown:
+                action()
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .landscapeLeft:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                break
+                
+            case .landscapeRight:
+                action()
+                break
+                
+            case .portrait:
+                action()
+                break
+                
+            case .portraitUpsideDown:
+                action()
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .landscapeRight:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                break
+                
+            case .landscapeRight:
+                break
+                
+            case .portrait:
+                action()
+                break
+                
+            case .portraitUpsideDown:
+                action()
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .portrait:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                action()
+                break
+                
+            case .landscapeRight:
+                action()
+                break
+                
+            case .portrait:
+                break
+                
+            case .portraitUpsideDown:
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .portraitUpsideDown:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                action()
+                break
+                
+            case .landscapeRight:
+                action()
+                break
+                
+            case .portrait:
+                break
+                
+            case .portraitUpsideDown:
+                break
+                
+            case .unknown:
+                action()
+                break
+            }
+            break
+            
+        case .unknown:
+            break
+        }
+        
+        switch UIDevice.current.orientation {
+        case .faceUp:
+            break
+            
+        case .faceDown:
+            break
+            
+        case .landscapeLeft:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .landscapeRight:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .portrait:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .portraitUpsideDown:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .unknown:
+            break
+        }
     }
     
     func willResignActive()
@@ -780,6 +1096,10 @@ class PopoverTableViewController : UIViewController
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
+        
+        orientation = UIDevice.current.orientation
+        
+        searchBar.text = searchText
         
         NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.willResignActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
         
@@ -1016,7 +1336,7 @@ extension PopoverTableViewController : UITableViewDataSource
             break
             
         default:
-            cell.accessoryType = UITableViewCellAccessoryType.none
+            cell.accessoryType = UITableViewCellAccessoryType.none // !detail ? UITableViewCellAccessoryType.none : UITableViewCellAccessoryType.detailButton
             break
         }
         
@@ -1025,28 +1345,60 @@ extension PopoverTableViewController : UITableViewDataSource
         //        if let active = self.searchController?.isActive, active {
         if (index >= 0) && (index < section.strings?.count) {
             if let title = section.strings?[index] {
-                if search, let searchText = searchBar.text, title.lowercased().contains(searchText.lowercased()) {
-                    let titleString = NSMutableAttributedString()
+                if search, searchActive, let searchText = searchText?.lowercased(), title.lowercased().contains(searchText) {
+                    let string = title.lowercased()
                     
+                    var titleString = NSMutableAttributedString()
+                    
+                    let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
                     var before:String?
-                    var string:String?
+                    var during:String?
                     var after:String?
                     
-                    if let range = title.lowercased().range(of: searchText.lowercased()) {
-                        before = title.substring(to: range.lowerBound)
-                        string = title.substring(with: range)
-                        after = title.substring(from: range.upperBound)
+                    var range = string.lowercased().range(of: searchText.lowercased())
+                    
+                    repeat {
+                        if let range = range {
+                            before = string.substring(to: range.lowerBound)
+                            during = string.substring(with: range)
+                            after = string.substring(from: range.upperBound)
+                            
+                            titleString = NSMutableAttributedString()
+                            
+                            if let before = before {
+                                titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
+                            }
+                            if let during = during {
+                                titleString.append(NSAttributedString(string: during,   attributes: Constants.Fonts.Attributes.highlighted))
+                            }
+                            if let after = after {
+                                titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
+                            }
+                        } else {
+                            break
+                        }
                         
-                        if let before = before {
-                            titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
+                        if wholeWordsOnly {
+                            if let beforeEmpty = before?.isEmpty, beforeEmpty, let afterEmpty = after?.isEmpty, afterEmpty {
+                                break
+                            }
+
+                            if let characterBefore:Character = before?.characters.last, let characterAfter:Character = after?.characters.first {
+                                if CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterBefore))!) &&
+                                   CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterAfter))!) {
+                                    break
+                                }
+                            }
+                            
+                            if let after = after, !after.isEmpty {
+                                range = string.range(of: searchText, options: String.CompareOptions.caseInsensitive, range: string.range(of: after), locale: NSLocale.current)
+                            } else {
+                                break
+                            }
+                        } else {
+                            break
                         }
-                        if let string = string {
-                            titleString.append(NSAttributedString(string: string,   attributes: Constants.Fonts.Attributes.highlighted))
-                        }
-                        if let after = after {
-                            titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
-                        }
-                    }
+                    } while string.contains(searchText)
 
                     cell.title.text = title
                     cell.title.attributedText = titleString
@@ -1102,12 +1454,19 @@ extension PopoverTableViewController : UITableViewDelegate
 {
     // MARK: UITableViewDelegate
     
+    func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath)
+    {
+        if let string = section.strings?[indexPath.row] {
+           detailAction?(transcript,string)
+        }
+    }
+    
     func tableView(_ TableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
         if search {
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.searchBar.resignFirstResponder()
-            })
+            self.searchBar.resignFirstResponder()
+//            DispatchQueue.main.async(execute: { () -> Void in
+//            })
         }
         
         var index = -1
@@ -1131,6 +1490,12 @@ extension PopoverTableViewController : UITableViewDelegate
         default:
             delegate?.rowClickedAtIndex(index, strings: section.strings, purpose: purpose!, mediaItem: selectedMediaItem)
             break
+        }
+        
+        if isTracking {
+            self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+//            DispatchQueue.main.async(execute: { () -> Void in
+//            })
         }
     }
 }

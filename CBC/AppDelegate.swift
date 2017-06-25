@@ -51,12 +51,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
     
     func downloadFailed()
     {
-        globals.alert(title: "Network Error",message: "Download failed.")
+        DispatchQueue.main.async(execute: { () -> Void in
+            globals.alert(title: "Network Error",message: "Download failed.")
+        })
     }
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool
     {
         globals = Globals()
+        
+//        globals.deleteAllMedia()
         
         globals.splitViewController = window!.rootViewController as! UISplitViewController
         

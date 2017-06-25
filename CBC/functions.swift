@@ -2519,6 +2519,7 @@ func presentHTMLModal(viewController:UIViewController, medaiItem:MediaItem?, sty
         
         popover.navigationItem.title = title
         
+        popover.search = true
         popover.selectedMediaItem = medaiItem
         
         popover.html.string = htmlString
@@ -2934,6 +2935,7 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
         popover.html.fontSize = 12
         popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
         
+        popover.search = true
         popover.selectedMediaItem = mediaItem
         
         popover.content = .html
@@ -3724,26 +3726,33 @@ func alert(viewController:UIViewController,title:String?,message:String?,complet
     })
 }
 
-func searchAlert(viewController:UIViewController,title:String?,message:String?,searchAction:((_ alert:UIAlertController)->(Void))?)
+func searchAlert(viewController:UIViewController,title:String?,message:String?,searchText:String?,searchAction:((_ alert:UIAlertController)->(Void))?)
 {
     let alert = UIAlertController(  title: title,
                                     message: message,
                                     preferredStyle: .alert)
     
     alert.addTextField(configurationHandler: { (textField:UITextField) in
-        textField.placeholder = "search string"
+        textField.placeholder = searchText ?? "search string"
     })
     
-    let searchAction = UIAlertAction(title: "Search", style: UIAlertActionStyle.default, handler: {
+    let search = UIAlertAction(title: "Search", style: UIAlertActionStyle.default, handler: {
         alertItem -> Void in
         searchAction?(alert)
     })
-    alert.addAction(searchAction)
+    alert.addAction(search)
     
-    let cancelAction = UIAlertAction(title: "Cancel", style: .default, handler: {
+    let clear = UIAlertAction(title: "Clear", style: UIAlertActionStyle.destructive, handler: {
+        alertItem -> Void in
+        (alert.textFields![0] as UITextField).text = ""
+        searchAction?(alert)
+    })
+    alert.addAction(clear)
+    
+    let cancel = UIAlertAction(title: "Cancel", style: .default, handler: {
         (action : UIAlertAction!) -> Void in
     })
-    alert.addAction(cancelAction)
+    alert.addAction(cancel)
 
     DispatchQueue.main.async(execute: { () -> Void in
         viewController.present(alert, animated: true, completion: nil)
@@ -3785,12 +3794,41 @@ func firstSecondCancel(viewController:UIViewController,title:String?,message:Str
         })
         alert.addAction(yesAction)
     }
-
+    
     if secondTitle != nil {
         let noAction = UIAlertAction(title: secondTitle, style: secondStyle, handler: { (UIAlertAction) -> Void in
             secondAction?()
         })
         alert.addAction(noAction)
+    }
+    
+    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+        cancelAction?()
+    })
+    alert.addAction(cancelAction)
+    
+    DispatchQueue.main.async(execute: { () -> Void in
+        viewController.present(alert, animated: true, completion: nil)
+    })
+}
+
+struct AlertAction {
+    let title : String
+    let style : UIAlertActionStyle
+    let action : ((Void)->(Void))?
+}
+
+func alertActionsCancel(viewController:UIViewController,title:String?,message:String?,alertActions:[AlertAction],cancelAction:((Void)->(Void))?)
+{
+    let alert = UIAlertController(title: title,
+                                  message: message,
+                                  preferredStyle: UIAlertControllerStyle.alert)
+    
+    for alertAction in alertActions {
+        let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+            alertAction.action?()
+        })
+        alert.addAction(action)
     }
     
     let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in

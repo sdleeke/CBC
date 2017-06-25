@@ -132,23 +132,31 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Add_to_Favorites:
-            selectedMediaItem?.addTag(Constants.Strings.Favorites)
+            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                self.selectedMediaItem?.addTag(Constants.Strings.Favorites)
+            })
             break
             
         case Constants.Strings.Add_All_to_Favorites:
-            for mediaItem in mediaItems! {
-                mediaItem.addTag(Constants.Strings.Favorites)
-            }
+            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                for mediaItem in self.mediaItems! {
+                    mediaItem.addTag(Constants.Strings.Favorites)
+                }
+            })
             break
             
         case Constants.Strings.Remove_From_Favorites:
-            selectedMediaItem?.removeTag(Constants.Strings.Favorites)
+            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                self.selectedMediaItem?.removeTag(Constants.Strings.Favorites)
+            })
             break
             
         case Constants.Strings.Remove_All_From_Favorites:
-            for mediaItem in mediaItems! {
-                mediaItem.removeTag(Constants.Strings.Favorites)
-            }
+            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                for mediaItem in self.mediaItems! {
+                    mediaItem.removeTag(Constants.Strings.Favorites)
+                }
+            })
             break
             
         case Constants.Strings.Open_on_CBC_Website:
@@ -260,6 +268,24 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         }
     }
     
+    func srtAction(transcript:VoiceBase?,time:String)
+    {
+        guard let srtComponents = transcript?.srtComponents else {
+            return
+        }
+        
+        var fragment:String!
+        
+        for srtComponent in srtComponents {
+            if srtComponent.contains(time+" --> ") {
+                fragment = srtComponent.replacingOccurrences(of: "\n", with: " ")
+                break
+            }
+        }
+        
+        alert(viewController: self.popover!, title: "Machine Generated Transcript Fragment", message: fragment, completion: nil)
+    }
+    
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
@@ -267,7 +293,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             return
         }
         
-        guard let string = strings?[index] else {
+        guard let string = strings?[index].replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: " ") else {
             return
         }
         
@@ -312,14 +338,58 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 popover.selectedMediaItem = self.popover?.selectedMediaItem
                 popover.transcript = self.popover?.transcript
                 
+//                popover.detail = true
+                
+                popover.detailAction = srtAction
+                
+                popover.vc = self.popover
+                
                 popover.delegate = self
                 popover.purpose = .selectingTime
-                popover.section.strings = popover.transcript?.srtTokenTimes(token: string)
-//                    ?.map({ (string:String) -> String in
-//                    return secondsToHMS(seconds: string) ?? "ERROR"
-//                })
                 
-                self.popover?.navigationController?.pushViewController(popover, animated: true)
+                var strings = [String]()
+                
+                if let times = popover.transcript?.srtTokenTimes(token: string), let srtComponents = popover.transcript?.srtComponents {
+                    for time in times {
+//                        print("time: ",time)
+                        for srtComponent in srtComponents {
+//                            print("srtComponent: ",srtComponent)
+                            if srtComponent.contains(time+" --> ") { //
+                                var srtArray = srtComponent.components(separatedBy: "\n")
+                                
+                                let count = srtArray.first
+                                srtArray.remove(at: 0)
+                                
+                                let timeWindow = srtArray.first
+                                srtArray.remove(at: 0)
+                                
+                                let start = timeWindow?.components(separatedBy: " --> ").first
+                                let end = timeWindow?.components(separatedBy: " --> ").last
+                                
+                                var text = "\(count!)\n\(start!) to \(end!)\n"
+
+                                for string in srtArray {
+                                    text = text + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
+                                }
+                                
+                                strings.append(text)
+                                break
+                            }
+                        }
+                    }
+
+                    popover.search = true
+                    popover.searchActive = true
+                    popover.searchText = string
+                    popover.wholeWordsOnly = true
+                    
+                    popover.section.strings = strings // popover.transcript?.srtTokenTimes(token: string)
+                    //                    ?.map({ (string:String) -> String in
+                    //                    return secondsToHMS(seconds: string) ?? "ERROR"
+                    //                })
+                    
+                    self.popover?.navigationController?.pushViewController(popover, animated: true)
+                }
             }
             break
             
@@ -339,6 +409,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
 
                 popover.delegate = self
                 popover.purpose = .selectingTopicKeyword
+                
                 popover.section.strings = popover.transcript?.topicKeywords(topic: string)
                 
                 self.popover?.navigationController?.pushViewController(popover, animated: true)
@@ -358,7 +429,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 
                 popover.selectedMediaItem = self.popover?.selectedMediaItem
                 popover.transcript = self.popover?.transcript
-
+                
                 popover.delegate = self
                 popover.purpose = .selectingTime
                 
@@ -375,7 +446,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         case .selectingTime:
 //            dismiss(animated: true, completion: nil)
             
-            if let seconds = hmsToSeconds(string: string) {
+            if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = hmsToSeconds(string: time) {
                 globals.mediaPlayer.seek(to: seconds)
             }
             break
@@ -685,6 +756,8 @@ class MediaViewController: UIViewController
     @IBOutlet weak var controlView: ControlView!
     
     @IBOutlet weak var controlViewTop: NSLayoutConstraint!
+    
+    var searchText:String?
     
     var popover : PopoverTableViewController?
     
@@ -1607,10 +1680,21 @@ class MediaViewController: UIViewController
         }
     }
     
-    @IBOutlet weak var elapsed: UILabel!
-    
-    @IBOutlet var elapsedTap: UITapGestureRecognizer!
-    @IBAction func elapsedTapAction(_ sender: UITapGestureRecognizer)
+    @IBOutlet weak var elapsed: UILabel! {
+        didSet {
+            let doubleTap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.resetConstraint))
+            doubleTap.numberOfTapsRequired = 2
+            elapsed.addGestureRecognizer(doubleTap)
+
+            let singleTap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.elapsedTapAction))
+            singleTap.numberOfTapsRequired = 1
+            elapsed.addGestureRecognizer(singleTap)
+            
+            singleTap.require(toFail: doubleTap)
+        }
+    }
+
+    func elapsedTapAction()
     {
         guard globals.mediaPlayer.loaded, let currentTime = globals.mediaPlayer.currentTime?.seconds else {
             return
@@ -1621,11 +1705,21 @@ class MediaViewController: UIViewController
         }
     }
     
-    @IBOutlet weak var remaining: UILabel!
+    @IBOutlet weak var remaining: UILabel! {
+        didSet {
+            let doubleTap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.resetConstraint))
+            doubleTap.numberOfTapsRequired = 2
+            remaining.addGestureRecognizer(doubleTap)
+            
+            let singleTap = UITapGestureRecognizer(target: self, action: #selector(MediaViewController.remainingTapAction))
+            singleTap.numberOfTapsRequired = 1
+            remaining.addGestureRecognizer(singleTap)
+            
+            singleTap.require(toFail: doubleTap)
+        }
+    }
     
-    @IBOutlet var remainingTap: UITapGestureRecognizer!
-    
-    @IBAction func remainingTapAction(_ sender: UITapGestureRecognizer)
+    func remainingTapAction(_ sender: UITapGestureRecognizer)
     {
         guard globals.mediaPlayer.loaded, let currentTime = globals.mediaPlayer.currentTime?.seconds else {
             return
@@ -3256,13 +3350,16 @@ class MediaViewController: UIViewController
     fileprivate func setupTitle()
     {
         if (selectedMediaItem != nil) {
-            if (selectedMediaItem!.hasMultipleParts) {
-                //The selected mediaItem is in a series so set the title.
-                self.navigationItem.title = selectedMediaItem?.multiPartName
-            } else {
-//                print(selectedMediaItem?.title ?? nil)
-                self.navigationItem.title = selectedMediaItem?.title
-            }
+            self.navigationItem.title = selectedMediaItem?.title
+            
+            // Prefere to see the specific title
+//            if (selectedMediaItem!.hasMultipleParts) {
+//                //The selected mediaItem is in a series so set the title.
+//                self.navigationItem.title = selectedMediaItem?.multiPartName
+//            } else {
+////                print(selectedMediaItem?.title ?? nil)
+//                self.navigationItem.title = selectedMediaItem?.title
+//            }
         } else {
             self.navigationItem.title = nil
         }
@@ -3358,15 +3455,220 @@ class MediaViewController: UIViewController
         print("DONE SEEKING")
     }
     
+    var orientation : UIDeviceOrientation?
+    
     func deviceOrientationDidChange()
     {
-        
+        switch orientation! {
+        case .faceUp:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+                
+            case .landscapeRight:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+                
+            case .portrait:
+                break
+                
+            case .portraitUpsideDown:
+                break
+                
+            case .unknown:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+            }
+            break
+            
+        case .faceDown:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+                
+            case .landscapeRight:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+                
+            case .portrait:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+                
+            case .portraitUpsideDown:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+                
+            case .unknown:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+            }
+            break
+            
+        case .landscapeLeft:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                break
+                
+            case .landscapeRight:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+                
+            case .portrait:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+                
+            case .portraitUpsideDown:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+                
+            case .unknown:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+            }
+            break
+            
+        case .landscapeRight:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                break
+                
+            case .landscapeRight:
+                break
+                
+            case .portrait:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+                
+            case .portraitUpsideDown:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+                
+            case .unknown:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+            }
+            break
+            
+        case .portrait:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+                
+            case .landscapeRight:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+                
+            case .portrait:
+                break
+                
+            case .portraitUpsideDown:
+                break
+                
+            case .unknown:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+            }
+            break
+            
+        case .portraitUpsideDown:
+            switch UIDevice.current.orientation {
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+                
+            case .landscapeRight:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+                
+            case .portrait:
+                break
+                
+            case .portraitUpsideDown:
+                break
+                
+            case .unknown:
+                popover?.dismiss(animated: true, completion: nil)
+                break
+            }
+            break
+            
+        case .unknown:
+            break
+        }
+
+        switch UIDevice.current.orientation {
+        case .faceUp:
+            break
+            
+        case .faceDown:
+            break
+            
+        case .landscapeLeft:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .landscapeRight:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .portrait:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .portraitUpsideDown:
+            orientation = UIDevice.current.orientation
+            break
+            
+        case .unknown:
+            break
+        }
     }
     
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
 
+        orientation = UIDevice.current.orientation
+        
         guard Thread.isMainThread else {
             return
         }
@@ -4249,8 +4551,10 @@ extension MediaViewController : UITableViewDataSource
             break
         }
         
-        searchAlert(viewController: self.popover!, title: "Search", message: nil, searchAction:  { (alertViewController:UIAlertController) -> (Void) in
-            guard let searchText = (alertViewController.textFields![0] as UITextField).text else {
+        searchAlert(viewController: self.popover!, title: "Search", message: nil, searchText: searchText, searchAction:  { (alertViewController:UIAlertController) -> (Void) in
+            self.searchText = (alertViewController.textFields![0] as UITextField).text
+            
+            guard let searchText = self.searchText, !searchText.isEmpty else {
                 return
             }
 
@@ -4278,9 +4582,10 @@ extension MediaViewController : UITableViewDataSource
                 }
                 
                 if let timeWindow = array.first {
-                    if let start = timeWindow.components(separatedBy: " --> ").first {
-                        return start
-                    }
+                    return timeWindow
+//                    if let start = timeWindow.components(separatedBy: " --> ").first {
+//                        return start
+//                    }
                 }
                 
                 return "" // should never happen
@@ -4299,6 +4604,7 @@ extension MediaViewController : UITableViewDataSource
                     popover.transcript = self.popover?.transcript
                     
                     popover.delegate = self
+//                    popover.detail = true
                     popover.purpose = .selectingTime
                     popover.section.strings = times
                     
@@ -4380,14 +4686,31 @@ extension MediaViewController : UITableViewDataSource
             action = UITableViewRowAction(style: .normal, title: prefix + "\n" + Constants.FA.TRANSCRIPT) { action, index in
                 if transcript?.transcript == nil {
                     if let transcribing = transcript?.transcribing, !transcribing {
-                        firstSecondCancel(viewController: self, title: "Begin Creating Machine Generated Transcript? (\(purpose.lowercased()))", message: "", firstTitle: "Yes", firstAction: {
+//                        firstSecondCancel(viewController: self, title: "Begin Creating Machine Generated Transcript? (\(purpose.lowercased()))", message: "", firstTitle: "Yes", firstAction: {
+//                            DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+//                                transcript?.getTranscript()
+//                            })
+////                            tableView.setEditing(false, animated: true)
+//                        }, firstStyle: .default,
+//                           secondTitle: "No", secondAction: nil, secondStyle: .default,
+//                           cancelAction: nil)
+                        
+                        var alertActions = [AlertAction]()
+                        
+                        alertActions.append(AlertAction(title: "Yes", style: .default, action: {
                             DispatchQueue.global(qos: .background).async(execute: { () -> Void in
                                 transcript?.getTranscript()
                             })
-//                            tableView.setEditing(false, animated: true)
-                        }, firstStyle: .default,
-                           secondTitle: "No", secondAction: nil, secondStyle: .default,
-                           cancelAction: nil)
+                            //                        tableView.setEditing(false, animated: true)
+                        }))
+                        
+                        alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+                        
+                        alertActionsCancel( viewController: self,
+                                            title: "Begin Creating Machine Generated Transcript?",
+                                            message: nil,
+                                            alertActions: alertActions,
+                                            cancelAction: nil)
                     } else {
                         let completion = transcript?.percentComplete == nil ? "" : " (\(transcript!.percentComplete!)% complete)"
                         
@@ -4396,30 +4719,116 @@ extension MediaViewController : UITableViewDataSource
                         })
                     }
                 } else {
-                    firstSecondCancel(viewController: self, title: "Machine Generated Transcript (\(purpose.lowercased()))", message: "This is a machine generated transcript.  Please note that it lacks proper formatting and may have signifcant errors.",
-                                      firstTitle: "Show", firstAction: {
-                                        let sourceView = cell.subviews[0]
-                                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
-                                        
-                                        var htmlString = "<!DOCTYPE html><html><body>"
-                                        
-                                        htmlString = htmlString + mediaItem.headerHTML! +
-                                            "<br/>" +
-                                            "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(transcript!.purpose!))</center>" +
-                                            "<br/>" +
-                                            transcript!.transcript! +
-//                                            "<br/>" +
-//                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
-                                            "</body></html>"
+                    var alertActions = [AlertAction]()
+                    
+                    alertActions.append(AlertAction(title: "Show", style: .default, action: {
+                        let sourceView = cell.subviews[0]
+                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
+                        
+                        var htmlString = "<!DOCTYPE html><html><body>"
+                        
+                        htmlString = htmlString + mediaItem.headerHTML! +
+                            "<br/>" +
+                            "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(transcript!.purpose!))</center>" +
+                            "<br/>" +
+                            transcript!.transcript! +
+                            //                                            "<br/>" +
+                            //                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
+                        "</body></html>"
+                        
+                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                    }))
+                    
+                    alertActions.append(AlertAction(title: "Show with Timing", style: .default, action: {
+                        let sourceView = cell.subviews[0]
+                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
+                        
+                        var htmlString = "<!DOCTYPE html><html><body>"
+                        
+                        var srtHTML = String()
+                        
+                        srtHTML = srtHTML + "<table>"
 
-                                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-                    }, firstStyle: .default,
-                       
-                       secondTitle: "Delete", secondAction: {
+                        srtHTML = srtHTML + "<tr><td><b>#</b></td><td><b>Start Time</b></td><td><b>End Time</b></td><td><b>Recognized Speech</b></td></tr>"
+
+                        if let srtArrays = transcript?.srtArrays {
+                            for array in srtArrays {
+                                if array.count == 1 {
+                                    break
+                                }
+                                
+                                var srtArray = array
+                                
+                                let count = srtArray.first
+                                srtArray.remove(at: 0)
+                                
+                                let timeWindow = srtArray.first
+                                srtArray.remove(at: 0)
+                                
+                                let start = timeWindow?.components(separatedBy: " --> ").first
+                                let end = timeWindow?.components(separatedBy: " --> ").last
+                                
+                                var srtString = String()
+                                
+                                for string in srtArray {
+                                    srtString = srtString + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
+                                }
+                                
+                                let row = "<tr><td>\(count!)</td><td>\(start!)</td><td>\(end!)</td><td>\(srtString)</td></tr>"
+
+                                srtHTML = srtHTML + row
+                            }
+                        }
+
+                        srtHTML = srtHTML + "</table>"
+
+                        htmlString = htmlString + mediaItem.headerHTML! +
+                            "<br/>" +
+                            "<center>MACHINE GENERATED TRANSCRIPT WITH TIMING<br/>(\(transcript!.purpose!))</center>" +
+                            "<br/>" +
+
+                            srtHTML +
+                            
+                            "</body></html>"
+                        
+                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                    }))
+                    
+                    alertActions.append(AlertAction(title: "Delete", style: .default, action: {
                         transcript?.remove()
                         tableView.setEditing(false, animated: true)
-                    }, secondStyle: .default,
-                       cancelAction: nil)
+                    }))
+
+                    alertActionsCancel(  viewController: self,
+                                    title: "Machine Generated Transcript (\(purpose.lowercased()))",
+                                    message: "This is a machine generated transcript.  Please note that it lacks proper formatting and may have signifcant errors.",
+                                    alertActions: alertActions,
+                                    cancelAction: nil)
+                    
+//                    firstSecondCancel(viewController: self, title: "Machine Generated Transcript (\(purpose.lowercased()))", message: "This is a machine generated transcript.  Please note that it lacks proper formatting and may have signifcant errors.",
+//                                      firstTitle: "Show", firstAction: {
+//                                        let sourceView = cell.subviews[0]
+//                                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
+//                                        
+//                                        var htmlString = "<!DOCTYPE html><html><body>"
+//                                        
+//                                        htmlString = htmlString + mediaItem.headerHTML! +
+//                                            "<br/>" +
+//                                            "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(transcript!.purpose!))</center>" +
+//                                            "<br/>" +
+//                                            transcript!.transcript! +
+////                                            "<br/>" +
+////                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
+//                                            "</body></html>"
+//
+//                                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+//                    }, firstStyle: .default,
+//                       
+//                       secondTitle: "Delete", secondAction: {
+//                        transcript?.remove()
+//                        tableView.setEditing(false, animated: true)
+//                    }, secondStyle: .default,
+//                       cancelAction: nil)
                 }
             }
             
@@ -4474,55 +4883,140 @@ extension MediaViewController : UITableViewDataSource
             var action : UITableViewRowAction!
             
             action = UITableViewRowAction(style: .normal, title: prefix + "\n" + Constants.FA.LIST) { action, index in
-                let sourceView = cell.subviews[0]
-                let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
                 
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-                    self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
-                    
-                    navigationController.modalPresentationStyle = .popover
-                    
-                    navigationController.popoverPresentationController?.delegate = self
-                    
-                    navigationController.popoverPresentationController?.sourceView = sourceView
-                    navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
-                    
-                    self.popover?.navigationController?.isNavigationBarHidden = false
-                    
-                    self.popover?.navigationItem.title = "Keywords (\(purpose.lowercased()))"
-                    
-                    self.popover?.selectedMediaItem = mediaItem
-                    self.popover?.transcript = transcript
-                    
-                    self.popover?.vc = self
-                    
-                    self.popover?.search = true
-                    
-                    self.popover?.delegate = self
-                    self.popover?.purpose = .selectingKeyword
-                    
-                    self.popover?.section.showIndex = true
-                    self.popover?.section.showHeaders = true
-                    
-                    self.popover?.section.strings = transcript?.srtTokens?.map({ (string:String) -> String in
-                        return string.lowercased()
-                    }).sorted()
-                    
-                    switch purpose {
-                    case Purpose.audio:
-                        let searchButton = UIBarButtonItem(title: "Search", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchAudio))
-                        self.popover?.navigationItem.rightBarButtonItem = searchButton
+                let sourceView = self.view // cell.subviews[0]
+                let sourceRectView = self.controlView! // cell.subviews[0].subviews[actions.index(of: action)!]
+                
+                var alertActions = [AlertAction]()
+                
+                alertActions.append(AlertAction(title: "By Word", style: .default, action: {
+                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
+                        self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
                         
-                    case Purpose.video:
-                        let searchButton = UIBarButtonItem(title: "Search", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchVideo))
-                        self.popover?.navigationItem.rightBarButtonItem = searchButton
+                        navigationController.modalPresentationStyle = .popover
                         
-                    default:
-                        break
+                        navigationController.popoverPresentationController?.delegate = self
+                        navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
+
+                        navigationController.popoverPresentationController?.sourceView = sourceView
+                        navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
+                        
+                        self.popover?.navigationController?.isNavigationBarHidden = false
+                        
+                        self.popover?.navigationItem.title = "Timing Index (\(purpose.lowercased()))" //
+                        
+                        self.popover?.selectedMediaItem = mediaItem
+                        self.popover?.transcript = transcript
+                        
+                        self.popover?.vc = self
+                        self.popover?.search = true
+                        
+                        self.popover?.delegate = self
+                        self.popover?.purpose = .selectingKeyword
+                        
+                        self.popover?.section.showIndex = true
+                        self.popover?.section.showHeaders = true
+                        
+                        self.popover?.section.strings = transcript?.srtTokens?.map({ (string:String) -> String in
+                            return string.lowercased()
+                        }).sorted()
+                        
+                        //                    switch purpose {
+                        //                    case Purpose.audio:
+                        //                        let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchAudio))
+                        //                        self.popover?.navigationItem.rightBarButtonItem = searchButton
+                        //
+                        //                    case Purpose.video:
+                        //                        let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchVideo))
+                        //                        self.popover?.navigationItem.rightBarButtonItem = searchButton
+                        //                        
+                        //                    default:
+                        //                        break
+                        //                    }
+                        
+                        self.present(navigationController, animated: true, completion: nil)
                     }
-                    
-                    self.present(navigationController, animated: true, completion: nil)
-                }
+                }))
+                
+                alertActions.append(AlertAction(title: "By Time", style: .default, action: {
+                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
+                        self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
+                        
+                        navigationController.modalPresentationStyle = .popover
+                        
+                        navigationController.popoverPresentationController?.delegate = self
+                        navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
+
+                        navigationController.popoverPresentationController?.sourceView = sourceView
+                        navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
+                        
+                        self.popover?.navigationController?.isNavigationBarHidden = false
+                        
+                        self.popover?.navigationItem.title = "Timing Index (\(purpose.lowercased()))" //
+                        
+                        self.popover?.selectedMediaItem = mediaItem
+                        self.popover?.transcript = transcript
+                        
+                        self.popover?.vc = self
+                        self.popover?.search = true
+                        
+                        self.popover?.track = true
+                        
+                        self.popover?.delegate = self
+                        self.popover?.purpose = .selectingTime
+                        
+//                        self.popover?.section.showIndex = true
+//                        self.popover?.section.showHeaders = true
+                        
+                        self.popover?.section.strings = transcript?.srtComponents?.filter({ (string:String) -> Bool in
+                            return string.components(separatedBy: "\n").count > 1
+                        }).map({ (srtComponent:String) -> String in
+                            //                            print("srtComponent: ",srtComponent)
+                            var srtArray = srtComponent.components(separatedBy: "\n")
+                            
+                            let count = srtArray.first
+                            srtArray.remove(at: 0)
+                            
+                            let timeWindow = srtArray.first
+                            srtArray.remove(at: 0)
+                            
+                            if count != nil,
+                                let start = timeWindow?.components(separatedBy: " --> ").first,
+                                let end = timeWindow?.components(separatedBy: " --> ").last {
+                                var text = "\(count!)\n\(start) to \(end)\n"
+                                
+                                for string in srtArray {
+                                    text = text + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
+                                }
+                                
+                                return text
+                            }
+
+                            return "ERROR"
+                        })
+
+//                        switch purpose {
+//                        case Purpose.audio:
+//                            let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchAudio))
+//                            self.popover?.navigationItem.rightBarButtonItem = searchButton
+//    
+//                        case Purpose.video:
+//                            let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchVideo))
+//                            self.popover?.navigationItem.rightBarButtonItem = searchButton
+//                            
+//                        default:
+//                            break
+//                        }
+                        
+                        self.present(navigationController, animated: true, completion: nil)
+                    }
+                }))
+                
+                alertActionsCancel( viewController: self,
+                                    title: "Show Index",
+                                    message: nil,
+                                    alertActions: alertActions,
+                                    cancelAction: nil)
             }
             
             return action

@@ -28,7 +28,7 @@
                 </splitViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="fPV-qF-iiu" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="399" y="-2120"/>
+            <point key="canvasLocation" x="-974" y="-2120"/>
         </scene>
         <!--CBC Media-->
         <scene sceneID="cS0-Qf-R7k">
@@ -261,7 +261,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0RI-sk-D50" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1818.7499999999998" y="-2123.4375"/>
+            <point key="canvasLocation" x="1345" y="-2120"/>
         </scene>
         <!--Series-->
         <scene sceneID="oXZ-O0-0eL">
@@ -287,7 +287,7 @@
                                 <rect key="frame" x="0.0" y="472" width="414" height="44"/>
                                 <subviews>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="oDn-Ci-DOw">
-                                        <rect key="frame" x="8" y="8" width="47" height="29"/>
+                                        <rect key="frame" x="8" y="7.6666666666666856" width="47" height="29"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="lessThanOrEqual" constant="50" id="CLo-cZ-wQN"/>
                                         </constraints>
@@ -300,7 +300,7 @@
                                         </connections>
                                     </segmentedControl>
                                     <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="749" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IOJ-ni-wmp" userLabel="Play Pause">
-                                        <rect key="frame" x="63" y="4" width="20" height="36"/>
+                                        <rect key="frame" x="63" y="3.6666666666666856" width="20" height="36"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="20" id="fRb-bR-VJr"/>
                                         </constraints>
@@ -310,7 +310,7 @@
                                         </connections>
                                     </button>
                                     <label opaque="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="00:00" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="RdU-oe-y4f" userLabel="Time Elapsed">
-                                        <rect key="frame" x="91" y="14" width="39" height="17"/>
+                                        <rect key="frame" x="91" y="0.0" width="39" height="44.333333333333371"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" staticText="YES" notEnabled="YES"/>
@@ -323,11 +323,11 @@
                                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <nil key="highlightedColor"/>
                                         <connections>
-                                            <outletCollection property="gestureRecognizers" destination="kqS-G1-aLK" appends="YES" id="b8t-SD-gWX"/>
+                                            <outletCollection property="gestureRecognizers" destination="GTH-nK-dN7" appends="YES" id="fEA-BZ-r8v"/>
                                         </connections>
                                     </label>
                                     <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="Pkj-Y2-Qqf" customClass="OBSlider" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="136" y="7" width="146" height="31"/>
+                                        <rect key="frame" x="136" y="6.6666666666666856" width="146" height="31"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="50" id="3Ko-1C-1yT"/>
@@ -340,10 +340,10 @@
                                         </connections>
                                     </slider>
                                     <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="B3S-Ru-eDq">
-                                        <rect key="frame" x="199.33333333333334" y="12" width="20" height="20"/>
+                                        <rect key="frame" x="199.33333333333334" y="11.666666666666686" width="20" height="20"/>
                                     </activityIndicatorView>
                                     <label opaque="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="00:00" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="S9f-5O-zMH" userLabel="Time Remaining">
-                                        <rect key="frame" x="288" y="14" width="39" height="17"/>
+                                        <rect key="frame" x="288" y="0.0" width="39" height="44"/>
                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" staticText="YES" notEnabled="YES"/>
@@ -356,11 +356,11 @@
                                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <nil key="highlightedColor"/>
                                         <connections>
-                                            <outletCollection property="gestureRecognizers" destination="sfF-h1-LBq" appends="YES" id="iJM-Xx-NUR"/>
+                                            <outletCollection property="gestureRecognizers" destination="WUH-lM-yWq" appends="YES" id="eaW-kR-Qrj"/>
                                         </connections>
                                     </label>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="3yY-29-aOM">
-                                        <rect key="frame" x="335" y="8" width="71" height="29"/>
+                                        <rect key="frame" x="335" y="7.6666666666666856" width="71" height="29"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="lessThanOrEqual" constant="75" id="fQF-aT-Yg1"/>
                                         </constraints>
@@ -382,6 +382,7 @@
                                     <constraint firstItem="S9f-5O-zMH" firstAttribute="leading" secondItem="Pkj-Y2-Qqf" secondAttribute="trailing" constant="8" symbolic="YES" id="1Gd-C5-RDG"/>
                                     <constraint firstItem="3yY-29-aOM" firstAttribute="centerY" secondItem="Pkj-Y2-Qqf" secondAttribute="centerY" id="8C9-OP-HUv"/>
                                     <constraint firstItem="oDn-Ci-DOw" firstAttribute="centerY" secondItem="Pkj-Y2-Qqf" secondAttribute="centerY" id="9Lj-c4-Fuh"/>
+                                    <constraint firstItem="S9f-5O-zMH" firstAttribute="top" secondItem="Bq5-HS-Wzs" secondAttribute="top" id="Dmi-1G-NuE"/>
                                     <constraint firstItem="oDn-Ci-DOw" firstAttribute="leading" secondItem="Bq5-HS-Wzs" secondAttribute="leading" constant="8" id="ElW-ou-nzC"/>
                                     <constraint firstAttribute="height" constant="44" id="Em8-eC-LbX"/>
                                     <constraint firstItem="IOJ-ni-wmp" firstAttribute="leading" secondItem="oDn-Ci-DOw" secondAttribute="trailing" constant="8" symbolic="YES" id="Lti-fa-mKg"/>
@@ -391,14 +392,19 @@
                                     <constraint firstItem="S9f-5O-zMH" firstAttribute="centerY" secondItem="Pkj-Y2-Qqf" secondAttribute="centerY" id="R5P-sF-mr4"/>
                                     <constraint firstItem="B3S-Ru-eDq" firstAttribute="centerX" secondItem="Pkj-Y2-Qqf" secondAttribute="centerX" id="RgK-cP-RQe"/>
                                     <constraint firstItem="IOJ-ni-wmp" firstAttribute="centerY" secondItem="Pkj-Y2-Qqf" secondAttribute="centerY" id="SOE-5w-Ofi"/>
+                                    <constraint firstItem="RdU-oe-y4f" firstAttribute="top" secondItem="Bq5-HS-Wzs" secondAttribute="top" id="afg-SS-gwO"/>
                                     <constraint firstItem="3yY-29-aOM" firstAttribute="leading" secondItem="S9f-5O-zMH" secondAttribute="trailing" constant="8" symbolic="YES" id="c9f-6v-rp3"/>
                                     <constraint firstItem="Pkj-Y2-Qqf" firstAttribute="leading" secondItem="RdU-oe-y4f" secondAttribute="trailing" constant="8" symbolic="YES" id="plT-Pl-7eM"/>
+                                    <constraint firstAttribute="bottom" secondItem="S9f-5O-zMH" secondAttribute="bottom" id="t68-ar-yhm"/>
                                     <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="3yY-29-aOM" secondAttribute="trailing" constant="-16" id="tCn-Su-0tu"/>
                                     <constraint firstItem="B3S-Ru-eDq" firstAttribute="centerY" secondItem="Pkj-Y2-Qqf" secondAttribute="centerY" id="ufJ-Te-j3d"/>
                                     <constraint firstItem="RdU-oe-y4f" firstAttribute="centerY" secondItem="Pkj-Y2-Qqf" secondAttribute="centerY" id="wvn-u1-yLZ"/>
+                                    <constraint firstAttribute="bottom" secondItem="RdU-oe-y4f" secondAttribute="bottom" id="yAu-DI-qHm"/>
                                 </constraints>
                                 <variation key="default">
                                     <mask key="constraints">
+                                        <exclude reference="wvn-u1-yLZ"/>
+                                        <exclude reference="R5P-sF-mr4"/>
                                         <exclude reference="tCn-Su-0tu"/>
                                     </mask>
                                 </variation>
@@ -679,7 +685,6 @@
                         <outlet property="controlView" destination="Bq5-HS-Wzs" id="uxN-aa-DqM"/>
                         <outlet property="controlViewTop" destination="0Jv-l5-4Tu" id="Rn5-Zg-AgI"/>
                         <outlet property="elapsed" destination="RdU-oe-y4f" id="Iik-6V-o5z"/>
-                        <outlet property="elapsedTap" destination="kqS-G1-aLK" id="Eit-Sg-a0K"/>
                         <outlet property="hSlideView" destination="Ut8-lg-8ab" id="MK7-gc-aCb"/>
                         <outlet property="logo" destination="Ay8-yt-A6W" id="U82-Md-qFr"/>
                         <outlet property="mediaItemNotesAndSlides" destination="sSN-Ac-J4R" id="nex-pw-Xic"/>
@@ -687,7 +692,6 @@
                         <outlet property="playPauseButton" destination="IOJ-ni-wmp" id="eBK-lm-hTG"/>
                         <outlet property="progressIndicator" destination="CSL-J3-OFX" id="1ll-k9-DIZ"/>
                         <outlet property="remaining" destination="S9f-5O-zMH" id="7jO-rF-Gb3"/>
-                        <outlet property="remainingTap" destination="sfF-h1-LBq" id="j2e-eM-igF"/>
                         <outlet property="slider" destination="Pkj-Y2-Qqf" id="nOI-gO-1li"/>
                         <outlet property="spinner" destination="B3S-Ru-eDq" id="zu1-jI-w0o"/>
                         <outlet property="stvControl" destination="3yY-29-aOM" id="3Ae-rC-TfB"/>
@@ -700,41 +704,41 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="OJg-z7-1o1" userLabel="First Responder" sceneMemberID="firstResponder"/>
-                <panGestureRecognizer minimumNumberOfTouches="1" id="S0g-JQ-ezx">
+                <panGestureRecognizer minimumNumberOfTouches="1" id="S0g-JQ-ezx" userLabel="ViewSplit Pan">
                     <connections>
                         <action selector="viewSplitPan:" destination="H2E-ZS-FbW" id="8Vy-o2-ke3"/>
                     </connections>
                 </panGestureRecognizer>
-                <panGestureRecognizer minimumNumberOfTouches="1" id="M4D-vB-lRF">
+                <panGestureRecognizer minimumNumberOfTouches="1" id="M4D-vB-lRF" userLabel="VSlide Pan">
                     <connections>
                         <action selector="vSlidePan:" destination="H2E-ZS-FbW" id="7Wm-W7-vjg"/>
                     </connections>
                 </panGestureRecognizer>
-                <panGestureRecognizer minimumNumberOfTouches="1" id="Rea-9j-IsB">
+                <panGestureRecognizer minimumNumberOfTouches="1" id="Rea-9j-IsB" userLabel="HSlide Pan">
                     <connections>
                         <action selector="hSlidePan:" destination="H2E-ZS-FbW" id="4Hb-PZ-teh"/>
                     </connections>
                 </panGestureRecognizer>
-                <tapGestureRecognizer numberOfTapsRequired="2" id="PP3-iU-jCT">
+                <tapGestureRecognizer numberOfTapsRequired="2" id="PP3-iU-jCT" userLabel="VSlide Tap">
                     <connections>
                         <action selector="vSlideTap:" destination="H2E-ZS-FbW" id="1pG-RE-SsF"/>
                     </connections>
                 </tapGestureRecognizer>
-                <tapGestureRecognizer numberOfTapsRequired="2" id="dCE-wD-PP8">
+                <tapGestureRecognizer numberOfTapsRequired="2" id="dCE-wD-PP8" userLabel="HSlide Tap">
                     <connections>
                         <action selector="hSlideTap:" destination="H2E-ZS-FbW" id="8gp-iu-unC"/>
                     </connections>
                 </tapGestureRecognizer>
-                <tapGestureRecognizer id="kqS-G1-aLK">
+                <panGestureRecognizer minimumNumberOfTouches="1" id="WUH-lM-yWq" userLabel="Remaining Pan">
                     <connections>
-                        <action selector="elapsedTapAction:" destination="H2E-ZS-FbW" id="50b-iE-vZq"/>
+                        <action selector="viewSplitPan:" destination="H2E-ZS-FbW" id="chX-Rq-a8c"/>
                     </connections>
-                </tapGestureRecognizer>
-                <tapGestureRecognizer id="sfF-h1-LBq">
+                </panGestureRecognizer>
+                <panGestureRecognizer minimumNumberOfTouches="1" id="GTH-nK-dN7" userLabel="Elapsed Pan">
                     <connections>
-                        <action selector="remainingTapAction:" destination="H2E-ZS-FbW" id="gUl-ew-oLe"/>
+                        <action selector="viewSplitPan:" destination="H2E-ZS-FbW" id="YY4-Yh-yr7"/>
                     </connections>
-                </tapGestureRecognizer>
+                </panGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="896" y="-1020"/>
         </scene>
@@ -876,7 +880,7 @@ Email: cbcstaff@countrysidebible.org</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="TOF-Cg-8aR" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="4516" y="-1020"/>
+            <point key="canvasLocation" x="5026" y="-1021"/>
         </scene>
         <!--About 2-->
         <scene sceneID="oj2-gh-MLi">
@@ -1100,7 +1104,7 @@ Web site: www.countrysidebible.org</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Jkf-Jd-3pS" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3275" y="-687"/>
+            <point key="canvasLocation" x="3165" y="-16"/>
         </scene>
         <!--Live Stream-->
         <scene sceneID="ee0-py-eBo">
@@ -1228,7 +1232,7 @@ Web site: www.countrysidebible.org</string>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="HBo-W5-4bO" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1107" y="-2120"/>
+            <point key="canvasLocation" x="170" y="-2120"/>
         </scene>
         <!--Web View Controller-->
         <scene sceneID="xNv-hd-wx2">
@@ -1471,7 +1475,7 @@ Web site: www.countrysidebible.org</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="A2s-lW-5UV" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2171.484375" y="-2905.46875"/>
+            <point key="canvasLocation" x="2539" y="-2762"/>
         </scene>
         <!--Loading View Controller-->
         <scene sceneID="gLT-Vw-hWT">
@@ -1820,29 +1824,29 @@ Web site: www.countrysidebible.org</string>
                         <viewControllerLayoutGuide type="bottom" id="dfF-Sk-vFP"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="vtO-3p-c8v">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="231"/>
+                        <rect key="frame" x="0.0" y="64" width="414" height="672"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <searchBar contentMode="redraw" translatesAutoresizingMaskIntoConstraints="NO" id="iFe-Ke-XMe">
-                                <rect key="frame" x="0.0" y="0.0" width="600" height="44"/>
+                                <rect key="frame" x="0.0" y="0.0" width="414" height="44"/>
                                 <textInputTraits key="textInputTraits"/>
                                 <connections>
                                     <outlet property="delegate" destination="XK5-KT-b8P" id="LLh-fw-9R2"/>
                                 </connections>
                             </searchBar>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="35" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="g8w-6P-vre">
-                                <rect key="frame" x="0.0" y="44" width="600" height="187"/>
+                                <rect key="frame" x="0.0" y="44" width="414" height="628"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" accessoryType="checkmark" indentationWidth="10" reuseIdentifier="PopoverCell" id="gxN-j6-OUN" customClass="PopoverTableViewCell" customModule="CBC" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="22" width="600" height="35"/>
+                                        <rect key="frame" x="0.0" y="22" width="414" height="35"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="gxN-j6-OUN" id="G1M-4g-45e">
-                                            <rect key="frame" x="0.0" y="0.0" width="561" height="35"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="35"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gxs-R4-h4B">
-                                                    <rect key="frame" x="8" y="8" width="545" height="19"/>
+                                                    <rect key="frame" x="8" y="8" width="359" height="19"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -1866,7 +1870,7 @@ Web site: www.countrysidebible.org</string>
                                 </connections>
                             </tableView>
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="69l-jj-b4O">
-                                <rect key="frame" x="290" y="105.66666666666667" width="20" height="20"/>
+                                <rect key="frame" x="197" y="326" width="20" height="20"/>
                             </activityIndicatorView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -2031,7 +2035,7 @@ Web site: www.countrysidebible.org</string>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="wKR-P3-vTh" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="6772" y="-5642"/>
+            <point key="canvasLocation" x="7159" y="-5222"/>
         </scene>
         <!--Web View Controller-->
         <scene sceneID="PAK-N0-vs8">
@@ -2046,7 +2050,7 @@ Web site: www.countrysidebible.org</string>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="zOR-Bo-b5Q" userLabel="WebView">
-                                <rect key="frame" x="0.0" y="0.0" width="600" height="371"/>
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="370.33333333333331"/>
                                 <subviews>
                                     <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="yDC-gB-XdD">
                                         <rect key="frame" x="290" y="176" width="20" height="20"/>
@@ -2094,7 +2098,7 @@ Web site: www.countrysidebible.org</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="pLR-iq-BTO" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2578" y="-279"/>
+            <point key="canvasLocation" x="1817" y="-259"/>
         </scene>
         <!--WebView NavBar-->
         <scene sceneID="VhB-bd-2P2">
@@ -2113,7 +2117,7 @@ Web site: www.countrysidebible.org</string>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SlQ-fk-vmo" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1818.75" y="-296.484375"/>
+            <point key="canvasLocation" x="896" y="-259"/>
         </scene>
         <!--Settings Navigation Controller-->
         <scene sceneID="P0e-f4-mkI">
@@ -2203,7 +2207,7 @@ Web site: www.countrysidebible.org</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Rkh-vM-RF9" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2055" y="527"/>
+            <point key="canvasLocation" x="1855" y="440"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="YAt-yj-IPk">
@@ -2221,7 +2225,7 @@ Web site: www.countrysidebible.org</string>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="uX1-k6-hJc" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1481" y="527"/>
+            <point key="canvasLocation" x="896" y="496"/>
         </scene>
         <!--Lexicon Index-->
         <scene sceneID="YHj-Wl-3ip">
@@ -2322,7 +2326,7 @@ Web site: www.countrysidebible.org</string>
                                                     <rect key="frame" x="20" y="97" width="580" height="2"/>
                                                 </progressView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="751" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ZqQ-Jh-Doi" userLabel="Count">
-                                                    <rect key="frame" x="556.33333333333337" y="48" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="556" y="48" width="0.0" height="0.0"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -2468,23 +2472,6 @@ Web site: www.countrysidebible.org</string>
             </objects>
             <point key="canvasLocation" x="4805" y="-4374"/>
         </scene>
-        <!--View Controller-->
-        <scene sceneID="32v-rD-IFg">
-            <objects>
-                <viewController id="hXr-da-TgC" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="ZVU-KF-cIk"/>
-                        <viewControllerLayoutGuide type="bottom" id="EYi-aY-ezo"/>
-                    </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="9lq-cu-hOj">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                    </view>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="3NK-lF-Npk" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-        </scene>
     </scenes>
     <resources>
         <image name="CBC_logo" width="279" height="72"/>
@@ -2492,7 +2479,7 @@ Web site: www.countrysidebible.org</string>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="6Zl-qX-BXN"/>
+        <segue reference="29o-8N-w4i"/>
         <segue reference="aB1-TK-hgY"/>
-        <segue reference="h1S-N1-N0w"/>
     </inferredMetricsTieBreakers>
 </document>
