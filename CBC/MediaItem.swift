@@ -75,8 +75,8 @@ class VoiceBase {
                     if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).keywords"), let data = try? Data(contentsOf: url) {
                         do {
                             try self.keywordsJSON = PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
-                            print(self.keywordsJSON)
-                            print(self.keywords)
+//                            print(self.keywordsJSON)
+//                            print(self.keywords)
                         } catch _ {
                             print("failed to load machine generated keywords for \(mediaItem.description)")
                         }
@@ -85,8 +85,8 @@ class VoiceBase {
                     if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).topics"), let data = try? Data(contentsOf: url) {
                         do {
                             self.topicsJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
-                            print(self.topicsJSON)
-                            print(self.topics)
+//                            print(self.topicsJSON)
+//                            print(self.topics)
                         } catch _ {
                             print("failed to load machine generated topics for \(mediaItem.description)")
                         }
@@ -95,10 +95,10 @@ class VoiceBase {
                     if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).srt") {
                         do {
                             try self.transcriptSRT = String(contentsOfFile: url.path, encoding: String.Encoding.utf8)
-                            print(self.transcriptSRT)
+//                            print(self.transcriptSRT)
                             
                             self.srtComponents = self.transcriptSRT?.components(separatedBy: "\n\n")
-                            print(self.srtComponents)
+//                            print(self.srtComponents)
                             
                             if self.srtComponents != nil {
                                 var srtArrays = [[String]]()
@@ -115,7 +115,7 @@ class VoiceBase {
                                     for srtArray in srtArrays {
                                         if let times = self.srtArrayTimes(srtArray: srtArray), let startTime = times.first {
                                             if let tokens = tokensFromString(self.srtArrayText(srtArray: srtArray)) {
-                                                print(tokens)
+//                                                print(tokens)
                                                 for token in tokens {
                                                     let key = token.lowercased()
                                                     
@@ -188,7 +188,7 @@ class VoiceBase {
             return
         }
         
-        print(url)
+//        print(url)
         
         transcribing = true
         
@@ -209,16 +209,16 @@ class VoiceBase {
         request.httpBody = body
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            print((response as? HTTPURLResponse)?.statusCode)
+//            print((response as? HTTPURLResponse)?.statusCode)
             
             var failed = true
             
             if let data = data {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
-                print(string)
+//                print(string)
                 
                 if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
-                    print(json)
+//                    print(json)
                     
                     if json["errors"] == nil {
                         self.upload = json
@@ -284,7 +284,7 @@ class VoiceBase {
         }
         
         let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)/progress"
-        print(service)
+//        print(service)
         
         var request = URLRequest(url: URL(string:service)!)
         
@@ -293,13 +293,13 @@ class VoiceBase {
         request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            print((response as? HTTPURLResponse)?.statusCode)
+//            print((response as? HTTPURLResponse)?.statusCode)
             if data != nil {
                 let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                print(string) // object name
+//                print(string) // object name
                 
                 if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
-                    print(json)
+//                    print(json)
                     
                     if let _ = json["errors"] {
                         self.remove()
@@ -360,7 +360,7 @@ class VoiceBase {
         }
         
         let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)"
-        print(service)
+//        print(service)
         
         var request = URLRequest(url: URL(string:service)!)
         
@@ -369,13 +369,13 @@ class VoiceBase {
         request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            print((response as? HTTPURLResponse)?.statusCode)
+//            print((response as? HTTPURLResponse)?.statusCode)
             if data != nil {
                 let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                print(string) // object name
+//                print(string) // object name
                 
                 if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
-                    print(json)
+//                    print(json)
                 }
             }
         })
@@ -607,7 +607,7 @@ class VoiceBase {
     var keywordsJSON : [String:Any]?
     {
         didSet {
-            print("keywordsJSON changed:",keywordsJSON)
+//            print("keywordsJSON changed:",keywordsJSON)
         }
     }
     
@@ -673,7 +673,7 @@ class VoiceBase {
         }
         
         let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)"
-        print(service)
+//        print(service)
         
         var request = URLRequest(url: URL(string:service)!)
         
@@ -682,13 +682,13 @@ class VoiceBase {
         request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            print((response as? HTTPURLResponse)?.statusCode)
+//            print((response as? HTTPURLResponse)?.statusCode)
             if data != nil {
                 let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                print(string) // object name
+//                print(string) // object name
                 
                 if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
-                    print(json)
+//                    print(json)
                     
                     let media = json["media"] as? [String:Any]
                     
@@ -764,7 +764,7 @@ class VoiceBase {
         }
         
         let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)/transcripts/latest"
-        print(service)
+//        print(service)
         
         var request = URLRequest(url: URL(string:service)!)
         
@@ -775,10 +775,10 @@ class VoiceBase {
         request.addValue("text/plain", forHTTPHeaderField: "Accept")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            print((response as? HTTPURLResponse)?.statusCode)
+//            print((response as? HTTPURLResponse)?.statusCode)
             if data != nil {
                 let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                print(string) // object name
+//                print(string) // object name
                 self.transcript = string
                 self.transcribing = false
                 
@@ -913,7 +913,7 @@ class VoiceBase {
         if let timeWindow = array.first {
             array.remove(at: 0)
             let times = timeWindow.components(separatedBy: " --> ")
-            print(times)
+//            print(times)
             
             return times
         } else {
@@ -984,7 +984,7 @@ class VoiceBase {
     {
         didSet {
             srtComponents = transcriptSRT?.components(separatedBy: "\n\n")
-            print(srtComponents)
+//            print(srtComponents)
         }
     }
     
@@ -996,7 +996,7 @@ class VoiceBase {
         }
         
         let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)/transcripts/latest"
-        print(service)
+//        print(service)
         
         var request = URLRequest(url: URL(string:service)!)
         
@@ -1007,11 +1007,11 @@ class VoiceBase {
         request.addValue("text/srt", forHTTPHeaderField: "Accept")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            print((response as? HTTPURLResponse)?.statusCode)
+//            print((response as? HTTPURLResponse)?.statusCode)
             if data != nil {
                 let string = String.init(data: data!, encoding: String.Encoding.utf8)
                 self.transcriptSRT = string
-                print(string) // object name
+//                print(string) // object name
                 
                 if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!).srt") {
                     // Check if file exist
@@ -1057,7 +1057,7 @@ class VoiceBase {
         
         service = service + "q=" + string
         
-        print(service)
+//        print(service)
         
         var request = URLRequest(url: URL(string:service)!)
         
@@ -1068,10 +1068,10 @@ class VoiceBase {
 //        request.addValue("text/plain", forHTTPHeaderField: "Accept")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            print((response as? HTTPURLResponse)?.statusCode)
+//            print((response as? HTTPURLResponse)?.statusCode)
             if data != nil {
                 let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                print(string)
+//                print(string)
 
                 // No idea what this proceds, but I'm guessing it is like the keywords dictionary.
             } else {
@@ -1143,10 +1143,10 @@ class Google {
             let task = URLSession.shared.uploadTask(with: request, from: audioData, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
                 if data != nil {
                     let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                    print(string) // object name
+//                    print(string) // object name
                     
                     let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any]
-                    print(json)
+//                    print(json)
                     
                     if json?["error"] == nil {
                         self.upload = json
@@ -1203,10 +1203,10 @@ class Google {
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
             if data != nil {
                 let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                print(string)
+//                print(string)
                 
                 let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any]
-                print(json)
+//                print(json)
                 
                 if json?["error"] == nil {
                     self.recognized = json
@@ -1239,10 +1239,10 @@ class Google {
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
             let string = String.init(data: data!, encoding: String.Encoding.utf8)
-            print(string)
+//            print(string)
             
             let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any]
-            print(json)
+//            print(json)
             
             if json?["error"] == nil {
                 
@@ -2690,7 +2690,7 @@ class MediaItem : NSObject {
         
         let tags = tagsArrayFromTagsString(mediaItemSettings![Field.tags])
         
-//        print(tags)
+        print(tags)
         
         if tags?.index(of: tag) == nil {
             if (mediaItemSettings?[Field.tags] == nil) {
@@ -2711,9 +2711,9 @@ class MediaItem : NSObject {
                 globals.media.all!.tagNames![sortTag!] = tag
             }
             
+            globals.media.tagged[tag] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
+
             if (globals.media.tags.selected == tag) {
-                globals.media.tagged[globals.media.tags.selected!] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
-                
                 DispatchQueue.main.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
                 })
@@ -2731,15 +2731,19 @@ class MediaItem : NSObject {
             return
         }
         
+        guard globals.media.all != nil else {
+            return
+        }
+        
         var tags = tagsArrayFromTagsString(mediaItemSettings![Field.tags])
         
-            print(tags)
+//            print(tags)
         
         while tags?.index(of: tag) != nil {
             tags?.remove(at: tags!.index(of: tag)!)
         }
         
-            print(tags)
+//            print(tags)
         
         mediaItemSettings?[Field.tags] = tagsArrayToTagsString(tags)
         
@@ -2753,9 +2757,9 @@ class MediaItem : NSObject {
             _ = globals.media.all?.tagMediaItems?.removeValue(forKey: sortTag!)
         }
         
+        globals.media.tagged[tag] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
+        
         if (globals.media.tags.selected == tag) {
-            globals.media.tagged[globals.media.tags.selected!] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
-            
             DispatchQueue.main.async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
             })

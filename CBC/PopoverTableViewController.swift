@@ -318,6 +318,10 @@ class PopoverTableViewController : UIViewController
                 return hmsToSeconds(string: start)!
             })
 
+            if let indexPath = tableView.indexPathForSelectedRow {
+                self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+            }
+
             trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
         }
     }
@@ -1464,6 +1468,8 @@ extension PopoverTableViewController : UITableViewDelegate
     
     func tableView(_ TableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
+        trackingTimer?.invalidate()
+        
         if search {
             self.searchBar.resignFirstResponder()
 //            DispatchQueue.main.async(execute: { () -> Void in
@@ -1495,6 +1501,9 @@ extension PopoverTableViewController : UITableViewDelegate
         
         if isTracking {
             self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+
+            trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+
 //            DispatchQueue.main.async(execute: { () -> Void in
 //            })
         }
