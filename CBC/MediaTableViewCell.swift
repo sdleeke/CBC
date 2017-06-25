@@ -683,10 +683,6 @@ class MediaTableViewCell: UITableViewCell
                 }
             }
             
-            if (globals.mediaPlayer.mediaItem == mediaItem) && (globals.mediaPlayer.state == .playing) {
-                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAYING, attributes: Constants.FA.Fonts.Attributes.icons))
-            }
-            
             if (mediaItem!.hasTags) {
                 if (mediaItem?.tagsSet?.count > 1) {
                     if mediaItem!.searchHit(searchText).tags {
