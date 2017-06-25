@@ -4561,14 +4561,14 @@ extension MediaViewController : UITableViewDataSource
             if let times = transcript?.searchSRTArrays(string: searchText)?.filter({ (srtArray:[String]) -> Bool in
                 var array = srtArray
                 
-                if let count = array.first {
+                if let count = array.first, !count.isEmpty {
                     array.remove(at: 0)
                 } else {
                     return false
                 }
                 
-                if let timeWindow = array.first {
-                    if let start = timeWindow.components(separatedBy: " --> ").first {
+                if let timeWindow = array.first, !timeWindow.isEmpty {
+                    if let _ = timeWindow.components(separatedBy: " --> ").first {
                         return true
                     }
                 }
@@ -4577,11 +4577,11 @@ extension MediaViewController : UITableViewDataSource
             }).map({ (srtArray:[String]) -> String in
                 var array = srtArray
                 
-                if let count = array.first {
+                if let count = array.first, !count.isEmpty {
                     array.remove(at: 0)
                 }
                 
-                if let timeWindow = array.first {
+                if let timeWindow = array.first, !timeWindow.isEmpty {
                     return timeWindow
 //                    if let start = timeWindow.components(separatedBy: " --> ").first {
 //                        return start
@@ -4701,13 +4701,13 @@ extension MediaViewController : UITableViewDataSource
                             DispatchQueue.global(qos: .background).async(execute: { () -> Void in
                                 transcript?.getTranscript()
                             })
-                            //                        tableView.setEditing(false, animated: true)
+                            tableView.setEditing(false, animated: true)
                         }))
                         
                         alertActions.append(AlertAction(title: "No", style: .default, action: nil))
                         
                         alertActionsCancel( viewController: self,
-                                            title: "Begin Creating Machine Generated Transcript?",
+                                            title: "Begin Creating Machine Generated Transcript? (\(purpose.lowercased()))",
                                             message: nil,
                                             alertActions: alertActions,
                                             cancelAction: nil)
@@ -5076,7 +5076,11 @@ extension MediaViewController : UITableViewDataSource
             if mediaItem.audioTranscript?.transcript != nil {
                 recognizeAudio.backgroundColor = UIColor.lightGray
             } else {
-                recognizeAudio.backgroundColor = UIColor.darkGray
+                if let transcribing = mediaItem.audioTranscript?.transcribing, transcribing {
+                    recognizeAudio.backgroundColor = UIColor.gray
+                } else {
+                    recognizeAudio.backgroundColor = UIColor.darkGray
+                }
             }
             actions.append(recognizeAudio)
             
@@ -5095,7 +5099,11 @@ extension MediaViewController : UITableViewDataSource
             if mediaItem.videoTranscript?.transcript != nil {
                 recognizeVideo.backgroundColor = UIColor.lightGray
             } else {
-                recognizeVideo.backgroundColor = UIColor.darkGray
+                if let transcribing = mediaItem.videoTranscript?.transcribing, transcribing {
+                    recognizeVideo.backgroundColor = UIColor.gray
+                } else {
+                    recognizeVideo.backgroundColor = UIColor.darkGray
+                }
             }
             actions.append(recognizeVideo)
             

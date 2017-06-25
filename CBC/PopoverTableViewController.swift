@@ -306,16 +306,21 @@ class PopoverTableViewController : UIViewController
                 return string.components(separatedBy: "\n").count > 1
             }).map({ (string:String) -> Double in
                 var srtArray = string.components(separatedBy: "\n")
-                let count = srtArray.first
-                srtArray.remove(at: 0)
                 
-                let timeWindow = srtArray.first
-                srtArray.remove(at: 0)
+                if let count = srtArray.first, !count.isEmpty {
+                    srtArray.remove(at: 0)
+                }
                 
-                let start = timeWindow?.components(separatedBy: " to ").first
-                let end = timeWindow?.components(separatedBy: " to ").last
+                if let timeWindow = srtArray.first, !timeWindow.isEmpty {
+                    srtArray.remove(at: 0)
+                    
+                    let start = timeWindow.components(separatedBy: " to ").first
+//                    let end = timeWindow.components(separatedBy: " to ").last
+                    
+                    return hmsToSeconds(string: start)!
+                }
                 
-                return hmsToSeconds(string: start)!
+                return 0.0
             })
 
             if let indexPath = tableView.indexPathForSelectedRow {

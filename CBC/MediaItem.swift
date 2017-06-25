@@ -214,7 +214,7 @@ class VoiceBase {
             var failed = true
             
             if let data = data {
-                let string = String.init(data: data, encoding: String.Encoding.utf8)
+//                let string = String.init(data: data, encoding: String.Encoding.utf8)
 //                print(string)
                 
                 if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
@@ -295,7 +295,7 @@ class VoiceBase {
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
 //            print((response as? HTTPURLResponse)?.statusCode)
             if data != nil {
-                let string = String.init(data: data!, encoding: String.Encoding.utf8)
+//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
 //                print(string) // object name
                 
                 if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
@@ -371,12 +371,12 @@ class VoiceBase {
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
 //            print((response as? HTTPURLResponse)?.statusCode)
             if data != nil {
-                let string = String.init(data: data!, encoding: String.Encoding.utf8)
+//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
 //                print(string) // object name
                 
-                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
+//                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
 //                    print(json)
-                }
+//                }
             }
         })
         
@@ -684,7 +684,7 @@ class VoiceBase {
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
 //            print((response as? HTTPURLResponse)?.statusCode)
             if data != nil {
-                let string = String.init(data: data!, encoding: String.Encoding.utf8)
+//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
 //                print(string) // object name
                 
                 if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
@@ -697,7 +697,7 @@ class VoiceBase {
                     
                     let fileManager = FileManager.default
                     
-                    let keywordsPropertyList = try? PropertyListSerialization.data(fromPropertyList: self.keywordsJSON, format: .xml, options: 0)
+                    let keywordsPropertyList = try? PropertyListSerialization.data(fromPropertyList: self.keywordsJSON as Any, format: .xml, options: 0)
 
                     if let destinationURL = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).keywords") {
                         if (fileManager.fileExists(atPath: destinationURL.path)){
@@ -715,7 +715,7 @@ class VoiceBase {
                         }
                     }
                     
-                    let topicsPropertyList = try? PropertyListSerialization.data(fromPropertyList: self.topicsJSON, format: .xml, options: 0)
+                    let topicsPropertyList = try? PropertyListSerialization.data(fromPropertyList: self.topicsJSON as Any, format: .xml, options: 0)
                     
                     if let destinationURL = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).topics") {
                         if (fileManager.fileExists(atPath: destinationURL.path)){
@@ -898,19 +898,19 @@ class VoiceBase {
     
     func srtArrayTimes(srtArray:[String]?) -> [String]?
     {
-        guard srtArray != nil else {
+        guard srtArray?.count > 1 else {
             return nil
         }
         
         var array = srtArray!
 
-        if let count = array.first {
+        if let count = array.first, !count.isEmpty {
             array.remove(at: 0)
         } else {
             return nil
         }
         
-        if let timeWindow = array.first {
+        if let timeWindow = array.first, !timeWindow.isEmpty {
             array.remove(at: 0)
             let times = timeWindow.components(separatedBy: " --> ")
 //            print(times)
@@ -923,7 +923,7 @@ class VoiceBase {
     
     func srtArrayText(srtArray:[String]?) -> String?
     {
-        guard srtArray != nil else {
+        guard srtArray?.count > 1 else {
             return nil
         }
         
@@ -931,13 +931,13 @@ class VoiceBase {
         
         var array = srtArray!
         
-        if let count = array.first {
+        if let count = array.first, !count.isEmpty {
             array.remove(at: 0)
         } else {
             return nil
         }
         
-        if let timeWindow = array.first {
+        if let timeWindow = array.first, !timeWindow.isEmpty {
             array.remove(at: 0)
         } else {
             return nil
@@ -1049,9 +1049,9 @@ class VoiceBase {
             return
         }
         
-        guard let mediaID = mediaID else {
-            return
-        }
+//        guard let mediaID = mediaID else {
+//            return
+//        }
         
         var service = "https://apis.voicebase.com/v2-beta/media"
         
@@ -1070,7 +1070,7 @@ class VoiceBase {
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
 //            print((response as? HTTPURLResponse)?.statusCode)
             if data != nil {
-                let string = String.init(data: data!, encoding: String.Encoding.utf8)
+//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
 //                print(string)
 
                 // No idea what this proceds, but I'm guessing it is like the keywords dictionary.
@@ -1083,182 +1083,182 @@ class VoiceBase {
     }
 }
 
-class Google {
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Google Cloud API for Storage and Speech Recognition
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    weak var mediaItem:MediaItem!
-    
-    init(mediaItem:MediaItem)
-    {
-        self.mediaItem = mediaItem
-    }
-    
-    let STORAGE_ID = "00b4903a97f8908436fec45a5cf378fa21209222321fe100000b1d162f1715cc"
-    
-    //    let PROJECT_ID = "sacred-brace-167913"
-    
-    let API_KEY = "AIzaSyCDbtnE6dZHB8R6FJfj8qKthqY1XnT-97s"
-    
-    let SAMPLE_RATE = 16000
-    
-    var uploading = false
-    var upload:[String:Any]?
-    
-    func uploadAudio()
-    {
-        guard !uploading && (upload == nil) else {
-            return
-        }
-        
-        uploading = true
-        
-        var service = "https://www.googleapis.com/upload/storage/v1/b/cbcmedia/o?uploadType=media" // v1/b/
-        
-        service = service + "&name=\(mediaItem.id!)"
-        
-        service = service + "&key=\(API_KEY)"
-        
-        //        service = service + "&project=\(PROJECT_ID)"
-        
-        if let url = mediaItem.audioURL, let audioData = try? Data(contentsOf: url) {
-            let data = audioData.base64EncodedString()
-            var request = URLRequest(url: URL(string:service)!)
-            
-            //            request.addValue("Bearer \(API_KEY)", forHTTPHeaderField: "Authorization")
-            
-            let audioRequest:[String:Any] = ["content":data]
-            
-            //            let requestDictionary = ["audio":audioRequest]
-            
-            //            let requestData = try? JSONSerialization.data(withJSONObject: audioRequest, options: JSONSerialization.WritingOptions(rawValue: 0))
-            
-            //            request.addValue(Bundle.main.bundleIdentifier!, forHTTPHeaderField: "X-Ios-Bundle-Identifier")
-            
-            request.addValue("audio/mpeg", forHTTPHeaderField: "Content-Type")
-            //            request.addValue("\(audioData.count)", forHTTPHeaderField: "Content-Length")
-            
-            request.httpMethod = "POST"
-            
-            let task = URLSession.shared.uploadTask(with: request, from: audioData, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-                if data != nil {
-                    let string = String.init(data: data!, encoding: String.Encoding.utf8)
-//                    print(string) // object name
-                    
-                    let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any]
-//                    print(json)
-                    
-                    if json?["error"] == nil {
-                        self.upload = json
-                        self.recognizeAudio()
-                    }
-                }
-                
-                self.uploading = false
-            })
-            
-            task.resume()
-        } else {
-            uploading = false
-        }
-    }
-    
-    var recognizing = false
-    var recognized:[String:Any]?
-    
-    func recognizeAudio()
-    {
-        //        guard upload != nil else {
-        //            return
-        //        }
-        
-        recognizing = true
-        
-        var service = "https://speech.googleapis.com/v1/speech:longrunningrecognize"
-        
-        service = service + "?key="
-        service = service + API_KEY
-        
-        let configRequest:[String:Any] = ["encoding":"LINEAR16",
-                                          "sampleRateHertz":"\(SAMPLE_RATE)",
-            "languageCode":"en-US",
-            "maxAlternatives":30]
-        
-        let link = "gs://cbcmedia/\(mediaItem.id!)" // upload?["selfLink"] as? String
-        
-        let audioRequest:[String:Any] = ["uri":link]
-        
-        var request = URLRequest(url: URL(string:service)!)
-        
-        // if your API key has a bundle ID restriction, specify the bundle ID like this:
-        
-        let requestDictionary = ["config":configRequest,"audio":audioRequest]
-        let requestData = try? JSONSerialization.data(withJSONObject: requestDictionary, options: JSONSerialization.WritingOptions(rawValue: 0))
-        
-        request.addValue(Bundle.main.bundleIdentifier!, forHTTPHeaderField: "X-Ios-Bundle-Identifier")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = requestData
-        request.httpMethod = "POST"
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            if data != nil {
-                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-//                print(string)
-                
-                let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any]
-//                print(json)
-                
-                if json?["error"] == nil {
-                    self.recognized = json
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(Google.getTranscript), userInfo: nil, repeats: true)
-                    })
-                }
-            }
-        })
-        
-        task.resume()
-    }
-    
-    var resultsTimer:Timer?
-    
-    @objc func getTranscript()
-    {
-        var service = "https://speech.googleapis.com/v1/operations/"
-        
-        let operation = recognized?["name"] as? String
-        
-        service = service + operation!
-        
-        service = service + "?key="
-        service = service + API_KEY
-        
-        var request = URLRequest(url: URL(string:service)!)
-        
-        request.httpMethod = "GET"
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            let string = String.init(data: data!, encoding: String.Encoding.utf8)
-//            print(string)
-            
-            let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any]
-//            print(json)
-            
-            if json?["error"] == nil {
-                
-            }
-            
-            if let done = json?["done"] as? Bool {
-                if done {
-                    self.resultsTimer?.invalidate()
-                    self.recognizing = false
-                }
-            }
-        })
-        
-        task.resume()
-    }
-}
+//class Google {
+//    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+//    /// Google Cloud API for Storage and Speech Recognition
+//    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+//    weak var mediaItem:MediaItem!
+//    
+//    init(mediaItem:MediaItem)
+//    {
+//        self.mediaItem = mediaItem
+//    }
+//    
+//    let STORAGE_ID = "00b4903a97f8908436fec45a5cf378fa21209222321fe100000b1d162f1715cc"
+//    
+//    //    let PROJECT_ID = "sacred-brace-167913"
+//    
+//    let API_KEY = "AIzaSyCDbtnE6dZHB8R6FJfj8qKthqY1XnT-97s"
+//    
+//    let SAMPLE_RATE = 16000
+//    
+//    var uploading = false
+//    var upload:[String:Any]?
+//    
+//    func uploadAudio()
+//    {
+//        guard !uploading && (upload == nil) else {
+//            return
+//        }
+//        
+//        uploading = true
+//        
+//        var service = "https://www.googleapis.com/upload/storage/v1/b/cbcmedia/o?uploadType=media" // v1/b/
+//        
+//        service = service + "&name=\(mediaItem.id!)"
+//        
+//        service = service + "&key=\(API_KEY)"
+//        
+//        //        service = service + "&project=\(PROJECT_ID)"
+//        
+//        if let url = mediaItem.audioURL, let audioData = try? Data(contentsOf: url) {
+//            let data = audioData.base64EncodedString()
+//            var request = URLRequest(url: URL(string:service)!)
+//            
+//            //            request.addValue("Bearer \(API_KEY)", forHTTPHeaderField: "Authorization")
+//            
+//            let audioRequest:[String:Any] = ["content":data]
+//            
+//            //            let requestDictionary = ["audio":audioRequest]
+//            
+//            //            let requestData = try? JSONSerialization.data(withJSONObject: audioRequest, options: JSONSerialization.WritingOptions(rawValue: 0))
+//            
+//            //            request.addValue(Bundle.main.bundleIdentifier!, forHTTPHeaderField: "X-Ios-Bundle-Identifier")
+//            
+//            request.addValue("audio/mpeg", forHTTPHeaderField: "Content-Type")
+//            //            request.addValue("\(audioData.count)", forHTTPHeaderField: "Content-Length")
+//            
+//            request.httpMethod = "POST"
+//            
+//            let task = URLSession.shared.uploadTask(with: request, from: audioData, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+//                if data != nil {
+//                    let string = String.init(data: data!, encoding: String.Encoding.utf8)
+////                    print(string) // object name
+//                    
+//                    let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any]
+////                    print(json)
+//                    
+//                    if json?["error"] == nil {
+//                        self.upload = json
+//                        self.recognizeAudio()
+//                    }
+//                }
+//                
+//                self.uploading = false
+//            })
+//            
+//            task.resume()
+//        } else {
+//            uploading = false
+//        }
+//    }
+//    
+//    var recognizing = false
+//    var recognized:[String:Any]?
+//    
+//    func recognizeAudio()
+//    {
+//        //        guard upload != nil else {
+//        //            return
+//        //        }
+//        
+//        recognizing = true
+//        
+//        var service = "https://speech.googleapis.com/v1/speech:longrunningrecognize"
+//        
+//        service = service + "?key="
+//        service = service + API_KEY
+//        
+//        let configRequest:[String:Any] = ["encoding":"LINEAR16",
+//                                          "sampleRateHertz":"\(SAMPLE_RATE)",
+//            "languageCode":"en-US",
+//            "maxAlternatives":30]
+//        
+//        let link = "gs://cbcmedia/\(mediaItem.id!)" // upload?["selfLink"] as? String
+//        
+//        let audioRequest:[String:Any] = ["uri":link]
+//        
+//        var request = URLRequest(url: URL(string:service)!)
+//        
+//        // if your API key has a bundle ID restriction, specify the bundle ID like this:
+//        
+//        let requestDictionary = ["config":configRequest,"audio":audioRequest]
+//        let requestData = try? JSONSerialization.data(withJSONObject: requestDictionary, options: JSONSerialization.WritingOptions(rawValue: 0))
+//        
+//        request.addValue(Bundle.main.bundleIdentifier!, forHTTPHeaderField: "X-Ios-Bundle-Identifier")
+//        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+//        request.httpBody = requestData
+//        request.httpMethod = "POST"
+//        
+//        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+//            if data != nil {
+//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
+////                print(string)
+//                
+//                let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any]
+////                print(json)
+//                
+//                if json?["error"] == nil {
+//                    self.recognized = json
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(Google.getTranscript), userInfo: nil, repeats: true)
+//                    })
+//                }
+//            }
+//        })
+//        
+//        task.resume()
+//    }
+//    
+//    var resultsTimer:Timer?
+//    
+//    @objc func getTranscript()
+//    {
+//        var service = "https://speech.googleapis.com/v1/operations/"
+//        
+//        let operation = recognized?["name"] as? String
+//        
+//        service = service + operation!
+//        
+//        service = service + "?key="
+//        service = service + API_KEY
+//        
+//        var request = URLRequest(url: URL(string:service)!)
+//        
+//        request.httpMethod = "GET"
+//        
+//        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+//            let string = String.init(data: data!, encoding: String.Encoding.utf8)
+////            print(string)
+//            
+//            let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any]
+////            print(json)
+//            
+//            if json?["error"] == nil {
+//                
+//            }
+//            
+//            if let done = json?["done"] as? Bool {
+//                if done {
+//                    self.resultsTimer?.invalidate()
+//                    self.recognizing = false
+//                }
+//            }
+//        })
+//        
+//        task.resume()
+//    }
+//}
 
 struct SearchHit {
     var mediaItem:MediaItem?
@@ -2690,7 +2690,7 @@ class MediaItem : NSObject {
         
         let tags = tagsArrayFromTagsString(mediaItemSettings![Field.tags])
         
-        print(tags)
+//        print(tags as Any)
         
         if tags?.index(of: tag) == nil {
             if (mediaItemSettings?[Field.tags] == nil) {
@@ -3503,10 +3503,10 @@ class MediaItem : NSObject {
         }
     }
 
-    lazy var google:Google? = {
-        [unowned self] in
-        return Google(mediaItem:self)
-        }()
+//    lazy var google:Google? = {
+//        [unowned self] in
+//        return Google(mediaItem:self)
+//        }()
     
     var transcripts = [String:VoiceBase]()
     

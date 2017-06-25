@@ -526,14 +526,14 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            print((response as? HTTPURLResponse)?.statusCode)
+//            print((response as? HTTPURLResponse)?.statusCode as Any)
             if data != nil {
-                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                print(string) // object name
+//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
+//                print(string as Any) // object name
                 
-                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
-                    print(json)
-                }
+//                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
+//                    print(json)
+//                }
             }
         })
         
@@ -552,10 +552,10 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            print((response as? HTTPURLResponse)?.statusCode)
+//            print((response as? HTTPURLResponse)?.statusCode as Any)
             if data != nil {
-                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                print(string) // object name
+//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
+//                print(string as Any) // object name
                 
                 if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
                     print(json)
@@ -588,10 +588,10 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            print((response as? HTTPURLResponse)?.statusCode)
+//            print((response as? HTTPURLResponse)?.statusCode as Any)
             if data != nil {
-                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                print(string) // object name
+//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
+//                print(string as Any) // object name
                 
                 if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
                     print(json)

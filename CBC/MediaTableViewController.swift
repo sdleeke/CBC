@@ -3407,14 +3407,31 @@ extension MediaTableViewController : UITableViewDelegate
             action = UITableViewRowAction(style: .normal, title: prefix + "\n" + Constants.FA.TRANSCRIPT) { action, index in
                 if transcript?.transcript == nil {
                     if let transcribing = transcript?.transcribing, !transcribing {
-                        firstSecondCancel(viewController: self, title: "Begin Creating Machine Generated Transcript? (\(purpose.lowercased()))", message: "", firstTitle: "Yes", firstAction: {
+//                        firstSecondCancel(viewController: self, title: "Begin Creating Machine Generated Transcript? (\(purpose.lowercased()))", message: "", firstTitle: "Yes", firstAction: {
+//                            DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+//                                transcript?.getTranscript()
+//                            })
+//                            tableView.setEditing(false, animated: true)
+//                        }, firstStyle: .default,
+//                           secondTitle: "No", secondAction: nil, secondStyle: .default,
+//                           cancelAction: nil)
+                        
+                        var alertActions = [AlertAction]()
+                        
+                        alertActions.append(AlertAction(title: "Yes", style: .default, action: {
                             DispatchQueue.global(qos: .background).async(execute: { () -> Void in
                                 transcript?.getTranscript()
                             })
-//                            tableView.setEditing(false, animated: true)
-                        }, firstStyle: .default,
-                           secondTitle: "No", secondAction: nil, secondStyle: .default,
-                           cancelAction: nil)
+                            tableView.setEditing(false, animated: true)
+                        }))
+                        
+                        alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+                        
+                        alertActionsCancel( viewController: self,
+                                            title: "Begin Creating Machine Generated Transcript? (\(purpose.lowercased()))",
+                                            message: nil,
+                                            alertActions: alertActions,
+                                            cancelAction: nil)
                     } else {
                         let completion = transcript?.percentComplete == nil ? "" : " (\(transcript!.percentComplete!)% complete)"
                         
