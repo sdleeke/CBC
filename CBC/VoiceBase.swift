@@ -272,7 +272,33 @@ class VoiceBase {
                         
                         //                        alert(viewController:nil,title: "Machine Generated Transcript Started", message: "The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.",completion: nil)
                         
-                        globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.")
+                        var transcriptPurpose:String!
+                        
+                        if let purpose = self.purpose {
+                            switch purpose {
+                            case Purpose.audio:
+                                transcriptPurpose = Constants.Strings.Audio
+                                break
+                                
+                            case Purpose.video:
+                                transcriptPurpose = Constants.Strings.Video
+                                break
+                                
+                            case Purpose.slides:
+                                transcriptPurpose = Constants.Strings.Slides
+                                break
+                                
+                            case Purpose.notes:
+                                transcriptPurpose = Constants.Strings.Transcript
+                                break
+                                
+                            default:
+                                transcriptPurpose = "ERROR"
+                                break
+                            }
+                        }
+                        
+                        globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for \(self.mediaItem.title!) (\(transcriptPurpose.lowercased())) has been started.  You will be notified when it is complete.")
                         //                        DispatchQueue.main.async(execute: { () -> Void in
                         //                        })
                         
@@ -304,7 +330,33 @@ class VoiceBase {
             
             if failed {
                 // FAIL
-                globals.alert(title: "Transcript Failed",message: "The transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) failed to start.  Please try again.")
+                var transcriptPurpose:String!
+                
+                if let purpose = self.purpose {
+                    switch purpose {
+                    case Purpose.audio:
+                        transcriptPurpose = Constants.Strings.Audio
+                        break
+                        
+                    case Purpose.video:
+                        transcriptPurpose = Constants.Strings.Video
+                        break
+                        
+                    case Purpose.slides:
+                        transcriptPurpose = Constants.Strings.Slides
+                        break
+                        
+                    case Purpose.notes:
+                        transcriptPurpose = Constants.Strings.Transcript
+                        break
+                        
+                    default:
+                        transcriptPurpose = "ERROR"
+                        break
+                    }
+                }
+                
+                globals.alert(title: "Transcript Failed",message: "The transcript for \(self.mediaItem.title!) (\(transcriptPurpose.lowercased())) failed to start.  Please try again.")
                 
                 DispatchQueue.main.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
@@ -384,7 +436,33 @@ class VoiceBase {
                                     
                                     self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
                                     
-                                    print("\(self.mediaItem.title!) is \(self.percentComplete!)% finished (\(self.purpose!.lowercased()))")
+                                    var transcriptPurpose:String!
+                                    
+                                    if let purpose = self.purpose {
+                                        switch purpose {
+                                        case Purpose.audio:
+                                            transcriptPurpose = Constants.Strings.Audio
+                                            break
+                                            
+                                        case Purpose.video:
+                                            transcriptPurpose = Constants.Strings.Video
+                                            break
+                                            
+                                        case Purpose.slides:
+                                            transcriptPurpose = Constants.Strings.Slides
+                                            break
+                                            
+                                        case Purpose.notes:
+                                            transcriptPurpose = Constants.Strings.Transcript
+                                            break
+                                            
+                                        default:
+                                            transcriptPurpose = "ERROR"
+                                            break
+                                        }
+                                    }
+                                    
+                                    print("\(self.mediaItem.title!) is \(self.percentComplete!)% finished (\(transcriptPurpose.lowercased()))")
                                 }
                             }
                         }
@@ -1070,8 +1148,34 @@ class VoiceBase {
                 
                 self.transcript = string
                 self.transcribing = false
-
-                globals.alert(title: "Transcript Ready",message: "The transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) is available.")
+                
+                var transcriptPurpose:String!
+                
+                if let purpose = self.purpose {
+                    switch purpose {
+                    case Purpose.audio:
+                        transcriptPurpose = Constants.Strings.Audio
+                        break
+                        
+                    case Purpose.video:
+                        transcriptPurpose = Constants.Strings.Video
+                        break
+                        
+                    case Purpose.slides:
+                        transcriptPurpose = Constants.Strings.Slides
+                        break
+                        
+                    case Purpose.notes:
+                        transcriptPurpose = Constants.Strings.Transcript
+                        break
+                        
+                    default:
+                        transcriptPurpose = "ERROR"
+                        break
+                    }
+                }
+                
+                globals.alert(title: "Transcript Ready",message: "The transcript for \(self.mediaItem.title!) (\(transcriptPurpose.lowercased())) is available.")
 
                 DispatchQueue.main.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)

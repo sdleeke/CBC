@@ -975,14 +975,14 @@ class MediaViewController: UIViewController
         }
     }
     
-    override var canBecomeFirstResponder : Bool {
+    override var canBecomeFirstResponder : Bool
+    {
         return true //splitViewController == nil
     }
     
-    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?) {
-        if (splitViewController == nil) {
-            globals.motionEnded(motion,event: event)
-        }
+    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
+    {
+        globals.motionEnded(motion,event: event)
     }
     
     func removePlayerObserver()
@@ -1098,6 +1098,13 @@ class MediaViewController: UIViewController
     var mediaItems:[MediaItem]?
 
     @IBOutlet weak var tableViewWidth: NSLayoutConstraint!
+    {
+        didSet {
+            //Eliminates blank cells at end.
+            tableView.tableFooterView = UIView()
+            tableView.allowsSelection = true
+        }
+    }
     
     @IBOutlet weak var progressIndicator: UIProgressView!
 
@@ -2486,10 +2493,6 @@ class MediaViewController: UIViewController
         
 //        navigationItem.leftItemsSupplementBackButton = true
         
-        //Eliminates blank cells at end.
-        tableView.tableFooterView = UIView()
-        tableView.allowsSelection = true
-
         //This makes accurate scrolling to sections impossible using scrollToRowAtIndexPath.
 //        tableView.estimatedRowHeight = tableView.rowHeight
 //        tableView.rowHeight = UITableViewAutomaticDimension
@@ -4810,15 +4813,6 @@ extension MediaViewController : UITableViewDataSource
                     }
                     
                     if !transcribing {
-//                        firstSecondCancel(viewController: self, title: "Begin Creating Machine Generated Transcript? (\(purpose.lowercased()))", message: "", firstTitle: "Yes", firstAction: {
-//                            DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-//                                transcript?.getTranscript()
-//                            })
-////                            tableView.setEditing(false, animated: true)
-//                        }, firstStyle: .default,
-//                           secondTitle: "No", secondAction: nil, secondStyle: .default,
-//                           cancelAction: nil)
-                        
                         if globals.reachability.currentReachabilityStatus != .notReachable {
                             var alertActions = [AlertAction]()
                             
@@ -4840,7 +4834,33 @@ extension MediaViewController : UITableViewDataSource
                             networkUnavailable(self, "Machine Generated Transcript Unavailable.")
                         }
                     } else {
-                        let purpose = " (\(transcript!.purpose!.lowercased()))"
+                        var transcriptPurpose:String!
+                        
+                        if let purpose = transcript?.purpose {
+                            switch purpose {
+                            case Purpose.audio:
+                                transcriptPurpose = Constants.Strings.Audio
+                                break
+                                
+                            case Purpose.video:
+                                transcriptPurpose = Constants.Strings.Video
+                                break
+                                
+                            case Purpose.slides:
+                                transcriptPurpose = Constants.Strings.Slides
+                                break
+                                
+                            case Purpose.notes:
+                                transcriptPurpose = Constants.Strings.Transcript
+                                break
+                                
+                            default:
+                                transcriptPurpose = "ERROR"
+                                break
+                            }
+                        }
+                        
+                        let purpose = " (\(transcriptPurpose.lowercased()))"
                         print(purpose)
                         
                         let completion = transcript?.percentComplete == nil ? purpose : purpose + " (\(transcript!.percentComplete!)% complete)"
@@ -4954,31 +4974,6 @@ extension MediaViewController : UITableViewDataSource
                                     message: "This is a machine generated transcript.  Please note that it lacks proper formatting and may have signifcant errors.",
                                     alertActions: alertActions,
                                     cancelAction: nil)
-                    
-//                    firstSecondCancel(viewController: self, title: "Machine Generated Transcript (\(purpose.lowercased()))", message: "This is a machine generated transcript.  Please note that it lacks proper formatting and may have signifcant errors.",
-//                                      firstTitle: "Show", firstAction: {
-//                                        let sourceView = cell.subviews[0]
-//                                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
-//                                        
-//                                        var htmlString = "<!DOCTYPE html><html><body>"
-//                                        
-//                                        htmlString = htmlString + mediaItem.headerHTML! +
-//                                            "<br/>" +
-//                                            "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(transcript!.purpose!))</center>" +
-//                                            "<br/>" +
-//                                            transcript!.transcript! +
-////                                            "<br/>" +
-////                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
-//                                            "</body></html>"
-//
-//                                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-//                    }, firstStyle: .default,
-//                       
-//                       secondTitle: "Delete", secondAction: {
-//                        transcript?.remove()
-//                        tableView.setEditing(false, animated: true)
-//                    }, secondStyle: .default,
-//                       cancelAction: nil)
                 }
             }
             
@@ -5238,7 +5233,7 @@ extension MediaViewController : UITableViewDataSource
             }
             actions.append(recognizeAudio)
             
-            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.audio) {
+            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.audio) && (mediaItem == selectedMediaItem) {
                 if mediaItem.audioTranscript?.keywords != nil {
                     actions.append(audioKeywords)
                 }
@@ -5261,7 +5256,7 @@ extension MediaViewController : UITableViewDataSource
             }
             actions.append(recognizeVideo)
             
-            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.video) {
+            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.video) && (mediaItem == selectedMediaItem)  {
                 if mediaItem.videoTranscript?.keywords != nil {
                     actions.append(videoKeywords)
                 }

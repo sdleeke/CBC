@@ -516,7 +516,7 @@ struct Alert {
 
 class Globals : NSObject, AVPlayerViewControllerDelegate
 {
-    var allowMGTs = true
+    var allowMGTs = false
     
     var splitViewController:UISplitViewController!
     
@@ -1184,6 +1184,10 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
     func motionEnded(_ motion: UIEventSubtype, event: UIEvent?)
     {
+        guard (UIDevice.current.localizedModel == "iPhone") else {
+            return
+        }
+
         if (motion == .motionShake) {
             if (mediaPlayer.mediaItem != nil) {
                 if mediaPlayer.isPaused {

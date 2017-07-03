@@ -334,7 +334,7 @@ class PopoverTableViewController : UIViewController
     var track = false
     {
         didSet {
-            if track && globals.mediaPlayer.isPlaying {
+            if track { //  && globals.mediaPlayer.isPlaying
                 navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Start Tracking", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
             }
         }
@@ -352,7 +352,7 @@ class PopoverTableViewController : UIViewController
                     isTracking = false
                 }
             } else {
-                if track && globals.mediaPlayer.isPlaying {
+                if track { //  && globals.mediaPlayer.isPlaying
                     if isTracking {
                         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Stop Tracking", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
                     } else {

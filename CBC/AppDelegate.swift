@@ -60,7 +60,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
     {
         globals = Globals()
         
-//        globals.deleteAllMedia()
+//        VoiceBase.deleteAllMedia()
         
         globals.splitViewController = window!.rootViewController as! UISplitViewController
         

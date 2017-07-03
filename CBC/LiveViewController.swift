@@ -11,18 +11,19 @@ import WebKit
 import AVFoundation
 import AVKit
 
-class LiveViewController: UIViewController {
+class LiveViewController: UIViewController
+{
     override var canBecomeFirstResponder : Bool {
         return true //splitViewController == nil
     }
     
-    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?) {
-        if (splitViewController == nil) {
-            globals.motionEnded(motion,event: event)
-        }
+    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
+    {
+        globals.motionEnded(motion,event: event)
     }
     
-    override func viewDidLoad() {
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         

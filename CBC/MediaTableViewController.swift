@@ -990,16 +990,16 @@ class MediaTableViewController : UIViewController
     
     var presentingVC : UIViewController?
     
-    var jsonSource:JSONSource = .download
+    var jsonSource:JSONSource = .direct
     
-    override var canBecomeFirstResponder : Bool {
+    override var canBecomeFirstResponder : Bool
+    {
         return true //splitViewController == nil
     }
     
-    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?) {
-        if (splitViewController == nil) {
-            globals.motionEnded(motion,event: event)
-        }
+    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
+    {
+        globals.motionEnded(motion,event: event)
     }
 
     func downloadFailed(_ notification:NSNotification)
@@ -1066,8 +1066,26 @@ class MediaTableViewController : UIViewController
     @IBOutlet weak var listActivityIndicator: UIActivityIndicatorView!
 
     @IBOutlet weak var searchBar: UISearchBar!
-
+    {
+        didSet {
+            searchBar.autocapitalizationType = .none
+        }
+    }
+    
     @IBOutlet weak var tableView: UITableView!
+    {
+        didSet {
+            refreshControl = UIRefreshControl()
+            refreshControl!.addTarget(self, action: #selector(MediaTableViewController.handleRefresh(_:)), for: UIControlEvents.valueChanged)
+            
+            tableView.addSubview(refreshControl!)
+            
+            tableView.allowsSelection = true
+
+            //Eliminates blank cells at end.
+            tableView.tableFooterView = UIView()
+        }
+    }
     
     @IBOutlet weak var showButton: UIBarButtonItem!
     @IBAction func show(_ button: UIBarButtonItem) {
@@ -2344,10 +2362,14 @@ class MediaTableViewController : UIViewController
             return
         }
         
+        guard !globals.isLoading else {
+            return
+        }
+        
         guard globals.mediaRepository.list == nil else {
             return
         }
-
+        
         tableView.isHidden = true
         if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
             logo.isHidden = true // !self.tableView.isHidden // Don't like it offset, just hide it for now
@@ -2390,20 +2412,10 @@ class MediaTableViewController : UIViewController
     {
         super.viewDidLoad()
 
-        searchBar.autocapitalizationType = .none
-
-        refreshControl = UIRefreshControl()
-        refreshControl!.addTarget(self, action: #selector(MediaTableViewController.handleRefresh(_:)), for: UIControlEvents.valueChanged)
-
-        tableView.addSubview(refreshControl!)
-        
         setupTagsToolbar()
-        
+
         setupSortingAndGroupingOptions()
         setupShowMenu()
-
-        //Eliminates blank cells at end.
-        tableView.tableFooterView = UIView()
         
         //This makes accurate scrolling to sections impossible using scrollToRowAtIndexPath
 //        tableView.estimatedRowHeight = tableView.rowHeight
@@ -2412,8 +2424,6 @@ class MediaTableViewController : UIViewController
         // App MUST start in preferredDisplayMode == .automatic or the MVC can't be dragged out after it is hidden when mode is changed to primaryHidden!
         splitViewController?.preferredDisplayMode = .automatic //iPad only
         
-        tableView?.allowsSelection = true
-
         // Uncomment the following line to preserve selection between presentations
         // clearsSelectionOnViewWillAppear = false
 
@@ -2929,8 +2939,6 @@ class MediaTableViewController : UIViewController
         if (self.splitViewController?.viewControllers.count > 1) {
             NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.setupShowHide), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SHOW_HIDE), object: nil)
         }
-
-//        navigationController?.isToolbarHidden = false
         
         updateUI()
         
@@ -2968,27 +2976,7 @@ class MediaTableViewController : UIViewController
     {
         super.viewDidAppear(animated)
 
-//        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
-//        
-//        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
-//        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateSearch), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
-//        
-//        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
-//        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.playingPaused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYING_PAUSED), object: nil)
-//        
-//        if (self.splitViewController?.viewControllers.count > 1) {
-//            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.setupShowHide), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SHOW_HIDE), object: nil)
-//        }
-        
         navigationController?.isToolbarHidden = false
-        
-//        updateUI()
-        
-//        // Causes a crash in split screen on first swipe to get MVC to show when only DVC is showing.
-//        // Forces MasterViewController to show.  App MUST start in preferredDisplayMode == .automatic or the MVC can't be dragged out after it is hidden!
-//        if (splitViewController?.preferredDisplayMode == .automatic) {
-//            splitViewController?.preferredDisplayMode = .allVisible //iPad only
-//        }
         
         if (!globals.scrolledToMediaItemLastSelected) {
             selectOrScrollToMediaItem(selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
@@ -3672,15 +3660,6 @@ extension MediaTableViewController : UITableViewDelegate
                     }
                     
                     if !transcribing {
-//                        firstSecondCancel(viewController: self, title: "Begin Creating Machine Generated Transcript? (\(purpose.lowercased()))", message: "", firstTitle: "Yes", firstAction: {
-//                            DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-//                                transcript?.getTranscript()
-//                            })
-//                            tableView.setEditing(false, animated: true)
-//                        }, firstStyle: .default,
-//                           secondTitle: "No", secondAction: nil, secondStyle: .default,
-//                           cancelAction: nil)
-                        
                         var alertActions = [AlertAction]()
                         
                         alertActions.append(AlertAction(title: "Yes", style: .default, action: {
@@ -3698,7 +3677,33 @@ extension MediaTableViewController : UITableViewDelegate
                             alertActions: alertActions,
                             cancelAction: nil)
                     } else {
-                        let purpose = " (\(transcript!.purpose!.lowercased()))"
+                        var transcriptPurpose:String!
+                        
+                        if let purpose = transcript?.purpose {
+                            switch purpose {
+                            case Purpose.audio:
+                                transcriptPurpose = Constants.Strings.Audio
+                                break
+                                
+                            case Purpose.video:
+                                transcriptPurpose = Constants.Strings.Video
+                                break
+                                
+                            case Purpose.slides:
+                                transcriptPurpose = Constants.Strings.Slides
+                                break
+                                
+                            case Purpose.notes:
+                                transcriptPurpose = Constants.Strings.Transcript
+                                break
+                                
+                            default:
+                                transcriptPurpose = "ERROR"
+                                break
+                            }
+                        }
+                        
+                        let purpose = " (\(transcriptPurpose.lowercased()))"
                         
                         let completion = transcript?.percentComplete == nil ? purpose : purpose + " (\(transcript!.percentComplete!)% complete)"
                         
@@ -3828,31 +3833,6 @@ extension MediaTableViewController : UITableViewDelegate
                         message: "This is a machine generated transcript.  Please note that it lacks proper formatting and may have signifcant errors.",
                         alertActions: alertActions,
                         cancelAction: nil)
-
-//                    firstSecondCancel(viewController: self, title: "Machine Generated Transcript (\(purpose.lowercased()))", message: "This is a machine generated transcript.  Please note that it lacks proper formatting and may have signifcant errors.",
-//                                      firstTitle: "Show", firstAction: {
-//                                        let sourceView = cell.subviews[0]
-//                                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
-//                                        
-//                                        var htmlString = "<!DOCTYPE html><html><body>"
-//                                        
-//                                        htmlString = htmlString + mediaItem.headerHTML! +
-//                                            "<br/>" +
-//                                            "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(transcript!.purpose!))</center>" +
-//                                            "<br/>" +
-//                                            transcript!.transcript! +
-////                                            "<br/>" +
-////                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
-//                                            "</body></html>"
-//                                        
-//                                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-//                    }, firstStyle: .default,
-//                       
-//                       secondTitle: "Delete", secondAction: {
-//                        transcript?.remove()
-//                        tableView.setEditing(false, animated: true)
-//                    }, secondStyle: .default,
-//                       cancelAction: nil)
                 }
             }
             

@@ -296,33 +296,33 @@ extension MediaItem : URLSessionDownloadDelegate
         guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
             print("DOWNLOAD ERROR",(downloadTask.response as? HTTPURLResponse)?.statusCode as Any,totalBytesExpectedToWrite)
                 
-//            var downloadPurpose:String!
-//                
-//            if let purpose = download?.purpose {
-//                switch purpose {
-//                case Purpose.audio:
-//                    downloadPurpose = Constants.Strings.Audio
-//                    break
-//                    
-//                case Purpose.video:
-//                    downloadPurpose = Constants.Strings.Video
-//                    break
-//                    
-//                case Purpose.slides:
-//                    downloadPurpose = Constants.Strings.Slides
-//                    break
-//                    
-//                case Purpose.notes:
-//                    downloadPurpose = Constants.Strings.Transcript
-//                    break
-//                    
-//                default:
-//                    downloadPurpose = "ERROR"
-//                    break
-//                }
-//            }
+            var downloadPurpose:String!
                 
-            let title = "Download Failed (\(download!.purpose!.lowercased()))"
+            if let purpose = download?.purpose {
+                switch purpose {
+                case Purpose.audio:
+                    downloadPurpose = Constants.Strings.Audio
+                    break
+                    
+                case Purpose.video:
+                    downloadPurpose = Constants.Strings.Video
+                    break
+                    
+                case Purpose.slides:
+                    downloadPurpose = Constants.Strings.Slides
+                    break
+                    
+                case Purpose.notes:
+                    downloadPurpose = Constants.Strings.Transcript
+                    break
+                    
+                default:
+                    downloadPurpose = "ERROR"
+                    break
+                }
+            }
+                
+            let title = "Download Failed (\(downloadPurpose.lowercased()))"
                 
             if let state = download?.state {
                 if state != .none {
@@ -436,7 +436,33 @@ extension MediaItem : URLSessionDownloadDelegate
         guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
             print("DOWNLOAD ERROR",(downloadTask.response as? HTTPURLResponse)?.statusCode as Any,download?.totalBytesExpectedToWrite as Any)
 
-            let title = "Download Failed (\(download!.purpose!.lowercased()))"
+            var downloadPurpose:String!
+            
+            if let purpose = download?.purpose {
+                switch purpose {
+                case Purpose.audio:
+                    downloadPurpose = Constants.Strings.Audio
+                    break
+                    
+                case Purpose.video:
+                    downloadPurpose = Constants.Strings.Video
+                    break
+                    
+                case Purpose.slides:
+                    downloadPurpose = Constants.Strings.Slides
+                    break
+                    
+                case Purpose.notes:
+                    downloadPurpose = Constants.Strings.Transcript
+                    break
+                    
+                default:
+                    downloadPurpose = "ERROR"
+                    break
+                }
+            }
+            
+            let title = "Download Failed (\(downloadPurpose.lowercased()))"
 
             if let state = download?.state {
                 if state != .none {
@@ -548,7 +574,33 @@ extension MediaItem : URLSessionDownloadDelegate
                 print("with error: \(error.localizedDescription)")
             }
                 
-            let title = "Download Failed (\(download!.purpose!.lowercased()))"
+            var downloadPurpose:String!
+            
+            if let purpose = download?.purpose {
+                switch purpose {
+                case Purpose.audio:
+                    downloadPurpose = Constants.Strings.Audio
+                    break
+                    
+                case Purpose.video:
+                    downloadPurpose = Constants.Strings.Video
+                    break
+                    
+                case Purpose.slides:
+                    downloadPurpose = Constants.Strings.Slides
+                    break
+                    
+                case Purpose.notes:
+                    downloadPurpose = Constants.Strings.Transcript
+                    break
+                    
+                default:
+                    downloadPurpose = "ERROR"
+                    break
+                }
+            }
+            
+            let title = "Download Failed (\(downloadPurpose.lowercased()))"
 
             if let state = download?.state {
                 if state != .none {

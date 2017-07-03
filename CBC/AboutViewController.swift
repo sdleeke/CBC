@@ -93,14 +93,14 @@ extension AboutViewController : UIPopoverPresentationControllerDelegate {
 
 class AboutViewController: UIViewController
 {
-    override var canBecomeFirstResponder : Bool {
+    override var canBecomeFirstResponder : Bool
+    {
         return true //splitViewController == nil
     }
     
-    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?) {
-        if (splitViewController == nil) {
-            globals.motionEnded(motion,event: event)
-        }
+    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
+    {
+        globals.motionEnded(motion,event: event)
     }
     
     @IBOutlet weak var liveStreamButton: UIButton!

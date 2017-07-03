@@ -765,7 +765,8 @@ class WebViewController: UIViewController
         }
     }
     
-    var selectedMediaItem:MediaItem? {
+    var selectedMediaItem:MediaItem?
+    {
         willSet {
             
         }
@@ -784,14 +785,14 @@ class WebViewController: UIViewController
         }
     }
 
-    override var canBecomeFirstResponder : Bool {
+    override var canBecomeFirstResponder : Bool
+    {
         return true //splitViewController == nil
     }
     
-    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?) {
-        if (splitViewController == nil) {
-            globals.motionEnded(motion,event: event)
-        }
+    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
+    {
+        globals.motionEnded(motion,event: event)
     }
     
     fileprivate func setupWKWebView()
