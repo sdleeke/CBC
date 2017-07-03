@@ -80,8 +80,8 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
                 }
             }
         }
-    } catch _ {
-        print("failed to get files in caches directory")
+    } catch let error as NSError {
+        print("failed to get files in caches directory: \(error.localizedDescription)")
     }
     
     return files.count > 0 ? files : nil
@@ -100,8 +100,8 @@ func jsonToFileSystemDirectory(key:String)
                 do {
                     // Copy File From Bundle To Documents Directory
                     try fileManager.copyItem(atPath: jsonBundlePath!,toPath: jsonFileURL.path)
-                } catch _ {
-                    print("failed to copy mediaItems.json")
+                } catch let error as NSError {
+                    print("failed to copy mediaItems.json: \(error.localizedDescription)")
                 }
             }
         } else {
@@ -141,12 +141,12 @@ func jsonToFileSystemDirectory(key:String)
                         // Copy File From Bundle To Documents Directory
                         try fileManager.removeItem(atPath: jsonFileURL.path)
                         try fileManager.copyItem(atPath: jsonBundlePath!,toPath: jsonFileURL.path)
-                    } catch _ {
-                        print("failed to copy mediaItems.json")
+                    } catch let error as NSError {
+                        print("failed to copy mediaItems.json: \(error.localizedDescription)")
                     }
                 }
-            } catch _ {
-                print("failed to get json file attributes")
+            } catch let error as NSError {
+                print("failed to get json file attributes: \(error.localizedDescription)")
             }
         }
     }
@@ -172,9 +172,9 @@ func jsonDataFromDocumentsDirectory() -> JSON
     return nil
 }
 
-func jsonDataFromCachesDirectory() -> JSON
+func jsonDataFromCachesDirectory(filename:String?) -> JSON
 {
-    if let filename = globals.mediaCategory.filename, let jsonURL = cachesURL()?.appendingPathComponent(filename) {
+    if let filename = filename, let jsonURL = cachesURL()?.appendingPathComponent(filename) {
         if let data = try? Data(contentsOf: jsonURL) {
             let json = JSON(data: data)
             if json != JSON.null {

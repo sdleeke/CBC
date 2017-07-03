@@ -18,7 +18,7 @@ enum State {
 class Download : NSObject {
     weak var mediaItem:MediaItem?
     
-    var observer:Selector?
+//    var observer:Selector?
     
     var purpose:String?
     
@@ -62,12 +62,12 @@ class Download : NSObject {
             if state != oldValue {
                 switch state {
                 case .downloading:
-                    if observer == nil {
-                        observer = #selector(AppDelegate.downloadFailed)
-                        DispatchQueue.main.async {
-                            NotificationCenter.default.addObserver(self, selector: #selector(Download.downloadFailed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
-                        }
-                    }
+//                    if observer == nil {
+//                        observer = #selector(AppDelegate.downloadFailed)
+//                        DispatchQueue.main.async {
+//                            NotificationCenter.default.addObserver(self, selector: #selector(Download.downloadFailed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
+//                        }
+//                    }
                     break
                     
                 case .downloaded:
@@ -161,8 +161,8 @@ class Download : NSObject {
             do {
                 let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileSystemURL!.path)
                 size = fileAttributes[FileAttributeKey.size] as! Int
-            } catch _ {
-                print("failed to get file attributes for \(fileSystemURL!)")
+            } catch let error as NSError {
+                print("failed to get file attributes for \(fileSystemURL!): \(error.localizedDescription)")
             }
         }
         
@@ -209,19 +209,19 @@ class Download : NSObject {
     func delete()
     {
         if (state == .downloaded) {
+            state = .none
+
             // Check if file exists and if so, delete it.
             if (FileManager.default.fileExists(atPath: fileSystemURL!.path)){
                 do {
                     try FileManager.default.removeItem(at: fileSystemURL!)
-                } catch _ {
-                    print("failed to delete download")
+                } catch let error as NSError {
+                    print("failed to delete download: \(error.localizedDescription)")
                 }
             }
             
             totalBytesWritten = 0
             totalBytesExpectedToWrite = 0
-            
-            state = .none
         }
     }
     
@@ -244,13 +244,13 @@ class Download : NSObject {
     func cancel()
     {
         if (active) {
+            state = .none
+
             task?.cancel()
             task = nil
             
             totalBytesWritten = 0
             totalBytesExpectedToWrite = 0
-            
-            state = .none
         }
     }
 }

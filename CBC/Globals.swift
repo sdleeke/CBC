@@ -278,6 +278,12 @@ struct MediaCategory {
         }
     }
     
+    var url:String? {
+        get {
+            return selectedID != nil ? Constants.JSON.URL.CATEGORY_MEDIA : nil // CATEGORY + selectedID!
+        }
+    }
+    
     var names:[String]? {
         get {
             return dicts?.keys.map({ (key:String) -> String in
@@ -309,7 +315,7 @@ struct MediaCategory {
     
     var selectedID:String? {
         get {
-            return dicts?[selected!]
+            return dicts?[selected!] ?? "1" // Sermons are category 1
         }
     }
 
@@ -510,98 +516,10 @@ struct Alert {
 
 class Globals : NSObject, AVPlayerViewControllerDelegate
 {
+    var allowMGTs = true
+    
     var splitViewController:UISplitViewController!
     
-    var alerts = [Alert]()
-    
-    func getAllMedia()
-    {
-        let service = "https://apis.voicebase.com/v2-beta/media"
-        print(service)
-        
-        var request = URLRequest(url: URL(string:service)!)
-        
-        request.httpMethod = "GET"
-        
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            print((response as? HTTPURLResponse)?.statusCode as Any)
-            if data != nil {
-//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-//                print(string as Any) // object name
-                
-//                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
-//                    print(json)
-//                }
-            }
-        })
-        
-        task.resume()
-    }
-    
-    func deleteAllMedia()
-    {
-        let service = "https://apis.voicebase.com/v2-beta/media"
-        print(service)
-        
-        var request = URLRequest(url: URL(string:service)!)
-        
-        request.httpMethod = "GET"
-        
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            print((response as? HTTPURLResponse)?.statusCode as Any)
-            if data != nil {
-//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-//                print(string as Any) // object name
-                
-                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
-                    print(json)
-                    
-                    if let mediaItems = json["media"] as? [[String:Any]] {
-                        for mediaItem in mediaItems {
-                            self.delete(mediaID:mediaItem["mediaId"] as? String)
-                        }
-                    }
-                }
-            }
-        })
-        
-        task.resume()
-    }
-    
-    func delete(mediaID:String?)
-    {
-        guard let mediaID = mediaID else {
-            return
-        }
-        
-        let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)"
-        print(service)
-        
-        var request = URLRequest(url: URL(string:service)!)
-        
-        request.httpMethod = "DELETE"
-        
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            print((response as? HTTPURLResponse)?.statusCode as Any)
-            if data != nil {
-//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-//                print(string as Any) // object name
-                
-                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
-                    print(json)
-                }
-            }
-        })
-        
-        task.resume()
-    }
-
     func alertViewer()
     {
         for alert in alerts {
@@ -630,6 +548,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
 
+    var alerts = [Alert]()
+    
     var alertTimer : Timer?
     
     func alert(title:String,message:String?)
@@ -679,14 +599,14 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     var allowSaveSettings = true
     
-    let reachability = Reachability()!
+    let reachability = Reachability(hostname: "www.countrysidebible.org")!
     
 //    func reachabilityChanged(note: NSNotification)
 //    {
 //        let reachability = note.object as! Reachability
 //        
 //        if reachability.isReachable {
-//            if reachability.isReachableViaWiFi {
+//            if reachability.isReachableViaWLAN {
 //                print("Reachable via WiFi")
 //            } else {
 //                print("Reachable via Cellular")
@@ -695,7 +615,88 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 //            print("Network not reachable")
 //        }
 //    }
-
+    
+    var reachabilityStatus : Reachability.NetworkStatus?
+    
+    func reachabilityTransition()
+    {
+        if self.reachabilityStatus != nil {
+            switch self.reachabilityStatus! {
+            case .notReachable:
+                switch reachability.currentReachabilityStatus {
+                case .notReachable:
+                    print("Not Reachable -> Not Reachable")
+                    break
+                    
+                case .reachableViaWLAN:
+                    print("Not Reachable -> Reachable via WLAN, e.g. WiFi or Bluetooth")
+                    break
+                    
+                case .reachableViaWWAN:
+                    print("Not Reachable -> Reachable via WWAN, e.g. Cellular")
+                    break
+                }
+                break
+                
+            case .reachableViaWLAN:
+                switch reachability.currentReachabilityStatus {
+                case .notReachable:
+                    print("Reachable via WLAN, e.g. WiFi or Bluetooth -> Not Reachable")
+                    break
+                    
+                case .reachableViaWLAN:
+                    print("Reachable via WLAN, e.g. WiFi or Bluetooth -> Reachable via WLAN, e.g. WiFi or Bluetooth")
+                    break
+                    
+                case .reachableViaWWAN:
+                    print("Reachable via WLAN, e.g. WiFi or Bluetooth -> Reachable via WWAN, e.g. Cellular")
+                    break
+                }
+                break
+                
+            case .reachableViaWWAN:
+                switch reachability.currentReachabilityStatus {
+                case .notReachable:
+                    print("Reachable via WWAN, e.g. Cellular -> Not Reachable")
+                    break
+                    
+                case .reachableViaWLAN:
+                    print("Reachable via WWAN, e.g. Cellular -> Reachable via WLAN, e.g. WiFi or Bluetooth")
+                    break
+                    
+                case .reachableViaWWAN:
+                    print("Reachable via WWAN, e.g. Cellular -> Reachable via WWAN, e.g. Cellular")
+                    break
+                }
+                break
+            }
+        } else {
+            switch reachability.currentReachabilityStatus {
+            case .notReachable:
+                print("Not Reachable")
+                break
+                
+            case .reachableViaWLAN:
+                print("Reachable via WLAN, e.g. WiFi or Bluetooth")
+                break
+                
+            case .reachableViaWWAN:
+                print("Reachable via WWAN, e.g. Cellular")
+                break
+            }
+        }
+        
+        if (reachabilityStatus == .notReachable) && (reachability.currentReachabilityStatus != .notReachable) {
+            globals.alert(title: "Network Connection Restored",message: "")
+        }
+        
+        if (reachabilityStatus != .notReachable) && (reachability.currentReachabilityStatus == .notReachable) {
+            globals.alert(title: "No Network Connection",message: "Without a network connection only audio, slides, and transcripts previously downloaded will be available.")
+        }
+        
+        reachabilityStatus = reachability.currentReachabilityStatus
+    }
+    
     override init()
     {
         super.init()
@@ -707,19 +708,20 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         reachability.whenReachable = { reachability in
             // this is called on a background thread, but UI updates must
             // be on the main thread, like this:
+            self.reachabilityTransition()
+            
             DispatchQueue.main.async() {
-                if reachability.isReachableViaWiFi {
-                    print("Reachable via WiFi")
-                } else {
-                    print("Reachable via Cellular")
-                }
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
             }
         }
+        
         reachability.whenUnreachable = { reachability in
             // this is called on a background thread, but UI updates must
             // be on the main thread, like this:
+            self.reachabilityTransition()
+            
             DispatchQueue.main.async() {
-                print("Not reachable")
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
             }
         }
         
@@ -1114,14 +1116,14 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         
         do {
             try audioSession.setCategory(AVAudioSessionCategoryPlayback)
-        } catch _ {
-            print("failed to setCategory(AVAudioSessionCategoryPlayback)")
+        } catch let error as NSError {
+            print("failed to setCategory(AVAudioSessionCategoryPlayback): \(error.localizedDescription)")
         }
         
 //        do {
 //            try audioSession.setActive(true)
-//        } catch _ {
-//            print("failed to audioSession.setActive(true)")
+//        } catch let error as NSError {
+//            print("failed to audioSession.setActive(true): \(error.localizedDescription)")
 //        }
         
         UIApplication.shared.beginReceivingRemoteControlEvents()
@@ -1133,8 +1135,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         
         do {
             try audioSession.setActive(false)
-        } catch _ {
-            print("failed to audioSession.setActive(false)")
+        } catch let error as NSError {
+            print("failed to audioSession.setActive(false): \(error.localizedDescription)")
         }
     }
     

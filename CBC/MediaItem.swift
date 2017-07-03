@@ -10,1079 +10,6 @@ import Foundation
 import UIKit
 import AVKit
 
-extension NSMutableData {
-    func appendString(_ string: String) {
-        let data = string.data(using: String.Encoding.utf8, allowLossyConversion: false)
-        append(data!)
-    }
-}
-
-class VoiceBase {
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// VoiceBase API for Speech Recognition
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    weak var mediaItem:MediaItem!
-    
-    var purpose:String?
-    
-    var mediaID:String?
-    {
-        didSet {
-            mediaItem.mediaItemSettings?["mediaID."+purpose!] = mediaID
-        }
-    }
-    
-    init(mediaItem:MediaItem,purpose:String)
-    {
-        self.mediaItem = mediaItem
-        
-        self.purpose = purpose
-        
-        if let mediaID = mediaItem.mediaItemSettings?["mediaID."+self.purpose!] {
-            self.mediaID = mediaID
-
-            DispatchQueue.global(qos: .background).async {
-                if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!)") {
-                    do {
-                        try self.transcript = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8)
-                        
-                        // This will cause an error.  The tag is created in the constantTags getter while loading.
-                        //                    mediaItem.addTag("Machine Generated Transcript")
-                        
-                        // Also, the tag would normally be added or removed in teh didSet for transcript but didSet's are not
-                        // called during init()'s which is fortunate.
-                    } catch _ {
-                        print("failed to load machine generated transcript for \(mediaItem.description)")
-                    }
-                }
-                
-                if self.transcript == nil {
-                    DispatchQueue(label: "CBC").sync(execute: { () -> Void in
-                        self.mediaItem.removeTag("Machine Generated Transcript")
-                    })
-                    
-                    self.transcribing = true
-                    
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(VoiceBase.getProgress), userInfo: nil, repeats: true)
-                    })
-                } else {
-                    // Overkill to make sure the cloud storage is cleaned-up?
-                    //                mediaItem.voicebase?.delete()  // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
-                    
-                    //                let fileManager = FileManager.default
-                    
-                    if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).keywords"), let data = try? Data(contentsOf: url) {
-                        do {
-                            try self.keywordsJSON = PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
-//                            print(self.keywordsJSON)
-//                            print(self.keywords)
-                        } catch _ {
-                            print("failed to load machine generated keywords for \(mediaItem.description)")
-                        }
-                    }
-                    
-                    if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).topics"), let data = try? Data(contentsOf: url) {
-                        do {
-                            self.topicsJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
-//                            print(self.topicsJSON)
-//                            print(self.topics)
-                        } catch _ {
-                            print("failed to load machine generated topics for \(mediaItem.description)")
-                        }
-                    }
-                    
-                    if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).srt") {
-                        do {
-                            try self.transcriptSRT = String(contentsOfFile: url.path, encoding: String.Encoding.utf8)
-//                            print(self.transcriptSRT)
-                            
-                            self.srtComponents = self.transcriptSRT?.components(separatedBy: "\n\n")
-//                            print(self.srtComponents)
-                            
-                            if self.srtComponents != nil {
-                                var srtArrays = [[String]]()
-                                
-                                for srtComponent in self.srtComponents! {
-                                    srtArrays.append(srtComponent.components(separatedBy: "\n"))
-                                }
-                                
-                                self.srtArrays = srtArrays.count > 0 ? srtArrays : nil
-                                
-                                var tokenTimes = [String:[String]]()
-                                
-                                if self.srtArrays != nil {
-                                    for srtArray in srtArrays {
-                                        if let times = self.srtArrayTimes(srtArray: srtArray), let startTime = times.first {
-                                            if let tokens = tokensFromString(self.srtArrayText(srtArray: srtArray)) {
-//                                                print(tokens)
-                                                for token in tokens {
-                                                    let key = token.lowercased()
-                                                    
-                                                    if tokenTimes[key] == nil {
-                                                        tokenTimes[key] = [startTime]
-                                                    } else {
-                                                        if var times = tokenTimes[key] {
-                                                            times.append(startTime)
-                                                            tokenTimes[key] = Array(Set(times)).sorted()
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                self.srtTokensTimes = tokenTimes.count > 0 ? tokenTimes : nil
-                            }
-                        } catch _ {
-                            print("failed to load machine generated SRT transcript for \(mediaItem.description)")
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    var transcribing = false
-    var upload:[String:Any]?
-    
-    var resultsTimer:Timer?
-    
-    func createBody(parameters: [String: String],boundary: String) -> Data {
-        let body = NSMutableData()
-        
-        let boundaryPrefix = "--\(boundary)\r\n"
-        
-        for (key, value) in parameters {
-            body.appendString(boundaryPrefix)
-            body.appendString("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
-            body.appendString("\(value)\r\n")
-        }
-
-        body.appendString("--".appending(boundary.appending("--")))
-        
-        return body as Data
-    }
-
-    var url:String? {
-        switch purpose! {
-        case Purpose.video:
-            return mediaItem.mp4
-            
-        case Purpose.audio:
-            return mediaItem.audio
-            
-        default:
-            return nil
-        }
-    }
-    
-    func uploadMedia()
-    {
-        guard !transcribing && (upload == nil) else {
-            return
-        }
-        
-        guard let url = url else {
-            return
-        }
-        
-//        print(url)
-        
-        transcribing = true
-        
-        let service = "https://apis.voicebase.com/v2-beta/media"
-        
-        var request = URLRequest(url: URL(string:service)!)
-        
-        request.httpMethod = "POST"
-        
-        let boundary = "Boundary-\(UUID().uuidString)"
-        
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
-        
-        let body = createBody(parameters: ["media":url],boundary: boundary)
-        
-        request.httpBody = body
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            print((response as? HTTPURLResponse)?.statusCode)
-            
-            var failed = true
-            
-            if let data = data {
-//                let string = String.init(data: data, encoding: String.Encoding.utf8)
-//                print(string)
-                
-                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
-//                    print(json)
-                    
-                    if json["errors"] == nil {
-                        self.upload = json
-                        self.mediaID = json["mediaId"] as? String
-                        
-//                        if #available(iOS 10.0, *) {
-//                            notification(title: "Machine Generated Transcript Started", message: "The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.")
-//                        } else {
-//                            alert(viewController:nil,title: "Machine Generated Transcript Started", message: "The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.",completion: nil)
-//                        }
-
-//                        alert(viewController:nil,title: "Machine Generated Transcript Started", message: "The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.",completion: nil)
-
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.")
-                        })
-                        
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_UPLOAD), object: self)
-                        })
-
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(VoiceBase.getProgress), userInfo: nil, repeats: true)
-                        })
-                        failed = false
-                    }
-                }
-            }
-            
-            if failed {
-                // FAIL
-                
-//                if #available(iOS 10.0, *) {
-//                    notification(title: "Transcript Failed", message: "The transcript for \(self.mediaItem.title!) failed to start.  Please try again.")
-//                } else {
-//                    alert(viewController:nil,title: "Transcript Failed", message: "The transcript for \(self.mediaItem.title!) failed to start.  Please try again.",completion: nil)
-//                }
-
-//                alert(viewController:nil,title: "Transcript Failed", message: "The transcript for \(self.mediaItem.title!) failed to start.  Please try again.",completion: nil)
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    globals.alert(title: "Transcript Failed",message: "The transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) failed to start.  Please try again.")
-                })
-
-                DispatchQueue.main.async(execute: { () -> Void in
-                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_START), object: self)
-                })
-
-                self.transcribing = false
-            }
-        })
-        
-        task.resume()
-    }
-    
-    var percentComplete:String?
-    
-    @objc func getProgress()
-    {
-        guard let mediaID = mediaID else {
-            uploadMedia()
-            return
-        }
-        
-        let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)/progress"
-//        print(service)
-        
-        var request = URLRequest(url: URL(string:service)!)
-        
-        request.httpMethod = "GET"
-        
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            print((response as? HTTPURLResponse)?.statusCode)
-            if data != nil {
-//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-//                print(string) // object name
-                
-                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
-//                    print(json)
-                    
-                    if let _ = json["errors"] {
-                        self.remove()
-                        
-//                        if #available(iOS 10.0, *) {
-//                            notification(title: "Transcript Failed", message: "The transcript for \(self.mediaItem.title!) was not completed.  Please try again.")
-//                        } else {
-//                            alert(viewController:nil,title: "Transcript Failed", message: "The transcript for \(self.mediaItem.title!) was not completed.  Please try again.",completion: nil)
-//                        }
-                        
-//                        alert(viewController:nil,title: "Transcript Failed", message: "The transcript for \(self.mediaItem.title!) was not completed.  Please try again.",completion: nil)
-                        
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            globals.alert(title: "Transcript Failed",message: "The transcript for \(self.mediaItem.title!) was not completed.  Please try again.")
-                        })
-
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
-                        })
-                    }
-                    
-                    if let status = json["status"] as? String, status == "finished" {
-                        self.percentComplete = nil
-                        self.resultsTimer?.invalidate()
-                        self.resultsTimer = nil
-                        self.getTranscript()
-                    } else {
-                        if let progress = json["progress"] as? [String:Any] {
-                            if let tasks = progress["tasks"] as? [String:Any] {
-                                let count = tasks.count
-                                let finished = tasks.filter({ (key: String, value: Any) -> Bool in
-                                    if let dict = value as? [String:Any] {
-                                        if let status = dict["status"] as? String {
-                                            return status == "finished"
-                                        }
-                                    }
-
-                                    return false
-                                }).count
-                                
-                                self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
-                                
-                                print("\(self.mediaItem.title!) is \(self.percentComplete!)% finished (\(self.purpose!.lowercased()))")
-                            }
-                        }
-                    }
-                }
-            }
-        })
-        
-        task.resume()
-    }
-    
-    func delete()
-    {
-        guard let mediaID = mediaID else {
-            return
-        }
-        
-        let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)"
-//        print(service)
-        
-        var request = URLRequest(url: URL(string:service)!)
-        
-        request.httpMethod = "DELETE"
-        
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            print((response as? HTTPURLResponse)?.statusCode)
-            if data != nil {
-//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-//                print(string) // object name
-                
-//                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
-//                    print(json)
-//                }
-            }
-        })
-        
-        task.resume()
-    }
-    
-    func remove()
-    {
-        delete()
-        
-        mediaID = nil
-        
-        transcript = nil
-        transcribing = false
-        
-        upload = nil
-        
-        resultsTimer?.invalidate()
-        resultsTimer = nil
-        
-        topicsJSON = nil
-        keywordsJSON = nil
-        
-        DispatchQueue(label: "CBC").sync(execute: { () -> Void in
-            self.mediaItem.removeTag("Machine Generated Transcript")
-        })
-        
-        let fileManager = FileManager.default
-        
-        if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).keywords") {
-            if (fileManager.fileExists(atPath: destinationURL.path)){
-                do {
-                    try fileManager.removeItem(at: destinationURL)
-                } catch _ {
-                    print("failed to remove machine generated transcript keywords")
-                }
-            } else {
-                print("machine generated transcript keywords file doesn't exist")
-            }
-        } else {
-            print("failed to get destinationURL")
-        }
-        
-        if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).topics") {
-            if (fileManager.fileExists(atPath: destinationURL.path)){
-                do {
-                    try fileManager.removeItem(at: destinationURL)
-                } catch _ {
-                    print("failed to remove machine generated transcript topics")
-                }
-            } else {
-                print("machine generated transcript topics file doesn't exist")
-            }
-        } else {
-            print("failed to get destinationURL")
-        }
-        
-        if let destinationURL = cachesURL()?.appendingPathComponent(mediaItem.id!+".\(purpose!)") {
-            // Check if file exist
-            if (fileManager.fileExists(atPath: destinationURL.path)){
-                do {
-                    try fileManager.removeItem(at: destinationURL)
-                } catch _ {
-                    print("failed to remove machine generated transcript")
-                }
-            } else {
-                print("machine generated transcript file doesn't exist")
-            }
-        } else {
-            print("failed to get destinationURL")
-        }
-    }
-
-    var topicsJSON : [String:Any]?
-
-    var topicsDictionaries : [String:[String:Any]]?
-    {
-        if let latest = topicsJSON?["latest"] as? [String:Any] {
-            if let words = latest["topics"] as? [[String:Any]] {
-                var tdd = [String:[String:Any]]()
-                
-                for dict in words {
-                    if let name = dict["name"] as? String {
-                        tdd[name] = dict
-                    }
-                }
-                
-                return tdd.count > 0 ? tdd : nil
-            } else {
-                return nil
-            }
-        } else {
-            return nil
-        }
-    }
-    
-    var topics : [String]?
-    {
-        if let topics = topicsDictionaries?.map({ (key: String, value: [String : Any]) -> String in
-            return key
-        }) {
-            return topics
-        } else {
-            return nil
-        }
-    }
-    
-    func topicKeywordDictionaries(topic:String?) -> [String:[String:Any]]?
-    {
-        guard let topic = topic else {
-            return nil
-        }
-        
-        if let topicDictionary = topicsDictionaries?[topic] {
-            if let keywordsDictionaries = topicDictionary["keywords"] as? [[String:Any]] {
-                var kwdd = [String:[String:Any]]()
-                
-                for dict in keywordsDictionaries {
-                    if let name = dict["name"] as? String {
-                        kwdd[name.lowercased()] = dict
-                    }
-                }
-                
-                return kwdd.count > 0 ? kwdd : nil
-            }
-        }
-        
-        return nil
-    }
-    
-    func topicKeywords(topic:String?) -> [String]?
-    {
-        guard let topic = topic else {
-            return nil
-        }
-        
-        if let topicKeywordDictionaries = topicKeywordDictionaries(topic: topic) {
-            let topicKeywords = topicKeywordDictionaries.map({ (key: String, value: [String : Any]) -> String in
-                return key
-            })
-            
-            return topicKeywords.count > 0 ? topicKeywords : nil
-        }
-        
-        return nil
-    }
-    
-    func topicKeywordTimes(topic:String?,keyword:String?) -> [String]?
-    {
-        guard let topic = topic else {
-            return nil
-        }
-        
-        guard let keyword = keyword else {
-            return nil
-        }
-        
-        if let keywordDictionaries = topicKeywordDictionaries(topic:topic) {
-            if let keywordDictionary = keywordDictionaries[keyword] {
-                if let speakerTimes = keywordDictionary["t"] as? [String:[String]] {
-                    if let times = speakerTimes["unknown"] {
-                        return times
-                    }
-                }
-            }
-        }
-        
-        return nil
-    }
-    
-    var allTopicKeywords : [String]?
-    {
-        guard let topics = topics else {
-            return nil
-        }
-
-        var keywords = Set<String>()
-        
-        for topic in topics {
-            if let topicsKeywords = topicKeywords(topic: topic) {
-                keywords = keywords.union(Set(topicsKeywords))
-            }
-        }
-        
-        return keywords.count > 0 ? Array(keywords) : nil
-    }
-    
-    var allTopicKeywordDictionaries : [String:[String:Any]]?
-    {
-        guard let topics = topics else {
-            return nil
-        }
-        
-        var allTopicKeywordDictionaries = [String:[String:Any]]()
-        
-        for topic in topics {
-            if let topicKeywordDictionaries = topicKeywordDictionaries(topic: topic) {
-                for topicKeywordDictionary in topicKeywordDictionaries {
-                    if allTopicKeywordDictionaries[topicKeywordDictionary.key] == nil {
-                        allTopicKeywordDictionaries[topicKeywordDictionary.key.lowercased()] = topicKeywordDictionary.value
-                    } else {
-                        print("allTopicKeywordDictionaries key occupied")
-                    }
-                }
-            }
-        }
-        
-        return allTopicKeywordDictionaries.count > 0 ? allTopicKeywordDictionaries : nil
-    }
-    
-    func allTopicKeywordTimes(keyword:String?) -> [String]?
-    {
-        guard let keyword = keyword else {
-            return nil
-        }
-        
-        if let keywordDictionary = allTopicKeywordDictionaries?[keyword] {
-            if let speakerTimes = keywordDictionary["t"] as? [String:[String]] {
-                if let times = speakerTimes["unknown"] {
-                    return times
-                }
-            }
-        }
-        
-        return nil
-    }
-    
-    var keywordsJSON : [String:Any]?
-    {
-        didSet {
-//            print("keywordsJSON changed:",keywordsJSON)
-        }
-    }
-    
-    var keywordDictionaries : [String:[String:Any]]?
-    {
-        if let latest = keywordsJSON?["latest"] as? [String:Any] {
-            if let wordDictionaries = latest["words"] as? [[String:Any]] {
-                var kwdd = [String:[String:Any]]()
-                
-                for dict in wordDictionaries {
-                    if let name = dict["name"] as? String {
-                        kwdd[name.lowercased()] = dict
-                    }
-                }
-                
-                return kwdd.count > 0 ? kwdd : nil
-            }
-        }
-
-        return nil
-    }
-    
-    var keywords : [String]?
-    {
-        if let keywords = keywordDictionaries?.filter({ (key: String, value: [String : Any]) -> Bool in
-            if let speakerTimes = value["t"] as? [String:[String]] {
-                if let times = speakerTimes["unknown"] {
-                    return times.count > 0
-                }
-            }
-            return false
-        }).map({ (key: String, value: [String : Any]) -> String in
-            return key
-        }) {
-            return keywords
-        } else {
-            return nil
-        }
-    }
-    
-    func keywordTimes(keyword:String?) -> [String]?
-    {
-        guard let keyword = keyword else {
-            return nil
-        }
-        
-        if let keywordDictionary = keywordDictionaries?[keyword] {
-            if let speakerTimes = keywordDictionary["t"] as? [String:[String]] {
-                if let times = speakerTimes["unknown"] {
-                    return times
-                }
-            }
-        }
-        
-        return nil
-    }
-    
-    func getDetails()
-    {
-        guard let mediaID = mediaID else {
-            uploadMedia()
-            return
-        }
-        
-        let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)"
-//        print(service)
-        
-        var request = URLRequest(url: URL(string:service)!)
-        
-        request.httpMethod = "GET"
-        
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            print((response as? HTTPURLResponse)?.statusCode)
-            if data != nil {
-//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-//                print(string) // object name
-                
-                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
-//                    print(json)
-                    
-                    let media = json["media"] as? [String:Any]
-                    
-                    self.keywordsJSON = media?["keywords"] as? [String : Any]
-                    self.topicsJSON = media?["topics"] as? [String : Any]
-                    
-                    let fileManager = FileManager.default
-                    
-                    let keywordsPropertyList = try? PropertyListSerialization.data(fromPropertyList: self.keywordsJSON as Any, format: .xml, options: 0)
-
-                    if let destinationURL = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).keywords") {
-                        if (fileManager.fileExists(atPath: destinationURL.path)){
-                            do {
-                                try fileManager.removeItem(at: destinationURL)
-                            } catch _ {
-                                print("failed to remove machine generated transcript keywords")
-                            }
-                        }
-                        
-                        do {
-                            try keywordsPropertyList?.write(to: destinationURL)
-                        } catch _ {
-                            print("failed to write machine generated transcript keywords to cache directory")
-                        }
-                    }
-                    
-                    let topicsPropertyList = try? PropertyListSerialization.data(fromPropertyList: self.topicsJSON as Any, format: .xml, options: 0)
-                    
-                    if let destinationURL = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).topics") {
-                        if (fileManager.fileExists(atPath: destinationURL.path)){
-                            do {
-                                try fileManager.removeItem(at: destinationURL)
-                            } catch _ {
-                                print("failed to remove machine generated transcript topics")
-                            }
-                        }
-                        
-                        do {
-                            try topicsPropertyList?.write(to: destinationURL)
-                        } catch _ {
-                            print("failed to write machine generated transcript topics to cache directory")
-                        }
-                    }
-                }
-            }
-            
-            self.delete()
-        })
-        
-        task.resume()
-    }
-    
-    var transcript:String?
-    {
-        didSet {
-            if transcript != nil {
-                DispatchQueue(label: "CBC").sync(execute: { () -> Void in
-                    self.mediaItem.addTag("Machine Generated Transcript")
-                })
-            } else {
-                DispatchQueue(label: "CBC").sync(execute: { () -> Void in
-                    self.mediaItem.removeTag("Machine Generated Transcript")
-                })
-            }
-        }
-    }
-    
-    func getTranscript()
-    {
-        guard let mediaID = mediaID else {
-            uploadMedia()
-            return
-        }
-        
-        let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)/transcripts/latest"
-//        print(service)
-        
-        var request = URLRequest(url: URL(string:service)!)
-        
-        request.httpMethod = "GET"
-        
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
-        
-        request.addValue("text/plain", forHTTPHeaderField: "Accept")
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            print((response as? HTTPURLResponse)?.statusCode)
-            if data != nil {
-                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-//                print(string) // object name
-                self.transcript = string
-                self.transcribing = false
-                
-                if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!)") {
-                    // Check if file exist
-                    let fileManager = FileManager.default
-                    
-                    if (fileManager.fileExists(atPath: destinationURL.path)){
-                        do {
-                            try fileManager.removeItem(at: destinationURL)
-                        } catch _ {
-                            print("failed to remove machine generated transcript")
-                        }
-                    }
-                    
-                    do {
-                        try string?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8);
-                    } catch _ {
-                        print("failed to write transcript to cache directory")
-                    }
-                } else {
-                    print("failed to get destinationURL")
-                }
-                
-//                if #available(iOS 10.0, *) {
-//                    notification(title: "Transcript Ready", message: "The transcript for \(self.mediaItem.title!) is available. (\(self.purpose!.lowercased()))")
-//                } else {
-//                    alert(viewController:nil,title: "Transcript Ready", message: "The transcript for \(self.mediaItem.title!) is available. (\(self.purpose!.lowercased()))",completion: nil)
-//                }
-
-//                alert(viewController:nil,title: "Transcript Ready", message: "The transcript for \(self.mediaItem.title!) is available. (\(self.purpose!.lowercased()))",completion: nil)
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    globals.alert(title: "Transcript Ready",message: "The transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) is available.")
-                })
-
-                DispatchQueue.main.async(execute: { () -> Void in
-                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
-                })
-            } else {
-                // Now what?
-            }
-
-            self.getTranscriptSRT()
-        })
-        
-        task.resume()
-    }
-    
-    var srtArrays:[[String]]?
-    {
-        didSet {
-            guard let srtArrays = srtArrays else {
-                return
-            }
-            
-            var tokenTimes = [String:[String]]()
-            
-            for srtArray in srtArrays {
-                if let times = srtArrayTimes(srtArray: srtArray), let startTime = times.first {
-                    if let tokens = tokensFromString(srtArrayText(srtArray: srtArray)) {
-                        for token in tokens {
-                            let key = token.lowercased()
-                            
-                            if tokenTimes[key] == nil {
-                                tokenTimes[key] = [startTime]
-                            } else {
-                                if var times = tokenTimes[key] {
-                                    times.append(startTime)
-                                    tokenTimes[key] = Array(Set(times)).sorted()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            
-            srtTokensTimes = tokenTimes.count > 0 ? tokenTimes : nil
-        }
-    }
-    
-    var srtTokens : [String]?
-    {
-        return srtTokensTimes?.keys.sorted()
-    }
-    
-    func srtTokenTimes(token:String) -> [String]?
-    {
-        return srtTokensTimes?[token]
-    }
-    
-    var srtTokensTimes : [String:[String]]?
-    {
-        didSet {
-            
-        }
-    }
-    
-    func srtArrayStartTime(srtArray:[String]?) -> Double?
-    {
-        return hmsToSeconds(string: srtArrayTimes(srtArray: srtArray)?.first)
-    }
-    
-    func srtArrayEndTime(srtArray:[String]?) -> Double?
-    {
-        return hmsToSeconds(string: srtArrayTimes(srtArray: srtArray)?.last)
-    }
-    
-    func srtArrayIndex(srtArray:[String]?) -> String?
-    {
-        if let count = srtArray?.first {
-            return count
-        } else {
-            return nil
-        }
-    }
-    
-    func srtArrayTimes(srtArray:[String]?) -> [String]?
-    {
-        guard srtArray?.count > 1 else {
-            return nil
-        }
-        
-        var array = srtArray!
-
-        if let count = array.first, !count.isEmpty {
-            array.remove(at: 0)
-        } else {
-            return nil
-        }
-        
-        if let timeWindow = array.first, !timeWindow.isEmpty {
-            array.remove(at: 0)
-            let times = timeWindow.components(separatedBy: " --> ")
-//            print(times)
-            
-            return times
-        } else {
-            return nil
-        }
-    }
-    
-    func srtArrayText(srtArray:[String]?) -> String?
-    {
-        guard srtArray?.count > 1 else {
-            return nil
-        }
-        
-        var string = String()
-        
-        var array = srtArray!
-        
-        if let count = array.first, !count.isEmpty {
-            array.remove(at: 0)
-        } else {
-            return nil
-        }
-        
-        if let timeWindow = array.first, !timeWindow.isEmpty {
-            array.remove(at: 0)
-        } else {
-            return nil
-        }
-        
-        for element in array {
-            string = string + " " + element.lowercased()
-        }
-        
-        return !string.isEmpty ? string : nil
-    }
-    
-    func searchSRTArrays(string:String) -> [[String]]?
-    {
-        var results = [[String]]()
-        
-        for srtArray in srtArrays! {
-            if let contains = srtArrayText(srtArray: srtArray)?.contains(string.lowercased()), contains {
-                results.append(srtArray)
-            }
-        }
-        
-        return results.count > 0 ? results : nil
-    }
-    
-    var srtComponents:[String]?
-    {
-        didSet {
-            guard srtComponents != nil else {
-                return
-            }
-            
-            var srtArrays = [[String]]()
-            
-            for srtComponent in srtComponents! {
-                srtArrays.append(srtComponent.components(separatedBy: "\n"))
-            }
-            
-            self.srtArrays = srtArrays.count > 0 ? srtArrays : nil
-        }
-    }
-    
-    var transcriptSRT:String?
-    {
-        didSet {
-            srtComponents = transcriptSRT?.components(separatedBy: "\n\n")
-//            print(srtComponents)
-        }
-    }
-    
-    func getTranscriptSRT()
-    {
-        guard let mediaID = mediaID else {
-            uploadMedia()
-            return
-        }
-        
-        let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)/transcripts/latest"
-//        print(service)
-        
-        var request = URLRequest(url: URL(string:service)!)
-        
-        request.httpMethod = "GET"
-        
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
-        
-        request.addValue("text/srt", forHTTPHeaderField: "Accept")
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            print((response as? HTTPURLResponse)?.statusCode)
-            if data != nil {
-                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                self.transcriptSRT = string
-//                print(string) // object name
-                
-                if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!).srt") {
-                    // Check if file exist
-                    let fileManager = FileManager.default
-                    
-                    if (fileManager.fileExists(atPath: destinationURL.path)){
-                        do {
-                            try fileManager.removeItem(at: destinationURL)
-                        } catch _ {
-                            print("failed to remove machine generated SRT transcript")
-                        }
-                    }
-                    
-                    do {
-                        try string?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8);
-                    } catch _ {
-                        print("failed to write SRT transcript to cache directory")
-                    }
-                } else {
-                    print("failed to get destinationURL")
-                }
-            } else {
-                // Now what?
-            }
-            
-            self.getDetails()
-        })
-        
-        task.resume()
-    }
-    
-    func search(string:String?)
-    {
-        guard let string = string else {
-            return
-        }
-        
-//        guard let mediaID = mediaID else {
-//            return
-//        }
-        
-        var service = "https://apis.voicebase.com/v2-beta/media"
-        
-        service = service + "q=" + string
-        
-//        print(service)
-        
-        var request = URLRequest(url: URL(string:service)!)
-        
-        request.httpMethod = "GET"
-        
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
-        
-//        request.addValue("text/plain", forHTTPHeaderField: "Accept")
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            print((response as? HTTPURLResponse)?.statusCode)
-            if data != nil {
-//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-//                print(string)
-
-                // No idea what this proceds, but I'm guessing it is like the keywords dictionary.
-            } else {
-                // Now what?
-            }
-        })
-        
-        task.resume()
-    }
-}
-
 //class Google {
 //    ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //    /// Google Cloud API for Storage and Speech Recognition
@@ -1362,12 +289,62 @@ extension MediaItem : URLSessionDownloadDelegate
             }
         }
         
+        guard download != nil else {
+            return
+        }
+        
         guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
-            print("DOWNLOAD ERROR")
-            DispatchQueue.main.async(execute: { () -> Void in
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
-                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-            })
+            print("DOWNLOAD ERROR",(downloadTask.response as? HTTPURLResponse)?.statusCode as Any,totalBytesExpectedToWrite)
+                
+//            var downloadPurpose:String!
+//                
+//            if let purpose = download?.purpose {
+//                switch purpose {
+//                case Purpose.audio:
+//                    downloadPurpose = Constants.Strings.Audio
+//                    break
+//                    
+//                case Purpose.video:
+//                    downloadPurpose = Constants.Strings.Video
+//                    break
+//                    
+//                case Purpose.slides:
+//                    downloadPurpose = Constants.Strings.Slides
+//                    break
+//                    
+//                case Purpose.notes:
+//                    downloadPurpose = Constants.Strings.Transcript
+//                    break
+//                    
+//                default:
+//                    downloadPurpose = "ERROR"
+//                    break
+//                }
+//            }
+                
+            let title = "Download Failed (\(download!.purpose!.lowercased()))"
+                
+            if let state = download?.state {
+                if state != .none {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
+                        UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                    })
+                    
+                    if let index = downloadTask.taskDescription?.range(of: "."),
+                        let id = downloadTask.taskDescription?.substring(to: index.lowerBound),
+                        let mediaItem = globals.mediaRepository.index?[id] {
+                        globals.alert(title: title, message: mediaItem.title)
+                    } else {
+                        globals.alert(title: title, message: nil)
+                    }
+                } else {
+                    print("previously dealt with")
+                }
+            } else {
+                print("Download HAS NO STATE!  SHOULD NEVER HAPPEN!")
+            }
+            
             download?.cancel()
             return
         }
@@ -1457,11 +434,31 @@ extension MediaItem : URLSessionDownloadDelegate
         }
         
         guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
-            print("DOWNLOAD ERROR")
-            DispatchQueue.main.async(execute: { () -> Void in
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
-                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-            })
+            print("DOWNLOAD ERROR",(downloadTask.response as? HTTPURLResponse)?.statusCode as Any,download?.totalBytesExpectedToWrite as Any)
+
+            let title = "Download Failed (\(download!.purpose!.lowercased()))"
+
+            if let state = download?.state {
+                if state != .none {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
+                        UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                    })
+                    
+                    if let index = downloadTask.taskDescription?.range(of: "."),
+                        let id = downloadTask.taskDescription?.substring(to: index.lowerBound),
+                        let mediaItem = globals.mediaRepository.index?[id] {
+                        globals.alert(title: title, message: mediaItem.title)
+                    } else {
+                        globals.alert(title: title, message: nil)
+                    }
+                } else {
+                    print("previously dealth with")
+                }
+            } else {
+                print("Download HAS NO STATE!  SHOULD NEVER HAPPEN!")
+            }
+                
             download?.cancel()
             return
         }
@@ -1499,12 +496,12 @@ extension MediaItem : URLSessionDownloadDelegate
         //            print("location: \(location) \n\ndestinationURL: \(destinationURL)\n\n")
         
         do {
-            if (download?.state == .downloading) && (download!.totalBytesExpectedToWrite != -1) {
+            if (download?.state == .downloading) { //  && (download!.totalBytesExpectedToWrite != -1)
                 if (fileManager.fileExists(atPath: download!.fileSystemURL!.path)){
                     do {
                         try fileManager.removeItem(at: download!.fileSystemURL!)
-                    } catch _ {
-                        print("failed to remove duplicate download")
+                    } catch let error as NSError {
+                        print("failed to remove duplicate download: \(error.localizedDescription)")
                     }
                 }
                 
@@ -1512,16 +509,18 @@ extension MediaItem : URLSessionDownloadDelegate
                 
                 try fileManager.copyItem(at: location, to: download!.fileSystemURL!)
                 try fileManager.removeItem(at: location)
+                
                 download?.state = .downloaded
             } else {
                 // Nothing was downloaded
                 DispatchQueue.main.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
                 })
+                
                 download?.state = .none
             }
-        } catch _ {
-            print("failed to copy temp download file")
+        } catch let error as NSError {
+            print("failed to copy temp download file: \(error.localizedDescription)")
             download?.state = .none
         }
         
@@ -1541,13 +540,47 @@ extension MediaItem : URLSessionDownloadDelegate
             }
         }
 
-        guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
-            print("DOWNLOAD ERROR:",task.taskDescription as Any,(task.response as? HTTPURLResponse)?.statusCode as Any)
-            DispatchQueue.main.async(execute: { () -> Void in
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
-                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-            })
+        guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400,
+            error == nil else {
+            print("DOWNLOAD ERROR:",task.taskDescription as Any,(task.response as? HTTPURLResponse)?.statusCode as Any,download?.totalBytesExpectedToWrite as Any)
+            
+            if let error = error {
+                print("with error: \(error.localizedDescription)")
+            }
+                
+            let title = "Download Failed (\(download!.purpose!.lowercased()))"
+
+            if let state = download?.state {
+                if state != .none {
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
+                        UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                    })
+                    
+                    if let index = task.taskDescription?.range(of: "."),
+                        let id = task.taskDescription?.substring(to: index.lowerBound),
+                        let message = globals.mediaRepository.index?[id]?.title {
+                        if let error = error {
+                            globals.alert(title: title, message: message + "\nError: \(error.localizedDescription)")
+                        } else {
+                            globals.alert(title: title, message: message)
+                        }
+                    } else {
+                        if let error = error {
+                            globals.alert(title: title, message: "Error: \(error.localizedDescription)")
+                        } else {
+                            globals.alert(title: title, message: nil)
+                        }
+                    }
+                } else {
+                    print("previously dealt with")
+                }
+            } else {
+                print("Download HAS NO STATE!  SHOULD NEVER HAPPEN!")
+            }
+            
             download?.cancel()
+                
             return
         }
         
@@ -1577,8 +610,8 @@ extension MediaItem : URLSessionDownloadDelegate
         debug("bytes written: \(download!.totalBytesWritten)")
         debug("bytes expected to write: \(download!.totalBytesExpectedToWrite)")
         
-        if (error != nil) {
-            print("with error: \(error!.localizedDescription)")
+        if let error = error {
+            print("with error: \(error.localizedDescription)")
             //            download?.state = .none
             
             switch download!.purpose! {
@@ -2245,6 +1278,10 @@ class MediaItem : NSObject {
 
     func singleJSONFromURL() -> JSON
     {
+        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+            return nil
+        }
+        
         do {
             let data = try Data(contentsOf: URL(string: Constants.JSON.URL.SINGLE + self.id!)!) // , options: NSData.ReadingOptions.mappedIfSafe
             
@@ -2635,7 +1672,12 @@ class MediaItem : NSObject {
                 constantTags = constantTags != nil ? constantTags! + "|" + Constants.Strings.Video : Constants.Strings.Video
             }
             
-            if (audioTranscript?.transcript != nil) || (videoTranscript?.transcript != nil) {
+            // Invoke separately so both lazy variables are instantiated.
+            if audioTranscript?.transcript != nil {
+                constantTags = constantTags != nil ? constantTags! + "|" + "Machine Generated Transcript" : "Machine Generated Transcript"
+            }
+            
+            if videoTranscript?.transcript != nil {
                 constantTags = constantTags != nil ? constantTags! + "|" + "Machine Generated Transcript" : "Machine Generated Transcript"
             }
             
@@ -3513,7 +2555,7 @@ class MediaItem : NSObject {
     lazy var audioTranscript:VoiceBase? = {
         [unowned self] in
         let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.audio)
-        if voicebase.transcript != nil {
+        if (voicebase.transcript != nil) && (voicebase.mediaID != "Completed") {
             voicebase.delete() // Clean up the cloud.
         }
         self.transcripts[voicebase.purpose!] = voicebase
@@ -3523,7 +2565,7 @@ class MediaItem : NSObject {
     lazy var videoTranscript:VoiceBase? = {
         [unowned self] in
         let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.video)
-        if voicebase.transcript != nil {
+        if (voicebase.transcript != nil) && (voicebase.mediaID != "Completed") {
             voicebase.delete() // Clean up the cloud.
         }
         self.transcripts[voicebase.purpose!] = voicebase
@@ -3859,7 +2901,7 @@ class MediaItem : NSObject {
         return MultiPartSettings(mediaItem:self)
     }()
     
-    var viewSplit:String? {
+    var verticalSplit:String? {
         get {
             return multiPartSettings?[Constants.VIEW_SPLIT]
         }
@@ -3868,7 +2910,7 @@ class MediaItem : NSObject {
         }
     }
     
-    var slideSplit:String? {
+    var horizontalSplit:String? {
         get {
             return multiPartSettings?[Constants.SLIDE_SPLIT]
         }

@@ -313,6 +313,10 @@ class Scripture : NSObject
     
     func jsonFromURL(url:String) -> [String:Any]?
     {
+        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+            return nil
+        }
+        
         if let data = try? Data(contentsOf: URL(string: url)!) {
             do {
                 let json = try JSONSerialization.jsonObject(with: data, options: [])
@@ -352,6 +356,10 @@ class Scripture : NSObject
 
     func loadJSONVerseFromURL() -> [String:Any]? // _ reference:String?
     {
+        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+            return nil
+        }
+        
         guard reference != nil else {
             return nil
         }

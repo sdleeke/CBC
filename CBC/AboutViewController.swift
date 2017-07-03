@@ -203,7 +203,8 @@ class AboutViewController: UIViewController
         navigationItem.rightBarButtonItem = actionButton
     }
     
-    override func viewDidLoad() {
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
 
         navigationController?.setToolbarHidden(true, animated: false)
@@ -213,24 +214,17 @@ class AboutViewController: UIViewController
         setupActionButton()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        setVersion()
-        
-        if self.navigationController?.visibleViewController == self {
-            self.navigationController?.isToolbarHidden = true
+    func reachableTransition()
+    {
+        if mapView.isHidden, globals.reachability.currentReachabilityStatus != .notReachable {
+            addMap()
         }
-        
-        if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
-            let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
-            let count = self.splitViewController?.viewControllers.count {
-            if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
-                if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-                    navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
-                } else {
-                    navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
-                }
-            }
+    }
+    
+    func addMap()
+    {
+        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+            return
         }
         
         let geocoder = CLGeocoder()
@@ -253,14 +247,53 @@ class AboutViewController: UIViewController
                 let viewRegion = MKCoordinateRegionMakeWithDistance(coordinates, 10000, 10000)
                 let adjustedRegion = self.mapView?.regionThatFits(viewRegion)
                 self.mapView?.setRegion(adjustedRegion!, animated: false)
+                self.mapView?.isHidden = false
             }
         })
+    }
+
+    override func viewWillAppear(_ animated: Bool)
+    {
+        super.viewWillAppear(animated)
+    
+        setVersion()
+        
+        if self.navigationController?.visibleViewController == self {
+            self.navigationController?.isToolbarHidden = true
+        }
+        
+        if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+            let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
+            let count = self.splitViewController?.viewControllers.count {
+            if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
+                if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+                    navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+                } else {
+                    navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
+                }
+            }
+        }
+        
+        mapView.isHidden = true
+
+        addMap()
+        
+        DispatchQueue.main.async {
+            NotificationCenter.default.addObserver(self, selector: #selector(AboutViewController.reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(AboutViewController.reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         scrollView.flashScrollIndicators()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func didReceiveMemoryWarning() {

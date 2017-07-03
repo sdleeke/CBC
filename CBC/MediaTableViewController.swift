@@ -286,6 +286,11 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
         DispatchQueue.main.async(execute: { () -> Void in
             self.tableView.reloadData()
             
+            self.tableView.isHidden = true
+            if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
+                self.logo.isHidden = true // !self.tableView.isHidden // Don't like it offset, just hide it for now
+            }
+
             if self.splitViewController?.viewControllers.count > 1 {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
             }
@@ -297,41 +302,8 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
         globals.media = Media()
         
         loadMediaItems()
-            {
-                if globals.mediaRepository.list == nil {
-                    self.noMediaAvailable() {_ in 
-                        if globals.isRefreshing {
-                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                                
-                            })
-                        } else {
-                            self.setupListActivityIndicator()
-                        }
-                    }
-                } else {
-                    self.selectedMediaItem = globals.selectedMediaItem.master
-                    
-                    if globals.search.active && !globals.search.complete {
-                        self.updateSearchResults(globals.search.text,completion: {
-                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                                DispatchQueue.main.async(execute: { () -> Void in
-                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                                })
-                            })
-                        })
-                    } else {
-                        // Reload the table
-                        self.tableView.reloadData()
-                        
-                        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                            DispatchQueue.main.async(execute: { () -> Void in
-                                self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                            })
-                        })
-                    }
-                }
-                
-                self.tableView.isHidden = false
+        {
+            self.stringPickedCompletion()
         }
     }
 }
@@ -539,8 +511,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
             globals.mediaPlayer.unobserve()
             
-            let liveStream = globals.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM)
-
             globals.mediaPlayer.pause()
 
             globals.cancelAllDownloads()
@@ -549,6 +519,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             DispatchQueue.main.async(execute: { () -> Void in
                 self.tableView.reloadData()
                 
+                self.tableView.isHidden = true
+                if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
+                    self.logo.isHidden = true // !self.tableView.isHidden // Don't like it offset, just hide it for now
+                }
+
                 if self.splitViewController?.viewControllers.count > 1 {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
                 }
@@ -560,47 +535,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             globals.media = Media()
             
             loadMediaItems()
-                {
-                    if liveStream {
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
-                        })
-                    }
-                    
-                    if globals.mediaRepository.list == nil {
-                        self.noMediaAvailable() {_ in
-                            if globals.isRefreshing {
-                                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                                    
-                                })
-                            } else {
-                                self.setupListActivityIndicator()
-                            }
-                        }
-                    } else {
-                        self.selectedMediaItem = globals.selectedMediaItem.master
-                        
-                        if globals.search.active && !globals.search.complete {
-                            self.updateSearchResults(globals.search.text,completion: {
-                                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                                    DispatchQueue.main.async(execute: { () -> Void in
-                                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                                    })
-                                })
-                            })
-                        } else {
-                            // Reload the table
-                            self.tableView.reloadData()
-                            
-                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                                DispatchQueue.main.async(execute: { () -> Void in
-                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                                })
-                            })
-                        }
-                    }
-                    
-                    self.tableView.isHidden = false
+            {
+                self.rowClickedCompletion()
             }
             break
             
@@ -625,6 +561,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             switch strings[index] {
             case Constants.Strings.Download_Audio:
                 mediaItem?.audioDownload?.download()
+                NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
                 break
                 
             case Constants.Strings.Delete_Audio_Download:
@@ -633,10 +570,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
             case Constants.Strings.Cancel_Audio_Download:
                 mediaItem?.audioDownload?.cancelOrDelete()
-                break
-                
-            case Constants.Strings.Download_Audio:
-                mediaItem?.audioDownload?.download()
                 break
                 
             default:
@@ -878,6 +811,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
 {
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset: Int64, expectedTotalBytes: Int64)
     {
+        print("URLSession:downloadTask:didResumeAtOffset:expectedTotalBytes:")
         
     }
     
@@ -896,9 +830,10 @@ extension MediaTableViewController : URLSessionDownloadDelegate
     {
         print("URLSession:downloadTask:didFinishDownloadingToURL")
         
-        var success = false
+//        var success = false
         
         print("countOfBytesExpectedToReceive: \(downloadTask.countOfBytesExpectedToReceive)")
+        print("countOfBytesReceived: \(downloadTask.countOfBytesReceived)")
         
         print("URLSession: \(session.description) didFinishDownloadingToURL: \(location)")
         
@@ -915,17 +850,17 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                 if (fileManager.fileExists(atPath: destinationURL.path)){
                     do {
                         try fileManager.removeItem(at: destinationURL)
-                    } catch _ {
-                        print("failed to remove old json file")
+                    } catch let error as NSError {
+                        print("failed to remove old json file: \(error.localizedDescription)")
                     }
                 }
                 
                 do {
                     try fileManager.copyItem(at: location, to: destinationURL)
                     try fileManager.removeItem(at: location)
-                    success = true
-                } catch _ {
-                    print("failed to copy new json file to Documents")
+//                    success = true
+                } catch let error as NSError {
+                    print("failed to copy new json file to Documents: \(error.localizedDescription)")
                 }
             } else {
                 print("failed to get destinationURL")
@@ -934,64 +869,104 @@ extension MediaTableViewController : URLSessionDownloadDelegate
             print("downloadTask.countOfBytesReceived not > 0")
         }
         
-        if success {
-            // ONLY flush and refresh the data once we know we have successfully downloaded the new JSON
-            // file and successfully copied it to the Documents directory.
-            
-            // URL call back does NOT run on the main queue
-            DispatchQueue.main.async(execute: { () -> Void in
-                globals.mediaPlayer.pause() // IfPlaying
-                
-                globals.mediaPlayer.view?.isHidden = true
-                globals.mediaPlayer.view?.removeFromSuperview()
-                
-                //                self.loadCategories()
-                
-                self.loadMediaItems()
-                    {
-                        //                    self.refreshControl?.endRefreshing()
-                        UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                        //                    globals.isRefreshing = false
-                }
-            })
-        } else {
-            DispatchQueue.main.async(execute: { () -> Void in
-                if (UIApplication.shared.applicationState == UIApplicationState.active) {
-                    alert(viewController:self,title:"Unable to Download Media",
-                          message: "Please try to refresh the list again.",
-                          completion:nil)
-                }
-                
-                self.refreshControl!.endRefreshing()
-                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                
-                globals.setupDisplay(globals.media.active)
-                self.tableView.reloadData()
-                
-                globals.isRefreshing = false
-                
-                self.setupViews()
-            })
-        }
+//        if success {
+//            // ONLY flush and refresh the data once we know we have successfully downloaded the new JSON
+//            // file and successfully copied it to the Documents directory.
+//            
+//            // URL call back does NOT run on the main queue
+//            DispatchQueue.main.async(execute: { () -> Void in
+//                globals.mediaPlayer.pause() // IfPlaying
+//                
+//                globals.mediaPlayer.view?.isHidden = true
+//                globals.mediaPlayer.view?.removeFromSuperview()
+//                
+//                //                self.loadCategories()
+//                
+//                self.loadMediaItems()
+//                    {
+//                        //                    self.refreshControl?.endRefreshing()
+//                        UIApplication.shared.isNetworkActivityIndicatorVisible = false
+//                        //                    globals.isRefreshing = false
+//                }
+//            })
+//        } else {
+//            DispatchQueue.main.async(execute: { () -> Void in
+//                if (UIApplication.shared.applicationState == UIApplicationState.active) {
+//                    alert(viewController:self,title:"Unable to Download Media",
+//                          message: "Please try to refresh the list again.",
+//                          completion:nil)
+//                }
+//                
+//                self.refreshControl!.endRefreshing()
+//                UIApplication.shared.isNetworkActivityIndicatorVisible = false
+//                
+//                globals.setupDisplay(globals.media.active)
+//                self.tableView.reloadData()
+//                
+//                globals.isRefreshing = false
+//                
+//                self.setupViews()
+//            })
+//        }
     }
     
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
     {
         print("URLSession:task:didCompleteWithError")
-        
-        if (error != nil) {
-            //            print("Download failed for: \(session.description)")
-        } else {
-            //            print("Download succeeded for: \(session.description)")
-        }
-        
+
         // This deletes more than the temp file associated with this download and sometimes it deletes files in progress
         // that are needed!  We need to find a way to delete only the temp file created by this download task.
         //        removeTempFiles()
         
-        let filename = task.taskDescription
-        print("filename: \(filename!) error: \(String(describing: error))")
-        
+        if let filename = task.taskDescription {
+            print("filename: \(filename)")
+            
+            if let error = error {
+                print("Download failed for: \(task.taskDescription!) with error: \(error.localizedDescription)")
+
+                switch filename {
+                case Constants.JSON.FILENAME.CATEGORIES:
+                    // Couldn't get categories from network, try to get media, use last downloaded
+                    if let mediaFileName = globals.mediaCategory.filename {
+                        downloadJSON(url:Constants.JSON.URL.CATEGORY_MEDIA,filename:mediaFileName)
+                    }
+                    break
+                    
+                case globals.mediaCategory.filename!:
+                    // Couldn't get media from network, use last downloaded
+                    loadMediaItems()
+                    {
+                        self.loadCompletion()
+                    }
+                    break
+                    
+                default:
+                    break
+                }
+            } else {
+                print("Download succeeded for: \(task.taskDescription!)")
+
+                switch filename {
+                case Constants.JSON.FILENAME.CATEGORIES:
+                    // Load media
+                    if let mediaFileName = globals.mediaCategory.filename {
+                        downloadJSON(url:Constants.JSON.URL.CATEGORY_MEDIA,filename:mediaFileName)
+                    }
+                    break
+                    
+                case globals.mediaCategory.filename!:
+                    loadMediaItems()
+                    {
+                        self.loadCompletion()
+                    }
+                    break
+                    
+                default:
+                    break
+                }
+            }
+        }
+
         session.invalidateAndCancel()
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
@@ -1015,7 +990,7 @@ class MediaTableViewController : UIViewController
     
     var presentingVC : UIViewController?
     
-    var jsonSource:JSONSource = .direct
+    var jsonSource:JSONSource = .download
     
     override var canBecomeFirstResponder : Bool {
         return true //splitViewController == nil
@@ -1027,6 +1002,26 @@ class MediaTableViewController : UIViewController
         }
     }
 
+    func downloadFailed(_ notification:NSNotification)
+    {
+//        if let download = notification.object as? Download {
+//            if let index = download.task?.taskDescription?.range(of: "."),
+//                let id = download.task?.taskDescription?.substring(to: index.lowerBound),
+//                let mediaItem = globals.media.all?.index?[id] {
+//                globals.alert(title: "Download Failed", message: "For \(mediaItem.title!)")
+//            } else {
+//                globals.alert(title: "Download Failed", message: nil)
+//            }
+//        }
+    }
+    
+    @IBOutlet weak var logo: UIImageView!
+    {
+        didSet {
+            logo.isHidden = true
+        }
+    }
+    
     var tagsToolbar: UIToolbar?
     @IBOutlet weak var tagsButton: UIButton!
     @IBOutlet weak var tagLabel: UILabel!
@@ -1496,86 +1491,151 @@ class MediaTableViewController : UIViewController
         }
     }
     
-    func jsonAlert(title:String,message:String)
-    {
-        if (UIApplication.shared.applicationState == UIApplicationState.active) {
-            alert(viewController:self,title:title,
-                  message:message,
-                  completion:nil)
-        }
-    }
+//    func jsonAlert(title:String,message:String)
+//    {
+//        if (UIApplication.shared.applicationState == UIApplicationState.active) {
+//            alert(viewController:self,title:title,
+//                  message:message,
+//                  completion:nil)
+//        }
+//    }
 
-    func jsonFromURL(url:String,filename:String) -> JSON
+    func jsonFromFileSystem(filename:String?) -> JSON
     {
-        let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename)
+        guard let filename = filename else {
+            return nil
+        }
+
+        guard let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
+            return nil
+        }
         
         do {
-            let data = try Data(contentsOf: URL(string: url)!) // , options: NSData.ReadingOptions.mappedIfSafe
+            let data = try Data(contentsOf: jsonFileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
+            print("json read from the file system.")
             
             let json = JSON(data: data)
+            
             if json != JSON.null {
-                do {
-                    try data.write(to: jsonFileSystemURL!)//, options: NSData.WritingOptions.atomic)
-//                    jsonAlert(title:"Pursue sanctification!",message:"Media list read, loaded, and written.")
-                } catch let error as NSError {
-                    print("Media List Error","Media list read and loaded but write failed.")
-                    NSLog(error.localizedDescription)
-                }
+//                globals.alert(title:"Network Error",message:"Media list read but failed to load.  Last available copy read and loaded.")
                 
-                print(json)
+                print("json read and loaded from the file system.")
+                
+//                print(json)
+                
                 return json
             } else {
-                print("could not get json from URL, make sure that it exists and contains valid json.")
-                
-                do {
-                    let data = try Data(contentsOf: jsonFileSystemURL!) // , options: NSData.ReadingOptions.mappedIfSafe
-                    
-                    let json = JSON(data: data)
-                    if json != JSON.null {
-//                        jsonAlert(title:"Media List Error",message:"Media list read but failed to load.  Last available copy read and loaded.")
-                        print("could get json from the file system.")
-//                        print(json)
-                        return json
-                    } else {
-                        jsonAlert(title:"Media List Error",message:"Media list read but failed to load. Last available copy read but load failed.")
-                        print("could not get json from the file system either.")
-                    }
-                } catch let error as NSError {
-                    print("Media List Error","Media list read but failed to load.  Last available copy read failed.")
-                    NSLog(error.localizedDescription)
-                }
+//                globals.alert(title:"Network Error",message:"Last available media list could not be loaded.")
+                print("Network unavailable: json read from the file system could not be loaded.")
             }
         } catch let error as NSError {
-            print("getting json from URL failed, make sure that it exists and contains valid json.")
-            print(error.localizedDescription)
-            
-            do {
-                let data = try Data(contentsOf: jsonFileSystemURL!) // , options: NSData.ReadingOptions.mappedIfSafe
-                
-                let json = JSON(data: data)
-                if json != JSON.null {
-//                    jsonaAlert(title:"Media List Error",message:"Media list read failed.  Last available copy read and loaded.")
-                    print("could get json from the file system.")
-                    //                        print(json)
-                    return json
-                } else {
-                    jsonAlert(title:"Media List Error",message:"Media list read failed.  Last available copy read but load failed.")
-                    print("could not get json from the file system either.")
-                }
-            } catch let error as NSError {
-                print("Media List Error","Media list read failed.  Last available copy read failed.")
-                NSLog(error.localizedDescription)
-            }
+//            globals.alert(title:"Network Error",message:"Last available media list could not be read: " + error.localizedDescription)
+            print("Network unavailable: json could not be read from the file system.")
+            NSLog(error.localizedDescription)
         }
-
+        
         return nil
     }
     
-    func loadJSONDictsFromCachesDirectory(key:String) -> [[String:String]]?
+    func jsonFromURL(url:String,filename:String) -> JSON
+    {
+        guard let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
+            return nil
+        }
+        
+        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+            print("json not reachable.")
+
+//            globals.alert(title:"Network Error",message:"Newtork not available, attempting to load last available media list.")
+
+            return jsonFromFileSystem(filename: filename)
+        }
+        
+        do {
+            let data = try Data(contentsOf: URL(string: url)!) // , options: NSData.ReadingOptions.mappedIfSafe
+            print("able to read json from the URL.")
+
+            let json = JSON(data: data)
+            
+            if json != JSON.null {
+                print(json)
+
+                do {
+//                    globals.alert(title:"Pursue sanctification!",message:"Media list read, loaded, and written.")
+  
+                    try data.write(to: jsonFileSystemURL)//, options: NSData.WritingOptions.atomic)
+                    
+                    print("able to write json to the file system")
+                } catch let error as NSError {
+//                    globals.alert(title:"Network Error!",message:"Media list read and loaded but write failed: " + error.localizedDescription)
+                    
+                    print("unable to write json to the file system.")
+                    
+                    NSLog(error.localizedDescription)
+                }
+                
+                return json
+            } else {
+//                globals.alert(title:"Media List Error!",message:"Media list read but not loaded.  Attempting to load last available copy.")
+                
+                print("could not load json from URL.")
+                
+                return jsonFromFileSystem(filename: filename)
+
+//                do {
+//                    let data = try Data(contentsOf: jsonFileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
+//                    print("able to read json from the file system.")
+//                    
+//                    let json = JSON(data: data)
+//                    if json != JSON.null {
+//                        print("able to load json from the file system.")
+////                        print(json)
+//                        return json
+//                    } else {
+//                        globals.alert(title:"Media List Error",message:"Last available media list read but failed to load.")
+//                        print("could not load json from the file system.")
+//                    }
+//                } catch let error as NSError {
+//                    globals.alert(title:"Media List Error",message:"Last available media list could not be read: " + error.localizedDescription)
+//                    print("could not read json from the file system.")
+//                    NSLog(error.localizedDescription)
+//                }
+            }
+        } catch let error as NSError {
+//            globals.alert(title:"Network Error",message:"Media list could not be read.  Attempting to load last available media list: " + error.localizedDescription)
+            print("unable to read json from the URL.")
+            print(error.localizedDescription)
+            
+            return jsonFromFileSystem(filename: filename)
+
+//            do {
+//                let data = try Data(contentsOf: jsonFileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
+//                print("able to read json from the file system.")
+//                
+//                let json = JSON(data: data)
+//                if json != JSON.null {
+//                    print("able to load json from the file system.")
+//                    //                        print(json)
+//                    return json
+//                } else {
+//                    globals.alert(title:"Media List Error",message:"Last available media list could be read but not loaded.")
+//                    print("unable to load json from the file system.")
+//                }
+//            } catch let error as NSError {
+//                globals.alert(title:"Media List Error",message:"Last available media list could not be read: " + error.localizedDescription)
+//                print("unable to read json from the file system.")
+//                NSLog(error.localizedDescription)
+//            }
+        }
+//
+//        return nil
+    }
+    
+    func loadJSONDictsFromFileSystem(filename:String?,key:String) -> [[String:String]]? // CachesDirectory
     {
         var mediaItemDicts = [[String:String]]()
         
-        let json = jsonDataFromCachesDirectory()
+        let json = jsonFromFileSystem(filename:filename) // jsonDataFromCachesDirectory
         
         if json != JSON.null {
 //            print("json:\(json)")
@@ -1678,41 +1738,69 @@ class MediaTableViewController : UIViewController
             DispatchQueue.main.async(execute: { () -> Void in
                 self.navigationItem.title = Constants.Title.Loading_Media
             })
-            
-            var url:String?
 
-            if (globals.mediaCategory.selected != nil) && (globals.mediaCategory.selectedID != nil) {
-                url = Constants.JSON.URL.CATEGORY + globals.mediaCategory.selectedID!
-            }
-            
-//            print(Constants.JSON_CATEGORY_URL + globals.mediaCategoryID!)
-
-            if url != nil {
-                switch self.jsonSource {
-                case .download:
-                    // From Caches Directory
-                    if let mediaItemDicts = self.loadJSONDictsFromCachesDirectory(key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES) {
-                        globals.mediaRepository.list = self.mediaItemsFromMediaItemDicts(mediaItemDicts)
-                    }
-                    break
+            switch self.jsonSource {
+            case .download:
+                // From Caches Directory
+                if let categoriesDicts = self.loadJSONDictsFromFileSystem(filename: Constants.JSON.FILENAME.CATEGORIES,key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES) {
+                    //                print(categoriesDicts)
                     
-                case .direct:
-                    // From URL
-                    print(globals.mediaCategory.filename as Any)
-                    if let filename = globals.mediaCategory.filename, let mediaItemDicts = self.loadJSONDictsFromURL(url: url!,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES,filename: filename) {
-                        globals.mediaRepository.list = self.mediaItemsFromMediaItemDicts(mediaItemDicts)
-                    } else {
-                        globals.mediaRepository.list = nil
-                        print("FAILED TO LOAD")
+                    var mediaCategoryDicts = [String:String]()
+                    
+                    for categoriesDict in categoriesDicts {
+                        mediaCategoryDicts[categoriesDict["category_name"]!] = categoriesDict["id"]
                     }
-                    break
+                    
+                    globals.mediaCategory.dicts = mediaCategoryDicts
+                    
+                    //                print(globals.mediaCategories)
                 }
+                
+                print(globals.mediaCategory.filename as Any)
+                
+                if  let mediaItemDicts = self.loadJSONDictsFromFileSystem(filename:globals.mediaCategory.filename,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES) {
+                    globals.mediaRepository.list = self.mediaItemsFromMediaItemDicts(mediaItemDicts)
+                } else {
+                    globals.mediaRepository.list = nil
+                    print("FAILED TO LOAD")
+                }
+                break
+                
+            case .direct:
+                // From URL
+                //            print(Constants.JSON_CATEGORY_URL + globals.mediaCategoryID!)
+                
+                if let categoriesDicts = self.loadJSONDictsFromURL(url: Constants.JSON.URL.CATEGORIES,key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES,filename: Constants.JSON.FILENAME.CATEGORIES) {
+                    //                print(categoriesDicts)
+                    
+                    var mediaCategoryDicts = [String:String]()
+                    
+                    for categoriesDict in categoriesDicts {
+                        mediaCategoryDicts[categoriesDict["category_name"]!] = categoriesDict["id"]
+                    }
+                    
+                    globals.mediaCategory.dicts = mediaCategoryDicts
+                    
+                    //                print(globals.mediaCategories)
+                }
+                
+                print(globals.mediaCategory.filename as Any)
+                
+                if  let url = globals.mediaCategory.url,
+                    let filename = globals.mediaCategory.filename,
+                    let mediaItemDicts = self.loadJSONDictsFromURL(url: url,key: Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES,filename: filename) {
+                    globals.mediaRepository.list = self.mediaItemsFromMediaItemDicts(mediaItemDicts)
+                } else {
+                    globals.mediaRepository.list = nil
+                    print("FAILED TO LOAD")
+                }
+                break
             }
             
 //            globals.printLexicon()
 //
 //            var tokens = Set<String>()
-//            
+//
 //            for mediaItem in globals.mediaRepository.list! {
 //                if let stringTokens = tokensFromString(mediaItem.title!) {
 //                    tokens = tokens.union(Set(stringTokens))
@@ -1868,12 +1956,16 @@ class MediaTableViewController : UIViewController
         }
     }
     
-    func downloadJSON()
+    func downloadJSON(url:String?,filename:String?)
     {
-        var url:String?
+        guard url != nil else {
+            return
+        }
         
-        url = Constants.JSON.URL.MEDIA
-
+        guard filename != nil else {
+            return
+        }
+        
         navigationItem.title = Constants.Title.Downloading_Media
         
         let downloadRequest = URLRequest(url: URL(string: url!)!)
@@ -1883,7 +1975,7 @@ class MediaTableViewController : UIViewController
         session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
         
         let downloadTask = session?.downloadTask(with: downloadRequest)
-        downloadTask?.taskDescription = globals.mediaCategory.filename
+        downloadTask?.taskDescription = filename
         
         downloadTask?.resume()
         
@@ -1917,8 +2009,6 @@ class MediaTableViewController : UIViewController
         
         globals.mediaPlayer.unobserve()
         
-        let liveStream = globals.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM)
-
         globals.mediaPlayer.pause() // IfPlaying
 
         globals.cancelAllDownloads()
@@ -1929,7 +2019,13 @@ class MediaTableViewController : UIViewController
 
         setupSearchBar()
         
-        self.tableView.reloadData()
+        tableView.reloadData()
+        
+        // tableView can't be hidden or refresh spinner won't show.
+        if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+            logo.isHidden = true // false // Don't like it offset, just hide it for now
+        }
+
         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
 
         setupBarButtons()
@@ -1939,65 +2035,21 @@ class MediaTableViewController : UIViewController
         // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
         globals.media = Media()
         
-        loadCategories()
+//        loadCategories()
         
         // loadMediaItems or downloadJSON
         
         switch jsonSource {
         case .download:
-            downloadJSON()
+            navigationItem.title = "Downloading Media List"
+            let categoriesFileName = Constants.JSON.FILENAME.CATEGORIES
+            downloadJSON(url:Constants.JSON.URL.CATEGORIES,filename:categoriesFileName)
             break
             
         case .direct:
             loadMediaItems()
             {
-                if liveStream {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
-                    })
-                }
-
-                if globals.mediaRepository.list == nil {
-                    self.noMediaAvailable() {_ in
-                        if globals.isRefreshing {
-                            self.refreshControl?.endRefreshing()
-                            globals.isRefreshing = false
-                        } else {
-                            self.setupListActivityIndicator()
-                        }
-                    }
-                } else {
-                    globals.isRefreshing = false
-                    
-                    self.selectedMediaItem = globals.selectedMediaItem.master
-                    
-                    if globals.search.active && !globals.search.complete {
-                        self.updateSearchResults(globals.search.text,completion: {
-                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                                DispatchQueue.main.async(execute: { () -> Void in
-                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                                })
-                            })
-                        })
-                    } else {
-                        // Reload the table
-                        self.tableView.reloadData()
-                        
-                        if self.selectedMediaItem != nil {
-                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                                DispatchQueue.main.async(execute: { () -> Void in
-                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                                })
-                            })
-                        } else {
-                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                                DispatchQueue.main.async(execute: { () -> Void in
-                                    self.tableView.scrollToRow(at: IndexPath(row:0,section:0), at: UITableViewScrollPosition.top, animated: false)
-                                })
-                            })
-                        }
-                    }
-                }
+                self.refreshCompletion()
             }
             break
         }
@@ -2034,11 +2086,17 @@ class MediaTableViewController : UIViewController
         
 //        print("stopAnimating")
 
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.actInd.stopAnimating()
-            self.loadingView.isHidden = true
-            self.container.isHidden = true
-        })
+        if Thread.isMainThread {
+            actInd.stopAnimating()
+            loadingView.isHidden = true
+            container.isHidden = true
+        } else {
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.actInd.stopAnimating()
+                self.loadingView.isHidden = true
+                self.container.isHidden = true
+            })
+        }
     }
     
     func startAnimating()
@@ -2057,11 +2115,17 @@ class MediaTableViewController : UIViewController
         
 //        print("startAnimating")
         
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.container.isHidden = false
-            self.loadingView.isHidden = false
-            self.actInd.startAnimating()
-        })
+        if Thread.isMainThread {
+            container.isHidden = false
+            loadingView.isHidden = false
+            actInd.startAnimating()
+        } else {
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.container.isHidden = false
+                self.loadingView.isHidden = false
+                self.actInd.startAnimating()
+            })
+        }
     }
     
     func setupLoadingView()
@@ -2093,6 +2157,234 @@ class MediaTableViewController : UIViewController
         
         view.addSubview(container)
     }
+    
+    func stringPickedCompletion()
+    {
+        if globals.mediaRepository.list == nil {
+            self.noMediaAvailable() {_ in
+                if globals.isRefreshing {
+                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                        
+                    })
+                } else {
+                    self.setupListActivityIndicator()
+                }
+            }
+        } else {
+            self.selectedMediaItem = globals.selectedMediaItem.master
+            
+            if globals.search.active && !globals.search.complete {
+                self.updateSearchResults(globals.search.text,completion: {
+                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                        })
+                    })
+                })
+            } else {
+                // Reload the table
+                self.tableView.reloadData()
+                
+                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                    })
+                })
+            }
+        }
+        
+        self.tableView.isHidden = false
+        self.logo.isHidden = true // !self.tableView.isHidden // Don't like it offset, just hide it for now
+    }
+
+    func refreshCompletion()
+    {
+        let liveStream = globals.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM)
+        
+        if liveStream {
+            DispatchQueue.main.async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
+            })
+        }
+        
+        if globals.mediaRepository.list == nil {
+            self.noMediaAvailable() {_ in
+                if globals.isRefreshing {
+                    self.refreshControl?.endRefreshing()
+                    globals.isRefreshing = false
+                } else {
+                    self.setupListActivityIndicator()
+                }
+            }
+        } else {
+            globals.isRefreshing = false
+            
+            self.selectedMediaItem = globals.selectedMediaItem.master
+            
+            if globals.search.active && !globals.search.complete {
+                self.updateSearchResults(globals.search.text,completion: {
+                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                        })
+                    })
+                })
+            } else {
+                // Reload the table
+                self.tableView.reloadData()
+                
+                if self.selectedMediaItem != nil {
+                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                        })
+                    })
+                } else {
+                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.tableView.scrollToRow(at: IndexPath(row:0,section:0), at: UITableViewScrollPosition.top, animated: false)
+                        })
+                    })
+                }
+            }
+        }
+        
+        self.tableView.isHidden = false
+        self.logo.isHidden = true // !self.tableView.isHidden // Don't like it offset, just hide it for now
+    }
+    
+    func rowClickedCompletion()
+    {
+        let liveStream = globals.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM)
+        
+        if liveStream {
+            DispatchQueue.main.async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
+            })
+        }
+        
+        if globals.mediaRepository.list == nil {
+            self.noMediaAvailable() {_ in
+                if globals.isRefreshing {
+                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                        
+                    })
+                } else {
+                    self.setupListActivityIndicator()
+                }
+            }
+        } else {
+            self.selectedMediaItem = globals.selectedMediaItem.master
+            
+            if globals.search.active && !globals.search.complete {
+                self.updateSearchResults(globals.search.text,completion: {
+                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                        })
+                    })
+                })
+            } else {
+                // Reload the table
+                self.tableView.reloadData()
+                
+                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                    })
+                })
+            }
+        }
+        
+        self.tableView.isHidden = false
+        self.logo.isHidden = true // !self.tableView.isHidden // Don't like it offset, just hide it for now
+    }
+    
+    func loadCompletion()
+    {
+        if globals.mediaRepository.list == nil {
+            self.noMediaAvailable() {_ in
+                if globals.isRefreshing {
+                    self.refreshControl?.endRefreshing()
+                    globals.isRefreshing = false
+                } else {
+                    self.setupListActivityIndicator()
+                }
+            }
+        } else {
+            self.selectedMediaItem = globals.selectedMediaItem.master
+            
+            if globals.search.active && !globals.search.complete { // && globals.search.transcripts
+                self.updateSearchResults(globals.search.text,completion: {
+                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                        })
+                    })
+                })
+            } else {
+                // Reload the table
+                self.tableView.reloadData()
+                
+                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                    })
+                })
+            }
+        }
+        
+        self.tableView.isHidden = false
+        self.logo.isHidden = true // !self.tableView.isHidden // Don't like it offset, just hide it for now
+    }
+
+    func load()
+    {
+        guard Thread.isMainThread else {
+            return
+        }
+        
+        guard globals.mediaRepository.list == nil else {
+            return
+        }
+
+        tableView.isHidden = true
+        if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+            logo.isHidden = true // !self.tableView.isHidden // Don't like it offset, just hide it for now
+        }
+        
+//        startAnimating()
+//        
+//        loadCategories()
+//        
+//        stopAnimating()
+        
+        // Download or Load
+        
+        switch jsonSource {
+        case .download:
+            globals.isLoading = true
+            
+            setupSearchBar()
+            setupCategoryButton()
+            setupTagsButton()
+            setupBarButtons()
+            setupListActivityIndicator()
+            
+            navigationItem.title = "Downloading Media List"
+            
+            let categoriesFileName = Constants.JSON.FILENAME.CATEGORIES
+            downloadJSON(url:Constants.JSON.URL.CATEGORIES,filename:categoriesFileName)
+            break
+            
+        case .direct:
+            loadMediaItems()
+            {
+                self.loadCompletion()
+            }
+            break
+        }
+    }
 
     override func viewDidLoad()
     {
@@ -2106,59 +2398,6 @@ class MediaTableViewController : UIViewController
         tableView.addSubview(refreshControl!)
         
         setupTagsToolbar()
-        
-        if globals.mediaRepository.list == nil {
-            loadCategories()
-            
-            // Download or Load
-            
-            switch jsonSource {
-            case .download:
-                downloadJSON()
-                break
-                
-            case .direct:
-                tableView.isHidden = true
-
-                loadMediaItems()
-                {
-                    if globals.mediaRepository.list == nil {
-                        self.noMediaAvailable() {_ in
-                            if globals.isRefreshing {
-                                self.refreshControl?.endRefreshing()
-                                globals.isRefreshing = false
-                            } else {
-                                self.setupListActivityIndicator()
-                            }
-                        }
-                    } else {
-                        self.selectedMediaItem = globals.selectedMediaItem.master
-                        
-                        if globals.search.active && !globals.search.complete { // && globals.search.transcripts
-                            self.updateSearchResults(globals.search.text,completion: {
-                                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                                    DispatchQueue.main.async(execute: { () -> Void in
-                                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                                    })
-                                })
-                            })
-                        } else {
-                            // Reload the table
-                            self.tableView.reloadData()
-
-                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                                DispatchQueue.main.async(execute: { () -> Void in
-                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                                })
-                            })
-                        }
-                    }
-
-                    self.tableView.isHidden = false
-                }
-                break
-            }
-        }
         
         setupSortingAndGroupingOptions()
         setupShowMenu()
@@ -2676,6 +2915,8 @@ class MediaTableViewController : UIViewController
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
+        
+        load()
         
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
         
@@ -3200,26 +3441,26 @@ extension MediaTableViewController : UITableViewDelegate
         return actionsAtIndexPath(tableView, indexPath: indexPath) != nil
     }
     
-    func authentication()
-    {
-        var request = URLRequest(url: URL(string: Constants.SCRIPTURE_BASE_URL)!)
-        request.httpMethod = "GET"
-        
-        let task = URLSession.shared.dataTask(with: request) {
-            data, response, error in
-            
-            if error != nil {
-                print("error=\(String(describing: error))")
-                return
-            }
-            
-            print("response = \(String(describing: response))")
-            
-            let responseString = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
-            print("responseString = \(String(describing: responseString))")
-        }
-        task.resume()
-    }
+//    func authentication()
+//    {
+//        var request = URLRequest(url: URL(string: Constants.SCRIPTURE_BASE_URL)!)
+//        request.httpMethod = "GET"
+//        
+//        let task = URLSession.shared.dataTask(with: request) {
+//            data, response, error in
+//            
+//            if error != nil {
+//                print("error=\(String(describing: error))")
+//                return
+//            }
+//            
+//            print("response = \(String(describing: response))")
+//            
+//            let responseString = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
+//            print("responseString = \(String(describing: responseString))")
+//        }
+//        task.resume()
+//    }
 
     func actionsAtIndexPath(_ tableView: UITableView, indexPath:IndexPath) -> [UITableViewRowAction]?
     {
@@ -3335,6 +3576,11 @@ extension MediaTableViewController : UITableViewDelegate
         words = UITableViewRowAction(style: .normal, title: Constants.FA.WORDS) { action, index in
             if mediaItem.hasNotesHTML {
                 if mediaItem.notesTokens == nil {
+                    guard globals.reachability.currentReachabilityStatus != .notReachable else {
+                        networkUnavailable(self,"HTML transcript words unavailable.")
+                        return
+                    }
+                    
                     process(viewController: self, work: { () -> (Any?) in
                         mediaItem.loadNotesTokens()
                     }, completion: { (data:Any?) in
@@ -3362,6 +3608,11 @@ extension MediaTableViewController : UITableViewDelegate
                 
                 popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
             } else {
+                guard globals.reachability.currentReachabilityStatus != .notReachable else {
+                    networkUnavailable(self,"HTML transcript unavailable.")
+                    return
+                }
+                
                 process(viewController: self, work: { () -> (Any?) in
                     mediaItem.loadNotesHTML()
                     if globals.search.valid && globals.search.transcripts {
@@ -3406,7 +3657,21 @@ extension MediaTableViewController : UITableViewDelegate
             
             action = UITableViewRowAction(style: .normal, title: prefix + "\n" + Constants.FA.TRANSCRIPT) { action, index in
                 if transcript?.transcript == nil {
-                    if let transcribing = transcript?.transcribing, !transcribing {
+                    guard globals.reachability.currentReachabilityStatus != .notReachable else {
+                        networkUnavailable(self,"Machine generated transcript unavailable.")
+                        return
+                    }
+                    
+                    guard let transcribing = transcript?.transcribing else {
+                        return
+                    }
+                    
+                    guard transcript?.mediaID != "Completed" else {
+                        print("Completed!  SHOULD NOT HAPPEN!!!")
+                        return
+                    }
+                    
+                    if !transcribing {
 //                        firstSecondCancel(viewController: self, title: "Begin Creating Machine Generated Transcript? (\(purpose.lowercased()))", message: "", firstTitle: "Yes", firstAction: {
 //                            DispatchQueue.global(qos: .background).async(execute: { () -> Void in
 //                                transcript?.getTranscript()
@@ -3429,17 +3694,37 @@ extension MediaTableViewController : UITableViewDelegate
                         
                         alertActionsCancel( viewController: self,
                                             title: "Begin Creating Machine Generated Transcript? (\(purpose.lowercased()))",
-                                            message: nil,
-                                            alertActions: alertActions,
-                                            cancelAction: nil)
+                            message: nil,
+                            alertActions: alertActions,
+                            cancelAction: nil)
                     } else {
-                        let completion = transcript?.percentComplete == nil ? "" : " (\(transcript!.percentComplete!)% complete)"
+                        let purpose = " (\(transcript!.purpose!.lowercased()))"
                         
-                        alert(viewController:self,title: "Machine Generated Transcript in Progress", message: "You will be notified when the machine generated transcript for \(mediaItem.title!)\(completion) is available.",completion: {
-//                            tableView.setEditing(false, animated: true)
+                        let completion = transcript?.percentComplete == nil ? purpose : purpose + " (\(transcript!.percentComplete!)% complete)"
+                        
+                        var title = "Machine Generated Transcript "
+                        
+                        var message = "You will be notified when the machine generated transcript for \(mediaItem.title!)\(completion) "
+                        
+                        if (transcript?.mediaID != nil) {
+                            title = title + "in Progress"
+                            message = message + "is available."
+                        } else {
+                            title = title + "Requested"
+                            message = message + "has started."
+                        }
+                        print(title)
+                        
+                        alert(viewController:self,title: title, message: message,completion: {
+                            //                            tableView.setEditing(false, animated: true)
                         })
                     }
                 } else {
+                    guard let transcribing = transcript?.transcribing, !transcribing else {
+                        print ("transcript != nil and transcribing")
+                        return
+                    }
+                    
                     var alertActions = [AlertAction]()
                     
                     alertActions.append(AlertAction(title: "Show", style: .default, action: {
@@ -3464,60 +3749,78 @@ extension MediaTableViewController : UITableViewDelegate
                         let sourceView = cell.subviews[0]
                         let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
                         
-                        var htmlString = "<!DOCTYPE html><html><body>"
-                        
-                        var srtHTML = String()
-                        
-                        srtHTML = srtHTML + "<table>"
-                        
-                        srtHTML = srtHTML + "<tr><td><b>#</b></td><td><b>Start Time</b></td><td><b>End Time</b></td><td><b>Recognized Speech</b></td></tr>"
-                        
-                        if let srtArrays = transcript?.srtArrays {
-                            for array in srtArrays {
-                                if array.count == 1 {
-                                    break
+                        process(viewController: self, work: { () -> (Any?) in
+                            var htmlString = "<!DOCTYPE html><html><body>"
+                            
+                            var srtHTML = String()
+                            
+                            srtHTML = srtHTML + "<table>"
+                            
+                            srtHTML = srtHTML + "<tr><td><b>#</b></td><td><b>Start Time</b></td><td><b>End Time</b></td><td><b>Recognized Speech</b></td></tr>"
+                            
+                            if let srtArrays = transcript?.srtArrays {
+                                for array in srtArrays {
+                                    if array.count == 1 {
+                                        break
+                                    }
+                                    
+                                    var srtArray = array
+                                    
+                                    let count = srtArray.first
+                                    srtArray.remove(at: 0)
+                                    
+                                    let timeWindow = srtArray.first
+                                    srtArray.remove(at: 0)
+                                    
+                                    let start = timeWindow?.components(separatedBy: " --> ").first
+                                    let end = timeWindow?.components(separatedBy: " --> ").last
+                                    
+                                    var srtString = String()
+                                    
+                                    for string in srtArray {
+                                        srtString = srtString + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
+                                    }
+                                    
+                                    let row = "<tr><td>\(count!)</td><td>\(start!)</td><td>\(end!)</td><td>\(srtString)</td></tr>"
+                                    
+                                    srtHTML = srtHTML + row
                                 }
-                                
-                                var srtArray = array
-                                
-                                let count = srtArray.first
-                                srtArray.remove(at: 0)
-                                
-                                let timeWindow = srtArray.first
-                                srtArray.remove(at: 0)
-                                
-                                let start = timeWindow?.components(separatedBy: " --> ").first
-                                let end = timeWindow?.components(separatedBy: " --> ").last
-                                
-                                var srtString = String()
-                                
-                                for string in srtArray {
-                                    srtString = srtString + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
-                                }
-                                
-                                let row = "<tr><td>\(count!)</td><td>\(start!)</td><td>\(end!)</td><td>\(srtString)</td></tr>"
-                                
-                                srtHTML = srtHTML + row
                             }
-                        }
-                        
-                        srtHTML = srtHTML + "</table>"
-                        
-                        htmlString = htmlString + mediaItem.headerHTML! +
-                            "<br/>" +
-                            "<center>MACHINE GENERATED TRANSCRIPT WITH TIMING<br/>(\(transcript!.purpose!))</center>" +
-                            "<br/>" +
                             
-                            srtHTML +
+                            srtHTML = srtHTML + "</table>"
                             
-                        "</body></html>"
-                        
-                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                            htmlString = htmlString + mediaItem.headerHTML! +
+                                "<br/>" +
+                                "<center>MACHINE GENERATED TRANSCRIPT WITH TIMING<br/>(\(transcript!.purpose!))</center>" +
+                                "<br/>" +
+                                
+                                srtHTML +
+                                
+                            "</body></html>"
+                            
+                            return htmlString as Any
+                        }, completion: { (data:Any?) in
+                            if let htmlString = data as? String {
+                                popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+                            }
+                        })
                     }))
                     
-                    alertActions.append(AlertAction(title: "Delete", style: .default, action: {
-                        transcript?.remove()
-                        tableView.setEditing(false, animated: true)
+                    alertActions.append(AlertAction(title: "Delete", style: .destructive, action: {
+                        var alertActions = [AlertAction]()
+                        
+                        alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
+                            transcript?.remove()
+                            tableView.setEditing(false, animated: true)
+                        }))
+                        
+                        alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+                        
+                        alertActionsCancel( viewController: self,
+                                            title: "Confirm Deletion of Machine Generated Transcript for \(transcript!.mediaItem!.title!) (\(purpose.lowercased()))",
+                            message: nil,
+                            alertActions: alertActions,
+                            cancelAction: nil)
                     }))
                     
                     alertActionsCancel(  viewController: self,
@@ -3568,6 +3871,11 @@ extension MediaTableViewController : UITableViewDelegate
                 if mediaItem.scripture?.html?[reference] != nil {
                     popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
                 } else {
+                    guard globals.reachability.currentReachabilityStatus != .notReachable else {
+                        networkUnavailable(self,"Scripture text unavailable.")
+                        return
+                    }
+
                     process(viewController: self, work: { () -> (Any?) in
                         mediaItem.scripture?.loadJSON() // mediaItem.scripture?.reference
                         return mediaItem.scripture?.html?[reference]
@@ -3598,7 +3906,7 @@ extension MediaTableViewController : UITableViewDelegate
     
 //        if !mediaItem.hasNotes {
 
-        if mediaItem.hasAudio {
+        if mediaItem.hasAudio && globals.allowMGTs {
             if mediaItem.audioTranscript?.transcript != nil {
                 recognizeAudio.backgroundColor = UIColor.lightGray
             } else {
@@ -3611,7 +3919,7 @@ extension MediaTableViewController : UITableViewDelegate
             actions.append(recognizeAudio)
         }
         
-        if mediaItem.hasVideo {
+        if mediaItem.hasVideo && globals.allowMGTs {
             if mediaItem.videoTranscript?.transcript != nil {
                 recognizeVideo.backgroundColor = UIColor.lightGray
             } else {

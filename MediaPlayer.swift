@@ -569,9 +569,9 @@ class MediaPlayer : NSObject {
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_LOAD), object: nil)
         })
         
-        DispatchQueue.main.async(execute: { () -> Void in
-            globals.alert(title: "Failed to Load Content",message: "Please check your network connection and try again.")
-        })
+        globals.alert(title: "Failed to Load Content",message: "Please check your network connection and try again.")
+//        DispatchQueue.main.async(execute: { () -> Void in
+//        })
 
 //        if (UIApplication.shared.applicationState == UIApplicationState.active) {
 //            alert(viewController:nil,title: "Failed to Load Content", message: "Please check your network connection and try again.", completion: nil)
@@ -729,7 +729,7 @@ class MediaPlayer : NSObject {
             }
         }
         
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
+        NotificationCenter.default.removeObserver(self) //, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
     }
     
     func observe()
@@ -766,6 +766,7 @@ class MediaPlayer : NSObject {
             self.playerTimer()
         })
         
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.stop), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.didPlayToEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.doneSeeking), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
 //        DispatchQueue.main.async {

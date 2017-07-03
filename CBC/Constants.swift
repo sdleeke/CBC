@@ -193,6 +193,9 @@ struct Constants {
     struct NOTIFICATION {
         static let FREE_MEMORY              = "FREE MEMORY"
         
+        static let REACHABLE                = "REACHABLE"
+        static let NOT_REACHABLE            = "NOT REACHABLE"
+        
         static let DONE_SEEKING             = "DONE SEEKING"
         
         static let WILL_RESIGN_ACTIVE       = "WILL RESIGN ACTIVE"

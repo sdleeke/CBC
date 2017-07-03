@@ -1641,6 +1641,11 @@ extension ScriptureIndexViewController : UITableViewDelegate
                 if mediaItem.scripture?.html?[reference] != nil {
                     popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
                 } else {
+                    guard globals.reachability.currentReachabilityStatus != .notReachable else {
+                        networkUnavailable(self,"Scripture text unavailable.")
+                        return
+                    }
+                    
                     process(viewController: self, work: { () -> (Any?) in
                         mediaItem.scripture?.load() // reference
                         return mediaItem.scripture?.html?[reference]

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12120" systemVersion="16F73" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="T8F-64-B2A">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="T8F-64-B2A">
     <device id="ipad9_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12088"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12089"/>
         <capability name="Alignment constraints with different attributes" minToolsVersion="5.1"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
@@ -84,7 +84,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JLG-Av-zae">
-                                                    <rect key="frame" x="20" y="8" width="296" height="20"/>
+                                                    <rect key="frame" x="20" y="8" width="744" height="20"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="T8h-mo-RwF"/>
                                                     </constraints>
@@ -93,13 +93,13 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="un9-Im-JBj">
-                                                    <rect key="frame" x="20" y="30" width="262" height="65"/>
+                                                    <rect key="frame" x="20" y="30" width="710" height="65"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2mr-qJ-uXH">
-                                                    <rect key="frame" x="298" y="60" width="18" height="31"/>
+                                                    <rect key="frame" x="746" y="60" width="18" height="31"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="9dN-PR-ji7"/>
                                                     </constraints>
@@ -109,13 +109,13 @@
                                                     </connections>
                                                 </button>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="IeR-9v-6I1" userLabel="Icons">
-                                                    <rect key="frame" x="316" y="91" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="764" y="91" width="0.0" height="0.0"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Bxo-Fh-LBE">
-                                                    <rect key="frame" x="20" y="97" width="300" height="2"/>
+                                                    <rect key="frame" x="20" y="97" width="748" height="2"/>
                                                 </progressView>
                                             </subviews>
                                             <constraints>
@@ -342,19 +342,19 @@
                                 <exclude reference="qMh-ym-tB8"/>
                             </mask>
                             <mask key="constraints">
-                                <exclude reference="x3Q-pJ-YlS"/>
                                 <exclude reference="A4n-db-dSq"/>
                                 <exclude reference="WDb-8E-QRH"/>
                                 <exclude reference="fUQ-CI-U4L"/>
-                                <exclude reference="qOj-QP-XDu"/>
                                 <exclude reference="fE0-Dt-Uu6"/>
                                 <exclude reference="xPF-Eg-4cf"/>
-                                <exclude reference="Bdh-RU-Ujt"/>
-                                <exclude reference="N3A-Dg-JyS"/>
-                                <exclude reference="U9f-RM-b5B"/>
                                 <exclude reference="5Ox-qw-Cxc"/>
                                 <exclude reference="9UL-wv-Rln"/>
                                 <exclude reference="bZQ-Q1-YlX"/>
+                                <exclude reference="qOj-QP-XDu"/>
+                                <exclude reference="x3Q-pJ-YlS"/>
+                                <exclude reference="Bdh-RU-Ujt"/>
+                                <exclude reference="N3A-Dg-JyS"/>
+                                <exclude reference="U9f-RM-b5B"/>
                             </mask>
                         </variation>
                         <variation key="heightClass=compact">
@@ -364,28 +364,28 @@
                                 <include reference="qMh-ym-tB8"/>
                             </mask>
                             <mask key="constraints">
-                                <include reference="x3Q-pJ-YlS"/>
                                 <include reference="A4n-db-dSq"/>
                                 <exclude reference="HmJ-CA-8ze"/>
                                 <exclude reference="KLo-cx-rBC"/>
                                 <include reference="WDb-8E-QRH"/>
                                 <exclude reference="acc-n5-0kr"/>
                                 <exclude reference="fUQ-CI-U4L"/>
+                                <include reference="fE0-Dt-Uu6"/>
+                                <include reference="xPF-Eg-4cf"/>
+                                <include reference="5Ox-qw-Cxc"/>
+                                <include reference="9UL-wv-Rln"/>
+                                <include reference="bZQ-Q1-YlX"/>
                                 <exclude reference="qOj-QP-XDu"/>
+                                <include reference="x3Q-pJ-YlS"/>
                                 <exclude reference="4B0-nG-PbV"/>
                                 <exclude reference="9KC-rn-Zbl"/>
                                 <exclude reference="ciT-Pz-OjB"/>
                                 <exclude reference="euu-sA-PKA"/>
-                                <include reference="fE0-Dt-Uu6"/>
-                                <include reference="xPF-Eg-4cf"/>
                                 <include reference="Bdh-RU-Ujt"/>
                                 <include reference="N3A-Dg-JyS"/>
                                 <exclude reference="xGf-GK-dMf"/>
                                 <exclude reference="MEY-EB-hzF"/>
                                 <include reference="U9f-RM-b5B"/>
-                                <include reference="5Ox-qw-Cxc"/>
-                                <include reference="9UL-wv-Rln"/>
-                                <include reference="bZQ-Q1-YlX"/>
                             </mask>
                         </variation>
                     </view>
@@ -810,12 +810,12 @@ Email: cbcstaff@countrysidebible.org</string>
                                 <include reference="eO2-I7-V5X"/>
                                 <include reference="gQF-eg-HUQ"/>
                                 <exclude reference="mup-CL-BAx"/>
-                                <exclude reference="dfG-Nz-xID"/>
                                 <exclude reference="2k7-0z-8tA"/>
                                 <include reference="C5q-c6-JNZ"/>
                                 <exclude reference="Jo8-vL-WG9"/>
                                 <include reference="rHl-Kz-mYg"/>
                                 <exclude reference="TBR-Rz-raS"/>
+                                <exclude reference="dfG-Nz-xID"/>
                             </mask>
                         </variation>
                     </view>
@@ -920,7 +920,7 @@ Email: cbcstaff@countrysidebible.org</string>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="c8h-bp-X6R">
-                                                    <rect key="frame" x="20" y="8" width="296" height="20"/>
+                                                    <rect key="frame" x="20" y="8" width="744" height="20"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="kXe-lK-tNC"/>
                                                     </constraints>
@@ -929,29 +929,29 @@ Email: cbcstaff@countrysidebible.org</string>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Yvd-8R-ABD">
-                                                    <rect key="frame" x="20" y="30" width="270" height="65"/>
+                                                    <rect key="frame" x="20" y="30" width="718" height="65"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4bl-Bk-XNX">
-                                                    <rect key="frame" x="286" y="60" width="30" height="31"/>
+                                                    <rect key="frame" x="734" y="60" width="30" height="31"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="18"/>
                                                     <connections>
                                                         <action selector="downloadAction:" destination="BCh-qb-pAm" eventType="touchUpInside" id="t4U-Da-Put"/>
                                                     </connections>
                                                 </button>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7bR-cd-0Mf" userLabel="Icons">
-                                                    <rect key="frame" x="316" y="91" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="764" y="91" width="0.0" height="0.0"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="9cK-Jx-IFz">
-                                                    <rect key="frame" x="20" y="97" width="300" height="2"/>
+                                                    <rect key="frame" x="20" y="97" width="748" height="2"/>
                                                 </progressView>
                                                 <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ONB-ig-Eaf">
-                                                    <rect key="frame" x="286" y="35" width="30" height="31"/>
+                                                    <rect key="frame" x="734" y="35" width="30" height="31"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="18" id="6mU-94-xc0"/>
                                                     </constraints>
@@ -1774,8 +1774,6 @@ Web site: www.countrysidebible.org</string>
                             <mask key="constraints">
                                 <exclude reference="Vqb-pj-yGE"/>
                                 <exclude reference="lvy-BO-41P"/>
-                                <exclude reference="VQj-fn-8Rc"/>
-                                <exclude reference="bzp-YY-FAJ"/>
                                 <exclude reference="CPp-wv-onK"/>
                                 <exclude reference="0Hl-gp-v0E"/>
                                 <exclude reference="MqI-lI-BAl"/>
@@ -1783,6 +1781,8 @@ Web site: www.countrysidebible.org</string>
                                 <exclude reference="c1x-gO-6oj"/>
                                 <exclude reference="d1a-1a-68o"/>
                                 <exclude reference="o1Q-Nl-Zfs"/>
+                                <exclude reference="VQj-fn-8Rc"/>
+                                <exclude reference="bzp-YY-FAJ"/>
                                 <exclude reference="Lhj-SN-oqU"/>
                             </mask>
                         </variation>

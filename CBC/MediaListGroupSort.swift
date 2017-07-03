@@ -95,10 +95,30 @@ class MediaListGroupSort {
     }()
     
     var groupSort:MediaGroupSort?
+    {
+        didSet {
+            
+        }
+    }
     var groupNames:MediaGroupNames?
+    {
+        didSet {
+            
+        }
+    }
     
     var tagMediaItems:[String:[MediaItem]]?//sortTag:MediaItem
+    {
+        didSet {
+            
+        }
+    }
     var tagNames:[String:String]?//sortTag:tag
+    {
+        didSet {
+            
+        }
+    }
     
     var proposedTags:[String]? {
         get {
@@ -493,6 +513,29 @@ class MediaListGroupSort {
         }
         
         list = mediaItems
+        if (list != nil) {
+            index = [String:MediaItem]()
+            
+            for mediaItem in list! {
+                index![mediaItem.id!] = mediaItem
+                
+                if let className = mediaItem.className {
+                    if classes == nil {
+                        classes = [className]
+                    } else {
+                        classes?.append(className)
+                    }
+                }
+                
+                if let eventName = mediaItem.eventName {
+                    if events == nil {
+                        events = [eventName]
+                    } else {
+                        events?.append(eventName)
+                    }
+                }
+            }
+        }
         
         groupNames = MediaGroupNames()
         groupSort = MediaGroupSort()

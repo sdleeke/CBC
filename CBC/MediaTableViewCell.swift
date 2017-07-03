@@ -333,6 +333,11 @@ class MediaTableViewCell: UITableViewCell
             return
         }
 
+        if isEditing {
+            (vc as? MediaTableViewController)?.tableView.isEditing = false
+            (vc as? MediaViewController)?.tableView.isEditing = false
+        }
+        
         updateTagsButton()
         
         updateDownloadButton()
