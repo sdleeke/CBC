@@ -766,11 +766,14 @@ class MediaPlayer : NSObject {
             self.playerTimer()
         })
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.stop), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.didPlayToEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
+
+        // This creates too many problems, not the least because the player buffers and may play on for minutes after the network goes down.  Also, if audio is downloaded stopping is exactly the wrong thing to do!
+//        NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.stop), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.reload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
+        
         NotificationCenter.default.addObserver(self, selector: #selector(MediaPlayer.doneSeeking), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
-//        DispatchQueue.main.async {
-//        }
+
         //
         //        // Why was this put here?  To set the state to .paused from .none
         //        pause()

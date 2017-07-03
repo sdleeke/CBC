@@ -516,7 +516,7 @@ struct Alert {
 
 class Globals : NSObject, AVPlayerViewControllerDelegate
 {
-    var allowMGTs = false
+    var allowMGTs = true
     
     var splitViewController:UISplitViewController!
     
