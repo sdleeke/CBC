@@ -270,25 +270,25 @@ func mediaItemSections(_ mediaItems:[MediaItem]?,sorting:String?,grouping:String
     var strings:[String]?
     
     switch grouping! {
-    case Grouping.YEAR:
+    case GROUPING.YEAR:
         strings = yearsFromMediaItems(mediaItems, sorting: sorting)?.map() { (year) in
             return "\(year)"
         }
         break
         
-    case Grouping.TITLE:
+    case GROUPING.TITLE:
         strings = seriesSectionsFromMediaItems(mediaItems,withTitles: true)
         break
         
-    case Grouping.BOOK:
+    case GROUPING.BOOK:
         strings = bookSectionsFromMediaItems(mediaItems)
         break
         
-    case Grouping.SPEAKER:
+    case GROUPING.SPEAKER:
         strings = speakerSectionsFromMediaItems(mediaItems)
         break
         
-    case Grouping.CLASS:
+    case GROUPING.CLASS:
         strings = classSectionsFromMediaItems(mediaItems)
         break
         
@@ -317,10 +317,10 @@ func yearsFromMediaItems(_ mediaItems:[MediaItem]?, sorting: String?) -> [Int]?
             )
             ).sorted(by: { (first:Int, second:Int) -> Bool in
                 switch sorting! {
-                case Sorting.CHRONOLOGICAL:
+                case SORTING.CHRONOLOGICAL:
                     return first < second
                     
-                case Sorting.REVERSE_CHRONOLOGICAL:
+                case SORTING.REVERSE_CHRONOLOGICAL:
                     return first > second
                     
                 default:
@@ -1625,13 +1625,13 @@ func multiPartMediaItems(_ mediaItem:MediaItem?) -> [MediaItem]?
     
     if (mediaItem != nil) {
         if (mediaItem!.hasMultipleParts) {
-            if (globals.media.all?.groupSort?[Grouping.TITLE]?[mediaItem!.multiPartSort!]?[Sorting.CHRONOLOGICAL] == nil) {
+            if (globals.media.all?.groupSort?[GROUPING.TITLE]?[mediaItem!.multiPartSort!]?[SORTING.CHRONOLOGICAL] == nil) {
                 let seriesMediaItems = globals.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
                     return mediaItem!.hasMultipleParts ? (testMediaItem.multiPartName == mediaItem!.multiPartName) : (testMediaItem.id == mediaItem!.id)
                 })
-                multiPartMediaItems = sortMediaItemsByYear(seriesMediaItems, sorting: Sorting.CHRONOLOGICAL)
+                multiPartMediaItems = sortMediaItemsByYear(seriesMediaItems, sorting: SORTING.CHRONOLOGICAL)
             } else {
-                multiPartMediaItems = globals.media.all?.groupSort?[Grouping.TITLE]?[mediaItem!.multiPartSort!]?[Sorting.CHRONOLOGICAL]
+                multiPartMediaItems = globals.media.all?.groupSort?[GROUPING.TITLE]?[mediaItem!.multiPartSort!]?[SORTING.CHRONOLOGICAL]
             }
         } else {
             multiPartMediaItems = [mediaItem!]
@@ -2161,11 +2161,11 @@ func sortMediaItemsByYear(_ mediaItems:[MediaItem]?,sorting:String?) -> [MediaIt
     var sortedMediaItems:[MediaItem]?
 
     switch sorting! {
-    case Sorting.CHRONOLOGICAL:
+    case SORTING.CHRONOLOGICAL:
         sortedMediaItems = sortMediaItemsChronologically(mediaItems)
         break
         
-    case Sorting.REVERSE_CHRONOLOGICAL:
+    case SORTING.REVERSE_CHRONOLOGICAL:
         sortedMediaItems = sortMediaItemsReverseChronologically(mediaItems)
         break
         
@@ -2181,7 +2181,7 @@ func compareMediaItemDates(first:MediaItem, second:MediaItem, sorting:String?) -
     var result = false
 
     switch sorting! {
-    case Sorting.CHRONOLOGICAL:
+    case SORTING.CHRONOLOGICAL:
         if (first.fullDate!.isEqualTo(second.fullDate!)) {
             result = (first.service < second.service)
         } else {
@@ -2189,7 +2189,7 @@ func compareMediaItemDates(first:MediaItem, second:MediaItem, sorting:String?) -
         }
         break
     
-    case Sorting.REVERSE_CHRONOLOGICAL:
+    case SORTING.REVERSE_CHRONOLOGICAL:
         if (first.fullDate!.isEqualTo(second.fullDate!)) {
             result = (first.service > second.service)
         } else {
@@ -3282,13 +3282,13 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                         order.append("speaker")
                     }
                     
-                    if globals.grouping != Grouping.CLASS {
+                    if globals.grouping != GROUPING.CLASS {
                         if let className = mediaItem.className, !className.isEmpty {
                             order.append("class")
                         }
                     }
                     
-                    if globals.grouping != Grouping.EVENT {
+                    if globals.grouping != GROUPING.EVENT {
                         if let eventName = mediaItem.eventName, !eventName.isEmpty {
                             order.append("event")
                         }
@@ -3327,11 +3327,11 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
             bodyString = bodyString! + "<div><a id=\"index\" name=\"index\" href=\"#top\">Index</a><br/><br/>"
             
             switch globals.grouping! {
-            case Grouping.CLASS:
+            case GROUPING.CLASS:
                 fallthrough
-            case Grouping.SPEAKER:
+            case GROUPING.SPEAKER:
                 fallthrough
-            case Grouping.TITLE:
+            case GROUPING.TITLE:
                 let a = "A"
                 
                 if let indexTitles = globals.media.active?.section?.indexTitles {
@@ -3436,25 +3436,25 @@ func translate(_ string:String?) -> String?
     }
     
     switch string! {
-    case Sorting.CHRONOLOGICAL:
+    case SORTING.CHRONOLOGICAL:
         return Sorting.Oldest_to_Newest
         
-    case Sorting.REVERSE_CHRONOLOGICAL:
+    case SORTING.REVERSE_CHRONOLOGICAL:
         return Sorting.Newest_to_Oldest
 
-    case Grouping.YEAR:
+    case GROUPING.YEAR:
         return Grouping.Year
         
-    case Grouping.TITLE:
+    case GROUPING.TITLE:
         return Grouping.Title
         
-    case Grouping.BOOK:
+    case GROUPING.BOOK:
         return Grouping.Book
         
-    case Grouping.SPEAKER:
+    case GROUPING.SPEAKER:
         return Grouping.Speaker
         
-    case Grouping.CLASS:
+    case GROUPING.CLASS:
         return Grouping.Class
         
     default:

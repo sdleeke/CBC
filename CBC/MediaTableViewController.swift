@@ -231,7 +231,7 @@ extension MediaTableViewController : UISearchBarDelegate
         stopAnimating()
         
         setupTag()
-        setupTagsButton()
+        setupActionAndTagsButton()
         
         enableBarButtons()
         
@@ -386,21 +386,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.Strings.View_List:
-            if let string = globals.media.active?.html?.string {
-                presentHTMLModal(viewController: self, medaiItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: string)
-            } else {
-                process(viewController: self, work: { () -> (Any?) in
-                    if globals.media.active?.html?.string == nil {
-                        globals.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs: true, includeColumns: true)
-                    }
-                    return globals.media.active?.html?.string
-                }, completion: { (data:Any?) in
-                    presentHTMLModal(viewController: self, medaiItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: data as? String)
-                })
-            }
-            break
-            
         case Constants.Strings.History:
             if globals.relevantHistoryList == nil {
                 alert(viewController:self,title: "History is empty.",
@@ -430,10 +415,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     
                     present(navigationController, animated: true, completion: {
                         self.presentingVC = navigationController
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
-                            navigationController.popoverPresentationController?.passthroughViews = nil
-                        })
+//                        DispatchQueue.main.async(execute: { () -> Void in
+//                            // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+//                            navigationController.popoverPresentationController?.passthroughViews = nil
+//                        })
                     })
                 }
             }
@@ -467,10 +452,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
                 present(navigationController, animated: true, completion: {
                     self.presentingVC = navigationController
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
-                        navigationController.popoverPresentationController?.passthroughViews = nil
-                    })
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                        // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+//                        navigationController.popoverPresentationController?.passthroughViews = nil
+//                    })
                 })
             }
             break
@@ -558,7 +543,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingCellAction:
-            switch strings[index] {
+            switch string {
             case Constants.Strings.Download_Audio:
                 mediaItem?.audioDownload?.download()
                 NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
@@ -580,7 +565,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         case .selectingLexicon:
             _ = navigationController?.popViewController(animated: true)
             
-            let string = strings[index]
+//            let string = strings[index]
             
             if let range = string.range(of: " (") {
                 let searchText = string.substring(to: range.lowerBound).uppercased()
@@ -644,7 +629,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 if (index < strings.count) {
                     var new:Bool = false
                     
-                    switch strings[index] {
+                    switch string {
                     case Constants.Strings.All:
                         if (globals.media.tags.showing != Constants.ALL) {
                             new = true
@@ -797,8 +782,32 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingShow:
-            //            dismiss(animated: true, completion: nil)
+            dismiss(animated: true, completion: {
+                self.presentingVC = nil
+            })
             showMenu(action:strings[index],mediaItem:mediaItem)
+            break
+            
+        case .selectingAction:
+            switch string {
+            case Constants.Strings.View_List:
+                if let string = globals.media.active?.html?.string {
+                    presentHTMLModal(viewController: self, medaiItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: string)
+                } else {
+                    process(viewController: self, work: { () -> (Any?) in
+                        if globals.media.active?.html?.string == nil {
+                            globals.media.active?.html?.string = setupMediaItemsHTMLGlobal(includeURLs: true, includeColumns: true)
+                        }
+                        return globals.media.active?.html?.string
+                    }, completion: { (data:Any?) in
+                        presentHTMLModal(viewController: self, medaiItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: data as? String)
+                    })
+                }
+                break
+
+            default:
+                break
+            }
             break
             
         default:
@@ -928,7 +937,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                 case Constants.JSON.FILENAME.CATEGORIES:
                     // Couldn't get categories from network, try to get media, use last downloaded
                     if let mediaFileName = globals.mediaCategory.filename {
-                        downloadJSON(url:Constants.JSON.URL.CATEGORY_MEDIA,filename:mediaFileName)
+                        downloadJSON(url:Constants.JSON.URL.CATEGORY + globals.mediaCategory.selectedID!,filename:mediaFileName)
                     }
                     break
                     
@@ -950,7 +959,7 @@ extension MediaTableViewController : URLSessionDownloadDelegate
                 case Constants.JSON.FILENAME.CATEGORIES:
                     // Load media
                     if let mediaFileName = globals.mediaCategory.filename {
-                        downloadJSON(url:Constants.JSON.URL.CATEGORY_MEDIA,filename:mediaFileName)
+                        downloadJSON(url:Constants.JSON.URL.CATEGORY + globals.mediaCategory.selectedID!,filename:mediaFileName)
                     }
                     break
                     
@@ -994,7 +1003,7 @@ class MediaTableViewController : UIViewController
     
     override var canBecomeFirstResponder : Bool
     {
-        return true //splitViewController == nil
+        return true //let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed //splitViewController == nil
     }
     
     override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
@@ -1022,8 +1031,8 @@ class MediaTableViewController : UIViewController
         }
     }
     
-    var tagsToolbar: UIToolbar?
-    @IBOutlet weak var tagsButton: UIButton!
+//    var tagsToolbar: UIToolbar?
+//    @IBOutlet weak var tagsButton: UIButton!
     @IBOutlet weak var tagLabel: UILabel!
     
     var refreshControl:UIRefreshControl?
@@ -1088,9 +1097,15 @@ class MediaTableViewController : UIViewController
     }
     
     @IBOutlet weak var showButton: UIBarButtonItem!
-    @IBAction func show(_ button: UIBarButtonItem) {
+    @IBAction func show(_ button: UIBarButtonItem)
+    {
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            // In case one is already showing
+            dismiss(animated: true, completion: {
+                self.presentingVC = nil
+            })
+            
             navigationController.modalPresentationStyle = .popover
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
@@ -1174,12 +1189,8 @@ class MediaTableViewController : UIViewController
                 //Nothing to show
             }
             
-            if globals.media.active?.list?.count > 0 {
-                showMenu.append(Constants.Strings.View_List)
-            }
-            
-            if splitViewController == nil {
-                print("splitViewController == nil")
+            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+                print("splitViewController.isCollapsed == true")
             }
             
             if let vClass = splitViewController?.traitCollection.verticalSizeClass,
@@ -1224,10 +1235,10 @@ class MediaTableViewController : UIViewController
 
             present(navigationController, animated: true, completion: {
                 self.presentingVC = navigationController
-                DispatchQueue.main.async(execute: { () -> Void in
-                    // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
-                    navigationController.popoverPresentationController?.passthroughViews = nil
-                })
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+//                    navigationController.popoverPresentationController?.passthroughViews = nil
+//                })
             })
         }
     }
@@ -1255,8 +1266,17 @@ class MediaTableViewController : UIViewController
     func disableBarButtons()
     {
         DispatchQueue.main.async(execute: { () -> Void in
-            self.navigationItem.leftBarButtonItem?.isEnabled = false
-            self.navigationItem.rightBarButtonItem?.isEnabled = false
+            if let barButtonItems = self.navigationItem.leftBarButtonItems {
+                for barButtonItem in barButtonItems {
+                    barButtonItem.isEnabled = false
+                }
+            }
+            
+            if let barButtonItems = self.navigationItem.rightBarButtonItems {
+                for barButtonItem in barButtonItems {
+                    barButtonItem.isEnabled = false
+                }
+            }
         })
         
         disableToolBarButtons()
@@ -1276,8 +1296,17 @@ class MediaTableViewController : UIViewController
     func enableBarButtons()
     {
         DispatchQueue.main.async(execute: { () -> Void in
-            self.navigationItem.leftBarButtonItem?.isEnabled = true
-            self.navigationItem.rightBarButtonItem?.isEnabled = true
+            if let barButtonItems = self.navigationItem.leftBarButtonItems {
+                for barButtonItem in barButtonItems {
+                    barButtonItem.isEnabled = true
+                }
+            }
+            
+            if let barButtonItems = self.navigationItem.rightBarButtonItems {
+                for barButtonItem in barButtonItems {
+                    barButtonItem.isEnabled = true
+                }
+            }
         })
         
         enableToolBarButtons()
@@ -1311,7 +1340,7 @@ class MediaTableViewController : UIViewController
             popover.purpose = .selectingSection
 
             switch globals.grouping! {
-            case Grouping.BOOK:
+            case GROUPING.BOOK:
                 if let books = globals.media.active?.section?.titles?.filter({ (string:String) -> Bool in
                     return bookNumberInBible(string) != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
                 }) {
@@ -1331,21 +1360,21 @@ class MediaTableViewController : UIViewController
                 popover.section.showHeaders = false
                 break
                 
-            case Grouping.TITLE:
+            case GROUPING.TITLE:
                 popover.section.strings = globals.media.active?.section?.titles
                 popover.section.showIndex = true
                 popover.section.showHeaders = true
                 popover.search = popover.section.strings?.count > 10
                 break
                 
-            case Grouping.CLASS:
+            case GROUPING.CLASS:
                 popover.section.strings = globals.media.active?.section?.titles
                 popover.section.showIndex = true
                 popover.section.showHeaders = true
                 popover.search = popover.section.strings?.count > 10
                 break
                 
-            case Grouping.SPEAKER:
+            case GROUPING.SPEAKER:
                 popover.indexTransform = lastNameFromName
                 popover.section.strings = globals.media.active?.section?.titles
                 popover.section.showIndex = true
@@ -1749,7 +1778,7 @@ class MediaTableViewController : UIViewController
 
             self.setupSearchBar()
             self.setupCategoryButton()
-            self.setupTagsButton()
+            self.setupActionAndTagsButton()
             self.setupBarButtons()
             self.setupListActivityIndicator()
 
@@ -1922,7 +1951,7 @@ class MediaTableViewController : UIViewController
                 completion?()
 
                 self.setupBarButtons()
-                self.setupTagsButton()
+                self.setupActionAndTagsButton()
                 self.setupCategoryButton()
                 self.setupListActivityIndicator()
             })
@@ -2048,7 +2077,7 @@ class MediaTableViewController : UIViewController
 
         setupBarButtons()
         setupCategoryButton()
-        setupTagsButton()
+        setupActionAndTagsButton()
         
         // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
         globals.media = Media()
@@ -2389,7 +2418,7 @@ class MediaTableViewController : UIViewController
             
             setupSearchBar()
             setupCategoryButton()
-            setupTagsButton()
+            setupActionAndTagsButton()
             setupBarButtons()
             setupListActivityIndicator()
             
@@ -2412,10 +2441,12 @@ class MediaTableViewController : UIViewController
     {
         super.viewDidLoad()
 
-        setupTagsToolbar()
+//        setupTagsToolbar()
 
         setupSortingAndGroupingOptions()
         setupShowMenu()
+        
+        load()
         
         //This makes accurate scrolling to sections impossible using scrollToRowAtIndexPath
 //        tableView.estimatedRowHeight = tableView.rowHeight
@@ -2430,67 +2461,143 @@ class MediaTableViewController : UIViewController
         navigationController?.isToolbarHidden = false
     }
     
-    func setupTagsToolbar()
-    {
-        self.tagsToolbar = UIToolbar(frame: self.tagsButton.frame)
-        self.tagsToolbar?.setItems([UIBarButtonItem(title: nil, style: .plain, target: self, action: nil)], animated: false)
-        self.tagsToolbar?.isHidden = true
-        
-        self.tagsToolbar?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
-        
-        self.view.addSubview(self.tagsToolbar!)
-        
-        let first = self.tagsToolbar
-        let second = self.tagsButton
-        
-        let centerX = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
-        self.view.addConstraint(centerX)
-        
-        let centerY = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-        self.view.addConstraint(centerY)
-        
-        //        let width = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: second!, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
-        //        self.addConstraint(width)
-        //
-        //        let height = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: second!, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
-        //        self.addConstraint(height)
-        
-        self.view.setNeedsLayout()
-    }
+//    func setupTagsToolbar()
+//    {
+//        self.tagsToolbar = UIToolbar(frame: self.tagsButton.frame)
+//        self.tagsToolbar?.setItems([UIBarButtonItem(title: nil, style: .plain, target: self, action: nil)], animated: false)
+//        self.tagsToolbar?.isHidden = true
+//        
+//        self.tagsToolbar?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+//        
+//        self.view.addSubview(self.tagsToolbar!)
+//        
+//        let first = self.tagsToolbar
+//        let second = self.tagsButton
+//        
+//        let centerX = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
+//        self.view.addConstraint(centerX)
+//        
+//        let centerY = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+//        self.view.addConstraint(centerY)
+//        
+//        //        let width = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: second!, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
+//        //        self.addConstraint(width)
+//        //
+//        //        let height = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: second!, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
+//        //        self.addConstraint(height)
+//        
+//        self.view.setNeedsLayout()
+//    }
     
-    func setupTagsButton()
+    func actions()
     {
-        DispatchQueue.main.async(execute: { () -> Void in
-            if let count = globals.media.all?.mediaItemTags?.count {
-                switch count {
-                case 0:
-                    self.tagsButton.isEnabled = false
-                    self.tagsButton.isHidden = true
-                    break
-                    
-//                case 1: // Never happens because if there is one we add the All tag.
-//                    self.tagsButton.setTitle(Constants.FA.TAG, for: UIControlState.normal)
-//                    self.tagsButton.isEnabled = true
-//                    self.tagsButton.isHidden = false
-//                    break
-                    
-                default:
-                    self.tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState.normal)
-                    self.tagsButton.isEnabled = true
-                    self.tagsButton.isHidden = false
-                    break
-                }
-                
-            } else {
-                self.tagsButton.isEnabled = false
-                self.tagsButton.isHidden = true
+        //In case we have one already showing
+        dismiss(animated: true, completion: {
+            self.presentingVC = nil
+        })
+        
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            navigationController.modalPresentationStyle = .popover
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.barButtonItem = actionButton
+            
+            popover.navigationController?.isNavigationBarHidden = true
+            
+            popover.delegate = self
+            popover.purpose = .selectingAction
+            
+            popover.selectedMediaItem = selectedMediaItem
+            
+            var actionMenu = [String]()
+            
+            if globals.media.active?.list?.count > 0 {
+                actionMenu.append(Constants.Strings.View_List)
             }
             
-            if (globals.mediaRepository.list ==  nil) || globals.isLoading || globals.isRefreshing || !globals.search.complete {
-                self.tagsButton.isEnabled = false
-                self.tagsButton.isHidden = false
+            popover.section.strings = actionMenu
+            
+            popover.section.showIndex = false
+            popover.section.showHeaders = false
+            
+            popover.vc = self
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                self.present(navigationController, animated: true, completion:  {
+                    self.presentingVC = navigationController
+                })
+            })
+        }
+    }
+
+    var tagsButton : UIBarButtonItem?
+    var actionButton : UIBarButtonItem?
+    
+    func setupActionAndTagsButton()
+    {
+        var barButtons = [UIBarButtonItem]()
+        
+        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.actions))
+        actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+        
+        if globals.media.active?.list?.count > 0 {
+            barButtons.append(actionButton!)
+        }
+        
+        if let count = globals.media.all?.mediaItemTags?.count, count > 0 {
+            if (count > 1) {
+                tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.selectingTagsAction(_:)))
+            } else {
+                tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.selectingTagsAction(_:)))
             }
-        })
+            
+            tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags, for: UIControlState.normal)
+            
+            barButtons.append(tagsButton!)
+        }
+        
+        if barButtons.count > 0 {
+            navigationItem.setRightBarButtonItems(barButtons, animated: true)
+        } else {
+            navigationItem.rightBarButtonItems = nil
+        }
+
+//        let tagsButton = self.tagsButton
+//        
+//        DispatchQueue.main.async(execute: { () -> Void in
+//            if let count = globals.media.all?.mediaItemTags?.count {
+//                switch count {
+//                case 0:
+//                    tagsButton?.isEnabled = false
+//                    tagsButton?.isHidden = true
+//                    break
+//                    
+////                case 1: // Never happens because if there is one we add the All tag.
+////                    tagsButton.setTitle(Constants.FA.TAG, for: UIControlState.normal)
+////                    tagsButton.isEnabled = true
+////                    tagsButton.isHidden = false
+////                    break
+//                    
+//                default:
+//                    tagsButton?.setTitle(Constants.FA.TAGS, for: UIControlState.normal)
+//                    tagsButton?.isEnabled = true
+//                    tagsButton?.isHidden = false
+//                    break
+//                }
+//                
+//            } else {
+//                tagsButton?.isEnabled = false
+//                tagsButton?.isHidden = true
+//            }
+//            
+//            if (globals.mediaRepository.list ==  nil) || globals.isLoading || globals.isRefreshing || !globals.search.complete {
+//                tagsButton?.isEnabled = false
+//                tagsButton?.isHidden = false
+//            }
+//        })
     }
     
     @IBAction func selectingTagsAction(_ sender: UIButton)
@@ -2510,7 +2617,12 @@ class MediaTableViewController : UIViewController
         guard (storyboard != nil) else {
             return
         }
-        
+
+        //In case we have one already showing
+        dismiss(animated: true, completion: {
+            self.presentingVC = nil
+        })
+
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             navigationController.modalPresentationStyle = .popover
@@ -2518,7 +2630,7 @@ class MediaTableViewController : UIViewController
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
 
-            navigationController.popoverPresentationController?.barButtonItem = tagsToolbar?.items?.first
+            navigationController.popoverPresentationController?.barButtonItem = tagsButton
 
             popover.navigationItem.title = Constants.Strings.Show
             
@@ -2613,7 +2725,7 @@ class MediaTableViewController : UIViewController
             setupListActivityIndicator()
             setupBarButtons()
             setupCategoryButton()
-            setupTagsButton()
+            setupActionAndTagsButton()
             return
         }
         
@@ -2634,7 +2746,7 @@ class MediaTableViewController : UIViewController
             self.tableView.reloadData()
         })
 
-        self.setupTagsButton()
+        self.setupActionAndTagsButton()
         self.setupBarButtons()
         self.setupCategoryButton()
 
@@ -2727,7 +2839,7 @@ class MediaTableViewController : UIViewController
                 self.setupListActivityIndicator()
                 self.setupBarButtons()
                 self.setupCategoryButton()
-                self.setupTagsButton()
+                self.setupActionAndTagsButton()
             })
         })
     }
@@ -2755,28 +2867,28 @@ class MediaTableViewController : UIViewController
         
         if let index = mediaItems!.index(of: mediaItem!) {
             switch globals.grouping! {
-            case Grouping.YEAR:
+            case GROUPING.YEAR:
                 section = globals.media.active!.section!.titles!.index(of: mediaItem!.yearSection!)!
                 break
                 
-            case Grouping.TITLE:
+            case GROUPING.TITLE:
                 section = globals.media.active!.section!.indexTitles!.index(of: mediaItem!.multiPartSectionSort!)!
                 break
                 
-            case Grouping.BOOK:
+            case GROUPING.BOOK:
                 // For mediaItem.books.count > 1 this arbitrarily selects the first one, which may not be correct.
                 section = globals.media.active!.section!.titles!.index(of: mediaItem!.bookSections.first!)!
                 break
                 
-            case Grouping.SPEAKER:
+            case GROUPING.SPEAKER:
                 section = globals.media.active!.section!.titles!.index(of: mediaItem!.speakerSection!)!
                 break
                 
-            case Grouping.CLASS:
+            case GROUPING.CLASS:
                 section = globals.media.active!.section!.titles!.index(of: mediaItem!.classSection!)!
                 break
                 
-            case Grouping.EVENT:
+            case GROUPING.EVENT:
                 section = globals.media.active!.section!.titles!.index(of: mediaItem!.eventSection!)!
                 break
                 
@@ -2856,7 +2968,7 @@ class MediaTableViewController : UIViewController
     func setupTitle()
     {
         if (!globals.isLoading && !globals.isRefreshing) {
-            if (splitViewController == nil) {
+            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
                 if (UIDeviceOrientationIsLandscape(UIDevice.current.orientation)) {
                     navigationItem.title = Constants.CBC.TITLE.LONG
                 } else {
@@ -2921,10 +3033,10 @@ class MediaTableViewController : UIViewController
     {
 
     }
-    
-    override func viewWillAppear(_ animated: Bool)
+
+    func onAppear()
     {
-        super.viewWillAppear(animated)
+        // This is called in both willAppear and didAppear since in portrait on an iPad willAppear is NOT being called!
         
         load()
         
@@ -2932,21 +3044,28 @@ class MediaTableViewController : UIViewController
         
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateSearch), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
-
+        
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.playingPaused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYING_PAUSED), object: nil)
+    }
+    
+    override func viewWillAppear(_ animated: Bool)
+    {
+        super.viewWillAppear(animated)
 
-        if (self.splitViewController?.viewControllers.count > 1) {
-            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.setupShowHide), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SHOW_HIDE), object: nil)
-        }
-        
+        onAppear()
+
+//        if (self.splitViewController?.viewControllers.count > 1) {
+//            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.setupShowHide), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SHOW_HIDE), object: nil)
+//        }
+
         updateUI()
         
         // Causes a crash in split screen on first swipe to get MVC to show when only DVC is showing.
         // Forces MasterViewController to show.  App MUST start in preferredDisplayMode == .automatic or the MVC can't be dragged out after it is hidden!
-        if (splitViewController?.preferredDisplayMode == .automatic) {
-            splitViewController?.preferredDisplayMode = .allVisible //iPad only
-        }
+//        if (splitViewController?.preferredDisplayMode == .automatic) {
+//            splitViewController?.preferredDisplayMode = .allVisible //iPad only
+//        }
 
 //        print(globals.mediaCategory)
     }
@@ -2961,9 +3080,9 @@ class MediaTableViewController : UIViewController
         setupCategoryButton()
         
         setupTag()
-        setupTagsButton()
+        setupActionAndTagsButton()
         
-        setupShowHide()
+//        setupShowHide()
         
         setupTitle()
         
@@ -2975,6 +3094,8 @@ class MediaTableViewController : UIViewController
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
+
+        onAppear()
 
         navigationController?.isToolbarHidden = false
         
@@ -3139,53 +3260,53 @@ class MediaTableViewController : UIViewController
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
             })
 
-            setupShowHide()
+//            setupShowHide()
         }
     }
  
-    func setupShowHide()
-    {
-        guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:setupShowHide", completion: nil)
-            return
-        }
-        
-        if splitViewController == nil {
-            print("splitViewController == nil")
-        }
-        
-        if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
-            let vClass = self.splitViewController?.traitCollection.verticalSizeClass {
-            if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-                navigationItem.rightBarButtonItem = nil
-                return
-            }
-        }
-
-        if (splitViewController?.viewControllers.count > 1) { //  && isFullScreen
-            switch splitViewController!.displayMode {
-            case .automatic:
-                navigationItem.setRightBarButton(UIBarButtonItem(title: "Hide", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.showHide)),animated: true)
-                break
-                
-            case .primaryHidden:
-                navigationItem.setRightBarButton(UIBarButtonItem(title: "Show", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.showHide)),animated: true)
-                break
-                
-            case .allVisible:
-                navigationItem.setRightBarButton(UIBarButtonItem(title: "Hide", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.showHide)),animated: true)
-                break
-                
-            case .primaryOverlay:
-                navigationItem.setRightBarButton(UIBarButtonItem(title: "Show", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.showHide)),animated: true)
-                break
-            }
-        } else {
-            navigationItem.setRightBarButton(nil,animated: true)
-        }
-
-        navigationItem.rightBarButtonItem?.isEnabled = !globals.isRefreshing && !globals.isLoading
-    }
+//    func setupShowHide()
+//    {
+//        guard Thread.isMainThread else {
+//            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:setupShowHide", completion: nil)
+//            return
+//        }
+//        
+//        if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+//            print("splitViewController.isCollapsed == true")
+//        }
+//        
+//        if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+//            let vClass = self.splitViewController?.traitCollection.verticalSizeClass {
+//            if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+//                navigationItem.rightBarButtonItem = nil
+//                return
+//            }
+//        }
+//
+//        if (splitViewController?.viewControllers.count > 1) { //  && isFullScreen
+//            switch splitViewController!.displayMode {
+//            case .automatic:
+//                navigationItem.setRightBarButton(UIBarButtonItem(title: "Hide", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.showHide)),animated: true)
+//                break
+//                
+//            case .primaryHidden:
+//                navigationItem.setRightBarButton(UIBarButtonItem(title: "Show", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.showHide)),animated: true)
+//                break
+//                
+//            case .allVisible:
+//                navigationItem.setRightBarButton(UIBarButtonItem(title: "Hide", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.showHide)),animated: true)
+//                break
+//                
+//            case .primaryOverlay:
+//                navigationItem.setRightBarButton(UIBarButtonItem(title: "Show", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.showHide)),animated: true)
+//                break
+//            }
+//        } else {
+//            navigationItem.setRightBarButton(nil,animated: true)
+//        }
+//
+//        navigationItem.rightBarButtonItem?.isEnabled = !globals.isRefreshing && !globals.isLoading
+//    }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
     {
@@ -3239,22 +3360,23 @@ class MediaTableViewController : UIViewController
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
 
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            self.setupShowHide()
+//            self.setupShowHide()
             self.setupTitle()
             
-            if self.splitViewController == nil {
-                print("splitViewController == nil")
+            if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
+                print("splitViewController.isCollapsed == true")
             }
             
-            if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
-                let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
-                let count = self.splitViewController?.viewControllers.count {
-                if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
-                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
-                    }
-                }
-            }
+//            self.setDVCLeftBarButton()
+//            if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+//                let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
+//                let count = self.splitViewController?.viewControllers.count {
+//                if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
+//                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+//                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+//                    }
+//                }
+//            }
         }
     }
 }

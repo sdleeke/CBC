@@ -977,7 +977,7 @@ class MediaViewController: UIViewController
     
     override var canBecomeFirstResponder : Bool
     {
-        return true //splitViewController == nil
+        return true //let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed //splitViewController == nil
     }
     
     override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
@@ -2091,23 +2091,23 @@ class MediaViewController: UIViewController
     
     func zoomVideo()
     {
-        if splitViewController?.viewControllers.count > 1 {
-            if globals.mediaPlayer.fullScreen {
-                splitViewController?.preferredDisplayMode = .allVisible
-            } else {
-                splitViewController?.preferredDisplayMode = .primaryOverlay
-            }
-        }
+//        if splitViewController?.viewControllers.count > 1 {
+//            if globals.mediaPlayer.fullScreen {
+//                splitViewController?.preferredDisplayMode = .allVisible
+//            } else {
+//                splitViewController?.preferredDisplayMode = .automatic
+//            }
+//        }
         
         globals.mediaPlayer.fullScreen = !globals.mediaPlayer.fullScreen
 
-        if splitViewController?.viewControllers.count > 1 {
-            if (splitViewController?.viewControllers.count > 1) {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SHOW_HIDE), object: nil)
-                //                DispatchQueue.main.async(execute: { () -> Void in
-                //                })
-            }
-        }
+//        if splitViewController?.viewControllers.count > 1 {
+//            if (splitViewController?.viewControllers.count > 1) {
+//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SHOW_HIDE), object: nil)
+//                //                DispatchQueue.main.async(execute: { () -> Void in
+//                //                })
+//            }
+//        }
 
         updateUI()
     }
@@ -2251,9 +2251,9 @@ class MediaViewController: UIViewController
         }
         
         if globals.mediaPlayer.fullScreen {
-            if splitViewController?.viewControllers.count > 1 {
-                splitViewController?.preferredDisplayMode = .primaryHidden
-            }
+//            if splitViewController?.viewControllers.count > 1 {
+//                splitViewController?.preferredDisplayMode = .primaryHidden
+//            }
             parentView = self.view
         }
         
@@ -2503,9 +2503,9 @@ class MediaViewController: UIViewController
         }
 
         // Forces MasterViewController to show.  App MUST start in preferredDisplayMode == .automatic or the MVC can't be dragged out after it is hidden!
-        if (splitViewController?.preferredDisplayMode == .automatic) { // UIDeviceOrientationIsPortrait(UIDevice.current.orientation) && 
-            splitViewController?.preferredDisplayMode = .allVisible //iPad only.
-        }
+//        if (splitViewController?.preferredDisplayMode == .automatic) { // UIDeviceOrientationIsPortrait(UIDevice.current.orientation) && 
+//            splitViewController?.preferredDisplayMode = .allVisible //iPad only.
+//        }
     }
 
     fileprivate func setupDefaultDocuments()
@@ -3266,21 +3266,22 @@ class MediaViewController: UIViewController
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
             self.setupTitle()
             
-            if self.splitViewController == nil {
-                print("splitViewController == nil")
+            if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
+                print("splitViewController.isCollapsed == true")
             }
-            
-            if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
-                let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
-                let count = self.splitViewController?.viewControllers.count {
-                if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
-                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
-                    } else {
-                        navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
-                    }
-                }
-            }
+
+            self.setDVCLeftBarButton()
+//            if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+//                let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
+//                let count = self.splitViewController?.viewControllers.count {
+//                if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
+//                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+//                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+//                    } else {
+//                        navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
+//                    }
+//                }
+//            }
             
             if self.videoLocation == .withTableView {
                 self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: false)
@@ -3788,17 +3789,18 @@ class MediaViewController: UIViewController
             NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
         }
 
-        if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
-            let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
-            let count = self.splitViewController?.viewControllers.count {
-            if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
-                if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-                    navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
-                } else {
-                    navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
-                }
-            }
-        }
+        setDVCLeftBarButton()
+//        if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+//            let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
+//            let count = self.splitViewController?.viewControllers.count {
+//            if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
+//                if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+//                    navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+//                } else {
+//                    navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
+//                }
+//            }
+//        }
 
         if (selectedMediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) && globals.mediaPlayer.isPaused && globals.mediaPlayer.mediaItem!.hasCurrentTime() {
             globals.mediaPlayer.seek(to: Double(globals.mediaPlayer.mediaItem!.currentTime!))

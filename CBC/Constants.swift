@@ -9,12 +9,12 @@
 import Foundation
 import UIKit
 
-enum UIUserInterfaceIdiom : Int
-{
-    case Unspecified
-    case Phone
-    case Pad
-}
+//enum UIUserInterfaceIdiom : Int
+//{
+//    case Unspecified
+//    case Phone
+//    case Pad
+//}
 
 struct ScreenSize
 {
@@ -32,6 +32,49 @@ struct DeviceType
     static let IS_IPHONE_6P_7P      = UIDevice.current.userInterfaceIdiom == .phone && ScreenSize.SCREEN_MAX_LENGTH == 736.0
     static let IS_IPAD              = UIDevice.current.userInterfaceIdiom == .pad && ScreenSize.SCREEN_MAX_LENGTH == 1024.0
     static let IS_IPAD_PRO          = UIDevice.current.userInterfaceIdiom == .pad && ScreenSize.SCREEN_MAX_LENGTH == 1366.0
+}
+
+enum FieldEnum : String {
+    case id       = "mediacode"
+    
+    case date     = "date"
+    case service  = "service"
+    
+    case title    = "title"
+    
+    case name     = "name"
+    
+    case audio    = "audio_url"
+    
+    case m3u8     = "m3u8"
+    case mp4      = "mp4"
+    
+    case notes        = "transcript"
+    case notes_HTML   = "transcript_HTML"
+    case slides       = "slides"
+    case outline      = "outline"
+    
+    case files = "files"
+    
+    case playing = "playing"
+    case showing = "showing"
+    
+    case speaker      = "teacher" // was "speaker"
+    case speaker_sort = "speaker sort"
+    
+    case scripture    = "text" // was "scripture"
+    case category     = "category"
+    
+    case className    = "class"
+    case eventName    = "event"
+    
+    case multi_part_name      = "multi part name"
+    case multi_part_name_sort = "multi part name sort"
+    
+    case part = "part"
+    case tags = "series"
+    case book = "book"
+    case year = "year"
 }
 
 struct Field {
@@ -55,7 +98,7 @@ struct Field {
     static let outline      = "outline"
     
     static let files = "files"
-
+    
     static let playing = "playing"
     static let showing = "showing"
     
@@ -70,11 +113,20 @@ struct Field {
     
     static let multi_part_name      = "multi part name"
     static let multi_part_name_sort = "multi part name sort"
-
+    
     static let part = "part"
     static let tags = "series"
     static let book = "book"
     static let year = "year"
+}
+
+enum MediaTypeEnum : String {
+    case AUDIO
+    case VIDEO
+    case SLIDES
+    case NOTES
+    case OUTLINE
+    case NONE
 }
 
 struct MediaType {
@@ -87,6 +139,14 @@ struct MediaType {
     static let NONE     = "NONE"
 }
 
+enum PurposeEnum : String {
+    case audio
+    case video
+    case slides
+    case notes
+    case outline
+}
+
 struct Purpose {
     static let audio    = MediaType.AUDIO
     static let video    = MediaType.VIDEO
@@ -95,9 +155,21 @@ struct Purpose {
     static let outline  = MediaType.OUTLINE
 }
 
+enum PlayingEnum : String {
+    case audio
+    case video
+}
+
 struct Playing {
     static let audio    = MediaType.AUDIO
     static let video    = MediaType.VIDEO
+}
+
+enum ShowingEnum : String {
+    case video
+    case notes
+    case slides
+    case none
 }
 
 struct Showing {
@@ -107,6 +179,15 @@ struct Showing {
     static let none     = MediaType.NONE
 }
 
+enum GroupingEnum : String {
+    case Year
+    case Book
+    case Speaker
+    case Title
+    case Class
+    case Event
+}
+
 struct Grouping {
     static let Year     = "Year"
     static let Book     = "Book"
@@ -114,7 +195,18 @@ struct Grouping {
     static let Title    = "Title"
     static let Class    = "Class"
     static let Event    = "Event"
+}
 
+enum GROUPING_ENUM : String {
+    case YEAR
+    case BOOK
+    case SPEAKER
+    case TITLE
+    case CLASS // e.g. = "class"
+    case EVENT
+}
+
+struct GROUPING {
     static let YEAR     = "year"
     static let BOOK     = "book"
     static let SPEAKER  = "speaker"
@@ -123,15 +215,30 @@ struct Grouping {
     static let EVENT    = "event"
 }
 
+enum SortingEnum : String {
+    case Newest_to_Oldest = "Newest to Oldest"
+    case Oldest_to_Newest = "Oldest to Newest"
+}
+
 struct Sorting {
+    static let Newest_to_Oldest = "Newest to Oldest"
+    static let Oldest_to_Newest = "Oldest to Newest"
+}
+
+enum SORTING_ENUM : String {
+    case CHRONOLOGICAL = "chronological"
+    //    static let Chronological = "Chronological"
+    
+    case REVERSE_CHRONOLOGICAL = "reverse chronological"
+    //    static let Reverse_Chronological = "Reverse Chronological"
+}
+
+struct SORTING {
     static let CHRONOLOGICAL = "chronological"
     //    static let Chronological = "Chronological"
     
     static let REVERSE_CHRONOLOGICAL = "reverse chronological"
     //    static let Reverse_Chronological = "Reverse Chronological"
-    
-    static let Newest_to_Oldest = "Newest to Oldest"
-    static let Oldest_to_Newest = "Oldest to Newest"
 }
 
 struct Constants {
@@ -153,7 +260,7 @@ struct Constants {
             
             static let CATEGORY = MEDIA + "&categoryID=" //
             
-            static let CATEGORY_MEDIA = CATEGORY + globals.mediaCategory.selectedID! //
+//            static let CATEGORY_MEDIA = CATEGORY + globals.mediaCategory.selectedID! //
             
             static let SINGLE = BASE + "single&mediacode="
         }
@@ -237,7 +344,7 @@ struct Constants {
         
         static let PAUSED                   = "PAUSED"
         
-        static let UPDATE_SHOW_HIDE         = "UPDATE SHOW HIDE"
+//        static let UPDATE_SHOW_HIDE         = "UPDATE SHOW HIDE"
         
         static let PLAYING_PAUSED           = "PLAYING PAUSED"
         
@@ -760,10 +867,10 @@ struct Constants {
         static let PDF  = ".pdf"
     }
 
-    static let sortings = [Sorting.CHRONOLOGICAL, Sorting.REVERSE_CHRONOLOGICAL]
+    static let sortings = [SORTING.CHRONOLOGICAL, SORTING.REVERSE_CHRONOLOGICAL]
     static let SortingTitles = [Sorting.Oldest_to_Newest, Sorting.Newest_to_Oldest]
     
-    static let groupings = [Grouping.YEAR, Grouping.TITLE, Grouping.BOOK, Grouping.SPEAKER]
+    static let groupings = [GROUPING.YEAR, GROUPING.TITLE, GROUPING.BOOK, GROUPING.SPEAKER]
     static let GroupingTitles = [Grouping.Year, Grouping.Title, Grouping.Book, Grouping.Speaker]
 
     struct SCRIPTURE_INDEX {

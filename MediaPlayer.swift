@@ -738,15 +738,15 @@ class MediaPlayer : NSObject {
             return
         }
         
-        self.playerObserverTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PLAYER, target: self, selector: #selector(MediaPlayer.playerObserver), userInfo: nil, repeats: true)
-//        DispatchQueue.main.async(execute: { () -> Void in
-//        })
-        
-        unobserve()
-        
         guard (url != URL(string:Constants.URL.LIVE_STREAM)) else {
             return
         }
+        
+        unobserve()
+        
+        self.playerObserverTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PLAYER, target: self, selector: #selector(MediaPlayer.playerObserver), userInfo: nil, repeats: true)
+        //        DispatchQueue.main.async(execute: { () -> Void in
+        //        })
         
         if #available(iOS 10.0, *) {
             player?.addObserver( self,

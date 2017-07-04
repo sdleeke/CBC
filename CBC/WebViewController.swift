@@ -787,7 +787,7 @@ class WebViewController: UIViewController
 
     override var canBecomeFirstResponder : Bool
     {
-        return true //splitViewController == nil
+        return true //let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed //splitViewController == nil
     }
     
     override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)

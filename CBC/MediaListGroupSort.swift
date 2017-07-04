@@ -193,15 +193,15 @@ class MediaListGroupSort {
             var entries:[(string:String,name:String)]?
             
             switch grouping! {
-            case Grouping.YEAR:
+            case GROUPING.YEAR:
                 entries = [(mediaItem.yearString,mediaItem.yearString)]
                 break
                 
-            case Grouping.TITLE:
+            case GROUPING.TITLE:
                 entries = [(mediaItem.multiPartSectionSort,mediaItem.multiPartSection)]
                 break
                 
-            case Grouping.BOOK:
+            case GROUPING.BOOK:
                 // Need to update this for the fact that mediaItems can have more than one book.
                 if let books = mediaItem.books {
                     for book in books {
@@ -224,15 +224,15 @@ class MediaListGroupSort {
                 //                }
                 break
                 
-            case Grouping.SPEAKER:
+            case GROUPING.SPEAKER:
                 entries = [(mediaItem.speakerSectionSort,mediaItem.speakerSection)]
                 break
                 
-            case Grouping.CLASS:
+            case GROUPING.CLASS:
                 entries = [(mediaItem.classSectionSort,mediaItem.classSection)]
                 break
                 
-            case Grouping.EVENT:
+            case GROUPING.EVENT:
                 entries = [(mediaItem.eventSectionSort,mediaItem.eventSection)]
                 break
                 
@@ -273,11 +273,11 @@ class MediaListGroupSort {
                     let array = sortMediaItemsChronologically(groupedMediaItems[grouping!]?[string])
                     
                     switch sort {
-                    case Sorting.CHRONOLOGICAL:
+                    case SORTING.CHRONOLOGICAL:
                         groupSort?[grouping!]?[string]?[sort] = array
                         break
                         
-                    case Sorting.REVERSE_CHRONOLOGICAL:
+                    case SORTING.REVERSE_CHRONOLOGICAL:
                         groupSort?[grouping!]?[string]?[sort] = array?.reversed()
                         break
                         
@@ -306,12 +306,12 @@ class MediaListGroupSort {
             for key in groupSort![grouping!]!.keys.sorted(
                 by: {
                     switch grouping! {
-                    case Grouping.YEAR:
+                    case GROUPING.YEAR:
                         switch sorting! {
-                        case Sorting.CHRONOLOGICAL:
+                        case SORTING.CHRONOLOGICAL:
                             return $0 < $1
                             
-                        case Sorting.REVERSE_CHRONOLOGICAL:
+                        case SORTING.REVERSE_CHRONOLOGICAL:
                             return $1 < $0
                             
                         default:
@@ -319,7 +319,7 @@ class MediaListGroupSort {
                         }
                         break
                         
-                    case Grouping.BOOK:
+                    case GROUPING.BOOK:
                         if (bookNumberInBible($0) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (bookNumberInBible($1) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
                             return stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
                         } else {
@@ -387,12 +387,12 @@ class MediaListGroupSort {
     {
         return groupSort?[grouping!]?.keys.sorted(by: {
             switch grouping! {
-            case Grouping.YEAR:
+            case GROUPING.YEAR:
                 switch sorting! {
-                case Sorting.CHRONOLOGICAL:
+                case SORTING.CHRONOLOGICAL:
                     return $0 < $1
                     
-                case Sorting.REVERSE_CHRONOLOGICAL:
+                case SORTING.REVERSE_CHRONOLOGICAL:
                     return $1 < $0
                     
                 default:
@@ -400,7 +400,7 @@ class MediaListGroupSort {
                 }
                 break
                 
-            case Grouping.BOOK:
+            case GROUPING.BOOK:
                 if (bookNumberInBible($0) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (bookNumberInBible($1) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
                     return stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
                 } else {
@@ -426,12 +426,12 @@ class MediaListGroupSort {
     {
         return groupSort?[grouping!]?.keys.sorted(by: {
             switch grouping! {
-            case Grouping.YEAR:
+            case GROUPING.YEAR:
                 switch sorting! {
-                case Sorting.CHRONOLOGICAL:
+                case SORTING.CHRONOLOGICAL:
                     return $0 < $1
                     
-                case Sorting.REVERSE_CHRONOLOGICAL:
+                case SORTING.REVERSE_CHRONOLOGICAL:
                     return $1 < $0
                     
                 default:
@@ -439,7 +439,7 @@ class MediaListGroupSort {
                 }
                 break
                 
-            case Grouping.BOOK:
+            case GROUPING.BOOK:
                 if (bookNumberInBible($0) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (bookNumberInBible($1) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
                     return stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
                 } else {
@@ -468,12 +468,12 @@ class MediaListGroupSort {
         
         return groupSort?[grouping!]?.keys.sorted(by: {
             switch grouping! {
-            case Grouping.YEAR:
+            case GROUPING.YEAR:
                 switch sorting! {
-                case Sorting.CHRONOLOGICAL:
+                case SORTING.CHRONOLOGICAL:
                     return $0 < $1
                     
-                case Sorting.REVERSE_CHRONOLOGICAL:
+                case SORTING.REVERSE_CHRONOLOGICAL:
                     return $1 < $0
                     
                 default:
@@ -481,7 +481,7 @@ class MediaListGroupSort {
                 }
                 break
                 
-            case Grouping.BOOK:
+            case GROUPING.BOOK:
                 if (bookNumberInBible($0) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) && (bookNumberInBible($1) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE) {
                     return stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
                 } else {

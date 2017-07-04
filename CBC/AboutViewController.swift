@@ -95,7 +95,7 @@ class AboutViewController: UIViewController
 {
     override var canBecomeFirstResponder : Bool
     {
-        return true //splitViewController == nil
+        return true //let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed //splitViewController == nil
     }
     
     override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
@@ -262,17 +262,18 @@ class AboutViewController: UIViewController
             self.navigationController?.isToolbarHidden = true
         }
         
-        if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
-            let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
-            let count = self.splitViewController?.viewControllers.count {
-            if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
-                if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-                    navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
-                } else {
-                    navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
-                }
-            }
-        }
+        setDVCLeftBarButton()
+//        if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+//            let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
+//            let count = self.splitViewController?.viewControllers.count {
+//            if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
+//                if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+//                    navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+//                } else {
+//                    navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
+//                }
+//            }
+//        }
         
         mapView.isHidden = true
 
@@ -317,17 +318,19 @@ class AboutViewController: UIViewController
                 self.navigationController?.isToolbarHidden = true
             }
             
-            if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
-                let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
-                let count = self.splitViewController?.viewControllers.count {
-                if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
-                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
-                    } else {
-                        navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
-                    }
-                }
-            }
+            self.setDVCLeftBarButton()
+
+//            if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+//                let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
+//                let count = self.splitViewController?.viewControllers.count {
+//                if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
+//                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+//                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+//                    } else {
+//                        navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
+//                    }
+//                }
+//            }
         }
     }
 }

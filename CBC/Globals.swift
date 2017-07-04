@@ -10,6 +10,46 @@ import Foundation
 import MediaPlayer
 import AVKit
 
+extension UIViewController {
+    func setDVCLeftBarButton()
+    {
+        // MUST be called from the detail view ONLY
+        if  //let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+            //let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
+            let count = self.splitViewController?.viewControllers.count {
+            if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
+                if let isCollapsed = splitViewController?.isCollapsed {
+                    if isCollapsed {
+                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.navigationItem.backBarButtonItem
+//                        if UIDevice.current.userInterfaceIdiom == .phone {
+//                        }
+                    } else {
+                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+                    }
+                }
+//                switch UIDevice.current.userInterfaceIdiom {
+//                case .phone:
+//                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+//                    } else {
+//                    }
+//                    break
+//                    
+//                case .pad:
+//                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+//                        navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+//                    } else {
+//                        navigationController?.topViewController?.navigationItem.leftBarButtonItem = nil
+//                    }
+//                    break
+//                    
+//                default:
+//                    break
+//                }
+            }
+        }
+    }
+}
+
 struct MediaNeed {
     var sorting:Bool = true
     var grouping:Bool = true
@@ -158,17 +198,17 @@ struct MediaRepository {
                 globals.groupingTitles = Constants.GroupingTitles
 
                 if classes?.count > 0 {
-                    globals.groupings.append(Grouping.CLASS)
+                    globals.groupings.append(GROUPING.CLASS)
                     globals.groupingTitles.append(Grouping.Class)
                 }
                 
                 if events?.count > 0 {
-                    globals.groupings.append(Grouping.EVENT)
+                    globals.groupings.append(GROUPING.EVENT)
                     globals.groupingTitles.append(Grouping.Event)
                 }
                 
                 if let grouping = globals.grouping, !globals.groupings.contains(grouping) {
-                    globals.grouping = Grouping.YEAR
+                    globals.grouping = GROUPING.YEAR
                 }
             }
         }
@@ -280,7 +320,7 @@ struct MediaCategory {
     
     var url:String? {
         get {
-            return selectedID != nil ? Constants.JSON.URL.CATEGORY_MEDIA : nil // CATEGORY + selectedID!
+            return selectedID != nil ? Constants.JSON.URL.CATEGORY + selectedID! : nil // CATEGORY + selectedID!
         }
     }
     
@@ -740,7 +780,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     var groupings = Constants.groupings
     var groupingTitles = Constants.GroupingTitles
     
-    var grouping:String? = Grouping.YEAR {
+    var grouping:String? = GROUPING.YEAR {
         willSet {
             
         }
@@ -758,7 +798,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    var sorting:String? = Sorting.REVERSE_CHRONOLOGICAL {
+    var sorting:String? = SORTING.REVERSE_CHRONOLOGICAL {
         willSet {
             
         }
@@ -1043,13 +1083,13 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 if let sortingString = defaults.string(forKey: Constants.SETTINGS.KEY.SORTING) {
                     sorting = sortingString
                 } else {
-                    sorting = Sorting.REVERSE_CHRONOLOGICAL
+                    sorting = SORTING.REVERSE_CHRONOLOGICAL
                 }
                 
                 if let groupingString = defaults.string(forKey: Constants.SETTINGS.KEY.GROUPING) {
                     grouping = groupingString
                 } else {
-                    grouping = Grouping.YEAR
+                    grouping = GROUPING.YEAR
                 }
                 
 //                media.tags.selected = mediaCategory.tag
@@ -1184,7 +1224,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
     func motionEnded(_ motion: UIEventSubtype, event: UIEvent?)
     {
-        guard (UIDevice.current.localizedModel == "iPhone") else {
+        guard (UIDevice.current.userInterfaceIdiom == .phone) else {
             return
         }
 

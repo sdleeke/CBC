@@ -663,13 +663,13 @@ class LexiconIndexViewController : UIViewController
                             order.append("speaker")
                         }
                         
-                        if globals.grouping != Grouping.CLASS {
+                        if globals.grouping != GROUPING.CLASS {
                             if let className = mediaItem.className, !className.isEmpty {
                                 order.append("class")
                             }
                         }
                         
-                        if globals.grouping != Grouping.EVENT {
+                        if globals.grouping != GROUPING.EVENT {
                             if let eventName = mediaItem.eventName, !eventName.isEmpty {
                                 order.append("event")
                             }
@@ -708,11 +708,11 @@ class LexiconIndexViewController : UIViewController
                 bodyString = bodyString! + "<div><a id=\"index\" name=\"index\" href=\"#top\">Index</a><br/><br/>"
                 
                 switch globals.grouping! {
-                case Grouping.CLASS:
+                case GROUPING.CLASS:
                     fallthrough
-                case Grouping.SPEAKER:
+                case GROUPING.SPEAKER:
                     fallthrough
-                case Grouping.TITLE:
+                case GROUPING.TITLE:
                     let a = "A"
                     
                     if let indexTitles = results?.section?.indexTitles {

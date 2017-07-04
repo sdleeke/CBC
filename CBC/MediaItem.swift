@@ -934,7 +934,7 @@ class MediaItem : NSObject {
             if (hasMultipleParts) {
                 var mediaItemParts:[MediaItem]?
 //                print(multiPartSort)
-                if (globals.media.all?.groupSort?[Grouping.TITLE]?[multiPartSort!]?[Sorting.CHRONOLOGICAL] == nil) {
+                if (globals.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort!]?[SORTING.CHRONOLOGICAL] == nil) {
                     mediaItemParts = globals.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
                         if testMediaItem.hasMultipleParts {
                             return (testMediaItem.category == category) && (testMediaItem.multiPartName == multiPartName)
@@ -943,7 +943,7 @@ class MediaItem : NSObject {
                         }
                     })
                 } else {
-                    mediaItemParts = globals.media.all?.groupSort?[Grouping.TITLE]?[multiPartSort!]?[Sorting.CHRONOLOGICAL]?.filter({ (testMediaItem:MediaItem) -> Bool in
+                    mediaItemParts = globals.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort!]?[SORTING.CHRONOLOGICAL]?.filter({ (testMediaItem:MediaItem) -> Bool in
                         return (testMediaItem.multiPartName == multiPartName) && (testMediaItem.category == category)
                     })
                 }
@@ -959,15 +959,15 @@ class MediaItem : NSObject {
                 if conferenceCode != nil {
                     mediaItemParts = sortMediaItemsByYear(mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
                         return testMediaItem.conferenceCode == conferenceCode
-                    }),sorting: Sorting.CHRONOLOGICAL)
+                    }),sorting: SORTING.CHRONOLOGICAL)
                 } else {
                     if hasClassName {
                         mediaItemParts = sortMediaItemsByYear(mediaItemParts?.filter({ (testMediaItem:MediaItem) -> Bool in
                             //                        print(classCode,testMediaItem.classCode)
                             return testMediaItem.classCode == classCode
-                        }),sorting: Sorting.CHRONOLOGICAL)
+                        }),sorting: SORTING.CHRONOLOGICAL)
                     } else {
-                        mediaItemParts = sortMediaItemsByYear(mediaItemParts,sorting: Sorting.CHRONOLOGICAL)
+                        mediaItemParts = sortMediaItemsByYear(mediaItemParts,sorting: SORTING.CHRONOLOGICAL)
                     }
                 }
                 
