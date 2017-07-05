@@ -431,7 +431,7 @@ class PopoverTableViewController : UIViewController
         }
 
         let margins:CGFloat = 2
-        let marginSpace:CGFloat = 9
+        let marginSpace:CGFloat = 10
         
         let checkmarkSpace:CGFloat = 38
         let indexSpace:CGFloat = 40

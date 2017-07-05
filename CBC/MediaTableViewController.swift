@@ -460,6 +460,57 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             }
             break
             
+        case Constants.VOICEBASE_API_KEY:
+            let alert = UIAlertController(  title: Constants.VOICEBASE_API_KEY,
+                                            message: nil,
+                                            preferredStyle: .alert)
+            
+            alert.addTextField(configurationHandler: { (textField:UITextField) in
+                textField.placeholder = globals.voiceBaseAPIKey
+            })
+            
+            let okayAction = UIAlertAction(title: "Okay", style: UIAlertActionStyle.default, handler: {
+                alertItem -> Void in
+                globals.voiceBaseAPIKey = (alert.textFields![0] as UITextField).text
+            })
+            alert.addAction(okayAction)
+
+            let cancel = UIAlertAction(title: "Cancel", style: .default, handler: {
+                (action : UIAlertAction!) -> Void in
+            })
+            alert.addAction(cancel)
+            
+            present(alert, animated: true, completion: nil)
+            break
+            
+        case "VoiceBase Media Items":
+            VoiceBase.getAllMedia() {
+                let alert = UIAlertController(  title: "Confirm Deletion of All VoiceBase Media Items",
+                                                message: nil,
+                                                preferredStyle: .alert)
+                
+                let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                    alertItem -> Void in
+                    VoiceBase.deleteAllMedia()
+                })
+                alert.addAction(yesAction)
+                
+                let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                    alertItem -> Void in
+
+                })
+                alert.addAction(noAction)
+                
+                let cancel = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.default, handler: {
+                    (action : UIAlertAction!) -> Void in
+                    
+                })
+                alert.addAction(cancel)
+                
+                self.present(alert, animated: true, completion: nil)
+            }
+            break
+            
         default:
             break
         }
@@ -1189,9 +1240,9 @@ class MediaTableViewController : UIViewController
                 //Nothing to show
             }
             
-            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
-                print("splitViewController.isCollapsed == true")
-            }
+//            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+//                print("splitViewController.isCollapsed == true")
+//            }
             
             if let vClass = splitViewController?.traitCollection.verticalSizeClass,
                 let isCollapsed = splitViewController?.isCollapsed,
@@ -1225,6 +1276,12 @@ class MediaTableViewController : UIViewController
             }
             
             showMenu.append(Constants.Strings.Settings)
+            
+            showMenu.append(Constants.VOICEBASE_API_KEY)
+            
+            if globals.voiceBaseAPIKey != nil {
+                showMenu.append("VoiceBase Media Items")
+            }
             
             popover.section.strings = showMenu
             
@@ -2446,8 +2503,6 @@ class MediaTableViewController : UIViewController
         setupSortingAndGroupingOptions()
         setupShowMenu()
         
-        load()
-        
         //This makes accurate scrolling to sections impossible using scrollToRowAtIndexPath
 //        tableView.estimatedRowHeight = tableView.rowHeight
 //        tableView.rowHeight = UITableViewAutomaticDimension
@@ -3034,10 +3089,10 @@ class MediaTableViewController : UIViewController
 
     }
 
-    func onAppear()
+    override func viewWillAppear(_ animated: Bool)
     {
-        // This is called in both willAppear and didAppear since in portrait on an iPad willAppear is NOT being called!
-        
+        super.viewWillAppear(animated)
+
         load()
         
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
@@ -3047,13 +3102,6 @@ class MediaTableViewController : UIViewController
         
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.playingPaused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYING_PAUSED), object: nil)
-    }
-    
-    override func viewWillAppear(_ animated: Bool)
-    {
-        super.viewWillAppear(animated)
-
-        onAppear()
 
 //        if (self.splitViewController?.viewControllers.count > 1) {
 //            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.setupShowHide), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SHOW_HIDE), object: nil)
@@ -3094,8 +3142,6 @@ class MediaTableViewController : UIViewController
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
-
-        onAppear()
 
         navigationController?.isToolbarHidden = false
         
@@ -3363,9 +3409,9 @@ class MediaTableViewController : UIViewController
 //            self.setupShowHide()
             self.setupTitle()
             
-            if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
-                print("splitViewController.isCollapsed == true")
-            }
+//            if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
+//                print("splitViewController.isCollapsed == true")
+//            }
             
 //            self.setDVCLeftBarButton()
 //            if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
@@ -3749,6 +3795,56 @@ extension MediaTableViewController : UITableViewDelegate
                 return UITableViewRowAction()
             }
             
+            func mgtUpdate()
+            {
+                var transcriptPurpose:String!
+                
+                if let purpose = transcript?.purpose {
+                    switch purpose {
+                    case Purpose.audio:
+                        transcriptPurpose = Constants.Strings.Audio
+                        break
+                        
+                    case Purpose.video:
+                        transcriptPurpose = Constants.Strings.Video
+                        break
+                        
+                    case Purpose.slides:
+                        transcriptPurpose = Constants.Strings.Slides
+                        break
+                        
+                    case Purpose.notes:
+                        transcriptPurpose = Constants.Strings.Transcript
+                        break
+                        
+                    default:
+                        transcriptPurpose = "ERROR"
+                        break
+                    }
+                }
+                
+                let purpose = " (\(transcriptPurpose.lowercased()))"
+                
+                let completion = transcript?.percentComplete == nil ? purpose : purpose + " (\(transcript!.percentComplete!)% complete)"
+                
+                var title = "Machine Generated Transcript "
+                
+                var message = "You will be notified when the machine generated transcript for \(mediaItem.title!)\(completion) "
+                
+                if (transcript?.mediaID != nil) {
+                    title = title + "in Progress"
+                    message = message + "is available."
+                } else {
+                    title = title + "Requested"
+                    message = message + "has started."
+                }
+                print(title)
+                
+                alert(viewController:self,title: title, message: message,completion: {
+                    //                            tableView.setEditing(false, animated: true)
+                })
+            }
+            
             var prefix:String!
             
             switch purpose {
@@ -3789,6 +3885,7 @@ extension MediaTableViewController : UITableViewDelegate
                                 transcript?.getTranscript()
                             })
                             tableView.setEditing(false, animated: true)
+                            mgtUpdate()
                         }))
                         
                         alertActions.append(AlertAction(title: "No", style: .default, action: nil))
@@ -3799,52 +3896,7 @@ extension MediaTableViewController : UITableViewDelegate
                             alertActions: alertActions,
                             cancelAction: nil)
                     } else {
-                        var transcriptPurpose:String!
-                        
-                        if let purpose = transcript?.purpose {
-                            switch purpose {
-                            case Purpose.audio:
-                                transcriptPurpose = Constants.Strings.Audio
-                                break
-                                
-                            case Purpose.video:
-                                transcriptPurpose = Constants.Strings.Video
-                                break
-                                
-                            case Purpose.slides:
-                                transcriptPurpose = Constants.Strings.Slides
-                                break
-                                
-                            case Purpose.notes:
-                                transcriptPurpose = Constants.Strings.Transcript
-                                break
-                                
-                            default:
-                                transcriptPurpose = "ERROR"
-                                break
-                            }
-                        }
-                        
-                        let purpose = " (\(transcriptPurpose.lowercased()))"
-                        
-                        let completion = transcript?.percentComplete == nil ? purpose : purpose + " (\(transcript!.percentComplete!)% complete)"
-                        
-                        var title = "Machine Generated Transcript "
-                        
-                        var message = "You will be notified when the machine generated transcript for \(mediaItem.title!)\(completion) "
-                        
-                        if (transcript?.mediaID != nil) {
-                            title = title + "in Progress"
-                            message = message + "is available."
-                        } else {
-                            title = title + "Requested"
-                            message = message + "has started."
-                        }
-                        print(title)
-                        
-                        alert(viewController:self,title: title, message: message,completion: {
-                            //                            tableView.setEditing(false, animated: true)
-                        })
+                        mgtUpdate()
                     }
                 } else {
                     guard let transcribing = transcript?.transcribing, !transcribing else {
@@ -4005,37 +4057,37 @@ extension MediaTableViewController : UITableViewDelegate
             actions.append(words)
             actions.append(transcript)
         }
-    
-//        if !mediaItem.hasNotes {
 
-        if mediaItem.hasAudio && globals.allowMGTs {
-            if mediaItem.audioTranscript?.transcript != nil {
-                recognizeAudio.backgroundColor = UIColor.lightGray
-            } else {
-                if let transcribing = mediaItem.audioTranscript?.transcribing, transcribing {
-                    recognizeAudio.backgroundColor = UIColor.gray
-                } else {
-                    recognizeAudio.backgroundColor = UIColor.darkGray
-                }
-            }
+        if mediaItem.audioTranscript?.transcript != nil {
+            recognizeAudio.backgroundColor = UIColor.lightGray
             actions.append(recognizeAudio)
-        }
-        
-        if mediaItem.hasVideo && globals.allowMGTs {
-            if mediaItem.videoTranscript?.transcript != nil {
-                recognizeVideo.backgroundColor = UIColor.lightGray
+        } else {
+            if let transcribing = mediaItem.audioTranscript?.transcribing, transcribing {
+                recognizeAudio.backgroundColor = UIColor.gray
+                actions.append(recognizeAudio)
             } else {
-                if let transcribing = mediaItem.videoTranscript?.transcribing, transcribing {
-                    recognizeVideo.backgroundColor = UIColor.gray
-                } else {
-                    recognizeVideo.backgroundColor = UIColor.darkGray
+                if mediaItem.hasAudio && globals.allowMGTs {
+                    recognizeAudio.backgroundColor = UIColor.darkGray
+                    actions.append(recognizeAudio)
                 }
             }
-            actions.append(recognizeVideo)
         }
-
-        //        }
         
+        if mediaItem.videoTranscript?.transcript != nil {
+            recognizeVideo.backgroundColor = UIColor.lightGray
+            actions.append(recognizeVideo)
+        } else {
+            if let transcribing = mediaItem.videoTranscript?.transcribing, transcribing {
+                recognizeVideo.backgroundColor = UIColor.gray
+                actions.append(recognizeVideo)
+            } else {
+                if mediaItem.hasVideo && globals.allowMGTs {
+                    recognizeVideo.backgroundColor = UIColor.darkGray
+                    actions.append(recognizeVideo)
+                }
+            }
+        }
+    
         return actions.count > 0 ? actions : nil
     }
     

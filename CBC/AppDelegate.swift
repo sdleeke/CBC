@@ -60,11 +60,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
     {
         globals = Globals()
         
-//        VoiceBase.deleteAllMedia()
-        
         globals.splitViewController = window!.rootViewController as! UISplitViewController
         
         globals.splitViewController.delegate = self
+        
+        globals.splitViewController.preferredDisplayMode = .allVisible
         
         let hClass = globals.splitViewController.traitCollection.horizontalSizeClass
         let vClass = globals.splitViewController.traitCollection.verticalSizeClass

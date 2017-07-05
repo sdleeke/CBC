@@ -1177,7 +1177,12 @@ class MediaItem : NSObject {
         }
     }
     
-    var wasShowing:String? = Showing.slides //This is an arbitrary choice
+    var wasShowing:String? 
+    {
+        didSet {
+            print("")
+        }
+    }
     
     // this supports settings values that are saved in defaults between sessions
     var showing:String? {
@@ -1200,11 +1205,17 @@ class MediaItem : NSObject {
                     }
                 }
             }
+            
+            // Backwards compatible fix
+            if dict![Field.showing] == "none" {
+                dict![Field.showing] = "NONE"
+            }
+            
             return dict![Field.showing]
         }
         
         set {
-            if newValue != Showing.video {
+            if (newValue != Showing.video) && (newValue != nil) {
                 wasShowing = newValue
             }
             dict![Field.showing] = newValue

@@ -21,6 +21,14 @@ extension VoiceBase // Class Methods
     {
         print("VoiceBase.delete")
 
+        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+            return
+        }
+        
+        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+            return
+        }
+        
         guard let mediaID = mediaID else {
             return
         }
@@ -32,7 +40,7 @@ extension VoiceBase // Class Methods
         
         request.httpMethod = "DELETE"
         
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
             //            print((response as? HTTPURLResponse)?.statusCode as Any)
@@ -63,9 +71,17 @@ extension VoiceBase // Class Methods
         task.resume()
     }
     
-    static func getAllMedia()
+    static func getAllMedia(completion:((Void)->(Void))?)
     {
         print("VoiceBase.getAllMedia")
+        
+        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+            return
+        }
+        
+        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+            return
+        }
         
         let service = "https://apis.voicebase.com/v2-beta/media"
         print(service)
@@ -74,7 +90,7 @@ extension VoiceBase // Class Methods
         
         request.httpMethod = "GET"
         
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
             //            print((response as? HTTPURLResponse)?.statusCode as Any)
@@ -84,13 +100,30 @@ extension VoiceBase // Class Methods
 
                 if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
                     print(json)
+                    
+                    if let mediaItems = json["media"] as? [[String:Any]] {
+                        if mediaItems.count > 0 {
+                            let deleteAllAction = AlertAction(title: "Delete All", style: .destructive, action: completion)
+                            let cancelAction = AlertAction(title: "Cancel", style: .default, action: nil)
+                            
+                            if mediaItems.count > 1 {
+                                globals.alert(title: "Your VoiceBase Media Library contains \(mediaItems.count) items.", message: nil, actions:[deleteAllAction,cancelAction])
+                            } else {
+                                globals.alert(title: "Your VoiceBase Media Library contains \(mediaItems.count) item.", message: nil, actions:[deleteAllAction,cancelAction])
+                            }
+                        } else {
+                            globals.alert(title: "Your VoiceBase Media Library does not contain any items.", message: nil)
+                        }
+                    } else {
+                        globals.alert(title: "Unable to Determine the number of items in your VoiceBase Media Library.", message: nil)
+                    }
                 } else {
                     // JSONSerialization.jsonObject call failed
-                    
+                    globals.alert(title: "Unable to Determine the number of items in your VoiceBase Media Library.", message: nil)
                 }
             } else {
                 // No data
-                
+                globals.alert(title: "Unable to Determine the number of items in your VoiceBase Media Library.", message: nil)
             }
             
             if let response = response {
@@ -109,6 +142,14 @@ extension VoiceBase // Class Methods
     {
         print("VoiceBase.deleteAllMedia")
         
+        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+            return
+        }
+        
+        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+            return
+        }
+        
         let service = "https://apis.voicebase.com/v2-beta/media"
         print(service)
         
@@ -116,7 +157,7 @@ extension VoiceBase // Class Methods
         
         request.httpMethod = "GET"
         
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
             //            print((response as? HTTPURLResponse)?.statusCode as Any)
@@ -128,17 +169,30 @@ extension VoiceBase // Class Methods
                     print(json)
                     
                     if let mediaItems = json["media"] as? [[String:Any]] {
-                        for mediaItem in mediaItems {
-                            delete(mediaID:mediaItem["mediaId"] as? String)
+                        if mediaItems.count > 0 {
+                            if mediaItems.count > 1 {
+                                globals.alert(title: "Deleting \(mediaItems.count) Items from VoiceBase Media Library", message: nil)
+                            } else {
+                                globals.alert(title: "Deleting \(mediaItems.count) Item from VoiceBase Media Library", message: nil)
+                            }
+                            
+                            for mediaItem in mediaItems {
+                                delete(mediaID:mediaItem["mediaId"] as? String)
+                            }
+                        } else {
+                            globals.alert(title: "No Items to Delete in VoiceBase Media Library", message: nil)
                         }
+                    } else {
+                        // No mediaItems
+                        globals.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
                     }
                 } else {
                     // JSONSerialization.jsonObject call failed
-                    
+                    globals.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
                 }
             } else {
                 // No data
-                
+                globals.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
             }
             
             if let response = response {
@@ -220,6 +274,10 @@ class VoiceBase {
             return
         }
         
+        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+            return
+        }
+        
         guard !transcribing && (upload == nil) else {
             return
         }
@@ -242,7 +300,7 @@ class VoiceBase {
         
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         let body = createBody(parameters: ["media":url],boundary: boundary)
         
@@ -378,6 +436,10 @@ class VoiceBase {
             return
         }
         
+        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+            return
+        }
+        
         guard mediaItem != nil else {
             return
         }
@@ -394,7 +456,7 @@ class VoiceBase {
         
         request.httpMethod = "GET"
         
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
             //            print((response as? HTTPURLResponse)?.statusCode)
@@ -403,12 +465,40 @@ class VoiceBase {
 //                print(string) // object name
                 
                 if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
-//                    print(json)
+                    print(json)
                     
-                    if let _ = json["errors"] {
+                    if let errors = json["errors"] {
+                        print(errors)
+                        
                         self.remove()
                         
-                        globals.alert(title: "Transcript Failed",message: "The transcript for \(self.mediaItem.title!) was not completed.  Please try again.")
+                        var transcriptPurpose:String!
+                        
+                        if let purpose = self.purpose {
+                            switch purpose {
+                            case Purpose.audio:
+                                transcriptPurpose = Constants.Strings.Audio
+                                break
+                                
+                            case Purpose.video:
+                                transcriptPurpose = Constants.Strings.Video
+                                break
+                                
+                            case Purpose.slides:
+                                transcriptPurpose = Constants.Strings.Slides
+                                break
+                                
+                            case Purpose.notes:
+                                transcriptPurpose = Constants.Strings.Transcript
+                                break
+                                
+                            default:
+                                transcriptPurpose = "ERROR"
+                                break
+                            }
+                        }
+                        
+                        globals.alert(title: "Transcript Failed",message: "The transcript for \(self.mediaItem.title!) (\(transcriptPurpose.lowercased())) was not completed.  Please try again.")
                         
                         DispatchQueue.main.async(execute: { () -> Void in
                             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
@@ -494,6 +584,10 @@ class VoiceBase {
             return
         }
         
+        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+            return
+        }
+        
         guard let mediaID = mediaID else {
             return
         }
@@ -505,7 +599,7 @@ class VoiceBase {
         
         request.httpMethod = "DELETE"
         
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
             //            print((response as? HTTPURLResponse)?.statusCode)
@@ -969,6 +1063,10 @@ class VoiceBase {
             return
         }
         
+        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+            return
+        }
+        
         guard let mediaID = mediaID else {
             uploadMedia()
             return
@@ -981,7 +1079,7 @@ class VoiceBase {
         
         request.httpMethod = "GET"
         
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
             //            print((response as? HTTPURLResponse)?.statusCode)
@@ -1119,6 +1217,10 @@ class VoiceBase {
             return
         }
         
+        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+            return
+        }
+        
         guard mediaItem != nil else {
             return
         }
@@ -1135,7 +1237,7 @@ class VoiceBase {
         
         request.httpMethod = "GET"
         
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         request.addValue("text/plain", forHTTPHeaderField: "Accept")
         
@@ -1445,6 +1547,10 @@ class VoiceBase {
             return
         }
         
+        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+            return
+        }
+        
         guard let mediaID = mediaID else {
             uploadMedia()
             return
@@ -1457,7 +1563,7 @@ class VoiceBase {
         
         request.httpMethod = "GET"
         
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         request.addValue("text/srt", forHTTPHeaderField: "Accept")
         
@@ -1485,6 +1591,10 @@ class VoiceBase {
             return
         }
         
+        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+            return
+        }
+        
         guard let string = string else {
             return
         }
@@ -1503,7 +1613,7 @@ class VoiceBase {
         
         request.httpMethod = "GET"
         
-        request.addValue("Bearer \(Constants.TOKEN)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         //        request.addValue("text/plain", forHTTPHeaderField: "Accept")
         

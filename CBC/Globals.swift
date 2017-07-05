@@ -552,11 +552,29 @@ var globals:Globals!
 struct Alert {
     var title : String
     var message : String?
+    var actions : [AlertAction]?
 }
 
 class Globals : NSObject, AVPlayerViewControllerDelegate
 {
-    var allowMGTs = true
+    var allowMGTs : Bool {
+        return voiceBaseAPIKey != nil
+    }
+    
+    var voiceBaseAPIKey : String? {
+        get {
+            return UserDefaults.standard.string(forKey: Constants.VOICEBASE_API_KEY)
+        }
+        set {
+            if newValue != nil {
+                UserDefaults.standard.set(newValue, forKey: Constants.VOICEBASE_API_KEY)
+                UserDefaults.standard.synchronize()
+            } else {
+                UserDefaults.standard.removeObject(forKey: Constants.VOICEBASE_API_KEY)
+                UserDefaults.standard.synchronize()
+            }
+        }
+    }
     
     var splitViewController:UISplitViewController!
     
@@ -575,10 +593,19 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                                           message:alert.message,
                                           preferredStyle: UIAlertControllerStyle.alert)
             
-            let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-
-            })
-            alertVC.addAction(action)
+            if let alertActions = alert.actions {
+                for alertAction in alertActions {
+                    let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+                        alertAction.action?()
+                    })
+                    alertVC.addAction(action)
+                }
+            } else {
+                let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                    
+                })
+                alertVC.addAction(action)
+            }
             
             DispatchQueue.main.async(execute: { () -> Void in
                 globals.splitViewController.present(alertVC, animated: true, completion: {
@@ -594,7 +621,12 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     func alert(title:String,message:String?)
     {
-        alerts.append(Alert(title: title, message: message))
+        alerts.append(Alert(title: title, message: message, actions: nil))
+    }
+    
+    func alert(title:String,message:String?,actions:[AlertAction]?)
+    {
+        alerts.append(Alert(title: title, message: message, actions: actions))
     }
     
     func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool

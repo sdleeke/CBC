@@ -824,7 +824,7 @@ class MediaPlayer : NSObject {
             updateCurrentTimeExact()
             
             if mediaItem?.showing == Showing.video {
-               mediaItem?.showing = nil
+               mediaItem?.showing = mediaItem?.wasShowing
             }
             
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
@@ -941,6 +941,8 @@ class MediaPlayer : NSObject {
                 if seek < 0 {
                     seek = 0
                 }
+                
+                mediaItem?.atEnd = seek >= length
                 
                 player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
                              completionHandler: { (finished:Bool) in

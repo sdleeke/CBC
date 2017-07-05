@@ -567,6 +567,10 @@ extension MediaViewController : WKNavigationDelegate
     {
         print("wkWebViewDidFinishNavigation Loading:\(webView.isLoading)")
         
+        guard Thread.isMainThread else {
+            return
+        }
+        
         //        print("Frame: \(webView.frame)")
         //        print("Bounds: \(webView.bounds)")
         
@@ -586,29 +590,31 @@ extension MediaViewController : WKNavigationDelegate
             if (webView == document.wkWebView) {
                 //                        print("mediaItemNotesWebView")
                 if document.showing(selectedMediaItem) {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.activityIndicator.stopAnimating()
-                        self.activityIndicator.isHidden = true
-                        
-                        self.progressIndicator.isHidden = true
-                        
-                        self.setupSTVControl()
-                        
-                        //                            print("webView:hidden=panning")
+                    self.activityIndicator.stopAnimating()
+                    self.activityIndicator.isHidden = true
+                    
+                    self.progressIndicator.isHidden = true
+                    
+                    self.setupSTVControl()
+                    
+                    //                            print("webView:hidden=panning")
+                    
+                    webView.isHidden = false // self.panning
 
-                        webView.isHidden = false // self.panning
-                    })
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                    })
                 } else {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        //                            print("webView:hidden=true")
-                        webView.isHidden = true
-                    })
+                    webView.isHidden = true
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                        //                            print("webView:hidden=true")
+//                    })
                 }
                 
-                DispatchQueue.main.async(execute: { () -> Void in
-                    document.loadTimer?.invalidate()
-                    document.loadTimer = nil
-                })
+                document.loadTimer?.invalidate()
+                document.loadTimer = nil
+
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                })
 
                 setDocumentContentOffsetAndZoomScale(document)
 
@@ -773,6 +779,11 @@ class MediaViewController: UIViewController
     var popover : PopoverTableViewController?
     
     var videoLocation : VideoLocation = .withDocuments
+    {
+        didSet {
+            print("")
+        }
+    }
     
     var scripture:Scripture? {
         get {
@@ -2422,6 +2433,8 @@ class MediaViewController: UIViewController
         }
         
         guard (globals.mediaPlayer.mediaItem != nil) else {
+            globals.mediaPlayer.view?.isHidden = true
+            videoLocation = .withDocuments
             removeSliderObserver()
             playerURL(url: selectedMediaItem?.playingURL)
             updateUI()
@@ -2580,16 +2593,7 @@ class MediaViewController: UIViewController
             return
         }
 
-        progressIndicator.isHidden = !document.wkWebView!.isHidden
-        activityIndicator.isHidden = !document.wkWebView!.isHidden
-        
-        if document.showing(selectedMediaItem) {
-            if let estimatedProgress = document.wkWebView?.estimatedProgress {
-                progressIndicator.progress = Float(estimatedProgress)
-            }
-        }
-        
-        if (document.wkWebView != nil) && !document.wkWebView!.isLoading {
+        if let isLoading = document.wkWebView?.isLoading, !isLoading {
             activityIndicator.stopAnimating()
             activityIndicator.isHidden = true
             
@@ -2597,6 +2601,16 @@ class MediaViewController: UIViewController
             
             document.loadTimer?.invalidate()
             document.loadTimer = nil
+        } else {
+            progressIndicator.isHidden = !document.wkWebView!.isHidden
+            activityIndicator.isHidden = !document.wkWebView!.isHidden
+            
+            if document.showing(selectedMediaItem) {
+                if let estimatedProgress = document.wkWebView?.estimatedProgress {
+                    print(estimatedProgress)
+                    progressIndicator.progress = Float(estimatedProgress)
+                }
+            }
         }
     }
     
@@ -2670,94 +2684,101 @@ class MediaViewController: UIViewController
 //                print(document?.download?.state)
                 if let state = document?.download?.state, state != .downloaded {
                     if let showing = document?.showing(selectedMediaItem), showing {
-                        mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
-                        mediaItemNotesAndSlides.bringSubview(toFront: progressIndicator)
+                        self.activityIndicator.isHidden = false
+                        self.activityIndicator.startAnimating()
                         
-                        activityIndicator.isHidden = false
-                        activityIndicator.startAnimating()
+                        self.progressIndicator.progress = document!.download!.totalBytesExpectedToWrite != 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
+                        self.progressIndicator.isHidden = false
                         
-                        mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
+                        self.mediaItemNotesAndSlides.bringSubview(toFront: self.activityIndicator)
+                        self.mediaItemNotesAndSlides.bringSubview(toFront: self.progressIndicator)
                         
-                        progressIndicator.progress = document!.download!.totalBytesExpectedToWrite != 0 ? Float(document!.download!.totalBytesWritten) / Float(document!.download!.totalBytesExpectedToWrite) : 0.0
-                        progressIndicator.isHidden = false
-
-                        mediaItemNotesAndSlides.bringSubview(toFront: progressIndicator)
+                        // Unlike below, this doesn't seem to be necessary
+//                        DispatchQueue.main.async {
+//                        }
                     }
 
                     NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: document?.download)
-
-//                    DispatchQueue.main.async {
-//                    }
 
 //                    document?.download?.observer = #selector(MediaViewController.downloadFailed)
 
                     document?.download?.download()
                 } else {
-                    DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-//                        print(document!.download!.fileSystemURL!)
-
-                        if let fileSystemURL = document?.download?.fileSystemURL { //, let downloadURL = document?.download?.downloadURL
-                            DispatchQueue.main.async(execute: { () -> Void in
-                                if let showing = self.document?.showing(self.selectedMediaItem), showing {
-                                    self.activityIndicator.isHidden = false
-                                    self.activityIndicator.startAnimating()
-                                    
-                                    self.mediaItemNotesAndSlides.bringSubview(toFront: self.activityIndicator)
-                                }
-                            })
-                            
-                            _ = document?.wkWebView?.loadFileURL(fileSystemURL, allowingReadAccessTo: fileSystemURL)
+                    if let fileSystemURL = document?.download?.fileSystemURL { //, let downloadURL = document?.download?.downloadURL
+                        if let showing = self.document?.showing(self.selectedMediaItem), showing {
+                            // Even thought we're on the main thread without this dispatch these will never show up.
+                            DispatchQueue.main.async {
+                                self.activityIndicator.isHidden = false
+                                self.activityIndicator.startAnimating()
+                                
+                                self.mediaItemNotesAndSlides.bringSubview(toFront: self.activityIndicator)
+                            }
                         }
-                    })
+                        
+//                        DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+                            //                        print(document!.download!.fileSystemURL!)
+                            _ = document?.wkWebView?.loadFileURL(fileSystemURL, allowingReadAccessTo: fileSystemURL)
+                            
+                            //                        if let fileSystemURL = document?.download?.fileSystemURL { //, let downloadURL = document?.download?.downloadURL
+                            //                            _ = document?.wkWebView?.loadFileURL(fileSystemURL, allowingReadAccessTo: fileSystemURL)
+                            //                        }
+//                        })
+                    }
                 }
             } else {
-                DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        if let showing = document?.showing(self.selectedMediaItem), showing {
-                            self.activityIndicator.isHidden = false
-                            self.activityIndicator.startAnimating()
-                            
-                            self.progressIndicator.isHidden = false
-                        }
-                        
-                        if document?.loadTimer == nil {
-                            document?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(MediaViewController.loading(_:)), userInfo: document, repeats: true)
-                        }
-                    })
+                if let showing = document?.showing(self.selectedMediaItem), showing {
+                    self.activityIndicator.isHidden = false
+                    self.activityIndicator.startAnimating()
                     
-                    if (document == nil) {
-                        print("document nil")
-                    }
-                    if (document!.download == nil) {
-                        print("document!.download nil")
-                    }
-                    if (document!.download!.downloadURL == nil) {
-                        print("\(String(describing: self.selectedMediaItem?.title))")
-                        print("document!.download!.downloadURL nil")
-                    }
-                    
-                    let request = URLRequest(url: document!.download!.downloadURL!)
-                    _ = document?.wkWebView?.load(request)
-                })
-            }
-        } else {
-            DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-                DispatchQueue.main.async(execute: { () -> Void in
-                    if let showing = document?.showing(self.selectedMediaItem), showing {
-                        self.activityIndicator.isHidden = false
-                        self.activityIndicator.startAnimating()
-                        
-                        self.progressIndicator.isHidden = false
-                    }
-                    
-                    if document?.loadTimer == nil {
-                        document?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(MediaViewController.loading(_:)), userInfo: document, repeats: true)
-                    }
-                })
+                    self.progressIndicator.isHidden = false
+                }
+                
+                if document?.loadTimer == nil {
+                    document?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(MediaViewController.loading(_:)), userInfo: document, repeats: true)
+                }
+
+                ///////
+                
+                if (document == nil) {
+                    print("document nil")
+                }
+                if (document!.download == nil) {
+                    print("document!.download nil")
+                }
+                if (document!.download!.downloadURL == nil) {
+                    print("\(String(describing: self.selectedMediaItem?.title))")
+                    print("document!.download!.downloadURL nil")
+                }
                 
                 let request = URLRequest(url: document!.download!.downloadURL!)
                 _ = document?.wkWebView?.load(request)
-            })
+
+//                DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+//                    DispatchQueue.main.async(execute: { () -> Void in
+//                    })
+//                })
+            }
+        } else {
+            if let showing = document?.showing(self.selectedMediaItem), showing {
+                self.activityIndicator.isHidden = false
+                self.activityIndicator.startAnimating()
+                
+                self.progressIndicator.isHidden = false
+            }
+            
+            if document?.loadTimer == nil {
+                document?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(MediaViewController.loading(_:)), userInfo: document, repeats: true)
+            }
+
+            ///////
+            
+            let request = URLRequest(url: document!.download!.downloadURL!)
+            _ = document?.wkWebView?.load(request)
+            
+//            DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                })
+//            })
         }
     }
     
@@ -2923,28 +2944,7 @@ class MediaViewController: UIViewController
         
         switch showing {
         case Showing.notes:
-            globals.mediaPlayer.view?.isHidden = videoLocation == .withDocuments
-            logo.isHidden = true
-            
-            hideOtherDocuments()
-
-            if (wkWebView != nil) {
-                if let isLoading = wkWebView?.isLoading, isLoading {
-                    wkWebView?.isHidden = isLoading
-                } else {
-                    // Don't do this.  isHidden will be set when navigation is finished.
-//                    if globals.cacheDownloads {
-//                        if let state = document?.download?.state {
-//                            wkWebView?.isHidden = (state != .downloaded)
-//                        }
-//                    } else {
-//                        wkWebView?.isHidden = false
-//                    }
-                }
-                mediaItemNotesAndSlides.bringSubview(toFront: wkWebView!)
-            }
-            break
-            
+            fallthrough
         case Showing.slides:
             globals.mediaPlayer.view?.isHidden = videoLocation == .withDocuments
             logo.isHidden = true
@@ -2952,18 +2952,16 @@ class MediaViewController: UIViewController
             hideOtherDocuments()
 
             if (wkWebView != nil) {
-                if let isLoading = wkWebView?.isLoading, isLoading {
-                    wkWebView?.isHidden = isLoading
+                if globals.cacheDownloads {
+                    if let state = document?.download?.state {
+                        wkWebView?.isHidden = (state != .downloaded)
+                    }
                 } else {
-                    // Don't do this.  isHidden will be set when navigation is finished.
-//                    if globals.cacheDownloads {
-//                        if let state = document?.download?.state {
-//                            wkWebView?.isHidden = (state != .downloaded)
-//                        }
-//                    } else {
-//                        wkWebView?.isHidden = false
-//                    }
+                    if let isLoading = wkWebView?.isLoading {
+                        wkWebView?.isHidden = isLoading
+                    }
                 }
+
                 mediaItemNotesAndSlides.bringSubview(toFront: wkWebView!)
             }
             break
@@ -3266,9 +3264,9 @@ class MediaViewController: UIViewController
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
             self.setupTitle()
             
-            if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
-                print("splitViewController.isCollapsed == true")
-            }
+//            if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
+//                print("splitViewController.isCollapsed == true")
+//            }
 
             self.setDVCLeftBarButton()
 //            if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
@@ -3360,7 +3358,7 @@ class MediaViewController: UIViewController
         
         let (minConstraintConstant,maxConstraintConstant) = mediaItemNotesAndSlidesConstraintMinMax(self.view.bounds.height)
         
-        newConstraintConstant = self.view.bounds.height / 2
+        newConstraintConstant = self.view.bounds.height / 2 + controlView.bounds.height / 2
         
         if (newConstraintConstant >= minConstraintConstant) && (newConstraintConstant <= maxConstraintConstant) {
             self.mediaItemNotesAndSlidesConstraint.constant = newConstraintConstant
@@ -4782,6 +4780,56 @@ extension MediaViewController : UITableViewDataSource
                 return UITableViewRowAction()
             }
             
+            func mgtUpdate()
+            {
+                var transcriptPurpose:String!
+                
+                if let purpose = transcript?.purpose {
+                    switch purpose {
+                    case Purpose.audio:
+                        transcriptPurpose = Constants.Strings.Audio
+                        break
+                        
+                    case Purpose.video:
+                        transcriptPurpose = Constants.Strings.Video
+                        break
+                        
+                    case Purpose.slides:
+                        transcriptPurpose = Constants.Strings.Slides
+                        break
+                        
+                    case Purpose.notes:
+                        transcriptPurpose = Constants.Strings.Transcript
+                        break
+                        
+                    default:
+                        transcriptPurpose = "ERROR"
+                        break
+                    }
+                }
+                
+                let purpose = " (\(transcriptPurpose.lowercased()))"
+                
+                let completion = transcript?.percentComplete == nil ? purpose : purpose + " (\(transcript!.percentComplete!)% complete)"
+                
+                var title = "Machine Generated Transcript "
+                
+                var message = "You will be notified when the machine generated transcript for \(mediaItem.title!)\(completion) "
+                
+                if (transcript?.mediaID != nil) {
+                    title = title + "in Progress"
+                    message = message + "is available."
+                } else {
+                    title = title + "Requested"
+                    message = message + "has started."
+                }
+                print(title)
+                
+                alert(viewController:self,title: title, message: message,completion: {
+                    //                            tableView.setEditing(false, animated: true)
+                })
+            }
+            
             var prefix:String!
             
             switch purpose {
@@ -4823,6 +4871,7 @@ extension MediaViewController : UITableViewDataSource
                                     transcript?.getTranscript()
                                 })
                                 tableView.setEditing(false, animated: true)
+                                mgtUpdate()
                             }))
                             
                             alertActions.append(AlertAction(title: "No", style: .default, action: nil))
@@ -4836,54 +4885,7 @@ extension MediaViewController : UITableViewDataSource
                             networkUnavailable(self, "Machine Generated Transcript Unavailable.")
                         }
                     } else {
-                        var transcriptPurpose:String!
-                        
-                        if let purpose = transcript?.purpose {
-                            switch purpose {
-                            case Purpose.audio:
-                                transcriptPurpose = Constants.Strings.Audio
-                                break
-                                
-                            case Purpose.video:
-                                transcriptPurpose = Constants.Strings.Video
-                                break
-                                
-                            case Purpose.slides:
-                                transcriptPurpose = Constants.Strings.Slides
-                                break
-                                
-                            case Purpose.notes:
-                                transcriptPurpose = Constants.Strings.Transcript
-                                break
-                                
-                            default:
-                                transcriptPurpose = "ERROR"
-                                break
-                            }
-                        }
-                        
-                        let purpose = " (\(transcriptPurpose.lowercased()))"
-                        print(purpose)
-                        
-                        let completion = transcript?.percentComplete == nil ? purpose : purpose + " (\(transcript!.percentComplete!)% complete)"
-                        print(completion)
-                        
-                        var title = "Machine Generated Transcript "
-                        
-                        var message = "You will be notified when the machine generated transcript for \(mediaItem.title!)\(completion) "
-                        
-                        if (transcript?.mediaID != nil) {
-                            title = title + "in Progress"
-                            message = message + "is available."
-                        } else {
-                            title = title + "Requested"
-                            message = message + "has started."
-                        }
-                        print(title)
-                        
-                        alert(viewController:self,title: title, message: message,completion: {
-                            //                            tableView.setEditing(false, animated: true)
-                        })
+                        mgtUpdate()
                     }
                 } else {
                     var alertActions = [AlertAction]()
@@ -5221,55 +5223,51 @@ extension MediaViewController : UITableViewDataSource
             actions.append(transcript)
         }
         
-//        if !mediaItem.hasNotes {
-        
-        if mediaItem.hasAudio && globals.allowMGTs {
-            if mediaItem.audioTranscript?.transcript != nil {
-                recognizeAudio.backgroundColor = UIColor.lightGray
+        if mediaItem.audioTranscript?.transcript != nil {
+            recognizeAudio.backgroundColor = UIColor.lightGray
+            actions.append(recognizeAudio)
+        } else {
+            if let transcribing = mediaItem.audioTranscript?.transcribing, transcribing {
+                recognizeAudio.backgroundColor = UIColor.gray
+                actions.append(recognizeAudio)
             } else {
-                if let transcribing = mediaItem.audioTranscript?.transcribing, transcribing {
-                    recognizeAudio.backgroundColor = UIColor.gray
-                } else {
+                if mediaItem.hasAudio && globals.allowMGTs {
                     recognizeAudio.backgroundColor = UIColor.darkGray
+                    actions.append(recognizeAudio)
                 }
             }
-            actions.append(recognizeAudio)
-            
+        }
+        
+        if mediaItem.hasAudio && globals.allowMGTs {
             if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.audio) && (mediaItem == selectedMediaItem) {
                 if mediaItem.audioTranscript?.keywords != nil {
                     actions.append(audioKeywords)
                 }
-                
-                //                if mediaItem.audioTranscript?.topics != nil {
-                //                    actions.append(topics)
-                //                }
+            }
+        }
+        
+        if mediaItem.videoTranscript?.transcript != nil {
+            recognizeVideo.backgroundColor = UIColor.lightGray
+            actions.append(recognizeVideo)
+        } else {
+            if let transcribing = mediaItem.videoTranscript?.transcribing, transcribing {
+                recognizeVideo.backgroundColor = UIColor.gray
+                actions.append(recognizeVideo)
+            } else {
+                if mediaItem.hasVideo && globals.allowMGTs {
+                    recognizeVideo.backgroundColor = UIColor.darkGray
+                    actions.append(recognizeVideo)
+                }
             }
         }
         
         if mediaItem.hasVideo && globals.allowMGTs {
-            if mediaItem.videoTranscript?.transcript != nil {
-                recognizeVideo.backgroundColor = UIColor.lightGray
-            } else {
-                if let transcribing = mediaItem.videoTranscript?.transcribing, transcribing {
-                    recognizeVideo.backgroundColor = UIColor.gray
-                } else {
-                    recognizeVideo.backgroundColor = UIColor.darkGray
-                }
-            }
-            actions.append(recognizeVideo)
-            
             if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.video) && (mediaItem == selectedMediaItem)  {
                 if mediaItem.videoTranscript?.keywords != nil {
                     actions.append(videoKeywords)
                 }
-                
-                //                if mediaItem.videoTranscript?.topics != nil {
-                //                    actions.append(videoTopics)
-                //                }
             }
         }
-        
-//        }
         
         return actions.count > 0 ? actions : nil
     }
