@@ -4823,11 +4823,8 @@ extension MediaViewController : UITableViewDataSource
                     title = title + "Requested"
                     message = message + "has started."
                 }
-                print(title)
                 
-                alert(viewController:self,title: title, message: message,completion: {
-                    //                            tableView.setEditing(false, animated: true)
-                })
+                globals.alert(title:title, message:message)
             }
             
             var prefix:String!
@@ -4857,19 +4854,23 @@ extension MediaViewController : UITableViewDataSource
                         return
                     }
                     
-                    guard transcript?.mediaID != "Completed" else {
+                    guard let completed = transcript?.completed, !completed else {
                         print("Completed!  SHOULD NOT HAPPEN!!!")
                         return
                     }
+//                    guard transcript?.mediaID != "Completed" else {
+//                        print("Completed!  SHOULD NOT HAPPEN!!!")
+//                        return
+//                    }
                     
                     if !transcribing {
                         if globals.reachability.currentReachabilityStatus != .notReachable {
                             var alertActions = [AlertAction]()
                             
                             alertActions.append(AlertAction(title: "Yes", style: .default, action: {
-                                DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-                                    transcript?.getTranscript()
-                                })
+                                transcript?.getTranscript()
+//                                DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+//                                })
                                 tableView.setEditing(false, animated: true)
                                 mgtUpdate()
                             }))
@@ -4968,9 +4969,21 @@ extension MediaViewController : UITableViewDataSource
                         })
                     }))
                     
-                    alertActions.append(AlertAction(title: "Delete", style: .default, action: {
-                        transcript?.remove()
-                        tableView.setEditing(false, animated: true)
+                    alertActions.append(AlertAction(title: "Delete", style: .destructive, action: {
+                        var alertActions = [AlertAction]()
+                        
+                        alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
+                            transcript?.remove()
+                            tableView.setEditing(false, animated: true)
+                        }))
+                        
+                        alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+                        
+                        alertActionsCancel( viewController: self,
+                                            title: "Confirm Deletion of Machine Generated Transcript for \(transcript!.mediaItem!.title!) (\(purpose.lowercased()))",
+                            message: nil,
+                            alertActions: alertActions,
+                            cancelAction: nil)
                     }))
 
                     alertActionsCancel(  viewController: self,

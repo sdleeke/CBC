@@ -188,7 +188,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 break
             }
             
-            ptvc.section.build()
+            ptvc.section.buildIndex()
             
             ptvc.tableView.reloadData()
             break

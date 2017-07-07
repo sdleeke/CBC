@@ -43,10 +43,28 @@ extension VoiceBase // Class Methods
         request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            //            print((response as? HTTPURLResponse)?.statusCode as Any)
+            if let error = error {
+                print("class delete error: ",error.localizedDescription)
+            }
+            
+            guard let response = response else {
+                return
+            }
+            
+            print("class delete response: ",response.description)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return
+            }
+            
+            print("class delete HTTP response: ",httpResponse.description)
+            print("class delete HTTP response: ",httpResponse.allHeaderFields)
+            print("class delete HTTP response: ",httpResponse.statusCode)
+            print("class delete HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+
             if let data = data {
-                //                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                //                print(string as Any) // object name
+                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                print(string as Any)
                 
                 if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
                     print(json)
@@ -58,20 +76,12 @@ extension VoiceBase // Class Methods
                 // No data
                 
             }
-            
-            if let response = response {
-                print("class delete response: ",response.description)
-            }
-            
-            if let error = error {
-                print("class delete error: ",error.localizedDescription)
-            }
         })
         
         task.resume()
     }
     
-    static func getAllMedia(completion:((Void)->(Void))?)
+    static func getAllMedia(completion:(([[String:Any]]?)->(Void))?)
     {
         print("VoiceBase.getAllMedia")
         
@@ -93,7 +103,25 @@ extension VoiceBase // Class Methods
         request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            //            print((response as? HTTPURLResponse)?.statusCode as Any)
+            if let error = error {
+                print("class getAllMedia error: ",error.localizedDescription)
+            }
+            
+            guard let response = response else {
+                return
+            }
+            
+            print("class getAllMedia response: ",response.description)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return
+            }
+            
+            print("class getAllMedia HTTP response: ",httpResponse.description)
+            print("class getAllMedia HTTP response: ",httpResponse.allHeaderFields)
+            print("class getAllMedia HTTP response: ",httpResponse.statusCode)
+            print("class getAllMedia HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+
             if let data = data {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
                 print(string as Any) // object name
@@ -103,14 +131,16 @@ extension VoiceBase // Class Methods
                     
                     if let mediaItems = json["media"] as? [[String:Any]] {
                         if mediaItems.count > 0 {
-                            let deleteAllAction = AlertAction(title: "Delete All", style: .destructive, action: completion)
-                            let cancelAction = AlertAction(title: "Cancel", style: .default, action: nil)
+                            completion?(mediaItems)
                             
-                            if mediaItems.count > 1 {
-                                globals.alert(title: "Your VoiceBase Media Library contains \(mediaItems.count) items.", message: nil, actions:[deleteAllAction,cancelAction])
-                            } else {
-                                globals.alert(title: "Your VoiceBase Media Library contains \(mediaItems.count) item.", message: nil, actions:[deleteAllAction,cancelAction])
-                            }
+//                            let deleteAllAction = AlertAction(title: "Delete All", style: .destructive, action: completion)
+//                            let cancelAction = AlertAction(title: "Cancel", style: .default, action: nil)
+//                            
+//                            if mediaItems.count > 1 {
+//                                globals.alert(title: "Your VoiceBase Media Library contains \(mediaItems.count) items.", message: nil, actions:[deleteAllAction,cancelAction])
+//                            } else {
+//                                globals.alert(title: "Your VoiceBase Media Library contains \(mediaItems.count) item.", message: nil, actions:[deleteAllAction,cancelAction])
+//                            }
                         } else {
                             globals.alert(title: "Your VoiceBase Media Library does not contain any items.", message: nil)
                         }
@@ -125,20 +155,12 @@ extension VoiceBase // Class Methods
                 // No data
                 globals.alert(title: "Unable to Determine the number of items in your VoiceBase Media Library.", message: nil)
             }
-            
-            if let response = response {
-                print("class getAllMedia response: ",response.description)
-            }
-            
-            if let error = error {
-                print("class getAllMedia error: ",error.localizedDescription)
-            }
         })
         
         task.resume()
     }
     
-    static func deleteAllMedia()
+    @objc static func deleteAllMedia()
     {
         print("VoiceBase.deleteAllMedia")
         
@@ -160,12 +182,30 @@ extension VoiceBase // Class Methods
         request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            //            print((response as? HTTPURLResponse)?.statusCode as Any)
-            if data != nil {
-                //                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                //                print(string as Any) // object name
+            if let error = error {
+                print("class deleteAllMedia error: ",error.localizedDescription)
+            }
+            
+            guard let response = response else {
+                return
+            }
+            
+            print("class deleteAllMedia response: ",response.description)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return
+            }
+            
+            print("class deleteAllMedia HTTP response: ",httpResponse.description)
+            print("class deleteAllMedia HTTP response: ",httpResponse.allHeaderFields)
+            print("class deleteAllMedia HTTP response: ",httpResponse.statusCode)
+            print("class deleteAllMedia HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+
+            if let data = data {
+                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                print(string as Any)
                 
-                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
+                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
                     print(json)
                     
                     if let mediaItems = json["media"] as? [[String:Any]] {
@@ -194,14 +234,6 @@ extension VoiceBase // Class Methods
                 // No data
                 globals.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
             }
-            
-            if let response = response {
-                print("class deleteAllMedia response: ",response.description)
-            }
-            
-            if let error = error {
-                print("class deleteAllMedia error: ",error.localizedDescription)
-            }
         })
         
         task.resume()
@@ -223,37 +255,20 @@ class VoiceBase {
         }
     }
     
-    init(mediaItem:MediaItem,purpose:String)
+    var completed = false
     {
-        self.mediaItem = mediaItem
-        
-        self.purpose = purpose
-        
-        if let mediaID = mediaItem.mediaItemSettings?["mediaID."+self.purpose!] {
-            self.mediaID = mediaID
+        didSet {
+            mediaItem.mediaItemSettings?["completed."+purpose!] = completed ? "YES" : "NO"
         }
     }
     
     var transcribing = false
-    var upload:[String:Any]?
+    
+    var percentComplete:String?
+    
+    var uploadJSON:[String:Any]?
     
     var resultsTimer:Timer?
-    
-    func createBody(parameters: [String: String],boundary: String) -> Data {
-        let body = NSMutableData()
-        
-        let boundaryPrefix = "--\(boundary)\r\n"
-        
-        for (key, value) in parameters {
-            body.appendString(boundaryPrefix)
-            body.appendString("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
-            body.appendString("\(value)\r\n")
-        }
-        
-        body.appendString("--".appending(boundary.appending("--")))
-        
-        return body as Data
-    }
     
     var url:String? {
         switch purpose! {
@@ -268,6 +283,486 @@ class VoiceBase {
         }
     }
     
+    var transcript:String?
+    {
+        get {
+            guard (_transcript == nil) else {
+                return _transcript
+            }
+            
+            guard (mediaID != nil) else { // (mediaID == "Completed") ||
+                return nil
+            }
+            
+            if completed {
+                if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!)") {
+                    do {
+                        try _transcript = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8)
+                        // This will cause an error.  The tag is created in the constantTags getter while loading.
+                        //                    mediaItem.addTag("Machine Generated Transcript")
+                        
+                        // Also, the tag would normally be added or removed in teh didSet for transcript but didSet's are not
+                        // called during init()'s which is fortunate.
+                    } catch let error as NSError {
+                        print("failed to load machine generated transcript for \(mediaItem.description): \(error.localizedDescription)")
+    //                    if mediaID == "Completed" {
+    //                        mediaID = nil
+    //                        print("failed to load machine generated transcript for \(mediaItem.description): \(error.localizedDescription)")
+    //                    }
+                    }
+                }
+            } else {
+                if !transcribing && (_transcript == nil) && (mediaID != nil) && (self.resultsTimer == nil) { //  && (mediaID != "Completed")
+                    DispatchQueue(label: "CBC").sync(execute: { () -> Void in
+                        self.mediaItem.removeTag("Machine Generated Transcript")
+                    })
+                    
+                    transcribing = true
+                    
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(VoiceBase.getProgress), userInfo: nil, repeats: true)
+                    })
+                } else {
+                    // Overkill to make sure the cloud storage is cleaned-up?
+                    //                mediaItem.voicebase?.delete()  // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
+                }
+            }
+            
+            return _transcript
+        }
+        set {
+            _transcript = newValue
+        }
+    }
+    
+    var _transcript:String?
+    {
+        didSet {
+            guard mediaItem != nil else {
+                return
+            }
+            
+            let fileManager = FileManager.default
+            
+            if _transcript != nil {
+                DispatchQueue(label: "CBC").sync(execute: { () -> Void in
+                    self.mediaItem.addTag("Machine Generated Transcript")
+                })
+                
+                if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!)") {
+                    // Check if file exist
+                    if (fileManager.fileExists(atPath: destinationURL.path)){
+                        do {
+                            try fileManager.removeItem(at: destinationURL)
+                        } catch let error as NSError {
+                            print("failed to remove machine generated transcript: \(error.localizedDescription)")
+                        }
+                    }
+                    
+                    do {
+                        try _transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8);
+                    } catch let error as NSError {
+                        print("failed to write transcript to cache directory: \(error.localizedDescription)")
+                    }
+                } else {
+                    print("failed to get destinationURL")
+                }
+            } else {
+                DispatchQueue(label: "CBC").sync(execute: { () -> Void in
+                    self.mediaItem.removeTag("Machine Generated Transcript")
+                })
+                
+                if let destinationURL = cachesURL()?.appendingPathComponent(mediaItem.id!+".\(purpose!)") {
+                    // Check if file exist
+                    if (fileManager.fileExists(atPath: destinationURL.path)){
+                        do {
+                            try fileManager.removeItem(at: destinationURL)
+                        } catch let error as NSError {
+                            print("failed to remove machine generated transcript: \(error.localizedDescription)")
+                        }
+                    } else {
+                        print("machine generated transcript file doesn't exist")
+                    }
+                } else {
+                    print("failed to get destinationURL")
+                }
+            }
+            
+            DispatchQueue.main.async(execute: { () -> Void in
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+            })
+        }
+    }
+    
+    var mediaJSON: [String:Any]?
+    {
+        get {
+            guard _mediaJSON == nil else {
+                return _mediaJSON
+            }
+            
+            guard mediaItem != nil else {
+                return nil
+            }
+            
+            guard mediaItem?.id != nil else {
+                return nil
+            }
+            
+            guard purpose != nil else {
+                return nil
+            }
+            
+            if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).media"), let data = try? Data(contentsOf: url) {
+                do {
+                    _mediaJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
+                } catch let error as NSError {
+                    print("failed to load machine generated media for \(mediaItem.description): \(error.localizedDescription)")
+                    remove()
+                }
+            } else {
+                print("failed to open machine generated media for \(mediaItem.description)")
+                // Not sure I want to do this since it only removes keywords
+//                remove()
+            }
+            
+            return _mediaJSON
+        }
+        set {
+            _mediaJSON = newValue
+        }
+    }
+    
+    var _mediaJSON : [String:Any]?
+    {
+        didSet {
+            guard mediaItem != nil else {
+                return
+            }
+            
+            guard mediaItem?.id != nil else {
+                return
+            }
+            
+            guard purpose != nil else {
+                return
+            }
+            
+            let fileManager = FileManager.default
+            
+            if _mediaJSON != nil {
+                let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: _mediaJSON as Any, format: .xml, options: 0)
+                
+                if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).media") {
+                    if (fileManager.fileExists(atPath: destinationURL.path)){
+                        do {
+                            try fileManager.removeItem(at: destinationURL)
+                        } catch let error as NSError {
+                            print("failed to remove machine generated transcript media: \(error.localizedDescription)")
+                        }
+                    }
+                    
+                    do {
+                        try mediaPropertyList?.write(to: destinationURL)
+                    } catch let error as NSError {
+                        print("failed to write machine generated transcript media to cache directory: \(error.localizedDescription)")
+                    }
+                }
+            } else {
+                if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).media") {
+                    if (fileManager.fileExists(atPath: destinationURL.path)){
+                        do {
+                            try fileManager.removeItem(at: destinationURL)
+                        } catch let error as NSError {
+                            print("failed to remove machine generated transcript media: \(error.localizedDescription)")
+                        }
+                    } else {
+                        print("machine generated transcript media file doesn't exist")
+                    }
+                } else {
+                    print("failed to get destinationURL")
+                }
+            }
+        }
+    }
+
+    var keywordsJSON: [String:Any]?
+    {
+        get {
+            return mediaJSON?["keywords"] as! [String:Any]?
+//            guard _keywordsJSON == nil else {
+//                return _keywordsJSON
+//            }
+//            
+//            guard mediaItem != nil else {
+//                return nil
+//            }
+//            
+//            guard mediaItem?.id != nil else {
+//                return nil
+//            }
+//            
+//            guard purpose != nil else {
+//                return nil
+//            }
+//            
+//            if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).keywords"), let data = try? Data(contentsOf: url) {
+//                do {
+//                    _keywordsJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
+//                    //                            print(self.keywordsJSON)
+//                    //                            print(self.keywords)
+//                } catch let error as NSError {
+//                    print("failed to load machine generated keywords for \(mediaItem.description): \(error.localizedDescription)")
+//                }
+//            }
+//            
+//            return _keywordsJSON
+        }
+//        set {
+//            _keywordsJSON = newValue
+//        }
+    }
+    
+//    var _keywordsJSON : [String:Any]?
+//    {
+//        didSet {
+//            guard mediaItem != nil else {
+//                return
+//            }
+//            
+//            guard mediaItem?.id != nil else {
+//                return
+//            }
+//            
+//            guard purpose != nil else {
+//                return
+//            }
+//            
+//            let fileManager = FileManager.default
+//            
+//            if _keywordsJSON != nil {
+//                let keywordsPropertyList = try? PropertyListSerialization.data(fromPropertyList: _keywordsJSON as Any, format: .xml, options: 0)
+//                
+//                if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).keywords") {
+//                    if (fileManager.fileExists(atPath: destinationURL.path)){
+//                        do {
+//                            try fileManager.removeItem(at: destinationURL)
+//                        } catch let error as NSError {
+//                            print("failed to remove machine generated transcript keywords: \(error.localizedDescription)")
+//                        }
+//                    }
+//                    
+//                    do {
+//                        try keywordsPropertyList?.write(to: destinationURL)
+//                    } catch let error as NSError {
+//                        print("failed to write machine generated transcript keywords to cache directory: \(error.localizedDescription)")
+//                    }
+//                }
+//            } else {
+//                if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).keywords") {
+//                    if (fileManager.fileExists(atPath: destinationURL.path)){
+//                        do {
+//                            try fileManager.removeItem(at: destinationURL)
+//                        } catch let error as NSError {
+//                            print("failed to remove machine generated transcript keywords: \(error.localizedDescription)")
+//                        }
+//                    } else {
+//                        print("machine generated transcript keywords file doesn't exist")
+//                    }
+//                } else {
+//                    print("failed to get destinationURL")
+//                }
+//            }
+//        }
+//    }
+    
+    var keywordDictionaries : [String:[String:Any]]?
+    {
+        get {
+            if let latest = keywordsJSON?["latest"] as? [String:Any] {
+                if let wordDictionaries = latest["words"] as? [[String:Any]] {
+                    var kwdd = [String:[String:Any]]()
+                    
+                    for dict in wordDictionaries {
+                        if let name = dict["name"] as? String {
+                            kwdd[name.lowercased()] = dict
+                        }
+                    }
+                    
+                    return kwdd.count > 0 ? kwdd : nil
+                }
+            }
+            
+            return nil
+        }
+    }
+    
+    var keywords : [String]?
+    {
+        get {
+            if let keywords = keywordDictionaries?.filter({ (key: String, value: [String : Any]) -> Bool in
+                if let speakerTimes = value["t"] as? [String:[String]] {
+                    if let times = speakerTimes["unknown"] {
+                        return times.count > 0
+                    }
+                }
+                return false
+            }).map({ (key: String, value: [String : Any]) -> String in
+                return key
+            }) {
+                return keywords
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    var topicsJSON : [String:Any]?
+    {
+        get {
+            return mediaJSON?["topics"] as! [String:Any]?
+//            guard _topicsJSON == nil else {
+//                return _topicsJSON
+//            }
+//            
+//            guard mediaItem != nil else {
+//                return nil
+//            }
+//            
+//            guard mediaItem?.id != nil else {
+//                return nil
+//            }
+//            
+//            guard purpose != nil else {
+//                return nil
+//            }
+//            
+//            if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).topics"), let data = try? Data(contentsOf: url) {
+//                do {
+//                    _topicsJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
+//                    //                            print(self.topicsJSON)
+//                    //                            print(self.topics)
+//                } catch let error as NSError {
+//                    print("failed to load machine generated topics for \(mediaItem.description): \(error.localizedDescription)")
+//                }
+//            }
+//            
+//            return _topicsJSON
+        }
+//        set {
+//            _topicsJSON = newValue
+//        }
+    }
+    
+//    var _topicsJSON : [String:Any]?
+//    {
+//        didSet {
+//            let fileManager = FileManager.default
+//            
+//            if topicsJSON != nil {
+//                let topicsPropertyList = try? PropertyListSerialization.data(fromPropertyList: self.topicsJSON as Any, format: .xml, options: 0)
+//                
+//                if let destinationURL = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).topics") {
+//                    if (fileManager.fileExists(atPath: destinationURL.path)){
+//                        do {
+//                            try fileManager.removeItem(at: destinationURL)
+//                        } catch let error as NSError {
+//                            print("failed to remove machine generated transcript topics: \(error.localizedDescription)")
+//                        }
+//                    }
+//                    
+//                    do {
+//                        try topicsPropertyList?.write(to: destinationURL)
+//                    } catch let error as NSError {
+//                        print("failed to write machine generated transcript topics to cache directory: \(error.localizedDescription)")
+//                    }
+//                }
+//            } else {
+//                if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).topics") {
+//                    if (fileManager.fileExists(atPath: destinationURL.path)){
+//                        do {
+//                            try fileManager.removeItem(at: destinationURL)
+//                        } catch let error as NSError {
+//                            print("failed to remove machine generated transcript topics: \(error.localizedDescription)")
+//                        }
+//                    } else {
+//                        print("machine generated transcript topics file doesn't exist")
+//                    }
+//                } else {
+//                    print("failed to get destinationURL")
+//                }
+//            }
+//        }
+//    }
+    
+    var topicsDictionaries : [String:[String:Any]]?
+    {
+        get {
+            if let latest = topicsJSON?["latest"] as? [String:Any] {
+                if let words = latest["topics"] as? [[String:Any]] {
+                    var tdd = [String:[String:Any]]()
+                    
+                    for dict in words {
+                        if let name = dict["name"] as? String {
+                            tdd[name] = dict
+                        }
+                    }
+                    
+                    return tdd.count > 0 ? tdd : nil
+                } else {
+                    return nil
+                }
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    var topics : [String]?
+    {
+        get {
+            if let topics = topicsDictionaries?.map({ (key: String, value: [String : Any]) -> String in
+                return key
+            }) {
+                return topics
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    init(mediaItem:MediaItem,purpose:String)
+    {
+        self.mediaItem = mediaItem
+        
+        self.purpose = purpose
+        
+        if let mediaID = mediaItem.mediaItemSettings?["mediaID."+self.purpose!] {
+            self.mediaID = mediaID
+        }
+        
+        if let completed = mediaItem.mediaItemSettings?["completed."+self.purpose!] {
+            self.completed = completed == "YES"
+        }
+    }
+    
+    func createBody(parameters: [String: String],boundary: String) -> NSData
+    {
+        let body = NSMutableData()
+        
+        let boundaryPrefix = "--\(boundary)\r\n"
+        
+        for (key, value) in parameters {
+            body.appendString(boundaryPrefix)
+            body.appendString("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
+            body.appendString("\(value)\r\n")
+        }
+        
+        body.appendString("--".appending(boundary.appending("--")))
+        
+        return body //as Data
+    }
+    
     func uploadMedia()
     {
         guard globals.reachability.currentReachabilityStatus != .notReachable else {
@@ -278,7 +773,7 @@ class VoiceBase {
             return
         }
         
-        guard !transcribing && (upload == nil) else {
+        guard !transcribing && (uploadJSON == nil) else {
             return
         }
         
@@ -296,78 +791,89 @@ class VoiceBase {
         
         request.httpMethod = "POST"
         
-        let boundary = "Boundary-\(UUID().uuidString)"
-        
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        
         request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
-        let body = createBody(parameters: ["media":url],boundary: boundary)
+        let boundary = "Boundary-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         
-        request.httpBody = body
+        let body = createBody(parameters: ["media":url,"metadata":mediaItem.json(purpose:purpose?.lowercased())],boundary: boundary)
         
+        request.httpBody = body as Data
+        request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
+
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            //            print((response as? HTTPURLResponse)?.statusCode)
+            if let error = error {
+                print("uploadMedia error: ",error.localizedDescription)
+            }
+            
+            guard let response = response else {
+                return
+            }
+            
+            print("uploadMedia response: ",response.description)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return
+            }
+            
+            print("uploadMedia HTTP response: ",httpResponse.description)
+            print("uploadMedia HTTP response: ",httpResponse.allHeaderFields)
+            print("uploadMedia HTTP response: ",httpResponse.statusCode)
+            print("uploadMedia HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
             
             var failed = true
             
             if let data = data {
-                //                let string = String.init(data: data, encoding: String.Encoding.utf8)
-                //                print(string)
+                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                print(string as Any)
                 
                 if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
-                    //                    print(json)
+                    print(json)
                     
                     if json["errors"] == nil {
-                        self.upload = json
-                        self.mediaID = json["mediaId"] as? String
+                        self.uploadJSON = json
                         
-                        //                        if #available(iOS 10.0, *) {
-                        //                            notification(title: "Machine Generated Transcript Started", message: "The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.")
-                        //                        } else {
-                        //                            alert(viewController:nil,title: "Machine Generated Transcript Started", message: "The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.",completion: nil)
-                        //                        }
-                        
-                        //                        alert(viewController:nil,title: "Machine Generated Transcript Started", message: "The machine generated transcript for \(self.mediaItem.title!) (\(self.purpose!.lowercased())) has been started.  You will be notified when it is complete.",completion: nil)
-                        
-                        var transcriptPurpose:String!
-                        
-                        if let purpose = self.purpose {
-                            switch purpose {
-                            case Purpose.audio:
-                                transcriptPurpose = Constants.Strings.Audio
-                                break
+                        if let status = json["status"] as? String, status == "accepted" {
+                            if let mediaID = json["mediaId"] as? String {
+                                self.mediaID = mediaID
                                 
-                            case Purpose.video:
-                                transcriptPurpose = Constants.Strings.Video
-                                break
+//                                self.addMedtaData()
                                 
-                            case Purpose.slides:
-                                transcriptPurpose = Constants.Strings.Slides
-                                break
+                                var transcriptPurpose:String!
                                 
-                            case Purpose.notes:
-                                transcriptPurpose = Constants.Strings.Transcript
-                                break
+                                if let purpose = self.purpose {
+                                    switch purpose {
+                                    case Purpose.audio:
+                                        transcriptPurpose = Constants.Strings.Audio
+                                        break
+                                        
+                                    case Purpose.video:
+                                        transcriptPurpose = Constants.Strings.Video
+                                        break
+                                        
+                                    case Purpose.slides:
+                                        transcriptPurpose = Constants.Strings.Slides
+                                        break
+                                        
+                                    case Purpose.notes:
+                                        transcriptPurpose = Constants.Strings.Transcript
+                                        break
+                                        
+                                    default:
+                                        transcriptPurpose = "ERROR"
+                                        break
+                                    }
+                                }
                                 
-                            default:
-                                transcriptPurpose = "ERROR"
-                                break
+                                globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for \(self.mediaItem.title!) (\(transcriptPurpose.lowercased())) has been started.  You will be notified when it is complete.")
+                                
+                                DispatchQueue.main.async(execute: { () -> Void in
+                                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(VoiceBase.getProgress), userInfo: nil, repeats: true)
+                                })
+
+                                failed = false
                             }
                         }
-                        
-                        globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for \(self.mediaItem.title!) (\(transcriptPurpose.lowercased())) has been started.  You will be notified when it is complete.")
-                        //                        DispatchQueue.main.async(execute: { () -> Void in
-                        //                        })
-                        
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_UPLOAD), object: self)
-                        })
-                        
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(VoiceBase.getProgress), userInfo: nil, repeats: true)
-                        })
-                        failed = false
                     }
                 } else {
                     // JSONSerialization.jsonObject call failed
@@ -378,16 +884,9 @@ class VoiceBase {
                 
             }
             
-            if let response = response {
-                print("uploadMedia response: ",response.description)
-            }
-            
-            if let error = error {
-                print("uploadMedia error: ",error.localizedDescription)
-            }
-            
             if failed {
                 // FAIL
+                
                 var transcriptPurpose:String!
                 
                 if let purpose = self.purpose {
@@ -417,8 +916,9 @@ class VoiceBase {
                 globals.alert(title: "Transcript Failed",message: "The transcript for \(self.mediaItem.title!) (\(transcriptPurpose.lowercased())) failed to start.  Please try again.")
                 
                 DispatchQueue.main.async(execute: { () -> Void in
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_UPLOAD), object: self)
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_START), object: self)
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
                 })
                 
                 self.transcribing = false
@@ -427,8 +927,6 @@ class VoiceBase {
         
         task.resume()
     }
-    
-    var percentComplete:String?
     
     @objc func getProgress()
     {
@@ -445,7 +943,6 @@ class VoiceBase {
         }
         
         guard let mediaID = mediaID else {
-            uploadMedia()
             return
         }
         
@@ -459,10 +956,32 @@ class VoiceBase {
         request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            //            print((response as? HTTPURLResponse)?.statusCode)
+            if let error = error {
+                print("getProgress error: ",error.localizedDescription)
+            }
+            
+            guard let response = response else {
+                return
+            }
+            
+            print("getProgress response: ",response.description)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return
+            }
+            
+            print("getProgress HTTP response: ",httpResponse.description)
+            print("getProgress HTTP response: ",httpResponse.allHeaderFields)
+            print("getProgress HTTP response: ",httpResponse.statusCode)
+            print("getProgress HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+
+            guard self.mediaID != nil else {
+                return
+            }
+            
             if let data = data {
-//                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-//                print(string) // object name
+                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                print(string as Any)
                 
                 if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
                     print(json)
@@ -552,7 +1071,7 @@ class VoiceBase {
                                         }
                                     }
                                     
-                                    print("\(self.mediaItem.title!) is \(self.percentComplete!)% finished (\(transcriptPurpose.lowercased()))")
+                                    print("\(self.mediaItem.title!) (\(transcriptPurpose.lowercased())) is \(self.percentComplete!)% finished")
                                 }
                             }
                         }
@@ -564,14 +1083,6 @@ class VoiceBase {
             } else {
                 // No data
                 
-            }
-            
-            if let response = response {
-                print("getProgress response: ",response.description)
-            }
-            
-            if let error = error {
-                print("getProgress error: ",error.localizedDescription)
             }
         })
         
@@ -602,23 +1113,37 @@ class VoiceBase {
         request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            //            print((response as? HTTPURLResponse)?.statusCode)
-            
-            // Once we know the object is deleted we should set mediaID to "Completed" (or some other agreed upon string) so we aren't hitting the
-            // file system everytime we want to see if some mediaItem has a transcript and so we don't keep trying to delete it.
-            
-            if data != nil {
-                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                print(string as Any) // object name
+            if let error = error {
+                print("delete error: ",error.localizedDescription)
+            }
 
+            guard let response = response else {
+                return
+            }
+
+            print("delete response: ",response.description)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return
+            }
+            
+            print("delete response: ",httpResponse.description)
+            print("delete response: ",httpResponse.allHeaderFields)
+            print("delete response: ",httpResponse.statusCode)
+            print("delete HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+
+            if (httpResponse.statusCode == 204) || (httpResponse.statusCode == 404) {
+                // It eithber completed w/o error (204) so it is now gone and we should set mediaID to nil OR it couldn't be found (404) in which case it should also be set to nil.
+                self.mediaID = nil // self._transcript != nil ? "Completed" :
+            }
+            
+            if data?.count > 0 {
+                let string = String.init(data: data!, encoding: String.Encoding.utf8)
+                print(string as Any)
+                
                 if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
                     print(json)
                     
-                    if let errors = json["errors"] as? [String:String] {
-                        if (errors["error"] == "Requested resource not found") {
-                            self.mediaID = self._transcript != nil ? "Completed" : nil
-                        }
-                    }
                 } else {
                     // JSONSerialization.jsonObject call failed
                     
@@ -626,14 +1151,6 @@ class VoiceBase {
             } else {
                 // No data
                 
-            }
-            
-            if let response = response {
-                print("delete response: ",response.description)
-            }
-            
-            if let error = error {
-                print("delete error: ",error.localizedDescription)
             }
         })
         
@@ -647,19 +1164,28 @@ class VoiceBase {
         }
         
         delete()
+
+        // Must retain purpose and mediaItem.
+        //        purpose = nil
+        //        mediaItem = nil
         
         mediaID = nil
         
-        transcript = nil
         transcribing = false
+        completed = false
+
+        percentComplete = nil
         
-        upload = nil
+        uploadJSON = nil
         
         resultsTimer?.invalidate()
         resultsTimer = nil
         
-        topicsJSON = nil
-        keywordsJSON = nil
+        transcript = nil
+        
+//        topicsJSON = nil
+//        
+//        keywordsJSON = nil
         
 //        DispatchQueue(label: "CBC").sync(execute: { () -> Void in
 //            self.mediaItem.removeTag("Machine Generated Transcript")
@@ -709,102 +1235,6 @@ class VoiceBase {
 //        } else {
 //            print("failed to get destinationURL")
 //        }
-    }
-    
-    var topicsJSON : [String:Any]?
-    {
-        get {
-            guard _topicsJSON == nil else {
-                return _topicsJSON
-            }
-            
-            if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).topics"), let data = try? Data(contentsOf: url) {
-                do {
-                    _topicsJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
-                    //                            print(self.topicsJSON)
-                    //                            print(self.topics)
-                } catch let error as NSError {
-                    print("failed to load machine generated topics for \(mediaItem.description): \(error.localizedDescription)")
-                }
-            }
-
-            return _topicsJSON
-        }
-        set {
-            _topicsJSON = newValue
-        }
-    }
-    var _topicsJSON : [String:Any]?
-    {
-        didSet {
-            let fileManager = FileManager.default
-            
-            if topicsJSON != nil {
-                let topicsPropertyList = try? PropertyListSerialization.data(fromPropertyList: self.topicsJSON as Any, format: .xml, options: 0)
-                
-                if let destinationURL = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).topics") {
-                    if (fileManager.fileExists(atPath: destinationURL.path)){
-                        do {
-                            try fileManager.removeItem(at: destinationURL)
-                        } catch let error as NSError {
-                            print("failed to remove machine generated transcript topics: \(error.localizedDescription)")
-                        }
-                    }
-                    
-                    do {
-                        try topicsPropertyList?.write(to: destinationURL)
-                    } catch let error as NSError {
-                        print("failed to write machine generated transcript topics to cache directory: \(error.localizedDescription)")
-                    }
-                }
-            } else {
-                if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).topics") {
-                    if (fileManager.fileExists(atPath: destinationURL.path)){
-                        do {
-                            try fileManager.removeItem(at: destinationURL)
-                        } catch let error as NSError {
-                            print("failed to remove machine generated transcript topics: \(error.localizedDescription)")
-                        }
-                    } else {
-                        print("machine generated transcript topics file doesn't exist")
-                    }
-                } else {
-                    print("failed to get destinationURL")
-                }
-            }
-        }
-    }
-    
-    var topicsDictionaries : [String:[String:Any]]?
-    {
-        if let latest = topicsJSON?["latest"] as? [String:Any] {
-            if let words = latest["topics"] as? [[String:Any]] {
-                var tdd = [String:[String:Any]]()
-                
-                for dict in words {
-                    if let name = dict["name"] as? String {
-                        tdd[name] = dict
-                    }
-                }
-                
-                return tdd.count > 0 ? tdd : nil
-            } else {
-                return nil
-            }
-        } else {
-            return nil
-        }
-    }
-    
-    var topics : [String]?
-    {
-        if let topics = topicsDictionaries?.map({ (key: String, value: [String : Any]) -> String in
-            return key
-        }) {
-            return topics
-        } else {
-            return nil
-        }
     }
     
     func topicKeywordDictionaries(topic:String?) -> [String:[String:Any]]?
@@ -927,119 +1357,6 @@ class VoiceBase {
         return nil
     }
     
-    var keywordsJSON: [String:Any]?
-    {
-        get {
-            guard _keywordsJSON == nil else {
-                return _keywordsJSON
-            }
-            
-            if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).keywords"), let data = try? Data(contentsOf: url) {
-                do {
-                    _keywordsJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
-                    //                            print(self.keywordsJSON)
-                    //                            print(self.keywords)
-                } catch let error as NSError {
-                    print("failed to load machine generated keywords for \(mediaItem.description): \(error.localizedDescription)")
-                }
-            }
-            
-            return _keywordsJSON
-        }
-        set {
-            _keywordsJSON = newValue
-        }
-    }
-    var _keywordsJSON : [String:Any]?
-    {
-        didSet {
-            guard mediaItem != nil else {
-                return
-            }
-            
-            guard mediaItem?.id != nil else {
-                return
-            }
-            
-            guard purpose != nil else {
-                return
-            }
-            
-            let fileManager = FileManager.default
-            
-            if _keywordsJSON != nil {
-                let keywordsPropertyList = try? PropertyListSerialization.data(fromPropertyList: self.keywordsJSON as Any, format: .xml, options: 0)
-                
-                if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).keywords") {
-                    if (fileManager.fileExists(atPath: destinationURL.path)){
-                        do {
-                            try fileManager.removeItem(at: destinationURL)
-                        } catch let error as NSError {
-                            print("failed to remove machine generated transcript keywords: \(error.localizedDescription)")
-                        }
-                    }
-                    
-                    do {
-                        try keywordsPropertyList?.write(to: destinationURL)
-                    } catch let error as NSError {
-                        print("failed to write machine generated transcript keywords to cache directory: \(error.localizedDescription)")
-                    }
-                }
-            } else {
-                if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).keywords") {
-                    if (fileManager.fileExists(atPath: destinationURL.path)){
-                        do {
-                            try fileManager.removeItem(at: destinationURL)
-                        } catch let error as NSError {
-                            print("failed to remove machine generated transcript keywords: \(error.localizedDescription)")
-                        }
-                    } else {
-                        print("machine generated transcript keywords file doesn't exist")
-                    }
-                } else {
-                    print("failed to get destinationURL")
-                }
-            }
-        }
-    }
-    
-    var keywordDictionaries : [String:[String:Any]]?
-    {
-        if let latest = keywordsJSON?["latest"] as? [String:Any] {
-            if let wordDictionaries = latest["words"] as? [[String:Any]] {
-                var kwdd = [String:[String:Any]]()
-                
-                for dict in wordDictionaries {
-                    if let name = dict["name"] as? String {
-                        kwdd[name.lowercased()] = dict
-                    }
-                }
-                
-                return kwdd.count > 0 ? kwdd : nil
-            }
-        }
-        
-        return nil
-    }
-    
-    var keywords : [String]?
-    {
-        if let keywords = keywordDictionaries?.filter({ (key: String, value: [String : Any]) -> Bool in
-            if let speakerTimes = value["t"] as? [String:[String]] {
-                if let times = speakerTimes["unknown"] {
-                    return times.count > 0
-                }
-            }
-            return false
-        }).map({ (key: String, value: [String : Any]) -> String in
-            return key
-        }) {
-            return keywords
-        } else {
-            return nil
-        }
-    }
-    
     func keywordTimes(keyword:String?) -> [String]?
     {
         guard let keyword = keyword else {
@@ -1068,7 +1385,6 @@ class VoiceBase {
         }
         
         guard let mediaID = mediaID else {
-            uploadMedia()
             return
         }
         
@@ -1082,132 +1398,181 @@ class VoiceBase {
         request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            //            print((response as? HTTPURLResponse)?.statusCode)
-            if data != nil {
-                //                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                //                print(string) // object name
-                
-                if let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String : Any] {
-                    //                    print(json)
-                    
-                    let media = json["media"] as? [String:Any]
-                    
-                    self.keywordsJSON = media?["keywords"] as? [String : Any]
-                    self.topicsJSON = media?["topics"] as? [String : Any]
-                }
+            if let error = error {
+                print("getDetails error: ",error.localizedDescription)
             }
             
-            self.delete()
+            guard let response = response else {
+                return
+            }
+            
+            print("getDetails response: ",response.description)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return
+            }
+            
+            print("getDetails response: ",httpResponse.description)
+            print("getDetails response: ",httpResponse.allHeaderFields)
+            print("getDetails response: ",httpResponse.statusCode)
+            print("getDetails HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+            
+            if let data = data {
+                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                print(string as Any)
+                
+                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
+                    print(json)
+                    
+                    self.mediaJSON = json["media"] as? [String:Any]
+                    //
+                    //                    self.keywordsJSON = self.mediaJSON?["keywords"] as? [String : Any]
+                    //                    self.topicsJSON = self.mediaJSON?["topics"] as? [String : Any]
+                }
+            }
         })
         
         task.resume()
     }
     
-    var transcript:String?
+    func addMetaData()
     {
-        get {
-            guard (_transcript == nil) else {
-                return _transcript
-            }
-            
-            guard (mediaID == "Completed") || (mediaID != nil) else {
-                return nil
-            }
-            
-            if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!)") {
-                do {
-                    try _transcript = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8)
-                    // This will cause an error.  The tag is created in the constantTags getter while loading.
-                    //                    mediaItem.addTag("Machine Generated Transcript")
-                    
-                    // Also, the tag would normally be added or removed in teh didSet for transcript but didSet's are not
-                    // called during init()'s which is fortunate.
-                } catch let error as NSError {
-                    if mediaID == "Completed" {
-                        mediaID = nil
-                        print("failed to load machine generated transcript for \(mediaItem.description): \(error.localizedDescription)")
-                    }
-                }
-            }
-            
-            if (_transcript == nil) && (mediaID != "Completed") && (mediaID != nil) && (self.resultsTimer == nil) {
-                DispatchQueue(label: "CBC").sync(execute: { () -> Void in
-                    self.mediaItem.removeTag("Machine Generated Transcript")
-                })
-                
-                self.transcribing = true
-                
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(VoiceBase.getProgress), userInfo: nil, repeats: true)
-                })
-            } else {
-                // Overkill to make sure the cloud storage is cleaned-up?
-                //                mediaItem.voicebase?.delete()  // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
-            }
+        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+            return
+        }
         
-            return _transcript
+        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+            return
         }
-        set {
-            _transcript = newValue
+        
+        guard let mediaID = mediaID else {
+            return
         }
-    }
-    var _transcript:String?
-    {
-        didSet {
-            guard mediaItem != nil else {
+        
+        let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)"
+        //        print(service)
+        
+        var request = URLRequest(url: URL(string:service)!)
+        
+        request.httpMethod = "POST"
+        
+        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
+        
+        let boundary = "Boundary-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        let body = createBody(parameters: ["metadata":mediaItem.json],boundary: boundary)
+        
+        request.httpBody = body as Data
+        request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
+        
+        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+            if let error = error {
+                print("addMetaData error: ",error.localizedDescription)
+            }
+            
+            guard let response = response else {
                 return
             }
             
-            let fileManager = FileManager.default
+            print("addMetaData response: ",response.description)
             
-            if _transcript != nil {
-                DispatchQueue(label: "CBC").sync(execute: { () -> Void in
-                    self.mediaItem.addTag("Machine Generated Transcript")
-                })
-                
-                if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!)") {
-                    // Check if file exist
-                    if (fileManager.fileExists(atPath: destinationURL.path)){
-                        do {
-                            try fileManager.removeItem(at: destinationURL)
-                        } catch let error as NSError {
-                            print("failed to remove machine generated transcript: \(error.localizedDescription)")
-                        }
-                    }
-                    
-                    do {
-                        try _transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8);
-                    } catch let error as NSError {
-                        print("failed to write transcript to cache directory: \(error.localizedDescription)")
-                    }
-                } else {
-                    print("failed to get destinationURL")
-                }
-            } else {
-                DispatchQueue(label: "CBC").sync(execute: { () -> Void in
-                    self.mediaItem.removeTag("Machine Generated Transcript")
-                })
-                
-                if let destinationURL = cachesURL()?.appendingPathComponent(mediaItem.id!+".\(purpose!)") {
-                    // Check if file exist
-                    if (fileManager.fileExists(atPath: destinationURL.path)){
-                        do {
-                            try fileManager.removeItem(at: destinationURL)
-                        } catch let error as NSError {
-                            print("failed to remove machine generated transcript: \(error.localizedDescription)")
-                        }
-                    } else {
-                        print("machine generated transcript file doesn't exist")
-                    }
-                } else {
-                    print("failed to get destinationURL")
-                }
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return
             }
             
-            DispatchQueue.main.async(execute: { () -> Void in
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-            })
+            print("addMetaData response: ",httpResponse.description)
+            print("addMetaData response: ",httpResponse.allHeaderFields)
+            print("addMetaData response: ",httpResponse.statusCode)
+            print("addMetaData HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+            
+            if let data = data {
+                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                print(string as Any)
+                
+                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
+                    print(json)
+                    
+                } else {
+                    // JSONSerialization failed
+                    
+                }
+            } else {
+                // no data
+                
+            }
+        })
+        
+        task.resume()
+    }
+    
+    func align()
+    {
+        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+            return
         }
+        
+        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+            return
+        }
+        
+        guard let mediaID = mediaID else {
+            return
+        }
+        
+        let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)"
+        //        print(service)
+        
+        var request = URLRequest(url: URL(string:service)!)
+        
+        request.httpMethod = "POST"
+        
+        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
+        
+        let boundary = "Boundary-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        let body = createBody(parameters: ["configuration":"{\"configuration\":{\"executor\":\"v2\"}}","transcript":stripHTML(mediaItem.notesHTML)!],boundary: boundary)
+        
+        request.httpBody = body as Data
+        request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
+        
+        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+            if let error = error {
+                print("align error: ",error.localizedDescription)
+            }
+            
+            guard let response = response else {
+                return
+            }
+            
+            print("align response: ",response.description)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return
+            }
+            
+            print("align response: ",httpResponse.description)
+            print("align response: ",httpResponse.allHeaderFields)
+            print("align response: ",httpResponse.statusCode)
+            print("align HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+            
+            if let data = data {
+                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                print(string as Any)
+                
+                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
+                    print(json)
+                    
+                } else {
+                    // JSONSerialization failed
+                    
+                }
+            } else {
+                // no data
+                
+            }
+        })
+        
+        task.resume()
     }
     
     func getTranscript()
@@ -1222,6 +1587,10 @@ class VoiceBase {
         }
         
         guard mediaItem != nil else {
+            return
+        }
+        
+        guard !completed else {
             return
         }
         
@@ -1242,14 +1611,32 @@ class VoiceBase {
         request.addValue("text/plain", forHTTPHeaderField: "Accept")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            //            print((response as? HTTPURLResponse)?.statusCode)
+            if let error = error {
+                print("getTranscript error: ",error.localizedDescription)
+            }
+            
+            guard let response = response else {
+                return
+            }
+            
+            print("getTranscript response: ",response.description)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return
+            }
+            
+            print("getTranscript response: ",httpResponse.description)
+            print("getTranscript response: ",httpResponse.allHeaderFields)
+            print("getTranscript response: ",httpResponse.statusCode)
+            print("getTranscript HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+            
             if data != nil {
                 let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                
-//                print(string)
+                print(string as Any)
                 
                 self.transcript = string
                 self.transcribing = false
+                self.completed = true
                 
                 var transcriptPurpose:String!
                 
@@ -1552,7 +1939,6 @@ class VoiceBase {
         }
         
         guard let mediaID = mediaID else {
-            uploadMedia()
             return
         }
         
@@ -1568,13 +1954,30 @@ class VoiceBase {
         request.addValue("text/srt", forHTTPHeaderField: "Accept")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            //            print((response as? HTTPURLResponse)?.statusCode)
-            if data != nil {
-                let string = String.init(data: data!, encoding: String.Encoding.utf8)
+            if let error = error {
+                print("getTranscriptSRT error: ",error.localizedDescription)
+            }
+            
+            guard let response = response else {
+                return
+            }
+            
+            print("getTranscriptSRT response: ",response.description)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return
+            }
+            
+            print("getTranscriptSRT response: ",httpResponse.description)
+            print("getTranscriptSRT response: ",httpResponse.allHeaderFields)
+            print("getTranscriptSRT response: ",httpResponse.statusCode)
+            print("getTranscriptSRT HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+            
+            if let data = data {
+                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                print(string as Any)
 
                 self.transcriptSRT = string
-                
-                //                print(string)
             } else {
                 // Now what?
             }
@@ -1618,12 +2021,35 @@ class VoiceBase {
         //        request.addValue("text/plain", forHTTPHeaderField: "Accept")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            //            print((response as? HTTPURLResponse)?.statusCode)
-            if data != nil {
-                //                let string = String.init(data: data!, encoding: String.Encoding.utf8)
-                //                print(string)
+            if let error = error {
+                print("search error: ",error.localizedDescription)
+            }
+            
+            guard let response = response else {
+                return
+            }
+            
+            print("search response: ",response.description)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return
+            }
+            
+            print("search response: ",httpResponse.description)
+            print("search response: ",httpResponse.allHeaderFields)
+            print("search response: ",httpResponse.statusCode)
+            print("search HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+            
+            if let data = data {
+                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                print(string as Any)
                 
-                // No idea what this produces, but I'm guessing it is like the keywords dictionary.
+                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
+                    print(json)
+                } else {
+                    // JSONSerialization.jsonObject call failed
+                    
+                }
             } else {
                 // Now what?
             }

@@ -2618,9 +2618,9 @@ class MediaItem : NSObject {
     lazy var audioTranscript:VoiceBase? = {
         [unowned self] in
         let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.audio)
-        if (voicebase.transcript != nil) && (voicebase.mediaID != "Completed") {
-            voicebase.delete() // Clean up the cloud.
-        }
+//        if (voicebase.transcript != nil) && (voicebase.mediaID != "Completed") {
+//            voicebase.delete() // Clean up the cloud.
+//        }
         self.transcripts[voicebase.purpose!] = voicebase
         return voicebase
         }()
@@ -2628,9 +2628,9 @@ class MediaItem : NSObject {
     lazy var videoTranscript:VoiceBase? = {
         [unowned self] in
         let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.video)
-        if (voicebase.transcript != nil) && (voicebase.mediaID != "Completed") {
-            voicebase.delete() // Clean up the cloud.
-        }
+//        if (voicebase.transcript != nil) && (voicebase.mediaID != "Completed") {
+//            voicebase.delete() // Clean up the cloud.
+//        }
         self.transcripts[voicebase.purpose!] = voicebase
         return voicebase
         }()
@@ -2835,6 +2835,87 @@ class MediaItem : NSObject {
         }
     }
     
+    func json(purpose:String?) -> String
+    {
+        var mediaItemString = "{"
+        
+        mediaItemString = "\(mediaItemString)\"metadata\":{"
+        
+        if (category != nil) {
+            mediaItemString = "\(mediaItemString)\"category\":\"\(category!)\","
+        }
+        
+        if (id != nil) {
+            mediaItemString = "\(mediaItemString)\"id\":\"\(id!)\","
+        }
+        
+        if (date != nil) {
+            mediaItemString = "\(mediaItemString)\"date\":\"\(date!)\","
+        }
+        
+        if (service != nil) {
+            mediaItemString = "\(mediaItemString)\"service\":\"\(service!)\","
+        }
+        
+        if (title != nil) {
+            if let purpose = purpose {
+                mediaItemString = "\(mediaItemString)\"title\":\"\(title!) (\(purpose))\","
+            } else {
+                mediaItemString = "\(mediaItemString)\"title\":\"\(title!)\","
+            }
+        }
+        
+        if (scripture != nil) {
+            mediaItemString = "\(mediaItemString)\"scripture\":\"\(scripture!.description)\","
+        }
+        
+        if (speaker != nil) {
+            mediaItemString = "\(mediaItemString)\"speaker\":\"\(speaker!)\""
+        }
+        
+        mediaItemString = "\(mediaItemString)}}"
+        
+        return mediaItemString
+    }
+
+    var json : String {
+        var mediaItemString = "{"
+
+        mediaItemString = "\(mediaItemString)\"metadata\":{"
+
+        if (category != nil) {
+            mediaItemString = "\(mediaItemString)\"category\":\"\(category!)\","
+        }
+        
+        if (id != nil) {
+            mediaItemString = "\(mediaItemString)\"id\":\"\(id!)\","
+        }
+        
+        if (date != nil) {
+            mediaItemString = "\(mediaItemString)\"date\":\"\(date!)\","
+        }
+        
+        if (service != nil) {
+            mediaItemString = "\(mediaItemString)\"service\":\"\(service!)\","
+        }
+        
+        if (title != nil) {
+            mediaItemString = "\(mediaItemString)\"title\":\"\(title!)\","
+        }
+        
+        if (scripture != nil) {
+            mediaItemString = "\(mediaItemString)\"scripture\":\"\(scripture!.description)\","
+        }
+        
+        if (speaker != nil) {
+            mediaItemString = "\(mediaItemString)\"speaker\":\"\(speaker!)\""
+        }
+
+        mediaItemString = "\(mediaItemString)}}"
+        
+        return mediaItemString
+    }
+    
     override var description : String {
         //This requires that date, service, title, and speaker fields all be non-nil
         
@@ -2861,7 +2942,7 @@ class MediaItem : NSObject {
         }
         
         if (scripture != nil) {
-            mediaItemString = "\(mediaItemString) \(scripture!)"
+            mediaItemString = "\(mediaItemString) \(scripture!.description)"
         }
         
         if (speaker != nil) {

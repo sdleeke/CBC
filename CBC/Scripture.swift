@@ -211,6 +211,11 @@ class Scripture : NSObject
     
     var booksChaptersVerses:BooksChaptersVerses?
     
+    override var description: String
+    {
+        return reference!
+    }
+    
     var reference:String?
     {
         willSet {

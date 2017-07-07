@@ -68,6 +68,7 @@ class Section {
     }
     
     var indexStrings:[String]?
+    var headerStrings:[String]?
     
     var indexTransform:((String?)->String?)? = stringWithoutPrefixes
     
@@ -75,10 +76,15 @@ class Section {
     var showIndex = false
     
     var titles:[String]?
+    {
+        didSet {
+            print("")
+        }
+    }
     var counts:[Int]?
     var indexes:[Int]?
 
-    func build()
+    func buildHeaders()
     {
         guard strings?.count > 0 else {
             titles = nil
@@ -98,10 +104,66 @@ class Section {
             }
         }
         
+        titles = Array(Set(indexStrings!
+            .map({ (string:String) -> String in
+                return string
+            })
+        )).sorted() { $0 < $1 }
+        
+        if titles?.count == 0 {
+            titles = nil
+            counts = nil
+            indexes = nil
+        } else {
+            var stringIndex = [String:[String]]()
+            
+            for headerString in headerStrings! {
+                // if string s/b in headerString section
+//                stringIndex[headerString]?.append(string)
+            }
+            
+            var counter = 0
+            
+            var counts = [Int]()
+            var indexes = [Int]()
+            
+            for key in stringIndex.keys.sorted() {
+                indexes.append(counter)
+                counts.append(stringIndex[key]!.count)
+                
+                counter += stringIndex[key]!.count
+            }
+            
+            self.counts = counts.count > 0 ? counts : nil
+            self.indexes = indexes.count > 0 ? indexes : nil
+        }
+    }
+
+    func buildIndex()
+    {
+        guard showIndex else {
+            return
+        }
+        
+        guard strings?.count > 0 else {
+            titles = nil
+            counts = nil
+            indexes = nil
+            
+            return
+        }
+        
+        guard indexStrings?.count > 0 else {
+            titles = nil
+            counts = nil
+            indexes = nil
+            
+            return
+        }
+
         let a = "A"
         
         titles = Array(Set(indexStrings!
-            
             .map({ (string:String) -> String in
                 if string.endIndex >= a.endIndex {
                     return string.substring(to: a.endIndex).uppercased()
@@ -774,7 +836,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         super.init()
         
         DispatchQueue.main.async(execute: { () -> Void in
-            globals.alertTimer = Timer.scheduledTimer(timeInterval: 1.0, target: globals, selector: #selector(Globals.alertViewer), userInfo: nil, repeats: true)
+            globals.alertTimer = Timer.scheduledTimer(timeInterval: 0.25, target: globals, selector: #selector(Globals.alertViewer), userInfo: nil, repeats: true)
         })
 
         reachability.whenReachable = { reachability in

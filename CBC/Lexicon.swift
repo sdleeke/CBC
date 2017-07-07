@@ -128,7 +128,7 @@ class Lexicon : NSObject {
                 
                 section.strings = strings
                 
-                section.build()
+                section.buildIndex()
                 
                 DispatchQueue(label: "CBC").async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
