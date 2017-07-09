@@ -140,7 +140,20 @@ class AboutViewController: UIViewController
     
 //    @IBOutlet weak var actionButton: UIBarButtonItem!
  
-    // @IBAction 
+    func actionMenu() -> [String]?
+    {
+        var actionMenu = [String]()
+        
+        actionMenu.append(Constants.Strings.Email_CBC)
+        actionMenu.append(Constants.Strings.CBC_WebSite)
+        actionMenu.append(Constants.Strings.CBC_in_Apple_Maps)
+        actionMenu.append(Constants.Strings.CBC_in_Google_Maps)
+        
+        actionMenu.append(Constants.Strings.Share_This_App)
+        
+        return actionMenu.count > 0 ? actionMenu : nil
+    }
+    
     func actions(_ sender: UIBarButtonItem)
     {
 //        print("action!")
@@ -164,16 +177,7 @@ class AboutViewController: UIViewController
             popover.delegate = self
             popover.purpose = .selectingAction
             
-            var actionMenu = [String]()
-            
-            actionMenu.append(Constants.Strings.Email_CBC)
-            actionMenu.append(Constants.Strings.CBC_WebSite)
-            actionMenu.append(Constants.Strings.CBC_in_Apple_Maps)
-            actionMenu.append(Constants.Strings.CBC_in_Google_Maps)
-            
-            actionMenu.append(Constants.Strings.Share_This_App)
-            
-            popover.section.strings = actionMenu
+            popover.section.strings = actionMenu()
             
             popover.section.showIndex = false
             popover.section.showHeaders = false
@@ -197,10 +201,12 @@ class AboutViewController: UIViewController
     
     func setupActionButton()
     {
-        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(AboutViewController.actions))
-        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-        
-        navigationItem.rightBarButtonItem = actionButton
+        if actionMenu()?.count > 0 {
+            let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(AboutViewController.actions))
+            actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+            
+            navigationItem.rightBarButtonItem = actionButton
+        }
     }
     
     override func viewDidLoad()

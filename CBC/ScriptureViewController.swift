@@ -466,8 +466,10 @@ class ScriptureViewController : UIViewController
     
     func setPreferredContentSize()
     {
-        preferredContentSize = CGSize(width:  view.frame.width,//webViewController!.wkWebView!.scrollView.contentSize.width,
-                                      height: webViewController!.wkWebView!.scrollView.contentSize.height + scripturePicker.frame.height + 60)
+        if let widthView = (presentingViewController != nil) ? presentingViewController!.view : view {
+            preferredContentSize = CGSize(  width:  widthView.frame.width,//webViewController!.wkWebView!.scrollView.contentSize.width,
+                                            height: webViewController!.wkWebView!.scrollView.contentSize.height + scripturePicker.frame.height + 60)
+        }
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)

@@ -404,7 +404,16 @@ class PopoverPickerViewController : UIViewController
         delegate?.stringPicked(string)
     }
     
-    func actionMenu()
+    func actionMenu() -> [String]?
+    {
+        var actionMenu = [String]()
+        
+        actionMenu.append(Constants.Strings.Expanded_View)
+        
+        return actionMenu.count > 0 ? actionMenu : nil
+    }
+    
+    func actions()
     {
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -420,11 +429,7 @@ class PopoverPickerViewController : UIViewController
             popover.delegate = self
             popover.purpose = .selectingAction
             
-            var actionMenu = [String]()
-            
-            actionMenu.append(Constants.Strings.Expanded_View)
-            
-            popover.section.strings = actionMenu
+            popover.section.strings = actionMenu()
             
             popover.section.showIndex = false
             popover.section.showHeaders = false
@@ -448,10 +453,12 @@ class PopoverPickerViewController : UIViewController
             return
         }
 
-        let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverPickerViewController.actionMenu))
-        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-        
-        navigationItem.setRightBarButton(actionButton, animated: false)
+        if actionMenu()?.count > 0 {
+            let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverPickerViewController.actions))
+            actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+            
+            navigationItem.setRightBarButton(actionButton, animated: false)
+        }
     }
 
     override func viewDidLoad()

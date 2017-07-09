@@ -3056,9 +3056,23 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
 //        DispatchQueue.main.async(execute: { () -> Void in
 //        })
         
-        navigationController.modalPresentationStyle = .popover
-        navigationController.popoverPresentationController?.permittedArrowDirections = .any
-        navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+        if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
+            let hClass = viewController.traitCollection.horizontalSizeClass
+
+            if hClass == .compact {
+                navigationController.modalPresentationStyle = .fullScreen
+            } else {
+                navigationController.modalPresentationStyle = .popover
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+            }
+        } else {
+            navigationController.modalPresentationStyle = .popover
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .any
+            navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
+        }
         
         if sourceView != nil {
             navigationController.popoverPresentationController?.sourceView = sourceView

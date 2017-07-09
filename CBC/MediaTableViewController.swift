@@ -569,7 +569,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         
                         if let keys = stringIndex.keys {
                             for key in keys {
-                                stringIndex[key] = stringIndex[key]?.sorted() { $0["title"] < $1["title"]}
+                                stringIndex[key] = stringIndex[key]?.sorted() { stringWithoutPrefixes($0["title"]) < stringWithoutPrefixes($1["title"])}
                             }
                         }
 //                    } else {
@@ -649,7 +649,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     })
                     
                     // Start over and get specific devices
-//                    stringIndex = StringIndex() // [String:[String]]()
                     
                     for mediaItem in mediaItems {
                         if let mediaID = mediaItem["mediaId"] as? String {
@@ -706,7 +705,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                     
                                     if let keys = stringIndex.keys?.sorted() {
                                         for key in keys {
-                                            for value in stringIndex[key]! {
+                                            for value in stringIndex[key]!.sorted(by: { stringWithoutPrefixes($0["title"]) < stringWithoutPrefixes($1["title"])}) {
                                                 strings.append(value["title"]!)
                                             }
                                         }
@@ -2864,6 +2863,17 @@ class MediaTableViewController : UIViewController
 //        self.view.setNeedsLayout()
 //    }
     
+    func actionMenu() -> [String]?
+    {
+        var actionMenu = [String]()
+        
+        if globals.media.active?.list?.count > 0 {
+            actionMenu.append(Constants.Strings.View_List)
+        }
+        
+        return actionMenu.count > 0 ? actionMenu : nil
+    }
+    
     func actions()
     {
         //In case we have one already showing
@@ -2887,13 +2897,7 @@ class MediaTableViewController : UIViewController
             
             popover.selectedMediaItem = selectedMediaItem
             
-            var actionMenu = [String]()
-            
-            if globals.media.active?.list?.count > 0 {
-                actionMenu.append(Constants.Strings.View_List)
-            }
-            
-            popover.section.strings = actionMenu
+            popover.section.strings = actionMenu()
             
             popover.section.showIndex = false
             popover.section.showHeaders = false
@@ -2911,26 +2915,36 @@ class MediaTableViewController : UIViewController
     var tagsButton : UIBarButtonItem?
     var actionButton : UIBarButtonItem?
     
+    func tagsMenu() -> [String]?
+    {
+        var strings = [Constants.Strings.All]
+        
+        if let mediaItemTags = globals.media.all?.mediaItemTags {
+            strings.append(contentsOf: mediaItemTags)
+        }
+        
+        return strings.sorted(by: { stringWithoutPrefixes($0)! < stringWithoutPrefixes($1)! })
+    }
+    
     func setupActionAndTagsButton()
     {
         var barButtons = [UIBarButtonItem]()
         
         actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.actions))
         actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-        
-        if globals.media.active?.list?.count > 0 {
+
+        if actionMenu()?.count > 0 {
             barButtons.append(actionButton!)
         }
         
-        if let count = globals.media.all?.mediaItemTags?.count, count > 0 {
-            if (count > 1) {
-                tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.selectingTagsAction(_:)))
-            } else {
-                tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.selectingTagsAction(_:)))
-            }
-            
-            tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags, for: UIControlState.normal)
-            
+        if (globals.media.all?.mediaItemTags?.count > 1) {
+            tagsButton = UIBarButtonItem(title: Constants.FA.TAGS, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.selectingTagsAction(_:)))
+        } else {
+            tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.selectingTagsAction(_:)))
+        }
+        tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags, for: UIControlState.normal)
+
+        if tagsMenu()?.count > 0 {
             barButtons.append(tagsButton!)
         }
         
@@ -3018,18 +3032,12 @@ class MediaTableViewController : UIViewController
             
 //            print(globals.media.all!.mediaItemTags!)
             
-            var strings = [Constants.Strings.All]
-            
-            if let mediaItemTags = globals.media.all?.mediaItemTags {
-                strings.append(contentsOf: mediaItemTags)
-            }
-            
 //            print(globals.media.all!.proposedTags)
             
             popover.section.showIndex = true
             popover.section.showHeaders = true
             
-            popover.section.strings = strings.sorted(by: { stringWithoutPrefixes($0)! < stringWithoutPrefixes($1)! })
+            popover.section.strings = tagsMenu()
             
 //            print(globals.media.all!.mediaItemTags)
             

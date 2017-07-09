@@ -106,7 +106,31 @@ extension WebViewController : PopoverTableViewControllerDelegate
         })
     }
     
-    func actionMenuItems(action: String?, mediaItem:MediaItem?)
+    func showFullScreen()
+    {
+        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+            let popover = navigationController.viewControllers[0] as? WebViewController {
+            
+            navigationController.modalPresentationStyle = .overFullScreen
+            navigationController.popoverPresentationController?.delegate = popover
+            
+            popover.navigationItem.title = self.navigationItem.title
+            
+            popover.html.fontSize = self.html.fontSize
+            popover.html.string = self.html.string
+            
+            popover.search = self.search
+            popover.selectedMediaItem = self.selectedMediaItem
+            
+            popover.content = self.content
+            
+            popover.navigationController?.isNavigationBarHidden = false
+            
+            present(navigationController, animated: true, completion: nil)
+        }
+    }
+
+    func actions(action: String?, mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "WebViewController:rowClickedAtIndex", completion: nil)
@@ -119,26 +143,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
         
         switch action {
         case Constants.Strings.Full_Screen:
-            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
-                let popover = navigationController.viewControllers[0] as? WebViewController {
-                
-                navigationController.modalPresentationStyle = .overFullScreen
-                navigationController.popoverPresentationController?.delegate = popover
-                
-                popover.navigationItem.title = self.navigationItem.title
-                
-                popover.html.fontSize = self.html.fontSize
-                popover.html.string = self.html.string
-                
-                popover.search = self.search
-                popover.selectedMediaItem = self.selectedMediaItem
-                
-                popover.content = self.content
-                
-                popover.navigationController?.isNavigationBarHidden = false
-                
-                present(navigationController, animated: true, completion: nil)
-            }
+            showFullScreen()
             break
             
         case Constants.Strings.Print:
@@ -363,7 +368,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingAction:
-            actionMenuItems(action: string, mediaItem:mediaItem)
+            actions(action: string, mediaItem:mediaItem)
             break
             
         default:
@@ -1353,7 +1358,9 @@ class WebViewController: UIViewController
         
         let width = title.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).width + 150
         
-        preferredContentSize = CGSize(width: max(width,size.width),height: size.height)
+        if let widthView = (presentingViewController != nil) ? presentingViewController!.view : view {
+            preferredContentSize = CGSize(width: max(width,widthView.frame.width),height: size.height)
+        }
     }
     
     var orientation : UIDeviceOrientation?

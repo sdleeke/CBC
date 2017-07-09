@@ -1897,6 +1897,196 @@ class MediaViewController: UIViewController
         }
     }
     
+    func actionMenu() -> [String]?
+    {
+        var actionMenu = [String]()
+        
+        if (selectedMediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) {
+            let hasVideo = selectedMediaItem!.hasVideo
+            let hasSlides = selectedMediaItem!.hasSlides
+            let hasNotes = selectedMediaItem!.hasNotes
+            
+            if hasVideo && (selectedMediaItem?.playing == Playing.video) &&
+                (
+                    ((videoLocation == .withDocuments) && (selectedMediaItem?.showing == Showing.video)) ||
+                        ((videoLocation == .withTableView) && (selectedMediaItem?.showing != Showing.video))
+                ) {
+                actionMenu.append(Constants.Strings.Zoom_Video)
+                
+                if (hasSlides || hasNotes) && !globals.mediaPlayer.fullScreen {
+                    actionMenu.append(Constants.Strings.Swap_Video_Location)
+                }
+            }
+        }
+        
+        actionMenu.append(Constants.Strings.Scripture_Viewer)
+        
+        if selectedMediaItem!.hasFavoritesTag {
+            actionMenu.append(Constants.Strings.Remove_From_Favorites)
+        } else {
+            actionMenu.append(Constants.Strings.Add_to_Favorites)
+        }
+        
+        if mediaItems?.count > 1 {
+            var favoriteMediaItems = 0
+            
+            for mediaItem in mediaItems! {
+                if (mediaItem.hasFavoritesTag) {
+                    favoriteMediaItems += 1
+                }
+            }
+            switch favoriteMediaItems {
+            case 0:
+                actionMenu.append(Constants.Strings.Add_All_to_Favorites)
+                break
+                
+            case 1:
+                actionMenu.append(Constants.Strings.Add_All_to_Favorites)
+                
+                if !selectedMediaItem!.hasFavoritesTag {
+                    actionMenu.append(Constants.Strings.Remove_All_From_Favorites)
+                }
+                break
+                
+            case mediaItems!.count - 1:
+                if selectedMediaItem!.hasFavoritesTag {
+                    actionMenu.append(Constants.Strings.Add_All_to_Favorites)
+                }
+                
+                actionMenu.append(Constants.Strings.Remove_All_From_Favorites)
+                break
+                
+            case mediaItems!.count:
+                actionMenu.append(Constants.Strings.Remove_All_From_Favorites)
+                break
+                
+            default:
+                actionMenu.append(Constants.Strings.Add_All_to_Favorites)
+                actionMenu.append(Constants.Strings.Remove_All_From_Favorites)
+                break
+            }
+        }
+        
+        if UIPrintInteractionController.isPrintingAvailable, let purpose = document?.purpose  {
+            switch purpose {
+            case Purpose.notes:
+                actionMenu.append(Constants.Strings.Print_Transcript)
+                break
+                
+            case Purpose.slides:
+                actionMenu.append(Constants.Strings.Print_Slides)
+                break
+                
+            default:
+                break
+            }
+        }
+        
+        if document != nil, globals.cacheDownloads, let purpose = document?.purpose {
+            switch purpose {
+            case Purpose.notes:
+                actionMenu.append(Constants.Strings.Refresh_Transcript)
+                break
+                
+            case Purpose.slides:
+                actionMenu.append(Constants.Strings.Refresh_Slides)
+                break
+                
+            default:
+                break
+            }
+        }
+        
+        actionMenu.append(Constants.Strings.Open_on_CBC_Website)
+        
+        if let mediaItems = mediaItems {
+            var mediaItemsToDownload = 0
+            var mediaItemsDownloading = 0
+            var mediaItemsDownloaded = 0
+            
+            for mediaItem in mediaItems {
+                switch mediaItem.audioDownload!.state {
+                case .none:
+                    mediaItemsToDownload += 1
+                    break
+                case .downloading:
+                    mediaItemsDownloading += 1
+                    break
+                case .downloaded:
+                    mediaItemsDownloaded += 1
+                    break
+                }
+            }
+            
+            if (selectedMediaItem?.audioDownload != nil) {
+                //                        print(selectedMediaItem?.audioDownload?.state)
+                
+                switch selectedMediaItem!.audioDownload!.state {
+                case .none:
+                    actionMenu.append(Constants.Strings.Download_Audio)
+                    break
+                    
+                case .downloading:
+                    actionMenu.append(Constants.Strings.Cancel_Audio_Download)
+                    break
+                    
+                case .downloaded:
+                    actionMenu.append(Constants.Strings.Delete_Audio_Download)
+                    break
+                }
+                
+                switch selectedMediaItem!.audioDownload!.state {
+                case .none:
+                    if (mediaItemsToDownload > 1) {
+                        actionMenu.append(Constants.Strings.Download_All_Audio)
+                    }
+                    if (mediaItemsDownloading > 0) {
+                        actionMenu.append(Constants.Strings.Cancel_All_Audio_Downloads)
+                    }
+                    if (mediaItemsDownloaded > 0) {
+                        actionMenu.append(Constants.Strings.Delete_All_Audio_Downloads)
+                    }
+                    break
+                    
+                case .downloading:
+                    if (mediaItemsToDownload > 0) {
+                        actionMenu.append(Constants.Strings.Download_All_Audio)
+                    }
+                    if (mediaItemsDownloading > 1) {
+                        actionMenu.append(Constants.Strings.Cancel_All_Audio_Downloads)
+                    }
+                    if (mediaItemsDownloaded > 0) {
+                        actionMenu.append(Constants.Strings.Delete_All_Audio_Downloads)
+                    }
+                    break
+                    
+                case .downloaded:
+                    if (mediaItemsToDownload > 0) {
+                        actionMenu.append(Constants.Strings.Download_All_Audio)
+                    }
+                    if (mediaItemsDownloading > 0) {
+                        actionMenu.append(Constants.Strings.Cancel_All_Audio_Downloads)
+                    }
+                    if (mediaItemsDownloaded > 1) {
+                        actionMenu.append(Constants.Strings.Delete_All_Audio_Downloads)
+                    }
+                    break
+                }
+            }
+        }
+        
+        if selectedMediaItem != nil {
+            actionMenu.append(Constants.Strings.Print)
+            actionMenu.append(Constants.Strings.Share)
+        }
+        
+        if mediaItems?.count > 1 {
+            actionMenu.append(Constants.Strings.Share_All)
+        }
+
+        return actionMenu.count > 0 ? actionMenu : nil
+    }
+    
     func actions()
     {
         //In case we have one already showing
@@ -1918,192 +2108,7 @@ class MediaViewController: UIViewController
             
             popover.selectedMediaItem = selectedMediaItem
             
-            var actionMenu = [String]()
-
-            if (selectedMediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) {
-                let hasVideo = selectedMediaItem!.hasVideo
-                let hasSlides = selectedMediaItem!.hasSlides
-                let hasNotes = selectedMediaItem!.hasNotes
-                
-                if hasVideo && (selectedMediaItem?.playing == Playing.video) &&
-                    (
-                        ((videoLocation == .withDocuments) && (selectedMediaItem?.showing == Showing.video)) ||
-                        ((videoLocation == .withTableView) && (selectedMediaItem?.showing != Showing.video))
-                    ) {
-                    actionMenu.append(Constants.Strings.Zoom_Video)
-
-                    if (hasSlides || hasNotes) && !globals.mediaPlayer.fullScreen {
-                        actionMenu.append(Constants.Strings.Swap_Video_Location)
-                    }
-                }
-            }
-            
-            actionMenu.append(Constants.Strings.Scripture_Viewer)
-            
-            if selectedMediaItem!.hasFavoritesTag {
-                actionMenu.append(Constants.Strings.Remove_From_Favorites)
-            } else {
-                actionMenu.append(Constants.Strings.Add_to_Favorites)
-            }
-            
-            if mediaItems?.count > 1 {
-                var favoriteMediaItems = 0
-                
-                for mediaItem in mediaItems! {
-                    if (mediaItem.hasFavoritesTag) {
-                        favoriteMediaItems += 1
-                    }
-                }
-                switch favoriteMediaItems {
-                case 0:
-                    actionMenu.append(Constants.Strings.Add_All_to_Favorites)
-                    break
-                    
-                case 1:
-                    actionMenu.append(Constants.Strings.Add_All_to_Favorites)
-
-                    if !selectedMediaItem!.hasFavoritesTag {
-                        actionMenu.append(Constants.Strings.Remove_All_From_Favorites)
-                    }
-                    break
-                    
-                case mediaItems!.count - 1:
-                    if selectedMediaItem!.hasFavoritesTag {
-                        actionMenu.append(Constants.Strings.Add_All_to_Favorites)
-                    }
-                    
-                    actionMenu.append(Constants.Strings.Remove_All_From_Favorites)
-                    break
-                    
-                case mediaItems!.count:
-                    actionMenu.append(Constants.Strings.Remove_All_From_Favorites)
-                    break
-                    
-                default:
-                    actionMenu.append(Constants.Strings.Add_All_to_Favorites)
-                    actionMenu.append(Constants.Strings.Remove_All_From_Favorites)
-                    break
-                }
-            }
-            
-            if UIPrintInteractionController.isPrintingAvailable, let purpose = document?.purpose  {
-                switch purpose {
-                case Purpose.notes:
-                    actionMenu.append(Constants.Strings.Print_Transcript)
-                    break
-                    
-                case Purpose.slides:
-                    actionMenu.append(Constants.Strings.Print_Slides)
-                    break
-                    
-                default:
-                    break
-                }
-            }
-
-            if document != nil, globals.cacheDownloads, let purpose = document?.purpose {
-                switch purpose {
-                case Purpose.notes:
-                    actionMenu.append(Constants.Strings.Refresh_Transcript)
-                    break
-                    
-                case Purpose.slides:
-                    actionMenu.append(Constants.Strings.Refresh_Slides)
-                    break
-                    
-                default:
-                    break
-                }
-            }
-
-            actionMenu.append(Constants.Strings.Open_on_CBC_Website)
-            
-            if let mediaItems = mediaItems {
-                var mediaItemsToDownload = 0
-                var mediaItemsDownloading = 0
-                var mediaItemsDownloaded = 0
-                
-                for mediaItem in mediaItems {
-                    switch mediaItem.audioDownload!.state {
-                    case .none:
-                        mediaItemsToDownload += 1
-                        break
-                    case .downloading:
-                        mediaItemsDownloading += 1
-                        break
-                    case .downloaded:
-                        mediaItemsDownloaded += 1
-                        break
-                    }
-                }
-                
-                if (selectedMediaItem?.audioDownload != nil) {
-//                        print(selectedMediaItem?.audioDownload?.state)
-
-                    switch selectedMediaItem!.audioDownload!.state {
-                    case .none:
-                        actionMenu.append(Constants.Strings.Download_Audio)
-                        break
-                        
-                    case .downloading:
-                        actionMenu.append(Constants.Strings.Cancel_Audio_Download)
-                        break
-                        
-                    case .downloaded:
-                        actionMenu.append(Constants.Strings.Delete_Audio_Download)
-                        break
-                    }
-                    
-                    switch selectedMediaItem!.audioDownload!.state {
-                    case .none:
-                        if (mediaItemsToDownload > 1) {
-                            actionMenu.append(Constants.Strings.Download_All_Audio)
-                        }
-                        if (mediaItemsDownloading > 0) {
-                            actionMenu.append(Constants.Strings.Cancel_All_Audio_Downloads)
-                        }
-                        if (mediaItemsDownloaded > 0) {
-                            actionMenu.append(Constants.Strings.Delete_All_Audio_Downloads)
-                        }
-                        break
-                        
-                    case .downloading:
-                        if (mediaItemsToDownload > 0) {
-                            actionMenu.append(Constants.Strings.Download_All_Audio)
-                        }
-                        if (mediaItemsDownloading > 1) {
-                            actionMenu.append(Constants.Strings.Cancel_All_Audio_Downloads)
-                        }
-                        if (mediaItemsDownloaded > 0) {
-                            actionMenu.append(Constants.Strings.Delete_All_Audio_Downloads)
-                        }
-                        break
-                        
-                    case .downloaded:
-                        if (mediaItemsToDownload > 0) {
-                            actionMenu.append(Constants.Strings.Download_All_Audio)
-                        }
-                        if (mediaItemsDownloading > 0) {
-                            actionMenu.append(Constants.Strings.Cancel_All_Audio_Downloads)
-                        }
-                        if (mediaItemsDownloaded > 1) {
-                            actionMenu.append(Constants.Strings.Delete_All_Audio_Downloads)
-                        }
-                        break
-                    }
-                }
-            }
-            
-            if selectedMediaItem != nil {
-                actionMenu.append(Constants.Strings.Print)
-                actionMenu.append(Constants.Strings.Share)
-            }
-            
-            if mediaItems?.count > 1 {
-                actionMenu.append(Constants.Strings.Share_All)
-            }
-            
-            popover.section.strings = actionMenu
+            popover.section.strings = actionMenu()
             
             popover.section.showIndex = false
             popover.section.showHeaders = false
@@ -3201,10 +3206,12 @@ class MediaViewController: UIViewController
 
         var barButtons = [UIBarButtonItem]()
         
-        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.actions))
-        actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-
-        barButtons.append(actionButton!)
+        if actionMenu()?.count > 0 {
+            actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.actions))
+            actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+            
+            barButtons.append(actionButton!)
+        }
     
         if (selectedMediaItem!.hasTags) {
             if (selectedMediaItem?.tagsSet?.count > 1) {
@@ -3220,7 +3227,11 @@ class MediaViewController: UIViewController
             
         }
 
-        self.navigationItem.setRightBarButtonItems(barButtons, animated: true)
+        if barButtons.count > 0 {
+            navigationItem.setRightBarButtonItems(barButtons, animated: true)
+        } else {
+            navigationItem.rightBarButtonItems = nil
+        }
     }
 
 //    override func prefersStatusBarHidden() -> Bool
