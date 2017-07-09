@@ -626,9 +626,14 @@ class PopoverTableViewController : UIViewController
     
 //    var searchController:UISearchController?
     
+    func done()
+    {
+        dismiss(animated: true, completion: nil)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         searchBar.autocapitalizationType = .none
 
         if !search {
@@ -1134,6 +1139,20 @@ class PopoverTableViewController : UIViewController
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
+        
+        if let presentationStyle = navigationController?.modalPresentationStyle {
+            switch presentationStyle {
+            case .overCurrentContext:
+                fallthrough
+            case .fullScreen:
+                fallthrough
+            case .overFullScreen:
+                navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.done)), animated: true)
+                
+            default:
+                break
+            }
+        }
         
         orientation = UIDevice.current.orientation
         

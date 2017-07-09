@@ -193,7 +193,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 
                 popover.vc = self
                 
-                navigationController.modalPresentationStyle = .popover
+                navigationController.modalPresentationStyle = .overCurrentContext
                 
                 navigationController.popoverPresentationController?.permittedArrowDirections = .up
                 navigationController.popoverPresentationController?.delegate = self
@@ -333,7 +333,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         case .selectingKeyword:
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .popover
+                navigationController.modalPresentationStyle = .overCurrentContext
                 
                 navigationController.popoverPresentationController?.delegate = self
                 
@@ -3836,9 +3836,9 @@ class MediaViewController: UIViewController
         }
 
         // Forces MasterViewController to show.  App MUST start in preferredDisplayMode == .automatic or the MVC can't be dragged out after it is hidden!
-        if (splitViewController?.preferredDisplayMode == .automatic) { // UIDeviceOrientationIsPortrait(UIDevice.current.orientation) &&
-            splitViewController?.preferredDisplayMode = .allVisible //iPad only
-        }
+//        if (splitViewController?.preferredDisplayMode == .automatic) { // UIDeviceOrientationIsPortrait(UIDevice.current.orientation) &&
+//            splitViewController?.preferredDisplayMode = .allVisible //iPad only
+//        }
 
         self.updateUI()
 
@@ -4042,7 +4042,7 @@ class MediaViewController: UIViewController
         if let wvc = destination as? WebViewController, let identifier = segue.identifier {
             switch identifier {
             case Constants.SEGUE.SHOW_FULL_SCREEN:
-                splitViewController?.preferredDisplayMode = .primaryHidden
+//                splitViewController?.preferredDisplayMode = .primaryHidden
                 setupWKContentOffsets()
                 wvc.selectedMediaItem = sender as? MediaItem
                 break
@@ -5112,7 +5112,7 @@ extension MediaViewController : UITableViewDataSource
                     if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
                         self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
                         
-                        navigationController.modalPresentationStyle = .popover
+                        navigationController.modalPresentationStyle = .overCurrentContext
                         
                         navigationController.popoverPresentationController?.delegate = self
                         navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
@@ -5161,7 +5161,7 @@ extension MediaViewController : UITableViewDataSource
                     if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
                         self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
                         
-                        navigationController.modalPresentationStyle = .popover
+                        navigationController.modalPresentationStyle = .overCurrentContext
                         
                         navigationController.popoverPresentationController?.delegate = self
                         navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]

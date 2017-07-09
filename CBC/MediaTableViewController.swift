@@ -400,7 +400,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             } else {
                 if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                    navigationController.modalPresentationStyle = .popover
+                    navigationController.modalPresentationStyle = .overCurrentContext
                     
                     navigationController.popoverPresentationController?.permittedArrowDirections = .up
                     navigationController.popoverPresentationController?.delegate = self
@@ -612,7 +612,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         }
                     }
                     
-                    navigationController.modalPresentationStyle = .popover
+                    navigationController.modalPresentationStyle = .overCurrentContext
                     
                     navigationController.popoverPresentationController?.permittedArrowDirections = .up
                     navigationController.popoverPresentationController?.delegate = self
@@ -1465,9 +1465,9 @@ class MediaTableViewController : UIViewController
             
             navigationController.popoverPresentationController?.barButtonItem = button
             
-//            popover.navigationItem.title = Constants.Show
+            popover.navigationItem.title = "Select" // Constants.Strings.Show
             
-            popover.navigationController?.isNavigationBarHidden = true
+            popover.navigationController?.isNavigationBarHidden = false
             
             popover.delegate = self
             popover.purpose = .selectingShow
@@ -2827,7 +2827,7 @@ class MediaTableViewController : UIViewController
 //        tableView.rowHeight = UITableViewAutomaticDimension
         
         // App MUST start in preferredDisplayMode == .automatic or the MVC can't be dragged out after it is hidden when mode is changed to primaryHidden!
-        splitViewController?.preferredDisplayMode = .automatic //iPad only
+//        splitViewController?.preferredDisplayMode = .automatic //iPad only
         
         // Uncomment the following line to preserve selection between presentations
         // clearsSelectionOnViewWillAppear = false
@@ -3586,7 +3586,7 @@ class MediaTableViewController : UIViewController
                 
             case Constants.SEGUE.SHOW_LIVE:
                 globals.mediaPlayer.killPIP = true
-                splitViewController?.preferredDisplayMode = .primaryHidden
+//                splitViewController?.preferredDisplayMode = .primaryHidden
                 break
                 
             case Constants.SEGUE.SHOW_SCRIPTURE_INDEX:

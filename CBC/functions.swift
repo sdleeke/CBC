@@ -3068,7 +3068,7 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
                 navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
             }
         } else {
-            navigationController.modalPresentationStyle = .popover
+            navigationController.modalPresentationStyle = .overCurrentContext // Used to be .popover
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .any
             navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate

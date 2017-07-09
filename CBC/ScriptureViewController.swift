@@ -574,7 +574,12 @@ class ScriptureViewController : UIViewController
             
             ptvc = popover
             
-            present(navigationController, animated: true, completion: nil)
+            present(navigationController, animated: true, completion: {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+                    navigationController.popoverPresentationController?.passthroughViews = nil
+                })
+            })
         }
     }
     

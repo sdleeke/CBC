@@ -66,7 +66,7 @@ class LiveViewController: UIViewController
     func done()
     {
         if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
-            self.splitViewController?.preferredDisplayMode = .allVisible
+//            self.splitViewController?.preferredDisplayMode = .allVisible
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PLAYING_PAUSED), object: nil)
         }
     }
@@ -76,6 +76,8 @@ class LiveViewController: UIViewController
         super.viewWillAppear(animated)
         
         logo.isHidden = true
+
+        setDVCLeftBarButton()
         
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
         
