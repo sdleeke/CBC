@@ -70,7 +70,7 @@ extension PopoverTableViewController: UISearchBarDelegate
                 
                 //                print(self.filteredStrings)
                 
-                filteredSection.buildIndex()
+//                filteredSection.buildIndex()
                 
                 tableView.reloadData()
             }
@@ -97,7 +97,7 @@ extension PopoverTableViewController: UISearchBarDelegate
                 
                 //                print(self.filteredStrings)
                 
-                filteredSection.buildIndex()
+//                filteredSection.buildIndex()
                 
                 tableView.reloadData()
                 
@@ -126,7 +126,7 @@ extension PopoverTableViewController: UISearchBarDelegate
                 
 //                print(self.filteredStrings)
                 
-                filteredSection.buildIndex()
+//                filteredSection.buildIndex()
                 
                 tableView.reloadData()
             }
@@ -170,7 +170,7 @@ extension PopoverTableViewController: UISearchBarDelegate
             section.strings = function(sort.method,section.strings)
         }
 
-        section.buildIndex()
+//        section.buildIndex()
         
         searchBar.showsCancelButton = false
        
@@ -205,10 +205,6 @@ extension PopoverTableViewController : PopoverTableViewControllerDelegate
         case .selectingSorting:
             sort.method = string
             
-            if let function = sort.function {
-                section.strings = function(sort.method,section.strings)
-            }
-            
             switch string {
             case Constants.Sort.Alphabetical:
                 section.showIndex = true
@@ -222,7 +218,11 @@ extension PopoverTableViewController : PopoverTableViewControllerDelegate
                 break
             }
             
-            section.buildIndex()
+            if let function = sort.function {
+                section.strings = function(sort.method,section.strings)
+            }
+            
+//            section.buildIndex()
             
             tableView.reloadData()
             break
@@ -264,6 +264,8 @@ class PopoverTableViewController : UIViewController
 //    var detail = false
     var detailAction:((VoiceBase?,String)->Void)?
     
+    var editActionsAtIndexPath : ((UITableView,IndexPath)->([UITableViewRowAction]?))?
+    
     var sort = Sort()
  
     var startTimes:[Double]?
@@ -296,10 +298,14 @@ class PopoverTableViewController : UIViewController
     func tracking()
     {
         if isTracking {
+            globals.mediaPlayer.pause()
+            
             navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Start Tracking", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
             isTracking = false
             trackingTimer?.invalidate()
         } else {
+            globals.mediaPlayer.play()
+            
             navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Stop Tracking", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
             isTracking = true
             startTimes = section.strings?.filter({ (string:String) -> Bool in
@@ -416,6 +422,8 @@ class PopoverTableViewController : UIViewController
         }
     }
     
+    var parser:((String)->([String]))?
+    
     func setPreferredContentSize()
     {
         guard Thread.isMainThread else {
@@ -429,6 +437,8 @@ class PopoverTableViewController : UIViewController
         guard (section.strings != nil) else {
             return
         }
+        
+        preferredContentSize = CGSize(width: 0, height: 0)
 
         let margins:CGFloat = 2
         let marginSpace:CGFloat = 20
@@ -488,36 +498,51 @@ class PopoverTableViewController : UIViewController
         //        print(strings)
         
         for string in self.section.strings! {
-            let strings = string.components(separatedBy: "\n")
-            for stringInStrings in strings {
-                if (strings.count > 1) && (stringInStrings == strings.last) {
-                    break
+            if let strings = parser != nil ? parser?(string) : [string] {
+                for stringInStrings in strings {
+                    let maxHeight = stringInStrings.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil)
+                    
+                    //                let string = stringInStrings.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
+                    
+                    let maxWidth = stringInStrings.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil)
+                    
+                    //            print(string)
+                    //            print(maxSize)
+                    
+                    //            print(string,width,maxWidth.width)
+                    
+                    if maxWidth.width > width {
+                        width = maxWidth.width
+                    }
+                    
+                    //            print(string,maxHeight.height) // baseHeight
+                    
+                    if tableView.rowHeight != -1 {
+                        height += tableView.rowHeight
+                    } else {
+                        height += 2*8 + maxHeight.height // - baseHeight
+                    }
+                    
+                    //            print(maxHeight.height, (Int(maxHeight.height) / 16) - 1)
                 }
-                
-                let maxHeight = stringInStrings.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil)
-                
-//                let string = stringInStrings.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-                
-                let maxWidth = stringInStrings.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil)
-                
-                //            print(string)
-                //            print(maxSize)
-                
-                //            print(string,width,maxWidth.width)
-                
-                if maxWidth.width > width {
-                    width = maxWidth.width
+            }
+        }
+
+        // Did not set width correctly.  Header views probably depends upon overall size, so these will not be setup correctly at this point.
+//        for section in 0..<tableView.numberOfSections {
+//            if let frame = tableView.headerView(forSection: section)?.frame {
+//                if frame.width > width {
+//                    width = frame.width
+//                }
+//            }
+//        }
+        
+        if self.section.showIndex || self.section.showHeaders, let titles = self.section.titles {
+            for title in titles {
+                let maxWidth = title.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).width // + 20
+                if maxWidth > width {
+                    width = maxWidth
                 }
-                
-                //            print(string,maxHeight.height) // baseHeight
-                
-                if tableView.rowHeight != -1 {
-                    height += tableView.rowHeight
-                } else {
-                    height += 2*8 + maxHeight.height // - baseHeight
-                }
-                
-                //            print(maxHeight.height, (Int(maxHeight.height) / 16) - 1)
             }
         }
         
@@ -643,9 +668,9 @@ class PopoverTableViewController : UIViewController
         super.viewWillTransition(to: size, with: coordinator)
         
         coordinator.animate(alongsideTransition: { (UIViewControllerTransitionCoordinatorContext) -> Void in
-
+            self.setPreferredContentSize()
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
-            
+
         }
     }
     
@@ -729,7 +754,7 @@ class PopoverTableViewController : UIViewController
             unfilteredSection.titles = mediaListGroupSort?.lexicon?.section.titles
         }
 
-        unfilteredSection.buildIndex()
+//        unfilteredSection.buildIndex()
 
         if searchActive {
             if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
@@ -743,7 +768,7 @@ class PopoverTableViewController : UIViewController
                 
                 //                        print(self.filteredStrings)
                 
-                self.filteredSection.buildIndex()
+//                self.filteredSection.buildIndex()
                 
                 //                        print(self.filteredSection.titles)
             }
@@ -791,7 +816,7 @@ class PopoverTableViewController : UIViewController
             unfilteredSection.titles = mediaListGroupSort?.lexicon?.section.titles
         }
         
-        unfilteredSection.buildIndex()
+//        unfilteredSection.buildIndex()
 
         if searchActive {
             if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
@@ -805,7 +830,7 @@ class PopoverTableViewController : UIViewController
                 
 //                    print(self.filteredStrings)
                 
-                self.filteredSection.buildIndex()
+//                self.filteredSection.buildIndex()
                 
 //                    print(self.filteredSection.titles)
             }
@@ -1152,7 +1177,7 @@ class PopoverTableViewController : UIViewController
                 self.section.strings = self.stringsFunction?()
                 
                 if self.section.strings != nil {
-                    self.section.buildIndex()
+//                    self.section.buildIndex()
                     
                     DispatchQueue.main.async(execute: { () -> Void in
                         self.tableView.reloadData()
@@ -1169,7 +1194,7 @@ class PopoverTableViewController : UIViewController
         if section.strings != nil {
             if section.showIndex {
                 if (self.section.indexStrings?.count > 1) {
-                    section.buildIndex()
+//                    section.buildIndex()
                 } else {
                     section.showIndex = false
                 }
@@ -1190,6 +1215,8 @@ class PopoverTableViewController : UIViewController
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
+        
+        tableView.flashScrollIndicators()
     }
     
     override func didReceiveMemoryWarning() {
@@ -1429,14 +1456,6 @@ extension PopoverTableViewController : UITableViewDataSource
     }
 
     /*
-     // Override to support conditional editing of the table view.
-     override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-     // Return NO if you do not want the specified item to be editable.
-     return true
-     }
-     */
-    
-    /*
      // Override to support editing the table view.
      override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
      if editingStyle == .Delete {
@@ -1468,6 +1487,16 @@ extension PopoverTableViewController : UITableViewDelegate
 {
     // MARK: UITableViewDelegate
     
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
+    {
+        return editActionsAtIndexPath != nil
+    }
+    
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
+    {
+        return editActionsAtIndexPath?(tableView,indexPath)
+    }
+
     func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath)
     {
         if let string = section.strings?[indexPath.row] {
@@ -1477,6 +1506,10 @@ extension PopoverTableViewController : UITableViewDelegate
     
     func tableView(_ TableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         trackingTimer?.invalidate()
         
         if search {

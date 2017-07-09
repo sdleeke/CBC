@@ -79,6 +79,10 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
 
     func actionMenu(action: String?,mediaItem:MediaItem?)
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         guard let action = action else {
             return
         }
@@ -173,8 +177,6 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
 
             ptvc.sort.method = string
             
-            ptvc.section.strings = ptvc.sort.function?(ptvc.sort.method,ptvc.section.strings)
-            
             switch string {
             case Constants.Sort.Alphabetical:
                 ptvc.section.showIndex = true
@@ -188,7 +190,9 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 break
             }
             
-            ptvc.section.buildIndex()
+            ptvc.section.strings = ptvc.sort.function?(ptvc.sort.method,ptvc.section.strings)
+            
+//            ptvc.section.buildIndex()
             
             ptvc.tableView.reloadData()
             break
@@ -806,6 +810,10 @@ class LexiconIndexViewController : UIViewController
     
     func actions()
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         //In case we have one already showing
         //        dismiss(animated: true, completion: nil)
         
@@ -879,6 +887,10 @@ class LexiconIndexViewController : UIViewController
     
     func index(_ object:AnyObject?)
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         //In case we have one already showing
         dismiss(animated: true, completion: nil)
         

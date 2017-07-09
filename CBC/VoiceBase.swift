@@ -17,6 +17,67 @@ extension NSMutableData {
 
 extension VoiceBase // Class Methods
 {
+    static func getDetails(mediaID:String?,completion:(([String:Any])->(Void))?)
+    {
+        print("VoiceBase.delete")
+        
+        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+            return
+        }
+        
+        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+            return
+        }
+        
+        guard let mediaID = mediaID else {
+            return
+        }
+
+        let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)"
+        //        print(service)
+        
+        var request = URLRequest(url: URL(string:service)!)
+        
+        request.httpMethod = "GET"
+        
+        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
+        
+        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+            if let error = error {
+                print("class getDetails error: ",error.localizedDescription)
+            }
+            
+            guard let response = response else {
+                return
+            }
+            
+            print("class getDetails response: ",response.description)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return
+            }
+            
+            print("class getDetails HTTP response: ",httpResponse.description)
+            print("class getDetails HTTP response: ",httpResponse.allHeaderFields)
+            print("class getDetails HTTP response: ",httpResponse.statusCode)
+            print("class getDetails HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+            
+            if let data = data {
+                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                print(string as Any)
+                
+                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
+                    print(json)
+                    DispatchQueue.main.async(execute: { () -> Void in
+                        completion?(json)
+                    })
+                }
+            }
+        })
+        
+        task.resume()
+    }
+
     static func delete(mediaID:String?)
     {
         print("VoiceBase.delete")
@@ -131,7 +192,9 @@ extension VoiceBase // Class Methods
                     
                     if let mediaItems = json["media"] as? [[String:Any]] {
                         if mediaItems.count > 0 {
-                            completion?(mediaItems)
+                            DispatchQueue.main.async(execute: { () -> Void in
+                                completion?(mediaItems)
+                            })
                             
 //                            let deleteAllAction = AlertAction(title: "Delete All", style: .destructive, action: completion)
 //                            let cancelAction = AlertAction(title: "Cancel", style: .default, action: nil)
@@ -246,6 +309,8 @@ class VoiceBase {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     weak var mediaItem:MediaItem!
     
+    static let separator = "------------"
+    
     var purpose:String?
     
     var mediaID:String?
@@ -349,23 +414,25 @@ class VoiceBase {
                     self.mediaItem.addTag("Machine Generated Transcript")
                 })
                 
-                if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!)") {
-                    // Check if file exist
-                    if (fileManager.fileExists(atPath: destinationURL.path)){
-                        do {
-                            try fileManager.removeItem(at: destinationURL)
-                        } catch let error as NSError {
-                            print("failed to remove machine generated transcript: \(error.localizedDescription)")
+                DispatchQueue.global(qos: .background).async {
+                    if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!)") {
+                        // Check if file exist
+                        if (fileManager.fileExists(atPath: destinationURL.path)){
+                            do {
+                                try fileManager.removeItem(at: destinationURL)
+                            } catch let error as NSError {
+                                print("failed to remove machine generated transcript: \(error.localizedDescription)")
+                            }
                         }
+                        
+                        do {
+                            try self._transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8);
+                        } catch let error as NSError {
+                            print("failed to write transcript to cache directory: \(error.localizedDescription)")
+                        }
+                    } else {
+                        print("failed to get destinationURL")
                     }
-                    
-                    do {
-                        try _transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8);
-                    } catch let error as NSError {
-                        print("failed to write transcript to cache directory: \(error.localizedDescription)")
-                    }
-                } else {
-                    print("failed to get destinationURL")
                 }
             } else {
                 DispatchQueue(label: "CBC").sync(execute: { () -> Void in
@@ -413,6 +480,10 @@ class VoiceBase {
                 return nil
             }
             
+            guard completed else {
+                return nil
+            }
+            
             if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).media"), let data = try? Data(contentsOf: url) {
                 do {
                     _mediaJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
@@ -451,21 +522,23 @@ class VoiceBase {
             let fileManager = FileManager.default
             
             if _mediaJSON != nil {
-                let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: _mediaJSON as Any, format: .xml, options: 0)
-                
-                if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).media") {
-                    if (fileManager.fileExists(atPath: destinationURL.path)){
-                        do {
-                            try fileManager.removeItem(at: destinationURL)
-                        } catch let error as NSError {
-                            print("failed to remove machine generated transcript media: \(error.localizedDescription)")
-                        }
-                    }
+                DispatchQueue.global(qos: .background).async {
+                    let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self._mediaJSON as Any, format: .xml, options: 0)
                     
-                    do {
-                        try mediaPropertyList?.write(to: destinationURL)
-                    } catch let error as NSError {
-                        print("failed to write machine generated transcript media to cache directory: \(error.localizedDescription)")
+                    if let destinationURL = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).media") {
+                        if (fileManager.fileExists(atPath: destinationURL.path)){
+                            do {
+                                try fileManager.removeItem(at: destinationURL)
+                            } catch let error as NSError {
+                                print("failed to remove machine generated transcript media: \(error.localizedDescription)")
+                            }
+                        }
+                        
+                        do {
+                            try mediaPropertyList?.write(to: destinationURL)
+                        } catch let error as NSError {
+                            print("failed to write machine generated transcript media to cache directory: \(error.localizedDescription)")
+                        }
                     }
                 }
             } else {
@@ -1127,9 +1200,9 @@ class VoiceBase {
                 return
             }
             
-            print("delete response: ",httpResponse.description)
-            print("delete response: ",httpResponse.allHeaderFields)
-            print("delete response: ",httpResponse.statusCode)
+            print("delete HTTP response: ",httpResponse.description)
+            print("delete HTTP response: ",httpResponse.allHeaderFields)
+            print("delete HTTP response: ",httpResponse.statusCode)
             print("delete HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
 
             if (httpResponse.statusCode == 204) || (httpResponse.statusCode == 404) {
@@ -1177,11 +1250,13 @@ class VoiceBase {
         percentComplete = nil
         
         uploadJSON = nil
+        mediaJSON = nil
         
         resultsTimer?.invalidate()
         resultsTimer = nil
         
         transcript = nil
+        transcriptSRT = nil
         
 //        topicsJSON = nil
 //        
@@ -1412,9 +1487,9 @@ class VoiceBase {
                 return
             }
             
-            print("getDetails response: ",httpResponse.description)
-            print("getDetails response: ",httpResponse.allHeaderFields)
-            print("getDetails response: ",httpResponse.statusCode)
+            print("getDetails HTTP response: ",httpResponse.description)
+            print("getDetails HTTP response: ",httpResponse.allHeaderFields)
+            print("getDetails HTTP response: ",httpResponse.statusCode)
             print("getDetails HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
             
             if let data = data {
@@ -1480,9 +1555,9 @@ class VoiceBase {
                 return
             }
             
-            print("addMetaData response: ",httpResponse.description)
-            print("addMetaData response: ",httpResponse.allHeaderFields)
-            print("addMetaData response: ",httpResponse.statusCode)
+            print("addMetaData HTTP response: ",httpResponse.description)
+            print("addMetaData HTTP response: ",httpResponse.allHeaderFields)
+            print("addMetaData HTTP response: ",httpResponse.statusCode)
             print("addMetaData HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
             
             if let data = data {
@@ -1519,6 +1594,10 @@ class VoiceBase {
             return
         }
         
+        guard let transcript = transcript else {
+            return
+        }
+        
         let service = "https://apis.voicebase.com/v2-beta/media/\(mediaID)"
         //        print(service)
         
@@ -1530,7 +1609,7 @@ class VoiceBase {
         
         let boundary = "Boundary-\(UUID().uuidString)"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        let body = createBody(parameters: ["configuration":"{\"configuration\":{\"executor\":\"v2\"}}","transcript":stripHTML(mediaItem.notesHTML)!],boundary: boundary)
+        let body = createBody(parameters: ["transcript":transcript],boundary: boundary) // "configuration":"{\"configuration\":{\"executor\":\"v2\"}}",
         
         request.httpBody = body as Data
         request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
@@ -1550,9 +1629,9 @@ class VoiceBase {
                 return
             }
             
-            print("align response: ",httpResponse.description)
-            print("align response: ",httpResponse.allHeaderFields)
-            print("align response: ",httpResponse.statusCode)
+            print("align HTTP response: ",httpResponse.description)
+            print("align HTTP response: ",httpResponse.allHeaderFields)
+            print("align HTTP response: ",httpResponse.statusCode)
             print("align HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
             
             if let data = data {
@@ -1562,6 +1641,10 @@ class VoiceBase {
                 if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
                     print(json)
                     
+                    // I think this will require a new polling timer, but a different polling URL: https://apis.voicebase.com/v2-beta/media/$MEDIA_ID/transcripts/latest,
+                    // getting a 404 until the new transcript is ready, which we will get instead of a 404 to indicate it is done.
+                    // Will we also need to download a transcriptSRT and details?  YES.  Do we just throw away the others?  Yes?  
+                    // Hopefully whatever new transcript we get back won't be different than the edited one that we uploaded!
                 } else {
                     // JSONSerialization failed
                     
@@ -1625,9 +1708,9 @@ class VoiceBase {
                 return
             }
             
-            print("getTranscript response: ",httpResponse.description)
-            print("getTranscript response: ",httpResponse.allHeaderFields)
-            print("getTranscript response: ",httpResponse.statusCode)
+            print("getTranscript HTTP response: ",httpResponse.description)
+            print("getTranscript HTTP response: ",httpResponse.allHeaderFields)
+            print("getTranscript HTTP response: ",httpResponse.statusCode)
             print("getTranscript HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
             
             if data != nil {
@@ -1894,35 +1977,70 @@ class VoiceBase {
             return _transcriptSRT
         }
         set {
-            _transcriptSRT = newValue
+            var changed = false
+            
+            var value = newValue
+            
+            if _transcriptSRT == nil {
+                if var srtComponents = value?.components(separatedBy: "\n\n") {
+                    for srtComponent in srtComponents {
+                        var srtArray = srtComponent.components(separatedBy: "\n")
+                        if srtArray.count > 2 {
+                            let count = srtArray.removeFirst()
+                            let timeWindow = srtArray.removeFirst()
+                            
+                            var string : String?
+                            
+                            for str in srtArray {
+                                string = string != nil ? string! + " " + str : str
+                            }
+                            
+                            if let index = srtComponents.index(of: srtComponent) {
+                                srtComponents[index] = "\(count)\n\(timeWindow)\n\(string!)"
+                                changed = true
+                            }
+                        }
+                    }
+                    if changed {
+                        value = nil
+                        for srtComponent in srtComponents {
+                            value = value != nil ? value! + VoiceBase.separator + srtComponent : srtComponent
+                        }
+                    }
+                }
+            }
+            
+            _transcriptSRT = value
         }
     }
     var _transcriptSRT:String?
     {
         didSet {
-            srtComponents = transcriptSRT?.components(separatedBy: "\n\n")
+            srtComponents = _transcriptSRT?.components(separatedBy: VoiceBase.separator)
             //            print(srtComponents)
             
             if _transcriptSRT != nil {
-                if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!).srt") {
-                    // Check if file exist
-                    let fileManager = FileManager.default
-                    
-                    if (fileManager.fileExists(atPath: destinationURL.path)){
-                        do {
-                            try fileManager.removeItem(at: destinationURL)
-                        } catch let error as NSError {
-                            print("failed to remove machine generated SRT transcript: \(error.localizedDescription)")
+                DispatchQueue.global(qos: .background).async {
+                    if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!).srt") {
+                        // Check if file exist
+                        let fileManager = FileManager.default
+                        
+                        if (fileManager.fileExists(atPath: destinationURL.path)){
+                            do {
+                                try fileManager.removeItem(at: destinationURL)
+                            } catch let error as NSError {
+                                print("failed to remove machine generated SRT transcript: \(error.localizedDescription)")
+                            }
                         }
+                        
+                        do {
+                            try self._transcriptSRT?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8);
+                        } catch let error as NSError {
+                            print("failed to write SRT transcript to cache directory: \(error.localizedDescription)")
+                        }
+                    } else {
+                        print("failed to get destinationURL")
                     }
-                    
-                    do {
-                        try _transcriptSRT?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8);
-                    } catch let error as NSError {
-                        print("failed to write SRT transcript to cache directory: \(error.localizedDescription)")
-                    }
-                } else {
-                    print("failed to get destinationURL")
                 }
             }
         }
@@ -1968,9 +2086,9 @@ class VoiceBase {
                 return
             }
             
-            print("getTranscriptSRT response: ",httpResponse.description)
-            print("getTranscriptSRT response: ",httpResponse.allHeaderFields)
-            print("getTranscriptSRT response: ",httpResponse.statusCode)
+            print("getTranscriptSRT HTTP response: ",httpResponse.description)
+            print("getTranscriptSRT HTTP response: ",httpResponse.allHeaderFields)
+            print("getTranscriptSRT HTTP response: ",httpResponse.statusCode)
             print("getTranscriptSRT HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
             
             if let data = data {
@@ -2035,9 +2153,9 @@ class VoiceBase {
                 return
             }
             
-            print("search response: ",httpResponse.description)
-            print("search response: ",httpResponse.allHeaderFields)
-            print("search response: ",httpResponse.statusCode)
+            print("search HTTP response: ",httpResponse.description)
+            print("search HTTP response: ",httpResponse.allHeaderFields)
+            print("search HTTP response: ",httpResponse.statusCode)
             print("search HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
             
             if let data = data {

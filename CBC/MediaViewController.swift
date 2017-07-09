@@ -353,6 +353,14 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 popover.delegate = self
                 popover.purpose = .selectingTime
                 
+                popover.parser = { (string:String) -> [String] in
+                    var strings = string.components(separatedBy: "\n")
+                    while strings.count > 2 {
+                        strings.removeLast()
+                    }
+                    return strings
+                }
+                
                 var strings = [String]()
                 
                 if let times = popover.transcript?.srtTokenTimes(token: string), let srtComponents = popover.transcript?.srtComponents {
@@ -363,22 +371,22 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                             if srtComponent.contains(time+" --> ") { //
                                 var srtArray = srtComponent.components(separatedBy: "\n")
                                 
-                                let count = srtArray.first
-                                srtArray.remove(at: 0)
-                                
-                                let timeWindow = srtArray.first
-                                srtArray.remove(at: 0)
-                                
-                                let start = timeWindow?.components(separatedBy: " --> ").first
-                                let end = timeWindow?.components(separatedBy: " --> ").last
-                                
-                                var text = "\(count!)\n\(start!) to \(end!)\n"
-
-                                for string in srtArray {
-                                    text = text + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
+                                if srtArray.count > 2  {
+                                    let count = srtArray.removeFirst()
+                                    let timeWindow = srtArray.removeFirst()
+                                    
+                                    if  let start = timeWindow.components(separatedBy: " --> ").first,
+                                        let end = timeWindow.components(separatedBy: " --> ").last,
+                                        let range = srtComponent.range(of: timeWindow+"\n") {
+                                        let text = "\(count)\n\(start) to \(end)\n" + srtComponent.substring(from: range.upperBound)
+                                        
+                                        //                                    for string in srtArray {
+                                        //                                        text = text + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
+                                        //                                    }
+                                        
+                                        strings.append(text)
+                                    }
                                 }
-                                
-                                strings.append(text)
                                 break
                             }
                         }
@@ -439,6 +447,14 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 popover.delegate = self
                 popover.purpose = .selectingTime
                 
+                popover.parser = { (string:String) -> [String] in
+                    var strings = string.components(separatedBy: "\n")
+                    while strings.count > 2 {
+                        strings.removeLast()
+                    }
+                    return strings
+                }
+
                 if let topic = self.popover?.navigationController?.visibleViewController?.navigationItem.title {
                     popover.section.strings = popover.transcript?.topicKeywordTimes(topic: topic, keyword: string)?.map({ (string:String) -> String in
                         return secondsToHMS(seconds: string) ?? "ERROR"
@@ -3133,6 +3149,10 @@ class MediaViewController: UIViewController
     
     func tags(_ object:AnyObject?)
     {
+        guard Thread.isMainThread else {
+            return
+        }
+
         //Present a modal dialog (iPhone) or a popover w/ tableview list of globals.filters
         //And when the user chooses one, scroll to the first time in that section.
         
@@ -4646,6 +4666,10 @@ extension MediaViewController : UITableViewDataSource
     
     func search(purpose:String)
     {
+        guard Thread.isMainThread else {
+            return
+        }
+
         var transcript:VoiceBase?
         
         switch purpose {
@@ -4714,6 +4738,15 @@ extension MediaViewController : UITableViewDataSource
                     popover.delegate = self
 //                    popover.detail = true
                     popover.purpose = .selectingTime
+                    
+                    popover.parser = { (string:String) -> [String] in
+                        var strings = string.components(separatedBy: "\n")
+                        while strings.count > 2 {
+                            strings.removeLast()
+                        }
+                        return strings
+                    }
+                    
                     popover.section.strings = times
                     
                     self.popover?.navigationController?.pushViewController(popover, animated: true)
@@ -4878,8 +4911,8 @@ extension MediaViewController : UITableViewDataSource
                             alertActions.append(AlertAction(title: "No", style: .default, action: nil))
                             
                             alertActionsCancel( viewController: self,
-                                                title: "Begin Creating Machine Generated Transcript? (\(purpose.lowercased()))",
-                                                message: nil,
+                                                title: "Begin Creating\nMachine Generated Transcript?",
+                                                message: "\(mediaItem.title!) (\(purpose.lowercased()))",
                                                 alertActions: alertActions,
                                                 cancelAction: nil)
                         } else {
@@ -4901,7 +4934,7 @@ extension MediaViewController : UITableViewDataSource
                             "<br/>" +
                             "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(transcript!.purpose!))</center>" +
                             "<br/>" +
-                            transcript!.transcript! +
+                            transcript!.transcript!.replacingOccurrences(of: "\n", with: "<br/>") +
                             //                                            "<br/>" +
                             //                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
                         "</body></html>"
@@ -4922,32 +4955,23 @@ extension MediaViewController : UITableViewDataSource
 
                             srtHTML = srtHTML + "<tr><td><b>#</b></td><td><b>Start Time</b></td><td><b>End Time</b></td><td><b>Recognized Speech</b></td></tr>"
 
-                            if let srtArrays = transcript?.srtArrays {
-                                for array in srtArrays {
-                                    if array.count == 1 {
-                                        break
+                            if let srtComponents = transcript?.srtComponents {
+                                for srtComponent in srtComponents {
+                                    var srtArray = srtComponent.components(separatedBy: "\n")
+                                    
+                                    if srtArray.count > 2  {
+                                        let count = srtArray.removeFirst()
+                                        let timeWindow = srtArray.removeFirst()
+                                        
+                                        if  let start = timeWindow.components(separatedBy: " --> ").first,
+                                            let end = timeWindow.components(separatedBy: " --> ").last,
+                                            let range = srtComponent.range(of: timeWindow+"\n") {
+                                            let text = srtComponent.substring(from: range.upperBound)
+                                            
+                                            let row = "<tr><td>\(count)</td><td>\(start)</td><td>\(end)</td><td>\(text.replacingOccurrences(of: "\n", with: "<br/>"))</td></tr>"
+                                            srtHTML = srtHTML + row
+                                        }
                                     }
-                                    
-                                    var srtArray = array
-                                    
-                                    let count = srtArray.first
-                                    srtArray.remove(at: 0)
-                                    
-                                    let timeWindow = srtArray.first
-                                    srtArray.remove(at: 0)
-                                    
-                                    let start = timeWindow?.components(separatedBy: " --> ").first
-                                    let end = timeWindow?.components(separatedBy: " --> ").last
-                                    
-                                    var srtString = String()
-                                    
-                                    for string in srtArray {
-                                        srtString = srtString + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
-                                    }
-                                    
-                                    let row = "<tr><td>\(count!)</td><td>\(start!)</td><td>\(end!)</td><td>\(srtString)</td></tr>"
-
-                                    srtHTML = srtHTML + row
                                 }
                             }
 
@@ -4969,6 +4993,23 @@ extension MediaViewController : UITableViewDataSource
                         })
                     }))
                     
+                    alertActions.append(AlertAction(title: "Align", style: .destructive, action: {
+                        var alertActions = [AlertAction]()
+                        
+                        alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
+                            transcript?.align()
+                            tableView.setEditing(false, animated: true)
+                        }))
+                        
+                        alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+                        
+                        alertActionsCancel( viewController: self,
+                                            title: "Confirm Realignment of Machine Generated Transcript)",
+                                            message: "This may change the transcript timing for \(transcript!.mediaItem!.title!) (\(purpose.lowercased())",
+                            alertActions: alertActions,
+                            cancelAction: nil)
+                    }))
+
                     alertActions.append(AlertAction(title: "Delete", style: .destructive, action: {
                         var alertActions = [AlertAction]()
                         
@@ -4980,10 +5021,10 @@ extension MediaViewController : UITableViewDataSource
                         alertActions.append(AlertAction(title: "No", style: .default, action: nil))
                         
                         alertActionsCancel( viewController: self,
-                                            title: "Confirm Deletion of Machine Generated Transcript for \(transcript!.mediaItem!.title!) (\(purpose.lowercased()))",
-                            message: nil,
-                            alertActions: alertActions,
-                            cancelAction: nil)
+                                            title: "Confirm Deletion of Machine Generated Transcript",
+                                            message: "\(transcript!.mediaItem!.title!) (\(purpose.lowercased()))",
+                                            alertActions: alertActions,
+                                            cancelAction: nil)
                     }))
 
                     alertActionsCancel(  viewController: self,
@@ -5127,11 +5168,218 @@ extension MediaViewController : UITableViewDataSource
                         self.popover?.vc = self
                         self.popover?.search = true
                         
+                        func tvtra(tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
+                        {
+                            var actions = [UITableViewRowAction]()
+                            
+                            var edit:UITableViewRowAction!
+                            
+                            edit = UITableViewRowAction(style: .normal, title: Constants.FA.EDIT) { action, index in
+                                if let srtComponent = transcript?.srtComponents?[index.row] {
+                                    let playing = globals.mediaPlayer.isPlaying
+                                    
+                                    globals.mediaPlayer.pause()
+                                    
+                                    var srtArray = srtComponent.components(separatedBy: "\n")
+                                    let count = srtArray.removeFirst() // Count
+                                    let timing = srtArray.removeFirst()// Timing
+                                    
+                                    if  let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
+                                        let popover = navigationController.viewControllers[0] as? TextViewController,
+                                        let range = srtComponent.range(of:timing+"\n") {
+                                        navigationController.modalPresentationStyle = .overCurrentContext
+                                        
+                                        navigationController.popoverPresentationController?.delegate = self
+                                        
+                                        popover.navigationController?.isNavigationBarHidden = false
+                                        
+                                        popover.navigationItem.title = "Edit Text" //
+                                        
+                                        let text = srtComponent.substring(from: range.upperBound)
+                                   
+                                        popover.text = text
+
+                                        popover.completion = { (text:String) -> Void in
+                                            print(text)
+                                            
+                                            guard text != popover.text else {
+                                                if playing {
+                                                    globals.mediaPlayer.play()
+                                                }
+                                                return
+                                            }
+                                            
+                                            DispatchQueue.global(qos: .background).async {
+                                                print(text)
+
+                                                transcript?.srtComponents?[index.row] = "\(count)\n\(timing)\n\(text)" //.replacingOccurrences(of: "\n\n", with: "\r\n\r\n")
+                                                
+                                                var transcriptSRT : String!
+                                                
+                                                if let srtComponents = transcript?.srtComponents {
+                                                    for srtComponent in srtComponents {
+                                                        transcriptSRT = transcriptSRT != nil ? transcriptSRT + VoiceBase.separator + srtComponent : srtComponent
+                                                    }
+                                                }
+                                                
+                                                transcript?.transcriptSRT = transcriptSRT
+                                                
+                                                var str : String!
+                                                
+                                                if let srtComponents = transcript?.srtComponents {
+                                                    for srtComponent in srtComponents {
+                                                        var strings = srtComponent.components(separatedBy: "\n")
+                                                        
+                                                        if strings.count > 2 {
+                                                            let count = strings.removeFirst() // count
+                                                            let timing = strings.removeFirst() // time
+                                                            
+                                                            if let range = srtComponent.range(of:timing+"\n") {
+                                                                let string = srtComponent.substring(from:range.upperBound)
+                                                                str = str != nil ? str + " " + string : string
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                
+                                                transcript?.transcript = str
+                                            }
+                                            
+                                            self.popover?.section.strings?[index.row] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
+                                            
+                                            tableView.isEditing = false
+                                            tableView.reloadData()
+                                            
+                                            if playing {
+                                                globals.mediaPlayer.play()
+                                            }
+                                        }
+
+                                        self.popover?.present(navigationController, animated: true, completion: nil)
+                                    }
+                                    
+//                                    let alert = UIAlertController(  title: "Edit Text",
+//                                                                    message: nil,
+//                                                                    preferredStyle: .alert)
+//                                    
+//                                    alert.addTextField(configurationHandler: { (textField:UITextField) in
+//                                        textField.text = text
+//                                    })
+//                                    
+//                                    let okayAction = UIAlertAction(title: "Okay", style: UIAlertActionStyle.default, handler: {
+//                                        alertItem -> Void in
+//                                        if let text = (alert.textFields![0] as UITextField).text {
+////                                            DispatchQueue.global(qos: .background).async {
+////                                                while transcript?.srtArrays?[index.row].count > 3 {
+////                                                    transcript?.srtArrays?[index.row].removeLast()
+////                                                }
+////                                                transcript?.srtArrays?[index.row][2] = text
+//                                                
+//                                            DispatchQueue.global(qos: .background).async {
+//                                                transcript?.srtComponents?[index.row] = "\(count)\n\(timing)\n\(text)"
+//                                                
+//                                                var transcriptSRT : String!
+//                                                
+//                                                if let srtComponents = transcript?.srtComponents {
+//                                                    for srtComponent in srtComponents {
+//                                                        transcriptSRT = transcriptSRT != nil ? transcriptSRT + VoiceBase.separator + srtComponent : srtComponent
+//                                                    }
+//                                                }
+//                                                
+//                                                transcript?.transcriptSRT = transcriptSRT
+//                                                
+//                                                var text : String!
+//                                                
+//                                                if let srtComponents = transcript?.srtComponents {
+//                                                    for srtComponent in srtComponents {
+//                                                        var strings = srtComponent.components(separatedBy: "\n")
+//                                                        
+//                                                        if strings.count >= 3 {
+//                                                            strings.removeFirst() // count
+//                                                            strings.removeFirst() // time
+//                                                            
+//                                                            var srtString = String()
+//                                                            
+//                                                            for string in strings {
+//                                                                srtString = srtString + string + (strings.index(of: string) == (strings.count - 1) ? "" : " ")
+//                                                            }
+//                                                            
+//                                                            text = text != nil ? text + " " + srtString : srtString
+//                                                        }
+//                                                    }
+//                                                }
+//
+//                                                transcript?.transcript = text
+//                                            }
+//                                            
+//                                                self.popover?.section.strings?[index.row] = "\(count)\n\(timing)\n\(text)"
+//                                                    
+////                                                    transcript?.srtComponents?.filter({ (string:String) -> Bool in
+////                                                    return string.components(separatedBy: "\n").count > 1
+////                                                }).map({ (srtComponent:String) -> String in
+////                                                    //                            print("srtComponent: ",srtComponent)
+////                                                    var srtArray = srtComponent.components(separatedBy: "\n")
+////                                                    
+////                                                    let count = srtArray.first
+////                                                    srtArray.remove(at: 0)
+////                                                    
+////                                                    let timeWindow = srtArray.first
+////                                                    srtArray.remove(at: 0)
+////                                                    
+////                                                    if count != nil,
+////                                                        let start = timeWindow?.components(separatedBy: " --> ").first,
+////                                                        let end = timeWindow?.components(separatedBy: " --> ").last {
+////                                                        var text = "\(count!)\n\(start) to \(end)\n"
+////                                                        
+////                                                        for string in srtArray {
+////                                                            text = text + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
+////                                                        }
+////                                                        
+////                                                        return text
+////                                                    }
+////                                                    
+////                                                    return "ERROR"
+////                                                })
+//                                            
+//                                            tableView.isEditing = false
+//                                            tableView.reloadData()
+////                                                DispatchQueue.main.async(execute: { () -> Void in
+////                                                })
+//                                            }
+////                                        }
+//                                    })
+//                                    alert.addAction(okayAction)
+//                                    
+//                                    let cancel = UIAlertAction(title: "Cancel", style: .default, handler: {
+//                                        alertItem -> Void in
+//                                    })
+//                                    alert.addAction(cancel)
+//                                    
+//                                    self.popover?.present(alert, animated: true, completion: nil)
+                                }
+                            }
+                            edit.backgroundColor = UIColor.cyan//controlBlue()
+                            
+                            actions.append(edit)
+
+                            return actions
+                        }
+
+                        self.popover?.editActionsAtIndexPath = tvtra
+                        
                         self.popover?.track = true
                         
                         self.popover?.delegate = self
                         self.popover?.purpose = .selectingTime
                         
+                        self.popover?.parser = { (string:String) -> [String] in
+                            var strings = string.components(separatedBy: "\n")
+                            while strings.count > 2 {
+                                strings.removeLast()
+                            }
+                            return strings
+                        }
+
 //                        self.popover?.section.showIndex = true
 //                        self.popover?.section.showHeaders = true
                         
@@ -5141,22 +5389,17 @@ extension MediaViewController : UITableViewDataSource
                             //                            print("srtComponent: ",srtComponent)
                             var srtArray = srtComponent.components(separatedBy: "\n")
                             
-                            let count = srtArray.first
-                            srtArray.remove(at: 0)
-                            
-                            let timeWindow = srtArray.first
-                            srtArray.remove(at: 0)
-                            
-                            if count != nil,
-                                let start = timeWindow?.components(separatedBy: " --> ").first,
-                                let end = timeWindow?.components(separatedBy: " --> ").last {
-                                var text = "\(count!)\n\(start) to \(end)\n"
+                            if srtArray.count > 2  {
+                                let count = srtArray.removeFirst()
+                                let timeWindow = srtArray.removeFirst()
                                 
-                                for string in srtArray {
-                                    text = text + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
+                                if  let start = timeWindow.components(separatedBy: " --> ").first,
+                                    let end = timeWindow.components(separatedBy: " --> ").last,
+                                    let range = srtComponent.range(of: timeWindow+"\n") {
+                                    let text = "\(count)\n\(start) to \(end)\n" + srtComponent.substring(from: range.upperBound)
+
+                                    return text
                                 }
-                                
-                                return text
                             }
 
                             return "ERROR"

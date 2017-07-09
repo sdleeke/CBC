@@ -646,6 +646,8 @@ struct Constants {
         static let VIDEO = "\u{f03d}"
         static let LIST = "\u{f03a}"
         
+        static let EDIT = "\u{f040}"
+        
         static let DOWNLOAD_FONT_SIZE = CGFloat(18.0)
         static let DOWNLOAD = "\u{f019}"
         static let DOWNLOADING = "\u{f0ae}"

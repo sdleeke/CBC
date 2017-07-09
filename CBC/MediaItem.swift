@@ -2873,6 +2873,24 @@ class MediaItem : NSObject {
             mediaItemString = "\(mediaItemString)\"speaker\":\"\(speaker!)\""
         }
         
+        
+        mediaItemString = "\(mediaItemString)\"device\":{"
+        
+        if UIDevice.current.isSimulator {
+            mediaItemString = "\(mediaItemString)\"name\":\"\(UIDevice.current.name):\(UIDevice.current.modelName)\""
+        } else {
+            mediaItemString = "\(mediaItemString)\"name\":\"\(UIDevice.current.name)\""
+        }
+        
+        mediaItemString = "\(mediaItemString)\"model\":\"\(UIDevice.current.localizedModel)\""
+        
+        mediaItemString = "\(mediaItemString)\"modelName\":\"\(UIDevice.current.modelName)\""
+        
+        mediaItemString = "\(mediaItemString)\"UUID\":\"\(UIDevice.current.identifierForVendor!.description)\""
+        
+        mediaItemString = "\(mediaItemString)}"
+        
+        
         mediaItemString = "\(mediaItemString)}}"
         
         return mediaItemString
@@ -2910,7 +2928,25 @@ class MediaItem : NSObject {
         if (speaker != nil) {
             mediaItemString = "\(mediaItemString)\"speaker\":\"\(speaker!)\""
         }
-
+        
+        
+        mediaItemString = "\(mediaItemString)\"device\":{"
+        
+        if UIDevice.current.isSimulator {
+            mediaItemString = "\(mediaItemString)\"name\":\"\(UIDevice.current.name):\(UIDevice.current.modelName)\""
+        } else {
+            mediaItemString = "\(mediaItemString)\"name\":\"\(UIDevice.current.name)\""
+        }
+        
+        mediaItemString = "\(mediaItemString)\"model\":\"\(UIDevice.current.localizedModel)\""
+        
+        mediaItemString = "\(mediaItemString)\"modelName\":\"\(UIDevice.current.modelName)\""
+        
+        mediaItemString = "\(mediaItemString)\"UUID\":\"\(UIDevice.current.identifierForVendor!.description)\""
+        
+        mediaItemString = "\(mediaItemString)}"
+        
+        
         mediaItemString = "\(mediaItemString)}}"
         
         return mediaItemString

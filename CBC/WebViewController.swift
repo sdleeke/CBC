@@ -257,6 +257,11 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 popover.sort.function = sort
                 
+                popover.section.showIndex = true
+                popover.section.showHeaders = true
+                
+                popover.search = true
+                
                 if mediaItem!.hasNotesHTML {
                     if mediaItem?.notesTokens == nil {
                         popover.stringsFunction = {
@@ -272,11 +277,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                         }).sorted()
                     }
                 }
-                
-                popover.section.showIndex = true
-                popover.section.showHeaders = true
-                
-                popover.search = true
                 
                 popover.vc = self
                 

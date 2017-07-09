@@ -1152,6 +1152,10 @@ class ScriptureIndexViewController : UIViewController
     
     func index(_ object:AnyObject?)
     {
+        guard Thread.isMainThread else {
+            return
+        }
+
         //In case we have one already showing
         dismiss(animated: true, completion: nil)
         
