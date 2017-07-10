@@ -402,15 +402,6 @@ class VoiceBase {
         }
         set {
             _transcript = newValue
-        }
-    }
-    
-    var _transcript:String?
-    {
-        didSet {
-            guard mediaItem != nil else {
-                return
-            }
             
             let fileManager = FileManager.default
             
@@ -444,25 +435,34 @@ class VoiceBase {
                     self.mediaItem.removeTag("Machine Generated Transcript")
                 })
                 
-                if let destinationURL = cachesURL()?.appendingPathComponent(mediaItem.id!+".\(purpose!)") {
-                    // Check if file exist
-                    if (fileManager.fileExists(atPath: destinationURL.path)){
-                        do {
-                            try fileManager.removeItem(at: destinationURL)
-                        } catch let error as NSError {
-                            print("failed to remove machine generated transcript: \(error.localizedDescription)")
+                DispatchQueue.global(qos: .background).async {
+                    if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!)") {
+                        // Check if file exist
+                        if (fileManager.fileExists(atPath: destinationURL.path)){
+                            do {
+                                try fileManager.removeItem(at: destinationURL)
+                            } catch let error as NSError {
+                                print("failed to remove machine generated transcript: \(error.localizedDescription)")
+                            }
+                        } else {
+                            print("machine generated transcript file doesn't exist")
                         }
                     } else {
-                        print("machine generated transcript file doesn't exist")
+                        print("failed to get destinationURL")
                     }
-                } else {
-                    print("failed to get destinationURL")
                 }
             }
             
             DispatchQueue.main.async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
             })
+        }
+    }
+    
+    var _transcript:String?
+    {
+        didSet {
+
         }
     }
     
@@ -523,11 +523,11 @@ class VoiceBase {
             guard purpose != nil else {
                 return
             }
-            
-            let fileManager = FileManager.default
-            
-            if _mediaJSON != nil {
-                DispatchQueue.global(qos: .background).async {
+
+            DispatchQueue.global(qos: .background).async {
+                let fileManager = FileManager.default
+                
+                if self._mediaJSON != nil {
                     let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self._mediaJSON as Any, format: .xml, options: 0)
                     
                     if let destinationURL = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).media") {
@@ -545,20 +545,20 @@ class VoiceBase {
                             print("failed to write machine generated transcript media to cache directory: \(error.localizedDescription)")
                         }
                     }
-                }
-            } else {
-                if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).media") {
-                    if (fileManager.fileExists(atPath: destinationURL.path)){
-                        do {
-                            try fileManager.removeItem(at: destinationURL)
-                        } catch let error as NSError {
-                            print("failed to remove machine generated transcript media: \(error.localizedDescription)")
+                } else {
+                    if let destinationURL = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).media") {
+                        if (fileManager.fileExists(atPath: destinationURL.path)){
+                            do {
+                                try fileManager.removeItem(at: destinationURL)
+                            } catch let error as NSError {
+                                print("failed to remove machine generated transcript media: \(error.localizedDescription)")
+                            }
+                        } else {
+                            print("machine generated transcript media file doesn't exist")
                         }
                     } else {
-                        print("machine generated transcript media file doesn't exist")
+                        print("failed to get destinationURL")
                     }
-                } else {
-                    print("failed to get destinationURL")
                 }
             }
         }
@@ -1981,13 +1981,13 @@ class VoiceBase {
     var _srtComponents:[String]?
     {
         didSet {
-            guard srtComponents != nil else {
+            guard let srtComponents = _srtComponents else {
                 return
             }
             
             var srtArrays = [[String]]()
             
-            for srtComponent in srtComponents! {
+            for srtComponent in srtComponents {
                 srtArrays.append(srtComponent.components(separatedBy: "\n"))
             }
             
@@ -2047,20 +2047,13 @@ class VoiceBase {
             }
             
             _transcriptSRT = value
-        }
-    }
-    var _transcriptSRT:String?
-    {
-        didSet {
-            srtComponents = _transcriptSRT?.components(separatedBy: VoiceBase.separator)
-            //            print(srtComponents)
             
-            if _transcriptSRT != nil {
-                DispatchQueue.global(qos: .background).async {
+            DispatchQueue.global(qos: .background).async {
+                let fileManager = FileManager.default
+                
+                if self._transcriptSRT != nil {
                     if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!).srt") {
                         // Check if file exist
-                        let fileManager = FileManager.default
-                        
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
                                 try fileManager.removeItem(at: destinationURL)
@@ -2077,8 +2070,30 @@ class VoiceBase {
                     } else {
                         print("failed to get destinationURL")
                     }
+                } else {
+                    if let destinationURL = cachesURL()?.appendingPathComponent(self.mediaItem.id!+".\(self.purpose!).srt") {
+                        // Check if file exist
+                        if (fileManager.fileExists(atPath: destinationURL.path)){
+                            do {
+                                try fileManager.removeItem(at: destinationURL)
+                            } catch let error as NSError {
+                                print("failed to remove machine generated transcript: \(error.localizedDescription)")
+                            }
+                        } else {
+                            print("machine generated transcript file doesn't exist")
+                        }
+                    } else {
+                        print("failed to get destinationURL")
+                    }
                 }
             }
+        }
+    }
+    var _transcriptSRT:String?
+    {
+        didSet {
+            srtComponents = _transcriptSRT?.components(separatedBy: VoiceBase.separator)
+            //            print(srtComponents)
         }
     }
     

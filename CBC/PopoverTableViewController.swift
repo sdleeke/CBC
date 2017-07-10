@@ -264,7 +264,7 @@ class PopoverTableViewController : UIViewController
 //    var detail = false
     var detailAction:((VoiceBase?,String)->Void)?
     
-    var editActionsAtIndexPath : ((UITableView,IndexPath)->([UITableViewRowAction]?))?
+    var editActionsAtIndexPath : ((String?)->([UITableViewRowAction]?))?
     
     var sort = Sort()
  
@@ -370,6 +370,8 @@ class PopoverTableViewController : UIViewController
     }
     var searchText      : String?
     var wholeWordsOnly  = false
+    
+    var searchInteractive = true
     
     @IBOutlet weak var tableViewTopConstraint: NSLayoutConstraint!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
@@ -1229,6 +1231,8 @@ class PopoverTableViewController : UIViewController
             activityIndicator?.stopAnimating()
             activityIndicator?.isHidden = true
         }
+        
+        searchBar.isUserInteractionEnabled = searchInteractive
     }
 
     override func viewDidAppear(_ animated: Bool)
@@ -1406,7 +1410,7 @@ extension PopoverTableViewController : UITableViewDataSource
         if (index >= 0) && (index < section.strings?.count) {
             if let title = section.strings?[index] {
                 if search, searchActive, let searchText = searchText?.lowercased(), title.lowercased().contains(searchText) {
-                    let string = title.lowercased()
+                    let string = title //.lowercased()
                     
                     var titleString = NSMutableAttributedString()
                     
@@ -1513,7 +1517,7 @@ extension PopoverTableViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
-        return editActionsAtIndexPath?(tableView,indexPath)
+        return editActionsAtIndexPath?(section.strings?[indexPath.row])
     }
 
     func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath)

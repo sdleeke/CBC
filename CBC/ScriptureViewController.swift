@@ -89,7 +89,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 
             case Constants.Strings.Print:
                 if webViewController?.html.string != nil, webViewController!.html.string!.contains(" href=") {
-                    firstSecondCancel(viewController: self, title: "Remove Links?", message: "This can take some time.",
+                    firstSecondCancel(viewController: self, title: "Remove Links?", message: nil, //"This can take some time.",
                                       firstTitle: "Yes",
                                       firstAction: {
                                         process(viewController: self, work: { () -> (Any?) in
@@ -371,7 +371,7 @@ extension ScriptureViewController : UIPopoverPresentationControllerDelegate
 
 class ScriptureViewController : UIViewController
 {
-    var actionButton:UIBarButtonItem?
+//    var actionButton:UIBarButtonItem?
     var minusButton:UIBarButtonItem?
     var plusButton:UIBarButtonItem?
 
@@ -527,61 +527,61 @@ class ScriptureViewController : UIViewController
         }
     }
     
-    func actionMenuItems() -> [String]?
-    {
-        var actionMenu = [String]()
-        
-        if self.navigationController?.modalPresentationStyle == .popover {
-            actionMenu.append(Constants.Strings.Full_Screen)
-        }
-        
-        if UIPrintInteractionController.isPrintingAvailable {
-            actionMenu.append(Constants.Strings.Print)
-        }
-        
-        if webViewController?.html.string != nil {
-            actionMenu.append(Constants.Strings.Share)
-        }
-        
-        return actionMenu.count > 0 ? actionMenu : nil
-    }
+//    func actionMenuItems() -> [String]?
+//    {
+//        var actionMenu = [String]()
+//        
+//        if self.navigationController?.modalPresentationStyle == .popover {
+//            actionMenu.append(Constants.Strings.Full_Screen)
+//        }
+//        
+//        if UIPrintInteractionController.isPrintingAvailable {
+//            actionMenu.append(Constants.Strings.Print)
+//        }
+//        
+//        if webViewController?.html.string != nil {
+//            actionMenu.append(Constants.Strings.Share)
+//        }
+//        
+//        return actionMenu.count > 0 ? actionMenu : nil
+//    }
     
-    func actionMenu()
-    {
-        //In case we have one already showing
-        //        dismiss(animated: true, completion: nil)
-        
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-            navigationController.modalPresentationStyle = .popover
-            
-            navigationController.popoverPresentationController?.permittedArrowDirections = .up
-            navigationController.popoverPresentationController?.delegate = self
-            
-            navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-            
-            popover.navigationController?.isNavigationBarHidden = true
-            
-            popover.delegate = self
-            popover.purpose = .selectingAction
-            
-            popover.section.strings = actionMenuItems()
-            
-            popover.section.showIndex = false
-            popover.section.showHeaders = false
-            
-            popover.vc = self
-            
-            ptvc = popover
-            
-            present(navigationController, animated: true, completion: {
-                DispatchQueue.main.async(execute: { () -> Void in
-                    // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
-                    navigationController.popoverPresentationController?.passthroughViews = nil
-                })
-            })
-        }
-    }
+//    func actionMenu()
+//    {
+//        //In case we have one already showing
+//        //        dismiss(animated: true, completion: nil)
+//        
+//        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//            navigationController.modalPresentationStyle = .popover
+//            
+//            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+//            navigationController.popoverPresentationController?.delegate = self
+//            
+//            navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+//            
+//            popover.navigationController?.isNavigationBarHidden = true
+//            
+//            popover.delegate = self
+//            popover.purpose = .selectingAction
+//            
+//            popover.section.strings = actionMenuItems()
+//            
+//            popover.section.showIndex = false
+//            popover.section.showHeaders = false
+//            
+//            popover.vc = self
+//            
+//            ptvc = popover
+//            
+//            present(navigationController, animated: true, completion: {
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+//                    navigationController.popoverPresentationController?.passthroughViews = nil
+//                })
+//            })
+//        }
+//    }
     
     func decreaseFontSize()
     {
@@ -601,8 +601,8 @@ class ScriptureViewController : UIViewController
     
     fileprivate func setupBarButtons()
     {
-        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureViewController.actionMenu))
-        actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+//        actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureViewController.actionMenu))
+//        actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
         
         plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(ScriptureViewController.increaseFontSize))
         plusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
@@ -610,7 +610,7 @@ class ScriptureViewController : UIViewController
         minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(ScriptureViewController.decreaseFontSize))
         minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
         
-        navigationItem.setRightBarButtonItems([actionButton!,minusButton!,plusButton!], animated: true)
+        navigationItem.setRightBarButtonItems([minusButton!,plusButton!], animated: true) // actionButton!,
         
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
@@ -1003,14 +1003,14 @@ class ScriptureViewController : UIViewController
         }
     }
     
-    func updateActionMenu()
-    {
-        navigationItem.rightBarButtonItem?.isEnabled = actionMenuItems()?.count > 0
-    }
+//    func updateActionMenu()
+//    {
+//        navigationItem.rightBarButtonItem?.isEnabled = actionMenuItems()?.count > 0
+//    }
     
     func updateUI()
     {
-        updateActionMenu()
+//        updateActionMenu()
         
         updatePicker()
         

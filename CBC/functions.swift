@@ -3062,13 +3062,14 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
             if hClass == .compact {
                 navigationController.modalPresentationStyle = .fullScreen
             } else {
+                // I don't think this ever happens: collapsed and regular
                 navigationController.modalPresentationStyle = .popover
                 
                 navigationController.popoverPresentationController?.permittedArrowDirections = .any
                 navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
             }
         } else {
-            navigationController.modalPresentationStyle = .overCurrentContext // Used to be .popover
+            navigationController.modalPresentationStyle = .fullScreen // Used to be .popover
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .any
             navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate

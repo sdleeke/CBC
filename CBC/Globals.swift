@@ -758,7 +758,13 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     func alert(title:String,message:String?)
     {
-        alerts.append(Alert(title: title, message: message, actions: nil))
+        if !alerts.contains(where: { (alert:Alert) -> Bool in
+            return (alert.title == title) && (alert.message == message)
+        }) {
+            alerts.append(Alert(title: title, message: message, actions: nil))
+        } else {
+            print("DUPLICATE ALERT")
+        }
     }
     
     func alert(title:String,message:String?,actions:[AlertAction]?)
