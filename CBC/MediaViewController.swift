@@ -274,23 +274,23 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         }
     }
     
-    func srtAction(transcript:VoiceBase?,time:String)
-    {
-        guard let srtComponents = transcript?.srtComponents else {
-            return
-        }
-        
-        var fragment:String!
-        
-        for srtComponent in srtComponents {
-            if srtComponent.contains(time+" --> ") {
-                fragment = srtComponent.replacingOccurrences(of: "\n", with: " ")
-                break
-            }
-        }
-        
-        alert(viewController: self.popover!, title: "Machine Generated Transcript Fragment", message: fragment, completion: nil)
-    }
+//    func srtAction(transcript:VoiceBase?,time:String)
+//    {
+//        guard let srtComponents = transcript?.srtComponents else {
+//            return
+//        }
+//        
+//        var fragment:String!
+//        
+//        for srtComponent in srtComponents {
+//            if srtComponent.contains(time+" --> ") {
+//                fragment = srtComponent.replacingOccurrences(of: "\n", with: " ")
+//                break
+//            }
+//        }
+//        
+//        alert(viewController: self.popover!, title: "Machine Generated Transcript Fragment", message: fragment, completion: nil)
+//    }
     
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
     {
@@ -345,8 +345,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 popover.transcript = self.popover?.transcript
                 
 //                popover.detail = true
-                
-                popover.detailAction = srtAction
+//                popover.detailAction = srtAction
                 
                 popover.vc = self.popover
                 
@@ -470,7 +469,16 @@ extension MediaViewController : PopoverTableViewControllerDelegate
 //            dismiss(animated: true, completion: nil)
             
             if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = hmsToSeconds(string: time) {
-                globals.mediaPlayer.seek(to: seconds)
+                globals.mediaPlayer.seek(to: seconds,completion:{ (finished:Bool)->(Void) in
+                    if let isTracking = self.popover?.isTracking, isTracking {
+//                        self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                        
+                        self.popover?.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self.popover as Any, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+                        
+                        //            DispatchQueue.main.async(execute: { () -> Void in
+                        //            })
+                    }
+                })
             }
             break
             
@@ -4864,12 +4872,35 @@ extension MediaViewController : UITableViewDataSource
                 if (transcript?.mediaID != nil) {
                     title = title + "in Progress"
                     message = message + "is available."
+                    
+                    var actions = [AlertAction]()
+                    
+                    actions.append(AlertAction(title: "Media ID", style: .default, action: {
+                        let alert = UIAlertController(  title: "VoiceBase Media ID",
+                                                        message: nil,
+                                                        preferredStyle: .alert)
+                        
+                        alert.addTextField(configurationHandler: { (textField:UITextField) in
+                            textField.text = transcript?.mediaID
+                        })
+                        
+                        let okayAction = UIAlertAction(title: "Okay", style: UIAlertActionStyle.default, handler: {
+                            alertItem -> Void in
+                        })
+                        alert.addAction(okayAction)
+                        
+                        self.present(alert, animated: true, completion: nil)
+                    }))
+                    
+                    actions.append(AlertAction(title: "Okay", style: .default, action: nil))
+                    
+                    globals.alert(title:title, message:message, actions:actions)
                 } else {
                     title = title + "Requested"
                     message = message + "has started."
+                    
+                    globals.alert(title:title, message:message)
                 }
-                
-                globals.alert(title:title, message:message)
             }
             
             var prefix:String!
@@ -4924,7 +4955,7 @@ extension MediaViewController : UITableViewDataSource
                             
                             alertActionsCancel( viewController: self,
                                                 title: "Begin Creating\nMachine Generated Transcript?",
-                                                message: "\(mediaItem.title!) (\(purpose.lowercased()))",
+                                                message: "\(mediaItem.text!) (\(purpose.lowercased()))",
                                                 alertActions: alertActions,
                                                 cancelAction: nil)
                         } else {
@@ -5005,6 +5036,54 @@ extension MediaViewController : UITableViewDataSource
                         })
                     }))
                     
+                    alertActions.append(AlertAction(title: "Media ID", style: .default, action: {
+                        let alert = UIAlertController(  title: "VoiceBase Media ID",
+                                                        message: nil,
+                                                        preferredStyle: .alert)
+                        
+                        alert.addTextField(configurationHandler: { (textField:UITextField) in
+                            textField.text = transcript?.mediaID
+                        })
+                        
+                        let okayAction = UIAlertAction(title: "Okay", style: UIAlertActionStyle.default, handler: {
+                            alertItem -> Void in
+                        })
+                        alert.addAction(okayAction)
+                        
+                        self.present(alert, animated: true, completion: nil)
+                    }))
+                    
+                    
+                    alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, action: {
+                        VoiceBase.getDetails(mediaID: transcript?.mediaID, completion: { (dict:[String:Any])->(Void) in
+                            if let text = transcript?.mediaItem?.text {
+                                let alert = UIAlertController(  title: "On VoiceBase",
+                                                                message: text + "\nis on VoiceBase.",
+                                                                preferredStyle: .alert)
+                                
+                                let okayAction = UIAlertAction(title: "Okay", style: UIAlertActionStyle.default, handler: {
+                                    alertItem -> Void in
+                                })
+                                alert.addAction(okayAction)
+                                
+                                self.present(alert, animated: true, completion: nil)
+                            }
+                        }, onError:  { (dict:[String:Any])->(Void) in
+                            if let text = transcript?.mediaItem?.text {
+                                let alert = UIAlertController(  title: "Not On VoiceBase",
+                                                                message: text + "\nis not on VoiceBase.",
+                                                                preferredStyle: .alert)
+                                
+                                let okayAction = UIAlertAction(title: "Okay", style: UIAlertActionStyle.default, handler: {
+                                    alertItem -> Void in
+                                })
+                                alert.addAction(okayAction)
+                                
+                                self.present(alert, animated: true, completion: nil)
+                            }
+                        })
+                    }))
+                    
                     alertActions.append(AlertAction(title: "Align", style: .destructive, action: {
                         var alertActions = [AlertAction]()
                         
@@ -5016,8 +5095,8 @@ extension MediaViewController : UITableViewDataSource
                         alertActions.append(AlertAction(title: "No", style: .default, action: nil))
                         
                         alertActionsCancel( viewController: self,
-                                            title: "Confirm Realignment of Machine Generated Transcript)",
-                                            message: "This may change the transcript timing for \(transcript!.mediaItem!.title!) (\(purpose.lowercased())",
+                                            title: "Confirm Realignment of Machine Generated Transcript",
+                                            message: "This may change transcript timing for\n\(transcript!.mediaItem!.text!) (\(purpose.lowercased())",
                             alertActions: alertActions,
                             cancelAction: nil)
                     }))
@@ -5034,7 +5113,7 @@ extension MediaViewController : UITableViewDataSource
                         
                         alertActionsCancel( viewController: self,
                                             title: "Confirm Deletion of Machine Generated Transcript",
-                                            message: "\(transcript!.mediaItem!.title!) (\(purpose.lowercased()))",
+                                            message: "\(transcript!.mediaItem!.text!) (\(purpose.lowercased()))",
                                             alertActions: alertActions,
                                             cancelAction: nil)
                     }))
@@ -5180,9 +5259,9 @@ extension MediaViewController : UITableViewDataSource
                         self.popover?.vc = self
                         self.popover?.search = true
                         
-                        func tvtra(string:String?) -> [UITableViewRowAction]?
+                        func tvtra(tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
                         {
-                            guard let string = string else {
+                            guard let string = self.popover?.section.strings?[indexPath.row] else {
                                 return nil
                             }
                             
@@ -5266,7 +5345,7 @@ extension MediaViewController : UITableViewDataSource
                                         }
                                         
                                         self.popover?.section.strings?[index] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
-                                        
+
                                         tableView.isEditing = false
                                         tableView.reloadData()
                                         
@@ -5288,8 +5367,6 @@ extension MediaViewController : UITableViewDataSource
                         }
 
                         self.popover?.editActionsAtIndexPath = tvtra
-                        
-                        self.popover?.track = true
                         
                         self.popover?.delegate = self
                         self.popover?.purpose = .selectingTime
@@ -5326,6 +5403,8 @@ extension MediaViewController : UITableViewDataSource
 
                             return "ERROR"
                         })
+                        
+                        self.popover?.track = true
 
 //                        switch purpose {
 //                        case Purpose.audio:

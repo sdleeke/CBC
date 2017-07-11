@@ -914,6 +914,17 @@ class MediaPlayer : NSObject {
     
     func seek(to: Double?)
     {
+        seek(to: to,completion:{ (finished:Bool) in
+            if finished {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
+                })
+            }
+        })
+    }
+    
+    func seek(to: Double?,completion:((Bool)->(Void))?)
+    {
         guard let to = to else {
             return
         }
@@ -944,14 +955,12 @@ class MediaPlayer : NSObject {
                 
                 mediaItem?.atEnd = seek >= length
                 
-                player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
-                             completionHandler: { (finished:Bool) in
-                                if finished {
-                                    DispatchQueue.main.async(execute: { () -> Void in
-                                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
-                                    })
-                                }
-                })
+                if let completion = completion {
+                    player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution),
+                                 completionHandler: completion)
+                } else {
+                    player?.seek(to: CMTimeMakeWithSeconds(seek,Constants.CMTime_Resolution), toleranceBefore: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution), toleranceAfter: CMTimeMakeWithSeconds(0,Constants.CMTime_Resolution))
+                }
                 
                 mediaItem?.currentTime = seek.description
                 stateTime?.startTime = seek.description

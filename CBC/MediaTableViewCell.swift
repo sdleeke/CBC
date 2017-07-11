@@ -39,10 +39,15 @@ class MediaTableViewCell: UITableViewCell
     
     func clear()
     {
-        DispatchQueue.main.async {
-            self.title.attributedText = nil
-            self.detail.attributedText = nil
+        guard Thread.isMainThread else {
+            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:clear", completion: nil)
+            return
         }
+        
+        self.title.attributedText = nil
+        self.detail.attributedText = nil
+//        DispatchQueue.main.async {
+//        }
     }
     
     func hideUI()
@@ -91,25 +96,35 @@ class MediaTableViewCell: UITableViewCell
             return
         }
         
-        DispatchQueue.main.async {
-            switch self.mediaItem!.audioDownload!.state {
-            case .none:
-                self.downloadButton.setTitle(Constants.FA.DOWNLOAD, for: UIControlState.normal)
-                break
-                
-            case .downloaded:
-                self.downloadButton.setTitle(Constants.FA.DOWNLOADED, for: UIControlState.normal)
-                break
-                
-            case .downloading:
-                self.downloadButton.setTitle(Constants.FA.DOWNLOADING, for: UIControlState.normal)
-                break
-            }
+        guard let hasAudio = mediaItem?.hasAudio, hasAudio else {
+            downloadButton.isHidden = true
+            return
         }
+        
+        switch self.mediaItem!.audioDownload!.state {
+        case .none:
+            self.downloadButton.setTitle(Constants.FA.DOWNLOAD, for: UIControlState.normal)
+            break
+            
+        case .downloaded:
+            self.downloadButton.setTitle(Constants.FA.DOWNLOADED, for: UIControlState.normal)
+            break
+            
+        case .downloading:
+            self.downloadButton.setTitle(Constants.FA.DOWNLOADING, for: UIControlState.normal)
+            break
+        }
+//        DispatchQueue.main.async {
+//        }
     }
     
     func setupText()
     {
+        guard Thread.isMainThread else {
+            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:setupText", completion: nil)
+            return
+        }
+        
         clear()
 
         let titleString = NSMutableAttributedString()
@@ -174,10 +189,10 @@ class MediaTableViewCell: UITableViewCell
             titleString.append(NSAttributedString(string:mediaItem!.speaker!, attributes: Constants.Fonts.Attributes.normal))
         }
         
-        DispatchQueue.main.async {
-            //                print(titleString.string)
-            self.title.attributedText = titleString // NSAttributedString(string: "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)", attributes: normal)
-        }
+        self.title.attributedText = titleString // NSAttributedString(string: "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)", attributes: normal)
+//        DispatchQueue.main.async {
+//            //                print(titleString.string)
+//        }
         
         let detailString = NSMutableAttributedString()
         
@@ -314,10 +329,10 @@ class MediaTableViewCell: UITableViewCell
             }
         }
         
-        DispatchQueue.main.async {
-            //                print(detailString.string)
-            self.detail.attributedText = detailString
-        }
+        self.detail.attributedText = detailString
+//        DispatchQueue.main.async {
+//            //                print(detailString.string)
+//        }
     }
     
     func updateUI()
@@ -337,7 +352,11 @@ class MediaTableViewCell: UITableViewCell
             (vc as? MediaTableViewController)?.tableView.isEditing = false
             (vc as? MediaViewController)?.tableView.isEditing = false
         }
-        
+
+        if (detail.text != nil) || (detail.attributedText != nil) {
+            isHiddenUI(false)
+        }
+
         updateTagsButton()
         
         updateDownloadButton()
@@ -347,10 +366,6 @@ class MediaTableViewCell: UITableViewCell
         setupIcons()
 
         setupText()
-        
-        if (detail.text != nil) || (detail.attributedText != nil) {
-            isHiddenUI(false)
-        }
     }
     
     var searchText:String? {
@@ -553,20 +568,20 @@ class MediaTableViewCell: UITableViewCell
             return
         }
         
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.tagsButton.isHidden = !self.mediaItem!.hasTags
-            self.tagsButton.isEnabled = globals.search.complete
-            
-            if (self.mediaItem!.hasTags) {
-                if (self.mediaItem?.self.tagsSet?.count > 1) {
-                    self.tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState.normal)
-                } else {
-                    self.tagsButton.setTitle(Constants.FA.TAG, for: UIControlState.normal)
-                }
+        self.tagsButton.isHidden = !self.mediaItem!.hasTags
+        self.tagsButton.isEnabled = globals.search.complete
+        
+        if (self.mediaItem!.hasTags) {
+            if (self.mediaItem?.self.tagsSet?.count > 1) {
+                self.tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState.normal)
             } else {
-                self.tagsButton.isHidden = true
+                self.tagsButton.setTitle(Constants.FA.TAG, for: UIControlState.normal)
             }
-        })
+        } else {
+            self.tagsButton.isHidden = true
+        }
+//        DispatchQueue.main.async(execute: { () -> Void in
+//        })
     }
     
     func setupTagsToolbar()
@@ -584,32 +599,32 @@ class MediaTableViewCell: UITableViewCell
             return
         }
 
-        DispatchQueue.main.async(execute: { () -> Void in
-            self.tagsToolbar = UIToolbar(frame: self.tagsButton.frame)
-            self.tagsToolbar?.setItems([UIBarButtonItem(title: nil, style: .plain, target: self, action: nil)], animated: false)
-            self.tagsToolbar?.isHidden = true
-            
-            self.tagsToolbar?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
-            
-            self.addSubview(self.tagsToolbar!)
-            
-            let first = self.tagsToolbar
-            let second = self.tagsButton
-            
-            let centerX = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
-            self.addConstraint(centerX)
-            
-            let centerY = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-            self.addConstraint(centerY)
-            
-            //        let width = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: second!, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
-            //        self.addConstraint(width)
-            //
-            //        let height = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: second!, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
-            //        self.addConstraint(height)
-            
-            self.setNeedsLayout()
-        })
+        self.tagsToolbar = UIToolbar(frame: self.tagsButton.frame)
+        self.tagsToolbar?.setItems([UIBarButtonItem(title: nil, style: .plain, target: self, action: nil)], animated: false)
+        self.tagsToolbar?.isHidden = true
+        
+        self.tagsToolbar?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+        
+        self.addSubview(self.tagsToolbar!)
+        
+        let first = self.tagsToolbar
+        let second = self.tagsButton
+        
+        let centerX = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
+        self.addConstraint(centerX)
+        
+        let centerY = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+        self.addConstraint(centerY)
+        
+        //        let width = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: second!, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
+        //        self.addConstraint(width)
+        //
+        //        let height = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: second!, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
+        //        self.addConstraint(height)
+        
+        self.setNeedsLayout()
+//        DispatchQueue.main.async(execute: { () -> Void in
+//        })
     }
     
     func setupDownloadButtonToolbar()
@@ -725,9 +740,9 @@ class MediaTableViewCell: UITableViewCell
                 attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.AUDIO, attributes: Constants.FA.Fonts.Attributes.icons))
             }
             
-            DispatchQueue.main.async {
-                self.icons.attributedText = attrString
-            }
+            self.icons.attributedText = attrString
+//            DispatchQueue.main.async {
+//            }
         } else {
             var string = String()
             
@@ -778,9 +793,9 @@ class MediaTableViewCell: UITableViewCell
                 string = string + Constants.SINGLE_SPACE + Constants.FA.AUDIO
             }
             
-            DispatchQueue.main.async {
-                self.icons.text = string
-            }
+            self.icons.text = string
+//            DispatchQueue.main.async {
+//            }
         }
     }
     
@@ -795,28 +810,28 @@ class MediaTableViewCell: UITableViewCell
             return
         }
         
-        DispatchQueue.main.async {
-            switch download.state {
-            case .none:
-                self.downloadProgressBar.isHidden = true
+        switch download.state {
+        case .none:
+            self.downloadProgressBar.isHidden = true
+            self.downloadProgressBar.progress = 0
+            break
+            
+        case .downloaded:
+            self.downloadProgressBar.isHidden = true
+            self.downloadProgressBar.progress = 1
+            break
+            
+        case .downloading:
+            self.downloadProgressBar.isHidden = false
+            if (download.totalBytesExpectedToWrite > 0) {
+                self.downloadProgressBar.progress = Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite)
+            } else {
                 self.downloadProgressBar.progress = 0
-                break
-                
-            case .downloaded:
-                self.downloadProgressBar.isHidden = true
-                self.downloadProgressBar.progress = 1
-                break
-                
-            case .downloading:
-                self.downloadProgressBar.isHidden = false
-                if (download.totalBytesExpectedToWrite > 0) {
-                    self.downloadProgressBar.progress = Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite)
-                } else {
-                    self.downloadProgressBar.progress = 0
-                }
-                break
             }
+            break
         }
+//        DispatchQueue.main.async {
+//        }
     }
     
     @IBOutlet weak var downloadProgressBar: UIProgressView!

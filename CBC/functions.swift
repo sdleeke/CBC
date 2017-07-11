@@ -35,6 +35,17 @@ public extension UIDevice
         }
     }
     
+    var deviceName : String
+    {
+        get {
+            if UIDevice.current.isSimulator {
+                return "\(UIDevice.current.name):\(UIDevice.current.modelName)"
+            } else {
+                return UIDevice.current.name
+            }
+        }
+    }
+    
     var modelName: String
     {
         var systemInfo = utsname()
@@ -341,6 +352,14 @@ extension Date
         dateStringFormatter.dateFormat = "yyyy-MM-dd"
         dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
         let d = dateStringFormatter.date(from: dateString)!
+        self = Date(timeInterval:0, since:d)
+    }
+    
+    init(string:String) {
+        let dateStringFormatter = DateFormatter()
+        dateStringFormatter.dateFormat = "MMM dd, yyyy"
+        dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+        let d = dateStringFormatter.date(from: string)!
         self = Date(timeInterval:0, since:d)
     }
     
@@ -3069,7 +3088,11 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
                 navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
             }
         } else {
-            navigationController.modalPresentationStyle = .fullScreen // Used to be .popover
+            if viewController.splitViewController?.displayMode == .primaryHidden {
+                navigationController.modalPresentationStyle = .fullScreen // Used to be .popover
+            } else {
+                navigationController.modalPresentationStyle = .overCurrentContext // Used to be .popover
+            }
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .any
             navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate

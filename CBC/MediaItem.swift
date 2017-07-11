@@ -2805,7 +2805,7 @@ class MediaItem : NSObject {
             }
             
             if let speaker = speaker {
-                string = string! + " \(speaker)"
+                string = string! + "\n\(speaker)"
             }
             
             if hasTitle() {
@@ -2835,119 +2835,42 @@ class MediaItem : NSObject {
         }
     }
     
-    func json(purpose:String?) -> String
-    {
-        var mediaItemString = "{"
-        
-        mediaItemString = "\(mediaItemString)\"metadata\":{"
-        
-        if (category != nil) {
-            mediaItemString = "\(mediaItemString)\"category\":\"\(category!)\","
-        }
-        
-        if (id != nil) {
-            mediaItemString = "\(mediaItemString)\"id\":\"\(id!)\","
-        }
-        
-        if (date != nil) {
-            mediaItemString = "\(mediaItemString)\"date\":\"\(date!)\","
-        }
-        
-        if (service != nil) {
-            mediaItemString = "\(mediaItemString)\"service\":\"\(service!)\","
-        }
-        
-        if (title != nil) {
-            if let purpose = purpose {
-                mediaItemString = "\(mediaItemString)\"title\":\"\(title!) (\(purpose))\","
-            } else {
-                mediaItemString = "\(mediaItemString)\"title\":\"\(title!)\","
-            }
-        }
-        
-        if (scripture != nil) {
-            mediaItemString = "\(mediaItemString)\"scripture\":\"\(scripture!.description)\","
-        }
-        
-        if (speaker != nil) {
-            mediaItemString = "\(mediaItemString)\"speaker\":\"\(speaker!)\""
-        }
-        
-        
-        mediaItemString = "\(mediaItemString)\"device\":{"
-        
-        if UIDevice.current.isSimulator {
-            mediaItemString = "\(mediaItemString)\"name\":\"\(UIDevice.current.name):\(UIDevice.current.modelName)\""
-        } else {
-            mediaItemString = "\(mediaItemString)\"name\":\"\(UIDevice.current.name)\""
-        }
-        
-        mediaItemString = "\(mediaItemString)\"model\":\"\(UIDevice.current.localizedModel)\""
-        
-        mediaItemString = "\(mediaItemString)\"modelName\":\"\(UIDevice.current.modelName)\""
-        
-        mediaItemString = "\(mediaItemString)\"UUID\":\"\(UIDevice.current.identifierForVendor!.description)\""
-        
-        mediaItemString = "\(mediaItemString)}"
-        
-        
-        mediaItemString = "\(mediaItemString)}}"
-        
-        return mediaItemString
-    }
-
     var json : String {
         var mediaItemString = "{"
 
-        mediaItemString = "\(mediaItemString)\"metadata\":{"
+            mediaItemString = "\(mediaItemString)\"metadata\":{"
 
-        if (category != nil) {
-            mediaItemString = "\(mediaItemString)\"category\":\"\(category!)\","
-        }
-        
-        if (id != nil) {
-            mediaItemString = "\(mediaItemString)\"id\":\"\(id!)\","
-        }
-        
-        if (date != nil) {
-            mediaItemString = "\(mediaItemString)\"date\":\"\(date!)\","
-        }
-        
-        if (service != nil) {
-            mediaItemString = "\(mediaItemString)\"service\":\"\(service!)\","
-        }
-        
-        if (title != nil) {
-            mediaItemString = "\(mediaItemString)\"title\":\"\(title!)\","
-        }
-        
-        if (scripture != nil) {
-            mediaItemString = "\(mediaItemString)\"scripture\":\"\(scripture!.description)\","
-        }
-        
-        if (speaker != nil) {
-            mediaItemString = "\(mediaItemString)\"speaker\":\"\(speaker!)\""
-        }
-        
-        
-        mediaItemString = "\(mediaItemString)\"device\":{"
-        
-        if UIDevice.current.isSimulator {
-            mediaItemString = "\(mediaItemString)\"name\":\"\(UIDevice.current.name):\(UIDevice.current.modelName)\""
-        } else {
-            mediaItemString = "\(mediaItemString)\"name\":\"\(UIDevice.current.name)\""
-        }
-        
-        mediaItemString = "\(mediaItemString)\"model\":\"\(UIDevice.current.localizedModel)\""
-        
-        mediaItemString = "\(mediaItemString)\"modelName\":\"\(UIDevice.current.modelName)\""
-        
-        mediaItemString = "\(mediaItemString)\"UUID\":\"\(UIDevice.current.identifierForVendor!.description)\""
+                if (category != nil) {
+                    mediaItemString = "\(mediaItemString)\"category\":\"\(category!)\","
+                }
+                
+                if (id != nil) {
+                    mediaItemString = "\(mediaItemString)\"id\":\"\(id!)\","
+                }
+                
+                if (date != nil) {
+                    mediaItemString = "\(mediaItemString)\"date\":\"\(date!)\","
+                }
+                
+                if (service != nil) {
+                    mediaItemString = "\(mediaItemString)\"service\":\"\(service!)\","
+                }
+                
+                if (title != nil) {
+                    mediaItemString = "\(mediaItemString)\"title\":\"\(title!)\","
+                }
+                
+                if (scripture != nil) {
+                    mediaItemString = "\(mediaItemString)\"scripture\":\"\(scripture!.description)\","
+                }
+                
+                if (speaker != nil) {
+                    mediaItemString = "\(mediaItemString)\"speaker\":\"\(speaker!)\""
+                }
+            
+            mediaItemString = "\(mediaItemString)}"
         
         mediaItemString = "\(mediaItemString)}"
-        
-        
-        mediaItemString = "\(mediaItemString)}}"
         
         return mediaItemString
     }
@@ -2955,37 +2878,37 @@ class MediaItem : NSObject {
     override var description : String {
         //This requires that date, service, title, and speaker fields all be non-nil
         
-        var mediaItemString = "MediaItem: "
+//        var mediaItemString = "MediaItem: "
+//        
+//        if (category != nil) {
+//            mediaItemString = "\(mediaItemString) \(category!)"
+//        }
+//        
+//        if (id != nil) {
+//            mediaItemString = "\(mediaItemString) \(id!)"
+//        }
+//        
+//        if (date != nil) {
+//            mediaItemString = "\(mediaItemString) \(date!)"
+//        }
+//        
+//        if (service != nil) {
+//            mediaItemString = "\(mediaItemString) \(service!)"
+//        }
+//        
+//        if (title != nil) {
+//            mediaItemString = "\(mediaItemString) \(title!)"
+//        }
+//        
+//        if (scripture != nil) {
+//            mediaItemString = "\(mediaItemString) \(scripture!.description)"
+//        }
+//        
+//        if (speaker != nil) {
+//            mediaItemString = "\(mediaItemString) \(speaker!)"
+//        }
         
-        if (category != nil) {
-            mediaItemString = "\(mediaItemString) \(category!)"
-        }
-        
-        if (id != nil) {
-            mediaItemString = "\(mediaItemString) \(id!)"
-        }
-        
-        if (date != nil) {
-            mediaItemString = "\(mediaItemString) \(date!)"
-        }
-        
-        if (service != nil) {
-            mediaItemString = "\(mediaItemString) \(service!)"
-        }
-        
-        if (title != nil) {
-            mediaItemString = "\(mediaItemString) \(title!)"
-        }
-        
-        if (scripture != nil) {
-            mediaItemString = "\(mediaItemString) \(scripture!.description)"
-        }
-        
-        if (speaker != nil) {
-            mediaItemString = "\(mediaItemString) \(speaker!)"
-        }
-        
-        return mediaItemString
+        return json
     }
     
     struct MediaItemSettings {

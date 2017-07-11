@@ -595,6 +595,9 @@ struct Constants {
             static let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
                                        NSFontAttributeName: Fonts.body ]
             
+            static let destructive = [ NSForegroundColorAttributeName: UIColor.red,
+                                       NSFontAttributeName: Fonts.body ]
+            
             static let boldHighlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
                                            NSFontAttributeName: Fonts.bold ]
         }
@@ -622,7 +625,9 @@ struct Constants {
                 static let download = [ NSFontAttributeName: Fonts.download ]
             }
         }
-
+        
+        static let FULL_SCREEN = "\u{f0b2}"
+        
         static let SEARCH = "\u{f002}"
         static let WORDS = "\u{f00e}"
         static let SCRIPTURE = "\u{f02d}"
@@ -631,6 +636,8 @@ struct Constants {
         static let PLAY_PLAUSE_FONT_SIZE = CGFloat(24.0)
         static let PLAY = "\u{f04b}"
         static let PAUSE = "\u{f04c}"
+        
+        static let DELETE = "\u{f014}"
         
         static let LARGER = "\u{f0d8}"
         static let SMALLER = "\u{f0d7}"

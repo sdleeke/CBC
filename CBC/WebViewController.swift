@@ -555,6 +555,7 @@ class WebViewController: UIViewController
         case html
     }
     
+    var fullScreenButton:UIBarButtonItem?
     var actionButton:UIBarButtonItem?
     var minusButton:UIBarButtonItem?
     var plusButton:UIBarButtonItem?
@@ -952,27 +953,33 @@ class WebViewController: UIViewController
     
     fileprivate func setupActionButton()
     {
+        fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.showFullScreen))
+        fullScreenButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+        
         actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.actionMenu))
         actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-
+        
         plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.increaseFontSize))
         plusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
         
         minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.decreaseFontSize))
         minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
         
-        navigationItem.setRightBarButtonItems([actionButton!,minusButton!,plusButton!], animated: true)
         
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
             case .overCurrentContext:
-                fallthrough
+                navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
+                navigationItem.setRightBarButtonItems([fullScreenButton!,minusButton!,plusButton!], animated: true)
+
             case .fullScreen:
                 fallthrough
             case .overFullScreen:
                 navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
+                navigationItem.setRightBarButtonItems([actionButton!,minusButton!,plusButton!], animated: true)
                 
             default:
+                navigationItem.setRightBarButtonItems([actionButton!,minusButton!,plusButton!], animated: true)
                 break
             }
         }
@@ -1235,10 +1242,10 @@ class WebViewController: UIViewController
         }
     }
     
-    override var prefersStatusBarHidden : Bool
-    {
-        return true
-    }
+//    override var prefersStatusBarHidden : Bool
+//    {
+//        return true
+//    }
 
     override func viewDidLoad()
     {

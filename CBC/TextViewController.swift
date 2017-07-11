@@ -42,12 +42,12 @@ class TextViewController : UIViewController
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-
+        completion?(textView.text)
     }
     
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        completion?(textView.text)
+
     }
 }
 
