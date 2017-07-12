@@ -419,12 +419,15 @@ class PopoverPickerViewController : UIViewController
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             navigationController.modalPresentationStyle = .popover
             
+            popover.navigationItem.title = "Select"
+            navigationController.isNavigationBarHidden = false
+
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
             
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
             
-            popover.navigationController?.isNavigationBarHidden = true
+//            popover.navigationController?.isNavigationBarHidden = true
             
             popover.delegate = self
             popover.purpose = .selectingAction

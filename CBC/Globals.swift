@@ -66,7 +66,7 @@ class Section {
             }
             
             indexStrings = strings?.map({ (string:String) -> String in
-                return indexTransform != nil ? indexTransform!(string.uppercased())! : string.uppercased()
+                return indexStringsTransform != nil ? indexStringsTransform!(string.uppercased())! : string.uppercased()
             })
         }
     }
@@ -102,19 +102,26 @@ class Section {
                 
                 return
             }
-            
+
             let a = "A"
             
-            indexHeaders = Array(Set(indexStrings!
-                .map({ (string:String) -> String in
-                    if string.endIndex >= a.endIndex {
-                        return string.substring(to: a.endIndex).uppercased()
-                    } else {
-                        return string
-                    }
-                })
-                
-            )).sorted() { $0 < $1 }
+            if indexHeadersTransform == nil {
+                indexHeaders = Array(Set(indexStrings!
+                    .map({ (string:String) -> String in
+                        if string.endIndex >= a.endIndex {
+                            return string.substring(to: a.endIndex).uppercased()
+                        } else {
+                            return string
+                        }
+                    })
+                )).sorted()
+            } else {
+                indexHeaders = Array(Set(
+                    indexStrings!.map({ (string:String) -> String in
+                        return indexHeadersTransform!(string)!
+                    })
+                )).sorted()
+            }
 
             if indexHeaders?.count == 0 {
                 indexHeaders = nil
@@ -124,12 +131,24 @@ class Section {
                 var stringIndex = [String:[String]]()
                 
                 for indexString in indexStrings! {
-                    if indexString.endIndex >= a.endIndex {
-                        if stringIndex[indexString.substring(to: a.endIndex)] == nil {
-                            stringIndex[indexString.substring(to: a.endIndex)] = [String]()
+                    var header : String?
+                    
+                    if indexHeadersTransform == nil {
+                        if indexString.endIndex >= a.endIndex {
+                            header = indexString.substring(to: a.endIndex)
+                        }
+                    } else {
+                        header = indexHeadersTransform?(indexString)
+                    }
+                    
+//                    print(header)
+                    
+                    if let header = header {
+                        if stringIndex[header] == nil {
+                            stringIndex[header] = [String]()
                         }
                         //                print(testString,string)
-                        stringIndex[indexString.substring(to: a.endIndex)]?.append(indexString)
+                        stringIndex[header]?.append(indexString)
                     }
                 }
                 
@@ -149,10 +168,15 @@ class Section {
                 
                 self.counts = counts.count > 0 ? counts : nil
                 self.indexes = indexes.count > 0 ? indexes : nil
+                
+                if self.counts?.count != self.indexes?.count {
+                    print("counts.count != indexes.count")
+                }
             }
         }
     }
-    var indexTransform:((String?)->String?)? = stringWithoutPrefixes
+    var indexStringsTransform:((String?)->String?)? = stringWithoutPrefixes
+    var indexHeadersTransform:((String?)->String?)?
 
     var showHeaders = false
     {
@@ -756,7 +780,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         if let alert = alerts.first {
             let alertVC = UIAlertController(title:alert.title,
                                           message:alert.message,
-                                          preferredStyle: UIAlertControllerStyle.alert)
+                                          preferredStyle: .alert)
+            alertVC.makeOpaque()
             
             if let alertActions = alert.actions {
                 for alertAction in alertActions {
@@ -1213,7 +1238,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         display.mediaItems = nil
 
         display.section.headerStrings = nil
-        display.section.indexHeaders = nil
+        display.section.indexStrings = nil
         display.section.indexes = nil
         display.section.counts = nil
     }
@@ -1226,8 +1251,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         
         display.section.showHeaders = true
         
-        display.section.headerStrings = active?.section?.titles
-        display.section.indexHeaders = active?.section?.indexTitles
+        display.section.headerStrings = active?.section?.headerStrings
+        display.section.indexStrings = active?.section?.indexStrings
         display.section.indexes = active?.section?.indexes
         display.section.counts = active?.section?.counts
     }

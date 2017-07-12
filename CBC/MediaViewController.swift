@@ -2103,22 +2103,22 @@ class MediaViewController: UIViewController
 
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            popover.navigationItem.title = "Select"
+            navigationController.isNavigationBarHidden = false
+
             if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
                 let hClass = traitCollection.horizontalSizeClass
                 
                 if hClass == .compact {
-                    popover.navigationItem.title = "Select"
-                    navigationController.isNavigationBarHidden = false
                     navigationController.modalPresentationStyle = .overCurrentContext
                 } else {
                     // I don't think this ever happens: collapsed and regular
-                    navigationController.isNavigationBarHidden = true
                     navigationController.modalPresentationStyle = .popover
                 }
             } else {
-                navigationController.isNavigationBarHidden = true
                 navigationController.modalPresentationStyle = .popover
             }
+            
 //            navigationController.modalPresentationStyle = .popover
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
@@ -2126,7 +2126,7 @@ class MediaViewController: UIViewController
             
             navigationController.popoverPresentationController?.barButtonItem = actionButton
             
-            popover.navigationController?.isNavigationBarHidden = true
+//            popover.navigationController?.isNavigationBarHidden = true
             
             popover.delegate = self
             popover.purpose = .selectingAction
@@ -4899,6 +4899,7 @@ extension MediaViewController : UITableViewDataSource
                         let alert = UIAlertController(  title: "VoiceBase Media ID",
                                                         message: nil,
                                                         preferredStyle: .alert)
+                        alert.makeOpaque()
                         
                         alert.addTextField(configurationHandler: { (textField:UITextField) in
                             textField.text = transcript?.mediaID
@@ -5060,6 +5061,7 @@ extension MediaViewController : UITableViewDataSource
                         let alert = UIAlertController(  title: "VoiceBase Media ID",
                                                         message: nil,
                                                         preferredStyle: .alert)
+                        alert.makeOpaque()
                         
                         alert.addTextField(configurationHandler: { (textField:UITextField) in
                             textField.text = transcript?.mediaID
@@ -5130,7 +5132,7 @@ extension MediaViewController : UITableViewDataSource
 
                     alertActionsCancel(  viewController: self,
                                     title: "Machine Generated Transcript (\(purpose.lowercased()))",
-                                    message: "This is a machine generated transcript.  Please note that it lacks proper formatting and may have signifcant errors.",
+                                    message: "This is a machine generated transcript.  Please note that it may lack proper formatting and may have signifcant errors.",
                                     alertActions: alertActions,
                                     cancelAction: nil)
                 }
@@ -5309,7 +5311,7 @@ extension MediaViewController : UITableViewDataSource
                                     popover.text = text
 
                                     popover.completion = { (text:String) -> Void in
-                                        print(text)
+//                                        print(text)
                                         
                                         guard text != popover.text else {
                                             if playing {
@@ -5354,7 +5356,8 @@ extension MediaViewController : UITableViewDataSource
                                             transcript?.transcript = str
                                         }
                                         
-                                        self.popover?.section.strings?[index] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
+                                        self.popover?.section.strings?[indexPath.row] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
+                                        transcript?.srtComponents?[index] = "\(count)\n\(timing)\n\(text)"
 
                                         tableView.isEditing = false
                                         tableView.reloadData()
@@ -5389,7 +5392,11 @@ extension MediaViewController : UITableViewDataSource
                             return strings
                         }
 
-//                        self.popover?.section.showIndex = true
+                        self.popover?.section.showIndex = true
+                        self.popover?.section.indexStringsTransform = century
+                        self.popover?.section.indexHeadersTransform = { (string:String?)->(String?) in
+                            return string
+                        }
 //                        self.popover?.section.showHeaders = true
                         
                         self.popover?.section.strings = transcript?.srtComponents?.filter({ (string:String) -> Bool in

@@ -100,7 +100,10 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
                 //                popover.navigationItem.title = Constants.Actions
                 
-                popover.navigationController?.isNavigationBarHidden = true
+                popover.navigationItem.title = "Select"
+                navigationController.isNavigationBarHidden = false
+
+//                popover.navigationController?.isNavigationBarHidden = true
                 
                 popover.delegate = self
                 popover.purpose = .selectingSorting
@@ -119,22 +122,22 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
         case Constants.Strings.Word_Picker:
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
+                popover.navigationItem.title = "Select"
+                navigationController.isNavigationBarHidden = false
+
                 if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
                     let hClass = traitCollection.horizontalSizeClass
                     
                     if hClass == .compact {
-                        popover.navigationItem.title = "Select"
-                        navigationController.isNavigationBarHidden = false
                         navigationController.modalPresentationStyle = .overCurrentContext
                     } else {
                         // I don't think this ever happens: collapsed and regular
-                        navigationController.isNavigationBarHidden = true
                         navigationController.modalPresentationStyle = .popover
                     }
                 } else {
-                    navigationController.isNavigationBarHidden = true
                     navigationController.modalPresentationStyle = .popover
                 }
+                
 //                navigationController.modalPresentationStyle = .popover
                 
                 navigationController.popoverPresentationController?.delegate = self
@@ -216,10 +219,10 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
         case .selectingSection:
             dismiss(animated: true, completion: nil)
             
-            if let titles = results?.section?.titles {
+            if let headerStrings = results?.section?.headerStrings {
                 var i = 0
-                for title in titles {
-                    if title == string {
+                for headerString in headerStrings {
+                    if headerString == string {
                         break
                     }
                     
@@ -623,7 +626,7 @@ class LexiconIndexViewController : UIViewController
         bodyString = bodyString! + "Grouped: By \(translate(globals.grouping)!)<br/>"
         bodyString = bodyString! + "Sorted: \(translate(globals.sorting)!)<br/>"
         
-        if let keys = results?.section?.indexTitles {
+        if let keys = results?.section?.indexStrings {
             bodyString = bodyString! + "<br/>"
             
             if includeURLs, (keys.count > 1) {
@@ -735,7 +738,7 @@ class LexiconIndexViewController : UIViewController
                 case GROUPING.TITLE:
                     let a = "A"
                     
-                    if let indexTitles = results?.section?.indexTitles {
+                    if let indexTitles = results?.section?.indexStrings {
                         let titles = Array(Set(indexTitles.map({ (string:String) -> String in
                             if string.endIndex >= a.endIndex {
                                 return stringWithoutPrefixes(string)!.substring(to: a.endIndex).uppercased()
@@ -746,7 +749,7 @@ class LexiconIndexViewController : UIViewController
                         
                         var stringIndex = [String:[String]]()
                         
-                        for indexString in results!.section!.indexTitles! {
+                        for indexString in results!.section!.indexStrings! {
                             let key = indexString.substring(to: a.endIndex).uppercased()
                             
                             if stringIndex[key] == nil {
@@ -835,22 +838,22 @@ class LexiconIndexViewController : UIViewController
         
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+            popover.navigationItem.title = "Select"
+            navigationController.isNavigationBarHidden = false
+
             if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
                 let hClass = traitCollection.horizontalSizeClass
                 
                 if hClass == .compact {
-                    popover.navigationItem.title = "Select"
-                    navigationController.isNavigationBarHidden = false
                     navigationController.modalPresentationStyle = .overCurrentContext
                 } else {
                     // I don't think this ever happens: collapsed and regular
-                    navigationController.isNavigationBarHidden = true
                     navigationController.modalPresentationStyle = .popover
                 }
             } else {
-                navigationController.isNavigationBarHidden = true
                 navigationController.modalPresentationStyle = .popover
             }
+            
 //            navigationController.modalPresentationStyle = .popover
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
@@ -860,7 +863,7 @@ class LexiconIndexViewController : UIViewController
             
             //                popover.navigationItem.title = Constants.Actions
             
-            popover.navigationController?.isNavigationBarHidden = true
+//            popover.navigationController?.isNavigationBarHidden = true
             
             popover.delegate = self
             popover.purpose = .selectingAction
@@ -946,7 +949,7 @@ class LexiconIndexViewController : UIViewController
             
             popover.purpose = .selectingSection
             
-            popover.section.strings = results?.section?.titles
+            popover.section.strings = results?.section?.headerStrings
 //            popover.section.showIndex = false
 //            popover.section.showHeaders = false
             
@@ -1227,9 +1230,9 @@ extension LexiconIndexViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
     {
-        if results?.section?.titles != nil {
-            if section < results?.section?.titles?.count {
-                return results?.section?.titles?[section]
+        if results?.section?.headerStrings != nil {
+            if section < results?.section?.headerStrings?.count {
+                return results?.section?.headerStrings?[section]
             } else {
                 return nil
             }
@@ -1287,7 +1290,7 @@ extension LexiconIndexViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
     {
-        guard section < results?.section?.titles?.count, let title = results?.section?.titles?[section] else {
+        guard section < results?.section?.headerStrings?.count, let title = results?.section?.headerStrings?[section] else {
             return Constants.HEADER_HEIGHT
         }
         
@@ -1306,7 +1309,7 @@ extension LexiconIndexViewController : UITableViewDataSource
         
         view.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
         
-        if section < results?.section?.titles?.count, let title = results?.section?.titles?[section] {
+        if section < results?.section?.headerStrings?.count, let title = results?.section?.headerStrings?[section] {
             let label = UILabel()
             
             label.numberOfLines = 0

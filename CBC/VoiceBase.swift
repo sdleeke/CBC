@@ -25,7 +25,7 @@ extension VoiceBase // Class Methods
     
     static func getDetails(mediaID:String?,completion:(([String:Any])->(Void))?,onError:(([String:Any])->(Void))?)
     {
-        print("VoiceBase.delete")
+        print("VoiceBase.getDetails")
         
         guard globals.reachability.currentReachabilityStatus != .notReachable else {
             return

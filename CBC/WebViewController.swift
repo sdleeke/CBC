@@ -858,12 +858,15 @@ class WebViewController: UIViewController
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             navigationController.modalPresentationStyle = .popover
             
+            popover.navigationItem.title = "Select"
+            navigationController.isNavigationBarHidden = false
+
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
             
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
             
-            popover.navigationController?.isNavigationBarHidden = true
+//            popover.navigationController?.isNavigationBarHidden = true
             
             popover.delegate = self
             popover.purpose = .selectingAction
@@ -902,12 +905,13 @@ class WebViewController: UIViewController
             
             ptvc = popover
             
-            present(navigationController, animated: true, completion:  {
-                DispatchQueue.main.async(execute: { () -> Void in
-                    // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
-                    navigationController.popoverPresentationController?.passthroughViews = nil
-                })
-            })
+            present(navigationController, animated: true, completion: nil)
+//            {
+//                DispatchQueue.main.async(execute: { () -> Void in
+//                    // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+//                    navigationController.popoverPresentationController?.passthroughViews = nil
+//                })
+//            })
         }
     }
     

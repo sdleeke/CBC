@@ -10,6 +10,18 @@ import UIKit
 import AVFoundation
 import MessageUI
 
+extension UIAlertController {
+    func makeOpaque()
+    {
+        if  let subView = view.subviews.first,
+            let alertContentView = subView.subviews.first {
+            alertContentView.backgroundColor = UIColor.white
+            alertContentView.layer.cornerRadius = 10
+            alertContentView.layer.masksToBounds = true
+        }
+    }
+}
+
 extension UIColor
 {
     // MARK: UIColor extension
@@ -482,6 +494,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             let alert = UIAlertController(  title: Constants.VOICEBASE_API_KEY,
                                             message: nil,
                                             preferredStyle: .alert)
+            alert.makeOpaque()
             
             alert.addTextField(configurationHandler: { (textField:UITextField) in
                 textField.text = globals.voiceBaseAPIKey
@@ -732,6 +745,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                         let alert = UIAlertController(  title: "Confirm Deletion of VoiceBase Media Item",
                                                                         message: title + "\n created on \(key == UIDevice.current.deviceName ? "this device" : key)",
                                                                         preferredStyle: .alert)
+                                        alert.makeOpaque()
                                         
                                         let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
                                             alertItem -> Void in
@@ -833,6 +847,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                         let alert = UIAlertController(  title: "VoiceBase Media ID",
                                                                         message: nil,
                                                                         preferredStyle: .alert)
+                                        alert.makeOpaque()
                                         
                                         alert.addTextField(configurationHandler: { (textField:UITextField) in
                                             textField.text = mediaID
@@ -886,12 +901,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     
                     popover.vc = self.splitViewController
                     
+//                    popover.popoverPresentationController?.passthroughViews = [globals.splitViewController.view!]
+                    
                     self.present(navigationController, animated: true, completion: {
                         self.presentingVC = navigationController
-                        //                        DispatchQueue.main.async(execute: { () -> Void in
-                        //                            // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
-                        //                            navigationController.popoverPresentationController?.passthroughViews = nil
-                        //                        })
                     })
                     
                     // Start over and get specific devices
@@ -1009,6 +1022,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                                         let alert = UIAlertController(  title: "Confirm Deletion of VoiceBase Media Item",
                                                                                         message: title + "\n created on \(key == UIDevice.current.deviceName ? "this device" : key)",
                                                                                         preferredStyle: .alert)
+                                                        alert.makeOpaque()
                                                         
                                                         let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
                                                             alertItem -> Void in
@@ -1075,6 +1089,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                                         let alert = UIAlertController(  title: "VoiceBase Media ID",
                                                                                         message: nil,
                                                                                         preferredStyle: .alert)
+                                                        alert.makeOpaque()
                                                         
                                                         alert.addTextField(configurationHandler: { (textField:UITextField) in
                                                             textField.text = mediaID
@@ -1398,7 +1413,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case .selectingSection:
-            if let section = globals.media.active?.section?.titles?.index(of: strings[index]) {
+            if let section = globals.media.active?.section?.headerStrings?.index(of: strings[index]) {
                 let indexPath = IndexPath(row: 0, section: section)
                 
                 if !(indexPath.section < tableView.numberOfSections) {
@@ -1718,6 +1733,7 @@ class MediaTableViewController : UIViewController
         let alert = UIAlertController(  title: "Confirm Deletion of All VoiceBase Media Items",
                                         message: nil,
                                         preferredStyle: .alert)
+        alert.makeOpaque()
         
         let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
             alertItem -> Void in
@@ -1740,6 +1756,9 @@ class MediaTableViewController : UIViewController
             
         })
         alert.addAction(cancel)
+        
+        // For .actionSheet style
+//        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
         
         present(alert, animated: true, completion: nil)
     }
@@ -1863,20 +1882,19 @@ class MediaTableViewController : UIViewController
                 self.presentingVC = nil
             })
       
+            popover.navigationItem.title = "Select"
+            navigationController.isNavigationBarHidden = false
+
             if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
                 let hClass = traitCollection.horizontalSizeClass
                 
                 if hClass == .compact {
-                    popover.navigationItem.title = "Select"
-                    navigationController.isNavigationBarHidden = false
                     navigationController.modalPresentationStyle = .overCurrentContext
                 } else {
                     // I don't think this ever happens: collapsed and regular
-                    navigationController.isNavigationBarHidden = true
                     navigationController.modalPresentationStyle = .popover
                 }
             } else {
-                navigationController.isNavigationBarHidden = true
                 navigationController.modalPresentationStyle = .popover
             }
 
@@ -1887,9 +1905,8 @@ class MediaTableViewController : UIViewController
             
             navigationController.popoverPresentationController?.barButtonItem = button
             
-            popover.navigationItem.title = "Select" // Constants.Strings.Show
-            
-            popover.navigationController?.isNavigationBarHidden = false
+//            popover.navigationItem.title = "Select" // Constants.Strings.Show
+//            popover.navigationController?.isNavigationBarHidden = false
             
             popover.delegate = self
             popover.purpose = .selectingShow
@@ -2125,13 +2142,13 @@ class MediaTableViewController : UIViewController
 
             switch globals.grouping! {
             case GROUPING.BOOK:
-                if let books = globals.media.active?.section?.titles?.filter({ (string:String) -> Bool in
+                if let books = globals.media.active?.section?.headerStrings?.filter({ (string:String) -> Bool in
                     return bookNumberInBible(string) != Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
                 }) {
 //                        print(books)
                     popover.section.strings = books
 
-                    if let other = globals.media.active?.section?.titles?.filter({ (string:String) -> Bool in
+                    if let other = globals.media.active?.section?.headerStrings?.filter({ (string:String) -> Bool in
                         return bookNumberInBible(string) == Constants.NOT_IN_THE_BOOKS_OF_THE_BIBLE
                     }) {
                         popover.section.strings?.append(contentsOf: other)
@@ -2147,29 +2164,29 @@ class MediaTableViewController : UIViewController
             case GROUPING.TITLE:
                 popover.section.showIndex = true
 //                popover.section.showHeaders = true
-                popover.section.strings = globals.media.active?.section?.titles
+                popover.section.strings = globals.media.active?.section?.headerStrings
                 popover.search = popover.section.strings?.count > 10
                 break
                 
             case GROUPING.CLASS:
                 popover.section.showIndex = true
 //                popover.section.showHeaders = true
-                popover.section.strings = globals.media.active?.section?.titles
+                popover.section.strings = globals.media.active?.section?.headerStrings
                 popover.search = popover.section.strings?.count > 10
                 break
                 
             case GROUPING.SPEAKER:
                 popover.section.showIndex = true
 //                popover.section.showHeaders = true
-                popover.indexTransform = lastNameFromName
-                popover.section.strings = globals.media.active?.section?.titles
+                popover.indexStringsTransform = lastNameFromName
+                popover.section.strings = globals.media.active?.section?.headerStrings
                 popover.search = popover.section.strings?.count > 10
                 break
                 
             default:
 //                popover.section.showIndex = false
 //                popover.section.showHeaders = false
-                popover.section.strings = globals.media.active?.section?.titles
+                popover.section.strings = globals.media.active?.section?.headerStrings
                 break
             }
             
@@ -3325,12 +3342,15 @@ class MediaTableViewController : UIViewController
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             navigationController.modalPresentationStyle = .popover
             
+            popover.navigationItem.title = "Select"
+            navigationController.isNavigationBarHidden = false
+
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
             
             navigationController.popoverPresentationController?.barButtonItem = actionButton
             
-            popover.navigationController?.isNavigationBarHidden = true
+//            popover.navigationController?.isNavigationBarHidden = true
             
             popover.delegate = self
             popover.purpose = .selectingAction
@@ -3501,7 +3521,7 @@ class MediaTableViewController : UIViewController
             
 //            print(globals.media.all!.mediaItemTags)
             
-//            popover.section.indexTransform = stringWithoutPrefixes
+//            popover.section.indexStringsTransform = stringWithoutPrefixes
             
             popover.search = popover.section.strings?.count > 10
             
@@ -3715,28 +3735,28 @@ class MediaTableViewController : UIViewController
         if let index = mediaItems!.index(of: mediaItem!) {
             switch globals.grouping! {
             case GROUPING.YEAR:
-                section = globals.media.active!.section!.titles!.index(of: mediaItem!.yearSection!)!
+                section = globals.media.active!.section!.indexStrings!.index(of: mediaItem!.yearSection!)!
                 break
                 
             case GROUPING.TITLE:
-                section = globals.media.active!.section!.indexTitles!.index(of: mediaItem!.multiPartSectionSort!)!
+                section = globals.media.active!.section!.indexStrings!.index(of: mediaItem!.multiPartSectionSort!)!
                 break
                 
             case GROUPING.BOOK:
                 // For mediaItem.books.count > 1 this arbitrarily selects the first one, which may not be correct.
-                section = globals.media.active!.section!.titles!.index(of: mediaItem!.bookSections.first!)!
+                section = globals.media.active!.section!.indexStrings!.index(of: mediaItem!.bookSections.first!)!
                 break
                 
             case GROUPING.SPEAKER:
-                section = globals.media.active!.section!.titles!.index(of: mediaItem!.speakerSection!)!
+                section = globals.media.active!.section!.indexStrings!.index(of: mediaItem!.speakerSectionSort!)!
                 break
                 
             case GROUPING.CLASS:
-                section = globals.media.active!.section!.titles!.index(of: mediaItem!.classSection!)!
+                section = globals.media.active!.section!.indexStrings!.index(of: mediaItem!.classSectionSort!)!
                 break
                 
             case GROUPING.EVENT:
-                section = globals.media.active!.section!.titles!.index(of: mediaItem!.eventSection!)!
+                section = globals.media.active!.section!.indexStrings!.index(of: mediaItem!.eventSectionSort!)!
                 break
                 
             default:
@@ -4672,6 +4692,7 @@ extension MediaTableViewController : UITableViewDelegate
                         let alert = UIAlertController(  title: "VoiceBase Media ID",
                                                         message: nil,
                                                         preferredStyle: .alert)
+                        alert.makeOpaque()
                         
                         alert.addTextField(configurationHandler: { (textField:UITextField) in
                             textField.text = transcript?.mediaID
@@ -4876,6 +4897,7 @@ extension MediaTableViewController : UITableViewDelegate
                         let alert = UIAlertController(  title: "VoiceBase Media ID",
                                                         message: nil,
                                                         preferredStyle: .alert)
+                        alert.makeOpaque()
                         
                         alert.addTextField(configurationHandler: { (textField:UITextField) in
                             textField.text = transcript?.mediaID
@@ -4945,7 +4967,7 @@ extension MediaTableViewController : UITableViewDelegate
                     
                     alertActionsCancel( viewController: self,
                                         title: "Machine Generated Transcript (\(purpose.lowercased()))",
-                                        message: "This is a machine generated transcript.  Please note that it lacks proper formatting and may have signifcant errors.",
+                                        message: "This is a machine generated transcript.  Please note that it may lack proper formatting and may have signifcant errors.",
                                         alertActions: alertActions,
                                         cancelAction: nil)
                 }

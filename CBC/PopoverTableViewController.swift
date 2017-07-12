@@ -275,7 +275,7 @@ class PopoverTableViewController : UIViewController
     func follow()
     {
         if let seconds = globals.mediaPlayer.currentTime?.seconds {
-            var row = 0
+            var index = 0
             
 //            print("seconds: ",seconds)
             
@@ -285,14 +285,32 @@ class PopoverTableViewController : UIViewController
                 if startTime >= seconds {
                     break
                 }
-                row += 1
+                index += 1
             }
             
 //            print("Row: ",row-1)
-            let indexPath = IndexPath(row: max(row - 1,0), section: 0)
-            
-            if tableView.indexPathForSelectedRow != indexPath {
-                tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
+
+            if self.section.counts?.count == self.section.indexes?.count {
+                var section = 0
+                
+                while index > self.section.indexes?[section] {
+                    section += 1
+                }
+                section -= 1
+                
+                if let sectionIndex = self.section.indexes?[section] {
+                    var row = 0
+                    
+                    while index > (sectionIndex + row) {
+                        row += 1
+                    }
+                    
+                    let indexPath = IndexPath(row: row, section: section)
+                    
+                    if tableView.indexPathForSelectedRow != indexPath {
+                        tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
+                    }
+                }
             }
         }
     }
@@ -303,13 +321,13 @@ class PopoverTableViewController : UIViewController
             globals.mediaPlayer.pause()
             
             if let count = navigationItem.leftBarButtonItems?.count {
-                navigationItem.leftBarButtonItems?[count - 1].title = "Start"
+                navigationItem.leftBarButtonItems?[count - 1].title = "Sync"
             }
 //
 //            if navigationItem.leftBarButtonItems != nil {
-//                navigationItem.leftBarButtonItems?.append(UIBarButtonItem(title: "Start", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking)))
+//                navigationItem.leftBarButtonItems?.append(UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking)))
 //            } else {
-//                navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Start", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
+//                navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
 //            }
             
             isTracking = false
@@ -388,11 +406,11 @@ class PopoverTableViewController : UIViewController
 //                        navigationItem.leftBarButtonItems = UIBarButtonItem(title: "Stop", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
                     } else {
                         if navigationItem.leftBarButtonItems != nil {
-                            navigationItem.leftBarButtonItems?.append(UIBarButtonItem(title: "Start", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking)))
+                            navigationItem.leftBarButtonItems?.append(UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking)))
                         } else {
-                            navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Start", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
+                            navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
                         }
-//                        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Start", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
+//                        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
                     }
                 }
             }
@@ -424,13 +442,13 @@ class PopoverTableViewController : UIViewController
     
     var mediaListGroupSort:MediaListGroupSort?
     
-    var indexTransform:((String?)->String?)? = stringWithoutPrefixes {
+    var indexStringsTransform:((String?)->String?)? = stringWithoutPrefixes {
         willSet {
             
         }
         didSet {
-            filteredSection.indexTransform = indexTransform
-            unfilteredSection.indexTransform = indexTransform
+            filteredSection.indexStringsTransform = indexStringsTransform
+            unfilteredSection.indexStringsTransform = indexStringsTransform
         }
     }
     
@@ -686,11 +704,11 @@ class PopoverTableViewController : UIViewController
         
         if track {
             if navigationItem.leftBarButtonItems != nil {
-                navigationItem.leftBarButtonItems?.append(UIBarButtonItem(title: "Start", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking)))
+                navigationItem.leftBarButtonItems?.append(UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking)))
             } else {
-                navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Start", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
+                navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
             }
-            //                navigationItem.leftBarButtonItems = UIBarButtonItem(title: "Start", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
+            //                navigationItem.leftBarButtonItems = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
             
         }
         
@@ -944,12 +962,15 @@ class PopoverTableViewController : UIViewController
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             navigationController.modalPresentationStyle = .popover
             
+            popover.navigationItem.title = "Select"
+            navigationController.isNavigationBarHidden = false
+
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
             
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.leftBarButtonItem
             
-            popover.navigationController?.isNavigationBarHidden = true
+//            popover.navigationController?.isNavigationBarHidden = true
             
             popover.delegate = self
             popover.purpose = .selectingSorting
@@ -1290,27 +1311,28 @@ class PopoverTableViewController : UIViewController
         tableView.flashScrollIndicators()
         
         if track {
-            if let seconds = globals.mediaPlayer.currentTime?.seconds {
-                var row = 0
-                
-                //            print("seconds: ",seconds)
-                
-                for startTime in startTimes! {
-                    //                print("startTime: ",startTime)
-                    
-                    if startTime > seconds {
-                        break
-                    }
-                    row += 1
-                }
-                
-                //            print("Row: ",row-1)
-                let indexPath = IndexPath(row: max(row - 1,0), section: 0)
-                
-                if tableView.indexPathForSelectedRow != indexPath {
-                    tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
-                }
-            }
+            follow()
+//            if let seconds = globals.mediaPlayer.currentTime?.seconds {
+//                var row = 0
+//                
+//                //            print("seconds: ",seconds)
+//                
+//                for startTime in startTimes! {
+//                    //                print("startTime: ",startTime)
+//                    
+//                    if startTime > seconds {
+//                        break
+//                    }
+//                    row += 1
+//                }
+//                
+//                //            print("Row: ",row-1)
+//                let indexPath = IndexPath(row: max(row - 1,0), section: 0)
+//                
+//                if tableView.indexPathForSelectedRow != indexPath {
+//                    tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
+//                }
+//            }
         }
     }
     

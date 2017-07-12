@@ -353,7 +353,7 @@ class MediaListGroupSort {
             self.mlgs = mlgs
         }
         
-        var titles:[String]? {
+        var headerStrings:[String]? {
             get {
                 return mlgs?.sectionTitles(grouping: globals.grouping,sorting: globals.sorting)
             }
@@ -371,7 +371,7 @@ class MediaListGroupSort {
             }
         }
         
-        var indexTitles:[String]? {
+        var indexStrings:[String]? {
             get {
                 return mlgs?.sectionIndexTitles(grouping: globals.grouping,sorting: globals.sorting)
             }

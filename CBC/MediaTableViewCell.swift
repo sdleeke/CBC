@@ -432,6 +432,9 @@ class MediaTableViewCell: UITableViewCell
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             vc?.dismiss(animated: true, completion: nil)
             
+            popover.navigationItem.title = "Select"
+            navigationController.isNavigationBarHidden = false
+
             navigationController.modalPresentationStyle = .popover
             navigationController.popoverPresentationController?.permittedArrowDirections = .any
             navigationController.popoverPresentationController?.delegate = self
@@ -445,7 +448,7 @@ class MediaTableViewCell: UITableViewCell
             
             //                        popover.navigationItem.title = Constants.Actions
             
-            popover.navigationController?.isNavigationBarHidden = true
+//            popover.navigationController?.isNavigationBarHidden = true
             
             popover.delegate = self.vc as? PopoverTableViewControllerDelegate
             popover.purpose = .selectingCellAction

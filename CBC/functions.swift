@@ -2197,6 +2197,18 @@ func lastNameFromName(_ name:String?) -> String?
     }
 }
 
+func century(_ strings:String?) -> String?
+{
+    if let string = strings?.components(separatedBy: "\n").first {
+        if let number = Int(string) {
+            let value = number/100 * 100
+            return "\(value == 0 ? 1 : value)"
+        }
+    }
+    
+    return nil
+}
+
 func firstNameFromName(_ name:String?) -> String?
 {
     var firstName:String?
@@ -3402,7 +3414,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
     bodyString = bodyString! + "Grouped: By \(translate(globals.grouping)!)<br/>"
     bodyString = bodyString! + "Sorted: \(translate(globals.sorting)!)<br/>"
     
-    if let keys = globals.media.active?.section?.indexTitles {
+    if let keys = globals.media.active?.section?.indexStrings {
         var count = 0
         for key in keys {
             if let mediaItems = globals.media.active?.groupSort?[globals.grouping!]?[key]?[globals.sorting!] {
@@ -3523,7 +3535,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
             case GROUPING.TITLE:
                 let a = "A"
                 
-                if let indexTitles = globals.media.active?.section?.indexTitles {
+                if let indexTitles = globals.media.active?.section?.indexStrings {
                     let titles = Array(Set(indexTitles.map({ (string:String) -> String in
                         if string.endIndex >= a.endIndex {
                             return stringWithoutPrefixes(string)!.substring(to: a.endIndex).uppercased()
@@ -3534,7 +3546,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                     
                     var stringIndex = [String:[String]]()
                     
-                    for indexString in globals.media.active!.section!.indexTitles! {
+                    for indexString in globals.media.active!.section!.indexStrings! {
                         let key = indexString.substring(to: a.endIndex).uppercased()
                         
                         if stringIndex[key] == nil {
@@ -3903,7 +3915,8 @@ func alert(viewController:UIViewController,title:String?,message:String?,complet
     
     let alert = UIAlertController(title:title,
                                   message: message,
-                                  preferredStyle: UIAlertControllerStyle.alert)
+                                  preferredStyle: .alert)
+    alert.makeOpaque()
     
     let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
         completion?()
@@ -3920,6 +3933,7 @@ func searchAlert(viewController:UIViewController,title:String?,message:String?,s
     let alert = UIAlertController(  title: title,
                                     message: message,
                                     preferredStyle: .alert)
+    alert.makeOpaque()
     
     alert.addTextField(configurationHandler: { (textField:UITextField) in
         textField.placeholder = searchText ?? "search string"
@@ -3953,7 +3967,7 @@ func searchAlert(viewController:UIViewController,title:String?,message:String?,s
 //    if (UIApplication.shared.applicationState == UIApplicationState.active) {
 //        let alert = UIAlertController(title: title,
 //                                      message: message,
-//                                      preferredStyle: UIAlertControllerStyle.alert)
+//                                      preferredStyle: .alert)
 //        
 //        let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
 //            
@@ -3975,7 +3989,8 @@ func firstSecondCancel(viewController:UIViewController,title:String?,message:Str
 {
     let alert = UIAlertController(title: title,
                                   message: message,
-                                  preferredStyle: UIAlertControllerStyle.alert)
+                                  preferredStyle: .alert)
+    alert.makeOpaque()
     
     if firstTitle != nil {
         let yesAction = UIAlertAction(title: firstTitle, style: firstStyle, handler: { (UIAlertAction) -> Void in
@@ -4011,7 +4026,8 @@ func alertActionsCancel(viewController:UIViewController,title:String?,message:St
 {
     let alert = UIAlertController(title: title,
                                   message: message,
-                                  preferredStyle: UIAlertControllerStyle.alert)
+                                  preferredStyle: .alert)
+    alert.makeOpaque()
     
     for alertAction in alertActions {
         let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
