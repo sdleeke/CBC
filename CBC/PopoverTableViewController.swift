@@ -101,7 +101,7 @@ extension PopoverTableViewController: UISearchBarDelegate
                 
                 tableView.reloadData()
                 
-                //                print(filteredSection.titles)
+                //                print(filteredSection.indexHeaders)
             }
         }
     }
@@ -569,9 +569,9 @@ class PopoverTableViewController : UIViewController
 //            }
 //        }
         
-        if self.section.showIndex || self.section.showHeaders, let titles = self.section.titles {
-            for title in titles {
-                let maxWidth = title.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).width // + 20
+        if self.section.showIndex || self.section.showHeaders, let headers = self.section.headers {
+            for header in headers {
+                let maxWidth = header.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).width // + 20
                 if maxWidth > width {
                     width = maxWidth
                 }
@@ -600,7 +600,7 @@ class PopoverTableViewController : UIViewController
         }
         
         if self.section.showIndex || self.section.showHeaders {
-            height += self.tableView.sectionHeaderHeight * CGFloat(self.section.titles!.count)
+            height += self.tableView.sectionHeaderHeight * CGFloat(self.section.headers!.count)
         }
         
 //        print(height)
@@ -815,9 +815,9 @@ class PopoverTableViewController : UIViewController
             unfilteredSection.strings = function(sort.method,unfilteredSection.strings)
         }
 
-        if sort.method == Constants.Sort.Alphabetical {
-            unfilteredSection.titles = mediaListGroupSort?.lexicon?.section.titles
-        }
+//        if sort.method == Constants.Sort.Alphabetical {
+//            unfilteredSection.indexHeaders = mediaListGroupSort?.lexicon?.section.indexHeaders
+//        }
 
 //        unfilteredSection.buildIndex()
 
@@ -835,7 +835,7 @@ class PopoverTableViewController : UIViewController
                 
 //                self.filteredSection.buildIndex()
                 
-                //                        print(self.filteredSection.titles)
+                //                        print(self.filteredSection.indexHeaders)
             }
         }
         
@@ -877,9 +877,9 @@ class PopoverTableViewController : UIViewController
             unfilteredSection.strings = function(sort.method,unfilteredSection.strings)
         }
 
-        if sort.method == Constants.Sort.Alphabetical {
-            unfilteredSection.titles = mediaListGroupSort?.lexicon?.section.titles
-        }
+//        if sort.method == Constants.Sort.Alphabetical {
+//            unfilteredSection.indexHeaders = mediaListGroupSort?.lexicon?.section.indexHeaders
+//        }
         
 //        unfilteredSection.buildIndex()
 
@@ -897,7 +897,7 @@ class PopoverTableViewController : UIViewController
                 
 //                self.filteredSection.buildIndex()
                 
-//                    print(self.filteredSection.titles)
+//                    print(self.filteredSection.indexHeaders)
             }
         }
         
@@ -947,7 +947,7 @@ class PopoverTableViewController : UIViewController
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
             
-            navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+            navigationController.popoverPresentationController?.barButtonItem = navigationItem.leftBarButtonItem
             
             popover.navigationController?.isNavigationBarHidden = true
             
@@ -955,9 +955,9 @@ class PopoverTableViewController : UIViewController
             popover.purpose = .selectingSorting
             
             popover.section.strings = [Constants.Sort.Alphabetical,Constants.Sort.Frequency]
-            
-            popover.section.showIndex = false
-            popover.section.showHeaders = false
+//            
+//            popover.section.showIndex = false
+//            popover.section.showHeaders = false
             
             popover.vc = self
             
@@ -1211,10 +1211,10 @@ class PopoverTableViewController : UIViewController
         navigationController?.setToolbarHidden(true, animated: false)
         
         if sort.function != nil {
-            if navigationItem.rightBarButtonItems != nil {
-                navigationItem.rightBarButtonItems?.append(UIBarButtonItem(title: "Sort", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.sortAction)))
+            if navigationItem.leftBarButtonItems != nil {
+                navigationItem.leftBarButtonItems?.append(UIBarButtonItem(title: "Sort", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.sortAction)))
             } else {
-                navigationItem.setRightBarButton(UIBarButtonItem(title: "Sort", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.sortAction)),animated:false)
+                navigationItem.setLeftBarButton(UIBarButtonItem(title: "Sort", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.sortAction)),animated:false)
             }
         }
         
@@ -1325,70 +1325,18 @@ extension PopoverTableViewController : UITableViewDataSource
 {
     // MARK: UITableViewDataSource
     
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
+    func numberOfSections(in tableView: UITableView) -> Int
     {
-        guard self.section.showHeaders else {
-            return 0
-        }
-        
-        guard section < self.section.titles?.count, let title = self.section.titles?[section] else {
-            return Constants.HEADER_HEIGHT
-        }
-        
-        let heightSize: CGSize = CGSize(width: tableView.frame.width - 20, height: .greatestFiniteMagnitude)
-        
-        let height = title.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).height
-        
-        //        print(height,max(Constants.HEADER_HEIGHT,height + 28))
-        
-        return height + 16
-    }
-    
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView?
-    {
-        guard self.section.showHeaders else {
-            return nil
-        }
-        
-        var view : UIView?
-        
-        if section < self.section.titles?.count, let title = self.section.titles?[section] {
-            view = UIView()
-            
-            view?.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
-            
-            let label = UILabel()
-            
-            label.numberOfLines = 0
-            label.lineBreakMode = .byWordWrapping
-            
-            label.attributedText = NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold)
-            
-            label.translatesAutoresizingMaskIntoConstraints = false
-            
-            view?.addSubview(label)
-            
-            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
-            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":label]))
-            
-            view?.alpha = 0.85
-        }
-        
-        return view
-    }
-
-    func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Potentially incomplete method implementation.
         // Return the number of sections.
         if section.showIndex || section.showHeaders {
-            return section.titles != nil ? section.titles!.count : 0
+            return section.counts != nil ? section.counts!.count : 0
         } else {
             return 1
         }
     }
     
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete method implementation.
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
+    {
         // Return the number of rows in the section.
         if self.section.showIndex || self.section.showHeaders {
             return self.section.counts != nil ? ((section < self.section.counts?.count) ? self.section.counts![section] : 0) : 0
@@ -1397,9 +1345,10 @@ extension PopoverTableViewController : UITableViewDataSource
         }
     }
     
-    func sectionIndexTitles(for tableView: UITableView) -> [String]? {
+    func sectionIndexTitles(for tableView: UITableView) -> [String]?
+    {
         if section.showIndex {
-            return section.titles
+            return section.indexHeaders
         } else {
             return nil
         }
@@ -1409,7 +1358,8 @@ extension PopoverTableViewController : UITableViewDataSource
     //        return 48
     //    }
     
-    func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int {
+    func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int
+    {
         if section.showIndex {
             return index
         } else {
@@ -1419,10 +1369,9 @@ extension PopoverTableViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
     {
-        if self.section.showIndex || self.section.showHeaders { // showIndex &&
-            //        if let active = self.searchController?.isActive, active {
-            if let count = self.section.titles?.count, section < count {
-                return self.section.titles?[section]
+        if self.section.showIndex || self.section.showHeaders {
+            if let count = self.section.headers?.count, section < count {
+                return self.section.headers?[section]
             }
         }
         
@@ -1637,6 +1586,58 @@ extension PopoverTableViewController : UITableViewDataSource
 extension PopoverTableViewController : UITableViewDelegate
 {
     // MARK: UITableViewDelegate
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
+    {
+        guard self.section.showIndex || self.section.showHeaders else {
+            return 0
+        }
+        
+        guard section < self.section.headers?.count, let title = self.section.headers?[section] else {
+            return Constants.HEADER_HEIGHT
+        }
+        
+        let heightSize: CGSize = CGSize(width: tableView.frame.width - 20, height: .greatestFiniteMagnitude)
+        
+        let height = title.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.bold, context: nil).height + 20
+        
+        //        print(height,max(Constants.HEADER_HEIGHT,height + 28))
+        
+        return height
+    }
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView?
+    {
+        guard self.section.showIndex || self.section.showHeaders else {
+            return nil
+        }
+        
+        var view : UIView?
+        
+        if section < self.section.headers?.count, let title = self.section.headers?[section] {
+            view = UIView()
+            
+            view?.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+            
+            let label = UILabel()
+            
+            label.numberOfLines = 0
+            label.lineBreakMode = .byWordWrapping
+            
+            label.attributedText = NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold)
+            
+            label.translatesAutoresizingMaskIntoConstraints = false
+            
+            view?.addSubview(label)
+            
+            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
+            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":label]))
+            
+            view?.alpha = 0.85
+        }
+        
+        return view
+    }
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {

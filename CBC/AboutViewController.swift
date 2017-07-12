@@ -163,14 +163,30 @@ class AboutViewController: UIViewController
         
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-            navigationController.modalPresentationStyle = .popover
+            
+            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+                let hClass = traitCollection.horizontalSizeClass
+                
+                if hClass == .compact {
+                    popover.navigationItem.title = "Select"
+                    navigationController.isNavigationBarHidden = false
+                    navigationController.modalPresentationStyle = .overCurrentContext
+                } else {
+                    // I don't think this ever happens: collapsed and regular
+                    navigationController.isNavigationBarHidden = true
+                    navigationController.modalPresentationStyle = .popover
+                }
+            } else {
+                navigationController.isNavigationBarHidden = true
+                navigationController.modalPresentationStyle = .popover
+            }
+
+//            navigationController.modalPresentationStyle = .popover
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
             
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-            
-            popover.navigationController?.isNavigationBarHidden = true
             
             popover.vc = self
             

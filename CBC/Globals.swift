@@ -71,6 +71,15 @@ class Section {
         }
     }
     
+    var showIndex = false
+    {
+        didSet {
+            if showIndex && showHeaders {
+                print("ERROR: showIndex && showHeaders")
+            }
+        }
+    }
+    var indexHeaders:[String]?
     var indexStrings:[String]?
     {
         didSet {
@@ -79,7 +88,7 @@ class Section {
             }
             
             guard strings?.count > 0 else {
-                titles = nil
+                indexHeaders = nil
                 counts = nil
                 indexes = nil
                 
@@ -87,7 +96,7 @@ class Section {
             }
             
             guard indexStrings?.count > 0 else {
-                titles = nil
+                indexHeaders = nil
                 counts = nil
                 indexes = nil
                 
@@ -96,7 +105,7 @@ class Section {
             
             let a = "A"
             
-            titles = Array(Set(indexStrings!
+            indexHeaders = Array(Set(indexStrings!
                 .map({ (string:String) -> String in
                     if string.endIndex >= a.endIndex {
                         return string.substring(to: a.endIndex).uppercased()
@@ -107,8 +116,8 @@ class Section {
                 
             )).sorted() { $0 < $1 }
 
-            if titles?.count == 0 {
-                titles = nil
+            if indexHeaders?.count == 0 {
+                indexHeaders = nil
                 counts = nil
                 indexes = nil
             } else {
@@ -143,26 +152,45 @@ class Section {
             }
         }
     }
-    var headerStrings:[String]?
-    
     var indexTransform:((String?)->String?)? = stringWithoutPrefixes
-    
+
     var showHeaders = false
-    var showIndex = false
-    
-    var titles:[String]?
     {
         didSet {
-            print("")
+            if showIndex && showHeaders {
+                print("ERROR: showIndex && showHeaders")
+            }
         }
     }
+    var headerStrings:[String]?
+    
+    var headers:[String]?
+    {
+        get {
+            if showHeaders && showIndex {
+                print("ERROR: showIndex && showHeaders")
+                return nil
+            }
+            
+            if showHeaders {
+                return headerStrings
+            }
+
+            if showIndex {
+                return indexHeaders
+            }
+            
+            return nil
+        }
+    }
+    
     var counts:[Int]?
     var indexes:[Int]?
 
 //    func buildHeaders()
 //    {
 //        guard strings?.count > 0 else {
-//            titles = nil
+//            indexHeaders = nil
 //            counts = nil
 //            indexes = nil
 //            
@@ -171,7 +199,7 @@ class Section {
 //        
 //        if showIndex {
 //            guard indexStrings?.count > 0 else {
-//                titles = nil
+//                indexHeaders = nil
 //                counts = nil
 //                indexes = nil
 //                
@@ -179,14 +207,14 @@ class Section {
 //            }
 //        }
 //        
-//        titles = Array(Set(indexStrings!
+//        indexHeaders = Array(Set(indexStrings!
 //            .map({ (string:String) -> String in
 //                return string
 //            })
 //        )).sorted() { $0 < $1 }
 //        
-//        if titles?.count == 0 {
-//            titles = nil
+//        if indexHeaders?.count == 0 {
+//            indexHeaders = nil
 //            counts = nil
 //            indexes = nil
 //        } else {
@@ -221,7 +249,7 @@ class Section {
 //        }
 //        
 //        guard strings?.count > 0 else {
-//            titles = nil
+//            indexHeaders = nil
 //            counts = nil
 //            indexes = nil
 //            
@@ -229,7 +257,7 @@ class Section {
 //        }
 //        
 //        guard indexStrings?.count > 0 else {
-//            titles = nil
+//            indexHeaders = nil
 //            counts = nil
 //            indexes = nil
 //            
@@ -238,7 +266,7 @@ class Section {
 //
 //        let a = "A"
 //        
-////        titles = Array(Set(indexStrings!
+////        indexHeaders = Array(Set(indexStrings!
 ////            .map({ (string:String) -> String in
 ////                if string.endIndex >= a.endIndex {
 ////                    return string.substring(to: a.endIndex).uppercased()
@@ -249,8 +277,8 @@ class Section {
 ////            
 ////        )).sorted() { $0 < $1 }
 //
-//        if titles?.count == 0 {
-//            titles = nil
+//        if indexHeaders?.count == 0 {
+//            indexHeaders = nil
 //            counts = nil
 //            indexes = nil
 //        } else {
@@ -1184,7 +1212,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     {
         display.mediaItems = nil
 
-        display.section.titles = nil
+        display.section.headerStrings = nil
+        display.section.indexHeaders = nil
         display.section.indexes = nil
         display.section.counts = nil
     }
@@ -1195,7 +1224,10 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
         display.mediaItems = active?.mediaItems
         
-        display.section.titles = active?.section?.titles
+        display.section.showHeaders = true
+        
+        display.section.headerStrings = active?.section?.titles
+        display.section.indexHeaders = active?.section?.indexTitles
         display.section.indexes = active?.section?.indexes
         display.section.counts = active?.section?.counts
     }

@@ -79,10 +79,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
 {
     // MARK: PopoverTableViewControllerDelegate
     
-    func cancel()
-    {
-        dismiss(animated: true, completion: nil)
-    }
+//    func done()
+//    {
+//        dismiss(animated: true, completion: nil)
+//    }
     
     func shareHTML(_ htmlString:String?)
     {
@@ -239,8 +239,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 popover.mediaListGroupSort = MediaListGroupSort(mediaItems: [selectedMediaItem!])
 
-                let cancelButton = UIBarButtonItem(title: "Cancel", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.cancel))
-                popover.navigationItem.leftBarButtonItem = cancelButton
+                let doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done))
+                popover.navigationItem.leftBarButtonItem = doneButton
 
                 present(navigationController, animated: true, completion: nil)
             }
@@ -263,7 +263,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 popover.sort.function = sort
                 
                 popover.section.showIndex = true
-                popover.section.showHeaders = true
+//                popover.section.showHeaders = true
                 
                 popover.search = true
                 
@@ -285,8 +285,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 popover.vc = self
                 
-                let cancelButton = UIBarButtonItem(title: "Cancel", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.cancel))
-                popover.navigationItem.leftBarButtonItem = cancelButton
+//                let cancelButton = UIBarButtonItem(title: "Cancel", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.cancel))
+//                popover.navigationItem.leftBarButtonItem = cancelButton
 
                 present(navigationController, animated: true, completion: nil)
             }
@@ -894,9 +894,9 @@ class WebViewController: UIViewController
             }
             
             popover.section.strings = actionMenu
-            
-            popover.section.showIndex = false
-            popover.section.showHeaders = false
+//            
+//            popover.section.showIndex = false
+//            popover.section.showHeaders = false
             
             popover.vc = self
             

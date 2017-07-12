@@ -358,7 +358,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                     
                     return bodyHTML
                 }, completion: { (data:Any?) in
-                    presentHTMLModal(viewController: self, medaiItem: nil, style: .overCurrentContext, title: "Expanded Word Picker", htmlString: data as? String)
+                    presentHTMLModal(viewController: self, medaiItem: nil, style: .fullScreen, title: "Expanded Word Picker", htmlString: data as? String)
                 })
                 break
                 
@@ -430,9 +430,9 @@ class PopoverPickerViewController : UIViewController
             popover.purpose = .selectingAction
             
             popover.section.strings = actionMenu()
-            
-            popover.section.showIndex = false
-            popover.section.showHeaders = false
+//            
+//            popover.section.showIndex = false
+//            popover.section.showHeaders = false
             
             popover.vc = self
             

@@ -1140,9 +1140,9 @@ class ScriptureIndexViewController : UIViewController
             popover.purpose = .selectingAction
             
             popover.section.strings = actionMenuItems()
-            
-            popover.section.showIndex = false
-            popover.section.showHeaders = false
+//            
+//            popover.section.showIndex = false
+//            popover.section.showHeaders = false
             
             popover.vc = self
             
@@ -1180,8 +1180,8 @@ class ScriptureIndexViewController : UIViewController
             popover.purpose = .selectingSection
 
             popover.section.strings = sectionTitles
-            popover.section.showIndex = false
-            popover.section.showHeaders = false
+//            popover.section.showIndex = false
+//            popover.section.showHeaders = false
             
             popover.vc = self
             

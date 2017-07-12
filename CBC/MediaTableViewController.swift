@@ -343,7 +343,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     }
                 } else {
                     //                        dismiss(animated: true, completion: nil)
-                    alert(viewController:self,title: "Not in List",message: "\"\(mediaItem.title!)\" is not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",completion:nil)
+                    alert(viewController:self,title: "Not in List",message: "\"\(mediaItem.text!)\"\nis not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",completion:nil)
                 }
             } else {
                 //                    dismiss(animated: true, completion: nil)
@@ -413,9 +413,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     popover.purpose = .selectingHistory
                     
                     popover.section.strings = globals.relevantHistoryList
-                    
-                    popover.section.showIndex = false
-                    popover.section.showHeaders = false
+//                    
+//                    popover.section.showIndex = false
+//                    popover.section.showHeaders = false
                     
                     popover.vc = self.splitViewController
                     
@@ -449,7 +449,19 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         case Constants.Strings.Settings:
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SETTINGS_NAVCON) as? UINavigationController,
                 let _ = navigationController.viewControllers[0] as? SettingsViewController {
-                navigationController.modalPresentationStyle = .popover
+                if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+                    let hClass = traitCollection.horizontalSizeClass
+                    
+                    if hClass == .compact {
+                        navigationController.modalPresentationStyle = .overCurrentContext
+                    } else {
+                        // I don't think this ever happens: collapsed and regular
+                        navigationController.modalPresentationStyle = .popover
+                    }
+                } else {
+                    navigationController.modalPresentationStyle = .popover
+                }
+//                navigationController.modalPresentationStyle = .overCurrentContext
                 
                 navigationController.popoverPresentationController?.permittedArrowDirections = .up
                 navigationController.popoverPresentationController?.delegate = self
@@ -757,7 +769,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                             
                                             popover.section.headerStrings = stringIndex.keys?.sorted()
                                             popover.section.strings = strings.count > 0 ? strings : nil
-                                            popover.section.titles = popover.section.headerStrings
+//                                            popover.section.indexHeaders = popover.section.headers
                                             
                                             popover.section.counts = counts.count > 0 ? counts : nil
                                             popover.section.indexes = indexes.count > 0 ? indexes : nil
@@ -862,14 +874,14 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     popover.purpose = .showingVoiceBaseMediaItems
                     popover.allowsSelection = false
                     
-                    popover.section.headerStrings = stringIndex.keys?.sorted()
                     popover.section.strings = strings.count > 0 ? strings : nil
-                    popover.section.titles = popover.section.headerStrings
+                    popover.section.headerStrings = stringIndex.keys?.sorted()
+//                    popover.section.indexHeaders = popover.section.headers
                     
                     popover.section.counts = counts.count > 0 ? counts : nil
                     popover.section.indexes = indexes.count > 0 ? indexes : nil
                     
-                    popover.section.showIndex = false
+//                    popover.section.showIndex = false
                     popover.section.showHeaders = true
                     
                     popover.vc = self.splitViewController
@@ -1034,7 +1046,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                                             
                                                             popover.section.headerStrings = stringIndex.keys?.sorted()
                                                             popover.section.strings = strings.count > 0 ? strings : nil
-                                                            popover.section.titles = popover.section.headerStrings
+//                                                            popover.section.indexHeaders = popover.section.headers
                                                             
                                                             popover.section.counts = counts.count > 0 ? counts : nil
                                                             popover.section.indexes = indexes.count > 0 ? indexes : nil
@@ -1090,7 +1102,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                     
                                     popover.section.headerStrings = stringIndex.keys?.sorted()
                                     popover.section.strings = strings.count > 0 ? strings : nil
-                                    popover.section.titles = popover.section.headerStrings
+//                                    popover.section.indexHeaders = popover.section.headers
                                     
                                     var counter = 0
                                     
@@ -1109,7 +1121,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                     popover.section.counts = counts.count > 0 ? counts : nil
                                     popover.section.indexes = indexes.count > 0 ? indexes : nil
                                     
-                                    popover.section.showIndex = false
+//                                    popover.section.showIndex = false
                                     popover.section.showHeaders = true
 
                                     if popover.tableView != nil {
@@ -1299,7 +1311,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         //                        dismiss(animated: true, completion: nil)
                         alert(  viewController:self,
                                 title:"Not in List",
-                                message: "\"\(mediaItem.title!)\" is not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",
+                                message: "\"\(mediaItem.text!)\"\nis not in the list \"\(globals.contextTitle!).\"  Show \"All\" and try again.",
                                 completion:nil)
                     }
                 } else {
@@ -1771,8 +1783,22 @@ class MediaTableViewController : UIViewController
 
         if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-            
-            navigationController.modalPresentationStyle = .popover
+
+            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+                let hClass = traitCollection.horizontalSizeClass
+                
+                if hClass == .compact {
+                    navigationController.modalPresentationStyle = .overCurrentContext
+                } else {
+                    // I don't think this ever happens: collapsed and regular
+                    navigationController.modalPresentationStyle = .popover
+                }
+            } else {
+                navigationController.modalPresentationStyle = .popover
+            }
+
+//            navigationController.modalPresentationStyle = .overCurrentContext
+
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
 
@@ -1785,9 +1811,9 @@ class MediaTableViewController : UIViewController
             popover.purpose = .selectingCategory
             
             popover.section.strings = globals.mediaCategory.names
-            
-            popover.section.showIndex = false
-            popover.section.showHeaders = false
+//            
+//            popover.section.showIndex = false
+//            popover.section.showHeaders = false
             
             popover.vc = self.splitViewController
             
@@ -1810,8 +1836,10 @@ class MediaTableViewController : UIViewController
     {
         didSet {
             refreshControl = UIRefreshControl()
-            refreshControl!.addTarget(self, action: #selector(MediaTableViewController.handleRefresh(_:)), for: UIControlEvents.valueChanged)
+            refreshControl?.addTarget(self, action: #selector(MediaTableViewController.handleRefresh(_:)), for: UIControlEvents.valueChanged)
             
+//            refreshControl?.attributedTitle = NSAttributedString(string: "Pull to refresh")
+
             tableView.addSubview(refreshControl!)
             
             tableView.allowsSelection = true
@@ -1834,8 +1862,25 @@ class MediaTableViewController : UIViewController
             dismiss(animated: true, completion: {
                 self.presentingVC = nil
             })
-            
-            navigationController.modalPresentationStyle = .popover
+      
+            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+                let hClass = traitCollection.horizontalSizeClass
+                
+                if hClass == .compact {
+                    popover.navigationItem.title = "Select"
+                    navigationController.isNavigationBarHidden = false
+                    navigationController.modalPresentationStyle = .overCurrentContext
+                } else {
+                    // I don't think this ever happens: collapsed and regular
+                    navigationController.isNavigationBarHidden = true
+                    navigationController.modalPresentationStyle = .popover
+                }
+            } else {
+                navigationController.isNavigationBarHidden = true
+                navigationController.modalPresentationStyle = .popover
+            }
+
+//            navigationController.modalPresentationStyle = .overCurrentContext
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
@@ -1962,9 +2007,9 @@ class MediaTableViewController : UIViewController
             }
             
             popover.section.strings = showMenu
-            
-            popover.section.showIndex = false
-            popover.section.showHeaders = false
+//            
+//            popover.section.showIndex = false
+//            popover.section.showHeaders = false
             
             popover.vc = self.splitViewController
 
@@ -2094,36 +2139,36 @@ class MediaTableViewController : UIViewController
                 }
                 
 //                    print(popover.section.strings)
-                
-                popover.section.showIndex = false
-                popover.section.showHeaders = false
+//                
+//                popover.section.showIndex = false
+//                popover.section.showHeaders = false
                 break
                 
             case GROUPING.TITLE:
                 popover.section.showIndex = true
-                popover.section.showHeaders = true
+//                popover.section.showHeaders = true
                 popover.section.strings = globals.media.active?.section?.titles
                 popover.search = popover.section.strings?.count > 10
                 break
                 
             case GROUPING.CLASS:
                 popover.section.showIndex = true
-                popover.section.showHeaders = true
+//                popover.section.showHeaders = true
                 popover.section.strings = globals.media.active?.section?.titles
                 popover.search = popover.section.strings?.count > 10
                 break
                 
             case GROUPING.SPEAKER:
                 popover.section.showIndex = true
-                popover.section.showHeaders = true
+//                popover.section.showHeaders = true
                 popover.indexTransform = lastNameFromName
                 popover.section.strings = globals.media.active?.section?.titles
                 popover.search = popover.section.strings?.count > 10
                 break
                 
             default:
-                popover.section.showIndex = false
-                popover.section.showHeaders = false
+//                popover.section.showIndex = false
+//                popover.section.showHeaders = false
                 popover.section.strings = globals.media.active?.section?.titles
                 break
             }
@@ -2167,9 +2212,9 @@ class MediaTableViewController : UIViewController
             
             popover.purpose = .selectingGrouping
             popover.section.strings = globals.groupingTitles
-            
-            popover.section.showIndex = false
-            popover.section.showHeaders = false
+//            
+//            popover.section.showIndex = false
+//            popover.section.showHeaders = false
             
             popover.vc = self.splitViewController
             
@@ -2210,9 +2255,9 @@ class MediaTableViewController : UIViewController
             
             popover.purpose = .selectingSorting
             popover.section.strings = Constants.SortingTitles
-            
-            popover.section.showIndex = false
-            popover.section.showHeaders = false
+//            
+//            popover.section.showIndex = false
+//            popover.section.showHeaders = false
             
             popover.vc = self.splitViewController
             
@@ -2789,6 +2834,19 @@ class MediaTableViewController : UIViewController
         })
     }
     
+    // This shortens the distance the tableView must be pulled to initiate a refresh.
+    func scrollViewDidScroll(_ scrollView: UIScrollView)
+    {
+        if scrollView.contentOffset.y < -100 { //change 100 to whatever you want
+            if !globals.isRefreshing {
+                refreshControl?.beginRefreshing()
+                handleRefresh(refreshControl!)
+            }
+        } else if scrollView.contentOffset.y >= 0 {
+            
+        }
+    }
+
     func handleRefresh(_ refreshControl: UIRefreshControl)
     {
         guard Thread.isMainThread else {
@@ -2822,9 +2880,10 @@ class MediaTableViewController : UIViewController
 
         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
 
-        setupBarButtons()
-        setupCategoryButton()
         setupActionAndTagsButton()
+        setupCategoryButton()
+
+        setupBarButtons()
         
         // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
         globals.media = Media()
@@ -3253,6 +3312,10 @@ class MediaTableViewController : UIViewController
     
     func actions()
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         //In case we have one already showing
         dismiss(animated: true, completion: {
             self.presentingVC = nil
@@ -3275,17 +3338,18 @@ class MediaTableViewController : UIViewController
             popover.selectedMediaItem = selectedMediaItem
             
             popover.section.strings = actionMenu()
-            
-            popover.section.showIndex = false
-            popover.section.showHeaders = false
+//            
+//            popover.section.showIndex = false
+//            popover.section.showHeaders = false
             
             popover.vc = self.splitViewController
-            
-            DispatchQueue.main.async(execute: { () -> Void in
-                self.present(navigationController, animated: true, completion:  {
-                    self.presentingVC = navigationController
-                })
+
+            self.present(navigationController, animated: true, completion:  {
+                self.presentingVC = navigationController
             })
+
+//            DispatchQueue.main.async(execute: { () -> Void in
+//            })
         }
     }
 
@@ -3305,6 +3369,11 @@ class MediaTableViewController : UIViewController
     
     func setupActionAndTagsButton()
     {
+        guard !globals.isLoading && !globals.isRefreshing else {
+            navigationItem.rightBarButtonItems = nil
+            return
+        }
+        
         var barButtons = [UIBarButtonItem]()
         
         actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.actions))
@@ -3395,7 +3464,21 @@ class MediaTableViewController : UIViewController
 
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-            navigationController.modalPresentationStyle = .popover
+            
+            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+                let hClass = traitCollection.horizontalSizeClass
+                
+                if hClass == .compact {
+                    navigationController.modalPresentationStyle = .overCurrentContext
+                } else {
+                    // I don't think this ever happens: collapsed and regular
+                    navigationController.modalPresentationStyle = .popover
+                }
+            } else {
+                navigationController.modalPresentationStyle = .popover
+            }
+
+//            navigationController.modalPresentationStyle = .overCurrentContext
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
@@ -3412,7 +3495,7 @@ class MediaTableViewController : UIViewController
 //            print(globals.media.all!.proposedTags)
             
             popover.section.showIndex = true
-            popover.section.showHeaders = true
+//            popover.section.showHeaders = true
             
             popover.section.strings = tagsMenu()
             
@@ -3956,7 +4039,7 @@ class MediaTableViewController : UIViewController
             switch identifier {
             case Constants.SEGUE.SHOW_SETTINGS:
                 if let svc = dvc as? SettingsViewController {
-                    svc.modalPresentationStyle = .popover
+//                    svc.modalPresentationStyle = .popover
                     svc.popoverPresentationController?.delegate = self
                 }
                 break
@@ -4133,7 +4216,7 @@ class MediaTableViewController : UIViewController
                 _ = self.navigationController?.popToRootViewController(animated: false)
             }
             
-            if presentingVC != nil {
+            if presentingVC?.popoverPresentationController?.presentationStyle == .popover {
                 self.dismiss(animated: true, completion: {
                     self.presentingVC = nil
                 })
@@ -4171,7 +4254,7 @@ extension MediaTableViewController : UITableViewDataSource
     func numberOfSections(in tableView: UITableView) -> Int {
         //#warning Incomplete method implementation -- Return the number of sections
         //return series.count
-        return globals.display.section.titles != nil ? globals.display.section.titles!.count : 0
+        return globals.display.section.headers != nil ? globals.display.section.headers!.count : 0
     }
 
     func sectionIndexTitles(for tableView: UITableView) -> [String]? {
@@ -4185,9 +4268,9 @@ extension MediaTableViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
     {
-        if globals.display.section.titles != nil {
-            if section < globals.display.section.titles!.count {
-                return globals.display.section.titles![section]
+        if globals.display.section.headers != nil {
+            if section < globals.display.section.headers!.count {
+                return globals.display.section.headers![section]
             } else {
                 return nil
             }
@@ -4238,7 +4321,7 @@ extension MediaTableViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
     {
-        guard section < globals.display.section.titles?.count, let title = globals.display.section.titles?[section] else {
+        guard section < globals.display.section.headers?.count, let title = globals.display.section.headers?[section] else {
             return Constants.HEADER_HEIGHT
         }
         
@@ -4257,7 +4340,7 @@ extension MediaTableViewController : UITableViewDataSource
         
         view.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
 
-        if section < globals.display.section.titles?.count, let title = globals.display.section.titles?[section] {
+        if section < globals.display.section.headers?.count, let title = globals.display.section.headers?[section] {
             let label = UILabel()
             
             label.numberOfLines = 0
@@ -4402,13 +4485,10 @@ extension MediaTableViewController : UITableViewDelegate
                 
                 popover.selectedMediaItem = mediaItem
                 
-                popover.section.showIndex = true
-                popover.section.showHeaders = true
-                
                 popover.section.strings = searchStrings
-                
-                popover.section.showIndex = false
-                popover.section.showHeaders = false
+//                
+//                popover.section.showIndex = false
+//                popover.section.showHeaders = false
                 
                 popover.vc = self.splitViewController
                 
@@ -4463,7 +4543,7 @@ extension MediaTableViewController : UITableViewDelegate
                 popover.selectedMediaItem = mediaItem
                 
                 popover.section.showIndex = true
-                popover.section.showHeaders = true
+//                popover.section.showHeaders = true
                 
                 popover.section.strings = tokens
                 
@@ -4576,15 +4656,15 @@ extension MediaTableViewController : UITableViewDelegate
                 
                 let purpose = " (\(transcriptPurpose.lowercased()))"
                 
-                let completion = transcript?.percentComplete == nil ? purpose : purpose + " (\(transcript!.percentComplete!)% complete)"
+                let completion = transcript?.percentComplete == nil ? purpose : purpose + "\n(\(transcript!.percentComplete!)% complete)"
                 
                 var title = "Machine Generated Transcript "
                 
-                var message = "You will be notified when the machine generated transcript for \(mediaItem.title!)\(completion) "
+                var message = "You will be notified when the machine generated transcript for\n\(mediaItem.text!)\(completion) "
                 
                 if (transcript?.mediaID != nil) {
                     title = title + "in Progress"
-                    message = message + "is available."
+                    message = message + "\nis available."
                     
                     var actions = [AlertAction]()
                     
@@ -4610,7 +4690,7 @@ extension MediaTableViewController : UITableViewDelegate
                     globals.alert(title:title, message:message, actions:actions)
                 } else {
                     title = title + "Requested"
-                    message = message + "has started."
+                    message = message + "\nhas started."
                     
                     globals.alert(title:title, message:message)
                 }
@@ -4812,29 +4892,19 @@ extension MediaTableViewController : UITableViewDelegate
                     alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, action: {
                         VoiceBase.getDetails(mediaID: transcript?.mediaID, completion: { (dict:[String:Any])->(Void) in
                             if let text = transcript?.mediaItem?.text {
-                                let alert = UIAlertController(  title: "On VoiceBase",
-                                                                message: text + "\nis on VoiceBase.",
-                                    preferredStyle: .alert)
+                                var actions = [AlertAction]()
                                 
-                                let okayAction = UIAlertAction(title: "Okay", style: UIAlertActionStyle.default, handler: {
-                                    alertItem -> Void in
-                                })
-                                alert.addAction(okayAction)
+                                actions.append(AlertAction(title: "Okay", style: .default, action: nil))
                                 
-                                self.present(alert, animated: true, completion: nil)
+                                globals.alert(title:"On VoiceBase", message:text + "\nis on VoiceBase.", actions:actions)
                             }
                         }, onError:  { (dict:[String:Any])->(Void) in
                             if let text = transcript?.mediaItem?.text {
-                                let alert = UIAlertController(  title: "Not On VoiceBase",
-                                                                message: text + "\nis not on VoiceBase.",
-                                                                preferredStyle: .alert)
+                                var actions = [AlertAction]()
                                 
-                                let okayAction = UIAlertAction(title: "Okay", style: UIAlertActionStyle.default, handler: {
-                                    alertItem -> Void in
-                                })
-                                alert.addAction(okayAction)
+                                actions.append(AlertAction(title: "Okay", style: .default, action: nil))
                                 
-                                self.present(alert, animated: true, completion: nil)
+                                globals.alert(title:"Not on VoiceBase", message:text + "\nis not on VoiceBase.", actions:actions)
                             }
                         })
                     }))

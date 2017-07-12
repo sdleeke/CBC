@@ -153,8 +153,27 @@ class SettingsViewController: UIViewController {
         })
     }
     
+    func done()
+    {
+        dismiss(animated: true, completion: nil)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        if let presentationStyle = navigationController?.modalPresentationStyle {
+            switch presentationStyle {
+            case .overCurrentContext:
+                fallthrough
+            case .fullScreen:
+                fallthrough
+            case .overFullScreen:
+                navigationItem.setRightBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(SettingsViewController.done)), animated: true)
+                
+            default:
+                break
+            }
+        }
 
         // Do any additional setup after loading the view.
         if #available(iOS 9.0, *) {

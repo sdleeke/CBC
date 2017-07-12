@@ -410,7 +410,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         case .selectingTopic:
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .popover
+                navigationController.modalPresentationStyle = .overCurrentContext
                 
                 navigationController.popoverPresentationController?.delegate = self
                 
@@ -433,7 +433,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         case .selectingTopicKeyword:
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .popover
+                navigationController.modalPresentationStyle = .overCurrentContext
                 
                 navigationController.popoverPresentationController?.delegate = self
                 
@@ -2103,7 +2103,23 @@ class MediaViewController: UIViewController
 
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-            navigationController.modalPresentationStyle = .popover
+            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+                let hClass = traitCollection.horizontalSizeClass
+                
+                if hClass == .compact {
+                    popover.navigationItem.title = "Select"
+                    navigationController.isNavigationBarHidden = false
+                    navigationController.modalPresentationStyle = .overCurrentContext
+                } else {
+                    // I don't think this ever happens: collapsed and regular
+                    navigationController.isNavigationBarHidden = true
+                    navigationController.modalPresentationStyle = .popover
+                }
+            } else {
+                navigationController.isNavigationBarHidden = true
+                navigationController.modalPresentationStyle = .popover
+            }
+//            navigationController.modalPresentationStyle = .popover
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
@@ -2118,9 +2134,9 @@ class MediaViewController: UIViewController
             popover.selectedMediaItem = selectedMediaItem
             
             popover.section.strings = actionMenu()
-            
-            popover.section.showIndex = false
-            popover.section.showHeaders = false
+//            
+//            popover.section.showIndex = false
+//            popover.section.showHeaders = false
             
             popover.vc = self
             
@@ -3191,9 +3207,9 @@ class MediaViewController: UIViewController
             
             popover.purpose = .showingTags
             popover.section.strings = selectedMediaItem?.tagsArray
-            
-            popover.section.showIndex = false
-            popover.section.showHeaders = false
+//            
+//            popover.section.showIndex = false
+//            popover.section.showHeaders = false
             
             popover.allowsSelection = false
             popover.selectedMediaItem = selectedMediaItem
@@ -3586,6 +3602,10 @@ class MediaViewController: UIViewController
     
     func deviceOrientationDidChange()
     {
+        guard popover?.popoverPresentationController?.presentationStyle == .popover else {
+            return
+        }
+        
         switch orientation! {
         case .faceUp:
             switch UIDevice.current.orientation {
@@ -4674,108 +4694,108 @@ extension MediaViewController : UITableViewDataSource
         return actionsAtIndexPath(tableView,indexPath:indexPath) != nil
     }
     
-    func searchVideo()
-    {
-        search(purpose: Purpose.video)
-    }
-    
-    func searchAudio()
-    {
-        search(purpose: Purpose.audio)
-    }
-    
-    func search(purpose:String)
-    {
-        guard Thread.isMainThread else {
-            return
-        }
-
-        var transcript:VoiceBase?
-        
-        switch purpose {
-        case Purpose.audio:
-            transcript = self.popover?.selectedMediaItem?.audioTranscript
-            break
-        case Purpose.video:
-            transcript = self.popover?.selectedMediaItem?.videoTranscript
-            break
-        default:
-            break
-        }
-        
-        searchAlert(viewController: self.popover!, title: "Search", message: nil, searchText: searchText, searchAction:  { (alertViewController:UIAlertController) -> (Void) in
-            self.searchText = (alertViewController.textFields![0] as UITextField).text
-            
-            guard let searchText = self.searchText, !searchText.isEmpty else {
-                return
-            }
-
-            if let times = transcript?.searchSRTArrays(string: searchText)?.filter({ (srtArray:[String]) -> Bool in
-                var array = srtArray
-                
-                if let count = array.first, !count.isEmpty {
-                    array.remove(at: 0)
-                } else {
-                    return false
-                }
-                
-                if let timeWindow = array.first, !timeWindow.isEmpty {
-                    if let _ = timeWindow.components(separatedBy: " --> ").first {
-                        return true
-                    }
-                }
-                
-                return false
-            }).map({ (srtArray:[String]) -> String in
-                var array = srtArray
-                
-                if let count = array.first, !count.isEmpty {
-                    array.remove(at: 0)
-                }
-                
-                if let timeWindow = array.first, !timeWindow.isEmpty {
-                    return timeWindow
-//                    if let start = timeWindow.components(separatedBy: " --> ").first {
-//                        return start
+//    func searchVideo()
+//    {
+//        search(purpose: Purpose.video)
+//    }
+//    
+//    func searchAudio()
+//    {
+//        search(purpose: Purpose.audio)
+//    }
+//    
+//    func search(purpose:String)
+//    {
+//        guard Thread.isMainThread else {
+//            return
+//        }
+//
+//        var transcript:VoiceBase?
+//        
+//        switch purpose {
+//        case Purpose.audio:
+//            transcript = self.popover?.selectedMediaItem?.audioTranscript
+//            break
+//        case Purpose.video:
+//            transcript = self.popover?.selectedMediaItem?.videoTranscript
+//            break
+//        default:
+//            break
+//        }
+//        
+//        searchAlert(viewController: self.popover!, title: "Search", message: nil, searchText: searchText, searchAction:  { (alertViewController:UIAlertController) -> (Void) in
+//            self.searchText = (alertViewController.textFields![0] as UITextField).text
+//            
+//            guard let searchText = self.searchText, !searchText.isEmpty else {
+//                return
+//            }
+//
+//            if let times = transcript?.searchSRTArrays(string: searchText)?.filter({ (srtArray:[String]) -> Bool in
+//                var array = srtArray
+//                
+//                if let count = array.first, !count.isEmpty {
+//                    array.remove(at: 0)
+//                } else {
+//                    return false
+//                }
+//                
+//                if let timeWindow = array.first, !timeWindow.isEmpty {
+//                    if let _ = timeWindow.components(separatedBy: " --> ").first {
+//                        return true
 //                    }
-                }
-                
-                return "" // should never happen
-            }) {
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                    navigationController.modalPresentationStyle = .popover
-                    
-                    navigationController.popoverPresentationController?.delegate = self
-                    
-                    popover.navigationController?.isNavigationBarHidden = false
-                    
-                    popover.navigationItem.title = searchText
-                    
-                    popover.selectedMediaItem = self.popover?.selectedMediaItem
-                    popover.transcript = self.popover?.transcript
-                    
-                    popover.delegate = self
-//                    popover.detail = true
-                    popover.purpose = .selectingTime
-                    
-                    popover.parser = { (string:String) -> [String] in
-                        var strings = string.components(separatedBy: "\n")
-                        while strings.count > 2 {
-                            strings.removeLast()
-                        }
-                        return strings
-                    }
-                    
-                    popover.section.strings = times
-                    
-                    self.popover?.navigationController?.pushViewController(popover, animated: true)
-                }
-            } else {
-                alert(viewController:self.popover!,title: "String Not Found", message: searchText,completion:nil)
-            }
-        })
-    }
+//                }
+//                
+//                return false
+//            }).map({ (srtArray:[String]) -> String in
+//                var array = srtArray
+//                
+//                if let count = array.first, !count.isEmpty {
+//                    array.remove(at: 0)
+//                }
+//                
+//                if let timeWindow = array.first, !timeWindow.isEmpty {
+//                    return timeWindow
+////                    if let start = timeWindow.components(separatedBy: " --> ").first {
+////                        return start
+////                    }
+//                }
+//                
+//                return "" // should never happen
+//            }) {
+//                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                    navigationController.modalPresentationStyle = .popover
+//                    
+//                    navigationController.popoverPresentationController?.delegate = self
+//                    
+//                    popover.navigationController?.isNavigationBarHidden = false
+//                    
+//                    popover.navigationItem.title = searchText
+//                    
+//                    popover.selectedMediaItem = self.popover?.selectedMediaItem
+//                    popover.transcript = self.popover?.transcript
+//                    
+//                    popover.delegate = self
+////                    popover.detail = true
+//                    popover.purpose = .selectingTime
+//                    
+//                    popover.parser = { (string:String) -> [String] in
+//                        var strings = string.components(separatedBy: "\n")
+//                        while strings.count > 2 {
+//                            strings.removeLast()
+//                        }
+//                        return strings
+//                    }
+//                    
+//                    popover.section.strings = times
+//                    
+//                    self.popover?.navigationController?.pushViewController(popover, animated: true)
+//                }
+//            } else {
+//                alert(viewController:self.popover!,title: "String Not Found", message: searchText,completion:nil)
+//            }
+//        })
+//    }
     
     func actionsAtIndexPath(_ tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
     {
@@ -5057,29 +5077,19 @@ extension MediaViewController : UITableViewDataSource
                     alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, action: {
                         VoiceBase.getDetails(mediaID: transcript?.mediaID, completion: { (dict:[String:Any])->(Void) in
                             if let text = transcript?.mediaItem?.text {
-                                let alert = UIAlertController(  title: "On VoiceBase",
-                                                                message: text + "\nis on VoiceBase.",
-                                                                preferredStyle: .alert)
+                                var actions = [AlertAction]()
                                 
-                                let okayAction = UIAlertAction(title: "Okay", style: UIAlertActionStyle.default, handler: {
-                                    alertItem -> Void in
-                                })
-                                alert.addAction(okayAction)
+                                actions.append(AlertAction(title: "Okay", style: .default, action: nil))
                                 
-                                self.present(alert, animated: true, completion: nil)
+                                globals.alert(title:"On VoiceBase", message:text + "\nis on VoiceBase.", actions:actions)
                             }
                         }, onError:  { (dict:[String:Any])->(Void) in
                             if let text = transcript?.mediaItem?.text {
-                                let alert = UIAlertController(  title: "Not On VoiceBase",
-                                                                message: text + "\nis not on VoiceBase.",
-                                                                preferredStyle: .alert)
+                                var actions = [AlertAction]()
                                 
-                                let okayAction = UIAlertAction(title: "Okay", style: UIAlertActionStyle.default, handler: {
-                                    alertItem -> Void in
-                                })
-                                alert.addAction(okayAction)
+                                actions.append(AlertAction(title: "Okay", style: .default, action: nil))
                                 
-                                self.present(alert, animated: true, completion: nil)
+                                globals.alert(title:"Not on VoiceBase", message:text + "\nis not on VoiceBase.", actions:actions)
                             }
                         })
                     }))
@@ -5214,7 +5224,7 @@ extension MediaViewController : UITableViewDataSource
                         self.popover?.purpose = .selectingKeyword
                         
                         self.popover?.section.showIndex = true
-                        self.popover?.section.showHeaders = true
+//                        self.popover?.section.showHeaders = true
                         
                         self.popover?.section.strings = transcript?.srtTokens?.map({ (string:String) -> String in
                             return string.lowercased()
@@ -5445,7 +5455,7 @@ extension MediaViewController : UITableViewDataSource
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
                 self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
                 
-                navigationController.modalPresentationStyle = .popover
+                navigationController.modalPresentationStyle = .overCurrentContext
                 
                 navigationController.popoverPresentationController?.delegate = self
                 

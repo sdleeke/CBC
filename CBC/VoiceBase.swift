@@ -1095,7 +1095,7 @@ class VoiceBase {
                                         }
                                     }
                                     
-                                    globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for \(mediaItem.title!) (\(transcriptPurpose.lowercased())) has been started.  You will be notified when it is complete.")
+                                    globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for\n\(mediaItem.text!) (\(transcriptPurpose.lowercased()))\nhas been started.  You will be notified when it is complete.")
                                     
                                     DispatchQueue.main.async(execute: { () -> Void in
                                         self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(VoiceBase.getProgress), userInfo: nil, repeats: true)
@@ -1147,7 +1147,7 @@ class VoiceBase {
                         }
                     }
                     
-                    globals.alert(title: "Transcript Failed",message: "The transcript for \(mediaItem.title!) (\(transcriptPurpose.lowercased())) failed to start.  Please try again.")
+                    globals.alert(title: "Transcript Failed",message: "The transcript for\n\(mediaItem.text!) (\(transcriptPurpose.lowercased()))\nfailed to start.  Please try again.")
                     
                     DispatchQueue.main.async(execute: { () -> Void in
                         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_UPLOAD), object: self)
@@ -1303,7 +1303,7 @@ class VoiceBase {
                                 break
                             }
                         }
-                        globals.alert(title: "Transcript Failed",message: "The transcript for \(mediaItem.title!) (\(transcriptPurpose.lowercased())) was not completed.  Please try again.")
+                        globals.alert(title: "Transcript Failed",message: "The transcript for\n\(mediaItem.text!) (\(transcriptPurpose.lowercased()))\nwas not completed.  Please try again.")
                         
                         DispatchQueue.main.async(execute: { () -> Void in
                             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
@@ -1791,7 +1791,7 @@ class VoiceBase {
         
         let boundary = "Boundary-\(UUID().uuidString)"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        let body = createBody(parameters: ["media":url,"metadata":self.metadata,"transcript":transcript],boundary: boundary) // "configuration":"{\"configuration\":{\"executor\":\"v2\"}}"
+        let body = createBody(parameters: ["transcript":transcript],boundary: boundary) // "configuration":"{\"configuration\":{\"executor\":\"v2\"}}" "media":url,"metadata":self.metadata,
         
         request.httpBody = body as Data
         request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
@@ -1855,7 +1855,7 @@ class VoiceBase {
         }
         
         guard globals.reachability.currentReachabilityStatus != .notReachable else {
-            globals.alert(title: "Transcript Unavailable",message: "The transcript for \(mediaItem.title!) can not be created.  Please check your network connection and try again.")
+            globals.alert(title: "Transcript Unavailable",message: "The transcript for\n\(mediaItem.text!) (\(purpose!.lowercased()))\ncan not be created.  Please check your network connection and try again.")
             return
         }
         
@@ -1937,7 +1937,7 @@ class VoiceBase {
                     }
                 }
                 
-                globals.alert(title: "Transcript Ready",message: "The transcript for \(mediaItem.title!) (\(transcriptPurpose.lowercased())) is available.")
+                globals.alert(title: "Transcript Ready",message: "The transcript for\n\(mediaItem.text!) (\(transcriptPurpose.lowercased()))\nis available.")
 
                 DispatchQueue.main.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)

@@ -2676,6 +2676,7 @@ func presentHTMLModal(viewController:UIViewController, medaiItem:MediaItem?, sty
         })
         
         navigationController.modalPresentationStyle = style
+        
         navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
         
         popover.navigationItem.title = title
@@ -3134,6 +3135,10 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
 
 func shareHTML(viewController:UIViewController,htmlString:String?)
 {
+    guard Thread.isMainThread else {
+        return
+    }
+    
     guard htmlString != nil else {
         return
     }
@@ -3149,9 +3154,9 @@ func shareHTML(viewController:UIViewController,htmlString:String?)
     activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
 
     // present the view controller
-    DispatchQueue.main.async(execute: { () -> Void in
-        viewController.present(activityViewController, animated: false, completion: nil)
-    })
+    viewController.present(activityViewController, animated: false, completion: nil)
+//    DispatchQueue.main.async(execute: { () -> Void in
+//    })
 }
 
 func shareMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?)->String?)?)

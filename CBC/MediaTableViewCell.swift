@@ -470,9 +470,9 @@ class MediaTableViewCell: UITableViewCell
             }
             
             popover.section.strings = strings
-            
-            popover.section.showIndex = false
-            popover.section.showHeaders = false
+//            
+//            popover.section.showIndex = false
+//            popover.section.showHeaders = false
             
             popover.vc = vc
             
@@ -524,9 +524,9 @@ class MediaTableViewCell: UITableViewCell
             
             popover.section.strings = mediaItem!.tagsArray
             popover.section.strings?.insert(Constants.Strings.All,at: 0)
-            
-            popover.section.showIndex = false
-            popover.section.showHeaders = false
+//            
+//            popover.section.showIndex = false
+//            popover.section.showHeaders = false
             
             popover.vc = vc
 
