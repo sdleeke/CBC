@@ -50,12 +50,28 @@ extension UIViewController {
     }
 }
 
-struct MediaNeed {
+struct MediaNeed
+{
     var sorting:Bool = true
     var grouping:Bool = true
 }
 
-class Section {
+class Section
+{
+    func index(_ indexPath:IndexPath) -> Int {
+        var index = 0
+        
+        if showIndex || showHeaders {
+            if let sectionIndex = indexes?[indexPath.section] {
+                index = sectionIndex + indexPath.row
+            }
+        } else {
+            index = indexPath.row
+        }
+        
+        return index
+    }
+    
     var strings:[String]? {
         willSet {
             

@@ -54,6 +54,8 @@ extension PopoverTableViewController: UISearchBarDelegate
         // To make sure we start out right
         filteredSection.showIndex = unfilteredSection.showIndex
         filteredSection.showHeaders = unfilteredSection.showHeaders
+        filteredSection.indexStringsTransform = unfilteredSection.indexStringsTransform
+        filteredSection.indexHeadersTransform = unfilteredSection.indexHeadersTransform
         
         searchBar.showsCancelButton = true
         
@@ -282,29 +284,26 @@ class PopoverTableViewController : UIViewController
             for startTime in startTimes! {
 //                print("startTime: ",startTime)
                 
-                if startTime >= seconds {
+                if seconds < startTime {
                     break
                 }
                 index += 1
             }
+            index -= 1
             
 //            print("Row: ",row-1)
 
             if self.section.counts?.count == self.section.indexes?.count {
                 var section = 0
                 
-                while index > self.section.indexes?[section] {
+                while index > (self.section.indexes![section] + self.section.counts![section]) {
                     section += 1
                 }
-                section -= 1
                 
                 if let sectionIndex = self.section.indexes?[section] {
-                    var row = 0
-                    
-                    while index > (sectionIndex + row) {
-                        row += 1
-                    }
-                    
+
+                    let row = index - sectionIndex
+
                     let indexPath = IndexPath(row: row, section: section)
                     
                     if tableView.indexPathForSelectedRow != indexPath {
@@ -1409,12 +1408,14 @@ extension PopoverTableViewController : UITableViewDataSource
         
         var index = -1
         
-        if (section.showIndex || section.showHeaders) {
-            //        if let active = self.searchController?.isActive, active {
-            index = section.indexes != nil ? section.indexes![indexPath.section] + indexPath.row : -1
-        } else {
-            index = indexPath.row
-        }
+        index = section.index(indexPath)
+        
+//        if (section.showIndex || section.showHeaders) {
+//            //        if let active = self.searchController?.isActive, active {
+//            index = section.indexes != nil ? section.indexes![indexPath.section] + indexPath.row : -1
+//        } else {
+//            index = indexPath.row
+//        }
         
         guard index > -1 else {
             print("ERROR")
@@ -1692,18 +1693,24 @@ extension PopoverTableViewController : UITableViewDelegate
         
         var index = -1
         
-        if (section.showIndex || section.showHeaders) {
-            index = section.indexes != nil ? section.indexes![indexPath.section] + indexPath.row : -1
-            if let range = section.strings?[index].range(of: " (") {
-                selectedText = section.strings?[index].substring(to: range.lowerBound).uppercased()
-            }
-        } else {
-            index = indexPath.row
-            if let range = section.strings?[index].range(of: " (") {
-                selectedText = section.strings?[index].substring(to: range.lowerBound).uppercased()
-            }
-        }
+        index = section.index(indexPath)
         
+//        if (section.showIndex || section.showHeaders) {
+//            index = section.indexes != nil ? section.indexes![indexPath.section] + indexPath.row : -1
+//            if let range = section.strings?[index].range(of: " (") {
+//                selectedText = section.strings?[index].substring(to: range.lowerBound).uppercased()
+//            }
+//        } else {
+//            index = indexPath.row
+//            if let range = section.strings?[index].range(of: " (") {
+//                selectedText = section.strings?[index].substring(to: range.lowerBound).uppercased()
+//            }
+//        }
+
+        if let range = section.strings?[index].range(of: " (") {
+            selectedText = section.strings?[index].substring(to: range.lowerBound).uppercased()
+        }
+
         //        print(index,strings![index])
         
         switch purpose! {

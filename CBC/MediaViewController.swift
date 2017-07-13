@@ -5273,8 +5273,9 @@ extension MediaViewController : UITableViewDataSource
                         
                         func tvtra(tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
                         {
-                            guard let string = self.popover?.section.strings?[indexPath.row] else {
-                                return nil
+                            guard   let stringIndex = self.popover?.section.index(indexPath),
+                                    let string = self.popover?.section.strings?[stringIndex] else {
+                                    return nil
                             }
                             
                             var actions = [UITableViewRowAction]()
@@ -5282,6 +5283,11 @@ extension MediaViewController : UITableViewDataSource
                             var edit:UITableViewRowAction!
                             
                             edit = UITableViewRowAction(style: .normal, title: Constants.FA.EDIT) { rowAction, indexPath in
+                                guard   let stringIndex = self.popover?.section.index(indexPath),
+                                        let string = self.popover?.section.strings?[stringIndex] else {
+                                        return
+                                }
+                                
                                 let srtComponent = string
                                 let playing = globals.mediaPlayer.isPlaying
                                 
@@ -5291,10 +5297,11 @@ extension MediaViewController : UITableViewDataSource
                                 let count = srtArray.removeFirst() // Count
                                 let timing = srtArray.removeFirst().replacingOccurrences(of: "to", with: "-->") // Timing
                                 
-                                if  let first = transcript?.srtComponents?.filter({ (string:String) -> Bool in
+                                if
+                                    let first = transcript?.srtComponents?.filter({ (string:String) -> Bool in
                                         return string.contains(timing)
                                     }).first,
-                                    let index = transcript?.srtComponents?.index(of: first),
+                                    let srtIndex = transcript?.srtComponents?.index(of: first),
                                     let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
                                     let popover = navigationController.viewControllers[0] as? TextViewController,
                                     let range = srtComponent.range(of:timing.replacingOccurrences(of: "-->", with: "to")+"\n") {
@@ -5320,46 +5327,44 @@ extension MediaViewController : UITableViewDataSource
                                             return
                                         }
                                         
-                                        DispatchQueue.global(qos: .background).async {
-                                            print(text)
-
-                                            transcript?.srtComponents?[index] = "\(count)\n\(timing)\n\(text)" //.replacingOccurrences(of: "\n\n", with: "\r\n\r\n")
-                                            
-                                            var transcriptSRT : String!
-                                            
-                                            if let srtComponents = transcript?.srtComponents {
-                                                for srtComponent in srtComponents {
-                                                    transcriptSRT = transcriptSRT != nil ? transcriptSRT + VoiceBase.separator + srtComponent : srtComponent
-                                                }
+                                        print(text)
+                                        
+                                        transcript?.srtComponents?[srtIndex] = "\(count)\n\(timing)\n\(text)" //.replacingOccurrences(of: "\n\n", with: "\r\n\r\n")
+                                        self.popover?.filteredSection.strings?[stringIndex] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
+                                        self.popover?.unfilteredSection.strings?[srtIndex] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
+                                        
+                                        var transcriptSRT : String!
+                                        
+                                        if let srtComponents = transcript?.srtComponents {
+                                            for srtComponent in srtComponents {
+                                                transcriptSRT = transcriptSRT != nil ? transcriptSRT + VoiceBase.separator + srtComponent : srtComponent
                                             }
-                                            
-                                            transcript?.transcriptSRT = transcriptSRT
-                                            
-                                            var str : String!
-                                            
-                                            if let srtComponents = transcript?.srtComponents {
-                                                for srtComponent in srtComponents {
-                                                    var strings = srtComponent.components(separatedBy: "\n")
+                                        }
+                                        
+                                        transcript?.transcriptSRT = transcriptSRT
+                                        
+                                        var str : String!
+                                        
+                                        if let srtComponents = transcript?.srtComponents {
+                                            for srtComponent in srtComponents {
+                                                var strings = srtComponent.components(separatedBy: "\n")
+                                                
+                                                if strings.count > 2 {
+                                                    let count = strings.removeFirst() // count
+                                                    let timing = strings.removeFirst() // time
                                                     
-                                                    if strings.count > 2 {
-                                                        let count = strings.removeFirst() // count
-                                                        let timing = strings.removeFirst() // time
-                                                        
-                                                        if let range = srtComponent.range(of:timing+"\n") {
-                                                            let string = srtComponent.substring(from:range.upperBound)
-                                                            str = str != nil ? str + " " + string : string
-                                                        }
+                                                    if let range = srtComponent.range(of:timing+"\n") {
+                                                        let string = srtComponent.substring(from:range.upperBound)
+                                                        str = str != nil ? str + " " + string : string
                                                     }
                                                 }
                                             }
-                                            
-                                            transcript?.transcript = str
                                         }
                                         
-                                        self.popover?.section.strings?[indexPath.row] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
-                                        transcript?.srtComponents?[index] = "\(count)\n\(timing)\n\(text)"
-
+                                        transcript?.transcript = str
+                                        
                                         tableView.isEditing = false
+                                        tableView.reloadData()
                                         tableView.reloadData()
                                         
                                         if playing {
@@ -5441,7 +5446,7 @@ extension MediaViewController : UITableViewDataSource
                 }))
                 
                 alertActionsCancel( viewController: self,
-                                    title: "Show Index",
+                                    title: "Show Timing Index",
                                     message: nil,
                                     alertActions: alertActions,
                                     cancelAction: nil)

@@ -133,15 +133,18 @@ class TextViewController : UIViewController
         let decades = [
             " twenty "      :" 20 ",
             " thirty "      :" 30 ",
-            " fourty "      :" 40 ",
+            " forty "       :" 40 ",
             " fifty "       :" 50 ",
             " sixty "       :" 60 ",
             " seventy "     :" 70 ",
             " eighty "      :" 80 ",
-            " ninety "      :" 90 ",
+            " ninety "      :" 90 "
+        ]
+        
+        let centuries = [
             " one hundred "     :" 100 "
         ]
-
+        
         var textToNumbers = [String:String]()
         
         for key in singleNumbers.keys {
@@ -156,13 +159,66 @@ class TextViewController : UIViewController
             textToNumbers[key] = decades[key]
         }
         
+        for key in centuries.keys {
+            textToNumbers[key] = centuries[key]
+        }
+        
         for decade in decades.keys {
             for singleNumber in singleNumbers.keys {
                 let key = (decade + singleNumber).replacingOccurrences(of: "  ", with: " ")
-                if let decade = decades[decade]?.replacingOccurrences(of: "0 ", with: ""),let singleNumber = singleNumbers[singleNumber]?.replacingOccurrences(of: " ", with: "") {
+                if  let decade = decades[decade]?.replacingOccurrences(of: "0 ", with: ""),
+                    let singleNumber = singleNumbers[singleNumber]?.replacingOccurrences(of: " ", with: "") {
                     let value = decade + singleNumber + " "
                     textToNumbers[key] = value
-                    print(key,value)
+//                    print(key,value)
+                }
+            }
+        }
+        
+        for century in centuries.keys {
+            for singleNumber in singleNumbers.keys {
+                let key = (century + singleNumber).replacingOccurrences(of: "  ", with: " ")
+                if  let century = centuries[century]?.replacingOccurrences(of: "00 ", with: "0"),
+                    let singleNumber = singleNumbers[singleNumber]?.replacingOccurrences(of: " ", with: "") {
+                    let value = century + singleNumber + " "
+                    textToNumbers[key] = value
+//                    print(key,value)
+                }
+            }
+            for teenNumber in teenNumbers.keys {
+                let key = (century + teenNumber).replacingOccurrences(of: "  ", with: " ")
+                if  let century = centuries[century]?.replacingOccurrences(of: "00 ", with: ""),
+                    let teenNumber = teenNumbers[teenNumber]?.replacingOccurrences(of: " ", with: "") {
+                    let value = century + teenNumber + " "
+                    textToNumbers[key] = value
+//                    print(key,value)
+                }
+            }
+        }
+        
+        for century in centuries.keys {
+            for decade in decades.keys {
+                let key = (century + decade).replacingOccurrences(of: "  ", with: " ")
+                if  let century = centuries[century]?.replacingOccurrences(of: "00 ", with: ""),
+                    let decade = decades[decade]?.replacingOccurrences(of: " ", with: "") {
+                    let value = century + decade + " "
+                    textToNumbers[key] = value
+//                    print(key,value)
+                }
+            }
+        }
+        
+        for century in centuries.keys {
+            for decade in decades.keys {
+                for singleNumber in singleNumbers.keys {
+                    let key = (century + decade + singleNumber).replacingOccurrences(of: "  ", with: " ")
+                    if  let century = centuries[century]?.replacingOccurrences(of: "00 ", with: ""),
+                        let decade = decades[decade]?.replacingOccurrences(of: "0 ", with: "").replacingOccurrences(of: " ", with: ""),
+                        let singleNumber = singleNumbers[singleNumber]?.replacingOccurrences(of: " ", with: "") {
+                        let value = (century + decade + singleNumber) + " "
+                        textToNumbers[key] = value
+//                        print(key,value)
+                    }
                 }
             }
         }
@@ -192,7 +248,7 @@ class TextViewController : UIViewController
             if  changes.keys.filter({ (string:String) -> Bool in
                     return string.contains(key.trimmingCharacters(in: CharacterSet.whitespaces))
                 }).count == 0,
-                key != " one ",key != " ten ",changes[key] == nil,
+                changes[key] == nil, // key != " one ",key != " ten ",
                 textView.text.contains(key.trimmingCharacters(in: CharacterSet.whitespaces)), let value = textToNumbers[key]?.trimmingCharacters(in: CharacterSet.whitespaces) {
                 changes[key.trimmingCharacters(in: CharacterSet.whitespaces)] = value
                 
