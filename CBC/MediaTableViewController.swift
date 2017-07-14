@@ -515,8 +515,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case "VoiceBase Media Items":
-            VoiceBase.getAllMedia( completion:{(mediaItems:[[String:Any]]?) -> Void in
-                guard let mediaItems = mediaItems else {
+            VoiceBase.all(completion:{(json:[String:Any]?) -> Void in
+                guard let mediaItems = json?["media"] as? [[String:Any]] else {
                     return
                 }
                 
@@ -701,7 +701,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         return false
                     }
                     
-                    func tvtra(tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
+                    func tvtra(stringsPopover:PopoverTableViewController,indexPath:IndexPath) -> [UITableViewRowAction]?
                     {
                         guard !detailDisclosure(indexPath:indexPath) else {
                             return nil
@@ -781,15 +781,15 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                                 }
                                             }
                                             
-                                            popover.section.headerStrings = stringIndex.keys?.sorted()
-                                            popover.section.strings = strings.count > 0 ? strings : nil
+                                            stringsPopover.section.headerStrings = stringIndex.keys?.sorted()
+                                            stringsPopover.section.strings = strings.count > 0 ? strings : nil
 //                                            popover.section.indexHeaders = popover.section.headers
                                             
-                                            popover.section.counts = counts.count > 0 ? counts : nil
-                                            popover.section.indexes = indexes.count > 0 ? indexes : nil
+                                            stringsPopover.section.counts = counts.count > 0 ? counts : nil
+                                            stringsPopover.section.indexes = indexes.count > 0 ? indexes : nil
                                             
-                                            tableView.isEditing = false
-                                            tableView.reloadData()
+                                            stringsPopover.tableView.isEditing = false
+                                            stringsPopover.tableView.reloadData()
                                         })
                                         alert.addAction(yesAction)
                                         
@@ -911,11 +911,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     
                     for mediaItem in mediaItems {
                         if let mediaID = mediaItem["mediaId"] as? String {
-                            VoiceBase.getDetails(mediaID:mediaID,completion:{ (dict:[String:Any]) -> Void in
+                            VoiceBase.metadata(mediaID:mediaID,completion:{ (dict:[String:Any]?) -> Void in
 //                                print(dict)
                                 
-                                if  let media = dict["media"] as? [String:Any],
-                                    let metadata = media["metadata"] as? [String:Any],
+                                if  //let media = dict?["media"] as? [String:Any],
+                                    let metadata = dict?["metadata"] as? [String:Any],
                                     let title = metadata["title"] as? String,
                                     let device = metadata["device"] as? [String:String],
                                     let deviceName = device["name"] {
@@ -1148,7 +1148,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         }
                     }
                 }
-            })
+            }, onError: nil)
 
 //            {
 //                let alert = UIAlertController(  title: "Confirm Deletion of All VoiceBase Media Items",
@@ -1741,7 +1741,7 @@ class MediaTableViewController : UIViewController
                 self.presentingVC = nil
             })
             
-            VoiceBase.deleteAllMedia()
+            VoiceBase.deleteAll()
         })
         alert.addAction(yesAction)
         
@@ -4540,7 +4540,7 @@ extension MediaTableViewController : UITableViewDelegate
                     self.presentingVC = nil
                 })
                 
-                navigationController.modalPresentationStyle = .popover
+                navigationController.modalPresentationStyle = .overCurrentContext
                 navigationController.popoverPresentationController?.permittedArrowDirections = .any // [.up,.down]
                 navigationController.popoverPresentationController?.delegate = self
                 
@@ -4555,8 +4555,6 @@ extension MediaTableViewController : UITableViewDelegate
                     return [string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)]
                 }
                 
-                popover.sort.function = sort
-
                 popover.delegate = self
                 popover.purpose = .selectingCellSearch
                 
@@ -4569,6 +4567,28 @@ extension MediaTableViewController : UITableViewDelegate
                 
                 popover.vc = self.splitViewController
                 
+                popover.segments = true
+                
+                popover.sort.function = sort
+                popover.sort.method = Constants.Sort.Alphabetical
+                
+                var segmentActions = [SegmentAction]()
+                
+                segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
+                    popover.sort.method = Constants.Sort.Alphabetical
+                    popover.section.showIndex = true
+                    popover.section.strings = popover.sort.function?(popover.sort.method,popover.section.strings)
+                    popover.tableView.reloadData()
+                }))
+                segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
+                    popover.sort.method = Constants.Sort.Frequency
+                    popover.section.showIndex = false
+                    popover.section.strings = popover.sort.function?(popover.sort.method,popover.section.strings)
+                    popover.tableView.reloadData()
+                }))
+                
+                popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
+
                 popover.search = popover.section.strings?.count > 10
 
                 self.present(navigationController, animated: true, completion: {
@@ -4912,7 +4932,7 @@ extension MediaTableViewController : UITableViewDelegate
                     }))
                     
                     alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, action: {
-                        VoiceBase.getDetails(mediaID: transcript?.mediaID, completion: { (dict:[String:Any])->(Void) in
+                        transcript?.metadata(completion: { (dict:[String:Any]?)->(Void) in
                             if let text = transcript?.mediaItem?.text {
                                 var actions = [AlertAction]()
                                 
@@ -4920,7 +4940,7 @@ extension MediaTableViewController : UITableViewDelegate
                                 
                                 globals.alert(title:"On VoiceBase", message:text + "\nis on VoiceBase.", actions:actions)
                             }
-                        }, onError:  { (dict:[String:Any])->(Void) in
+                        }, onError:  { (dict:[String:Any]?)->(Void) in
                             if let text = transcript?.mediaItem?.text {
                                 var actions = [AlertAction]()
                                 

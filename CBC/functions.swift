@@ -3905,10 +3905,6 @@ func networkUnavailable(_ viewController:UIViewController,_ message:String?)
 
 func alert(viewController:UIViewController,title:String?,message:String?,completion:((Void)->(Void))?)
 {
-//    guard alert.first == nil else {
-//        return
-//    }
-    
     guard UIApplication.shared.applicationState == UIApplicationState.active else {
         return
     }
@@ -3926,6 +3922,40 @@ func alert(viewController:UIViewController,title:String?,message:String?,complet
     DispatchQueue.main.async(execute: { () -> Void in
         viewController.present(alert, animated: true, completion: nil)
     })
+}
+
+func alert(viewController:UIViewController,title:String?,message:String?,actions:[AlertAction]?)
+{
+    guard Thread.isMainThread else {
+        return
+    }
+    
+    guard UIApplication.shared.applicationState == UIApplicationState.active else {
+        return
+    }
+    
+    let alert = UIAlertController(title:title,
+                                  message: message,
+                                  preferredStyle: .alert)
+    alert.makeOpaque()
+    
+    if let alertActions = actions {
+        for alertAction in alertActions {
+            let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+                alertAction.action?()
+            })
+            alert.addAction(action)
+        }
+    } else {
+        let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+            
+        })
+        alert.addAction(action)
+    }
+    
+    viewController.present(alert, animated: true, completion: nil)
+//    DispatchQueue.main.async(execute: { () -> Void in
+//    })
 }
 
 func searchAlert(viewController:UIViewController,title:String?,message:String?,searchText:String?,searchAction:((_ alert:UIAlertController)->(Void))?)

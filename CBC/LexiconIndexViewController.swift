@@ -459,16 +459,82 @@ class LexiconIndexViewController : UIViewController
                 if let destination = dvc as? PopoverTableViewController {
                     ptvc = destination
                     
-                    ptvc.sort.function = sort
+                    ptvc.segments = true
                     
-                    destination.delegate = self
-                    destination.purpose = .selectingLexicon
+                    ptvc.sort.function = { (method:String?,strings:[String]?) -> [String]? in
+                            guard let strings = strings else {
+                                return nil
+                            }
+                            
+                            guard let method = method else {
+                                return nil
+                            }
+                            
+                            switch method {
+                            case Constants.Sort.Alphabetical:
+                                return strings.sorted()
+                                
+                            case Constants.Sort.Frequency:
+                                return strings.sorted(by: { (first:String, second:String) -> Bool in
+                                    if let rangeFirst = first.range(of: " ("), let rangeSecond = second.range(of: " (") {
+                                        let left = first.substring(from: rangeFirst.upperBound)
+                                        let right = second.substring(from: rangeSecond.upperBound)
+                                        
+                                        let first = first.substring(to: rangeFirst.lowerBound)
+                                        let second = second.substring(to: rangeSecond.lowerBound)
+                                        
+                                        if let rangeLeft = left.range(of: " "), let rangeRight = right.range(of: " ") {
+                                            let left = left.substring(to: rangeLeft.lowerBound)
+                                            let right = right.substring(to: rangeRight.lowerBound)
+                                            
+                                            if let left = Int(left), let right = Int(right) {
+                                                if left == right {
+                                                    return first < second
+                                                } else {
+                                                    return left > right
+                                                }
+                                            }
+                                        }
+                                        
+                                        return false
+                                    } else {
+                                        return false
+                                    }
+                                })
+                                
+                            default:
+                                return nil
+                            }
+                        }
+                        
+                    ptvc.sort.method = Constants.Sort.Alphabetical
                     
-                    destination.search = true
+                    var segmentActions = [SegmentAction]()
                     
-                    destination.mediaListGroupSort = mediaListGroupSort
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
+                        self.ptvc.sort.method = Constants.Sort.Alphabetical
+                        self.ptvc.section.showIndex = true
+                        self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
+                        self.ptvc.tableView.reloadData()
+                    }))
+                    segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
+                        self.ptvc.sort.method = Constants.Sort.Frequency
+                        self.ptvc.section.showIndex = false
+                        self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
+                        self.ptvc.tableView.reloadData()
+                    }))
                     
-                    destination.section.showIndex = true
+                    ptvc.segmentActions = segmentActions.count > 0 ? segmentActions : nil
+                    
+                    ptvc.delegate = self
+                    ptvc.purpose = .selectingLexicon
+                    
+                    ptvc.search = true
+                    ptvc.segments = true
+                    
+                    ptvc.mediaListGroupSort = mediaListGroupSort
+                    
+                    ptvc.section.showIndex = true
 //                    destination.section.showHeaders = true
                 }
                 break

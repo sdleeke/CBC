@@ -862,7 +862,7 @@ struct Constants {
     
     static let FONT_SIZE = 12
     
-    static let CMTime_Resolution = Int32(1000)
+    static let CMTime_Resolution = Int32(100)
     
     static let APP_ID = "org.countrysidebible.CBC"
     

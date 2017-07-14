@@ -260,7 +260,27 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 popover.delegate = self
                 popover.purpose = .selectingWord
                 
+                popover.segments = true
+                
                 popover.sort.function = sort
+                popover.sort.method = Constants.Sort.Alphabetical
+                
+                var segmentActions = [SegmentAction]()
+                
+                segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
+                    popover.sort.method = Constants.Sort.Alphabetical
+                    popover.section.showIndex = true
+                    popover.section.strings = popover.sort.function?(popover.sort.method,popover.section.strings)
+                    popover.tableView.reloadData()
+                }))
+                segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
+                    popover.sort.method = Constants.Sort.Frequency
+                    popover.section.showIndex = false
+                    popover.section.strings = popover.sort.function?(popover.sort.method,popover.section.strings)
+                    popover.tableView.reloadData()
+                }))
+                
+                popover.segmentActions = segmentActions.count > 0 ? segmentActions : nil
                 
                 popover.section.showIndex = true
 //                popover.section.showHeaders = true

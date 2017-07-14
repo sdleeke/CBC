@@ -180,6 +180,8 @@ extension PopoverTableViewController: UISearchBarDelegate
         searchBar.text = nil
         
         tableView.reloadData()
+        
+        filteredSection = Section()
     }
 }
 
@@ -257,6 +259,12 @@ struct Sort
     }
 }
 
+struct SegmentAction {
+    var title:String?
+    var position:Int
+    var action:((Void)->(Void))?
+}
+
 class PopoverTableViewController : UIViewController
 {
     var vc:UIViewController?
@@ -268,7 +276,7 @@ class PopoverTableViewController : UIViewController
     var detailAction:((UITableView,IndexPath)->(Void))?
     var detailDisclosure:((IndexPath)->(Bool))?
     
-    var editActionsAtIndexPath : ((UITableView,IndexPath)->([UITableViewRowAction]?))?
+    var editActionsAtIndexPath : ((PopoverTableViewController,IndexPath)->([UITableViewRowAction]?))?
     
     var sort = Sort()
  
@@ -283,7 +291,7 @@ class PopoverTableViewController : UIViewController
             
             for startTime in startTimes! {
 //                print("startTime: ",startTime)
-                
+//                print(seconds,startTime)
                 if seconds < startTime {
                     break
                 }
@@ -296,7 +304,7 @@ class PopoverTableViewController : UIViewController
             if self.section.counts?.count == self.section.indexes?.count {
                 var section = 0
                 
-                while index > (self.section.indexes![section] + self.section.counts![section]) {
+                while index >= (self.section.indexes![section] + self.section.counts![section]) {
                     section += 1
                 }
                 
@@ -426,7 +434,41 @@ class PopoverTableViewController : UIViewController
     @IBOutlet weak var tableView: UITableView!
     
     @IBOutlet weak var searchBar: UISearchBar!
+    
+    @IBOutlet weak var segmentedControl: UISegmentedControl!
+    {
+        didSet {
+            if segments {
+                segmentedControl.removeAllSegments()
+                
+                if let segmentActions = segmentActions {
+                    for segmentAction in segmentActions {
+                        segmentedControl.insertSegment(withTitle: segmentAction.title, at: segmentAction.position, animated: false)
+                    }
+                    
+                    if segmentActions.count > 0 {
+                        segmentedControl.selectedSegmentIndex = 0
+                    }
+                }
+            }
+        }
+    }
 
+    @IBAction func segmentedControlAction(_ sender: UISegmentedControl)
+    {
+        if let segmentActions = segmentActions {
+            for segmentAction in segmentActions {
+                if segmentAction.position == segmentedControl.selectedSegmentIndex {
+                    segmentAction.action?()
+                    break
+                }
+            }
+        }
+    }
+    
+    var segments = false
+    var segmentActions:[SegmentAction]?
+    
     var delegate : PopoverTableViewControllerDelegate?
     var purpose : PopoverPurpose?
     
@@ -713,10 +755,30 @@ class PopoverTableViewController : UIViewController
         
         searchBar.autocapitalizationType = .none
 
-        if !search {
+        switch (search,segments) {
+        case (true,true):
+            tableViewTopConstraint.constant = 88
+            break
+        case (true,false):
+            segmentedControl.removeFromSuperview()
+            break
+        case (false,true):
+            searchBar.removeFromSuperview()
+            break
+        case (false,false):
             searchBar.removeFromSuperview()
             tableViewTopConstraint.constant = 0
+            break
         }
+        
+//        if segments {
+//            segmentedControl.removeAllSegments()
+//            if let segmentActions = segmentActions {
+//                for segmentAction in segmentActions {
+//                    segmentedControl.insertSegment(withTitle: segmentAction.title, at: segmentAction.position, animated: false)
+//                }
+//            }
+//        }
         
         if mediaListGroupSort != nil {
             addRefreshControl()
@@ -769,17 +831,41 @@ class PopoverTableViewController : UIViewController
             return selectedText.uppercased() == string.substring(to: string.range(of: " (")!.lowerBound).uppercased()
         }) {
             //                if let selectedText = self.selectedText, let index = self.filteredStrings?.index(of: selectedText) {
-            var i = 0
-            
-            repeat {
-                i += 1
-            } while (i < self.section.indexes?.count) && (self.section.indexes?[i] <= index)
-            
-            let section = i - 1
-            
-            if let base = self.section.indexes?[section] {
-                let row = index - base
+            switch sort.method {
+            case Constants.Sort.Alphabetical:
+                var i = 0
                 
+                repeat {
+                    i += 1
+                } while (i < self.section.indexes?.count) && (self.section.indexes?[i] <= index)
+                
+                let section = i - 1
+                
+                if let base = self.section.indexes?[section] {
+                    let row = index - base
+                    
+                    if self.section.strings?.count > 0 {
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            if section < self.tableView.numberOfSections, row < self.tableView.numberOfRows(inSection: section) {
+                                let indexPath = IndexPath(row: row,section: section)
+                                if scroll {
+                                    self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                                }
+                                if select {
+                                    self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+                                }
+                            } else {
+                                alert(viewController:self,title:"String not found!",message:"THIS SHOULD NOT HAPPEN.",completion:nil)
+                            }
+                        })
+                    }
+                }
+                break
+                
+            case Constants.Sort.Frequency:
+                let section = 0
+                let row = index
+
                 if self.section.strings?.count > 0 {
                     DispatchQueue.main.async(execute: { () -> Void in
                         if section < self.tableView.numberOfSections, row < self.tableView.numberOfRows(inSection: section) {
@@ -795,6 +881,9 @@ class PopoverTableViewController : UIViewController
                         }
                     })
                 }
+                break
+            default:
+                break
             }
         } else {
             alert(viewController:self,title:"String not found!",message:"Search is active and the string \(selectedText!) is not in the results.",completion:nil)
@@ -826,12 +915,8 @@ class PopoverTableViewController : UIViewController
             self.updateTitle()
         })
 
-        unfilteredSection.strings = mediaListGroupSort?.lexicon?.section.strings
+        unfilteredSection.strings = (sort.function == nil) ? mediaListGroupSort?.lexicon?.section.strings : sort.function?(sort.method,mediaListGroupSort?.lexicon?.section.strings)
         
-        if let function = sort.function {
-            unfilteredSection.strings = function(sort.method,unfilteredSection.strings)
-        }
-
 //        if sort.method == Constants.Sort.Alphabetical {
 //            unfilteredSection.indexHeaders = mediaListGroupSort?.lexicon?.section.indexHeaders
 //        }
@@ -887,12 +972,14 @@ class PopoverTableViewController : UIViewController
             self.activityIndicator.startAnimating()
             self.activityIndicator?.isHidden = false
         })
-        
-        unfilteredSection.strings = mediaListGroupSort?.lexicon?.section.strings
-        
-        if let function = sort.function {
-            unfilteredSection.strings = function(sort.method,unfilteredSection.strings)
-        }
+
+        unfilteredSection.strings = (sort.function == nil) ? mediaListGroupSort?.lexicon?.section.strings : sort.function?(sort.method,mediaListGroupSort?.lexicon?.section.strings)
+
+//        unfilteredSection.strings = mediaListGroupSort?.lexicon?.section.strings
+//        
+//        if let function = sort.function {
+//            unfilteredSection.strings = function(sort.method,unfilteredSection.strings)
+//        }
 
 //        if sort.method == Constants.Sort.Alphabetical {
 //            unfilteredSection.indexHeaders = mediaListGroupSort?.lexicon?.section.indexHeaders
@@ -955,37 +1042,37 @@ class PopoverTableViewController : UIViewController
 //        }
     }
     
-    func sortAction()
-    {
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-            navigationController.modalPresentationStyle = .popover
-            
-            popover.navigationItem.title = "Select"
-            navigationController.isNavigationBarHidden = false
-
-            navigationController.popoverPresentationController?.permittedArrowDirections = .up
-            navigationController.popoverPresentationController?.delegate = self
-            
-            navigationController.popoverPresentationController?.barButtonItem = navigationItem.leftBarButtonItem
-            
-//            popover.navigationController?.isNavigationBarHidden = true
-            
-            popover.delegate = self
-            popover.purpose = .selectingSorting
-            
-            popover.section.strings = [Constants.Sort.Alphabetical,Constants.Sort.Frequency]
+//    func sortAction()
+//    {
+//        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//            navigationController.modalPresentationStyle = .popover
 //            
-//            popover.section.showIndex = false
-//            popover.section.showHeaders = false
-            
-            popover.vc = self
-            
-            ptvc = popover
-            
-            present(navigationController, animated: true, completion: nil)
-        }
-    }
+//            popover.navigationItem.title = "Select"
+//            navigationController.isNavigationBarHidden = false
+//
+//            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+//            navigationController.popoverPresentationController?.delegate = self
+//            
+//            navigationController.popoverPresentationController?.barButtonItem = navigationItem.leftBarButtonItem
+//            
+////            popover.navigationController?.isNavigationBarHidden = true
+//            
+//            popover.delegate = self
+//            popover.purpose = .selectingSorting
+//            
+//            popover.section.strings = [Constants.Sort.Alphabetical,Constants.Sort.Frequency]
+////            
+////            popover.section.showIndex = false
+////            popover.section.showHeaders = false
+//            
+//            popover.vc = self
+//            
+//            ptvc = popover
+//            
+//            present(navigationController, animated: true, completion: nil)
+//        }
+//    }
     
     func updateTitle()
     {
@@ -1230,13 +1317,13 @@ class PopoverTableViewController : UIViewController
         
         navigationController?.setToolbarHidden(true, animated: false)
         
-        if sort.function != nil {
-            if navigationItem.leftBarButtonItems != nil {
-                navigationItem.leftBarButtonItems?.append(UIBarButtonItem(title: "Sort", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.sortAction)))
-            } else {
-                navigationItem.setLeftBarButton(UIBarButtonItem(title: "Sort", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.sortAction)),animated:false)
-            }
-        }
+//        if sort.function != nil {
+//            if navigationItem.leftBarButtonItems != nil {
+//                navigationItem.leftBarButtonItems?.append(UIBarButtonItem(title: "Sort", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.sortAction)))
+//            } else {
+//                navigationItem.setLeftBarButton(UIBarButtonItem(title: "Sort", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.sortAction)),animated:false)
+//            }
+//        }
         
         if mediaListGroupSort != nil {
             DispatchQueue(label: "CBC").async(execute: { () -> Void in
@@ -1664,12 +1751,12 @@ extension PopoverTableViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        return editActionsAtIndexPath?(tableView,indexPath) != nil
+        return editActionsAtIndexPath?(self,indexPath) != nil
     }
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
-        return editActionsAtIndexPath?(tableView,indexPath)
+        return editActionsAtIndexPath?(self,indexPath)
     }
 
     func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath)
@@ -1721,7 +1808,7 @@ extension PopoverTableViewController : UITableViewDelegate
         }
         
         if isTracking {
-            tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
+            tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
         }
     }
 }

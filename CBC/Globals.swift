@@ -757,6 +757,7 @@ var globals:Globals!
 struct Alert {
     var title : String
     var message : String?
+    var attributedText : NSAttributedString?
     var actions : [AlertAction]?
 }
 
@@ -799,6 +800,14 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                                           preferredStyle: .alert)
             alertVC.makeOpaque()
             
+            if let attributedText = alert.attributedText {
+                alertVC.addTextField(configurationHandler: { (textField:UITextField) in
+                    textField.isUserInteractionEnabled = false
+                    textField.textAlignment = .center
+                    textField.attributedText = attributedText
+                })
+            }
+            
             if let alertActions = alert.actions {
                 for alertAction in alertActions {
                     let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
@@ -830,15 +839,20 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         if !alerts.contains(where: { (alert:Alert) -> Bool in
             return (alert.title == title) && (alert.message == message)
         }) {
-            alerts.append(Alert(title: title, message: message, actions: nil))
+            alerts.append(Alert(title: title, message: message, attributedText: nil, actions: nil))
         } else {
             print("DUPLICATE ALERT")
         }
     }
     
+    func alert(title:String,message:String?,attributedText:NSAttributedString?,actions:[AlertAction]?)
+    {
+        alerts.append(Alert(title: title, message: nil, attributedText: attributedText, actions: actions))
+    }
+    
     func alert(title:String,message:String?,actions:[AlertAction]?)
     {
-        alerts.append(Alert(title: title, message: message, actions: actions))
+        alerts.append(Alert(title: title, message: message, attributedText: nil, actions: actions))
     }
     
     func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool
