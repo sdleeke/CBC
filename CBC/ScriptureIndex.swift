@@ -123,7 +123,7 @@ class ScriptureIndex {
     func build()
     {
         guard !completed else {
-            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+            globals.queue.async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
             })
             return
@@ -137,7 +137,7 @@ class ScriptureIndex {
             self.creating = true
             
             if let list = self.mediaListGroupSort?.list {
-                DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                globals.queue.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_STARTED), object: self)
                 })
                 
@@ -248,7 +248,7 @@ class ScriptureIndex {
                 }
             }
             
-            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+            globals.queue.async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SCRIPTURE_INDEX_COMPLETED), object: self)
             })
         })

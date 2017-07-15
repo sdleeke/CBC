@@ -755,14 +755,17 @@ struct Search {
 var globals:Globals!
 
 struct Alert {
-    var title : String
-    var message : String?
-    var attributedText : NSAttributedString?
-    var actions : [AlertAction]?
+    let category : String?
+    let title : String
+    let message : String?
+    let attributedText : NSAttributedString?
+    let actions : [AlertAction]?
 }
 
 class Globals : NSObject, AVPlayerViewControllerDelegate
 {
+    var queue = DispatchQueue(label: "CBC")
+    
     var allowMGTs : Bool {
         return voiceBaseAPIKey != nil
     }
@@ -805,6 +808,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                     textField.isUserInteractionEnabled = false
                     textField.textAlignment = .center
                     textField.attributedText = attributedText
+                    textField.adjustsFontSizeToFitWidth = true
                 })
             }
             
@@ -822,11 +826,13 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 alertVC.addAction(action)
             }
             
-            DispatchQueue.main.async(execute: { () -> Void in
-                globals.splitViewController.present(alertVC, animated: true, completion: {
+            globals.splitViewController.present(alertVC, animated: true, completion: {
+                if self.alerts.count > 0 {
                     self.alerts.remove(at: 0)
-                })
+                }
             })
+//            DispatchQueue.main.async(execute: { () -> Void in
+//            })
         }
     }
 
@@ -834,25 +840,45 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     var alertTimer : Timer?
     
+//    var alertBlock : String?
+//    {
+//        didSet {
+//            if alertBlock != nil {
+//                while alerts.filter({ (alert:Alert) -> Bool in
+//                    return alert.category == "EDIT TEXT"
+//                }).count > 0 {
+//                    var index = 0
+//                    while alerts[index].category != "EDIT TEXT" {
+//                        index += 1
+//                    }
+//                    if alerts[index].category == "EDIT TEXT" {
+//                        alerts.remove(at: index)
+//                    }
+//                }
+//                alertBlock = nil
+//            }
+//        }
+//    }
+    
     func alert(title:String,message:String?)
     {
         if !alerts.contains(where: { (alert:Alert) -> Bool in
             return (alert.title == title) && (alert.message == message)
         }) {
-            alerts.append(Alert(title: title, message: message, attributedText: nil, actions: nil))
+            alerts.append(Alert(category: nil, title: title, message: message, attributedText: nil, actions: nil))
         } else {
             print("DUPLICATE ALERT")
         }
     }
     
-    func alert(title:String,message:String?,attributedText:NSAttributedString?,actions:[AlertAction]?)
+    func alert(category:String?,title:String,message:String?,attributedText:NSAttributedString?,actions:[AlertAction]?)
     {
-        alerts.append(Alert(title: title, message: nil, attributedText: attributedText, actions: actions))
+        alerts.append(Alert(category:category,title: title, message: nil, attributedText: attributedText, actions: actions))
     }
     
     func alert(title:String,message:String?,actions:[AlertAction]?)
     {
-        alerts.append(Alert(title: title, message: message, attributedText: nil, actions: actions))
+        alerts.append(Alert(category:nil,title: title, message: message, attributedText: nil, actions: actions))
     }
     
     func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool

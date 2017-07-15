@@ -274,9 +274,9 @@ class PopoverTableViewController : UIViewController
 //    var detail = false
     
     var detailAction:((UITableView,IndexPath)->(Void))?
-    var detailDisclosure:((IndexPath)->(Bool))?
+    var detailDisclosure:((UITableView,IndexPath)->(Bool))?
     
-    var editActionsAtIndexPath : ((PopoverTableViewController,IndexPath)->([UITableViewRowAction]?))?
+    var editActionsAtIndexPath : ((UITableView,IndexPath)->([UITableViewRowAction]?))?
     
     var sort = Sort()
  
@@ -680,11 +680,18 @@ class PopoverTableViewController : UIViewController
         DispatchQueue.main.async(execute: { () -> Void in
             refreshControl.beginRefreshing()
         })
+        
+        self.isRefreshing = true
 
-        self.lexiconUpdated()
+        if refresh != nil {
+            refresh?()
+        } else {
+            self.lexiconUpdated()
+        }
     }
     
     var refreshControl:UIRefreshControl?
+    var refresh:((Void)->(Void))?
 
     func addRefreshControl()
     {
@@ -779,6 +786,10 @@ class PopoverTableViewController : UIViewController
 //                }
 //            }
 //        }
+        
+        if refresh != nil {
+            addRefreshControl()
+        }
         
         if mediaListGroupSort != nil {
             addRefreshControl()
@@ -953,7 +964,7 @@ class PopoverTableViewController : UIViewController
                 self.activityIndicator?.isHidden = true
             }
             if #available(iOS 10.0, *) {
-                if let refreshing = self.tableView.refreshControl?.isRefreshing, refreshing {
+                if let isRefreshing = self.tableView.refreshControl?.isRefreshing, isRefreshing {
                     self.refreshControl?.endRefreshing()
                 }
             } else {
@@ -1007,7 +1018,7 @@ class PopoverTableViewController : UIViewController
         
         DispatchQueue.main.async(execute: { () -> Void in
             if #available(iOS 10.0, *) {
-                if let refreshing = self.tableView.refreshControl?.isRefreshing, refreshing {
+                if let isRefreshing = self.tableView.refreshControl?.isRefreshing, isRefreshing {
                     self.refreshControl?.endRefreshing()
                 }
             } else {
@@ -1326,7 +1337,7 @@ class PopoverTableViewController : UIViewController
 //        }
         
         if mediaListGroupSort != nil {
-            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+            globals.queue.async(execute: { () -> Void in
                 NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconStarted), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.mediaListGroupSort?.lexicon)
                 NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconUpdated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self.mediaListGroupSort?.lexicon)
                 NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconCompleted), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self.mediaListGroupSort?.lexicon)
@@ -1583,7 +1594,7 @@ extension PopoverTableViewController : UITableViewDataSource
             break
             
         default:
-            if let detailDisclosure = detailDisclosure?(indexPath), detailDisclosure {
+            if let detailDisclosure = detailDisclosure?(tableView,indexPath), detailDisclosure {
                 cell.accessoryType = UITableViewCellAccessoryType.detailButton
             } else {
                 cell.accessoryType = UITableViewCellAccessoryType.none
@@ -1751,12 +1762,12 @@ extension PopoverTableViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        return editActionsAtIndexPath?(self,indexPath) != nil
+        return editActionsAtIndexPath?(tableView,indexPath) != nil
     }
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
-        return editActionsAtIndexPath?(self,indexPath)
+        return editActionsAtIndexPath?(tableView,indexPath)
     }
 
     func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath)

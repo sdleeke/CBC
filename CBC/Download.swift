@@ -96,13 +96,13 @@ class Download : NSObject {
                         break
                         
                     case .downloaded:
-                        DispatchQueue(label: "CBC").sync(execute: { () -> Void in
+                        globals.queue.sync(execute: { () -> Void in
                             self.mediaItem?.addTag(Constants.Strings.Downloaded)
                         })
                         break
                         
                     case .none:
-                        DispatchQueue(label: "CBC").sync(execute: { () -> Void in
+                        globals.queue.sync(execute: { () -> Void in
                             self.mediaItem?.removeTag(Constants.Strings.Downloaded)
                         })
                         break

@@ -715,7 +715,7 @@ class PopoverPickerViewController : UIViewController
         updateActionButton()
         
         if mediaListGroupSort != nil {
-            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+            globals.queue.async(execute: { () -> Void in
                 NotificationCenter.default.addObserver(self, selector: #selector(PopoverPickerViewController.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.lexicon)
                 NotificationCenter.default.addObserver(self, selector: #selector(PopoverPickerViewController.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self.lexicon)
                 NotificationCenter.default.addObserver(self, selector: #selector(PopoverPickerViewController.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self.lexicon)

@@ -130,7 +130,7 @@ class Lexicon : NSObject {
                 
 //                section.buildIndex()
                 
-                DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                globals.queue.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
                 })
             }
@@ -239,7 +239,7 @@ class Lexicon : NSObject {
                 
                 var date = Date()
                 
-                DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                globals.queue.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self)
                 })
                 
@@ -298,7 +298,7 @@ class Lexicon : NSObject {
                 }
                 
                 //        print(dict)
-                DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                globals.queue.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self)
                 })
             }

@@ -371,7 +371,7 @@ extension MediaItem : URLSessionDownloadDelegate
             case Purpose.audio:
                 if progress > current {
                     //                    print(Constants.NOTIFICATION.MEDIA_UPDATE_CELL)
-                    //                    DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                    //                    globals.queue.async(execute: { () -> Void in
                     DispatchQueue.main.async(execute: { () -> Void in
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: download?.mediaItem)
                     })

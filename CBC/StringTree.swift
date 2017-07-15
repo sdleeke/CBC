@@ -38,7 +38,7 @@ class StringTree {
             self.building = false
             self.completed = true
             
-            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+            globals.queue.async(execute: { () -> Void in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.lexicon)
             })
         }

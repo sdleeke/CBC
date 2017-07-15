@@ -23,6 +23,107 @@ extension VoiceBase // Class Methods
         return "https://apis.voicebase.com/v2-beta/media" + (mediaID != nil ? "/"+mediaID! : "") + (path != nil ? "/"+path! : "")
     }
     
+    func post(mediaID:String?,path:String?,parameters:[String:String]?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
+    {
+        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+            return
+        }
+        
+        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+            return
+        }
+        
+        guard let parameters = parameters else {
+            return
+        }
+        
+        //        guard let mediaItem = mediaItem else {
+        //            return
+        //        }
+        
+        //        guard let mediaID = mediaID else {
+        //            return
+        //        }
+        
+        let service = VoiceBase.url(mediaID:mediaID, path:path)
+        //        print(service)
+        
+        var request = URLRequest(url: URL(string:service)!)
+        
+        request.httpMethod = "POST"
+        
+        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
+        
+        let boundary = "Boundary-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        let body = createBody(parameters: parameters,boundary: boundary)
+        
+        request.httpBody = body as Data
+        request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
+        
+        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+            var errorOccured = false
+            
+            if let error = error {
+                print("post error: ",error.localizedDescription)
+                errorOccured = true
+            }
+            
+            if let response = response {
+                print("post response: ",response.description)
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("post HTTP response: ",httpResponse.description)
+                    print("post HTTP response: ",httpResponse.allHeaderFields)
+                    print("post HTTP response: ",httpResponse.statusCode)
+                    print("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                    
+                    if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
+                        errorOccured = true
+                    }
+                }
+            } else {
+                errorOccured = true
+            }
+            
+            var json : [String:Any]?
+            
+            if let data = data {
+                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                print(string as Any)
+                
+                do {
+                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
+                    print(json)
+                    
+                    if let errors = json?["errors"] {
+                        print(errors)
+                        errorOccured = true
+                    }
+                } catch let error as NSError {
+                    // JSONSerialization failed
+                    print("JSONSerialization error: ",error.localizedDescription)
+                    
+                }
+            } else {
+                // no data
+                
+            }
+            
+            if errorOccured {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    onError?(json)
+                })
+            } else {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    completion?(json)
+                })
+            }
+        })
+        
+        task.resume()
+    }
+
     static func get(accept:String?,mediaID:String?,path:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
         guard globals.reachability.currentReachabilityStatus != .notReachable else {
@@ -51,76 +152,65 @@ extension VoiceBase // Class Methods
         }
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+            var errorOccured = false
+            
             if let error = error {
-                print("class get error: ",error.localizedDescription)
+                print("post error: ",error.localizedDescription)
+                errorOccured = true
             }
             
-            guard let response = response else {
-                return
-            }
-            
-            print("class get response: ",response.description)
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                return
-            }
-            
-            print("class get response: ",httpResponse.description)
-            print("class get HTTP response: ",httpResponse.allHeaderFields)
-            print("class get HTTP response: ",httpResponse.statusCode)
-            print("class get HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-
-            if let acceptText = accept?.contains("text"), acceptText {
-                if let data = data {
-                    let string = String.init(data: data, encoding: String.Encoding.utf8)
-                    print(string as Any)
+            if let response = response {
+                print("post response: ",response.description)
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("post HTTP response: ",httpResponse.description)
+                    print("post HTTP response: ",httpResponse.allHeaderFields)
+                    print("post HTTP response: ",httpResponse.statusCode)
+                    print("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
                     
-                    let json = ["text":string]
-                    
-                    if httpResponse.statusCode == 200 {
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            completion?(json)
-                        })
-                    } else {
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            onError?(json)
-                        })
-                        if let errors = json["errors"] {
-                            print(errors)
-                        }
+                    if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
+                        errorOccured = true
                     }
-                } else {
-                    // No data
-                    
                 }
             } else {
-                if let data = data {
-                    let string = String.init(data: data, encoding: String.Encoding.utf8)
-                    print(string as Any)
-                    
-                    if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
+                errorOccured = true
+            }
+            
+            var json : [String:Any]?
+            
+            if let data = data {
+                let string = String.init(data: data, encoding: String.Encoding.utf8)
+                print(string as Any)
+
+                if let acceptText = accept?.contains("text"), acceptText {
+                    json = ["text":string]
+                } else {
+                    do {
+                        json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
                         print(json)
                         
-                        if httpResponse.statusCode == 200 {
-                            DispatchQueue.main.async(execute: { () -> Void in
-                                completion?(json)
-                            })
-                        } else {
-                            DispatchQueue.main.async(execute: { () -> Void in
-                                onError?(json)
-                            })
-                            if let errors = json["errors"] {
-                                print(errors)
-                            }
+                        if let errors = json?["errors"] {
+                            print(errors)
+                            errorOccured = true
                         }
-                    } else {
-                        // JSONSerialization.jsonObject call failed
-                        
+                    } catch let error as NSError {
+                        // JSONSerialization failed
+                        print("JSONSerialization error: ",error.localizedDescription)
                     }
-                } else {
-                    // No data
-                    
                 }
+            } else {
+                // no data
+                errorOccured = true
+            }
+            
+            if errorOccured {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    onError?(json)
+                })
+            } else {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    completion?(json)
+                })
             }
         })
         
@@ -129,7 +219,7 @@ extension VoiceBase // Class Methods
     
     static func metadata(mediaID: String?, completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        VoiceBase.get(accept: nil, mediaID: mediaID, path: "metadata", completion: completion, onError: onError)
+        get(accept: nil, mediaID: mediaID, path: "metadata", completion: completion, onError: onError)
     }
 
     static func progress(mediaID:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
@@ -147,87 +237,6 @@ extension VoiceBase // Class Methods
         get(accept:nil, mediaID: nil, path: nil, completion: completion, onError: onError)
     }
     
-//    static func post(completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
-//    {
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-//            return
-//        }
-//        
-//        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
-//            return
-//        }
-//        
-//        guard let mediaItem = mediaItem else {
-//            return
-//        }
-//        
-//        guard let mediaID = mediaID else {
-//            return
-//        }
-//        
-//        let service = VoiceBase.url(mediaID:mediaID, path:"metadata")
-//        //        print(service)
-//        
-//        var request = URLRequest(url: URL(string:service)!)
-//        
-//        request.httpMethod = "POST"
-//        
-//        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
-//        
-//        let boundary = "Boundary-\(UUID().uuidString)"
-//        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-//        let body = createBody(parameters: ["metadata":metadata],boundary: boundary)
-//        
-//        request.httpBody = body as Data
-//        request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
-//        
-//        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            if let error = error {
-//                print("addMetaData error: ",error.localizedDescription)
-//            }
-//            
-//            guard let response = response else {
-//                return
-//            }
-//            
-//            print("addMetaData response: ",response.description)
-//            
-//            guard let httpResponse = response as? HTTPURLResponse else {
-//                return
-//            }
-//            
-//            print("addMetaData HTTP response: ",httpResponse.description)
-//            print("addMetaData HTTP response: ",httpResponse.allHeaderFields)
-//            print("addMetaData HTTP response: ",httpResponse.statusCode)
-//            print("addMetaData HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-//            
-//            if let data = data {
-//                let string = String.init(data: data, encoding: String.Encoding.utf8)
-//                print(string as Any)
-//                
-//                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
-//                    print(json)
-//                    
-//                    if httpResponse.statusCode == 200 {
-//                        
-//                    } else {
-//                        if let errors = json["errors"] {
-//                            print(errors)
-//                        }
-//                    }
-//                } else {
-//                    // JSONSerialization failed
-//                    
-//                }
-//            } else {
-//                // no data
-//                
-//            }
-//        })
-//        
-//        task.resume()
-//    }
-
     static func delete(mediaID:String?)
     {
         print("VoiceBase.delete")
@@ -254,42 +263,62 @@ extension VoiceBase // Class Methods
         request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+            var errorOccured = false
+            
             if let error = error {
-                print("class delete error: ",error.localizedDescription)
+                print("post error: ",error.localizedDescription)
+                errorOccured = true
             }
             
-            guard let response = response else {
-                return
+            if let response = response {
+                print("post response: ",response.description)
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("post HTTP response: ",httpResponse.description)
+                    print("post HTTP response: ",httpResponse.allHeaderFields)
+                    print("post HTTP response: ",httpResponse.statusCode)
+                    print("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                    
+                    if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
+                        errorOccured = true
+                    }
+                }
+            } else {
+                errorOccured = true
             }
             
-            print("class delete response: ",response.description)
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                return
-            }
-            
-            print("class delete HTTP response: ",httpResponse.description)
-            print("class delete HTTP response: ",httpResponse.allHeaderFields)
-            print("class delete HTTP response: ",httpResponse.statusCode)
-            print("class delete HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-
-            guard httpResponse.statusCode == 204 else {
-                return
-            }
+            var json : [String:Any]?
             
             if let data = data {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
                 print(string as Any)
                 
-                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
+                do {
+                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
                     print(json)
-                } else {
-                    // JSONSerialization.jsonObject call failed
+                    
+                    if let errors = json?["errors"] {
+                        print(errors)
+                        errorOccured = true
+                    }
+                } catch let error as NSError {
+                    // JSONSerialization failed
+                    print("JSONSerialization error: ",error.localizedDescription)
                     
                 }
             } else {
-                // No data
+                // no data
                 
+            }
+            
+            if errorOccured {
+                DispatchQueue.main.async(execute: { () -> Void in
+
+                })
+            } else {
+                DispatchQueue.main.async(execute: { () -> Void in
+                
+                })
             }
         })
         
@@ -300,85 +329,36 @@ extension VoiceBase // Class Methods
     {
         print("VoiceBase.deleteAllMedia")
         
-        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-            return
-        }
+//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//            return
+//        }
+//        
+//        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+//            return
+//        }
         
-        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
-            return
-        }
-        
-        let service = VoiceBase.url(mediaID:nil,path: nil)
-        print(service)
-        
-        var request = URLRequest(url: URL(string:service)!)
-        
-        request.httpMethod = "GET"
-        
-        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            if let error = error {
-                print("class deleteAllMedia error: ",error.localizedDescription)
-            }
-            
-            guard let response = response else {
-                return
-            }
-            
-            print("class deleteAllMedia response: ",response.description)
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                return
-            }
-            
-            print("class deleteAllMedia HTTP response: ",httpResponse.description)
-            print("class deleteAllMedia HTTP response: ",httpResponse.allHeaderFields)
-            print("class deleteAllMedia HTTP response: ",httpResponse.statusCode)
-            print("class deleteAllMedia HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-
-            if let data = data {
-                let string = String.init(data: data, encoding: String.Encoding.utf8)
-                print(string as Any)
-                
-                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
-                    print(json)
-                    
-                    if httpResponse.statusCode == 200 {
-                        if let mediaItems = json["media"] as? [[String:Any]] {
-                            if mediaItems.count > 0 {
-                                if mediaItems.count > 1 {
-                                    globals.alert(title: "Deleting \(mediaItems.count) Items from VoiceBase Media Library", message: nil)
-                                } else {
-                                    globals.alert(title: "Deleting \(mediaItems.count) Item from VoiceBase Media Library", message: nil)
-                                }
-                                
-                                for mediaItem in mediaItems {
-                                    delete(mediaID:mediaItem["mediaId"] as? String)
-                                }
-                            } else {
-                                globals.alert(title: "No Items to Delete in VoiceBase Media Library", message: nil)
-                            }
-                        } else {
-                            // No mediaItems
-                            globals.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
-                        }
+        get(accept: nil, mediaID: nil, path: nil, completion: { (json:[String : Any]?) -> (Void) in
+            if let mediaItems = json?["media"] as? [[String:Any]] {
+                if mediaItems.count > 0 {
+                    if mediaItems.count > 1 {
+                        globals.alert(title: "Deleting \(mediaItems.count) Items from VoiceBase Media Library", message: nil)
                     } else {
-                        if let errors = json["errors"] {
-                            print(errors)
-                        }
+                        globals.alert(title: "Deleting \(mediaItems.count) Item from VoiceBase Media Library", message: nil)
+                    }
+                    
+                    for mediaItem in mediaItems {
+                        delete(mediaID:mediaItem["mediaId"] as? String)
                     }
                 } else {
-                    // JSONSerialization.jsonObject call failed
-                    globals.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
+                    globals.alert(title: "No Items to Delete in VoiceBase Media Library", message: nil)
                 }
             } else {
-                // No data
+                // No mediaItems
                 globals.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
             }
+        }, onError:  { (json:[String : Any]?) -> (Void) in
+            globals.alert(title: "No Items Deleted from VoiceBase Media Library", message: nil)
         })
-        
-        task.resume()
     }
 }
 
@@ -392,6 +372,39 @@ class VoiceBase {
     
     var purpose:String?
     
+    var transcriptPurpose:String
+    {
+        get {
+            var transcriptPurpose : String!
+            
+            if let purpose = self.purpose {
+                switch purpose {
+                case Purpose.audio:
+                    transcriptPurpose = Constants.Strings.Audio
+                    break
+                    
+                case Purpose.video:
+                    transcriptPurpose = Constants.Strings.Video
+                    break
+                    
+                case Purpose.slides:
+                    transcriptPurpose = Constants.Strings.Slides
+                    break
+                    
+                case Purpose.notes:
+                    transcriptPurpose = Constants.Strings.Transcript
+                    break
+                    
+                default:
+                    transcriptPurpose = "ERROR"
+                    break
+                }
+            }
+            
+            return transcriptPurpose.lowercased()
+        }
+    }
+
     var metadata : String
     {
         guard let mediaItem = mediaItem else {
@@ -409,7 +422,7 @@ class VoiceBase {
         var mediaItemString = "{"
         
             mediaItemString = "\(mediaItemString)\"metadata\":{"
-            
+        
                 if let text = mediaItem.text {
                     if let mediaID = mediaID {
                         mediaItemString = "\(mediaItemString)\"title\":\"\(text) (\(purpose.lowercased()))\n\(mediaID)\","
@@ -491,6 +504,8 @@ class VoiceBase {
     
     var transcribing = false
     
+    var realigning = false
+    
     var percentComplete:String?
     
     var uploadJSON:[String:Any]?
@@ -543,7 +558,7 @@ class VoiceBase {
                 }
             } else {
                 if !transcribing && (_transcript == nil) && (self.resultsTimer == nil) { //  && (mediaID != "Completed")
-                    DispatchQueue(label: "CBC").sync(execute: { () -> Void in
+                    globals.queue.sync(execute: { () -> Void in
                         mediaItem.removeTag("Machine Generated Transcript")
                     })
                     
@@ -574,7 +589,7 @@ class VoiceBase {
             }
 
             if _transcript != nil {
-                DispatchQueue(label: "CBC").sync(execute: { () -> Void in
+                globals.queue.sync(execute: { () -> Void in
                     mediaItem.addTag("Machine Generated Transcript")
                 })
                 
@@ -599,7 +614,7 @@ class VoiceBase {
                     }
                 }
             } else {
-                DispatchQueue(label: "CBC").sync(execute: { () -> Void in
+                globals.queue.sync(execute: { () -> Void in
                     mediaItem.removeTag("Machine Generated Transcript")
                 })
                 
@@ -1081,51 +1096,62 @@ class VoiceBase {
         request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+            var errorOccured = false
+            
             if let error = error {
                 print("post error: ",error.localizedDescription)
+                errorOccured = true
             }
             
-            guard let response = response else {
-                return
+            if let response = response {
+                print("post response: ",response.description)
+
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("post HTTP response: ",httpResponse.description)
+                    print("post HTTP response: ",httpResponse.allHeaderFields)
+                    print("post HTTP response: ",httpResponse.statusCode)
+                    print("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+
+                    if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
+                        errorOccured = true
+                    }
+                }
+            } else {
+                errorOccured = true
             }
-            
-            print("post response: ",response.description)
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                return
-            }
-            
-            print("post HTTP response: ",httpResponse.description)
-            print("post HTTP response: ",httpResponse.allHeaderFields)
-            print("post HTTP response: ",httpResponse.statusCode)
-            print("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-            
+
+            var json : [String:Any]?
+
             if let data = data {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
                 print(string as Any)
                 
-                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
+                do {
+                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
                     print(json)
-                    
-                    if httpResponse.statusCode == 200 {
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            completion?(json)
-                        })
-                    } else {
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            onError?(json)
-                        })
-                        if let errors = json["errors"] {
-                            print(errors)
-                        }
+
+                    if let errors = json?["errors"] {
+                        print(errors)
+                        errorOccured = true
                     }
-                } else {
+                } catch let error as NSError {
                     // JSONSerialization failed
+                    print("JSONSerialization error: ",error.localizedDescription)
                     
                 }
             } else {
                 // no data
                 
+            }
+
+            if errorOccured {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    onError?(json)
+                })
+            } else {
+                DispatchQueue.main.async(execute: { () -> Void in
+                    completion?(json)
+                })
             }
         })
         
@@ -1166,33 +1192,7 @@ class VoiceBase {
                         
                         self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
                         
-                        var transcriptPurpose:String!
-                        
-                        if let purpose = self.purpose {
-                            switch purpose {
-                            case Purpose.audio:
-                                transcriptPurpose = Constants.Strings.Audio
-                                break
-                                
-                            case Purpose.video:
-                                transcriptPurpose = Constants.Strings.Video
-                                break
-                                
-                            case Purpose.slides:
-                                transcriptPurpose = Constants.Strings.Slides
-                                break
-                                
-                            case Purpose.notes:
-                                transcriptPurpose = Constants.Strings.Transcript
-                                break
-                                
-                            default:
-                                transcriptPurpose = "ERROR"
-                                break
-                            }
-                        }
-                        
-                        print("\(self.mediaItem!.title!) (\(transcriptPurpose.lowercased())) is \(self.percentComplete!)% finished")
+                        print("\(self.mediaItem!.title!) (\(self.transcriptPurpose)) is \(self.percentComplete!)% finished")
                     }
                 }
             }
@@ -1201,32 +1201,7 @@ class VoiceBase {
         userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
             self.remove()
             
-            var transcriptPurpose:String!
-            
-            if let purpose = self.purpose {
-                switch purpose {
-                case Purpose.audio:
-                    transcriptPurpose = Constants.Strings.Audio
-                    break
-                    
-                case Purpose.video:
-                    transcriptPurpose = Constants.Strings.Video
-                    break
-                    
-                case Purpose.slides:
-                    transcriptPurpose = Constants.Strings.Slides
-                    break
-                    
-                case Purpose.notes:
-                    transcriptPurpose = Constants.Strings.Transcript
-                    break
-                    
-                default:
-                    transcriptPurpose = "ERROR"
-                    break
-                }
-            }
-            globals.alert(title: "Transcript Failed",message: "The transcript for\n\(self.mediaItem!.text!) (\(transcriptPurpose.lowercased()))\nwas not completed.  Please try again.")
+            globals.alert(title: "Transcript Failed",message: "The transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nwas not completed.  Please try again.")
             
             DispatchQueue.main.async(execute: { () -> Void in
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
@@ -1254,35 +1229,7 @@ class VoiceBase {
                 if let mediaID = json?["mediaId"] as? String {
                     self.mediaID = mediaID
                     
-                    //                                self.addMedtaData()
-                    
-                    var transcriptPurpose:String!
-                    
-                    if let purpose = self.purpose {
-                        switch purpose {
-                        case Purpose.audio:
-                            transcriptPurpose = Constants.Strings.Audio
-                            break
-                            
-                        case Purpose.video:
-                            transcriptPurpose = Constants.Strings.Video
-                            break
-                            
-                        case Purpose.slides:
-                            transcriptPurpose = Constants.Strings.Slides
-                            break
-                            
-                        case Purpose.notes:
-                            transcriptPurpose = Constants.Strings.Transcript
-                            break
-                            
-                        default:
-                            transcriptPurpose = "ERROR"
-                            break
-                        }
-                    }
-                    
-                    globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for\n\(self.mediaItem!.text!) (\(transcriptPurpose.lowercased()))\nhas been started.  You will be notified when it is complete.")
+                    globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nhas been started.  You will be notified when it is complete.")
                     
                     DispatchQueue.main.async(execute: { () -> Void in
                         self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(), repeats: true)
@@ -1290,33 +1237,7 @@ class VoiceBase {
                 }
             }
         }, onError: { (json:[String : Any]?) -> (Void) in
-            var transcriptPurpose:String!
-            
-            if let purpose = self.purpose {
-                switch purpose {
-                case Purpose.audio:
-                    transcriptPurpose = Constants.Strings.Audio
-                    break
-                    
-                case Purpose.video:
-                    transcriptPurpose = Constants.Strings.Video
-                    break
-                    
-                case Purpose.slides:
-                    transcriptPurpose = Constants.Strings.Slides
-                    break
-                    
-                case Purpose.notes:
-                    transcriptPurpose = Constants.Strings.Transcript
-                    break
-                    
-                default:
-                    transcriptPurpose = "ERROR"
-                    break
-                }
-            }
-            
-            globals.alert(title: "Transcript Failed",message: "The transcript for\n\(self.mediaItem!.text!) (\(transcriptPurpose.lowercased()))\nfailed to start.  Please try again.")
+            globals.alert(title: "Transcript Failed",message: "The transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nfailed to start.  Please try again.")
             
             DispatchQueue.main.async(execute: { () -> Void in
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_UPLOAD), object: self)
@@ -1326,182 +1247,6 @@ class VoiceBase {
             
             self.transcribing = false
         })
-//        
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-//            return
-//        }
-//        
-//        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
-//            return
-//        }
-//
-//        guard let mediaItem = mediaItem else {
-//            return
-//        }
-//        
-//        guard !completed else {
-//            return
-//        }
-//        
-//        guard !transcribing && (uploadJSON == nil) else {
-//            return
-//        }
-//        
-//        guard let url = url else {
-//            return
-//        }
-//        
-//        //        print(url)
-//        
-//        transcribing = true
-//        
-//        let service = VoiceBase.url(mediaID:nil,path: nil)
-//        
-//        var request = URLRequest(url: URL(string:service)!)
-//        
-//        request.httpMethod = "POST"
-//        
-//        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
-//        
-//        let boundary = "Boundary-\(UUID().uuidString)"
-//        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-//        
-//        DispatchQueue.global(qos: .background).async {
-//            let body = self.createBody(parameters: ["media":url,"metadata":self.metadata],boundary: boundary)
-//            
-//            request.httpBody = body as Data
-//            request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
-//            
-//            let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//                if let error = error {
-//                    print("uploadMedia error: ",error.localizedDescription)
-//                }
-//                
-//                guard let response = response else {
-//                    return
-//                }
-//                
-//                print("uploadMedia response: ",response.description)
-//                
-//                guard let httpResponse = response as? HTTPURLResponse else {
-//                    return
-//                }
-//                
-//                print("uploadMedia HTTP response: ",httpResponse.description)
-//                print("uploadMedia HTTP response: ",httpResponse.allHeaderFields)
-//                print("uploadMedia HTTP response: ",httpResponse.statusCode)
-//                print("uploadMedia HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-//                
-//                var failed = true
-//                
-//                if let data = data {
-//                    let string = String.init(data: data, encoding: String.Encoding.utf8)
-//                    print(string as Any)
-//                    
-//                    if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
-//                        print(json)
-//                        
-//                        if httpResponse.statusCode == 200 {
-//                            self.uploadJSON = json
-//                            
-//                            if let status = json["status"] as? String, status == "accepted" {
-//                                if let mediaID = json["mediaId"] as? String {
-//                                    self.mediaID = mediaID
-//                                    
-//                                    //                                self.addMedtaData()
-//                                    
-//                                    var transcriptPurpose:String!
-//                                    
-//                                    if let purpose = self.purpose {
-//                                        switch purpose {
-//                                        case Purpose.audio:
-//                                            transcriptPurpose = Constants.Strings.Audio
-//                                            break
-//                                            
-//                                        case Purpose.video:
-//                                            transcriptPurpose = Constants.Strings.Video
-//                                            break
-//                                            
-//                                        case Purpose.slides:
-//                                            transcriptPurpose = Constants.Strings.Slides
-//                                            break
-//                                            
-//                                        case Purpose.notes:
-//                                            transcriptPurpose = Constants.Strings.Transcript
-//                                            break
-//                                            
-//                                        default:
-//                                            transcriptPurpose = "ERROR"
-//                                            break
-//                                        }
-//                                    }
-//                                    
-//                                    globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for\n\(mediaItem.text!) (\(transcriptPurpose.lowercased()))\nhas been started.  You will be notified when it is complete.")
-//                                    
-//                                    DispatchQueue.main.async(execute: { () -> Void in
-//                                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor), userInfo: nil, repeats: true)
-//                                    })
-//                                    
-//                                    failed = false
-//                                }
-//                            }
-//                        } else {
-//                            if let errors = json["errors"] {
-//                                print(errors)
-//                            }
-//                        }
-//                    } else {
-//                        // JSONSerialization.jsonObject call failed
-//                        
-//                    }
-//                } else {
-//                    // No data
-//                    
-//                }
-//                
-//                if failed {
-//                    // FAIL
-//                    
-//                    var transcriptPurpose:String!
-//                    
-//                    if let purpose = self.purpose {
-//                        switch purpose {
-//                        case Purpose.audio:
-//                            transcriptPurpose = Constants.Strings.Audio
-//                            break
-//                            
-//                        case Purpose.video:
-//                            transcriptPurpose = Constants.Strings.Video
-//                            break
-//                            
-//                        case Purpose.slides:
-//                            transcriptPurpose = Constants.Strings.Slides
-//                            break
-//                            
-//                        case Purpose.notes:
-//                            transcriptPurpose = Constants.Strings.Transcript
-//                            break
-//                            
-//                        default:
-//                            transcriptPurpose = "ERROR"
-//                            break
-//                        }
-//                    }
-//                    
-//                    globals.alert(title: "Transcript Failed",message: "The transcript for\n\(mediaItem.text!) (\(transcriptPurpose.lowercased()))\nfailed to start.  Please try again.")
-//                    
-//                    DispatchQueue.main.async(execute: { () -> Void in
-//                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_UPLOAD), object: self)
-//                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_START), object: self)
-//                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-//                    })
-//                    
-//                    self.transcribing = false
-//                }
-//            })
-//            
-//            task.resume()
-//        }
     }
     
     func progress(completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
@@ -1519,163 +1264,6 @@ class VoiceBase {
         }
         
         progress(completion: completion, onError: onError)
-        
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-//            return
-//        }
-//        
-//        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
-//            return
-//        }
-//        
-//        guard let mediaItem = mediaItem else {
-//            return
-//        }
-//        
-//        guard let mediaID = mediaID else {
-//            return
-//        }
-//        
-//        let service = VoiceBase.url(mediaID:mediaID,path:"progress")
-//        //        print(service)
-//        
-//        var request = URLRequest(url: URL(string:service)!)
-//        
-//        request.httpMethod = "GET"
-//        
-//        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
-//        
-//        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            if let error = error {
-//                print("getProgress error: ",error.localizedDescription)
-//            }
-//            
-//            guard let response = response else {
-//                return
-//            }
-//            
-//            print("getProgress response: ",response.description)
-//            
-//            guard let httpResponse = response as? HTTPURLResponse else {
-//                return
-//            }
-//            
-//            print("getProgress HTTP response: ",httpResponse.description)
-//            print("getProgress HTTP response: ",httpResponse.allHeaderFields)
-//            print("getProgress HTTP response: ",httpResponse.statusCode)
-//            print("getProgress HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-//
-//            if let data = data {
-//                let string = String.init(data: data, encoding: String.Encoding.utf8)
-//                print(string as Any)
-//                
-//                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
-//                    print(json)
-//                    
-//                    if httpResponse.statusCode == 200 {
-//                        if let status = json["status"] as? String, status == "finished" {
-//                            self.percentComplete = nil
-//                            self.resultsTimer?.invalidate()
-//                            self.resultsTimer = nil
-////                            self.addMetaData() // Produced the error that hybrid media can't be re-run
-//                            self.getTranscript()
-//                            self.getTranscriptSRT()
-//                        } else {
-//                            if let progress = json["progress"] as? [String:Any] {
-//                                if let tasks = progress["tasks"] as? [String:Any] {
-//                                    let count = tasks.count
-//                                    let finished = tasks.filter({ (key: String, value: Any) -> Bool in
-//                                        if let dict = value as? [String:Any] {
-//                                            if let status = dict["status"] as? String {
-//                                                return status == "finished"
-//                                            }
-//                                        }
-//                                        
-//                                        return false
-//                                    }).count
-//                                    
-//                                    self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
-//                                    
-//                                    var transcriptPurpose:String!
-//                                    
-//                                    if let purpose = self.purpose {
-//                                        switch purpose {
-//                                        case Purpose.audio:
-//                                            transcriptPurpose = Constants.Strings.Audio
-//                                            break
-//                                            
-//                                        case Purpose.video:
-//                                            transcriptPurpose = Constants.Strings.Video
-//                                            break
-//                                            
-//                                        case Purpose.slides:
-//                                            transcriptPurpose = Constants.Strings.Slides
-//                                            break
-//                                            
-//                                        case Purpose.notes:
-//                                            transcriptPurpose = Constants.Strings.Transcript
-//                                            break
-//                                            
-//                                        default:
-//                                            transcriptPurpose = "ERROR"
-//                                            break
-//                                        }
-//                                    }
-//                                    
-//                                    print("\(mediaItem.title!) (\(transcriptPurpose.lowercased())) is \(self.percentComplete!)% finished")
-//                                }
-//                            }
-//                        }
-//                    } else {
-//                        if let errors = json["errors"] {
-//                            print(errors)
-//                        }
-//                        
-//                        self.remove()
-//                        
-//                        var transcriptPurpose:String!
-//                        
-//                        if let purpose = self.purpose {
-//                            switch purpose {
-//                            case Purpose.audio:
-//                                transcriptPurpose = Constants.Strings.Audio
-//                                break
-//                                
-//                            case Purpose.video:
-//                                transcriptPurpose = Constants.Strings.Video
-//                                break
-//                                
-//                            case Purpose.slides:
-//                                transcriptPurpose = Constants.Strings.Slides
-//                                break
-//                                
-//                            case Purpose.notes:
-//                                transcriptPurpose = Constants.Strings.Transcript
-//                                break
-//                                
-//                            default:
-//                                transcriptPurpose = "ERROR"
-//                                break
-//                            }
-//                        }
-//                        globals.alert(title: "Transcript Failed",message: "The transcript for\n\(mediaItem.text!) (\(transcriptPurpose.lowercased()))\nwas not completed.  Please try again.")
-//                        
-//                        DispatchQueue.main.async(execute: { () -> Void in
-//                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
-//                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-//                        })
-//                    }
-//                } else {
-//                    // JSONSerialization.jsonObject call failed
-//                    
-//                }
-//            } else {
-//                // No data
-//                
-//            }
-//        })
-//        
-//        task.resume()
     }
     
     func delete()
@@ -1702,44 +1290,63 @@ class VoiceBase {
         request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+            var errorOccured = false
+            
             if let error = error {
-                print("delete error: ",error.localizedDescription)
-            }
-
-            guard let response = response else {
-                return
-            }
-
-            print("delete response: ",response.description)
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                return
+                print("post error: ",error.localizedDescription)
+                errorOccured = true
             }
             
-            print("delete HTTP response: ",httpResponse.description)
-            print("delete HTTP response: ",httpResponse.allHeaderFields)
-            print("delete HTTP response: ",httpResponse.statusCode)
-            print("delete HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-
-            if (httpResponse.statusCode == 204) || (httpResponse.statusCode == 404) {
-                // It eithber completed w/o error (204) so it is now gone and we should set mediaID to nil OR it couldn't be found (404) in which case it should also be set to nil.
-                self.mediaID = nil // self._transcript != nil ? "Completed" :
+            if let response = response {
+                print("post response: ",response.description)
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("post HTTP response: ",httpResponse.description)
+                    print("post HTTP response: ",httpResponse.allHeaderFields)
+                    print("post HTTP response: ",httpResponse.statusCode)
+                    print("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                    
+                    if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
+                        errorOccured = true
+                    }
+                    
+                    if (httpResponse.statusCode == 204) || (httpResponse.statusCode == 404) {
+                        // It eithber completed w/o error (204) so it is now gone and we should set mediaID to nil OR it couldn't be found (404) in which case it should also be set to nil.
+                        self.mediaID = nil // self._transcript != nil ? "Completed" :
+                    }
+                }
+            } else {
+                errorOccured = true
             }
+            
+            var json : [String:Any]?
             
             if let data = data {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
                 print(string as Any)
                 
-                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
+                do {
+                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
                     print(json)
                     
-                } else {
-                    // JSONSerialization.jsonObject call failed
+                    if let errors = json?["errors"] {
+                        print(errors)
+                        errorOccured = true
+                    }
+                } catch let error as NSError {
+                    // JSONSerialization failed
+                    print("JSONSerialization error: ",error.localizedDescription)
                     
                 }
             } else {
-                // No data
+                // no data
                 
+            }
+            
+            if errorOccured {
+
+            } else {
+            
             }
         })
         
@@ -1778,7 +1385,7 @@ class VoiceBase {
 //        
 //        keywordsJSON = nil
         
-//        DispatchQueue(label: "CBC").sync(execute: { () -> Void in
+//        globals.queue.sync(execute: { () -> Void in
 //            self.mediaItem.removeTag("Machine Generated Transcript")
 //        })
         
@@ -1975,74 +1582,13 @@ class VoiceBase {
         details(completion: { (json:[String : Any]?) -> (Void) in
             if let json = json?["media"] as? [String:Any] {
                 self.mediaJSON = json
+                globals.alert(title: "Keywords Available",message: "The keywords for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nare available.")
+            } else {
+                globals.alert(title: "Keywords Not Available",message: "The keywords for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nare not available.")
             }
         }, onError: { (json:[String : Any]?) -> (Void) in
-
+            globals.alert(title: "Keywords Not Available",message: "The keywords for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nare not available.")
         })
-        
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-//            return
-//        }
-//        
-//        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
-//            return
-//        }
-//        
-//        guard let mediaID = mediaID else {
-//            return
-//        }
-//        
-//        let service = VoiceBase.url(mediaID:mediaID, path:nil)
-//        //        print(service)
-//        
-//        var request = URLRequest(url: URL(string:service)!)
-//        
-//        request.httpMethod = "GET"
-//        
-//        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
-//        
-//        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            if let error = error {
-//                print("getDetails error: ",error.localizedDescription)
-//            }
-//            
-//            guard let response = response else {
-//                return
-//            }
-//            
-//            print("getDetails response: ",response.description)
-//            
-//            guard let httpResponse = response as? HTTPURLResponse else {
-//                return
-//            }
-//            
-//            print("getDetails HTTP response: ",httpResponse.description)
-//            print("getDetails HTTP response: ",httpResponse.allHeaderFields)
-//            print("getDetails HTTP response: ",httpResponse.statusCode)
-//            print("getDetails HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-//            
-//            if let data = data {
-//                let string = String.init(data: data, encoding: String.Encoding.utf8)
-//                print(string as Any)
-//                
-//                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
-//                    print(json)
-//                    
-//                    if httpResponse.statusCode == 200 {
-//                        self.mediaJSON = json["media"] as? [String:Any]
-//                    } else {
-//                        if let errors = json["errors"] {
-//                            print(errors)
-//                        }
-//                    }
-//                    //
-//                    //                    self.keywordsJSON = self.mediaJSON?["keywords"] as? [String : Any]
-//                    //                    self.topicsJSON = self.mediaJSON?["topics"] as? [String : Any]
-//                }
-//            }
-//        })
-//        
-//        task.resume()
     }
     
     func metadata(completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
@@ -2059,334 +1605,224 @@ class VoiceBase {
         }, onError: { (json:[String : Any]?) -> (Void) in
             
         })
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-//            return
-//        }
-//        
-//        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
-//            return
-//        }
-//        
-//        guard let mediaItem = mediaItem else {
-//            return
-//        }
-//        
-//        guard let mediaID = mediaID else {
-//            return
-//        }
-//        
-//        let service = VoiceBase.url(mediaID:mediaID, path:"metadata")
-//        //        print(service)
-//        
-//        var request = URLRequest(url: URL(string:service)!)
-//        
-//        request.httpMethod = "POST"
-//        
-//        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
-//        
-//        let boundary = "Boundary-\(UUID().uuidString)"
-//        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-//        let body = createBody(parameters: ["metadata":metadata],boundary: boundary)
-//        
-//        request.httpBody = body as Data
-//        request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
-//        
-//        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            if let error = error {
-//                print("addMetaData error: ",error.localizedDescription)
-//            }
-//            
-//            guard let response = response else {
-//                return
-//            }
-//            
-//            print("addMetaData response: ",response.description)
-//            
-//            guard let httpResponse = response as? HTTPURLResponse else {
-//                return
-//            }
-//            
-//            print("addMetaData HTTP response: ",httpResponse.description)
-//            print("addMetaData HTTP response: ",httpResponse.allHeaderFields)
-//            print("addMetaData HTTP response: ",httpResponse.statusCode)
-//            print("addMetaData HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-//            
-//            if let data = data {
-//                let string = String.init(data: data, encoding: String.Encoding.utf8)
-//                print(string as Any)
-//                
-//                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
-//                    print(json)
-//                    
-//                    if httpResponse.statusCode == 200 {
-//
-//                    } else {
-//                        if let errors = json["errors"] {
-//                            print(errors)
-//                        }
-//                    }
-//                } else {
-//                    // JSONSerialization failed
-//                    
-//                }
-//            } else {
-//                // no data
-//                
-//            }
-//        })
-//        
-//        task.resume()
+    }
+    
+    func alignUserInfo() -> [String:Any]?
+    {
+        var userInfo = [String:Any]()
+        
+        userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
+            if let status = json?["status"] as? String, status == "finished" {
+                globals.alert(title: "Transcript Realignment Complete",message: "The transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nhas been realigned.")
+
+                self.percentComplete = nil
+                
+                self.resultsTimer?.invalidate()
+                self.resultsTimer = nil
+                
+                // Don't do this because we're just re-uploading
+                //                                self.transcribing = false
+                //                                self.completed = true
+                
+                // These will delete the existing versions.
+                self.transcript = nil
+                self.transcriptSRT = nil
+                
+                // Really should compare the old and new version...
+                
+                // Get the new versions.
+                self.getTranscript()
+                self.getTranscriptSRT()
+                
+                // Delete the transcripts, keywords, and topics.
+                self.mediaJSON = nil
+                
+                // Get the new ones.
+                self.details()
+            } else {
+                if let progress = json?["progress"] as? [String:Any] {
+                    if let tasks = progress["tasks"] as? [String:Any] {
+                        let count = tasks.count
+                        let finished = tasks.filter({ (key: String, value: Any) -> Bool in
+                            if let dict = value as? [String:Any] {
+                                if let status = dict["status"] as? String {
+                                    return status == "finished"
+                                }
+                            }
+                            
+                            return false
+                        }).count
+                        
+                        self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
+                        
+                        print("\(self.mediaItem!.title!) (\(self.transcriptPurpose)) is \(self.percentComplete!)% finished")
+                    }
+                }
+            }
+        }
+        
+        userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
+            self.remove()
+            
+            globals.alert(title: "Transcript Realignment Failed",message: "The transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nwas not realigned.  Please try again.")
+            
+            //                        DispatchQueue.main.async(execute: { () -> Void in
+            //                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
+            //                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+            //                        })
+        }
+
+        return userInfo.count > 0 ? userInfo : nil
     }
     
     func align()
     {
-        let parameters = ["transcript":transcript!]
+        // Check whether the media is on VB
         
-        post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
-            if let status = json?["status"] as? String, status == "accepted" {
-                if let mediaID = json?["mediaId"] as? String {
-                    guard self.mediaID == mediaID else {
-                        return
-                    }
-                    
-                    self.transcribing = true
-                    self.completed = false
-                    
-                    self.uploadJSON = json
-                    
-                    //                                self.addMedtaData()
-                    
-                    var transcriptPurpose:String!
-                    
-                    if let purpose = self.purpose {
-                        switch purpose {
-                        case Purpose.audio:
-                            transcriptPurpose = Constants.Strings.Audio
-                            break
-                            
-                        case Purpose.video:
-                            transcriptPurpose = Constants.Strings.Video
-                            break
-                            
-                        case Purpose.slides:
-                            transcriptPurpose = Constants.Strings.Slides
-                            break
-                            
-                        case Purpose.notes:
-                            transcriptPurpose = Constants.Strings.Transcript
-                            break
-                            
-                        default:
-                            transcriptPurpose = "ERROR"
-                            break
+        progress(completion: { (json:[String : Any]?) -> (Void) in
+            let parameters = ["transcript":self.transcript!,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+            
+            self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+                // If it is on VB, upload the transcript for realignment
+                if let status = json?["status"] as? String, status == "accepted" {
+                    if let mediaID = json?["mediaId"] as? String {
+                        guard self.mediaID == mediaID else {
+                            return
                         }
+
+                        // Don't do this because we're just re-aligning.
+//                        self.transcribing = true
+//                        self.completed = false
+                        
+                        self.uploadJSON = json
+                        
+                        globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nhas started.  You will be notified when it is complete.")
+                        
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(), repeats: true)
+                        })
                     }
-                    
-                    globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Aligning the machine generated transcript for\n\(self.mediaItem!.text!) (\(transcriptPurpose.lowercased()))\nhas been started.  You will be notified when it is complete.")
-                    
-                    var userInfo = [String:Any]()
-                    
-                    userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
-                        if let status = json?["status"] as? String, status == "finished" {
-                            self.percentComplete = nil
-                            
-                            self.resultsTimer?.invalidate()
-                            self.resultsTimer = nil
-                            
-                            self.transcribing = false
-                            self.completed = true
-                            
-                            // These will delete the existing versions.
-                            self.transcript = nil
-                            self.transcriptSRT = nil
+                }
+            }, onError: { (json:[String : Any]?) -> (Void) in
+                globals.alert(title: "Transcript Alignment Failed",message: "The transcript realignment for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nfailed to start.  Please try again.")
+            })
+        }, onError: { (json:[String : Any]?) -> (Void) in
+            // Not on VoiceBase
+            
+            // Upload then then align
+            
+            self.mediaID = nil
+            
+            let parameters:[String:String] = ["media":self.url!,"metadata":self.metadata,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+            
+            self.post(path:nil,parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+                self.uploadJSON = json
+                
+                if let status = json?["status"] as? String, status == "accepted" {
+                    if let mediaID = json?["mediaId"] as? String {
+                        // We do get a new mediaID
+                        self.mediaID = mediaID
+                        
+                        globals.alert(title:"Media Upload Started", message:"The transcript realignment for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nwill be started once the media upload has completed.")
+                        
+                        var userInfo = [String:Any]()
+                        
+                        userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
+                            if let status = json?["status"] as? String, status == "finished" {
+                                self.percentComplete = nil
+                                
+                                self.resultsTimer?.invalidate()
+                                self.resultsTimer = nil
 
-                            // Get the new versions.
-                            self.getTranscript()
-                            self.getTranscriptSRT()
-                            
-                            // Delete the transcripts, keywords, and topics.
-                            self.mediaJSON = nil
-
-                            // Get the new ones.
-                            self.details()
-                        } else {
-                            if let progress = json?["progress"] as? [String:Any] {
-                                if let tasks = progress["tasks"] as? [String:Any] {
-                                    let count = tasks.count
-                                    let finished = tasks.filter({ (key: String, value: Any) -> Bool in
-                                        if let dict = value as? [String:Any] {
-                                            if let status = dict["status"] as? String {
-                                                return status == "finished"
+                                // Don't do any of this since we are just re-uploading.
+//                                self.transcribing = false
+//                                self.completed = true
+//                                
+//                                // These will delete the existing versions.
+//                                self.transcript = nil
+//                                self.transcriptSRT = nil
+//                                
+//                                // Really should compare the old and new version...
+//                                
+//                                // Get the new versions.
+//                                self.getTranscript()
+//                                self.getTranscriptSRT()
+//                                
+//                                // Delete the transcripts, keywords, and topics.
+//                                self.mediaJSON = nil
+//                                
+//                                // Get the new ones.
+//                                self.details()
+                                
+                                // Now do the relignment
+                                let parameters:[String:String] = ["transcript":self.transcript!,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+                                
+                                self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+                                    // If it is on VB, upload the transcript for realignment
+                                    if let status = json?["status"] as? String, status == "accepted" {
+                                        if let mediaID = json?["mediaId"] as? String {
+                                            guard self.mediaID == mediaID else {
+                                                return
                                             }
-                                        }
-                                        
-                                        return false
-                                    }).count
-                                    
-                                    self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
-                                    
-                                    var transcriptPurpose:String!
-                                    
-                                    if let purpose = self.purpose {
-                                        switch purpose {
-                                        case Purpose.audio:
-                                            transcriptPurpose = Constants.Strings.Audio
-                                            break
                                             
-                                        case Purpose.video:
-                                            transcriptPurpose = Constants.Strings.Video
-                                            break
+                                            // Don't do this because we're just re-aligning.
+                                            //                        self.transcribing = true
+                                            //                        self.completed = false
                                             
-                                        case Purpose.slides:
-                                            transcriptPurpose = Constants.Strings.Slides
-                                            break
+                                            self.uploadJSON = json
                                             
-                                        case Purpose.notes:
-                                            transcriptPurpose = Constants.Strings.Transcript
-                                            break
+                                            globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nhas started.  You will be notified when it is complete.")
                                             
-                                        default:
-                                            transcriptPurpose = "ERROR"
-                                            break
+                                            DispatchQueue.main.async(execute: { () -> Void in
+                                                self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(), repeats: true)
+                                            })
                                         }
                                     }
-                                    
-                                    print("\(self.mediaItem!.title!) (\(transcriptPurpose.lowercased())) is \(self.percentComplete!)% finished")
+                                }, onError: { (json:[String : Any]?) -> (Void) in
+                                    globals.alert(title: "Transcript Alignment Failed",message: "The transcript realignment for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nfailed to start.  Please try again.")
+                                })
+                            } else {
+                                if let progress = json?["progress"] as? [String:Any] {
+                                    if let tasks = progress["tasks"] as? [String:Any] {
+                                        let count = tasks.count
+                                        let finished = tasks.filter({ (key: String, value: Any) -> Bool in
+                                            if let dict = value as? [String:Any] {
+                                                if let status = dict["status"] as? String {
+                                                    return status == "finished"
+                                                }
+                                            }
+                                            
+                                            return false
+                                        }).count
+                                        
+                                        self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
+
+                                        print("\(self.mediaItem!.title!) (\(self.transcriptPurpose)) is \(self.percentComplete!)% finished")
+                                    }
                                 }
                             }
                         }
-                    }
-                    
-                    userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
-                        self.remove()
                         
-                        var transcriptPurpose:String!
-                        
-                        if let purpose = self.purpose {
-                            switch purpose {
-                            case Purpose.audio:
-                                transcriptPurpose = Constants.Strings.Audio
-                                break
-                                
-                            case Purpose.video:
-                                transcriptPurpose = Constants.Strings.Video
-                                break
-                                
-                            case Purpose.slides:
-                                transcriptPurpose = Constants.Strings.Slides
-                                break
-                                
-                            case Purpose.notes:
-                                transcriptPurpose = Constants.Strings.Transcript
-                                break
-                                
-                            default:
-                                transcriptPurpose = "ERROR"
-                                break
-                            }
+                        userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
+                            self.remove()
+                            
+                            globals.alert(title: "Transcript Alignment Failed",message: "The transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nwas not realigned.  Please try again.")
+                            
+                            //                        DispatchQueue.main.async(execute: { () -> Void in
+                            //                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
+                            //                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+                            //                        })
                         }
-                        globals.alert(title: "Transcript Realignment Failed",message: "The transcript for\n\(self.mediaItem!.text!) (\(transcriptPurpose.lowercased()))\nwas not realigned.  Please try again.")
                         
-//                        DispatchQueue.main.async(execute: { () -> Void in
-//                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
-//                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-//                        })
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: userInfo, repeats: true)
+                        })
                     }
-                    
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: userInfo, repeats: true)
-                    })
                 }
-            }
-        }, onError: { (json:[String : Any]?) -> (Void) in
-            
+            }, onError: { (json:[String : Any]?) -> (Void) in
+                globals.alert(title: "Transcript Alignment Failed",message: "The transcript realignment for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nfailed to start.  Please try again.")
+            })
         })
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-//            return
-//        }
-//        
-//        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
-//            return
-//        }
-//        
-//        guard let mediaID = mediaID else {
-//            return
-//        }
-//        
-//        guard let transcript = transcript else {
-//            return
-//        }
-//        
-//        guard let url = url else {
-//            return
-//        }
-//
-//        let service = VoiceBase.url(mediaID:mediaID, path:nil)
-//        //        print(service)
-//        
-//        var request = URLRequest(url: URL(string:service)!)
-//        
-//        request.httpMethod = "POST"
-//        
-//        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
-//        
-//        let boundary = "Boundary-\(UUID().uuidString)"
-//        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-//        let body = createBody(parameters: ["transcript":transcript],boundary: boundary) // "configuration":"{\"configuration\":{\"executor\":\"v2\"}}" "media":url,"metadata":self.metadata,
-//        
-//        request.httpBody = body as Data
-//        request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
-//        
-//        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            if let error = error {
-//                print("align error: ",error.localizedDescription)
-//            }
-//            
-//            guard let response = response else {
-//                return
-//            }
-//            
-//            print("align response: ",response.description)
-//            
-//            guard let httpResponse = response as? HTTPURLResponse else {
-//                return
-//            }
-//            
-//            print("align HTTP response: ",httpResponse.description)
-//            print("align HTTP response: ",httpResponse.allHeaderFields)
-//            print("align HTTP response: ",httpResponse.statusCode)
-//            print("align HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-//            
-//            if let data = data {
-//                let string = String.init(data: data, encoding: String.Encoding.utf8)
-//                print(string as Any)
-//                
-//                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
-//                    print(json)
-//                    
-//                    // I think this will require a new polling timer, but a different polling URL: https://apis.voicebase.com/v2-beta/media/$MEDIA_ID/transcripts/latest,
-//                    // getting a 404 until the new transcript is ready, which we will get instead of a 404 to indicate it is done.
-//                    // Will we also need to download a transcriptSRT and details?  YES.  Do we just throw away the others?  Yes?  
-//                    // Hopefully whatever new transcript we get back won't be different than the edited one that we uploaded!
-//                    
-//                    if httpResponse.statusCode == 200 {
-//                        
-//                    } else {
-//                        if let errors = json["errors"] {
-//                            print(errors)
-//                        }
-//                    }
-//                } else {
-//                    // JSONSerialization failed
-//                    
-//                }
-//            } else {
-//                // no data
-//                
-//            }
-//        })
-//        
-//        task.resume()
     }
     
     func getTranscript()
@@ -2397,140 +1833,20 @@ class VoiceBase {
         }
         
         VoiceBase.get(accept:"text/plain",mediaID: mediaID, path: "transcripts/latest", completion: { (json:[String : Any]?) -> (Void) in
-            self.transcript = json?["text"] as? String
-            
-            var transcriptPurpose:String!
-            
-            if let purpose = self.purpose {
-                switch purpose {
-                case Purpose.audio:
-                    transcriptPurpose = Constants.Strings.Audio
-                    break
-                    
-                case Purpose.video:
-                    transcriptPurpose = Constants.Strings.Video
-                    break
-                    
-                case Purpose.slides:
-                    transcriptPurpose = Constants.Strings.Slides
-                    break
-                    
-                case Purpose.notes:
-                    transcriptPurpose = Constants.Strings.Transcript
-                    break
-                    
-                default:
-                    transcriptPurpose = "ERROR"
-                    break
-                }
+            if let text = json?["text"] as? String {
+                self.transcript = text
+
+                globals.alert(title: "Transcript Ready",message: "The transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nis available.")
+                
+                DispatchQueue.main.async(execute: { () -> Void in
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
+                })
+            } else {
+                globals.alert(title: "Transcript Not Available",message: "The transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nis not available.")
             }
-            
-            globals.alert(title: "Transcript Ready",message: "The transcript for\n\(self.mediaItem!.text!) (\(transcriptPurpose.lowercased()))\nis available.")
-            
-            DispatchQueue.main.async(execute: { () -> Void in
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
-            })
         }, onError: { (json:[String : Any]?) -> (Void) in
-       
+            globals.alert(title: "Transcript Not Available",message: "The transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nis not available.")
         })
-//        guard let mediaItem = mediaItem else {
-//            return
-//        }
-//        
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-//            globals.alert(title: "Transcript Unavailable",message: "The transcript for\n\(mediaItem.text!) (\(purpose!.lowercased()))\ncan not be created.  Please check your network connection and try again.")
-//            return
-//        }
-//        
-//        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
-//            return
-//        }
-//        
-//        guard let mediaID = mediaID else {
-//            upload()
-//            return
-//        }
-//        
-//        let service = VoiceBase.url(mediaID: mediaID, path:"transcripts/latest")
-////        print(service)
-//        
-//        var request = URLRequest(url: URL(string:service)!)
-//        
-//        request.httpMethod = "GET"
-//        
-//        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
-//        
-//        request.addValue("text/plain", forHTTPHeaderField: "Accept")
-//        
-//        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            if let error = error {
-//                print("getTranscript error: ",error.localizedDescription)
-//            }
-//            
-//            guard let response = response else {
-//                return
-//            }
-//            
-//            print("getTranscript response: ",response.description)
-//            
-//            guard let httpResponse = response as? HTTPURLResponse else {
-//                return
-//            }
-//            
-//            print("getTranscript HTTP response: ",httpResponse.description)
-//            print("getTranscript HTTP response: ",httpResponse.allHeaderFields)
-//            print("getTranscript HTTP response: ",httpResponse.statusCode)
-//            print("getTranscript HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-//            
-//            guard httpResponse.statusCode == 200 else {
-//                return
-//            }
-//            
-//            if let data = data {
-//                let string = String.init(data: data, encoding: String.Encoding.utf8)
-//                print(string as Any)
-//                
-//                self.transcript = string
-//                self.transcribing = false
-//                self.completed = true
-//                
-//                var transcriptPurpose:String!
-//                
-//                if let purpose = self.purpose {
-//                    switch purpose {
-//                    case Purpose.audio:
-//                        transcriptPurpose = Constants.Strings.Audio
-//                        break
-//                        
-//                    case Purpose.video:
-//                        transcriptPurpose = Constants.Strings.Video
-//                        break
-//                        
-//                    case Purpose.slides:
-//                        transcriptPurpose = Constants.Strings.Slides
-//                        break
-//                        
-//                    case Purpose.notes:
-//                        transcriptPurpose = Constants.Strings.Transcript
-//                        break
-//                        
-//                    default:
-//                        transcriptPurpose = "ERROR"
-//                        break
-//                    }
-//                }
-//                
-//                globals.alert(title: "Transcript Ready",message: "The transcript for\n\(mediaItem.text!) (\(transcriptPurpose.lowercased()))\nis available.")
-//
-//                DispatchQueue.main.async(execute: { () -> Void in
-//                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
-//                })
-//            } else {
-//                // Now what?
-//            }
-//        })
-//        
-//        task.resume()
     }
     
     var srtArrays:[[String]]?
@@ -2858,70 +2174,15 @@ class VoiceBase {
     func getTranscriptSRT()
     {
         VoiceBase.get(accept: "text/srt", mediaID: mediaID, path: "transcripts/latest", completion: { (json:[String : Any]?) -> (Void) in
-            self.transcriptSRT = json?["text"] as? String
+            if let srt = json?["text"] as? String {
+                self.transcriptSRT = srt
+                globals.alert(title: "Transcript SRT Available",message: "The transcript SRT for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nis available.")
+            } else {
+                globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nis not available.")
+            }
         }, onError: { (json:[String : Any]?) -> (Void) in
-
+            globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nis not available.")
         })
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-//            return
-//        }
-//        
-//        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
-//            return
-//        }
-//        
-//        guard let mediaID = mediaID else {
-//            return
-//        }
-//        
-//        let service = VoiceBase.url(mediaID:mediaID, path:"transcripts/latest")
-//        //        print(service)
-//        
-//        var request = URLRequest(url: URL(string:service)!)
-//        
-//        request.httpMethod = "GET"
-//        
-//        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
-//        
-//        request.addValue("text/srt", forHTTPHeaderField: "Accept")
-//        
-//        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            if let error = error {
-//                print("getTranscriptSRT error: ",error.localizedDescription)
-//            }
-//            
-//            guard let response = response else {
-//                return
-//            }
-//            
-//            print("getTranscriptSRT response: ",response.description)
-//            
-//            guard let httpResponse = response as? HTTPURLResponse else {
-//                return
-//            }
-//            
-//            print("getTranscriptSRT HTTP response: ",httpResponse.description)
-//            print("getTranscriptSRT HTTP response: ",httpResponse.allHeaderFields)
-//            print("getTranscriptSRT HTTP response: ",httpResponse.statusCode)
-//            print("getTranscriptSRT HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-//            
-//            guard httpResponse.statusCode == 200 else {
-//                return
-//            }
-//            
-//            if let data = data {
-//                let string = String.init(data: data, encoding: String.Encoding.utf8)
-//                print(string as Any)
-//
-//                self.transcriptSRT = string
-//            } else {
-//                // Now what?
-//            }
-//            
-//            self.details()
-//        })
-//        
-//        task.resume()
     }
     
     func search(string:String?)
@@ -2957,45 +2218,62 @@ class VoiceBase {
         //        request.addValue("text/plain", forHTTPHeaderField: "Accept")
         
         let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+            var errorOccured = false
+            
             if let error = error {
-                print("search error: ",error.localizedDescription)
+                print("post error: ",error.localizedDescription)
+                errorOccured = true
             }
             
-            guard let response = response else {
-                return
+            if let response = response {
+                print("post response: ",response.description)
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("post HTTP response: ",httpResponse.description)
+                    print("post HTTP response: ",httpResponse.allHeaderFields)
+                    print("post HTTP response: ",httpResponse.statusCode)
+                    print("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+                    
+                    if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
+                        errorOccured = true
+                    }
+                }
+            } else {
+                errorOccured = true
             }
             
-            print("search response: ",response.description)
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                return
-            }
-            
-            print("search HTTP response: ",httpResponse.description)
-            print("search HTTP response: ",httpResponse.allHeaderFields)
-            print("search HTTP response: ",httpResponse.statusCode)
-            print("search HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+            var json : [String:Any]?
             
             if let data = data {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
                 print(string as Any)
                 
-                if let json = try? JSONSerialization.jsonObject(with: data, options: []) as! [String : Any] {
+                do {
+                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
                     print(json)
-
-                    if httpResponse.statusCode == 200 {
-                        
-                    } else {
-                        if let errors = json["errors"] {
-                            print(errors)
-                        }
+                    
+                    if let errors = json?["errors"] {
+                        print(errors)
+                        errorOccured = true
                     }
-                } else {
-                    // JSONSerialization.jsonObject call failed
+                } catch let error as NSError {
+                    // JSONSerialization failed
+                    print("JSONSerialization error: ",error.localizedDescription)
                     
                 }
             } else {
-                // Now what?
+                // no data
+                
+            }
+            
+            if errorOccured {
+                DispatchQueue.main.async(execute: { () -> Void in
+
+                })
+            } else {
+                DispatchQueue.main.async(execute: { () -> Void in
+
+                })
             }
         })
         

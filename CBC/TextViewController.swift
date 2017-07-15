@@ -35,22 +35,71 @@ class TextViewController : UIViewController
         onCancel?()
     }
     
+    let operationQueue = OperationQueue()
+    
+    func autoEdit()
+    {
+        var actions = [AlertAction]()
+        
+        actions.append(AlertAction(title: "Interactive", style: .default, action: {
+            process(viewController: self, work: { () -> (Any?) in
+                self.changeText(interactive: true, text: self.textView.text, startingRange: nil, changes: self.changes(), completion: { (string:String) -> (Void) in
+                    self.textView.text = string
+                })
+                
+                return nil
+            }) { (data:Any?) in
+                
+            }
+        }))
+        
+        actions.append(AlertAction(title: "Automatic", style: .default, action: {
+            process(viewController: self, work: { () -> (Any?) in
+                self.changeText(interactive: false, text: self.textView.text, startingRange: nil, changes: self.changes(), completion: { (string:String) -> (Void) in
+                    self.textView.text = string
+                })
+                
+                while self.operationQueue.operationCount > 0 {
+                    
+                }
+                
+                return nil
+            }) { (data:Any?) in
+                
+            }
+        }))
+        
+        actions.append(AlertAction(title: "Cancel", style: .default, action: nil))
+        
+        alert(viewController:self,title:"Start Automatic Editing?",message:nil,actions:actions)
+    }
+    
+    override func viewDidLoad()
+    {
+        super.viewDidLoad()
+
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.done))
+        navigationItem.rightBarButtonItems = [  UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.done)),
+                                                UIBarButtonItem(title: "Auto", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.autoEdit))]
+        
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.cancel))
 
         textView.text = text
     }
     
-    func autoEdit()
+    func changes() -> [String:String]?
     {
-        var changes = ["Scripture":"scripture",
+        var changes = ["scripture":"Scripture",
                       "Chapter":"chapter",
                       "Verse":"verse",
                       "Grace":"grace",
-                      "Gospel":"gospel"]
+                      "Gospel":"gospel",
+                      "versus":"verses",
+                      "OK":"okay"]
         
         let books = [
            "first samuel"           :"1 Samuel",
@@ -205,80 +254,157 @@ class TextViewController : UIViewController
                 }
             }
         }
+//        
+//        changeText(interactive:interactive,text: textView.text, startingRange: nil, changes: changes, completion: { (string:String) in
+//            self.textView.text = string
+//        })
+        
+        return changes
+    }
+    
+    func changeText(interactive:Bool,text:String?,startingRange : Range<String.Index>?,changes:[String:String]?,completion:((String)->(Void))?)
+    {
+        var range : Range<String.Index>?
         
 //        print(changes)
+//        print(changes?.count)
         
-        var changed = [Range<String.Index>]()
-        
-        for key in changes.keys.sorted(by: { $0.endIndex > $1.endIndex }) {
-            if key == "Chapter" {
-                print("")
-            }
-            var oldRange : Range<String.Index>?
-            var range : Range<String.Index>?
-            
-            if key == key.lowercased() {
-                range = self.textView.text.lowercased().range(of: key)
+        if var text = text,var changes = changes,var key = changes.keys.sorted(by: { $0.endIndex > $1.endIndex }).first {
+            if (key == key.lowercased()) && (key.lowercased() != changes[key]?.lowercased()) {
+                if startingRange == nil {
+                    range = text.lowercased().range(of: key)
+                } else {
+                    range = text.lowercased().range(of: key, options: [], range:  startingRange, locale: nil)
+                }
             } else {
-                range = self.textView.text.range(of: key)
+                if startingRange == nil {
+                    range = text.range(of: key)
+                } else {
+                    range = text.range(of: key, options: [], range:  startingRange, locale: nil)
+                }
+            }
+
+            while range == nil {
+                changes[key] = nil
+                
+                if let first = changes.keys.sorted(by: { $0.endIndex > $1.endIndex }).first {
+                    key = first
+                    
+//                    print(key)
+                    if (key == key.lowercased()) && (key.lowercased() != changes[key]?.lowercased()) {
+                        range = text.lowercased().range(of: key)
+                    } else {
+                        range = text.range(of: key)
+                    }
+                } else {
+                    break
+                }
             }
             
-            while (range != nil) && (range != oldRange) {
-                if  let range = range,
-                    changed.filter({ (changedRange:Range<String.Index>) -> Bool in
-                        return changedRange.overlaps(range)
-                    }).count == 0,
-                    let value = changes[key] {
-                    let text = NSMutableAttributedString()
-                    
-                    let before = "..." + String(textView.text.substring(to: range.lowerBound).characters.dropFirst(max(textView.text.substring(to: range.lowerBound).characters.count - 7,0)))
-                    let after = String(textView.text.substring(from: range.upperBound).characters.dropLast(max(textView.text.substring(from: range.upperBound).characters.count - 7,0))) + "..."
-                    
-                    text.append(NSAttributedString(string: before,                              attributes: Constants.Fonts.Attributes.normal))
-                    text.append(NSAttributedString(string: textView.text.substring(with: range),attributes: Constants.Fonts.Attributes.highlighted))
-                    text.append(NSAttributedString(string: after,                               attributes: Constants.Fonts.Attributes.normal))
-                    
-                    let prior = self.textView.text.substring(to: range.lowerBound).characters.last?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-                    let following = self.textView.text.substring(from: range.upperBound).characters.first?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-                    
-                    if ((prior == nil) || prior!.isEmpty) && ((following == nil) || following!.isEmpty) {
+            if let range = range, let value = changes[key] {
+                let attributedString = NSMutableAttributedString()
+                
+                let before = "..." + String(text.substring(to: range.lowerBound).characters.dropFirst(max(text.substring(to: range.lowerBound).characters.count - 10,0)))
+                let string = text.substring(with: range)
+                let after = String(text.substring(from: range.upperBound).characters.dropLast(max(text.substring(from: range.upperBound).characters.count - 10,0))) + "..."
+                
+                attributedString.append(NSAttributedString(string: before,attributes: Constants.Fonts.Attributes.normal))
+                attributedString.append(NSAttributedString(string: string,attributes: Constants.Fonts.Attributes.highlighted))
+                attributedString.append(NSAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal))
+                
+                let prior = text.substring(to: range.lowerBound).characters.last?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                let following = text.substring(from: range.upperBound).characters.first?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                
+                if ((prior == nil) || prior!.isEmpty) && ((following == nil) || following!.isEmpty || (following == ".")) {
+                    if interactive {
                         var actions = [AlertAction]()
                         
                         actions.append(AlertAction(title: "Yes", style: .destructive, action: {
-                            self.textView.text.replaceSubrange(range, with: value)
-//                            if let range = self.textView.text.lowercased().range(of: key) {
-//                            }
+                            text.replaceSubrange(range, with: value)
+
+                            DispatchQueue.main.async(execute: { () -> Void in
+                                completion?(text)
+                            })
+                            
+                            // Must start over (startingRange == nil) to avoid skipping
+                            self.changeText(interactive:interactive,text:text,startingRange:nil,changes:changes,completion:completion)
                         }))
                         
-                        actions.append(AlertAction(title: "No", style: .default, action: nil))
+                        actions.append(AlertAction(title: "No", style: .default, action: {
+                            let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
+                            self.changeText(interactive:interactive,text:text,startingRange:startingRange,changes:changes,completion:completion)
+                        }))
                         
-//                        actions.append(AlertAction(title: "Cancel", style: .default, action: nil))
+                        actions.append(AlertAction(title: "Cancel", style: .default, action: {
+                            
+                        }))
                         
-                        changed.append(range)
+                        globals.alert(category:"EDIT TEXT",title:"Change \"\(string)\" to \"\(value)\"?",message:nil,attributedText:attributedString,actions:actions)
+                    } else {
+                        text.replaceSubrange(range, with: value)
                         
-                        globals.alert(title:"Change \"\(key)\" to \"\(value)\"?",message:nil,attributedText:text,actions:actions)
+                        DispatchQueue.main.async(execute: { () -> Void in
+                            completion?(text)
+                        })
+                        
+                        let operation = BlockOperation(block: {
+                            self.changeText(interactive:interactive,text:text,startingRange:nil,changes:changes,completion:completion)
+                        })
+//                        operation.name = ""
+                        operationQueue.addOperation(operation)
+                        
+//                        globals.queue.async(execute: { () -> Void in
+//                            // Must start over (startingRange == nil) to avoid skipping
+//                            self.changeText(interactive:interactive,text:text,startingRange:nil,changes:changes,completion:completion)
+//                        })
+                    }
+                } else {
+                    if interactive {
+                        let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
+                        self.changeText(interactive:interactive,text:text,startingRange:startingRange,changes:changes,completion:completion)
+                    } else {
+                        let operation = BlockOperation(block: {
+                            let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
+                            self.changeText(interactive:interactive,text:text,startingRange:startingRange,changes:changes,completion:completion)
+                        })
+                        //                        operation.name = ""
+                        operationQueue.addOperation(operation)
+                        
+//                        globals.queue.async(execute: { () -> Void in
+//                            let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
+//                            self.changeText(interactive:interactive,text:text,startingRange:startingRange,changes:changes,completion:completion)
+//                        })
                     }
                 }
-                
-                if range != nil {
-                    oldRange = range
+            } else {
+                if interactive {
+                    changes[key] = nil
+                    self.changeText(interactive:interactive,text:text,startingRange:nil,changes:changes,completion:completion)
+                } else {
+                    let operation = BlockOperation(block: {
+                        changes[key] = nil
+                        self.changeText(interactive:interactive,text:text,startingRange:nil,changes:changes,completion:completion)
+                    })
+                    //                        operation.name = ""
+                    operationQueue.addOperation(operation)
                     
-                    let searchRange = Range(uncheckedBounds: (lower: range!.upperBound, upper: textView.text.endIndex))
-                    
-                    if key == key.lowercased() {
-                        range = self.textView.text.lowercased().range(of: key, options: [], range:  searchRange, locale: nil)
-                    } else {
-                        range = self.textView.text.range(of: key, options: [], range:  searchRange, locale: nil)
-                    }
+//                    globals.queue.async(execute: { () -> Void in
+//                        changes[key] = nil
+//                        self.changeText(interactive:interactive,text:text,startingRange:nil,changes:changes,completion:completion)
+//                    })
                 }
             }
+        } else {
+            print(text)
+            print(changes)
+            print(changes?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first)
         }
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        autoEdit()
+        textView.scrollRangeToVisible(NSMakeRange(0, 0))
     }
     
     override func viewWillDisappear(_ animated: Bool) {

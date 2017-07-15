@@ -1066,7 +1066,7 @@ class MediaPlayer : NSObject {
 
             if oldValue != nil {
                 // Remove playing icon if the previous mediaItem was playing.
-                //            DispatchQueue(label: "CBC").async(execute: { () -> Void in
+                //            globals.queue.async(execute: { () -> Void in
                 DispatchQueue.main.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
                 })
