@@ -276,7 +276,7 @@ class PopoverTableViewController : UIViewController
     var detailAction:((UITableView,IndexPath)->(Void))?
     var detailDisclosure:((UITableView,IndexPath)->(Bool))?
     
-    var editActionsAtIndexPath : ((UITableView,IndexPath)->([UITableViewRowAction]?))?
+    var editActionsAtIndexPath : ((PopoverTableViewController,UITableView,IndexPath)->([UITableViewRowAction]?))?
     
     var sort = Sort()
  
@@ -861,7 +861,7 @@ class PopoverTableViewController : UIViewController
                     
                     if self.section.strings?.count > 0 {
                         DispatchQueue.main.async(execute: { () -> Void in
-                            if section < self.tableView.numberOfSections, row < self.tableView.numberOfRows(inSection: section) {
+                            if section > -1, section < self.tableView.numberOfSections, row > -1, row < self.tableView.numberOfRows(inSection: section) {
                                 let indexPath = IndexPath(row: row,section: section)
                                 if scroll {
                                     self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
@@ -883,7 +883,7 @@ class PopoverTableViewController : UIViewController
 
                 if self.section.strings?.count > 0 {
                     DispatchQueue.main.async(execute: { () -> Void in
-                        if section < self.tableView.numberOfSections, row < self.tableView.numberOfRows(inSection: section) {
+                        if section > -1, section < self.tableView.numberOfSections, row > -1, row < self.tableView.numberOfRows(inSection: section) {
                             let indexPath = IndexPath(row: row,section: section)
                             if scroll {
                                 self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
@@ -1462,7 +1462,7 @@ extension PopoverTableViewController : UITableViewDataSource
     {
         // Return the number of rows in the section.
         if self.section.showIndex || self.section.showHeaders {
-            return self.section.counts != nil ? ((section < self.section.counts?.count) ? self.section.counts![section] : 0) : 0
+            return self.section.counts != nil ? (((section > -1) && (section < self.section.counts?.count)) ? self.section.counts![section] : 0) : 0
         } else {
             return self.section.strings != nil ? self.section.strings!.count : 0
         }
@@ -1493,7 +1493,7 @@ extension PopoverTableViewController : UITableViewDataSource
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
     {
         if self.section.showIndex || self.section.showHeaders {
-            if let count = self.section.headers?.count, section < count {
+            if let count = self.section.headers?.count, section > -1, section < count {
                 return self.section.headers?[section]
             }
         }
@@ -1718,7 +1718,7 @@ extension PopoverTableViewController : UITableViewDelegate
             return 0
         }
         
-        guard section < self.section.headers?.count, let title = self.section.headers?[section] else {
+        guard section > -1, section < self.section.headers?.count, let title = self.section.headers?[section] else {
             return Constants.HEADER_HEIGHT
         }
         
@@ -1739,7 +1739,7 @@ extension PopoverTableViewController : UITableViewDelegate
         
         var view : UIView?
         
-        if section < self.section.headers?.count, let title = self.section.headers?[section] {
+        if section > -1, section < self.section.headers?.count, let title = self.section.headers?[section] {
             view = UIView()
             
             view?.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
@@ -1766,12 +1766,20 @@ extension PopoverTableViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        return editActionsAtIndexPath?(tableView,indexPath) != nil
+        if let transcript = transcript {
+            return transcript.rowActions(popover: self, tableView: tableView, indexPath: indexPath) != nil
+        }
+        
+        return editActionsAtIndexPath?(self,tableView,indexPath) != nil
     }
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
-        return editActionsAtIndexPath?(tableView,indexPath)
+        if let transcript = transcript {
+            return transcript.rowActions(popover: self, tableView: tableView, indexPath: indexPath)
+        }
+        
+        return editActionsAtIndexPath?(self,tableView,indexPath)
     }
 
     func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath)

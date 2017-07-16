@@ -3077,9 +3077,9 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
         return
     }
     
-    guard (barButtonItem != nil) || ((sourceView != nil) && (sourceRectView != nil)) else {
-        return
-    }
+//    guard (barButtonItem != nil) || ((sourceView != nil) && (sourceRectView != nil)) else {
+//        return
+//    }
     
     
     if let navigationController = viewController.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,

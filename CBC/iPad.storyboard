@@ -1123,8 +1123,23 @@ Web site: www.countrysidebible.org</string>
                         <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <searchBar contentMode="redraw" translatesAutoresizingMaskIntoConstraints="NO" id="VOk-yJ-wJW">
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="44"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="44" id="wOK-qL-axv"/>
+                                </constraints>
+                                <textInputTraits key="textInputTraits"/>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="wOK-qL-axv"/>
+                                    </mask>
+                                </variation>
+                                <connections>
+                                    <outlet property="delegate" destination="JJo-MV-zfU" id="uxH-2V-8Jh"/>
+                                </connections>
+                            </searchBar>
                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="z3X-xR-CG6">
-                                <rect key="frame" x="20" y="8" width="728" height="944"/>
+                                <rect key="frame" x="20" y="58" width="728" height="894"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
                                 <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
@@ -1136,15 +1151,21 @@ Web site: www.countrysidebible.org</string>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstItem="z3X-xR-CG6" firstAttribute="top" secondItem="lGv-Nz-8i6" secondAttribute="bottom" constant="8" symbolic="YES" id="1bs-rJ-y7S"/>
+                            <constraint firstAttribute="trailing" secondItem="VOk-yJ-wJW" secondAttribute="trailing" id="0EO-7U-F1r"/>
+                            <constraint firstItem="z3X-xR-CG6" firstAttribute="top" secondItem="lGv-Nz-8i6" secondAttribute="bottom" constant="58" id="1bs-rJ-y7S"/>
+                            <constraint firstItem="VOk-yJ-wJW" firstAttribute="top" secondItem="lGv-Nz-8i6" secondAttribute="bottom" id="9c2-Dm-o9p"/>
                             <constraint firstItem="iDq-d7-86t" firstAttribute="top" secondItem="z3X-xR-CG6" secondAttribute="bottom" constant="8" symbolic="YES" id="Kac-4X-Bdb"/>
                             <constraint firstItem="z3X-xR-CG6" firstAttribute="trailing" secondItem="8IQ-jf-Skv" secondAttribute="trailingMargin" id="cta-wg-gmY"/>
                             <constraint firstItem="z3X-xR-CG6" firstAttribute="leading" secondItem="8IQ-jf-Skv" secondAttribute="leadingMargin" id="pwt-3b-o8y"/>
+                            <constraint firstItem="VOk-yJ-wJW" firstAttribute="leading" secondItem="8IQ-jf-Skv" secondAttribute="leading" id="u6K-K5-gil"/>
+                            <constraint firstItem="z3X-xR-CG6" firstAttribute="top" secondItem="VOk-yJ-wJW" secondAttribute="bottom" constant="14" id="xS7-ZF-7Rs"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="uqP-qA-C0U"/>
                     <connections>
+                        <outlet property="searchBar" destination="VOk-yJ-wJW" id="BwH-db-5Ng"/>
                         <outlet property="textView" destination="z3X-xR-CG6" id="V5M-Xh-Hlc"/>
+                        <outlet property="textViewToTop" destination="1bs-rJ-y7S" id="EJu-fu-Dcb"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ish-uL-2vV" userLabel="First Responder" sceneMemberID="firstResponder"/>

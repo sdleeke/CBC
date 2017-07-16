@@ -391,159 +391,256 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                         }
                     }
                     
-                    func tvtra(tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
-                    {
-                        let stringIndex = popover.section.index(indexPath)
-                        
-                        guard let string = popover.section.strings?[stringIndex] else {
-                            return nil
-                        }
-                        
-                        let transcript = popover.transcript
-                        
-                        var actions = [UITableViewRowAction]()
-                        
-                        var edit:UITableViewRowAction!
-                        
-                        edit = UITableViewRowAction(style: .normal, title: Constants.FA.EDIT) { rowAction, indexPath in
-                            let srtComponent = string
-                            let playing = globals.mediaPlayer.isPlaying
-                            
-                            globals.mediaPlayer.pause()
-                            
-                            var srtArray = srtComponent.components(separatedBy: "\n")
-                            let count = srtArray.removeFirst() // Count
-                            let timing = srtArray.removeFirst().replacingOccurrences(of: "to", with: "-->") // Timing
-                            
-                            if  let first = transcript?.srtComponents?.filter({ (string:String) -> Bool in
-                                    return string.contains(timing)
-                                }).first,
-                                let srtIndex = transcript?.srtComponents?.index(of: first),
-                                let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
-                                let textPopover = navigationController.viewControllers[0] as? TextViewController,
-                                let range = srtComponent.range(of:timing.replacingOccurrences(of: "-->", with: "to")+"\n") {
-                                navigationController.modalPresentationStyle = .overCurrentContext
-                                
-                                navigationController.popoverPresentationController?.delegate = self
-                                
-                                textPopover.navigationController?.isNavigationBarHidden = false
-                                
-                                textPopover.navigationItem.title = "Edit Text" //
-                                
-                                let text = srtComponent.substring(from: range.upperBound)
-                                
-                                textPopover.text = text
-                                
-                                textPopover.onCancel = {
-                                    if playing {
-                                        globals.mediaPlayer.play()
-                                    }
-                                }
-                                
-                                textPopover.completion = { (text:String) -> Void in
-                                    //                                        print(text)
-                                    
-                                    guard text != textPopover.text else {
-                                        if playing {
-                                            globals.mediaPlayer.play()
-                                        }
-                                        return
-                                    }
-                                    
-                                    print(text)
-                                    
-                                    transcript?.srtComponents?[srtIndex] = "\(count)\n\(timing)\n\(text)" //.replacingOccurrences(of: "\n\n", with: "\r\n\r\n")
-                                    if popover.searchActive {
-                                        popover.filteredSection.strings?[stringIndex] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
-                                    }
-                                    popover.unfilteredSection.strings?[srtIndex] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
-
-                                    DispatchQueue.global(qos: .background).async {
-                                        var transcriptSRT : String!
-                                        
-                                        if let srtComponents = transcript?.srtComponents {
-                                            for srtComponent in srtComponents {
-                                                transcriptSRT = transcriptSRT != nil ? transcriptSRT + VoiceBase.separator + srtComponent : srtComponent
-                                            }
-                                        }
-                                        
-                                        transcript?.transcriptSRT = transcriptSRT
-                                        
-                                        var str : String!
-                                        
-                                        if let srtComponents = transcript?.srtComponents {
-                                            for srtComponent in srtComponents {
-                                                var strings = srtComponent.components(separatedBy: "\n")
-                                                
-                                                if strings.count > 2 {
-                                                    let count = strings.removeFirst() // count
-                                                    let timing = strings.removeFirst() // time
-                                                    
-                                                    if let range = srtComponent.range(of:timing+"\n") {
-                                                        let string = srtComponent.substring(from:range.upperBound)
-                                                        str = str != nil ? str + " " + string : string
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        
-                                        transcript?.transcript = str
-                                    }
-
-//                                    var transcriptSRT : String!
+//                    func tvtra(tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
+//                    {
+//                        let stringIndex = popover.section.index(indexPath)
+//                        
+//                        guard let string = popover.section.strings?[stringIndex] else {
+//                            return nil
+//                        }
+//                        
+//                        let transcript = popover.transcript
+//                        
+//                        var actions = [UITableViewRowAction]()
+//                        
+//                        var edit:UITableViewRowAction!
+//                        
+//                        func editSRT()
+//                        {
+//                            let srtComponent = string
+//                            let playing = globals.mediaPlayer.isPlaying
+//                            
+//                            globals.mediaPlayer.pause()
+//                            
+//                            var srtArray = srtComponent.components(separatedBy: "\n")
+//                            let count = srtArray.removeFirst() // Count
+//                            let timing = srtArray.removeFirst().replacingOccurrences(of: "to", with: "-->") // Timing
+//                            
+//                            if  let first = transcript?.srtComponents?.filter({ (string:String) -> Bool in
+//                                return string.contains(timing)
+//                            }).first,
+//                                let srtIndex = transcript?.srtComponents?.index(of: first),
+//                                let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
+//                                let textPopover = navigationController.viewControllers[0] as? TextViewController,
+//                                let range = srtComponent.range(of:timing.replacingOccurrences(of: "-->", with: "to")+"\n") {
+//                                navigationController.modalPresentationStyle = .overCurrentContext
+//                                
+//                                navigationController.popoverPresentationController?.delegate = self
+//                                
+//                                textPopover.navigationController?.isNavigationBarHidden = false
+//                                
+//                                textPopover.navigationItem.title = "Edit Text" //
+//                                
+//                                let text = srtComponent.substring(from: range.upperBound)
+//                                
+//                                textPopover.text = text
+//                                
+//                                textPopover.onCancel = {
+//                                    if playing {
+//                                        globals.mediaPlayer.play()
+//                                    }
+//                                }
+//                                
+//                                textPopover.confirmation = { (Void)->Bool in
+//                                    return transcript?.transcript != transcript?.transcriptFromSRTs
+//                                }
+//                                textPopover.confirmationTitle = "Confirm Saving Changes to Transcript Element"
+//                                textPopover.confirmationMessage = "The transcript as a whole has been separately edited.  If you edit and save this transcript element, the transcript will be overwritten and your changes to the transcript as a whole will be lost."
 //
-//                                    if let srtComponents = transcript?.srtComponents {
-//                                        for srtComponent in srtComponents {
-//                                            transcriptSRT = transcriptSRT != nil ? transcriptSRT + VoiceBase.separator + srtComponent : srtComponent
+//                                textPopover.completion = { (text:String) -> Void in
+//                                    print(text)
+//                                    
+//                                    guard text != textPopover.text else {
+//                                        if playing {
+//                                            globals.mediaPlayer.play()
 //                                        }
+//                                        return
 //                                    }
 //                                    
-//                                    transcript?.transcriptSRT = transcriptSRT
+//                                    transcript?.srtComponents?[srtIndex] = "\(count)\n\(timing)\n\(text)" //.replacingOccurrences(of: "\n\n", with: "\r\n\r\n")
+//                                    if popover.searchActive {
+//                                        popover.filteredSection.strings?[stringIndex] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
+//                                    }
+//                                    popover.unfilteredSection.strings?[srtIndex] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
 //                                    
-//                                    var str : String!
-//                                    
-//                                    if let srtComponents = transcript?.srtComponents {
-//                                        for srtComponent in srtComponents {
-//                                            var strings = srtComponent.components(separatedBy: "\n")
-//                                            
-//                                            if strings.count > 2 {
-//                                                let count = strings.removeFirst() // count
-//                                                let timing = strings.removeFirst() // time
-//                                                
-//                                                if let range = srtComponent.range(of:timing+"\n") {
-//                                                    let string = srtComponent.substring(from:range.upperBound)
-//                                                    str = str != nil ? str + " " + string : string
-//                                                }
-//                                            }
-//                                        }
+//                                    DispatchQueue.global(qos: .background).async {
+//                                        //                                            var transcriptSRT : String!
+//                                        //
+//                                        //                                            if let srtComponents = transcript?.srtComponents {
+//                                        //                                                for srtComponent in srtComponents {
+//                                        //                                                    transcriptSRT = transcriptSRT != nil ? transcriptSRT + VoiceBase.separator + srtComponent : srtComponent
+//                                        //                                                }
+//                                        //                                            }
+//                                        //
+//                                        //                                            transcript?.transcriptSRT = transcriptSRT
+//                                        
+//                                        transcript?.transcriptSRT = transcript?.transcriptSRTFromSRTs
+//                                        
+//                                        transcript?.transcript = transcript?.transcriptFromSRTs
 //                                    }
 //                                    
-//                                    transcript?.transcript = str
-                                    
-                                    popover.tableView.isEditing = false
-                                    popover.tableView.reloadData()
-                                    popover.tableView.reloadData()
-                                    
-                                    popover.tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.middle, animated: true)
-                                    
-                                    if playing {
-                                        globals.mediaPlayer.play()
-                                    }
-                                }
-                                
-                                popover.present(navigationController, animated: true, completion: nil)
-                            } else {
-                                print("ERROR")
-                            }
-                        }
-                        edit.backgroundColor = UIColor.cyan//controlBlue()
-                        
-                        actions.append(edit)
-                        
-                        return actions
-                    }
+//                                    popover.tableView.isEditing = false
+//                                    popover.tableView.reloadData()
+//                                    popover.tableView.reloadData()
+//                                    
+//                                    popover.tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.middle, animated: true)
+//                                    
+//                                    if playing {
+//                                        globals.mediaPlayer.play()
+//                                    }
+//                                }
+//                                
+//                                popover.present(navigationController, animated: true, completion: nil)
+//                            } else {
+//                                print("ERROR")
+//                            }
+//                        }
+//                        
+//                        edit = UITableViewRowAction(style: .normal, title: Constants.FA.EDIT) { rowAction, indexPath in
+//                            if transcript?.transcript != transcript?.transcriptFromSRTs {
+//                                var actions = [AlertAction]()
+//                                
+//                                actions.append(AlertAction(title: "Yes", style: .destructive, action: { (Void) -> (Void) in
+//                                    editSRT()
+//                                }))
+//                                
+//                                actions.append(AlertAction(title: "No", style: .default, action:nil))
+//                                
+//                                globals.alert(title:"Confirm Editing of Transcript Element", message:"The transcript as a whole has been separately edited.  If you edit and save this transcript element, the transcript will be overwritten and your changes to the transcript as a whole will be lost.", actions:actions)
+//                            } else {
+//                                editSRT()
+//                            }
+//
+////                            let srtComponent = string
+////                            let playing = globals.mediaPlayer.isPlaying
+////                            
+////                            globals.mediaPlayer.pause()
+////                            
+////                            var srtArray = srtComponent.components(separatedBy: "\n")
+////                            let count = srtArray.removeFirst() // Count
+////                            let timing = srtArray.removeFirst().replacingOccurrences(of: "to", with: "-->") // Timing
+////                            
+////                            if  let first = transcript?.srtComponents?.filter({ (string:String) -> Bool in
+////                                    return string.contains(timing)
+////                                }).first,
+////                                let srtIndex = transcript?.srtComponents?.index(of: first),
+////                                let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
+////                                let textPopover = navigationController.viewControllers[0] as? TextViewController,
+////                                let range = srtComponent.range(of:timing.replacingOccurrences(of: "-->", with: "to")+"\n") {
+////                                navigationController.modalPresentationStyle = .overCurrentContext
+////                                
+////                                navigationController.popoverPresentationController?.delegate = self
+////                                
+////                                textPopover.navigationController?.isNavigationBarHidden = false
+////                                
+////                                textPopover.navigationItem.title = "Edit Text" //
+////                                
+////                                let text = srtComponent.substring(from: range.upperBound)
+////                                
+////                                textPopover.text = text
+////                                
+////                                textPopover.onCancel = {
+////                                    if playing {
+////                                        globals.mediaPlayer.play()
+////                                    }
+////                                }
+////                                
+////                                textPopover.completion = { (text:String) -> Void in
+////                                    //                                        print(text)
+////                                    
+////                                    guard text != textPopover.text else {
+////                                        if playing {
+////                                            globals.mediaPlayer.play()
+////                                        }
+////                                        return
+////                                    }
+////                                    
+////                                    print(text)
+////                                    
+////                                    transcript?.srtComponents?[srtIndex] = "\(count)\n\(timing)\n\(text)" //.replacingOccurrences(of: "\n\n", with: "\r\n\r\n")
+////                                    if popover.searchActive {
+////                                        popover.filteredSection.strings?[stringIndex] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
+////                                    }
+////                                    popover.unfilteredSection.strings?[srtIndex] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
+////
+////                                    DispatchQueue.global(qos: .background).async {
+////                                        transcript?.transcriptSRT = transcript?.transcriptSRTFromSRTs
+////                                        
+//////                                        var str : String!
+//////                                        
+//////                                        if let srtComponents = transcript?.srtComponents {
+//////                                            for srtComponent in srtComponents {
+//////                                                var strings = srtComponent.components(separatedBy: "\n")
+//////                                                
+//////                                                if strings.count > 2 {
+//////                                                    let count = strings.removeFirst() // count
+//////                                                    let timing = strings.removeFirst() // time
+//////                                                    
+//////                                                    if let range = srtComponent.range(of:timing+"\n") {
+//////                                                        let string = srtComponent.substring(from:range.upperBound)
+//////                                                        str = str != nil ? str + " " + string : string
+//////                                                    }
+//////                                                }
+//////                                            }
+//////                                        }
+//////                                        
+////                                        transcript?.transcript = transcript?.transcriptFromSRTs
+////                                    }
+////
+//////                                    var transcriptSRT : String!
+//////
+//////                                    if let srtComponents = transcript?.srtComponents {
+//////                                        for srtComponent in srtComponents {
+//////                                            transcriptSRT = transcriptSRT != nil ? transcriptSRT + VoiceBase.separator + srtComponent : srtComponent
+//////                                        }
+//////                                    }
+//////                                    
+//////                                    transcript?.transcriptSRT = transcriptSRT
+//////                                    
+//////                                    var str : String!
+//////                                    
+//////                                    if let srtComponents = transcript?.srtComponents {
+//////                                        for srtComponent in srtComponents {
+//////                                            var strings = srtComponent.components(separatedBy: "\n")
+//////                                            
+//////                                            if strings.count > 2 {
+//////                                                let count = strings.removeFirst() // count
+//////                                                let timing = strings.removeFirst() // time
+//////                                                
+//////                                                if let range = srtComponent.range(of:timing+"\n") {
+//////                                                    let string = srtComponent.substring(from:range.upperBound)
+//////                                                    str = str != nil ? str + " " + string : string
+//////                                                }
+//////                                            }
+//////                                        }
+//////                                    }
+//////                                    
+//////                                    transcript?.transcript = str
+////                                    
+////                                    popover.tableView.isEditing = false
+////                                    popover.tableView.reloadData()
+////                                    popover.tableView.reloadData()
+////                                    
+////                                    popover.tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.middle, animated: true)
+////                                    
+////                                    if playing {
+////                                        globals.mediaPlayer.play()
+////                                    }
+////                                }
+////                                
+////                                popover.present(navigationController, animated: true, completion: nil)
+////                            } else {
+////                                print("ERROR")
+////                            }
+//                        }
+//                        edit.backgroundColor = UIColor.cyan//controlBlue()
+//                        
+//                        actions.append(edit)
+//                        
+//                        return actions
+//                    }
                     
-                    popover.editActionsAtIndexPath = tvtra
+                    popover.editActionsAtIndexPath = popover.transcript?.rowActions
 
                     popover.search = true
                     popover.searchInteractive = false
@@ -947,8 +1044,17 @@ enum VideoLocation {
     case withTableView
 }
 
-class MediaViewController: UIViewController
+class MediaViewController: UIViewController // MediaController
 {
+//    init()
+//    {
+//        super.init(tableView)
+//    }
+//    
+//    required init(coder aDecoder: NSCoder) {
+//        fatalError("init(coder:) has not been implemented")
+//    }
+    
     @IBOutlet weak var controlView: ControlView!
     
     @IBOutlet weak var controlViewTop: NSLayoutConstraint!
@@ -1950,7 +2056,15 @@ class MediaViewController: UIViewController
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     @IBOutlet weak var tableView: UITableView!
-    
+//    {
+//        get {
+//            return _tableView
+//        }
+//        set {
+//            _tableView = newValue
+//        }
+//    }
+
     @IBOutlet weak var slider: OBSlider!
     
     fileprivate func adjustAudioAfterUserMovedSlider()
@@ -3258,14 +3372,14 @@ class MediaViewController: UIViewController
         
         //            print("\(tableView.bounds)")
         
-        guard (indexPath.section < tableView.numberOfSections) else {
+        guard indexPath.section > -1, indexPath.section < tableView.numberOfSections else {
             NSLog("indexPath section ERROR in scrollToMediaItem")
             NSLog("Section: \(indexPath.section)")
             NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
             return
         }
         
-        guard indexPath.row < tableView.numberOfRows(inSection: indexPath.section) else {
+        guard indexPath.row > -1, indexPath.row < tableView.numberOfRows(inSection: indexPath.section) else {
             NSLog("indexPath row ERROR in scrollToMediaItem")
             NSLog("Section: \(indexPath.section)")
             NSLog("TableView Number of Sections: \(tableView.numberOfSections)")
@@ -4951,6 +5065,133 @@ extension MediaViewController : UITableViewDataSource
 //        })
 //    }
     
+//    func tvtra(popover:PopoverTableViewController,indexPath:IndexPath) -> [UITableViewRowAction]?
+//    {
+//        let stringIndex = popover.section.index(indexPath)
+//        
+//        guard let string = popover.section.strings?[stringIndex] else {
+//            return nil
+//        }
+//        
+//        let transcript = popover.transcript
+//        
+//        var actions = [UITableViewRowAction]()
+//        
+//        var edit:UITableViewRowAction!
+//        
+//        func editSRT()
+//        {
+//            let srtComponent = string
+//            let playing = globals.mediaPlayer.isPlaying
+//            
+//            globals.mediaPlayer.pause()
+//            
+//            var srtArray = srtComponent.components(separatedBy: "\n")
+//            let count = srtArray.removeFirst() // Count
+//            let timing = srtArray.removeFirst().replacingOccurrences(of: "to", with: "-->") // Timing
+//            
+//            if  let first = transcript?.srtComponents?.filter({ (string:String) -> Bool in
+//                return string.contains(timing)
+//            }).first,
+//                let srtIndex = transcript?.srtComponents?.index(of: first),
+//                let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
+//                let textPopover = navigationController.viewControllers[0] as? TextViewController,
+//                let range = srtComponent.range(of:timing.replacingOccurrences(of: "-->", with: "to")+"\n") {
+//                navigationController.modalPresentationStyle = .overCurrentContext
+//                
+//                navigationController.popoverPresentationController?.delegate = self
+//                
+//                textPopover.navigationController?.isNavigationBarHidden = false
+//                
+//                textPopover.navigationItem.title = "Edit Text" //
+//                
+//                let text = srtComponent.substring(from: range.upperBound)
+//                
+//                textPopover.text = text
+//                
+//                textPopover.onCancel = {
+//                    if playing {
+//                        globals.mediaPlayer.play()
+//                    }
+//                }
+//                
+//                textPopover.confirmation = { (Void)->Bool in
+//                    return transcript?.transcript != transcript?.transcriptFromSRTs
+//                }
+//                textPopover.confirmationTitle = "Confirm Saving Changes to Transcript Element"
+//                textPopover.confirmationMessage = "The transcript as a whole has been separately edited.  If you edit and save this transcript element, the transcript will be overwritten and your changes to the transcript as a whole will be lost."
+//                
+//                textPopover.completion = { (text:String) -> Void in
+//                    print(text)
+//                    
+//                    guard text != textPopover.text else {
+//                        if playing {
+//                            globals.mediaPlayer.play()
+//                        }
+//                        return
+//                    }
+//                    
+//                    transcript?.srtComponents?[srtIndex] = "\(count)\n\(timing)\n\(text)" //.replacingOccurrences(of: "\n\n", with: "\r\n\r\n")
+//                    if popover.searchActive {
+//                        popover.filteredSection.strings?[stringIndex] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
+//                    }
+//                    popover.unfilteredSection.strings?[srtIndex] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
+//                    
+//                    DispatchQueue.global(qos: .background).async {
+//                        //                                            var transcriptSRT : String!
+//                        //
+//                        //                                            if let srtComponents = transcript?.srtComponents {
+//                        //                                                for srtComponent in srtComponents {
+//                        //                                                    transcriptSRT = transcriptSRT != nil ? transcriptSRT + VoiceBase.separator + srtComponent : srtComponent
+//                        //                                                }
+//                        //                                            }
+//                        //
+//                        //                                            transcript?.transcriptSRT = transcriptSRT
+//                        
+//                        transcript?.transcriptSRT = transcript?.transcriptSRTFromSRTs
+//                        
+//                        transcript?.transcript = transcript?.transcriptFromSRTs
+//                    }
+//                    
+//                    popover.tableView.isEditing = false
+//                    popover.tableView.reloadData()
+//                    popover.tableView.reloadData()
+//                    
+//                    popover.tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.middle, animated: true)
+//                    
+//                    if playing {
+//                        globals.mediaPlayer.play()
+//                    }
+//                }
+//                
+//                popover.present(navigationController, animated: true, completion: nil)
+//            } else {
+//                print("ERROR")
+//            }
+//        }
+//        
+//        edit = UITableViewRowAction(style: .normal, title: Constants.FA.EDIT) { rowAction, indexPath in
+//            if transcript?.transcript != transcript?.transcriptFromSRTs {
+//                var actions = [AlertAction]()
+//                
+//                actions.append(AlertAction(title: "Yes", style: .destructive, action: { (Void) -> (Void) in
+//                    editSRT()
+//                }))
+//                
+//                actions.append(AlertAction(title: "No", style: .default, action:nil))
+//                
+//                globals.alert(title:"Confirm Editing of Transcript Element", message:"The transcript as a whole has been separately edited.  If you edit and save this transcript element, the transcript will be overwritten and your changes to the transcript as a whole will be lost.", actions:actions)
+//            } else {
+//                editSRT()
+//            }
+//        }
+//        edit.backgroundColor = UIColor.cyan//controlBlue()
+//        
+//        actions.append(edit)
+//        
+//        return actions
+//    }
+
     func actionsAtIndexPath(_ tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
     {
         guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
@@ -5001,345 +5242,345 @@ extension MediaViewController : UITableViewDataSource
         }
         transcript.backgroundColor = UIColor.purple//controlBlue()
         
-        func recognizeTVTRA(transcript:VoiceBase?) -> UITableViewRowAction
-        {
-            guard let purpose = transcript?.purpose else {
-                return UITableViewRowAction()
-            }
-            
-            func mgtUpdate()
-            {
-                var transcriptPurpose:String!
-                
-                if let purpose = transcript?.purpose {
-                    switch purpose {
-                    case Purpose.audio:
-                        transcriptPurpose = Constants.Strings.Audio
-                        break
-                        
-                    case Purpose.video:
-                        transcriptPurpose = Constants.Strings.Video
-                        break
-                        
-                    case Purpose.slides:
-                        transcriptPurpose = Constants.Strings.Slides
-                        break
-                        
-                    case Purpose.notes:
-                        transcriptPurpose = Constants.Strings.Transcript
-                        break
-                        
-                    default:
-                        transcriptPurpose = "ERROR"
-                        break
-                    }
-                }
-                
-                let purpose = " (\(transcriptPurpose.lowercased()))"
-                
-                let completion = transcript?.percentComplete == nil ? purpose : purpose + "\n(\(transcript!.percentComplete!)% complete)"
-                
-                var title = "Machine Generated Transcript "
-                
-                var message = "You will be notified when the machine generated transcript for\n\(mediaItem.text!)\(completion) "
-                
-                if (transcript?.mediaID != nil) {
-                    title = title + "in Progress"
-                    message = message + "\nis available."
-                    
-                    var actions = [AlertAction]()
-                    
-                    actions.append(AlertAction(title: "Media ID", style: .default, action: {
-                        let alert = UIAlertController(  title: "VoiceBase Media ID",
-                                                        message: nil,
-                                                        preferredStyle: .alert)
-                        alert.makeOpaque()
-                        
-                        alert.addTextField(configurationHandler: { (textField:UITextField) in
-                            textField.text = transcript?.mediaID
-                        })
-                        
-                        let okayAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.default, handler: {
-                            alertItem -> Void in
-                        })
-                        alert.addAction(okayAction)
-                        
-                        self.present(alert, animated: true, completion: nil)
-                    }))
-                    
-                    actions.append(AlertAction(title: "Okay", style: .default, action: nil))
-                    
-                    globals.alert(title:title, message:message, actions:actions)
-                } else {
-                    title = title + "Requested"
-                    message = message + "\nhas started."
-                    
-                    globals.alert(title:title, message:message)
-                }
-            }
-            
-            var prefix:String!
-            
-            switch purpose {
-            case Purpose.audio:
-                prefix = Constants.FA.AUDIO
-            
-            case Purpose.video:
-                prefix = Constants.FA.VIDEO
-            
-            default:
-                prefix = ""
-                break
-            }
-            
-            var action : UITableViewRowAction!
-            
-            action = UITableViewRowAction(style: .normal, title: prefix + "\n" + Constants.FA.TRANSCRIPT) { action, index in
-                if transcript?.transcript == nil {
-                    guard globals.reachability.currentReachabilityStatus != .notReachable else {
-                        networkUnavailable(self,"Machine generated transcript unavailable.")
-                        return
-                    }
-                    
-                    guard let transcribing = transcript?.transcribing else {
-                        return
-                    }
-                    
-                    if let completed = transcript?.completed, !completed {
-                        transcript?.completed = false
-                    }
-//                    guard transcript?.mediaID != "Completed" else {
-//                        print("Completed!  SHOULD NOT HAPPEN!!!")
+//        func recognizeTVTRA(transcript:VoiceBase?) -> UITableViewRowAction
+//        {
+//            guard let purpose = transcript?.purpose else {
+//                return UITableViewRowAction()
+//            }
+//            
+//            func mgtUpdate()
+//            {
+//                var transcriptPurpose:String!
+//                
+//                if let purpose = transcript?.purpose {
+//                    switch purpose {
+//                    case Purpose.audio:
+//                        transcriptPurpose = Constants.Strings.Audio
+//                        break
+//                        
+//                    case Purpose.video:
+//                        transcriptPurpose = Constants.Strings.Video
+//                        break
+//                        
+//                    case Purpose.slides:
+//                        transcriptPurpose = Constants.Strings.Slides
+//                        break
+//                        
+//                    case Purpose.notes:
+//                        transcriptPurpose = Constants.Strings.Transcript
+//                        break
+//                        
+//                    default:
+//                        transcriptPurpose = "ERROR"
+//                        break
+//                    }
+//                }
+//                
+//                let purpose = " (\(transcriptPurpose.lowercased()))"
+//                
+//                let completion = transcript?.percentComplete == nil ? purpose : purpose + "\n(\(transcript!.percentComplete!)% complete)"
+//                
+//                var title = "Machine Generated Transcript "
+//                
+//                var message = "You will be notified when the machine generated transcript for\n\(mediaItem.text!)\(completion) "
+//                
+//                if (transcript?.mediaID != nil) {
+//                    title = title + "in Progress"
+//                    message = message + "\nis available."
+//                    
+//                    var actions = [AlertAction]()
+//                    
+//                    actions.append(AlertAction(title: "Media ID", style: .default, action: {
+//                        let alert = UIAlertController(  title: "VoiceBase Media ID",
+//                                                        message: nil,
+//                                                        preferredStyle: .alert)
+//                        alert.makeOpaque()
+//                        
+//                        alert.addTextField(configurationHandler: { (textField:UITextField) in
+//                            textField.text = transcript?.mediaID
+//                        })
+//                        
+//                        let okayAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.default, handler: {
+//                            alertItem -> Void in
+//                        })
+//                        alert.addAction(okayAction)
+//                        
+//                        self.present(alert, animated: true, completion: nil)
+//                    }))
+//                    
+//                    actions.append(AlertAction(title: "Okay", style: .default, action: nil))
+//                    
+//                    globals.alert(title:title, message:message, actions:actions)
+//                } else {
+//                    title = title + "Requested"
+//                    message = message + "\nhas started."
+//                    
+//                    globals.alert(title:title, message:message)
+//                }
+//            }
+//            
+//            var prefix:String!
+//            
+//            switch purpose {
+//            case Purpose.audio:
+//                prefix = Constants.FA.AUDIO
+//            
+//            case Purpose.video:
+//                prefix = Constants.FA.VIDEO
+//            
+//            default:
+//                prefix = ""
+//                break
+//            }
+//            
+//            var action : UITableViewRowAction!
+//            
+//            action = UITableViewRowAction(style: .normal, title: prefix + "\n" + Constants.FA.TRANSCRIPT) { action, index in
+//                if transcript?.transcript == nil {
+//                    guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//                        networkUnavailable(self,"Machine generated transcript unavailable.")
 //                        return
 //                    }
-                    
-                    if !transcribing {
-                        if globals.reachability.currentReachabilityStatus != .notReachable {
-                            var alertActions = [AlertAction]()
-                            
-                            alertActions.append(AlertAction(title: "Yes", style: .default, action: {
-                                transcript?.getTranscript()
-//                                DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-//                                })
-                                tableView.setEditing(false, animated: true)
-                                mgtUpdate()
-                            }))
-                            
-                            alertActions.append(AlertAction(title: "No", style: .default, action: nil))
-                            
-                            alertActionsCancel( viewController: self,
-                                                title: "Begin Creating\nMachine Generated Transcript?",
-                                                message: "\(mediaItem.text!) (\(purpose.lowercased()))",
-                                                alertActions: alertActions,
-                                                cancelAction: nil)
-                        } else {
-                            networkUnavailable(self, "Machine Generated Transcript Unavailable.")
-                        }
-                    } else {
-                        mgtUpdate()
-                    }
-                } else {
-                    var alertActions = [AlertAction]()
-                    
-                    alertActions.append(AlertAction(title: "Show", style: .default, action: {
-                        let sourceView = cell.subviews[0]
-                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
-                        
-                        var htmlString = "<!DOCTYPE html><html><body>"
-                        
-                        htmlString = htmlString + mediaItem.headerHTML! +
-                            "<br/>" +
-                            "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(transcript!.purpose!))</center>" +
-                            "<br/>" +
-                            transcript!.transcript!.replacingOccurrences(of: "\n", with: "<br/>") +
-                            //                                            "<br/>" +
-                            //                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
-                        "</body></html>"
-                        
-                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-                    }))
-                    
-                    alertActions.append(AlertAction(title: "Show with Timing", style: .default, action: {
-                        let sourceView = cell.subviews[0]
-                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
-                        
-                        process(viewController: self, work: { () -> (Any?) in
-                            var htmlString = "<!DOCTYPE html><html><body>"
-                        
-                            var srtHTML = String()
-                            
-                            srtHTML = srtHTML + "<table>"
-
-                            srtHTML = srtHTML + "<tr><td><b>#</b></td><td><b>Start Time</b></td><td><b>End Time</b></td><td><b>Recognized Speech</b></td></tr>"
-
-                            if let srtComponents = transcript?.srtComponents {
-                                for srtComponent in srtComponents {
-                                    var srtArray = srtComponent.components(separatedBy: "\n")
-                                    
-                                    if srtArray.count > 2  {
-                                        let count = srtArray.removeFirst()
-                                        let timeWindow = srtArray.removeFirst()
-                                        
-                                        if  let start = timeWindow.components(separatedBy: " --> ").first,
-                                            let end = timeWindow.components(separatedBy: " --> ").last,
-                                            let range = srtComponent.range(of: timeWindow+"\n") {
-                                            let text = srtComponent.substring(from: range.upperBound)
-                                            
-                                            let row = "<tr><td>\(count)</td><td>\(start)</td><td>\(end)</td><td>\(text.replacingOccurrences(of: "\n", with: "<br/>"))</td></tr>"
-                                            srtHTML = srtHTML + row
-                                        }
-                                    }
-                                }
-                            }
-
-                            srtHTML = srtHTML + "</table>"
-
-                            htmlString = htmlString + mediaItem.headerHTML! +
-                                "<br/>" +
-                                "<center>MACHINE GENERATED TRANSCRIPT WITH TIMING<br/>(\(transcript!.purpose!))</center>" +
-                                "<br/>" +
-
-                                srtHTML +
-                                
-                                "</body></html>"
-                            return htmlString as Any
-                        }, completion: { (data:Any?) in
-                            if let htmlString = data as? String {
-                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
-                            }
-                        })
-                    }))
-                    
-                    alertActions.append(AlertAction(title: "Edit", style: .default, action: {
-                        let sourceView = cell.subviews[0]
-                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
-                        
-                        if  let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
-                            let textPopover = navigationController.viewControllers[0] as? TextViewController {
-                            navigationController.modalPresentationStyle = .overCurrentContext
-                            
-                            navigationController.popoverPresentationController?.delegate = self
-                            
-                            textPopover.navigationController?.isNavigationBarHidden = false
-                            
-                            textPopover.navigationItem.title = "Edit Text" //
-                            
-                            let text = transcript?.transcript
-                            
-                            textPopover.text = text
-                            
-                            textPopover.completion = { (text:String) -> Void in
-                                guard text != textPopover.text else {
-                                    return
-                                }
-                                
-                                print(text)
-                                
-                                transcript?.transcript = text
-                            }
-                            
-                            self.present(navigationController, animated: true, completion: nil)
-                        } else {
-                            print("ERROR")
-                        }
-                    }))
-                    
-                    alertActions.append(AlertAction(title: "Media ID", style: .default, action: {
-                        let alert = UIAlertController(  title: "VoiceBase Media ID",
-                                                        message: nil,
-                                                        preferredStyle: .alert)
-                        alert.makeOpaque()
-                        
-                        alert.addTextField(configurationHandler: { (textField:UITextField) in
-                            textField.text = transcript?.mediaID
-                        })
-                        
-                        let okayAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.default, handler: {
-                            alertItem -> Void in
-                        })
-                        alert.addAction(okayAction)
-                        
-                        self.present(alert, animated: true, completion: nil)
-                    }))
-                    
-                    alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, action: {
-                        transcript?.metadata(completion: { (dict:[String:Any]?)->(Void) in
-                            if let text = transcript?.mediaItem?.text {
-                                var actions = [AlertAction]()
-                                
-                                actions.append(AlertAction(title: "Remove", style: .destructive, action: {
-                                    var actions = [AlertAction]()
-                                    
-                                    actions.append(AlertAction(title: "Yes", style: .destructive, action: { (Void) -> (Void) in
-                                        VoiceBase.delete(mediaID: transcript?.mediaID)
-                                    }))
-                                    
-                                    actions.append(AlertAction(title: "No", style: .default, action:nil))
-                                    
-                                    globals.alert(title:"Confirm Removal From VoiceBase", message:text, actions:actions)
-                                }))
-                                
-                                actions.append(AlertAction(title: "Okay", style: .default, action: nil))
-                                
-                                globals.alert(title:"On VoiceBase", message:text + "\nis on VoiceBase.", actions:actions)
-                            }
-                        }, onError:  { (dict:[String:Any]?)->(Void) in
-                            if let text = transcript?.mediaItem?.text {
-                                var actions = [AlertAction]()
-                                
-                                actions.append(AlertAction(title: "Okay", style: .default, action: nil))
-                                
-                                globals.alert(title:"Not on VoiceBase", message:text + "\nis not on VoiceBase.", actions:actions)
-                            }
-                        })
-                    }))
-                    
-                    alertActions.append(AlertAction(title: "Align", style: .destructive, action: {
-                        var alertActions = [AlertAction]()
-                        
-                        alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
-                            transcript?.align()
-                            tableView.setEditing(false, animated: true)
-                        }))
-                        
-                        alertActions.append(AlertAction(title: "No", style: .default, action: nil))
-                        
-                        alertActionsCancel( viewController: self,
-                                            title: "Confirm Realignment of Machine Generated Transcript",
-                                            message: "This may change transcript timing for\n\(transcript!.mediaItem!.text!) (\(purpose.lowercased())",
-                            alertActions: alertActions,
-                            cancelAction: nil)
-                    }))
-
-                    alertActions.append(AlertAction(title: "Delete", style: .destructive, action: {
-                        var alertActions = [AlertAction]()
-                        
-                        alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
-                            transcript?.remove()
-                            tableView.setEditing(false, animated: true)
-                        }))
-                        
-                        alertActions.append(AlertAction(title: "No", style: .default, action: nil))
-                        
-                        alertActionsCancel( viewController: self,
-                                            title: "Confirm Deletion of Machine Generated Transcript",
-                                            message: "\(transcript!.mediaItem!.text!) (\(purpose.lowercased()))",
-                                            alertActions: alertActions,
-                                            cancelAction: nil)
-                    }))
-
-                    alertActionsCancel(  viewController: self,
-                                    title: "Machine Generated Transcript (\(purpose.lowercased()))",
-                                    message: "This is a machine generated transcript.  It may lack proper formatting and have signifcant errors.",
-                                    alertActions: alertActions,
-                                    cancelAction: nil)
-                }
-            }
-            
-            return action
-        }
-        recognizeAudio = recognizeTVTRA(transcript: mediaItem.audioTranscript)
-        recognizeVideo = recognizeTVTRA(transcript: mediaItem.videoTranscript)
+//                    
+//                    guard let transcribing = transcript?.transcribing else {
+//                        return
+//                    }
+//                    
+//                    if let completed = transcript?.completed, !completed {
+//                        transcript?.completed = false
+//                    }
+////                    guard transcript?.mediaID != "Completed" else {
+////                        print("Completed!  SHOULD NOT HAPPEN!!!")
+////                        return
+////                    }
+//                    
+//                    if !transcribing {
+//                        if globals.reachability.currentReachabilityStatus != .notReachable {
+//                            var alertActions = [AlertAction]()
+//                            
+//                            alertActions.append(AlertAction(title: "Yes", style: .default, action: {
+//                                transcript?.getTranscript()
+////                                DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+////                                })
+//                                tableView.setEditing(false, animated: true)
+//                                mgtUpdate()
+//                            }))
+//                            
+//                            alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+//                            
+//                            alertActionsCancel( viewController: self,
+//                                                title: "Begin Creating\nMachine Generated Transcript?",
+//                                                message: "\(mediaItem.text!) (\(purpose.lowercased()))",
+//                                                alertActions: alertActions,
+//                                                cancelAction: nil)
+//                        } else {
+//                            networkUnavailable(self, "Machine Generated Transcript Unavailable.")
+//                        }
+//                    } else {
+//                        mgtUpdate()
+//                    }
+//                } else {
+//                    var alertActions = [AlertAction]()
+//                    
+//                    alertActions.append(AlertAction(title: "Show", style: .default, action: {
+//                        let sourceView = cell.subviews[0]
+//                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
+//                        
+//                        var htmlString = "<!DOCTYPE html><html><body>"
+//                        
+//                        htmlString = htmlString + mediaItem.headerHTML! +
+//                            "<br/>" +
+//                            "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(transcript!.purpose!))</center>" +
+//                            "<br/>" +
+//                            transcript!.transcript!.replacingOccurrences(of: "\n", with: "<br/>") +
+//                            //                                            "<br/>" +
+//                            //                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
+//                        "</body></html>"
+//                        
+//                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+//                    }))
+//                    
+//                    alertActions.append(AlertAction(title: "Show with Timing", style: .default, action: {
+//                        let sourceView = cell.subviews[0]
+//                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
+//                        
+//                        process(viewController: self, work: { () -> (Any?) in
+//                            var htmlString = "<!DOCTYPE html><html><body>"
+//                        
+//                            var srtHTML = String()
+//                            
+//                            srtHTML = srtHTML + "<table>"
+//
+//                            srtHTML = srtHTML + "<tr><td><b>#</b></td><td><b>Start Time</b></td><td><b>End Time</b></td><td><b>Recognized Speech</b></td></tr>"
+//
+//                            if let srtComponents = transcript?.srtComponents {
+//                                for srtComponent in srtComponents {
+//                                    var srtArray = srtComponent.components(separatedBy: "\n")
+//                                    
+//                                    if srtArray.count > 2  {
+//                                        let count = srtArray.removeFirst()
+//                                        let timeWindow = srtArray.removeFirst()
+//                                        
+//                                        if  let start = timeWindow.components(separatedBy: " --> ").first,
+//                                            let end = timeWindow.components(separatedBy: " --> ").last,
+//                                            let range = srtComponent.range(of: timeWindow+"\n") {
+//                                            let text = srtComponent.substring(from: range.upperBound)
+//                                            
+//                                            let row = "<tr><td>\(count)</td><td>\(start)</td><td>\(end)</td><td>\(text.replacingOccurrences(of: "\n", with: "<br/>"))</td></tr>"
+//                                            srtHTML = srtHTML + row
+//                                        }
+//                                    }
+//                                }
+//                            }
+//
+//                            srtHTML = srtHTML + "</table>"
+//
+//                            htmlString = htmlString + mediaItem.headerHTML! +
+//                                "<br/>" +
+//                                "<center>MACHINE GENERATED TRANSCRIPT WITH TIMING<br/>(\(transcript!.purpose!))</center>" +
+//                                "<br/>" +
+//
+//                                srtHTML +
+//                                
+//                                "</body></html>"
+//                            return htmlString as Any
+//                        }, completion: { (data:Any?) in
+//                            if let htmlString = data as? String {
+//                        popoverHTML(self,mediaItem:nil,title:mediaItem.title,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+//                            }
+//                        })
+//                    }))
+//                    
+//                    alertActions.append(AlertAction(title: "Edit", style: .default, action: {
+////                        let sourceView = cell.subviews[0]
+////                        let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
+//                        
+//                        if  let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
+//                            let textPopover = navigationController.viewControllers[0] as? TextViewController {
+//                            navigationController.modalPresentationStyle = .overCurrentContext
+//                            
+//                            navigationController.popoverPresentationController?.delegate = self
+//                            
+//                            textPopover.navigationController?.isNavigationBarHidden = false
+//                            
+//                            textPopover.navigationItem.title = "Edit Text" //
+//                            
+//                            let text = transcript?.transcript
+//                            
+//                            textPopover.text = text
+//                            
+//                            textPopover.completion = { (text:String) -> Void in
+//                                guard text != textPopover.text else {
+//                                    return
+//                                }
+//                                
+//                                print(text)
+//                                
+//                                transcript?.transcript = text
+//                            }
+//                            
+//                            self.present(navigationController, animated: true, completion: nil)
+//                        } else {
+//                            print("ERROR")
+//                        }
+//                    }))
+//                    
+//                    alertActions.append(AlertAction(title: "Media ID", style: .default, action: {
+//                        let alert = UIAlertController(  title: "VoiceBase Media ID",
+//                                                        message: nil,
+//                                                        preferredStyle: .alert)
+//                        alert.makeOpaque()
+//                        
+//                        alert.addTextField(configurationHandler: { (textField:UITextField) in
+//                            textField.text = transcript?.mediaID
+//                        })
+//                        
+//                        let okayAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.default, handler: {
+//                            alertItem -> Void in
+//                        })
+//                        alert.addAction(okayAction)
+//                        
+//                        self.present(alert, animated: true, completion: nil)
+//                    }))
+//                    
+//                    alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, action: {
+//                        transcript?.metadata(completion: { (dict:[String:Any]?)->(Void) in
+//                            if let text = transcript?.mediaItem?.text {
+//                                var actions = [AlertAction]()
+//                                
+//                                actions.append(AlertAction(title: "Remove", style: .destructive, action: {
+//                                    var actions = [AlertAction]()
+//                                    
+//                                    actions.append(AlertAction(title: "Yes", style: .destructive, action: { (Void) -> (Void) in
+//                                        VoiceBase.delete(mediaID: transcript?.mediaID)
+//                                    }))
+//                                    
+//                                    actions.append(AlertAction(title: "No", style: .default, action:nil))
+//                                    
+//                                    globals.alert(title:"Confirm Removal From VoiceBase", message:text, actions:actions)
+//                                }))
+//                                
+//                                actions.append(AlertAction(title: "Okay", style: .default, action: nil))
+//                                
+//                                globals.alert(title:"On VoiceBase", message:text + "\nis on VoiceBase.", actions:actions)
+//                            }
+//                        }, onError:  { (dict:[String:Any]?)->(Void) in
+//                            if let text = transcript?.mediaItem?.text {
+//                                var actions = [AlertAction]()
+//                                
+//                                actions.append(AlertAction(title: "Okay", style: .default, action: nil))
+//                                
+//                                globals.alert(title:"Not on VoiceBase", message:text + "\nis not on VoiceBase.", actions:actions)
+//                            }
+//                        })
+//                    }))
+//                    
+//                    alertActions.append(AlertAction(title: "Align", style: .destructive, action: {
+//                        var alertActions = [AlertAction]()
+//                        
+//                        alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
+//                            transcript?.align()
+//                            tableView.setEditing(false, animated: true)
+//                        }))
+//                        
+//                        alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+//                        
+//                        alertActionsCancel( viewController: self,
+//                                            title: "Confirm Realignment of Machine Generated Transcript",
+//                                            message: "This may change transcript timing for\n\(transcript!.mediaItem!.text!) (\(purpose.lowercased())",
+//                            alertActions: alertActions,
+//                            cancelAction: nil)
+//                    }))
+//
+//                    alertActions.append(AlertAction(title: "Delete", style: .destructive, action: {
+//                        var alertActions = [AlertAction]()
+//                        
+//                        alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
+//                            transcript?.remove()
+//                            tableView.setEditing(false, animated: true)
+//                        }))
+//                        
+//                        alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+//                        
+//                        alertActionsCancel( viewController: self,
+//                                            title: "Confirm Deletion of Machine Generated Transcript",
+//                                            message: "\(transcript!.mediaItem!.text!) (\(purpose.lowercased()))",
+//                                            alertActions: alertActions,
+//                                            cancelAction: nil)
+//                    }))
+//
+//                    alertActionsCancel(  viewController: self,
+//                                    title: "Machine Generated Transcript (\(purpose.lowercased()))",
+//                                    message: "This is a machine generated transcript.  It may lack proper formatting and have signifcant errors.",
+//                                    alertActions: alertActions,
+//                                    cancelAction: nil)
+//                }
+//            }
+//            
+//            return action
+//        }
+        recognizeAudio = mediaItem.audioTranscript?.recognizeRowActions(viewController: self, tableView: tableView) // recognizeTVTRA(transcript: mediaItem.audioTranscript)
+        recognizeVideo = mediaItem.videoTranscript?.recognizeRowActions(viewController: self, tableView: tableView) // recognizeTVTRA(transcript: mediaItem.videoTranscript)
         
         scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
             let sourceView = cell.subviews[0]
@@ -5369,304 +5610,309 @@ extension MediaViewController : UITableViewDataSource
         }
         scripture.backgroundColor = UIColor.orange
         
-        func keywordsTVTRA(transcript:VoiceBase?) -> UITableViewRowAction
-        {
-            guard let purpose = transcript?.purpose else {
-                return UITableViewRowAction()
-            }
-            
-            var prefix:String!
-            
-            switch purpose {
-            case Purpose.audio:
-                prefix = Constants.FA.AUDIO
-                
-            case Purpose.video:
-                prefix = Constants.FA.VIDEO
-                
-            default:
-                prefix = ""
-                break
-            }
-            
-            var action : UITableViewRowAction!
-            
-            action = UITableViewRowAction(style: .normal, title: prefix + "\n" + Constants.FA.LIST) { action, index in
-                
-                let sourceView = self.view // cell.subviews[0]
-                let sourceRectView = self.controlView! // cell.subviews[0].subviews[actions.index(of: action)!]
-                
-                var alertActions = [AlertAction]()
-                
-                alertActions.append(AlertAction(title: "By Word", style: .default, action: {
-                    if  let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                        let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                        navigationController.modalPresentationStyle = .overCurrentContext
-                        
-                        navigationController.popoverPresentationController?.delegate = self
-                        navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
-
-                        navigationController.popoverPresentationController?.sourceView = sourceView
-                        navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
-                        
-                        popover.navigationController?.isNavigationBarHidden = false
-                        
-                        popover.navigationItem.title = "Timing Index (\(purpose.lowercased()))" //
-                        
-                        popover.selectedMediaItem = mediaItem
-                        popover.transcript = transcript
-                        
-                        popover.vc = self
-                        popover.search = true
-                        
-                        popover.delegate = self
-                        popover.purpose = .selectingKeyword
-                        
-                        popover.section.showIndex = true
-//                        popover.section.showHeaders = true
-                        
-                        popover.section.strings = transcript?.srtTokens?.map({ (string:String) -> String in
-                            return string.lowercased()
-                        }).sorted()
-                        
-                        //                    switch purpose {
-                        //                    case Purpose.audio:
-                        //                        let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchAudio))
-                        //                        self.popover?.navigationItem.rightBarButtonItem = searchButton
-                        //
-                        //                    case Purpose.video:
-                        //                        let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchVideo))
-                        //                        self.popover?.navigationItem.rightBarButtonItem = searchButton
-                        //                        
-                        //                    default:
-                        //                        break
-                        //                    }
-                        
-                        self.present(navigationController, animated: true, completion: {self.popover = popover})
-                    }
-                }))
-                
-                alertActions.append(AlertAction(title: "By Time", style: .default, action: {
-                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController, let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                        
-                        navigationController.modalPresentationStyle = .overCurrentContext
-                        
-                        navigationController.popoverPresentationController?.delegate = self
-                        navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
-
-                        navigationController.popoverPresentationController?.sourceView = sourceView
-                        navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
-                        
-                        popover.navigationController?.isNavigationBarHidden = false
-                        
-                        popover.navigationItem.title = "Timing Index (\(purpose.lowercased()))" //
-                        
-                        popover.selectedMediaItem = mediaItem
-                        popover.transcript = transcript
-                        
-                        popover.vc = self
-                        popover.search = true
-
-                        func tvtra(tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
-                        {
-                            let stringIndex = popover.section.index(indexPath)
-                            
-                            guard let string = popover.section.strings?[stringIndex] else {
-                                return nil
-                            }
-                            
-                            var actions = [UITableViewRowAction]()
-                            
-                            var edit:UITableViewRowAction!
-                            
-                            edit = UITableViewRowAction(style: .normal, title: Constants.FA.EDIT) { rowAction, indexPath in
-                                //                    let stringIndex = stringsPopover.section.index(indexPath)
-                                //
-                                //                    guard let string = stringsPopover.section.strings?[stringIndex] else {
-                                //                        return nil
-                                //                    }
-                                
-                                let srtComponent = string
-                                let playing = globals.mediaPlayer.isPlaying
-                                
-                                globals.mediaPlayer.pause()
-                                
-                                var srtArray = srtComponent.components(separatedBy: "\n")
-                                let count = srtArray.removeFirst() // Count
-                                let timing = srtArray.removeFirst().replacingOccurrences(of: "to", with: "-->") // Timing
-                                
-                                if  let first = transcript?.srtComponents?.filter({ (string:String) -> Bool in
-                                    return string.contains(timing)
-                                }).first,
-                                    let srtIndex = transcript?.srtComponents?.index(of: first),
-                                    let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
-                                    let textPopover = navigationController.viewControllers[0] as? TextViewController,
-                                    let range = srtComponent.range(of:timing.replacingOccurrences(of: "-->", with: "to")+"\n") {
-                                    navigationController.modalPresentationStyle = .overCurrentContext
-                                    
-                                    navigationController.popoverPresentationController?.delegate = self
-                                    
-                                    textPopover.navigationController?.isNavigationBarHidden = false
-                                    
-                                    textPopover.navigationItem.title = "Edit Text" //
-                                    
-                                    let text = srtComponent.substring(from: range.upperBound)
-                                    
-                                    textPopover.text = text
-                                    
-                                    textPopover.onCancel = {
-                                        if playing {
-                                            globals.mediaPlayer.play()
-                                        }
-                                    }
-                                    
-                                    textPopover.completion = { (text:String) -> Void in
-                                        //                                        print(text)
-                                        
-                                        guard text != textPopover.text else {
-                                            if playing {
-                                                globals.mediaPlayer.play()
-                                            }
-                                            return
-                                        }
-                                        
-                                        print(text)
-                                        
-                                        transcript?.srtComponents?[srtIndex] = "\(count)\n\(timing)\n\(text)" //.replacingOccurrences(of: "\n\n", with: "\r\n\r\n")
-                                        if popover.searchActive {
-                                            popover.filteredSection.strings?[stringIndex] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
-                                        }
-                                        popover.unfilteredSection.strings?[srtIndex] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
-                                        
-                                        DispatchQueue.global(qos: .background).async {
-                                            var transcriptSRT : String!
-                                            
-                                            if let srtComponents = transcript?.srtComponents {
-                                                for srtComponent in srtComponents {
-                                                    transcriptSRT = transcriptSRT != nil ? transcriptSRT + VoiceBase.separator + srtComponent : srtComponent
-                                                }
-                                            }
-                                            
-                                            transcript?.transcriptSRT = transcriptSRT
-                                            
-                                            var str : String!
-                                            
-                                            if let srtComponents = transcript?.srtComponents {
-                                                for srtComponent in srtComponents {
-                                                    var strings = srtComponent.components(separatedBy: "\n")
-                                                    
-                                                    if strings.count > 2 {
-                                                        let count = strings.removeFirst() // count
-                                                        let timing = strings.removeFirst() // time
-                                                        
-                                                        if let range = srtComponent.range(of:timing+"\n") {
-                                                            let string = srtComponent.substring(from:range.upperBound)
-                                                            str = str != nil ? str + " " + string : string
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            
-                                            transcript?.transcript = str
-                                        }
-                                        
-                                        popover.tableView.isEditing = false
-                                        popover.tableView.reloadData()
-                                        popover.tableView.reloadData()
-                                        
-                                        popover.tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.middle, animated: true)
-                                        
-                                        if playing {
-                                            globals.mediaPlayer.play()
-                                        }
-                                    }
-                                    
-                                    popover.present(navigationController, animated: true, completion: nil)
-                                } else {
-                                    print("ERROR")
-                                }
-                            }
-                            edit.backgroundColor = UIColor.cyan//controlBlue()
-                            
-                            actions.append(edit)
-                            
-                            return actions
-                        }
-                        
-                        popover.editActionsAtIndexPath = tvtra
-                        
-                        popover.delegate = self
-                        popover.purpose = .selectingTime
-                        
-                        popover.parser = { (string:String) -> [String] in
-                            var strings = string.components(separatedBy: "\n")
-                            while strings.count > 2 {
-                                strings.removeLast()
-                            }
-                            return strings
-                        }
-
-                        popover.section.showIndex = true
-                        popover.section.indexStringsTransform = century
-                        popover.section.indexHeadersTransform = { (string:String?)->(String?) in
-                            return string
-                        }
-//                        popover.section.showHeaders = true
-                        
-                        popover.section.strings = transcript?.srtComponents?.filter({ (string:String) -> Bool in
-                            return string.components(separatedBy: "\n").count > 1
-                        }).map({ (srtComponent:String) -> String in
-                            //                            print("srtComponent: ",srtComponent)
-                            var srtArray = srtComponent.components(separatedBy: "\n")
-                            
-                            if srtArray.count > 2  {
-                                let count = srtArray.removeFirst()
-                                let timeWindow = srtArray.removeFirst()
-                                
-                                if  let start = timeWindow.components(separatedBy: " --> ").first,
-                                    let end = timeWindow.components(separatedBy: " --> ").last,
-                                    let range = srtComponent.range(of: timeWindow+"\n") {
-                                    let text = "\(count)\n\(start) to \(end)\n" + srtComponent.substring(from: range.upperBound)
-
-                                    return text
-                                }
-                            }
-
-                            return "ERROR"
-                        })
-                        
-                        popover.track = true
-
-//                        switch purpose {
-//                        case Purpose.audio:
-//                            let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchAudio))
-//                            self.popover?.navigationItem.rightBarButtonItem = searchButton
-//    
-//                        case Purpose.video:
-//                            let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchVideo))
-//                            self.popover?.navigationItem.rightBarButtonItem = searchButton
-//                            
-//                        default:
-//                            break
+//        func keywordsTVTRA(transcript:VoiceBase?) -> UITableViewRowAction
+//        {
+//            guard let purpose = transcript?.purpose else {
+//                return UITableViewRowAction()
+//            }
+//            
+//            var prefix:String!
+//            
+//            switch purpose {
+//            case Purpose.audio:
+//                prefix = Constants.FA.AUDIO
+//                
+//            case Purpose.video:
+//                prefix = Constants.FA.VIDEO
+//                
+//            default:
+//                prefix = ""
+//                break
+//            }
+//            
+//            var action : UITableViewRowAction!
+//            
+//            action = UITableViewRowAction(style: .normal, title: prefix + "\n" + Constants.FA.LIST) { action, index in
+//                
+//                let sourceView = self.view // cell.subviews[0]
+//                let sourceRectView = self.controlView! // cell.subviews[0].subviews[actions.index(of: action)!]
+//                
+//                var alertActions = [AlertAction]()
+//                
+//                alertActions.append(AlertAction(title: "By Word", style: .default, action: {
+//                    if  let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                        let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                        navigationController.modalPresentationStyle = .overCurrentContext
+//                        
+//                        navigationController.popoverPresentationController?.delegate = self
+//                        navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
+//
+//                        navigationController.popoverPresentationController?.sourceView = sourceView
+//                        navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
+//                        
+//                        popover.navigationController?.isNavigationBarHidden = false
+//                        
+//                        popover.navigationItem.title = "Timing Index (\(purpose.lowercased()))" //
+//                        
+//                        popover.selectedMediaItem = mediaItem
+//                        popover.transcript = transcript
+//                        
+//                        popover.vc = self
+//                        popover.search = true
+//                        
+//                        popover.delegate = self
+//                        popover.purpose = .selectingKeyword
+//                        
+//                        popover.section.showIndex = true
+////                        popover.section.showHeaders = true
+//                        
+//                        popover.section.strings = transcript?.srtTokens?.map({ (string:String) -> String in
+//                            return string.lowercased()
+//                        }).sorted()
+//                        
+//                        //                    switch purpose {
+//                        //                    case Purpose.audio:
+//                        //                        let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchAudio))
+//                        //                        self.popover?.navigationItem.rightBarButtonItem = searchButton
+//                        //
+//                        //                    case Purpose.video:
+//                        //                        let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchVideo))
+//                        //                        self.popover?.navigationItem.rightBarButtonItem = searchButton
+//                        //                        
+//                        //                    default:
+//                        //                        break
+//                        //                    }
+//                        
+//                        self.present(navigationController, animated: true, completion: {self.popover = popover})
+//                    }
+//                }))
+//                
+//                alertActions.append(AlertAction(title: "By Time", style: .default, action: {
+//                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController, let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                        
+//                        navigationController.modalPresentationStyle = .overCurrentContext
+//                        
+//                        navigationController.popoverPresentationController?.delegate = self
+//                        navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
+//
+//                        navigationController.popoverPresentationController?.sourceView = sourceView
+//                        navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
+//                        
+//                        popover.navigationController?.isNavigationBarHidden = false
+//                        
+//                        popover.navigationItem.title = "Timing Index (\(purpose.lowercased()))" //
+//                        
+//                        popover.selectedMediaItem = mediaItem
+//                        popover.transcript = transcript
+//                        
+//                        popover.vc = self
+//                        popover.search = true
+//
+////                        func tvtra(tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
+////                        {
+////                            let stringIndex = popover.section.index(indexPath)
+////                            
+////                            guard let string = popover.section.strings?[stringIndex] else {
+////                                return nil
+////                            }
+////                            
+////                            var actions = [UITableViewRowAction]()
+////                            
+////                            var edit:UITableViewRowAction!
+////                            
+////                            func editSRT()
+////                            {
+////                                let srtComponent = string
+////                                let playing = globals.mediaPlayer.isPlaying
+////                                
+////                                globals.mediaPlayer.pause()
+////                                
+////                                var srtArray = srtComponent.components(separatedBy: "\n")
+////                                let count = srtArray.removeFirst() // Count
+////                                let timing = srtArray.removeFirst().replacingOccurrences(of: "to", with: "-->") // Timing
+////                                
+////                                if  let first = transcript?.srtComponents?.filter({ (string:String) -> Bool in
+////                                    return string.contains(timing)
+////                                }).first,
+////                                    let srtIndex = transcript?.srtComponents?.index(of: first),
+////                                    let navigationController = self.storyboard!.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
+////                                    let textPopover = navigationController.viewControllers[0] as? TextViewController,
+////                                    let range = srtComponent.range(of:timing.replacingOccurrences(of: "-->", with: "to")+"\n") {
+////                                    navigationController.modalPresentationStyle = .overCurrentContext
+////                                    
+////                                    navigationController.popoverPresentationController?.delegate = self
+////                                    
+////                                    textPopover.navigationController?.isNavigationBarHidden = false
+////                                    
+////                                    textPopover.navigationItem.title = "Edit Text" //
+////                                    
+////                                    let text = srtComponent.substring(from: range.upperBound)
+////                                    
+////                                    textPopover.text = text
+////                                    
+////                                    textPopover.onCancel = {
+////                                        if playing {
+////                                            globals.mediaPlayer.play()
+////                                        }
+////                                    }
+////                                    
+////                                    textPopover.confirmation = { (Void)->Bool in
+////                                        return transcript?.transcript != transcript?.transcriptFromSRTs
+////                                    }
+////                                    textPopover.confirmationTitle = "Confirm Saving Changes to Transcript Element"
+////                                    textPopover.confirmationMessage = "The transcript as a whole has been separately edited.  If you edit and save this transcript element, the transcript will be overwritten and your changes to the transcript as a whole will be lost."
+////                                    
+////                                    textPopover.completion = { (text:String) -> Void in
+////                                        print(text)
+////                                        
+////                                        guard text != textPopover.text else {
+////                                            if playing {
+////                                                globals.mediaPlayer.play()
+////                                            }
+////                                            return
+////                                        }
+////                                        
+////                                        transcript?.srtComponents?[srtIndex] = "\(count)\n\(timing)\n\(text)" //.replacingOccurrences(of: "\n\n", with: "\r\n\r\n")
+////                                        if popover.searchActive {
+////                                            popover.filteredSection.strings?[stringIndex] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
+////                                        }
+////                                        popover.unfilteredSection.strings?[srtIndex] = "\(count)\n\(timing.replacingOccurrences(of: "-->", with: "to"))\n\(text)"
+////                                        
+////                                        DispatchQueue.global(qos: .background).async {
+//////                                            var transcriptSRT : String!
+//////                                            
+//////                                            if let srtComponents = transcript?.srtComponents {
+//////                                                for srtComponent in srtComponents {
+//////                                                    transcriptSRT = transcriptSRT != nil ? transcriptSRT + VoiceBase.separator + srtComponent : srtComponent
+//////                                                }
+//////                                            }
+//////                                            
+//////                                            transcript?.transcriptSRT = transcriptSRT
+////                                            
+////                                            transcript?.transcriptSRT = transcript?.transcriptSRTFromSRTs
+////                                            
+////                                            transcript?.transcript = transcript?.transcriptFromSRTs
+////                                        }
+////                                        
+////                                        popover.tableView.isEditing = false
+////                                        popover.tableView.reloadData()
+////                                        popover.tableView.reloadData()
+////                                        
+////                                        popover.tableView.scrollToRow(at: indexPath, at: UITableViewScrollPosition.middle, animated: true)
+////                                        
+////                                        if playing {
+////                                            globals.mediaPlayer.play()
+////                                        }
+////                                    }
+////                                    
+////                                    popover.present(navigationController, animated: true, completion: nil)
+////                                } else {
+////                                    print("ERROR")
+////                                }
+////                            }
+////                            
+////                            edit = UITableViewRowAction(style: .normal, title: Constants.FA.EDIT) { rowAction, indexPath in
+////                                //                    let stringIndex = stringsPopover.section.index(indexPath)
+////                                //
+////                                //                    guard let string = stringsPopover.section.strings?[stringIndex] else {
+////                                //                        return nil
+////                                //                    }
+////                                
+////                                if transcript?.transcript != transcript?.transcriptFromSRTs {
+////                                    var actions = [AlertAction]()
+////                                    
+////                                    actions.append(AlertAction(title: "Yes", style: .destructive, action: { (Void) -> (Void) in
+////                                        editSRT()
+////                                    }))
+////                                    
+////                                    actions.append(AlertAction(title: "No", style: .default, action:nil))
+////                                    
+////                                    globals.alert(title:"Confirm Editing of Transcript Element", message:"The transcript as a whole has been separately edited.  If you edit and save this transcript element, the transcript will be overwritten and your changes to the transcript as a whole will be lost.", actions:actions)
+////                                } else {
+////                                    editSRT()
+////                                }
+////                            }
+////                            edit.backgroundColor = UIColor.cyan//controlBlue()
+////                            
+////                            actions.append(edit)
+////                            
+////                            return actions
+////                        }
+//                        
+//                        popover.editActionsAtIndexPath = self.tvtra
+//                        
+//                        popover.delegate = self
+//                        popover.purpose = .selectingTime
+//                        
+//                        popover.parser = { (string:String) -> [String] in
+//                            var strings = string.components(separatedBy: "\n")
+//                            while strings.count > 2 {
+//                                strings.removeLast()
+//                            }
+//                            return strings
 //                        }
-                        
-                        self.present(navigationController, animated: true, completion: {self.popover = popover})
-                    }
-                }))
-                
-                alertActionsCancel( viewController: self,
-                                    title: "Show Timing Index",
-                                    message: nil,
-                                    alertActions: alertActions,
-                                    cancelAction: nil)
-            }
-            
-            return action
-        }
-        audioKeywords = keywordsTVTRA(transcript: mediaItem.audioTranscript)
+//
+//                        popover.section.showIndex = true
+//                        popover.section.indexStringsTransform = century
+//                        popover.section.indexHeadersTransform = { (string:String?)->(String?) in
+//                            return string
+//                        }
+////                        popover.section.showHeaders = true
+//                        
+//                        popover.section.strings = transcript?.srtComponents?.filter({ (string:String) -> Bool in
+//                            return string.components(separatedBy: "\n").count > 1
+//                        }).map({ (srtComponent:String) -> String in
+//                            //                            print("srtComponent: ",srtComponent)
+//                            var srtArray = srtComponent.components(separatedBy: "\n")
+//                            
+//                            if srtArray.count > 2  {
+//                                let count = srtArray.removeFirst()
+//                                let timeWindow = srtArray.removeFirst()
+//                                
+//                                if  let start = timeWindow.components(separatedBy: " --> ").first,
+//                                    let end = timeWindow.components(separatedBy: " --> ").last,
+//                                    let range = srtComponent.range(of: timeWindow+"\n") {
+//                                    let text = "\(count)\n\(start) to \(end)\n" + srtComponent.substring(from: range.upperBound)
+//
+//                                    return text
+//                                }
+//                            }
+//
+//                            return "ERROR"
+//                        })
+//                        
+//                        popover.track = true
+//
+////                        switch purpose {
+////                        case Purpose.audio:
+////                            let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchAudio))
+////                            self.popover?.navigationItem.rightBarButtonItem = searchButton
+////    
+////                        case Purpose.video:
+////                            let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchVideo))
+////                            self.popover?.navigationItem.rightBarButtonItem = searchButton
+////                            
+////                        default:
+////                            break
+////                        }
+//                        
+//                        self.present(navigationController, animated: true, completion: {self.popover = popover})
+//                    }
+//                }))
+//                
+//                alertActionsCancel( viewController: self,
+//                                    title: "Show Timing Index",
+//                                    message: nil,
+//                                    alertActions: alertActions,
+//                                    cancelAction: nil)
+//            }
+//            
+//            return action
+//        }
+        audioKeywords = mediaItem.audioTranscript?.keywordRowActions(viewController: self, tableView: tableView) // keywordsTVTRA(transcript: mediaItem.audioTranscript)
         audioKeywords.backgroundColor = UIColor.brown
         
-        videoKeywords = keywordsTVTRA(transcript: mediaItem.videoTranscript)
+        videoKeywords = mediaItem.videoTranscript?.keywordRowActions(viewController: self, tableView: tableView) // keywordsTVTRA(transcript: mediaItem.videoTranscript)
         videoKeywords.backgroundColor = UIColor.brown
         
         topics = UITableViewRowAction(style: .normal, title: Constants.FA.LIST) { action, index in
@@ -5726,11 +5972,11 @@ extension MediaViewController : UITableViewDataSource
         }
         
         if mediaItem.hasAudio && globals.allowMGTs {
-//            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.audio) && (mediaItem == selectedMediaItem) {
+            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.audio) && (mediaItem == selectedMediaItem) {
                 if mediaItem.audioTranscript?.keywords != nil {
                     actions.append(audioKeywords)
                 }
-//            }
+            }
         }
         
         if mediaItem.videoTranscript?.transcript != nil {
@@ -5749,11 +5995,11 @@ extension MediaViewController : UITableViewDataSource
         }
         
         if mediaItem.hasVideo && globals.allowMGTs {
-//            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.video) && (mediaItem == selectedMediaItem)  {
+            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.video) && (mediaItem == selectedMediaItem)  {
                 if mediaItem.videoTranscript?.keywords != nil {
                     actions.append(videoKeywords)
                 }
-//            }
+            }
         }
         
         return actions.count > 0 ? actions : nil

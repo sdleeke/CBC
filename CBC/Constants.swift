@@ -639,6 +639,8 @@ struct Constants {
         
         static let DELETE = "\u{f014}"
         
+        static let BOOKMARK = "\u{f097}" // f02e
+        
         static let LARGER = "\u{f0d8}"
         static let SMALLER = "\u{f0d7}"
         

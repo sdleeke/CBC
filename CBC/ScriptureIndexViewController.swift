@@ -1534,7 +1534,7 @@ extension ScriptureIndexViewController : UITableViewDataSource
             return nil
         } else {
             if sectionTitles != nil {
-                if section < sectionTitles!.count {
+                if section > -1, section < sectionTitles!.count {
                     return sectionTitles![section]
                 }
             }

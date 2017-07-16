@@ -1297,7 +1297,7 @@ extension LexiconIndexViewController : UITableViewDataSource
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
     {
         if results?.section?.headerStrings != nil {
-            if section < results?.section?.headerStrings?.count {
+            if (section > -1) && (section < results?.section?.headerStrings?.count) {
                 return results?.section?.headerStrings?[section]
             } else {
                 return nil
@@ -1335,9 +1335,9 @@ extension LexiconIndexViewController : UITableViewDataSource
         
         cell.searchText = searchText
         
-        if indexPath.section < results?.section?.indexes?.count {
+        if (indexPath.section > -1) && (indexPath.section < results?.section?.indexes?.count) {
             if let section = results?.section?.indexes?[indexPath.section] {
-                if section + indexPath.row < results?.mediaItems?.count {
+                if (section + indexPath.row) > -1, (section + indexPath.row) < results?.mediaItems?.count {
                     cell.mediaItem = results?.mediaItems?[section + indexPath.row]
                 }
             } else {
@@ -1356,7 +1356,7 @@ extension LexiconIndexViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
     {
-        guard section < results?.section?.headerStrings?.count, let title = results?.section?.headerStrings?[section] else {
+        guard section > -1, section < results?.section?.headerStrings?.count, let title = results?.section?.headerStrings?[section] else {
             return Constants.HEADER_HEIGHT
         }
         
@@ -1375,7 +1375,7 @@ extension LexiconIndexViewController : UITableViewDataSource
         
         view.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
         
-        if section < results?.section?.headerStrings?.count, let title = results?.section?.headerStrings?[section] {
+        if section > -1, section < results?.section?.headerStrings?.count, let title = results?.section?.headerStrings?[section] {
             let label = UILabel()
             
             label.numberOfLines = 0

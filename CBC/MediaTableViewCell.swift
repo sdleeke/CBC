@@ -349,7 +349,7 @@ class MediaTableViewCell: UITableViewCell
         }
 
         if isEditing {
-            (vc as? MediaTableViewController)?.tableView.isEditing = false
+            (vc as? MediaTableViewController)?.tableView?.isEditing = false
             (vc as? MediaViewController)?.tableView.isEditing = false
         }
 

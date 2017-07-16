@@ -8,6 +8,100 @@
 
 import UIKit
 
+extension TextViewController: UISearchBarDelegate
+{
+    //MARK: SearchBarDelegate
+    
+    func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool
+    {
+        guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarShouldBeginEditing",completion:nil)
+            return false
+        }
+        
+        return true
+    }
+    
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar)
+    {
+        guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidBeginEditing",completion:nil)
+            return
+        }
+        
+        searchActive = true
+        
+        searchBar.showsCancelButton = true
+        
+        searchText = searchBar.text
+        
+        if let text = searchText {
+            
+        }
+    }
+    
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar)
+    {
+        guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidEndEditing",completion:nil)
+            return
+        }
+        
+        searchText = searchBar.text
+        
+        if let text = searchText { // , (text.isEmpty == false)
+            
+        }
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
+    {
+        guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBar:textDidChange",completion:nil)
+            return
+        }
+        
+        self.searchText = searchBar.text
+        
+        if let text = self.searchText { // , (text.isEmpty == false)
+            
+        }
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
+    {
+        //        print("searchBarSearchButtonClicked:")
+        
+        guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarSearchButtonClicked",completion:nil)
+            return
+        }
+        
+        searchText = searchBar.text
+        
+        searchBar.resignFirstResponder()
+        
+        //        print(searchController?.isActive)
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar)
+    {
+        guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarCancelButtonClicked",completion:nil)
+            return
+        }
+        
+        searchText = nil
+        searchActive = false
+        
+        
+        searchBar.showsCancelButton = false
+        
+        searchBar.resignFirstResponder()
+        searchBar.text = nil
+    }
+}
+
 class TextViewController : UIViewController
 {
     var text : String?
@@ -16,17 +110,50 @@ class TextViewController : UIViewController
             
         }
     }
+
+    var searchText : String?
+
+    var search              = false
+    var searchActive        = false
+    var wholeWordsOnly      = false
+    var searchInteractive   = true
+
+    @IBOutlet weak var searchBar: UISearchBar!
+    {
+        didSet {
+            searchBar.autocapitalizationType = .none
+        }
+    }
+    
+    @IBOutlet weak var textViewToTop: NSLayoutConstraint!
     
     var completion : ((String)->(Void))?
     
+    var confirmation : ((Void)->Bool)?
+    var confirmationTitle : String?
+    var confirmationMessage : String?
+
     var onCancel : ((Void)->(Void))?
     
     @IBOutlet weak var textView: UITextView!
     
     func done()
     {
-        dismiss(animated: true, completion: nil)
-        completion?(textView.text)
+        if text != textView.text, let confirmationTitle = confirmationTitle,let needConfirmation = confirmation?(), needConfirmation {
+            var actions = [AlertAction]()
+            
+            actions.append(AlertAction(title: "Yes", style: .destructive, action: { (Void) -> (Void) in
+                self.dismiss(animated: true, completion: nil)
+                self.completion?(self.textView.text)
+            }))
+            
+            actions.append(AlertAction(title: "No", style: .default, action:nil))
+            
+            alert(viewController:self,title:confirmationTitle, message:self.confirmationMessage, actions:actions)
+        } else {
+            dismiss(animated: true, completion: nil)
+            completion?(textView.text)
+        }
     }
     
     func cancel()
@@ -71,22 +198,29 @@ class TextViewController : UIViewController
         
         actions.append(AlertAction(title: "Cancel", style: .default, action: nil))
         
-        alert(viewController:self,title:"Start Automatic Editing?",message:nil,actions:actions)
+        alert(viewController:self,title:"Start Assisted Editing?",message:nil,actions:actions)
     }
     
     override func viewDidLoad()
     {
         super.viewDidLoad()
-
+        
+        if !search {
+            searchBar.removeFromSuperview()
+            textViewToTop.constant = 14
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        navigationItem.rightBarButtonItems = [  UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.done)),
-                                                UIBarButtonItem(title: "Auto", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.autoEdit))]
+        navigationItem.rightBarButtonItems = [  UIBarButtonItem(title: "Save", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.done)),
+                                                UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.autoEdit))]
         
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.cancel))
+        
+        searchBar.text = searchText
+        searchBar.isUserInteractionEnabled = searchInteractive
 
         textView.text = text
     }
@@ -408,9 +542,9 @@ class TextViewController : UIViewController
                 }
             }
         } else {
-            print(text)
-            print(changes)
-            print(changes?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first)
+            print(text as Any)
+            print(changes as Any)
+            print(changes?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first as Any)
             
             var actions = [AlertAction]()
             
@@ -418,7 +552,7 @@ class TextViewController : UIViewController
                 
             }))
             
-            globals.alert(title:"Automatic Editing Completed",message:nil)
+            globals.alert(title:"Assisted Editing Process Completed",message:nil)
         }
     }
 
