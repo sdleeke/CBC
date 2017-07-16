@@ -5059,7 +5059,7 @@ extension MediaViewController : UITableViewDataSource
                             textField.text = transcript?.mediaID
                         })
                         
-                        let okayAction = UIAlertAction(title: "Okay", style: UIAlertActionStyle.default, handler: {
+                        let okayAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.default, handler: {
                             alertItem -> Void in
                         })
                         alert.addAction(okayAction)
@@ -5105,9 +5105,8 @@ extension MediaViewController : UITableViewDataSource
                         return
                     }
                     
-                    guard let completed = transcript?.completed, !completed else {
-                        print("Completed!  SHOULD NOT HAPPEN!!!")
-                        return
+                    if let completed = transcript?.completed, !completed {
+                        transcript?.completed = false
                     }
 //                    guard transcript?.mediaID != "Completed" else {
 //                        print("Completed!  SHOULD NOT HAPPEN!!!")
@@ -5255,7 +5254,7 @@ extension MediaViewController : UITableViewDataSource
                             textField.text = transcript?.mediaID
                         })
                         
-                        let okayAction = UIAlertAction(title: "Okay", style: UIAlertActionStyle.default, handler: {
+                        let okayAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.default, handler: {
                             alertItem -> Void in
                         })
                         alert.addAction(okayAction)
@@ -5727,11 +5726,11 @@ extension MediaViewController : UITableViewDataSource
         }
         
         if mediaItem.hasAudio && globals.allowMGTs {
-            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.audio) && (mediaItem == selectedMediaItem) {
+//            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.audio) && (mediaItem == selectedMediaItem) {
                 if mediaItem.audioTranscript?.keywords != nil {
                     actions.append(audioKeywords)
                 }
-            }
+//            }
         }
         
         if mediaItem.videoTranscript?.transcript != nil {
@@ -5750,11 +5749,11 @@ extension MediaViewController : UITableViewDataSource
         }
         
         if mediaItem.hasVideo && globals.allowMGTs {
-            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.video) && (mediaItem == selectedMediaItem)  {
+//            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.video) && (mediaItem == selectedMediaItem)  {
                 if mediaItem.videoTranscript?.keywords != nil {
                     actions.append(videoKeywords)
                 }
-            }
+//            }
         }
         
         return actions.count > 0 ? actions : nil

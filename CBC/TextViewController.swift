@@ -326,8 +326,14 @@ class TextViewController : UIViewController
                                 completion?(text)
                             })
                             
-                            // Must start over (startingRange == nil) to avoid skipping
-                            self.changeText(interactive:interactive,text:text,startingRange:nil,changes:changes,completion:completion)
+                            let before = text.substring(to: range.lowerBound)
+                            
+                            if let completedRange = text.range(of: before + value) {
+                                let startingRange = Range(uncheckedBounds: (lower: completedRange.upperBound, upper: text.endIndex))
+                                self.changeText(interactive:interactive,text:text,startingRange:startingRange,changes:changes,completion:completion)
+                            } else {
+                                // ERROR
+                            }
                         }))
                         
                         actions.append(AlertAction(title: "No", style: .default, action: {
@@ -339,16 +345,23 @@ class TextViewController : UIViewController
                             
                         }))
                         
-                        globals.alert(category:"EDIT TEXT",title:"Change \"\(string)\" to \"\(value)\"?",message:nil,attributedText:attributedString,actions:actions)
+                        globals.alert(category:nil,title:"Change \"\(string)\" to \"\(value)\"?",message:nil,attributedText:attributedString,actions:actions)
                     } else {
                         text.replaceSubrange(range, with: value)
                         
                         DispatchQueue.main.async(execute: { () -> Void in
                             completion?(text)
                         })
-                        
+
                         let operation = BlockOperation(block: {
-                            self.changeText(interactive:interactive,text:text,startingRange:nil,changes:changes,completion:completion)
+                            let before = text.substring(to: range.lowerBound)
+                            
+                            if let completedRange = text.range(of: before + value) {
+                                let startingRange = Range(uncheckedBounds: (lower: completedRange.upperBound, upper: text.endIndex))
+                                self.changeText(interactive:interactive,text:text,startingRange:startingRange,changes:changes,completion:completion)
+                            } else {
+                                // ERROR
+                            }
                         })
 //                        operation.name = ""
                         operationQueue.addOperation(operation)
@@ -398,6 +411,14 @@ class TextViewController : UIViewController
             print(text)
             print(changes)
             print(changes?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first)
+            
+            var actions = [AlertAction]()
+            
+            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: {
+                
+            }))
+            
+            globals.alert(title:"Automatic Editing Completed",message:nil)
         }
     }
 

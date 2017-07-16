@@ -504,7 +504,12 @@ class VoiceBase {
     
     var transcribing = false
     
-    var realigning = false
+    var aligning = false
+    {
+        didSet {
+            print("")
+        }
+    }
     
     var percentComplete:String?
     
@@ -551,9 +556,11 @@ class VoiceBase {
                         // called during init()'s which is fortunate.
                     } catch let error as NSError {
                         print("failed to load machine generated transcript for \(mediaItem.description): \(error.localizedDescription)")
-                        if completed {
-                            remove()
-                        }
+                        
+                        // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
+//                        if !aligning {
+//                            remove()
+//                        }
                     }
                 }
             } else {
@@ -673,9 +680,11 @@ class VoiceBase {
                     _mediaJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
                 } catch let error as NSError {
                     print("failed to load machine generated media for \(mediaItem.description): \(error.localizedDescription)")
-                    if completed {
-                        remove()
-                    }
+                    
+                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
+//                    if completed && !aligning {
+//                        remove()
+//                    }
                 }
             } else {
                 print("failed to open machine generated media for \(mediaItem.description)")
@@ -687,12 +696,7 @@ class VoiceBase {
         }
         set {
             _mediaJSON = newValue
-        }
-    }
-    
-    var _mediaJSON : [String:Any]?
-    {
-        didSet {
+            
             guard let mediaItem = mediaItem else {
                 return
             }
@@ -705,9 +709,9 @@ class VoiceBase {
                 return
             }
             
-//            guard completed else {
-//                return
-//            }
+            //            guard completed else {
+            //                return
+            //            }
             
             DispatchQueue.global(qos: .background).async {
                 let fileManager = FileManager.default
@@ -750,96 +754,20 @@ class VoiceBase {
             }
         }
     }
+    
+    var _mediaJSON : [String:Any]?
+    {
+        didSet {
+
+        }
+    }
 
     var keywordsJSON: [String:Any]?
     {
         get {
             return mediaJSON?["keywords"] as! [String:Any]?
-//            guard _keywordsJSON == nil else {
-//                return _keywordsJSON
-//            }
-//            
-//            guard mediaItem != nil else {
-//                return nil
-//            }
-//            
-//            guard mediaItem?.id != nil else {
-//                return nil
-//            }
-//            
-//            guard purpose != nil else {
-//                return nil
-//            }
-//            
-//            if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).keywords"), let data = try? Data(contentsOf: url) {
-//                do {
-//                    _keywordsJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
-//                    //                            print(self.keywordsJSON)
-//                    //                            print(self.keywords)
-//                } catch let error as NSError {
-//                    print("failed to load machine generated keywords for \(mediaItem.description): \(error.localizedDescription)")
-//                }
-//            }
-//            
-//            return _keywordsJSON
         }
-//        set {
-//            _keywordsJSON = newValue
-//        }
     }
-    
-//    var _keywordsJSON : [String:Any]?
-//    {
-//        didSet {
-//            guard mediaItem != nil else {
-//                return
-//            }
-//            
-//            guard mediaItem?.id != nil else {
-//                return
-//            }
-//            
-//            guard purpose != nil else {
-//                return
-//            }
-//            
-//            let fileManager = FileManager.default
-//            
-//            if _keywordsJSON != nil {
-//                let keywordsPropertyList = try? PropertyListSerialization.data(fromPropertyList: _keywordsJSON as Any, format: .xml, options: 0)
-//                
-//                if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).keywords") {
-//                    if (fileManager.fileExists(atPath: destinationURL.path)){
-//                        do {
-//                            try fileManager.removeItem(at: destinationURL)
-//                        } catch let error as NSError {
-//                            print("failed to remove machine generated transcript keywords: \(error.localizedDescription)")
-//                        }
-//                    }
-//                    
-//                    do {
-//                        try keywordsPropertyList?.write(to: destinationURL)
-//                    } catch let error as NSError {
-//                        print("failed to write machine generated transcript keywords to cache directory: \(error.localizedDescription)")
-//                    }
-//                }
-//            } else {
-//                if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).keywords") {
-//                    if (fileManager.fileExists(atPath: destinationURL.path)){
-//                        do {
-//                            try fileManager.removeItem(at: destinationURL)
-//                        } catch let error as NSError {
-//                            print("failed to remove machine generated transcript keywords: \(error.localizedDescription)")
-//                        }
-//                    } else {
-//                        print("machine generated transcript keywords file doesn't exist")
-//                    }
-//                } else {
-//                    print("failed to get destinationURL")
-//                }
-//            }
-//        }
-//    }
     
     var keywordDictionaries : [String:[String:Any]]?
     {
@@ -886,79 +814,8 @@ class VoiceBase {
     {
         get {
             return mediaJSON?["topics"] as! [String:Any]?
-//            guard _topicsJSON == nil else {
-//                return _topicsJSON
-//            }
-//            
-//            guard mediaItem != nil else {
-//                return nil
-//            }
-//            
-//            guard mediaItem?.id != nil else {
-//                return nil
-//            }
-//            
-//            guard purpose != nil else {
-//                return nil
-//            }
-//            
-//            if let url = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).topics"), let data = try? Data(contentsOf: url) {
-//                do {
-//                    _topicsJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
-//                    //                            print(self.topicsJSON)
-//                    //                            print(self.topics)
-//                } catch let error as NSError {
-//                    print("failed to load machine generated topics for \(mediaItem.description): \(error.localizedDescription)")
-//                }
-//            }
-//            
-//            return _topicsJSON
         }
-//        set {
-//            _topicsJSON = newValue
-//        }
     }
-    
-//    var _topicsJSON : [String:Any]?
-//    {
-//        didSet {
-//            let fileManager = FileManager.default
-//            
-//            if topicsJSON != nil {
-//                let topicsPropertyList = try? PropertyListSerialization.data(fromPropertyList: self.topicsJSON as Any, format: .xml, options: 0)
-//                
-//                if let destinationURL = cachesURL()?.appendingPathComponent("\(self.mediaItem.id!).\(self.purpose!).topics") {
-//                    if (fileManager.fileExists(atPath: destinationURL.path)){
-//                        do {
-//                            try fileManager.removeItem(at: destinationURL)
-//                        } catch let error as NSError {
-//                            print("failed to remove machine generated transcript topics: \(error.localizedDescription)")
-//                        }
-//                    }
-//                    
-//                    do {
-//                        try topicsPropertyList?.write(to: destinationURL)
-//                    } catch let error as NSError {
-//                        print("failed to write machine generated transcript topics to cache directory: \(error.localizedDescription)")
-//                    }
-//                }
-//            } else {
-//                if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).topics") {
-//                    if (fileManager.fileExists(atPath: destinationURL.path)){
-//                        do {
-//                            try fileManager.removeItem(at: destinationURL)
-//                        } catch let error as NSError {
-//                            print("failed to remove machine generated transcript topics: \(error.localizedDescription)")
-//                        }
-//                    } else {
-//                        print("machine generated transcript topics file doesn't exist")
-//                    }
-//                } else {
-//                    print("failed to get destinationURL")
-//                }
-//            }
-//        }
-//    }
     
     var topicsDictionaries : [String:[String:Any]]?
     {
@@ -1169,13 +1026,13 @@ class VoiceBase {
                 self.resultsTimer?.invalidate()
                 self.resultsTimer = nil
                 
-                self.transcribing = false
-                self.completed = true
-                
                 self.getTranscript()
                 self.getTranscriptSRT()
                 
                 self.details()
+                
+                self.transcribing = false
+                self.completed = true
             } else {
                 if let progress = json?["progress"] as? [String:Any] {
                     if let tasks = progress["tasks"] as? [String:Any] {
@@ -1200,7 +1057,6 @@ class VoiceBase {
         
         userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
             self.remove()
-            
             globals.alert(title: "Transcript Failed",message: "The transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nwas not completed.  Please try again.")
             
             DispatchQueue.main.async(execute: { () -> Void in
@@ -1235,8 +1091,11 @@ class VoiceBase {
                         self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(), repeats: true)
                     })
                 }
+            } else {
+                // Not accepted.
             }
         }, onError: { (json:[String : Any]?) -> (Void) in
+            self.transcribing = false
             globals.alert(title: "Transcript Failed",message: "The transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nfailed to start.  Please try again.")
             
             DispatchQueue.main.async(execute: { () -> Void in
@@ -1244,8 +1103,6 @@ class VoiceBase {
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_START), object: self)
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
             })
-            
-            self.transcribing = false
         })
     }
     
@@ -1369,6 +1226,7 @@ class VoiceBase {
         
         transcribing = false
         completed = false
+        aligning = false
 
         percentComplete = nil
         
@@ -1624,21 +1482,21 @@ class VoiceBase {
                 //                                self.transcribing = false
                 //                                self.completed = true
                 
-                // These will delete the existing versions.
-                self.transcript = nil
-                self.transcriptSRT = nil
-                
-                // Really should compare the old and new version...
+                // These will NOT delete the existing versions.
+                self._transcript = nil
+                self._transcriptSRT = nil
                 
                 // Get the new versions.
                 self.getTranscript()
                 self.getTranscriptSRT()
                 
-                // Delete the transcripts, keywords, and topics.
-                self.mediaJSON = nil
+                // This will NOT delete the existing versions.
+                self._mediaJSON = nil
                 
                 // Get the new ones.
                 self.details()
+                
+                self.aligning = false
             } else {
                 if let progress = json?["progress"] as? [String:Any] {
                     if let tasks = progress["tasks"] as? [String:Any] {
@@ -1663,7 +1521,6 @@ class VoiceBase {
         
         userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
             self.remove()
-            
             globals.alert(title: "Transcript Realignment Failed",message: "The transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nwas not realigned.  Please try again.")
             
             //                        DispatchQueue.main.async(execute: { () -> Void in
@@ -1677,16 +1534,33 @@ class VoiceBase {
     
     func align()
     {
-        // Check whether the media is on VB
+        guard completed else {
+            // Should never happen.
+            return
+        }
         
+        guard !aligning else {
+            globals.alert(title:"Transcript Alignment in Progress", message:"The transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nis already being aligned.  You will be notified when it is completed.")
+            return
+        }
+        
+        aligning = true
+        
+        // Check whether the media is on VB
         progress(completion: { (json:[String : Any]?) -> (Void) in
             let parameters = ["transcript":self.transcript!,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
             
             self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+                self.uploadJSON = json
+                
                 // If it is on VB, upload the transcript for realignment
                 if let status = json?["status"] as? String, status == "accepted" {
                     if let mediaID = json?["mediaId"] as? String {
                         guard self.mediaID == mediaID else {
+                            self.aligning = false
+                            self.resultsTimer?.invalidate()
+                            self.resultsTimer = nil
+                            globals.alert(title: "Transcript Alignment Failed",message: "The transcript realignment for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nfailed to start.  Please try again.")
                             return
                         }
 
@@ -1694,23 +1568,27 @@ class VoiceBase {
 //                        self.transcribing = true
 //                        self.completed = false
                         
-                        self.uploadJSON = json
-                        
                         globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nhas started.  You will be notified when it is complete.")
                         
                         DispatchQueue.main.async(execute: { () -> Void in
                             self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(), repeats: true)
                         })
                     }
+                } else {
+                    // Not accepted
+                    
                 }
             }, onError: { (json:[String : Any]?) -> (Void) in
+                self.aligning = false
+                self.resultsTimer?.invalidate()
+                self.resultsTimer = nil
                 globals.alert(title: "Transcript Alignment Failed",message: "The transcript realignment for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nfailed to start.  Please try again.")
             })
         }, onError: { (json:[String : Any]?) -> (Void) in
             // Not on VoiceBase
+            globals.alert(title:"Media Not on VoiceBase", message:"The media for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nis not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
             
             // Upload then then align
-            
             self.mediaID = nil
             
             let parameters:[String:String] = ["media":self.url!,"metadata":self.metadata,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
@@ -1758,10 +1636,16 @@ class VoiceBase {
                                 let parameters:[String:String] = ["transcript":self.transcript!,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
                                 
                                 self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
+                                    self.uploadJSON = json
+                                    
                                     // If it is on VB, upload the transcript for realignment
                                     if let status = json?["status"] as? String, status == "accepted" {
                                         if let mediaID = json?["mediaId"] as? String {
                                             guard self.mediaID == mediaID else {
+                                                self.aligning = false
+                                                self.resultsTimer?.invalidate()
+                                                self.resultsTimer = nil
+                                                globals.alert(title: "Transcript Alignment Failed",message: "The transcript realignment for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nfailed to start.  Please try again.")
                                                 return
                                             }
                                             
@@ -1769,7 +1653,7 @@ class VoiceBase {
                                             //                        self.transcribing = true
                                             //                        self.completed = false
                                             
-                                            self.uploadJSON = json
+                                            self.aligning = true
                                             
                                             globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nhas started.  You will be notified when it is complete.")
                                             
@@ -1777,8 +1661,13 @@ class VoiceBase {
                                                 self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(), repeats: true)
                                             })
                                         }
+                                    } else {
+                                        // Not accepted.
                                     }
                                 }, onError: { (json:[String : Any]?) -> (Void) in
+                                    self.aligning = false
+                                    self.resultsTimer?.invalidate()
+                                    self.resultsTimer = nil
                                     globals.alert(title: "Transcript Alignment Failed",message: "The transcript realignment for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nfailed to start.  Please try again.")
                                 })
                             } else {
@@ -1804,8 +1693,9 @@ class VoiceBase {
                         }
                         
                         userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
-                            self.remove()
-                            
+                            self.aligning = false
+                            self.resultsTimer?.invalidate()
+                            self.resultsTimer = nil
                             globals.alert(title: "Transcript Alignment Failed",message: "The transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nwas not realigned.  Please try again.")
                             
                             //                        DispatchQueue.main.async(execute: { () -> Void in
@@ -1818,8 +1708,13 @@ class VoiceBase {
                             self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: userInfo, repeats: true)
                         })
                     }
+                } else {
+                    // No accepted.
                 }
             }, onError: { (json:[String : Any]?) -> (Void) in
+                self.aligning = false
+                self.resultsTimer?.invalidate()
+                self.resultsTimer = nil
                 globals.alert(title: "Transcript Alignment Failed",message: "The transcript realignment for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nfailed to start.  Please try again.")
             })
         })
@@ -1836,7 +1731,7 @@ class VoiceBase {
             if let text = json?["text"] as? String {
                 self.transcript = text
 
-                globals.alert(title: "Transcript Ready",message: "The transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nis available.")
+                globals.alert(title: "Transcript Available",message: "The transcript for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\nis available.")
                 
                 DispatchQueue.main.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
@@ -2066,9 +1961,11 @@ class VoiceBase {
                     try _transcriptSRT = String(contentsOfFile: url.path, encoding: String.Encoding.utf8)
                 } catch let error as NSError {
                     print("failed to load machine generated transcriptSRT for \(mediaItem.description): \(error.localizedDescription)")
-                    if completed {
-                        remove()
-                    }
+                    
+                    // this doesn't work because these flags are set too quickly so aligning is false by the time it gets here!
+//                    if completed && !aligning {
+//                        remove()
+//                    }
                 }
             }
             

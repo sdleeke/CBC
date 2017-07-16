@@ -840,26 +840,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     var alertTimer : Timer?
     
-//    var alertBlock : String?
-//    {
-//        didSet {
-//            if alertBlock != nil {
-//                while alerts.filter({ (alert:Alert) -> Bool in
-//                    return alert.category == "EDIT TEXT"
-//                }).count > 0 {
-//                    var index = 0
-//                    while alerts[index].category != "EDIT TEXT" {
-//                        index += 1
-//                    }
-//                    if alerts[index].category == "EDIT TEXT" {
-//                        alerts.remove(at: index)
-//                    }
-//                }
-//                alertBlock = nil
-//            }
-//        }
-//    }
-    
     func alert(title:String,message:String?)
     {
         if !alerts.contains(where: { (alert:Alert) -> Bool in

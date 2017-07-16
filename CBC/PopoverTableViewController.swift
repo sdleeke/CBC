@@ -284,6 +284,10 @@ class PopoverTableViewController : UIViewController
     
     func follow()
     {
+        guard startTimes != nil else {
+            return
+        }
+        
         if let seconds = globals.mediaPlayer.currentTime?.seconds {
             var index = 0
             
