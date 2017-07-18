@@ -16,9 +16,9 @@ class SettingsViewController: UIViewController {
     @IBAction func searchTranscriptsAction(_ sender: UISwitch) {
         globals.search.transcripts = sender.isOn
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
-        })
+        }
     }
     
     @IBOutlet weak var autoAdvanceSwitch: UISwitch!
@@ -46,9 +46,9 @@ class SettingsViewController: UIViewController {
                 
                 globals.loadSingles = true
 
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     self.updateCacheSize()
-                })
+                }
             })
         }
     }
@@ -103,9 +103,9 @@ class SettingsViewController: UIViewController {
                 break
             }
 
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 self.cacheSizeLabel.text = "\(String(format: "%0.1f",size)) \(sizeLabel) in use"
-            })
+            }
         })
     }
     
@@ -147,9 +147,9 @@ class SettingsViewController: UIViewController {
                 break
             }
             
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 self.audioSizeLabel.text = "Audio Storage: \(String(format: "%0.1f",size)) \(sizeLabel) in use"
-            })
+            }
         })
     }
     

@@ -256,9 +256,9 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             if let range = string.range(of: " (") {
                 searchText = string.substring(to: range.lowerBound).uppercased()
                 
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     self.tableView.setEditing(false, animated: true)
-                })
+                }
                 
                 updateSearchResults()
             }
@@ -338,11 +338,11 @@ class LexiconIndexViewController : UIViewController
 
             ptvc.selectedText = searchText
             
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 self.selectedWord.text = self.searchText
 
                 self.updateLocateButton()
-            })
+            }
             
             updateSearchResults()
         }
@@ -415,11 +415,11 @@ class LexiconIndexViewController : UIViewController
     {
         guard (searchText != nil) else {
             results = nil
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 self.updateActionMenu()
                 self.tableView.reloadData()
                 self.updateUI()
-            })
+            }
             return
         }
 
@@ -428,7 +428,7 @@ class LexiconIndexViewController : UIViewController
             return mediaItemFrequency.key
         }))
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             if !self.tableView.isEditing {
                 self.tableView.reloadData()
             } else {
@@ -436,7 +436,7 @@ class LexiconIndexViewController : UIViewController
             }
             
             self.updateUI()
-        })
+        }
     }
     
     var ptvc:PopoverTableViewController!
@@ -586,15 +586,15 @@ class LexiconIndexViewController : UIViewController
 //        }
         
         if (self.searchText != nil) {
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 self.locateButton.isHidden = false
                 self.locateButton.isEnabled = true
-            })
+            }
         } else {
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 self.locateButton.isHidden = true
                 self.locateButton.isEnabled = false
-            })
+            }
         }
     }
     
@@ -907,27 +907,27 @@ class LexiconIndexViewController : UIViewController
             popover.navigationItem.title = "Select"
             navigationController.isNavigationBarHidden = false
 
-            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
-                let hClass = traitCollection.horizontalSizeClass
-                
-                if hClass == .compact {
-                    navigationController.modalPresentationStyle = .overCurrentContext
-                } else {
-                    // I don't think this ever happens: collapsed and regular
-                    navigationController.modalPresentationStyle = .popover
-                }
-            } else {
-                navigationController.modalPresentationStyle = .popover
-            }
+//            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+//                let hClass = traitCollection.horizontalSizeClass
+//                
+//                if hClass == .compact {
+//                    navigationController.modalPresentationStyle = .overCurrentContext
+//                } else {
+//                    // I don't think this ever happens: collapsed and regular
+//                    navigationController.modalPresentationStyle = .popover
+//                }
+//            } else {
+//                navigationController.modalPresentationStyle = .popover
+//            }
             
-//            navigationController.modalPresentationStyle = .popover
+            navigationController.modalPresentationStyle = .popover
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
             
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
             
-            //                popover.navigationItem.title = Constants.Actions
+            popover.navigationItem.title = "Select"
             
 //            popover.navigationController?.isNavigationBarHidden = true
             
@@ -952,12 +952,12 @@ class LexiconIndexViewController : UIViewController
     
     func updateTitle()
     {
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             if  let count = self.lexicon?.entries?.count,
                 let total = self.lexicon?.eligible?.count {
                 self.navigationItem.title = "Lexicon Index \(count) of \(total)"
             }
-        })
+        }
     }
     
     func updated()
@@ -1185,9 +1185,9 @@ extension LexiconIndexViewController : UITableViewDelegate
     {
         // Tells the delegate that the table view has left editing mode.
         if changesPending {
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 self.tableView.reloadData()
-            })
+            }
         }
         
         changesPending = false
@@ -1297,7 +1297,7 @@ extension LexiconIndexViewController : UITableViewDataSource
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
     {
         if results?.section?.headerStrings != nil {
-            if (section > -1) && (section < results?.section?.headerStrings?.count) {
+            if (section >= 0) && (section < results?.section?.headerStrings?.count) {
                 return results?.section?.headerStrings?[section]
             } else {
                 return nil
@@ -1335,9 +1335,9 @@ extension LexiconIndexViewController : UITableViewDataSource
         
         cell.searchText = searchText
         
-        if (indexPath.section > -1) && (indexPath.section < results?.section?.indexes?.count) {
+        if (indexPath.section >= 0) && (indexPath.section < results?.section?.indexes?.count) {
             if let section = results?.section?.indexes?[indexPath.section] {
-                if (section + indexPath.row) > -1, (section + indexPath.row) < results?.mediaItems?.count {
+                if (section + indexPath.row) >= 0, (section + indexPath.row) < results?.mediaItems?.count {
                     cell.mediaItem = results?.mediaItems?[section + indexPath.row]
                 }
             } else {
@@ -1356,7 +1356,7 @@ extension LexiconIndexViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
     {
-        guard section > -1, section < results?.section?.headerStrings?.count, let title = results?.section?.headerStrings?[section] else {
+        guard section >= 0, section < results?.section?.headerStrings?.count, let title = results?.section?.headerStrings?[section] else {
             return Constants.HEADER_HEIGHT
         }
         
@@ -1375,7 +1375,7 @@ extension LexiconIndexViewController : UITableViewDataSource
         
         view.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
         
-        if section > -1, section < results?.section?.headerStrings?.count, let title = results?.section?.headerStrings?[section] {
+        if section >= 0, section < results?.section?.headerStrings?.count, let title = results?.section?.headerStrings?[section] {
             let label = UILabel()
             
             label.numberOfLines = 0

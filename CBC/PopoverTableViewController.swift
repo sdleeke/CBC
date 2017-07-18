@@ -303,6 +303,8 @@ class PopoverTableViewController : UIViewController
             }
             index -= 1
             
+            index = max(index,0)
+            
 //            print("Row: ",row-1)
 
             if self.section.counts?.count == self.section.indexes?.count {
@@ -316,10 +318,12 @@ class PopoverTableViewController : UIViewController
 
                     let row = index - sectionIndex
 
-                    let indexPath = IndexPath(row: row, section: section)
-                    
-                    if tableView.indexPathForSelectedRow != indexPath {
-                        tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
+                    if (section >= 0) && (section < tableView.numberOfSections) && (row >= 0) && (row < tableView.numberOfRows(inSection: section)) {
+                        let indexPath = IndexPath(row: row, section: section)
+                        
+                        if tableView.indexPathForSelectedRow != indexPath {
+                            tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
+                        }
                     }
                 }
             }
@@ -681,9 +685,7 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-        DispatchQueue.main.async(execute: { () -> Void in
-            refreshControl.beginRefreshing()
-        })
+        refreshControl.beginRefreshing()
         
         self.isRefreshing = true
 
@@ -708,9 +710,9 @@ class PopoverTableViewController : UIViewController
             tableView.refreshControl = refreshControl
         } else {
             // Fallback on earlier versions
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 self.tableView?.addSubview(self.refreshControl!)
-            })
+            }
         }
     }
     
@@ -720,9 +722,9 @@ class PopoverTableViewController : UIViewController
             tableView.refreshControl = nil
         } else {
             // Fallback on earlier versions
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 self.refreshControl?.removeFromSuperview()
-            })
+            }
         }
     }
     
@@ -731,6 +733,53 @@ class PopoverTableViewController : UIViewController
     func done()
     {
         dismiss(animated: true, completion: nil)
+    }
+    
+    let operationQueue = OperationQueue()
+    
+    func autoEdit()
+    {
+        var actions = [AlertAction]()
+        
+        actions.append(AlertAction(title: "Interactive", style: .default, action: {
+            func auto(_ srtComponents:[String]?)
+            {
+                if var srtComponents = srtComponents, srtComponents.count > 0 {
+                    let srtComponent = srtComponents.removeFirst()
+                    if let indexPath = self.section.indexPath(from: srtComponent) {
+                        self.transcript?.editSRT(popover:self,tableView:self.tableView,indexPath:indexPath,automatic:true,automaticInteractive:true,automaticCompletion:{
+                            auto(srtComponents)
+                        })
+                    }
+                } else {
+                    globals.alert(title:"Assisted Editing Process Completed",message:nil)
+                }
+            }
+            
+            auto(self.section.strings)
+        }))
+        
+        actions.append(AlertAction(title: "Automatic", style: .default, action: {
+            func auto(_ srtComponents:[String]?)
+            {
+                if var srtComponents = srtComponents, srtComponents.count > 0 {
+                    let srtComponent = srtComponents.removeFirst()
+                    if let indexPath = self.section.indexPath(from: srtComponent) {
+                        self.transcript?.editSRT(popover:self,tableView:self.tableView,indexPath:indexPath,automatic:true,automaticInteractive:false,automaticCompletion:{
+                            auto(srtComponents)
+                        })
+                    }
+                } else {
+                    globals.alert(title:"Assisted Editing Process Completed",message:nil)
+                }
+            }
+            
+            auto(self.section.strings)
+        }))
+        
+        actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, action: nil))
+        
+        alert(viewController:self,title:"Start Assisted Editing?",message:nil,actions:actions)
     }
     
     override func viewDidLoad() {
@@ -745,8 +794,14 @@ class PopoverTableViewController : UIViewController
             case .overFullScreen:
                 if navigationItem.rightBarButtonItems != nil {
                     navigationItem.rightBarButtonItems?.append(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.done)))
+                    if (transcript != nil) && (purpose == .selectingTime) {
+                        navigationItem.rightBarButtonItems?.append(UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(self.autoEdit)))
+                    }
                 } else {
                     navigationItem.setRightBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.done)), animated: true)
+                    if (transcript != nil) && (purpose == .selectingTime) {
+                        navigationItem.rightBarButtonItems?.append(UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(self.autoEdit)))
+                    }
                 }
                 
             default:
@@ -860,8 +915,8 @@ class PopoverTableViewController : UIViewController
                     let row = index - base
                     
                     if self.section.strings?.count > 0 {
-                        DispatchQueue.main.async(execute: { () -> Void in
-                            if section > -1, section < self.tableView.numberOfSections, row > -1, row < self.tableView.numberOfRows(inSection: section) {
+                        Thread.onMainThread() {
+                            if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
                                 let indexPath = IndexPath(row: row,section: section)
                                 if scroll {
                                     self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
@@ -872,7 +927,7 @@ class PopoverTableViewController : UIViewController
                             } else {
                                 alert(viewController:self,title:"String not found!",message:"THIS SHOULD NOT HAPPEN.",completion:nil)
                             }
-                        })
+                        }
                     }
                 }
                 break
@@ -882,8 +937,8 @@ class PopoverTableViewController : UIViewController
                 let row = index
 
                 if self.section.strings?.count > 0 {
-                    DispatchQueue.main.async(execute: { () -> Void in
-                        if section > -1, section < self.tableView.numberOfSections, row > -1, row < self.tableView.numberOfRows(inSection: section) {
+                    Thread.onMainThread() {
+                        if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
                             let indexPath = IndexPath(row: row,section: section)
                             if scroll {
                                 self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
@@ -894,7 +949,7 @@ class PopoverTableViewController : UIViewController
                         } else {
                             alert(viewController:self,title:"String not found!",message:"THIS SHOULD NOT HAPPEN.",completion:nil)
                         }
-                    })
+                    }
                 }
                 break
             default:
@@ -907,10 +962,10 @@ class PopoverTableViewController : UIViewController
     
     func lexiconStarted()
     {
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             self.activityIndicator.startAnimating()
             self.activityIndicator?.isHidden = false
-        })
+        }
     }
     
     func lexiconUpdated()
@@ -919,16 +974,16 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             if let completed = self.mediaListGroupSort?.lexicon?.completed, !completed {
                 self.activityIndicator.startAnimating()
                 self.activityIndicator?.isHidden = false
             }
-        })
+        }
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             self.updateTitle()
-        })
+        }
 
         unfilteredSection.strings = (sort.function == nil) ? mediaListGroupSort?.lexicon?.section.strings : sort.function?(sort.method,mediaListGroupSort?.lexicon?.section.strings)
         
@@ -956,13 +1011,13 @@ class PopoverTableViewController : UIViewController
             }
         }
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             if let pause = self.mediaListGroupSort?.lexicon?.pauseUpdates, !pause {
                 self.tableView.reloadData()
             }
-        })
+        }
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             if let completed = self.mediaListGroupSort?.lexicon?.completed, completed {
                 self.activityIndicator.stopAnimating()
                 self.activityIndicator?.isHidden = true
@@ -978,15 +1033,15 @@ class PopoverTableViewController : UIViewController
                     self.isRefreshing = false
                 }
             }
-        })
+        }
     }
     
     func lexiconCompleted()
     {
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             self.activityIndicator.startAnimating()
             self.activityIndicator?.isHidden = false
-        })
+        }
 
         unfilteredSection.strings = (sort.function == nil) ? mediaListGroupSort?.lexicon?.section.strings : sort.function?(sort.method,mediaListGroupSort?.lexicon?.section.strings)
 
@@ -1020,7 +1075,7 @@ class PopoverTableViewController : UIViewController
             }
         }
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             if #available(iOS 10.0, *) {
                 if let isRefreshing = self.tableView.refreshControl?.isRefreshing, isRefreshing {
                     self.refreshControl?.endRefreshing()
@@ -1039,7 +1094,7 @@ class PopoverTableViewController : UIViewController
 
             self.activityIndicator?.stopAnimating()
             self.activityIndicator?.isHidden = true
-        })
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool)
@@ -1360,24 +1415,24 @@ class PopoverTableViewController : UIViewController
 
         if stringsFunction != nil {
             DispatchQueue.global(qos: .background).async {
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     self.activityIndicator.startAnimating()
                     self.activityIndicator?.isHidden = false
-                })
+                }
                 
                 self.section.strings = self.stringsFunction?()
                 
                 if self.section.strings != nil {
 //                    self.section.buildIndex()
                     
-                    DispatchQueue.main.async(execute: { () -> Void in
+                    Thread.onMainThread() {
                         self.tableView.reloadData()
                         
                         self.setPreferredContentSize()
                         
                         self.activityIndicator.stopAnimating()
                         self.activityIndicator?.isHidden = true
-                    })
+                    }
                 }
             }
         } else
@@ -1462,7 +1517,7 @@ extension PopoverTableViewController : UITableViewDataSource
     {
         // Return the number of rows in the section.
         if self.section.showIndex || self.section.showHeaders {
-            return self.section.counts != nil ? (((section > -1) && (section < self.section.counts?.count)) ? self.section.counts![section] : 0) : 0
+            return self.section.counts != nil ? (((section >= 0) && (section < self.section.counts?.count)) ? self.section.counts![section] : 0) : 0
         } else {
             return self.section.strings != nil ? self.section.strings!.count : 0
         }
@@ -1493,7 +1548,7 @@ extension PopoverTableViewController : UITableViewDataSource
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
     {
         if self.section.showIndex || self.section.showHeaders {
-            if let count = self.section.headers?.count, section > -1, section < count {
+            if let count = self.section.headers?.count, section >= 0, section < count {
                 return self.section.headers?[section]
             }
         }
@@ -1519,7 +1574,7 @@ extension PopoverTableViewController : UITableViewDataSource
 //            index = indexPath.row
 //        }
         
-        guard index > -1 else {
+        guard index >= 0 else {
             print("ERROR")
             return cell
         }
@@ -1718,7 +1773,7 @@ extension PopoverTableViewController : UITableViewDelegate
             return 0
         }
         
-        guard section > -1, section < self.section.headers?.count, let title = self.section.headers?[section] else {
+        guard section >= 0, section < self.section.headers?.count, let title = self.section.headers?[section] else {
             return Constants.HEADER_HEIGHT
         }
         
@@ -1739,7 +1794,7 @@ extension PopoverTableViewController : UITableViewDelegate
         
         var view : UIView?
         
-        if section > -1, section < self.section.headers?.count, let title = self.section.headers?[section] {
+        if section >= 0, section < self.section.headers?.count, let title = self.section.headers?[section] {
             view = UIView()
             
             view?.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
@@ -1797,8 +1852,6 @@ extension PopoverTableViewController : UITableViewDelegate
         
         if search {
             self.searchBar.resignFirstResponder()
-//            DispatchQueue.main.async(execute: { () -> Void in
-//            })
         }
         
         var index = -1

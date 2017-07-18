@@ -35,8 +35,8 @@ extension TextViewController: UISearchBarDelegate
         
         searchText = searchBar.text
         
-        if let text = searchText {
-            
+        if let searchText = searchText {
+            textView.attributedText = stringMarkedBySearchAsAttributedString(string: textView.text, searchText: searchText, wholeWordsOnly: false)
         }
     }
     
@@ -47,11 +47,6 @@ extension TextViewController: UISearchBarDelegate
             return
         }
         
-        searchText = searchBar.text
-        
-        if let text = searchText { // , (text.isEmpty == false)
-            
-        }
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
@@ -61,10 +56,10 @@ extension TextViewController: UISearchBarDelegate
             return
         }
         
-        self.searchText = searchBar.text
-        
-        if let text = self.searchText { // , (text.isEmpty == false)
-            
+        self.searchText = searchText
+
+        if !searchText.isEmpty {
+            textView.attributedText = stringMarkedBySearchAsAttributedString(string: text, searchText: searchText, wholeWordsOnly: false)
         }
     }
     
@@ -81,7 +76,7 @@ extension TextViewController: UISearchBarDelegate
         
         searchBar.resignFirstResponder()
         
-        //        print(searchController?.isActive)
+        textView.attributedText = stringMarkedBySearchAsAttributedString(string: text, searchText: searchText, wholeWordsOnly: false)
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar)
@@ -94,6 +89,8 @@ extension TextViewController: UISearchBarDelegate
         searchText = nil
         searchActive = false
         
+        textView.attributedText = nil
+        textView.text = changedText
         
         searchBar.showsCancelButton = false
         
@@ -102,15 +99,76 @@ extension TextViewController: UISearchBarDelegate
     }
 }
 
+extension TextViewController : UITextViewDelegate
+{
+    func textViewShouldBeginEditing(_ textView: UITextView) -> Bool
+    {
+        // Asks the delegate if editing should begin in the specified text view.
+        
+        textView.attributedText = nil
+        textView.text = changedText
+        
+        return true
+    }
+    
+    func textViewDidBeginEditing(_ textView: UITextView)
+    {
+        // Tells the delegate that editing of the specified text view has begun.
+        
+    }
+    
+    func textViewShouldEndEditing(_ textView: UITextView) -> Bool
+    {
+        // Asks the delegate if editing should stop in the specified text view.
+        
+        return true
+    }
+    
+    func textViewDidEndEditing(_ textView: UITextView)
+    {
+        // Tells the delegate that editing of the specified text view has ended.
+        
+        if let searchText = searchText, searchActive {
+            textView.attributedText = stringMarkedBySearchAsAttributedString(string: text, searchText: searchText, wholeWordsOnly: false)
+        }
+    }
+    
+    func textView(_ shouldChangeTextIn: NSRange, replacementText: String)
+    {
+        // Asks the delegate whether the specified text should be replaced in the text view.
+
+    }
+    
+    func textViewDidChange(_ textView: UITextView)
+    {
+        // Tells the delegate that the text or attributes in the specified text view were changed by the user.
+    
+        changedText = textView.text
+    }
+    
+    func textViewDidChangeSelection(_ textView: UITextView)
+    {
+        // Tells the delegate that the text selection changed in the specified text view.
+        
+    }
+}
+
 class TextViewController : UIViewController
 {
     var text : String?
     {
         didSet {
+            changedText = text
+        }
+    }
+    
+    var changedText : String?
+    {
+        didSet {
             
         }
     }
-
+    
     var searchText : String?
 
     var search              = false
@@ -126,6 +184,10 @@ class TextViewController : UIViewController
     }
     
     @IBOutlet weak var textViewToTop: NSLayoutConstraint!
+    
+    var automatic = false
+    var automaticInteractive = false
+    var automaticCompletion : ((Void)->(Void))?
     
     var completion : ((String)->(Void))?
     
@@ -196,7 +258,7 @@ class TextViewController : UIViewController
             }
         }))
         
-        actions.append(AlertAction(title: "Cancel", style: .default, action: nil))
+        actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, action: nil))
         
         alert(viewController:self,title:"Start Assisted Editing?",message:nil,actions:actions)
     }
@@ -217,7 +279,7 @@ class TextViewController : UIViewController
         navigationItem.rightBarButtonItems = [  UIBarButtonItem(title: "Save", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.done)),
                                                 UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.autoEdit))]
         
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.cancel))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: Constants.Strings.Cancel, style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.cancel))
         
         searchBar.text = searchText
         searchBar.isUserInteractionEnabled = searchInteractive
@@ -456,9 +518,7 @@ class TextViewController : UIViewController
                         actions.append(AlertAction(title: "Yes", style: .destructive, action: {
                             text.replaceSubrange(range, with: value)
 
-                            DispatchQueue.main.async(execute: { () -> Void in
-                                completion?(text)
-                            })
+                            completion?(text)
                             
                             let before = text.substring(to: range.lowerBound)
                             
@@ -475,7 +535,7 @@ class TextViewController : UIViewController
                             self.changeText(interactive:interactive,text:text,startingRange:startingRange,changes:changes,completion:completion)
                         }))
                         
-                        actions.append(AlertAction(title: "Cancel", style: .default, action: {
+                        actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, action: {
                             
                         }))
                         
@@ -483,9 +543,9 @@ class TextViewController : UIViewController
                     } else {
                         text.replaceSubrange(range, with: value)
                         
-                        DispatchQueue.main.async(execute: { () -> Void in
+                        DispatchQueue.main.async {
                             completion?(text)
-                        })
+                        }
 
                         let operation = BlockOperation(block: {
                             let before = text.substring(to: range.lowerBound)
@@ -546,13 +606,27 @@ class TextViewController : UIViewController
             print(changes as Any)
             print(changes?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first as Any)
             
-            var actions = [AlertAction]()
-            
-            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: {
+            if !automatic {
+                var actions = [AlertAction]()
                 
-            }))
-            
-            globals.alert(title:"Assisted Editing Process Completed",message:nil)
+                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: {
+                    
+                }))
+                
+                globals.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
+            } else {
+                if Thread.isMainThread {
+                    self.dismiss(animated: true, completion: nil)
+                    self.completion?(self.textView.text)
+                } else {
+                    DispatchQueue.main.async {
+                        self.dismiss(animated: true, completion: nil)
+                        self.completion?(self.textView.text)
+                    }
+                }
+                
+                self.automaticCompletion?()
+            }
         }
     }
 
@@ -560,6 +634,24 @@ class TextViewController : UIViewController
         super.viewDidAppear(animated)
         
         textView.scrollRangeToVisible(NSMakeRange(0, 0))
+        
+        if automatic {
+            process(viewController: self, work: { () -> (Any?) in
+                self.changeText(interactive: self.automaticInteractive, text: self.textView.text, startingRange: nil, changes: self.changes(), completion: { (string:String) -> (Void) in
+                    self.textView.text = string
+                })
+                
+                while self.operationQueue.operationCount > 0 {
+                    
+                }
+                
+                return nil
+            }) { (data:Any?) in
+//                self.dismiss(animated: true, completion: nil)
+//                self.completion?(self.textView.text)
+//                self.automaticCompletion?()
+            }
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -573,49 +665,3 @@ class TextViewController : UIViewController
     }
 }
 
-extension TextViewController : UITextViewDelegate
-{
-    func textViewShouldBeginEditing(_ textView: UITextView) -> Bool
-    {
-        // Asks the delegate if editing should begin in the specified text view.
-        
-        return true
-    }
-    
-    func textViewDidBeginEditing(_ textView: UITextView)
-    {
-        // Tells the delegate that editing of the specified text view has begun.
-        
-    }
-    
-    func textViewShouldEndEditing(_ textView: UITextView) -> Bool
-    {
-        // Asks the delegate if editing should stop in the specified text view.
-        
-        return true
-    }
-
-    func textViewDidEndEditing(_ textView: UITextView)
-    {
-        // Tells the delegate that editing of the specified text view has ended.
-
-    }
-    
-    func textView(_ shouldChangeTextIn: NSRange, replacementText: String)
-    {
-        // Asks the delegate whether the specified text should be replaced in the text view.
-        
-    }
-
-    func textViewDidChange(_ textView: UITextView)
-    {
-        // Tells the delegate that the text or attributes in the specified text view were changed by the user.
-        
-    }
-    
-    func textViewDidChangeSelection(_ textView: UITextView)
-    {
-        // Tells the delegate that the text selection changed in the specified text view.
-        
-    }
-}

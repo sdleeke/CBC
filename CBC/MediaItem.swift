@@ -289,47 +289,22 @@ extension MediaItem : URLSessionDownloadDelegate
             }
         }
         
-        guard download != nil else {
+        guard (download != nil) else {
+            print("NO DOWNLOAD FOUND!")
             return
         }
         
         guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
             print("DOWNLOAD ERROR",(downloadTask.response as? HTTPURLResponse)?.statusCode as Any,totalBytesExpectedToWrite)
                 
-            var downloadPurpose:String!
-                
-            if let purpose = download?.purpose {
-                switch purpose {
-                case Purpose.audio:
-                    downloadPurpose = Constants.Strings.Audio
-                    break
-                    
-                case Purpose.video:
-                    downloadPurpose = Constants.Strings.Video
-                    break
-                    
-                case Purpose.slides:
-                    downloadPurpose = Constants.Strings.Slides
-                    break
-                    
-                case Purpose.notes:
-                    downloadPurpose = Constants.Strings.Transcript
-                    break
-                    
-                default:
-                    downloadPurpose = "ERROR"
-                    break
-                }
-            }
-                
-            let title = "Download Failed (\(downloadPurpose.lowercased()))"
+            let title = "Download Failed (\(download!.downloadPurpose))"
                 
             if let state = download?.state {
                 if state != .none {
-                    DispatchQueue.main.async(execute: { () -> Void in
+                    Thread.onMainThread() {
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
                         UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                    })
+                    }
                     
                     if let index = downloadTask.taskDescription?.range(of: "."),
                         let id = downloadTask.taskDescription?.substring(to: index.lowerBound),
@@ -349,15 +324,10 @@ extension MediaItem : URLSessionDownloadDelegate
             return
         }
         
-        guard (download != nil) else {
-            print("NO DOWNLOAD FOUND!")
-            return
-        }
-        
         if let purpose = download?.purpose {
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 UIApplication.shared.isNetworkActivityIndicatorVisible = true
-            })
+            }
 
             //            print(totalBytesWritten,totalBytesExpectedToWrite,Float(totalBytesWritten) / Float(totalBytesExpectedToWrite),Int(Float(totalBytesWritten) / Float(totalBytesExpectedToWrite) * 100))
             
@@ -372,9 +342,9 @@ extension MediaItem : URLSessionDownloadDelegate
                 if progress > current {
                     //                    print(Constants.NOTIFICATION.MEDIA_UPDATE_CELL)
                     //                    globals.queue.async(execute: { () -> Void in
-                    DispatchQueue.main.async(execute: { () -> Void in
+                    Thread.onMainThread() {
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: download?.mediaItem)
-                    })
+                    }
                 }
                 break
                 
@@ -382,9 +352,9 @@ extension MediaItem : URLSessionDownloadDelegate
                 fallthrough
             case Purpose.slides:
                 if progress > current {
-                    DispatchQueue.main.async(execute: { () -> Void in
+                    Thread.onMainThread() {
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: download)
-                    })
+                    }
                 }
                 break
                 
@@ -433,43 +403,22 @@ extension MediaItem : URLSessionDownloadDelegate
             }
         }
         
+        guard (download != nil) else {
+            print("NO DOWNLOAD FOUND!")
+            return
+        }
+        
         guard let statusCode = (downloadTask.response as? HTTPURLResponse)?.statusCode, statusCode < 400 else {
             print("DOWNLOAD ERROR",(downloadTask.response as? HTTPURLResponse)?.statusCode as Any,download?.totalBytesExpectedToWrite as Any)
-
-            var downloadPurpose:String!
             
-            if let purpose = download?.purpose {
-                switch purpose {
-                case Purpose.audio:
-                    downloadPurpose = Constants.Strings.Audio
-                    break
-                    
-                case Purpose.video:
-                    downloadPurpose = Constants.Strings.Video
-                    break
-                    
-                case Purpose.slides:
-                    downloadPurpose = Constants.Strings.Slides
-                    break
-                    
-                case Purpose.notes:
-                    downloadPurpose = Constants.Strings.Transcript
-                    break
-                    
-                default:
-                    downloadPurpose = "ERROR"
-                    break
-                }
-            }
-            
-            let title = "Download Failed (\(downloadPurpose.lowercased()))"
+            let title = "Download Failed (\(download!.downloadPurpose))"
 
             if let state = download?.state {
                 if state != .none {
-                    DispatchQueue.main.async(execute: { () -> Void in
+                    Thread.onMainThread() {
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
                         UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                    })
+                    }
                     
                     if let index = downloadTask.taskDescription?.range(of: "."),
                         let id = downloadTask.taskDescription?.substring(to: index.lowerBound),
@@ -486,11 +435,6 @@ extension MediaItem : URLSessionDownloadDelegate
             }
                 
             download?.cancel()
-            return
-        }
-        
-        guard (download != nil) else {
-            print("NO DOWNLOAD FOUND!")
             return
         }
         
@@ -539,9 +483,9 @@ extension MediaItem : URLSessionDownloadDelegate
                 download?.state = .downloaded
             } else {
                 // Nothing was downloaded
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
-                })
+                }
                 
                 download?.state = .none
             }
@@ -550,9 +494,9 @@ extension MediaItem : URLSessionDownloadDelegate
             download?.state = .none
         }
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
-        })
+        }
     }
     
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
@@ -566,6 +510,11 @@ extension MediaItem : URLSessionDownloadDelegate
             }
         }
 
+        guard (download != nil) else {
+            print("NO DOWNLOAD FOUND!")
+            return
+        }
+        
         guard let statusCode = (task.response as? HTTPURLResponse)?.statusCode, statusCode < 400,
             error == nil else {
             print("DOWNLOAD ERROR:",task.taskDescription as Any,(task.response as? HTTPURLResponse)?.statusCode as Any,download?.totalBytesExpectedToWrite as Any)
@@ -574,40 +523,14 @@ extension MediaItem : URLSessionDownloadDelegate
                 print("with error: \(error.localizedDescription)")
             }
                 
-            var downloadPurpose:String!
-            
-            if let purpose = download?.purpose {
-                switch purpose {
-                case Purpose.audio:
-                    downloadPurpose = Constants.Strings.Audio
-                    break
-                    
-                case Purpose.video:
-                    downloadPurpose = Constants.Strings.Video
-                    break
-                    
-                case Purpose.slides:
-                    downloadPurpose = Constants.Strings.Slides
-                    break
-                    
-                case Purpose.notes:
-                    downloadPurpose = Constants.Strings.Transcript
-                    break
-                    
-                default:
-                    downloadPurpose = "ERROR"
-                    break
-                }
-            }
-            
-            let title = "Download Failed (\(downloadPurpose.lowercased()))"
+            let title = "Download Failed (\(download!.downloadPurpose))"
 
             if let state = download?.state {
                 if state != .none {
-                    DispatchQueue.main.async(execute: { () -> Void in
+                    Thread.onMainThread() {
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: download)
                         UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                    })
+                    }
                     
                     if let index = task.taskDescription?.range(of: "."),
                         let id = task.taskDescription?.substring(to: index.lowerBound),
@@ -633,11 +556,6 @@ extension MediaItem : URLSessionDownloadDelegate
             
             download?.cancel()
                 
-            return
-        }
-        
-        guard (download != nil) else {
-            print("NO DOWNLOAD FOUND!")
             return
         }
         
@@ -670,10 +588,10 @@ extension MediaItem : URLSessionDownloadDelegate
             case Purpose.slides:
                 fallthrough
             case Purpose.notes:
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     //                    print(download?.mediaItem)
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: download)
-                })
+                }
                 break
                 
             default:
@@ -695,9 +613,9 @@ extension MediaItem : URLSessionDownloadDelegate
         
         session.invalidateAndCancel()
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
-        })
+        }
     }
     
     func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?)
@@ -781,7 +699,7 @@ class MediaItem : NSObject {
         
 //        self.searchHit = SearchHit(mediaItem: self)
         
-        DispatchQueue.main.async {
+        Thread.onMainThread() {
             NotificationCenter.default.addObserver(self, selector: #selector(MediaItem.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
     }
@@ -1819,12 +1737,12 @@ class MediaItem : NSObject {
             globals.media.tagged[tag] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
 
             if (globals.media.tags.selected == tag) {
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
-                })
+                }
             }
             
-            DispatchQueue.main.async {
+            Thread.onMainThread() {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
             }
         }
@@ -1865,12 +1783,12 @@ class MediaItem : NSObject {
         globals.media.tagged[tag] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag!])
         
         if (globals.media.tags.selected == tag) {
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
-            })
+            }
         }
         
-        DispatchQueue.main.async {
+        Thread.onMainThread() {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
         }
     }

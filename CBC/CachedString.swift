@@ -64,7 +64,7 @@ class CachedString {
     {
         self.index = index
         
-        DispatchQueue.main.async {
+        Thread.onMainThread() {
             NotificationCenter.default.addObserver(self, selector: #selector(CachedString.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
     }

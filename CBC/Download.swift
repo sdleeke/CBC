@@ -22,6 +22,39 @@ class Download : NSObject {
     
     var purpose:String?
     
+    var downloadPurpose:String
+    {
+        get {
+            var downloadPurpose:String!
+            
+            if let purpose = purpose {
+                switch purpose {
+                case Purpose.audio:
+                    downloadPurpose = Constants.Strings.Audio
+                    break
+                    
+                case Purpose.video:
+                    downloadPurpose = Constants.Strings.Video
+                    break
+                    
+                case Purpose.slides:
+                    downloadPurpose = Constants.Strings.Slides
+                    break
+                    
+                case Purpose.notes:
+                    downloadPurpose = Constants.Strings.Transcript
+                    break
+                    
+                default:
+                    downloadPurpose = "ERROR"
+                    break
+                }
+            }
+            
+            return downloadPurpose.lowercased()
+        }
+    }
+    
     var downloadURL:URL?
     
     var fileSystemURL:URL? {
@@ -49,9 +82,7 @@ class Download : NSObject {
 
     @objc func downloadFailed()
     {
-        DispatchQueue.main.async(execute: { () -> Void in
-            globals.alert(title: "Network Error",message: "Download failed.")
-        })
+        globals.alert(title: "Network Error",message: "Download failed.")
     }
 
     var state:State = .none {
@@ -108,10 +139,10 @@ class Download : NSObject {
                         break
                     }
                     
-                    DispatchQueue.main.async(execute: { () -> Void in
+                    Thread.onMainThread() {
                         // The following must appear AFTER we change the state
                         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-                    })
+                    }
                     break
                     
                 case Purpose.notes:
@@ -122,7 +153,7 @@ class Download : NSObject {
                         break
                         
                     case .downloaded:
-                        DispatchQueue.main.async {
+                        Thread.onMainThread() {
                             // The following must appear AFTER we change the state
                             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.mediaItem)
                         }
@@ -200,9 +231,9 @@ class Download : NSObject {
             
             task?.resume()
             
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 UIApplication.shared.isNetworkActivityIndicatorVisible = true
-            })
+            }
         }
     }
     

@@ -308,9 +308,9 @@ class MediaPlayer : NSObject {
                         }
                     }
                     
-                    DispatchQueue.main.async(execute: { () -> Void in
+                    Thread.onMainThread() {
                         NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil)
-                    })
+                    }
                 }
                 
                 setupPlayingInfoCenter()
@@ -565,13 +565,11 @@ class MediaPlayer : NSObject {
     {
         loadFailed = true
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_LOAD), object: nil)
-        })
+        }
         
         globals.alert(title: "Failed to Load Content",message: "Please check your network connection and try again.")
-//        DispatchQueue.main.async(execute: { () -> Void in
-//        })
 
 //        if (UIApplication.shared.applicationState == UIApplicationState.active) {
 //            alert(viewController:nil,title: "Failed to Load Content", message: "Please check your network connection and try again.", completion: nil)
@@ -582,14 +580,12 @@ class MediaPlayer : NSObject {
     {
         loadFailed = true
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
-        })
+        }
         
-        DispatchQueue.main.async(execute: { () -> Void in
-            globals.alert(title: "Unable to Play Content",message: "Please check your network connection and try again.")
-        })
-
+        globals.alert(title: "Unable to Play Content",message: "Please check your network connection and try again.")
+        
 //        if (UIApplication.shared.applicationState == UIApplicationState.active) {
 //            alert(viewController:nil,title: "Unable to Play Content", message: "Please check your network connection and try again.",completion: nil)
 //        }
@@ -613,10 +609,10 @@ class MediaPlayer : NSObject {
                 stateTime = PlayerStateTime(state:.playing,mediaItem:mediaItem)
                 player?.play()
                 
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-                })
+                }
             }
             break
         }
@@ -642,10 +638,10 @@ class MediaPlayer : NSObject {
             break
             
         default:
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-            })
+            }
             break
         }
         
@@ -665,9 +661,9 @@ class MediaPlayer : NSObject {
         
         pause()
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
-        })
+        }
         
         //        if (mediaItem != nil) && !mediaItem!.atEnd {
         //            reloadPlayer(globals.mediaItem)
@@ -689,9 +685,9 @@ class MediaPlayer : NSObject {
             stop()
         }
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SHOW_PLAYING), object: nil)
-        })
+        }
     }
 
     func unobserve()
@@ -745,8 +741,6 @@ class MediaPlayer : NSObject {
         unobserve()
         
         self.playerObserverTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.PLAYER, target: self, selector: #selector(MediaPlayer.playerObserver), userInfo: nil, repeats: true)
-        //        DispatchQueue.main.async(execute: { () -> Void in
-        //        })
         
         if #available(iOS 10.0, *) {
             player?.addObserver( self,
@@ -838,9 +832,9 @@ class MediaPlayer : NSObject {
         let old = mediaItem
         mediaItem = nil
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: old)
-        })
+        }
 
         setupPlayingInfoCenter()
     }
@@ -916,9 +910,9 @@ class MediaPlayer : NSObject {
     {
         seek(to: to,completion:{ (finished:Bool) in
             if finished {
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
-                })
+                }
             }
         })
     }
@@ -1067,9 +1061,9 @@ class MediaPlayer : NSObject {
             if oldValue != nil {
                 // Remove playing icon if the previous mediaItem was playing.
                 //            globals.queue.async(execute: { () -> Void in
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
-                })
+                }
             }
             
             if mediaItem == nil {
@@ -1104,9 +1098,9 @@ class MediaPlayer : NSObject {
                 nowPlayingInfo[MPMediaItemPropertyArtwork]   = MPMediaItemArtwork(image: image)
             }
             
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-            })
+            }
         } else {
             if let mediaItem = self.mediaItem {
                 var nowPlayingInfo = [String:Any]()
@@ -1141,13 +1135,13 @@ class MediaPlayer : NSObject {
                 
                 //                print(nowPlayingInfo)
                 
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-                })
+                }
             } else {
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-                })
+                }
             }
         }
     }

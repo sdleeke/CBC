@@ -433,14 +433,14 @@ class ScriptureIndexViewController : UIViewController
             //            print(progress)
             //            print(finished)
 
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 if self.finished != 0 {
                     self.progressIndicator.progress = self.progress / self.finished
                 }
                 if self.progressIndicator.progress == 1.0 {
                     self.progressIndicator.isHidden = true
                 }
-            })
+            }
         }
     }
 
@@ -691,11 +691,11 @@ class ScriptureIndexViewController : UIViewController
         guard let selectedTestament = scriptureIndex?.selectedTestament else {
             mediaItems = nil
             
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 self.updateUI()
                 self.tableView.reloadData()
                 self.scripturePicker.isUserInteractionEnabled = true
-            })
+            }
             return
         }
 
@@ -703,12 +703,12 @@ class ScriptureIndexViewController : UIViewController
 
         guard let selectedBook = scriptureIndex?.selectedBook else {
             DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     self.disableBarButtons()
                     self.spinner.isHidden = false
                     self.spinner.startAnimating()
                     self.isHiddenNumberAndTableUI(true)
-                })
+                }
                 
                 if self.scriptureIndex!.sorted[testament] == nil {
                     self.scriptureIndex?.byTestament[testament] = self.sortMediaItems(self.scriptureIndex?.byTestament[testament],book:nil) // self.sortMediaItemsBook(self.scriptureIndex?.byTestament[testament])
@@ -719,7 +719,7 @@ class ScriptureIndexViewController : UIViewController
                 
                 //            print(mediaItems)
 
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     self.enableBarButtons()
                     self.updateUI()
                     self.tableView.reloadData()
@@ -727,7 +727,7 @@ class ScriptureIndexViewController : UIViewController
                         self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
                     }
                     self.scripturePicker.isUserInteractionEnabled = true
-                })
+                }
             })
             return
         }
@@ -736,12 +736,12 @@ class ScriptureIndexViewController : UIViewController
             let index = testament + selectedBook
 
             DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     self.disableBarButtons()
                     self.spinner.isHidden = false
                     self.spinner.startAnimating()
                     self.isHiddenNumberAndTableUI(true)
-                })
+                }
                 
                 if self.scriptureIndex!.sorted[index] == nil {
                     self.scriptureIndex?.byBook[testament]?[selectedBook] = self.sortMediaItems(self.scriptureIndex?.byBook[testament]?[selectedBook],book:selectedBook) // self.sortMediaItemsChapter(self.scriptureIndex?.byBook[testament]?[book],book: book)
@@ -752,7 +752,7 @@ class ScriptureIndexViewController : UIViewController
                 
                 //            print(mediaItems)
                 
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     self.enableBarButtons()
                     self.updateUI()
                     self.tableView.reloadData()
@@ -760,7 +760,7 @@ class ScriptureIndexViewController : UIViewController
                         self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
                     }
                     self.scripturePicker.isUserInteractionEnabled = true
-                })
+                }
             })
             return
         }
@@ -769,12 +769,12 @@ class ScriptureIndexViewController : UIViewController
             let index = testament + selectedBook + "\(selectedChapter)"
             
             DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     self.disableBarButtons()
                     self.spinner.isHidden = false
                     self.spinner.startAnimating()
                     self.isHiddenNumberAndTableUI(true)
-                })
+                }
                 
                 if self.scriptureIndex!.sorted[index] == nil {
                     self.scriptureIndex?.byChapter[testament]?[selectedBook]?[selectedChapter] = self.sortMediaItems(self.scriptureIndex?.byChapter[testament]?[selectedBook]?[selectedChapter],book:selectedBook) // self.sortMediaItemsVerse(self.scriptureIndex?.byChapter[testament]?[book]?[chapter],book: book,chapter: chapter)
@@ -786,7 +786,7 @@ class ScriptureIndexViewController : UIViewController
                 //            print(scriptureIndex!.selectedTestament,scriptureIndex!.selectedBook,scriptureIndex!.selectedChapter)
                 //            print(mediaItems)
                 
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     self.enableBarButtons()
                     self.updateUI()
                     self.tableView.reloadData()
@@ -794,7 +794,7 @@ class ScriptureIndexViewController : UIViewController
                         self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
                     }
                     self.scripturePicker.isUserInteractionEnabled = true
-                })
+                }
             })
             return
         }
@@ -802,12 +802,12 @@ class ScriptureIndexViewController : UIViewController
         let index = testament + selectedBook + "\(selectedChapter)" + "\(selectedVerse)"
 
         DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 self.disableBarButtons()
                 self.spinner.isHidden = false
                 self.spinner.startAnimating()
                 self.isHiddenNumberAndTableUI(true)
-            })
+            }
             
             if self.scriptureIndex!.sorted[index] == nil {
 //                self.scriptureIndex?.byVerse[testament]?[selectedBook]?[selectedChapter] = self.sortMediaItems(self.scriptureIndex?.byChapter[testament]?[book]?[selectedChapter],book:selectedBook,chapter:selectedChapter)
@@ -821,7 +821,7 @@ class ScriptureIndexViewController : UIViewController
             
             //            print(self.mediaItems)
             
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 self.enableBarButtons()
                 self.updateUI()
                 self.tableView.reloadData()
@@ -829,7 +829,7 @@ class ScriptureIndexViewController : UIViewController
                     self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
                 }
                 self.scripturePicker.isUserInteractionEnabled = true
-            })
+            }
         })
     }
 
@@ -1207,18 +1207,18 @@ class ScriptureIndexViewController : UIViewController
             
             if (select) {
                 DispatchQueue.global(qos: .background).async {
-                    DispatchQueue.main.async(execute: { () -> Void in
+                    Thread.onMainThread() {
                         self.tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
-                    })
+                    }
                 }
             }
             
             if (scroll) {
                 //Scrolling when the user isn't expecting it can be jarring.
                 DispatchQueue.global(qos: .background).async {
-                    DispatchQueue.main.async(execute: { () -> Void in
+                    Thread.onMainThread() {
                         self.tableView.scrollToRow(at: indexPath, at: position, animated: false)
-                    })
+                    }
                 }
             }
         }
@@ -1534,7 +1534,7 @@ extension ScriptureIndexViewController : UITableViewDataSource
             return nil
         } else {
             if sectionTitles != nil {
-                if section > -1, section < sectionTitles!.count {
+                if section >= 0, section < sectionTitles!.count {
                     return sectionTitles![section]
                 }
             }

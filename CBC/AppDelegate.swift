@@ -51,15 +51,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
     
     func downloadFailed()
     {
-        DispatchQueue.main.async(execute: { () -> Void in
-            globals.alert(title: "Network Error",message: "Download failed.")
-        })
+        globals.alert(title: "Network Error",message: "Download failed.")
     }
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool
     {
         globals = Globals()
         
+        Thread.onMainThread() {
+            globals.alertTimer = Timer.scheduledTimer(timeInterval: 0.25, target: globals, selector: #selector(Globals.alertViewer), userInfo: nil, repeats: true)
+        }
+
         globals.splitViewController = window!.rootViewController as! UISplitViewController
         
         globals.splitViewController.delegate = self
@@ -103,9 +105,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
             globals.mediaPlayer.pause()
         }
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DID_ENTER_BACKGROUND), object: nil)
-        })
+        }
     }
     
     func applicationWillEnterForeground(_ application: UIApplication)
@@ -136,9 +138,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
 //            }
 //        }
 
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.WILL_ENTER_FORGROUND), object: nil)
-        })
+        }
     }
     
     func applicationWillResignActive(_ application: UIApplication)
@@ -147,9 +149,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
         // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
         print("applicationWillResignActive")
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
-        })
+        }
     }
     
     func applicationDidBecomeActive(_ application: UIApplication)
@@ -159,18 +161,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
         
         globals.mediaPlayer.setupPlayingInfoCenter()
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.DID_BECOME_ACTIVE), object: nil)
-        })
+        }
     }
     
     func applicationWillTerminate(_ application: UIApplication)
     {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
         print("applicationWillTerminate")
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.WILL_TERMINATE), object: nil)
-        })
+        }
     }
 
     func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String, completionHandler: @escaping () -> Void)

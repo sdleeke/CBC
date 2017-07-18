@@ -45,9 +45,9 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
         activityViewController?.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
         
         // present the view controller
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             self.present(self.activityViewController!, animated: false, completion: nil)
-        })
+        }
     }
     
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
@@ -455,13 +455,13 @@ class ScriptureViewController : UIViewController
     
     func clearView()
     {
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             self.navigationItem.title = nil
             self.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
             for view in self.view.subviews {
                 view.isHidden = true
             }
-        })
+        }
     }
     
     func setPreferredContentSize()
@@ -487,9 +487,9 @@ class ScriptureViewController : UIViewController
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
 //            print(self.view.frame.width,self.vc!.view!.frame.height)
             
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 self.setPreferredContentSize()
-            })
+            }
         }
     }
     
@@ -879,10 +879,10 @@ class ScriptureViewController : UIViewController
                     }
                 }
                 
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     self.updatePicker()
                     self.showScripture()
-                })
+                }
             }
         } else {
             updatePicker()

@@ -101,9 +101,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
         activityViewController?.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
         
         // present the view controller
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             self.present(self.activityViewController!, animated: false, completion: nil)
-        })
+        }
     }
     
     func showFullScreen()
@@ -216,7 +216,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
 //            })
 //            alert.addAction(searchAction)
 //            
-//            let cancelAction = UIAlertAction(title: "Cancel", style: .default, handler: {
+//            let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: .default, handler: {
 //                (action : UIAlertAction!) -> Void in
 //            })
 //            alert.addAction(cancelAction)
@@ -305,7 +305,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 popover.vc = self
                 
-//                let cancelButton = UIBarButtonItem(title: "Cancel", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.cancel))
+//                let cancelButton = UIBarButtonItem(title: Constants.Strings.Cancel, style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.cancel))
 //                popover.navigationItem.leftBarButtonItem = cancelButton
 
                 present(navigationController, animated: true, completion: nil)
@@ -413,7 +413,7 @@ extension WebViewController : WKNavigationDelegate
         setupWKZoomScaleAndContentOffset(wkWebView)
         setupHTMLWKZoomScaleAndContentOffset(wkWebView)
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             self.activityIndicator.stopAnimating()
             self.activityIndicator.isHidden = true
             
@@ -427,16 +427,16 @@ extension WebViewController : WKNavigationDelegate
             DispatchQueue.global(qos: .background).async {
                 Thread.sleep(forTimeInterval: 0.1) // This is ESSENTIAL to allow the preferred content size to be set correctly.
                 
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     //                    print(wkWebView.scrollView.contentSize.width,wkWebView.scrollView.contentSize.height)
                     
                     wkWebView.isHidden = false
                     wkWebView.scrollView.contentOffset = CGPoint(x: 0, y: 0)
                     
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
-                })
+                }
             }
-        })
+        }
     }
     
     func webView(_ wkWebView: WKWebView, didFail navigation: WKNavigation!, withError: Error) {
@@ -769,7 +769,7 @@ class WebViewController: UIViewController
                 //                    print(".downloading")
                 download.state = .none
 
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     self.activityIndicator.stopAnimating()
                     self.activityIndicator.isHidden = true
                     
@@ -782,7 +782,7 @@ class WebViewController: UIViewController
                     
                     // Can't prevent this from getting called twice in succession.
                     networkUnavailable(self,"Document could not be loaded.")
-                })
+                }
                 break
                 
             case .downloaded:
@@ -941,14 +941,14 @@ class WebViewController: UIViewController
         
         captureHTMLContentOffsetAndZoomScale()
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             if self.html.fontSize > Constants.HTML_MIN_FONT_SIZE {
                 self.minusButton?.isEnabled = true
             }
             
             self.activityIndicator.isHidden = false
             self.activityIndicator.startAnimating()
-        })
+        }
 
         html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
         _ = wkWebView?.loadHTMLString(html.string!, baseURL: nil)
@@ -961,14 +961,14 @@ class WebViewController: UIViewController
             
             captureHTMLContentOffsetAndZoomScale()
             
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 if self.html.fontSize <= Constants.HTML_MIN_FONT_SIZE {
                     self.minusButton?.isEnabled = false
                 }
                 
                 self.activityIndicator.isHidden = false
                 self.activityIndicator.startAnimating()
-            })
+            }
             
             html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
             _ = wkWebView?.loadHTMLString(html.string!, baseURL: nil)
@@ -1030,7 +1030,7 @@ class WebViewController: UIViewController
 //        print("contentInset: \(webView.scrollView.contentInset)")
 //        print("contentSize: \(webView.scrollView.contentSize)")
 
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             // The effects of the next two calls are strongly order dependent.
             if !scale.isNaN {
                 wkWebView.scrollView.setZoomScale(scale, animated: false)
@@ -1038,7 +1038,7 @@ class WebViewController: UIViewController
             if (!offset.x.isNaN && !offset.y.isNaN) {
                 wkWebView.scrollView.setContentOffset(offset,animated: false)
             }
-        })
+        }
     }
     
     func setupWKZoomScaleAndContentOffset()
@@ -1110,9 +1110,9 @@ class WebViewController: UIViewController
             
             //            print("About to setContentOffset with: \(contentOffset)")
             
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 wkWebView?.scrollView.setContentOffset(contentOffset,animated: false)
-            })
+            }
             
             //            print("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
         }
@@ -1130,10 +1130,10 @@ class WebViewController: UIViewController
             
             //            print("About to setContentOffset with: \(contentOffset)")
             
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 wkWebView?.scrollView.setZoomScale(CGFloat(self.html.zoomScale), animated: false)
                 wkWebView?.scrollView.setContentOffset(contentOffset,animated: false)
-            })
+            }
             
             //            print("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
         }
@@ -1151,9 +1151,9 @@ class WebViewController: UIViewController
             
             //            print("About to setContentOffset with: \(contentOffset)")
             
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 wkWebView?.scrollView.setContentOffset(contentOffset,animated: false)
-            })
+            }
             
             //            print("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
         }
@@ -1304,7 +1304,7 @@ class WebViewController: UIViewController
                     DispatchQueue.global(qos: .background).async(execute: { () -> Void in
                         _ = self.wkWebView?.loadFileURL(destinationURL!, allowingReadAccessTo: destinationURL!)
                         
-                        DispatchQueue.main.async(execute: { () -> Void in
+                        Thread.onMainThread() {
                             self.activityIndicator.stopAnimating()
                             self.activityIndicator.isHidden = true
                             
@@ -1313,7 +1313,7 @@ class WebViewController: UIViewController
                             
                             self.loadTimer?.invalidate()
                             self.loadTimer = nil
-                        })
+                        }
                     })
                 } else {
                     activityIndicator.isHidden = false
@@ -1336,7 +1336,7 @@ class WebViewController: UIViewController
                 url = selectedMediaItem?.downloadURL
 
                 DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-                    DispatchQueue.main.async(execute: { () -> Void in
+                    Thread.onMainThread() {
                         self.webView.bringSubview(toFront: self.activityIndicator)
                         
                         self.activityIndicator.isHidden = false
@@ -1348,7 +1348,7 @@ class WebViewController: UIViewController
                         if self.loadTimer == nil {
                             self.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(WebViewController.loading), userInfo: nil, repeats: true)
                         }
-                    })
+                    }
                     
                     let request = URLRequest(url: url!)
 //                    let request = URLRequest(url: url!, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
@@ -1361,7 +1361,7 @@ class WebViewController: UIViewController
             url = selectedMediaItem?.downloadURL
 
             DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     self.webView.bringSubview(toFront: self.activityIndicator)
                     
                     self.activityIndicator.isHidden = false
@@ -1373,7 +1373,7 @@ class WebViewController: UIViewController
                     if self.loadTimer == nil {
                         self.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(WebViewController.loading), userInfo: nil, repeats: true)
                     }
-                })
+                }
                 
                 let request = URLRequest(url: url!)
 //                let request = URLRequest(url: url!, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)

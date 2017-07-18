@@ -10,6 +10,19 @@ import Foundation
 import MediaPlayer
 import AVKit
 
+extension Thread {
+    static func onMainThread(block:((Void)->(Void))?)
+    {
+        if Thread.isMainThread {
+            block?()
+        } else {
+            DispatchQueue.main.async(execute: { () -> Void in
+                block?()
+            })
+        }
+    }
+}
+
 extension UIViewController {
     func setDVCLeftBarButton()
     {
@@ -58,12 +71,47 @@ struct MediaNeed
 
 class Section
 {
-    func index(_ indexPath:IndexPath) -> Int {
+    func indexPath(from string:String?) -> IndexPath?
+    {
+        guard counts?.count == indexes?.count else {
+            return nil
+        }
+        
+        guard let string = string else {
+            return nil
+        }
+        
+        guard let index = strings?.index(of: string) else {
+            return nil
+        }
+        
+        if counts?.count == indexes?.count {
+            var section = 0
+            
+            while index >= (indexes![section] + counts![section]) {
+                section += 1
+            }
+            
+            if let sectionIndex = indexes?[section] {
+                
+                let row = index - sectionIndex
+                
+                return IndexPath(row: row, section: section)
+            }
+        }
+
+        return nil
+    }
+
+    func index(_ indexPath:IndexPath) -> Int
+    {
         var index = 0
         
         if showIndex || showHeaders {
-            if let sectionIndex = indexes?[indexPath.section] {
-                index = sectionIndex + indexPath.row
+            if indexPath.section >= 0, indexPath.section < indexes?.count {
+                if let sectionIndex = indexes?[indexPath.section] {
+                    index = sectionIndex + indexPath.row
+                }
             }
         } else {
             index = indexPath.row
@@ -826,13 +874,13 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 alertVC.addAction(action)
             }
             
-            globals.splitViewController.present(alertVC, animated: true, completion: {
-                if self.alerts.count > 0 {
-                    self.alerts.remove(at: 0)
-                }
-            })
-//            DispatchQueue.main.async(execute: { () -> Void in
-//            })
+            Thread.onMainThread() {
+                globals.splitViewController.present(alertVC, animated: true, completion: {
+                    if self.alerts.count > 0 {
+                        self.alerts.remove(at: 0)
+                    }
+                })
+            }
         }
     }
 
@@ -1005,16 +1053,12 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     {
         super.init()
         
-        DispatchQueue.main.async(execute: { () -> Void in
-            globals.alertTimer = Timer.scheduledTimer(timeInterval: 0.25, target: globals, selector: #selector(Globals.alertViewer), userInfo: nil, repeats: true)
-        })
-
         reachability.whenReachable = { reachability in
             // this is called on a background thread, but UI updates must
             // be on the main thread, like this:
             self.reachabilityTransition()
             
-            DispatchQueue.main.async() {
+            Thread.onMainThread() {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
             }
         }
@@ -1024,7 +1068,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             // be on the main thread, like this:
             self.reachabilityTransition()
             
-            DispatchQueue.main.async() {
+            Thread.onMainThread() {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
             }
         }
@@ -1262,7 +1306,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     func freeMemory()
     {
         // Free memory in classes
-        DispatchQueue.main.async {
+        Thread.onMainThread() {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
 
@@ -1504,9 +1548,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                     mediaPlayer.pause()
                 }
                 
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-                })
+                }
             }
         }
     }

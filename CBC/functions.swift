@@ -493,6 +493,168 @@ func yearsFromMediaItems(_ mediaItems:[MediaItem]?, sorting: String?) -> [Int]?
         : nil
 }
 
+func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOnly:Bool) -> String?
+{
+    guard let string = string, !string.isEmpty else {
+        return nil
+    }
+    
+    guard let searchText = searchText, !searchText.isEmpty else {
+        return nil
+    }
+    
+    func mark(_ input:String) -> String
+    {
+        var string = input
+        
+        var stringBefore    = String()
+        var stringAfter     = String()
+        var newString       = String()
+        var foundString     = String()
+        
+        while (string.lowercased().range(of: searchText.lowercased()) != nil) {
+            //                print(string)
+            
+            if let range = string.lowercased().range(of: searchText.lowercased()) {
+                stringBefore = string.substring(to: range.lowerBound)
+                stringAfter = string.substring(from: range.upperBound)
+                
+                var skip = false
+                
+                if wholeWordsOnly {
+                    let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
+                    
+                    if let characterAfter:Character = stringAfter.characters.first {
+                        if !CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterAfter))!) {
+                            skip = true
+                        }
+                        
+                        //                            print(characterAfter)
+                        if stringAfter.endIndex >= "'s".endIndex {
+                            if (stringAfter.substring(to: "'s".endIndex) == "'s") {
+                                skip = false
+                            }
+                            if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                                skip = true
+                            }
+                        }
+                    }
+                    if let characterBefore:Character = stringBefore.characters.last {
+                        if !CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterBefore))!) {
+                            skip = true
+                        }
+                    }
+                }
+                
+                foundString = string.substring(from: range.lowerBound)
+                let newRange = foundString.lowercased().range(of: searchText.lowercased())
+                foundString = foundString.substring(to: newRange!.upperBound)
+                
+                if !skip {
+                    foundString = "<mark>" + foundString + "</mark>"
+                }
+                
+                newString = newString + stringBefore + foundString
+                
+                stringBefore = stringBefore + foundString
+                
+                string = stringAfter
+            } else {
+                break
+            }
+        }
+        
+        newString = newString + stringAfter
+        
+        return newString == Constants.EMPTY_STRING ? string : newString
+    }
+    
+    let htmlString = "<!DOCTYPE html><html><body>" + mark(string) + "</body></html>"
+    
+    return htmlString
+}
+
+func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wholeWordsOnly:Bool) -> NSAttributedString?
+{
+    guard var string = string, !string.isEmpty else {
+        return nil
+    }
+    
+    guard let searchText = searchText, !searchText.isEmpty else {
+        return nil
+    }
+    
+    var stringBefore    = String()
+    var stringAfter     = String()
+    
+//    var attrStringBefore    = NSMutableAttributedString()
+//    var attrStringAfter     = NSMutableAttributedString()
+//    
+//    var newString       = String()
+    var foundString     = String()
+    
+    let newAttrString       = NSMutableAttributedString()
+    var foundAttrString     = NSMutableAttributedString()
+    
+    while (string.lowercased().range(of: searchText.lowercased()) != nil) {
+        //                print(string)
+        
+        if let range = string.lowercased().range(of: searchText.lowercased()) {
+            stringBefore = string.substring(to: range.lowerBound)
+            stringAfter = string.substring(from: range.upperBound)
+            
+            var skip = false
+            
+            if wholeWordsOnly {
+                let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
+                
+                if let characterAfter:Character = stringAfter.characters.first {
+                    if !CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterAfter))!) {
+                        skip = true
+                    }
+                    
+                    //                            print(characterAfter)
+                    if stringAfter.endIndex >= "'s".endIndex {
+                        if (stringAfter.substring(to: "'s".endIndex) == "'s") {
+                            skip = false
+                        }
+                        if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                            skip = true
+                        }
+                    }
+                }
+                if let characterBefore:Character = stringBefore.characters.last {
+                    if !CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterBefore))!) {
+                        skip = true
+                    }
+                }
+            }
+            
+            foundString = string.substring(from: range.lowerBound)
+            let newRange = foundString.lowercased().range(of: searchText.lowercased())
+            foundString = foundString.substring(to: newRange!.upperBound)
+            
+            if !skip {
+                foundAttrString = NSMutableAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
+            }
+            
+            newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.normal))
+                
+            newAttrString.append(foundAttrString)
+            
+//                stringBefore = stringBefore + foundString
+            
+            string = stringAfter
+        } else {
+            break
+        }
+    }
+    
+    newAttrString.append(NSMutableAttributedString(string: stringAfter, attributes: Constants.Fonts.Attributes.normal))
+    
+    return newAttrString
+}
+
 func verifyNASB()
 {
     if Constants.OLD_TESTAMENT_BOOKS.count != 39 {
@@ -2667,9 +2829,9 @@ func mailMediaItem(viewController:UIViewController, mediaItem:MediaItem?,stringF
     }
     
     if MFMailComposeViewController.canSendMail() {
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             viewController.present(mailComposeViewController, animated: true, completion: nil)
-        })
+        }
     } else {
         showSendMailErrorAlert(viewController: viewController)
     }
@@ -2683,9 +2845,9 @@ func presentHTMLModal(viewController:UIViewController, medaiItem:MediaItem?, sty
     
     if let navigationController = viewController.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
         let popover = navigationController.viewControllers[0] as? WebViewController {
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             viewController.dismiss(animated: true, completion: nil)
-        })
+        }
         
         navigationController.modalPresentationStyle = style
         
@@ -2701,9 +2863,9 @@ func presentHTMLModal(viewController:UIViewController, medaiItem:MediaItem?, sty
 
         popover.navigationController?.isNavigationBarHidden = false
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             viewController.present(navigationController, animated: true, completion: nil)
-        })
+        }
     }
 }
 
@@ -2765,7 +2927,7 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
         return
     }
 
-    DispatchQueue.main.async(execute: { () -> Void in
+    Thread.onMainThread() {
         if let buttons = viewController.navigationItem.rightBarButtonItems {
             for button in buttons {
                 button.isEnabled = false
@@ -2798,7 +2960,7 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
         DispatchQueue.global(qos: .background).async {
             let data = work?()
             
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 if container != viewController.view {
                     container.removeFromSuperview()
                 }
@@ -2822,9 +2984,9 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
                 }
                 
                 completion?(data)
-            })
+            }
         }
-    })
+    }
 }
 
 func mailHTML(viewController:UIViewController,to: [String],subject: String, htmlString:String)
@@ -2838,9 +3000,9 @@ func mailHTML(viewController:UIViewController,to: [String],subject: String, html
     mailComposeViewController.setMessageBody(htmlString, isHTML: true)
     
     if MFMailComposeViewController.canSendMail() {
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             viewController.present(mailComposeViewController, animated: true, completion: nil)
-        })
+        }
     } else {
         showSendMailErrorAlert(viewController: viewController)
     }
@@ -2875,9 +3037,9 @@ func printJob(viewController:UIViewController,data:Data?,html:String?,orientatio
         pic.printingItem = data
     }
     
-    DispatchQueue.main.async(execute: { () -> Void in
+    Thread.onMainThread() {
         pic.present(from: viewController.navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
-    })
+    }
 }
 
 func printHTML(viewController:UIViewController,htmlString:String?)
@@ -3084,9 +3246,9 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
     
     if let navigationController = viewController.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
         let popover = navigationController.viewControllers[0] as? WebViewController {
-        viewController.dismiss(animated: true, completion: nil)
-//        DispatchQueue.main.async(execute: { () -> Void in
-//        })
+        Thread.onMainThread() {
+            viewController.dismiss(animated: true, completion: nil)
+        }
         
         if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
             let hClass = viewController.traitCollection.horizontalSizeClass
@@ -3139,9 +3301,9 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
         
         popover.navigationController?.isNavigationBarHidden = false
         
-        viewController.present(navigationController, animated: true, completion: nil)
-//        DispatchQueue.main.async(execute: { () -> Void in
-//        })
+        Thread.onMainThread() {
+            viewController.present(navigationController, animated: true, completion: nil)
+        }
     }
 }
 
@@ -3166,9 +3328,9 @@ func shareHTML(viewController:UIViewController,htmlString:String?)
     activityViewController.popoverPresentationController?.barButtonItem = viewController.navigationItem.rightBarButtonItem
 
     // present the view controller
-    viewController.present(activityViewController, animated: false, completion: nil)
-//    DispatchQueue.main.async(execute: { () -> Void in
-//    })
+    Thread.onMainThread() {
+        viewController.present(activityViewController, animated: false, completion: nil)
+    }
 }
 
 func shareMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stringFunction:(([MediaItem]?)->String?)?)
@@ -3919,9 +4081,9 @@ func alert(viewController:UIViewController,title:String?,message:String?,complet
     })
     alert.addAction(action)
     
-    DispatchQueue.main.async(execute: { () -> Void in
+    Thread.onMainThread() {
         viewController.present(alert, animated: true, completion: nil)
-    })
+    }
 }
 
 func alert(viewController:UIViewController,title:String?,message:String?,actions:[AlertAction]?)
@@ -3953,9 +4115,9 @@ func alert(viewController:UIViewController,title:String?,message:String?,actions
         alert.addAction(action)
     }
     
-    viewController.present(alert, animated: true, completion: nil)
-//    DispatchQueue.main.async(execute: { () -> Void in
-//    })
+    Thread.onMainThread() {
+        viewController.present(alert, animated: true, completion: nil)
+    }
 }
 
 func searchAlert(viewController:UIViewController,title:String?,message:String?,searchText:String?,searchAction:((_ alert:UIAlertController)->(Void))?)
@@ -3982,14 +4144,14 @@ func searchAlert(viewController:UIViewController,title:String?,message:String?,s
     })
     alert.addAction(clear)
     
-    let cancel = UIAlertAction(title: "Cancel", style: .default, handler: {
+    let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: .default, handler: {
         (action : UIAlertAction!) -> Void in
     })
     alert.addAction(cancel)
 
-    DispatchQueue.main.async(execute: { () -> Void in
+    Thread.onMainThread() {
         viewController.present(alert, animated: true, completion: nil)
-    })
+    }
 }
 
 //func useralert(viewController:self,title:String?,message:String?)
@@ -4036,14 +4198,14 @@ func firstSecondCancel(viewController:UIViewController,title:String?,message:Str
         alert.addAction(noAction)
     }
     
-    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+    let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
         cancelAction?()
     })
     alert.addAction(cancelAction)
     
-    DispatchQueue.main.async(execute: { () -> Void in
+    Thread.onMainThread() {
         viewController.present(alert, animated: true, completion: nil)
-    })
+    }
 }
 
 struct AlertAction {
@@ -4066,13 +4228,13 @@ func alertActionsCancel(viewController:UIViewController,title:String?,message:St
         alert.addAction(action)
     }
     
-    let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+    let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
         cancelAction?()
     })
     alert.addAction(cancelAction)
     
-    DispatchQueue.main.async(execute: { () -> Void in
+    Thread.onMainThread() {
         viewController.present(alert, animated: true, completion: nil)
-    })
+    }
 }
 

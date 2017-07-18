@@ -157,7 +157,7 @@ extension PopoverPickerViewController : UIPickerViewDataSource
             break
         }
         
-        if let count = stringNode?.stringNodes?.count, row > -1, row < count {
+        if let count = stringNode?.stringNodes?.count, row >= 0, row < count {
             //            print("Component: ",component," Row: ",row," String: ",string)
             
             switch count {
@@ -834,9 +834,9 @@ class PopoverPickerViewController : UIViewController
             index += 1
         }
         
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             self.picker.setNeedsLayout()
-        })
+        }
     }
     
     func wordFromPicker() -> String?
@@ -878,7 +878,7 @@ class PopoverPickerViewController : UIViewController
     
     func updatePicker()
     {
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             self.picker.reloadAllComponents()
             self.setPreferredContentSize()
 
@@ -890,7 +890,7 @@ class PopoverPickerViewController : UIViewController
             }
             
             self.string = self.wordFromPicker()
-        })
+        }
     }
     
     func stringTreeUpdated()
@@ -911,7 +911,7 @@ class PopoverPickerViewController : UIViewController
             self.updatePickerSelections()
             self.updatePicker()
             
-            DispatchQueue.main.async(execute: { () -> Void in
+            Thread.onMainThread() {
                 self.updateActionButton()
 
                 if let eligible = self.lexicon?.eligible?.count, let depth = self.lexicon?.stringTree.root?.depthBelow(0) {
@@ -932,7 +932,7 @@ class PopoverPickerViewController : UIViewController
                         self.spinner.isHidden = true
                     }
                 }
-            })
+            }
         }
     }
     

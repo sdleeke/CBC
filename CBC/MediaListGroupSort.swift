@@ -504,7 +504,7 @@ class MediaListGroupSort {
     
     init(mediaItems:[MediaItem]?)
     {
-        DispatchQueue.main.async {
+        Thread.onMainThread() {
             NotificationCenter.default.addObserver(self, selector: #selector(MediaListGroupSort.freeMemory), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FREE_MEMORY), object: nil)
         }
         

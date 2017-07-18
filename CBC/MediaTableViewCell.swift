@@ -46,8 +46,6 @@ class MediaTableViewCell: UITableViewCell
         
         self.title.attributedText = nil
         self.detail.attributedText = nil
-//        DispatchQueue.main.async {
-//        }
     }
     
     func hideUI()
@@ -114,8 +112,6 @@ class MediaTableViewCell: UITableViewCell
             self.downloadButton.setTitle(Constants.FA.DOWNLOADING, for: UIControlState.normal)
             break
         }
-//        DispatchQueue.main.async {
-//        }
     }
     
     func setupText()
@@ -190,9 +186,6 @@ class MediaTableViewCell: UITableViewCell
         }
         
         self.title.attributedText = titleString // NSAttributedString(string: "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)", attributes: normal)
-//        DispatchQueue.main.async {
-//            //                print(titleString.string)
-//        }
         
         let detailString = NSMutableAttributedString()
         
@@ -330,9 +323,11 @@ class MediaTableViewCell: UITableViewCell
         }
         
         self.detail.attributedText = detailString
-//        DispatchQueue.main.async {
-//            //                print(detailString.string)
-//        }
+    }
+    
+    func stopEditing()
+    {
+        isEditing = false
     }
     
     func updateUI()
@@ -383,15 +378,17 @@ class MediaTableViewCell: UITableViewCell
         }
         didSet {
             if (oldValue != nil) {
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
-                })
+                    NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: oldValue)
+                }
             }
             
             if (mediaItem != nil) {
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread() {
                     NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
-                })
+                    NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewCell.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
+                }
             }
             
             if tagsToolbar == nil {
@@ -583,8 +580,6 @@ class MediaTableViewCell: UITableViewCell
         } else {
             self.tagsButton.isHidden = true
         }
-//        DispatchQueue.main.async(execute: { () -> Void in
-//        })
     }
     
     func setupTagsToolbar()
@@ -626,8 +621,6 @@ class MediaTableViewCell: UITableViewCell
         //        self.addConstraint(height)
         
         self.setNeedsLayout()
-//        DispatchQueue.main.async(execute: { () -> Void in
-//        })
     }
     
     func setupDownloadButtonToolbar()
@@ -744,8 +737,6 @@ class MediaTableViewCell: UITableViewCell
             }
             
             self.icons.attributedText = attrString
-//            DispatchQueue.main.async {
-//            }
         } else {
             var string = String()
             
@@ -797,8 +788,6 @@ class MediaTableViewCell: UITableViewCell
             }
             
             self.icons.text = string
-//            DispatchQueue.main.async {
-//            }
         }
     }
     
@@ -833,8 +822,6 @@ class MediaTableViewCell: UITableViewCell
             }
             break
         }
-//        DispatchQueue.main.async {
-//        }
     }
     
     @IBOutlet weak var downloadProgressBar: UIProgressView!

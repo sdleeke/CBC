@@ -29,9 +29,9 @@ extension AboutViewController : MFMailComposeViewControllerDelegate
 {
     // MARK: MFMailComposeViewControllerDelegate Method
     func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-        DispatchQueue.main.async(execute: { () -> Void in
+        Thread.onMainThread() {
             controller.dismiss(animated: true, completion: nil)
-        })
+        }
     }
 }
 
@@ -167,20 +167,20 @@ class AboutViewController: UIViewController
             popover.navigationItem.title = "Select"
             navigationController.isNavigationBarHidden = false
 
-            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
-                let hClass = traitCollection.horizontalSizeClass
-                
-                if hClass == .compact {
-                    navigationController.modalPresentationStyle = .overCurrentContext
-                } else {
-                    // I don't think this ever happens: collapsed and regular
-                    navigationController.modalPresentationStyle = .popover
-                }
-            } else {
-                navigationController.modalPresentationStyle = .popover
-            }
+//            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
+//                let hClass = traitCollection.horizontalSizeClass
+//                
+//                if hClass == .compact {
+//                    navigationController.modalPresentationStyle = .overCurrentContext
+//                } else {
+//                    // I don't think this ever happens: collapsed and regular
+//                    navigationController.modalPresentationStyle = .popover
+//                }
+//            } else {
+//                navigationController.modalPresentationStyle = .popover
+//            }
 
-//            navigationController.modalPresentationStyle = .popover
+            navigationController.modalPresentationStyle = .popover
             
             navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
@@ -300,7 +300,7 @@ class AboutViewController: UIViewController
 
         addMap()
         
-        DispatchQueue.main.async {
+        Thread.onMainThread() {
             NotificationCenter.default.addObserver(self, selector: #selector(AboutViewController.reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(AboutViewController.reachableTransition), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
         }
