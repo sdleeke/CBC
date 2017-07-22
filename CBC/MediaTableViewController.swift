@@ -10,40 +10,6 @@ import UIKit
 import AVFoundation
 import MessageUI
 
-//extension MediaController : UIPopoverPresentationControllerDelegate
-//{
-//    
-//}
-//
-//extension MediaController : UIAdaptivePresentationControllerDelegate
-//{
-//    // MARK: UIAdaptivePresentationControllerDelegate
-//    
-//    // Specifically for Plus size iPhones.
-//    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-//    {
-//        return UIModalPresentationStyle.none
-//    }
-//    
-//    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-//        return UIModalPresentationStyle.none
-//    }
-//}
-
-//class MediaController : UIViewController
-//{
-//    weak var _tableView:UITableView?
-//    
-////    init(_ tableView:UITableView?)
-////    {
-////        self._tableView = tableView
-////    }
-////    
-////    required init(coder aDecoder: NSCoder) {
-////        fatalError("init(coder:) has not been implemented")
-////    }
-//}
-
 extension UIAlertController {
     func makeOpaque()
     {
@@ -645,7 +611,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                         Thread.onMainThread() {
                                             popover.tableView?.isEditing = false
                                             popover.tableView?.reloadData()
-//                                            popover.tableView?.reloadData()
+                                            popover.tableView?.reloadData()
                                         }
                                     })
                                     alert.addAction(yesAction)
@@ -875,8 +841,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                             self.popover?.section.indexes = indexes.count > 0 ? indexes : nil
                                             
                                             self.popover?.tableView?.isEditing = false
+                                            
                                             self.popover?.tableView?.reloadData()
-//                                            self.popover?.tableView?.reloadData()
+                                            self.popover?.tableView?.reloadData()
                                         })
                                         alert.addAction(yesAction)
                                         
@@ -1797,21 +1764,14 @@ extension MediaTableViewController : UIAdaptivePresentationControllerDelegate
 
 extension MediaTableViewController : UIPopoverPresentationControllerDelegate
 {
-    
+    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+    {
+        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+    }
 }
 
 class MediaTableViewController : UIViewController // MediaController
 {
-//    init()
-//    {
-//        super.init(tableView)
-//    }
-//    
-//    required init(coder aDecoder: NSCoder) {
-//        fatalError("init(coder:) has not been implemented")
-//    }
-    
-
     var popover : PopoverTableViewController?
     var deleteButton : UIBarButtonItem?
     

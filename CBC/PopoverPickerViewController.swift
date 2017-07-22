@@ -295,7 +295,10 @@ extension PopoverPickerViewController : UIPickerViewDelegate
 
 extension PopoverPickerViewController : UIPopoverPresentationControllerDelegate
 {
-    
+    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+    {
+        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+    }
 }
 
 extension PopoverPickerViewController : PopoverTableViewControllerDelegate
@@ -464,9 +467,36 @@ class PopoverPickerViewController : UIViewController
         }
     }
 
+    func done()
+    {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    var doneButton : UIBarButtonItem!
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
+
+        doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverPickerViewController.done))
+        
+        if let presentationStyle = navigationController?.modalPresentationStyle {
+            switch presentationStyle {
+            case .overCurrentContext:
+                fallthrough
+            case .fullScreen:
+                fallthrough
+            case .overFullScreen:
+                if navigationItem.leftBarButtonItems != nil {
+                    navigationItem.leftBarButtonItems?.append(doneButton)
+                } else {
+                    navigationItem.leftBarButtonItem = doneButton
+                }
+                
+            default:
+                break
+            }
+        }
 
         setupActionButton()
     }

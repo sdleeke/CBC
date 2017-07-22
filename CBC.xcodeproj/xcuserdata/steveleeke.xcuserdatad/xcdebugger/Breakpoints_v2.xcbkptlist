@@ -9,62 +9,14 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "521114505.344711"
+            filePath = "CBC/PopoverTableViewController.swift"
+            timestampString = "522432516.799315"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "582"
-            endingLineNumber = "582"
-            landmarkName = "showMenu(action:mediaItem:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "521114505.344711"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "602"
-            endingLineNumber = "602"
-            landmarkName = "showMenu(action:mediaItem:)"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "CBC.MediaTableViewController.(showMenu (action : Swift.Optional&lt;Swift.String&gt;, mediaItem : Swift.Optional&lt;CBC.MediaItem&gt;) -&gt; ()).(closure #8)"
-                  moduleName = "CBC"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox/Development/CBC%20v25/CBC/MediaTableViewController.swift"
-                  timestampString = "521113413.72036"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "591"
-                  endingLineNumber = "591"
-                  offsetFromSymbolStart = "15067">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "CBC.MediaTableViewController.(showMenu (action : Swift.Optional&lt;Swift.String&gt;, mediaItem : Swift.Optional&lt;CBC.MediaItem&gt;) -&gt; ()).(closure #8).(closure #4)"
-                  moduleName = "CBC"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox/Development/CBC%20v25/CBC/MediaTableViewController.swift"
-                  timestampString = "521113413.722564"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "592"
-                  endingLineNumber = "592"
-                  offsetFromSymbolStart = "16">
-               </Location>
-            </Locations>
+            startingLineNumber = "1363"
+            endingLineNumber = "1363"
+            landmarkName = "action()"
+            landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -74,12 +26,28 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/PopoverTableViewController.swift"
-            timestampString = "521112806.006104"
+            timestampString = "522432516.799315"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1170"
-            endingLineNumber = "1170"
-            landmarkName = "viewWillAppear(_:)"
+            startingLineNumber = "1364"
+            endingLineNumber = "1364"
+            landmarkName = "action()"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/WebViewController.swift"
+            timestampString = "522428476.459378"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "567"
+            endingLineNumber = "567"
+            landmarkName = "popoverPresentationControllerShouldDismissPopover(_:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -90,12 +58,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/PopoverTableViewController.swift"
-            timestampString = "521112806.006104"
+            timestampString = "522428483.243217"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1171"
-            endingLineNumber = "1171"
-            landmarkName = "viewWillAppear(_:)"
+            startingLineNumber = "244"
+            endingLineNumber = "244"
+            landmarkName = "popoverPresentationControllerShouldDismissPopover(_:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -105,157 +73,13 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "CBC/Globals.swift"
-            timestampString = "521112782.12739"
+            filePath = "CBC/PopoverPickerViewController.swift"
+            timestampString = "522429107.055707"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "81"
-            endingLineNumber = "81"
-            landmarkName = "titles"
-            landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CBC/PopoverTableViewController.swift"
-            timestampString = "521113645.883517"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1248"
-            endingLineNumber = "1248"
-            landmarkName = "tableView(_:titleForHeaderInSection:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CBC/PopoverTableViewController.swift"
-            timestampString = "521113648.279778"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1250"
-            endingLineNumber = "1250"
-            landmarkName = "tableView(_:titleForHeaderInSection:)"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "CBC.PopoverTableViewController.tableView (__ObjC.UITableView, titleForHeaderInSection : Swift.Int) -&gt; Swift.Optional&lt;Swift.String&gt;"
-                  moduleName = "CBC"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox/Development/CBC%20v25/CBC/PopoverTableViewController.swift"
-                  timestampString = "521114831.013881"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "1250"
-                  endingLineNumber = "1250"
-                  offsetFromSymbolStart = "574">
-               </Location>
-               <Location
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "CBC.PopoverTableViewController.tableView (__ObjC.UITableView, titleForHeaderInSection : Swift.Int) -&gt; Swift.Optional&lt;Swift.String&gt;"
-                  moduleName = "CBC"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/steveleeke/Dropbox/Development/CBC%20v25/CBC/PopoverTableViewController.swift"
-                  timestampString = "521114831.017106"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "1250"
-                  endingLineNumber = "1250"
-                  offsetFromSymbolStart = "961">
-               </Location>
-            </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CBC/PopoverTableViewController.swift"
-            timestampString = "521113649.922087"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1251"
-            endingLineNumber = "1251"
-            landmarkName = "tableView(_:titleForHeaderInSection:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CBC/PopoverTableViewController.swift"
-            timestampString = "521113673.74976"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1269"
-            endingLineNumber = "1269"
-            landmarkName = "tableView(_:cellForRowAt:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CBC/PopoverTableViewController.swift"
-            timestampString = "521113674.628021"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1271"
-            endingLineNumber = "1271"
-            landmarkName = "tableView(_:cellForRowAt:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CBC/PopoverTableViewController.swift"
-            timestampString = "521113769.98281"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1279"
-            endingLineNumber = "1279"
-            landmarkName = "tableView(_:cellForRowAt:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CBC/PopoverTableViewController.swift"
-            timestampString = "521113787.950243"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1284"
-            endingLineNumber = "1284"
-            landmarkName = "tableView(_:cellForRowAt:)"
+            startingLineNumber = "300"
+            endingLineNumber = "300"
+            landmarkName = "popoverPresentationControllerShouldDismissPopover(_:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -266,12 +90,140 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CBC/MediaTableViewController.swift"
-            timestampString = "521114943.429917"
+            timestampString = "522433496.90643"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "556"
-            endingLineNumber = "556"
-            landmarkName = "showMenu(action:mediaItem:)"
+            startingLineNumber = "1195"
+            endingLineNumber = "1195"
+            landmarkName = "processFirst()"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaTableViewController.swift"
+            timestampString = "522433438.095009"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "612"
+            endingLineNumber = "612"
+            landmarkName = "rowActions(popover:tableView:indexPath:)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaTableViewController.swift"
+            timestampString = "522433438.095009"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "611"
+            endingLineNumber = "611"
+            landmarkName = "rowActions(popover:tableView:indexPath:)"
+            landmarkType = "9">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.MediaTableViewController.(showMenu (action : Swift.Optional&lt;Swift.String&gt;, mediaItem : Swift.Optional&lt;CBC.MediaItem&gt;) -&gt; ()).(closure #8).((rowActions #1) (popover : CBC.PopoverTableViewController, tableView : __ObjC.UITableView, indexPath : Foundation.IndexPath) -&gt; Swift.Optional&lt;Swift.Array&lt;__ObjC.UITableViewRowAction&gt;&gt;).(closure #1).(closure #1)"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox/Development/CBC%20v25/CBC/MediaTableViewController.swift"
+                  timestampString = "522434193.120492"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "611"
+                  endingLineNumber = "611"
+                  offsetFromSymbolStart = "4887">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CBC.MediaTableViewController.(showMenu (action : Swift.Optional&lt;Swift.String&gt;, mediaItem : Swift.Optional&lt;CBC.MediaItem&gt;) -&gt; ()).(closure #8).((rowActions #1) (popover : CBC.PopoverTableViewController, tableView : __ObjC.UITableView, indexPath : Foundation.IndexPath) -&gt; Swift.Optional&lt;Swift.Array&lt;__ObjC.UITableViewRowAction&gt;&gt;).(closure #1).(closure #1).(closure #1)"
+                  moduleName = "CBC"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/steveleeke/Dropbox/Development/CBC%20v25/CBC/MediaTableViewController.swift"
+                  timestampString = "522434193.123015"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "612"
+                  endingLineNumber = "612"
+                  offsetFromSymbolStart = "19">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaViewController.swift"
+            timestampString = "522432189.46135"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "766"
+            endingLineNumber = "766"
+            landmarkName = "popoverPresentationControllerShouldDismissPopover(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/MediaViewController.swift"
+            timestampString = "522432192.003767"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "767"
+            endingLineNumber = "767"
+            landmarkName = "popoverPresentationControllerShouldDismissPopover(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/ScriptureIndexViewController.swift"
+            timestampString = "522432710.040134"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "424"
+            endingLineNumber = "424"
+            landmarkName = "popoverPresentationControllerShouldDismissPopover(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CBC/ScriptureViewController.swift"
+            timestampString = "522432714.007664"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "371"
+            endingLineNumber = "371"
+            landmarkName = "popoverPresentationControllerShouldDismissPopover(_:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

@@ -762,7 +762,10 @@ extension MediaViewController: UIScrollViewDelegate
 
 extension MediaViewController: UIPopoverPresentationControllerDelegate
 {
-    
+    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+    {
+        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+    }
 }
 
 extension MediaViewController : PopoverPickerControllerDelegate
@@ -786,15 +789,6 @@ enum VideoLocation {
 
 class MediaViewController: UIViewController // MediaController
 {
-//    init()
-//    {
-//        super.init(tableView)
-//    }
-//    
-//    required init(coder aDecoder: NSCoder) {
-//        fatalError("init(coder:) has not been implemented")
-//    }
-    
     @IBOutlet weak var controlView: ControlView!
     
     @IBOutlet weak var controlViewTop: NSLayoutConstraint!
@@ -3820,7 +3814,7 @@ class MediaViewController: UIViewController // MediaController
 
         // Shouldn't some or all of these have object values of selectedMediaItem?
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)

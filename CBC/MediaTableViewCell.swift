@@ -26,7 +26,10 @@ extension MediaTableViewCell : UIAdaptivePresentationControllerDelegate
 
 extension MediaTableViewCell : UIPopoverPresentationControllerDelegate
 {
-    
+    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+    {
+        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+    }
 }
 
 class MediaTableViewCell: UITableViewCell

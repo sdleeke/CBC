@@ -313,7 +313,10 @@ extension LexiconIndexViewController : MFMailComposeViewControllerDelegate
 
 extension LexiconIndexViewController : UIPopoverPresentationControllerDelegate
 {
-    
+    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+    {
+        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+    }
 }
 
 class LexiconIndexViewController : UIViewController

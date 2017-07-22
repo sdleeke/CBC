@@ -239,7 +239,10 @@ extension PopoverTableViewController : PopoverTableViewControllerDelegate
 
 extension PopoverTableViewController : UIPopoverPresentationControllerDelegate
 {
-    
+    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+    {
+        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+    }
 }
 
 struct Sort
@@ -1349,7 +1352,7 @@ class PopoverTableViewController : UIViewController
         }
     }
     
-    var ptvc:PopoverTableViewController?
+//    var ptvc:PopoverTableViewController?
     
     var orientation : UIDeviceOrientation?
     
@@ -1358,7 +1361,7 @@ class PopoverTableViewController : UIViewController
         // Dismiss any popover
         func action()
         {
-            ptvc?.dismiss(animated: false, completion: nil)
+//            ptvc?.dismiss(animated: false, completion: nil)
         }
         
         switch orientation! {

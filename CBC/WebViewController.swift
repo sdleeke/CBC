@@ -562,7 +562,10 @@ extension WebViewController: UIScrollViewDelegate
 
 extension WebViewController: UIPopoverPresentationControllerDelegate
 {
-
+    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+    {
+        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+    }
 }
 
 class WebViewController: UIViewController

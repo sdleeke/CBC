@@ -87,8 +87,12 @@ extension AboutViewController : PopoverTableViewControllerDelegate
     }
 }
 
-extension AboutViewController : UIPopoverPresentationControllerDelegate {
-    
+extension AboutViewController : UIPopoverPresentationControllerDelegate
+{
+    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+    {
+        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+    }
 }
 
 class AboutViewController: UIViewController

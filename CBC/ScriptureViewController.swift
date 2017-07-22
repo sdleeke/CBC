@@ -366,7 +366,10 @@ extension ScriptureViewController : MFMailComposeViewControllerDelegate
 
 extension ScriptureViewController : UIPopoverPresentationControllerDelegate
 {
-    
+    func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool
+    {
+        return popoverPresentationController.presentedViewController.modalPresentationStyle == .popover
+    }
 }
 
 class ScriptureViewController : UIViewController

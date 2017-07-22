@@ -19,8 +19,10 @@ extension UIApplication
         {
             let maxScreenSize = max(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
             let minScreenSize = min(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
+            
             let maxAppSize = max(w.bounds.size.width, w.bounds.size.height)
             let minAppSize = min(w.bounds.size.width, w.bounds.size.height)
+            
             return maxScreenSize == maxAppSize && minScreenSize == minAppSize
         }
         
@@ -37,13 +39,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
         guard let secondaryAsNavController = secondaryViewController as? UINavigationController else {
             return false
         }
+        
         guard let topAsDetailController = secondaryAsNavController.topViewController as? MediaViewController else {
             return false
         }
+        
         if topAsDetailController.selectedMediaItem == nil {
             // Return true to indicate that we have handled the collapse by doing nothing; the secondary controller will be discarded.
             return true
         }
+        
         return false
     }
     
