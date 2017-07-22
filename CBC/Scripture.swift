@@ -517,7 +517,7 @@ class Scripture : NSObject
                         }
                     }
                     
-                    print(scriptureReference)
+//                    print(scriptureReference)
                     
                     guard let dict = loadXMLVerseFromURL(scriptureReference) else {
                         return
@@ -693,7 +693,7 @@ class Scripture : NSObject
                         }
                     }
                     
-                    print(scriptureReference)
+//                    print(scriptureReference)
                     
                     guard let dict = Scripture(reference: scriptureReference).loadJSONVerseFromURL() else {
                         return
@@ -749,7 +749,7 @@ class Scripture : NSObject
         
         bodyString = bodyString! + "</html></body>"
         
-        print(bodyString as Any)
+//        print(bodyString as Any)
         
         html?[reference!] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
     }

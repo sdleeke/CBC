@@ -1674,27 +1674,6 @@ class PopoverTableViewController : UIViewController
         
         if track {
             follow()
-//            if let seconds = globals.mediaPlayer.currentTime?.seconds {
-//                var row = 0
-//                
-//                //            print("seconds: ",seconds)
-//                
-//                for startTime in startTimes! {
-//                    //                print("startTime: ",startTime)
-//                    
-//                    if startTime > seconds {
-//                        break
-//                    }
-//                    row += 1
-//                }
-//                
-//                //            print("Row: ",row-1)
-//                let indexPath = IndexPath(row: max(row - 1,0), section: 0)
-//                
-//                if tableView.indexPathForSelectedRow != indexPath {
-//                    tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
-//                }
-//            }
         }
     }
     

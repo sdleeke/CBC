@@ -1277,7 +1277,8 @@ class TextViewController : UIViewController
 ////        }
 //    }
 
-    override func viewDidAppear(_ animated: Bool) {
+    override func viewDidAppear(_ animated: Bool)
+    {
         super.viewDidAppear(animated)
         
         textView.scrollRangeToVisible(NSMakeRange(0, 0))

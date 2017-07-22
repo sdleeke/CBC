@@ -316,7 +316,8 @@ class AboutViewController: UIViewController
         scrollView.flashScrollIndicators()
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool)
+    {
         super.viewWillDisappear(animated)
         
         NotificationCenter.default.removeObserver(self)

@@ -2633,59 +2633,6 @@ class VoiceBase {
                         })
                     }))
 
-//                    alertActions.append(AlertAction(title: "Generated Transcript", style: .default, action: {
-//                        //                    let sourceView = cell.subviews[0]
-//                        //                    let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
-//                        
-//                        var alertActions = [AlertAction]()
-//                        
-//                        alertActions.append(AlertAction(title: "Segments", style: .default, action: {
-//                            //                    let sourceView = cell.subviews[0]
-//                            //                    let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
-//                            
-//                            if let headerHTML = self.mediaItem?.headerHTML, let transcriptFromSRTs = self.transcriptFromSRTs {
-//                                var htmlString = "<!DOCTYPE html><html><body>"
-//                                
-//                                htmlString = htmlString + headerHTML +
-//                                    "<br/>" +
-//                                    "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(purpose))</center>" +
-//                                    "<br/>" +
-//                                    transcriptFromSRTs +
-//                                    //                                            "<br/>" +
-//                                    //                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
-//                                "</body></html>"
-//                                
-//                                popoverHTML(viewController,mediaItem:nil,title:self.mediaItem?.title,barButtonItem:nil,sourceView:nil,sourceRectView:nil,htmlString:htmlString)
-//                            }
-//                        }))
-//                        
-//                        alertActions.append(AlertAction(title: "Words", style: .default, action: {
-//                            //                    let sourceView = cell.subviews[0]
-//                            //                    let sourceRectView = cell.subviews[0].subviews[actions.index(of: action)!]
-//                            
-//                            if let headerHTML = self.mediaItem?.headerHTML, let transcriptFromWords = self.transcriptFromWords {
-//                                var htmlString = "<!DOCTYPE html><html><body>"
-//                                
-//                                htmlString = htmlString + headerHTML +
-//                                    "<br/>" +
-//                                    "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(purpose))</center>" +
-//                                    "<br/>" +
-//                                    transcriptFromWords +
-//                                    //                                            "<br/>" +
-//                                    //                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
-//                                "</body></html>"
-//                                
-//                                popoverHTML(viewController,mediaItem:nil,title:self.mediaItem?.title,barButtonItem:nil,sourceView:nil,sourceRectView:nil,htmlString:htmlString)
-//                            }
-//                        }))
-//                        
-//                        alertActionsCancel( viewController: viewController,
-//                                            title: "Generate Transcript From",
-//                                            message: nil,
-//                                            alertActions: alertActions,
-//                                            cancelAction: nil)
-//                    }))
-                    
                     alertActionsCancel( viewController: viewController,
                                         title: "Show",
                                         message: nil,
@@ -2732,6 +2679,27 @@ class VoiceBase {
                         
                         viewController.present(navigationController, animated: true, completion: {
                             if (globals.mediaPlayer.mediaItem == self.mediaItem) && (self.transcript != self.transcriptFromWords) {
+//                                let transcriptCharacters = Array(self.transcript!.characters)
+//                                let transcriptFromWordsCharacters = Array(self.transcriptFromWords!.characters)
+//            
+//                                var index = 0
+//                                for character in transcriptCharacters {
+//                                    if index < transcriptFromWordsCharacters.count {
+//                                        let characterWord = transcriptFromWordsCharacters[index]
+//            
+//                                        if character != characterWord {
+//                                            let window = 15
+//                                            print("\n\ncharacter error: \(character) vs. \(characterWord)\n\n")
+//                                            print("\(transcriptCharacters[max(index-window,0)...min(index+window,transcriptCharacters.count - 1)])\n\(transcriptFromWordsCharacters[max(index-window,0)...min(index+window,transcriptFromWordsCharacters.count - 1)])")
+//                                        } else {
+//                                            print(character)
+//                                        }
+//                                    } else {
+//                                        print(character,"BEYOND THE END OF WORD CHARACTERS")
+//                                    }
+//                                    index += 1
+//                                }
+                                
                                 alertActionsOkay( viewController: viewController,
                                                     title: "Transcript Sync Warning",
                                                     message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\ndiffers from the individually recognized words.  As a result the sync will not be exact.  Please align the transcript for an exact sync.",
@@ -2949,7 +2917,6 @@ class VoiceBase {
             return
         }
 
-//        let srtComponent = string
         let playing = globals.mediaPlayer.isPlaying
         
         globals.mediaPlayer.pause()
@@ -2969,7 +2936,7 @@ class VoiceBase {
             let range = string.range(of:timing+"\n") {
             navigationController.modalPresentationStyle = .overCurrentContext
             
-            navigationController.popoverPresentationController?.delegate = self as? UIPopoverPresentationControllerDelegate
+            navigationController.popoverPresentationController?.delegate = popover as? UIPopoverPresentationControllerDelegate
             
             Thread.onMainThread {
                 textPopover.navigationController?.isNavigationBarHidden = false
@@ -3017,7 +2984,6 @@ class VoiceBase {
                 
                 DispatchQueue.global(qos: .background).async {
                     self.transcriptSRT  = self.transcriptSRTFromSRTs
-//                    self.transcript     = self.transcriptFromSRTs
                 }
                 
                 Thread.onMainThread {
@@ -3065,16 +3031,6 @@ class VoiceBase {
         
         edit = UITableViewRowAction(style: .normal, title: Constants.FA.EDIT) { rowAction, indexPath in
             self.editSRT(popover:popover,tableView:tableView,indexPath:indexPath)
-
-//            var actions = [AlertAction]()
-//            
-//            actions.append(AlertAction(title: "Yes", style: .destructive, action: { (Void) -> (Void) in
-//                self.editSRT(popover:popover,tableView:tableView,indexPath:indexPath)
-//            }))
-//            
-//            actions.append(AlertAction(title: "No", style: .default, action:nil))
-//            
-//            globals.alert(title:"Confirm Editing of Transcript Element", message:"If you edit and save this transcript element, the transcript may be overwritten and any changes you have to the transcript as a whole will be lost.", actions:actions)
         }
         edit.backgroundColor = UIColor.cyan//controlBlue()
         
@@ -3145,22 +3101,9 @@ class VoiceBase {
                         return string.lowercased()
                     }).sorted()
                     
-                    //                    switch purpose {
-                    //                    case Purpose.audio:
-                    //                        let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchAudio))
-                    //                        self.popover?.navigationItem.rightBarButtonItem = searchButton
-                    //
-                    //                    case Purpose.video:
-                    //                        let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchVideo))
-                    //                        self.popover?.navigationItem.rightBarButtonItem = searchButton
-                    //
-                    //                    default:
-                    //                        break
-                    //                    }
-                    
                     viewController.present(navigationController, animated: true, completion:  {
                         completion?(popover)
-                    }) // {self.popover = popover}
+                    })
                 }
             }))
             
@@ -3232,22 +3175,9 @@ class VoiceBase {
                     popover.track = true
                     popover.assist = true
                     
-                    //                        switch purpose {
-                    //                        case Purpose.audio:
-                    //                            let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchAudio))
-                    //                            self.popover?.navigationItem.rightBarButtonItem = searchButton
-                    //
-                    //                        case Purpose.video:
-                    //                            let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchVideo))
-                    //                            self.popover?.navigationItem.rightBarButtonItem = searchButton
-                    //
-                    //                        default:
-                    //                            break
-                    //                        }
-                    
                     viewController.present(navigationController, animated: true, completion: {
                         completion?(popover)
-                    }) // {self.popover = popover}
+                    })
                 }
             }))
             
@@ -3259,40 +3189,15 @@ class VoiceBase {
                     navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
                     navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
                     
-                    //                    navigationController.popoverPresentationController?.sourceView = sourceView
-                    //                    navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
-                    
                     popover.navigationController?.isNavigationBarHidden = false
                     
                     popover.navigationItem.title = "Timing Index (\(self.transcriptPurpose))" //
                     
                     popover.vc = viewController
                     popover.search = true
-
-                    // Has no effect on setting the time since that is done on the mediaPlayer's mediaItem.
-//                    popover.selectedMediaItem = self.mediaItem
-                    
-                    // Both must be nil if there are to be now TableViewRowActions.
-//                    popover.transcript = self
-//                    popover.editActionsAtIndexPath = self.rowActions
                     
                     popover.delegate = viewController as? PopoverTableViewControllerDelegate
                     popover.purpose = .selectingTime
-                    
-//                    popover.parser = { (string:String) -> [String] in
-//                        var strings = string.components(separatedBy: "\n")
-//                        while strings.count > 2 {
-//                            strings.removeLast()
-//                        }
-//                        return strings
-//                    }
-                    
-//                    popover.section.showIndex = true
-//                    popover.section.indexStringsTransform = century
-//                    popover.section.indexHeadersTransform = { (string:String?)->(String?) in
-//                        return string
-//                    }
-                    //                        popover.section.showHeaders = true
                     
                     popover.stringsFunction = { (Void) -> [String]? in
                         return self.words?.filter({ (dict:[String:Any]) -> Bool in
@@ -3306,45 +3211,12 @@ class VoiceBase {
                                 let word = dict["w"] as? String,
                                 let startHMS = secondsToHMS(seconds: "\(Double(start)/1000.0)"),
                                 let endHMS = secondsToHMS(seconds: "\(Double(end)/1000.0)") {
-                                return "\(position+1)\n\(startHMS) --> \(endHMS)\n\(word)"
+                                return "\(position+1)\n\(startHMS) to \(endHMS)\n\(word)"
                             }
                             
                             return "ERROR"
                         })
                     }
-                    
-//                    popover.section.strings = self.words?.filter({ (dict:[String:Any]) -> Bool in
-//                        return dict["w"] != nil
-//                    }).map({ (dict:[String:Any]) -> String in
-//                        //                            print("srtComponent: ",srtComponent)
-//                        
-//                        if  let position = dict["p"] as? Int,
-//                            let start = dict["s"] as? Int,
-//                            let end = dict["e"] as? Int,
-//                            let word = dict["w"] as? String,
-//                            let startHMS = secondsToHMS(seconds: "\(Double(start)/1000.0)"),
-//                            let endHMS = secondsToHMS(seconds: "\(Double(end)/1000.0)") {
-//                            return "\(position+1)\n\(startHMS) --> \(endHMS)\n\(word)"
-//                        }
-//                    
-//                        return "ERROR"
-//                    })
-                    
-//                    popover.track = true
-//                    popover.assist = true
-                    
-                    //                        switch purpose {
-                    //                        case Purpose.audio:
-                    //                            let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchAudio))
-                    //                            self.popover?.navigationItem.rightBarButtonItem = searchButton
-                    //
-                    //                        case Purpose.video:
-                    //                            let searchButton = UIBarButtonItem(title: "Free Form", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.searchVideo))
-                    //                            self.popover?.navigationItem.rightBarButtonItem = searchButton
-                    //
-                    //                        default:
-                    //                            break
-                    //                        }
                     
                     viewController.present(navigationController, animated: true, completion: {
                         completion?(popover)
