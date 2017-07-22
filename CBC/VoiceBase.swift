@@ -687,7 +687,7 @@ class VoiceBase {
             var start : Double?
             var end : Double?
             
-            print(words)
+//            print(words)
             
             if var words = words, words.count > 0 {
                 while words.count > 0 {

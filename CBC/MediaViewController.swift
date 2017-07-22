@@ -4029,6 +4029,12 @@ class MediaViewController: UIViewController // MediaController
         
         sliderObserver?.invalidate()
     }
+    
+    override func viewDidDisappear(_ animated: Bool)
+    {
+        super.viewDidDisappear(animated)
+        
+    }
 
     override func didReceiveMemoryWarning()
     {

@@ -1312,6 +1312,12 @@ class PopoverTableViewController : UIViewController
 //        }
     }
     
+    override func viewDidDisappear(_ animated: Bool)
+    {
+        super.viewDidDisappear(animated)
+        
+    }
+    
 //    func sortAction()
 //    {
 //        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
@@ -1343,7 +1349,7 @@ class PopoverTableViewController : UIViewController
 //            present(navigationController, animated: true, completion: nil)
 //        }
 //    }
-    
+
     func updateTitle()
     {
         if  let count = self.mediaListGroupSort?.lexicon?.entries?.count,

@@ -1306,14 +1306,16 @@ class TextViewController : UIViewController
         }
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool)
+    {
         super.viewWillDisappear(animated)
         
         trackingTimer?.invalidate()
         trackingTimer = nil
     }
     
-    override func viewDidDisappear(_ animated: Bool) {
+    override func viewDidDisappear(_ animated: Bool)
+    {
         super.viewDidDisappear(animated)
 
     }

@@ -797,6 +797,12 @@ class PopoverPickerViewController : UIViewController
         NotificationCenter.default.removeObserver(self)
     }
     
+    override func viewDidDisappear(_ animated: Bool)
+    {
+        super.viewDidDisappear(animated)
+        
+    }
+
     func setPreferredContentSize()
     {
         guard Thread.isMainThread else {
