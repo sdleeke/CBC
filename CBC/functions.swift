@@ -581,7 +581,7 @@ func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wh
     }
     
     guard let searchText = searchText, !searchText.isEmpty else {
-        return nil
+        return NSAttributedString(string: string, attributes: Constants.Fonts.Attributes.normal)
     }
     
     var stringBefore    = String()
@@ -594,7 +594,7 @@ func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wh
     var foundString     = String()
     
     let newAttrString       = NSMutableAttributedString()
-    var foundAttrString     = NSMutableAttributedString()
+    var foundAttrString     = NSAttributedString()
     
     while (string.lowercased().range(of: searchText.lowercased()) != nil) {
         //                print(string)
@@ -635,7 +635,7 @@ func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wh
             foundString = foundString.substring(to: newRange!.upperBound)
             
             if !skip {
-                foundAttrString = NSMutableAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
+                foundAttrString = NSAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
             }
             
             newAttrString.append(NSMutableAttributedString(string: stringBefore, attributes: Constants.Fonts.Attributes.normal))
@@ -3215,17 +3215,18 @@ func secondsToHMS(seconds:String?) -> String?
     let hours = max(Int(timeNow / (60*60)),0)
     let mins = max(Int((timeNow - (Double(hours) * 60*60)) / 60),0)
     let sec = max(Int(timeNow.truncatingRemainder(dividingBy: 60)),0)
+    let fraction = timeNow - Double(Int(timeNow))
     
     var hms:String
     
     if (hours > 0) {
-        hms = "\(String(format: "%d",hours)):"
+        hms = "\(String(format: "%02d",hours)):"
     } else {
-        hms = Constants.EMPTY_STRING
+        hms = "00:" //Constants.EMPTY_STRING
     }
     
-    hms = hms + "\(String(format: "%02d",mins)):\(String(format: "%02d",sec))"
-
+    hms = hms + "\(String(format: "%02d",mins)):\(String(format: "%02d",sec)).\(String(format: "%.3f",fraction).trimmingCharacters(in: CharacterSet(charactersIn: "0.")))"
+    
     return hms
 }
 
@@ -4214,24 +4215,52 @@ struct AlertAction {
     let action : ((Void)->(Void))?
 }
 
-func alertActionsCancel(viewController:UIViewController,title:String?,message:String?,alertActions:[AlertAction],cancelAction:((Void)->(Void))?)
+func alertActionsCancel(viewController:UIViewController,title:String?,message:String?,alertActions:[AlertAction]?,cancelAction:((Void)->(Void))?)
 {
     let alert = UIAlertController(title: title,
                                   message: message,
                                   preferredStyle: .alert)
     alert.makeOpaque()
     
-    for alertAction in alertActions {
-        let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
-            alertAction.action?()
-        })
-        alert.addAction(action)
+    if let alertActions = alertActions {
+        for alertAction in alertActions {
+            let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+                alertAction.action?()
+            })
+            alert.addAction(action)
+        }
     }
     
     let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
         cancelAction?()
     })
     alert.addAction(cancelAction)
+    
+    Thread.onMainThread() {
+        viewController.present(alert, animated: true, completion: nil)
+    }
+}
+
+func alertActionsOkay(viewController:UIViewController,title:String?,message:String?,alertActions:[AlertAction]?,okayAction:((Void)->(Void))?)
+{
+    let alert = UIAlertController(title: title,
+                                  message: message,
+                                  preferredStyle: .alert)
+    alert.makeOpaque()
+    
+    if let alertActions = alertActions {
+        for alertAction in alertActions {
+            let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+                alertAction.action?()
+            })
+            alert.addAction(action)
+        }
+    }
+    
+    let okayAlertAction = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.default, handler: { (UIAlertAction) -> Void in
+        okayAction?()
+    })
+    alert.addAction(okayAlertAction)
     
     Thread.onMainThread() {
         viewController.present(alert, animated: true, completion: nil)

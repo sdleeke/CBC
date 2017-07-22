@@ -1237,7 +1237,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    var gotoPlayingPaused:Bool = false
+//    var gotoPlayingPaused:Bool = false
 
     var mediaPlayer = MediaPlayer()
 

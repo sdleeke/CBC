@@ -6,7 +6,23 @@
 //  Copyright © 2017 Steve Leeke. All rights reserved.
 //
 
+import Foundation
 import UIKit
+
+extension UITextView {
+    func scrollToRange(_ range:Range<String.Index>)
+    {
+        let utf16 = attributedText.string.utf16
+        
+        let from = range.lowerBound.samePosition(in: utf16)
+        let to = range.upperBound.samePosition(in: utf16)
+        
+        let nsRange = NSRange(location: utf16.distance(from: utf16.startIndex, to: from),
+                              length: utf16.distance(from: from, to: to))
+        
+        scrollRangeToVisible(nsRange)
+    }
+}
 
 extension TextViewController: UISearchBarDelegate
 {
@@ -15,8 +31,28 @@ extension TextViewController: UISearchBarDelegate
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool
     {
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarShouldBeginEditing",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarShouldBeginEditing",completion:nil)
             return false
+        }
+
+        searchActive = true
+        
+        searchBar.showsCancelButton = true
+        
+        searchText = searchBar.text
+        
+        textView.attributedText = stringMarkedBySearchAsAttributedString(string: textView.attributedText.string, searchText: searchText, wholeWordsOnly: false)
+
+        if let searchText = searchText,let range = textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
+            let utf16 = textView.attributedText.string.utf16
+            
+            let from = range.lowerBound.samePosition(in: utf16)
+            let to = range.upperBound.samePosition(in: utf16)
+            
+            let nsRange = NSRange(location: utf16.distance(from: utf16.startIndex, to: from),
+                                  length: utf16.distance(from: from, to: to))
+            
+            textView.scrollRangeToVisible(nsRange)
         }
         
         return true
@@ -25,25 +61,16 @@ extension TextViewController: UISearchBarDelegate
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar)
     {
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidBeginEditing",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarTextDidBeginEditing",completion:nil)
             return
         }
         
-        searchActive = true
-        
-        searchBar.showsCancelButton = true
-        
-        searchText = searchBar.text
-        
-        if let searchText = searchText {
-            textView.attributedText = stringMarkedBySearchAsAttributedString(string: textView.text, searchText: searchText, wholeWordsOnly: false)
-        }
     }
     
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar)
     {
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarTextDidEndEditing",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarTextDidEndEditing",completion:nil)
             return
         }
         
@@ -52,14 +79,18 @@ extension TextViewController: UISearchBarDelegate
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
     {
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBar:textDidChange",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBar:textDidChange",completion:nil)
             return
         }
         
         self.searchText = searchText
 
-        if !searchText.isEmpty {
-            textView.attributedText = stringMarkedBySearchAsAttributedString(string: text, searchText: searchText, wholeWordsOnly: false)
+        textView.attributedText = stringMarkedBySearchAsAttributedString(string: changedText, searchText: searchText, wholeWordsOnly: false)
+        
+        
+        if let range = textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
+            textView.scrollToRange(range)
+            lastRange = range
         }
     }
     
@@ -68,29 +99,48 @@ extension TextViewController: UISearchBarDelegate
         //        print("searchBarSearchButtonClicked:")
         
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarSearchButtonClicked",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarSearchButtonClicked",completion:nil)
             return
         }
         
         searchText = searchBar.text
         
-        searchBar.resignFirstResponder()
+//        searchBar.resignFirstResponder()
         
-        textView.attributedText = stringMarkedBySearchAsAttributedString(string: text, searchText: searchText, wholeWordsOnly: false)
+        textView.attributedText = stringMarkedBySearchAsAttributedString(string: changedText, searchText: searchText, wholeWordsOnly: false)
+        
+        if lastRange != nil {
+            let startingRange = Range(uncheckedBounds: (lower: lastRange!.upperBound, upper: textView.attributedText.string.endIndex))
+
+            if let searchText = searchText,let range = textView.attributedText.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
+                textView.scrollToRange(range)
+                lastRange = range
+            } else {
+                lastRange = nil
+            }
+        }
+        
+        if lastRange == nil {
+            if let searchText = searchText,let range = textView.attributedText.string.lowercased().range(of: searchText.lowercased()) {
+                textView.scrollToRange(range)
+                lastRange = range
+            }
+        }
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar)
     {
         guard Thread.isMainThread else {
-            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:searchBarCancelButtonClicked",completion:nil)
+            alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarCancelButtonClicked",completion:nil)
             return
         }
         
         searchText = nil
         searchActive = false
         
-        textView.attributedText = nil
-        textView.text = changedText
+        self.textView.attributedText = NSMutableAttributedString(string: changedText!,attributes: Constants.Fonts.Attributes.normal)
+//        textView.attributedText = nil
+//        textView.text = changedText
         
         searchBar.showsCancelButton = false
         
@@ -104,10 +154,13 @@ extension TextViewController : UITextViewDelegate
     func textViewShouldBeginEditing(_ textView: UITextView) -> Bool
     {
         // Asks the delegate if editing should begin in the specified text view.
+
+        editingActive = true
         
-        textView.attributedText = nil
-        textView.text = changedText
-        
+        self.textView.attributedText = NSAttributedString(string: changedText!,attributes: Constants.Fonts.Attributes.normal)
+//        textView.attributedText = nil
+//        textView.text = changedText
+
         return true
     }
     
@@ -129,8 +182,10 @@ extension TextViewController : UITextViewDelegate
         // Tells the delegate that editing of the specified text view has ended.
         
         if let searchText = searchText, searchActive {
-            textView.attributedText = stringMarkedBySearchAsAttributedString(string: text, searchText: searchText, wholeWordsOnly: false)
+            textView.attributedText = stringMarkedBySearchAsAttributedString(string: changedText, searchText: searchText, wholeWordsOnly: false)
         }
+
+        editingActive = false
     }
     
     func textView(_ shouldChangeTextIn: NSRange, replacementText: String)
@@ -143,7 +198,8 @@ extension TextViewController : UITextViewDelegate
     {
         // Tells the delegate that the text or attributes in the specified text view were changed by the user.
     
-        changedText = textView.text
+        // Hopefully this isn't expensive
+        changedText = textView.attributedText.string //textView.text
     }
     
     func textViewDidChangeSelection(_ textView: UITextView)
@@ -155,6 +211,8 @@ extension TextViewController : UITextViewDelegate
 
 class TextViewController : UIViewController
 {
+    var lastRange : Range<String.Index>?
+    
     var text : String?
     {
         didSet {
@@ -171,10 +229,66 @@ class TextViewController : UIViewController
     
     var searchText : String?
 
-    var search              = false
-    var searchActive        = false
-    var wholeWordsOnly      = false
-    var searchInteractive   = true
+    var search = false
+    
+    var syncButton : UIBarButtonItem!
+    
+    func disableBarButtons()
+    {
+        Thread.onMainThread() {
+            if let barButtonItems = self.navigationItem.leftBarButtonItems {
+                for barButtonItem in barButtonItems {
+                    barButtonItem.isEnabled = false
+                }
+            }
+            
+            if let barButtonItems = self.navigationItem.rightBarButtonItems {
+                for barButtonItem in barButtonItems {
+                    barButtonItem.isEnabled = false
+                }
+            }
+        }
+    }
+    
+    func enableBarButtons()
+    {
+        Thread.onMainThread() {
+            if let barButtonItems = self.navigationItem.leftBarButtonItems {
+                for barButtonItem in barButtonItems {
+                    barButtonItem.isEnabled = true
+                }
+            }
+            
+            if let barButtonItems = self.navigationItem.rightBarButtonItems {
+                for barButtonItem in barButtonItems {
+                    barButtonItem.isEnabled = true
+                }
+            }
+        }
+    }
+
+    var searchActive = false
+    {
+        didSet {
+            if searchActive != oldValue {
+                if searchActive {
+                    removeTracking()
+                    removeAssist()
+                    disableBarButtons()
+                } else {
+                    enableBarButtons()
+                }
+                
+                if !searchActive && !editingActive {
+                    restoreTracking()
+                    restoreAssist()
+                }
+            }
+        }
+    }
+    
+    var wholeWordsOnly = false
+    var searchInteractive = true
 
     @IBOutlet weak var searchBar: UISearchBar!
     {
@@ -183,6 +297,23 @@ class TextViewController : UIViewController
         }
     }
     
+    var editingActive = false
+    {
+        didSet {
+            if editingActive != oldValue {
+                if editingActive {
+                    removeTracking()
+                    removeAssist()
+                }
+                
+                if !searchActive && !editingActive {
+                    restoreTracking()
+                    restoreAssist()
+                }
+            }
+        }
+    }
+
     @IBOutlet weak var textViewToTop: NSLayoutConstraint!
     
     var automatic = false
@@ -199,27 +330,254 @@ class TextViewController : UIViewController
     
     @IBOutlet weak var textView: UITextView!
     
+    var transcript:VoiceBase?
+    
+//    var startTimes:[Double]?
+    
+    var following : [[String:Any]]?
+    
+    var oldRange : Range<String.Index>?
+
+    func removeAssist()
+    {
+        guard assist else {
+            return
+        }
+        
+        navigationItem.rightBarButtonItems = [saveButton]
+    }
+    
+    func restoreAssist()
+    {
+        guard assist else {
+            return
+        }
+        
+        guard wasTracking == nil else {
+            return
+        }
+        
+        guard !isTracking else {
+            return
+        }
+        
+        if navigationItem.rightBarButtonItems != nil {
+            navigationItem.rightBarButtonItems?.append(assistButton)
+        } else {
+            navigationItem.rightBarButtonItem = assistButton
+        }
+    }
+    
+    func removeTracking()
+    {
+        guard track else {
+            return
+        }
+        
+        guard wasTracking == nil else {
+            return
+        }
+        
+        wasTracking = isTracking
+        
+        wasPlaying = globals.mediaPlayer.isPlaying
+        
+        isTracking = false
+        stopTracking()
+        
+        navigationItem.leftBarButtonItems = [cancelButton]
+    }
+    
+    func restoreTracking()
+    {
+        guard track else {
+            return
+        }
+        
+        isTracking = wasTracking != nil ? wasTracking! : true
+        wasTracking = nil
+        
+        if isTracking {
+            startTracking()
+        }
+
+        if navigationItem.leftBarButtonItems != nil {
+            navigationItem.leftBarButtonItems?.append(syncButton)
+        } else {
+            navigationItem.leftBarButtonItem = syncButton
+        }
+    }
+    
+    func stopTracking()
+    {
+        guard track else {
+            return
+        }
+        
+        globals.mediaPlayer.pause()
+        
+        trackingTimer?.invalidate()
+        trackingTimer = nil
+        
+        textView.attributedText = NSMutableAttributedString(string: changedText!,attributes: Constants.Fonts.Attributes.normal)
+    }
+    
+    func startTracking()
+    {
+        guard track else {
+            return
+        }
+        
+        globals.mediaPlayer.play()
+        
+        if trackingTimer == nil {
+            trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(TextViewController.follow), userInfo: nil, repeats: true)
+        } else {
+            print("ERROR: trackingTimer not NIL!")
+        }
+    }
+    
+    func follow()
+    {
+        guard following != nil else {
+            return
+        }
+        
+//        guard startTimes != nil else {
+//            return
+//        }
+        
+        if let seconds = globals.mediaPlayer.currentTime?.seconds {
+            var index = 0
+            
+            //            print("seconds: ",seconds)
+            
+//            for startTime in startTimes! {
+            
+            for element in following! {
+                //                print("startTime: ",startTime)
+                //                print(seconds,startTime)
+                
+                let startTime = element["start"] as! Double
+                
+                if seconds < startTime {
+                    break
+                }
+                index += 1
+            }
+            index -= 1
+            
+            index = max(index,0)
+            
+            //            print("Row: ",row-1)
+            
+            if let text = following?[index]["text"], let range = changedText?.range(of: text as! String) {
+//                print(text)
+                
+                if range != oldRange {
+                    if  let before = changedText?.substring(to: range.lowerBound),
+                        let text = changedText?.substring(with: range),
+                        let after = changedText?.substring(from: range.upperBound) {
+                        let beforeAttr = NSMutableAttributedString(string: before, attributes: Constants.Fonts.Attributes.normal)
+                        let textAttr = NSMutableAttributedString(string: text, attributes: Constants.Fonts.Attributes.marked)
+                        let afterAttr = NSMutableAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal)
+                        
+                        beforeAttr.append(textAttr)
+                        beforeAttr.append(afterAttr)
+                        
+                        textView.attributedText = beforeAttr
+                        
+                        textView.scrollToRange(range)
+                    }
+                    
+                    oldRange = range
+                }
+            } else {
+                print("RANGE NOT FOUND: ",following?[index]["text"] as! String)
+            }
+        }
+    }
+    
+    var wasTracking : Bool?
+    var wasPlaying : Bool?
+    
+    func tracking()
+    {
+        isTracking = !isTracking
+    }
+    
+    var track = false
+    {
+        didSet {
+            if track { //  && globals.mediaPlayer.isPlaying
+                
+                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                    self.following = self.transcript?.following
+                })
+            }
+        }
+    }
+    
+    var isTracking = false
+    {
+        didSet {
+            if isTracking != oldValue {
+                if !isTracking {
+                    oldRange = nil
+                    syncButton.title = "Sync"
+                    stopTracking()
+                    restoreAssist()
+                }
+                
+                if isTracking {
+                    syncButton.title = "Stop"
+                    startTracking()
+                    removeAssist()
+                }
+            }
+        }
+    }
+    
+    var trackingTimer : Timer?
+
+    var assist = false
+
     func done()
     {
-        if text != textView.text, let confirmationTitle = confirmationTitle,let needConfirmation = confirmation?(), needConfirmation {
+//        searchBar.resignFirstResponder()
+//        textView.resignFirstResponder()
+        
+        if text != textView.attributedText.string, let confirmationTitle = confirmationTitle,let needConfirmation = confirmation?(), needConfirmation {
             var actions = [AlertAction]()
             
             actions.append(AlertAction(title: "Yes", style: .destructive, action: { (Void) -> (Void) in
+                if self.isTracking {
+                    self.stopTracking()
+                }
                 self.dismiss(animated: true, completion: nil)
-                self.completion?(self.textView.text)
+                self.completion?(self.textView.attributedText.string)
             }))
             
             actions.append(AlertAction(title: "No", style: .default, action:nil))
             
             alert(viewController:self,title:confirmationTitle, message:self.confirmationMessage, actions:actions)
         } else {
+            if isTracking {
+                stopTracking()
+            }
             dismiss(animated: true, completion: nil)
-            completion?(textView.text)
+            completion?(textView.attributedText.string) // textView.text
         }
     }
     
     func cancel()
     {
+//        searchBar.resignFirstResponder()
+//        textView.resignFirstResponder()
+        
+        if isTracking {
+            stopTracking()
+        }
         dismiss(animated: true, completion: nil)
         onCancel?()
     }
@@ -232,10 +590,15 @@ class TextViewController : UIViewController
         
         actions.append(AlertAction(title: "Interactive", style: .default, action: {
             process(viewController: self, work: { () -> (Any?) in
-                self.changeText(interactive: true, text: self.textView.text, startingRange: nil, changes: self.changes(), completion: { (string:String) -> (Void) in
-                    self.textView.text = string
+                self.changeText(interactive: true, text: self.textView.attributedText.string, startingRange: nil, masterChanges: self.masterChanges(interactive: true), completion: { (string:String) -> (Void) in
+                    self.changedText = string
+                    self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                 })
                 
+                while self.operationQueue.operationCount > 0 {
+                    
+                }
+
                 return nil
             }) { (data:Any?) in
                 
@@ -244,14 +607,15 @@ class TextViewController : UIViewController
         
         actions.append(AlertAction(title: "Automatic", style: .default, action: {
             process(viewController: self, work: { () -> (Any?) in
-                self.changeText(interactive: false, text: self.textView.text, startingRange: nil, changes: self.changes(), completion: { (string:String) -> (Void) in
-                    self.textView.text = string
+                self.changeText(interactive: false, text: self.textView.attributedText.string, startingRange: nil, masterChanges: self.masterChanges(interactive: false), completion: { (string:String) -> (Void) in
+                    self.changedText = string
+                    self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                 })
                 
                 while self.operationQueue.operationCount > 0 {
                     
                 }
-                
+
                 return nil
             }) { (data:Any?) in
                 
@@ -262,67 +626,145 @@ class TextViewController : UIViewController
         
         alert(viewController:self,title:"Start Assisted Editing?",message:nil,actions:actions)
     }
+
+    var cancelButton : UIBarButtonItem!
+    var saveButton : UIBarButtonItem!
+    var assistButton : UIBarButtonItem!
+    
+    var keyboardShowing = false
+    var shrink:CGFloat = 0.0
+
+    func keyboardWillShow(_ notification: NSNotification)
+    {
+        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
+            if !keyboardShowing {
+                shrink = keyboardSize.height
+                textView.frame.size.height -= keyboardSize.height
+            } else {
+                if (keyboardSize.height != shrink) {
+                    let delta = shrink - keyboardSize.height
+                    shrink -= delta
+                    if delta != 0 {
+                        textView.frame.size.height += delta
+                    }
+                }
+            }
+        }
+        
+        keyboardShowing = true
+    }
+    
+    func keyboardWillHide(_ notification: NSNotification)
+    {
+        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
+            if keyboardShowing {
+                textView.frame.size.height += keyboardSize.height
+            }
+        }
+        
+        keyboardShowing = false
+    }
     
     override func viewDidLoad()
     {
         super.viewDidLoad()
         
+        NotificationCenter.default.addObserver(self, selector: #selector(TextViewController.keyboardWillShow(_:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(TextViewController.keyboardWillHide(_:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        
+        syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.tracking))
+        cancelButton = UIBarButtonItem(title: Constants.Strings.Cancel, style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.cancel))
+        
+        if (globals.mediaPlayer.mediaItem != transcript?.mediaItem) || (transcript?.mediaItem?.playing != transcript?.purpose) {
+            track = false
+        }
+        
         if !search {
             searchBar.removeFromSuperview()
             textViewToTop.constant = 14
+        }
+        
+        navigationItem.leftBarButtonItem = cancelButton
+
+        if track {
+            if navigationItem.leftBarButtonItems != nil {
+                navigationItem.leftBarButtonItems?.append(syncButton)
+            } else {
+                navigationItem.leftBarButtonItem = syncButton
+            }
+        }
+
+        saveButton = UIBarButtonItem(title: "Save", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.done))
+        assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.autoEdit))
+        
+        navigationItem.rightBarButtonItem = saveButton
+        
+        if assist {
+            if navigationItem.rightBarButtonItems != nil {
+                navigationItem.rightBarButtonItems?.append(assistButton)
+            } else {
+                navigationItem.rightBarButtonItem = assistButton
+            }
         }
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        navigationItem.rightBarButtonItems = [  UIBarButtonItem(title: "Save", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.done)),
-                                                UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.autoEdit))]
-        
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: Constants.Strings.Cancel, style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.cancel))
-        
         searchBar.text = searchText
         searchBar.isUserInteractionEnabled = searchInteractive
 
-        textView.text = text
+        self.textView.attributedText = NSMutableAttributedString(string: changedText!,attributes: Constants.Fonts.Attributes.normal)
     }
     
-    func changes() -> [String:String]?
+    func words() -> [String:String]?
     {
-        var changes = ["scripture":"Scripture",
-                      "Chapter":"chapter",
-                      "Verse":"verse",
-                      "Grace":"grace",
-                      "Gospel":"gospel",
-                      "versus":"verses",
-                      "OK":"okay"]
-        
-        let books = [
-           "first samuel"           :"1 Samuel",
-           "second samuel"          :"2 Samuel",
-            
-           "first kings"            :"1 Kings",
-           "second kings"           :"2 Kings",
-            
-           "first chronicles"       :"1 Chronicles",
-           "second chronicles"      :"2 Chronicles",
-            
-           "first corinthians"      :"1 Corinthians",
-           "second corinthians"     :"2 Corinthians",
-            
-           "first thessalonians"    :"1 Thessalonians",
-           "second thessalonians"   :"2 Thessalonians",
-            
-           "first timothy"          :"1 Timothy",
-           "second timothy"         :"2 Timothy",
-            
-           "first peter"             :"1 Peter",
-           "second peter"            :"2 Peter",
-            
-           "first john"      :"1 John",
-           "second john"     :"2 John",
-           "third john"      :"3 John"
+        return [
+            "scripture":"Scripture",
+             "Chapter":"chapter",
+             "Verse":"verse",
+             "Grace":"grace",
+             "Gospel":"gospel",
+             "vs":"verses",
+             "versus":"verses",
+             "pilot":"Pilate",
+             "OK":"okay"
         ]
+    }
+    
+    func books() -> [String:String]?
+    {
+        return [
+            "first samuel"           :"1 Samuel",
+            "second samuel"          :"2 Samuel",
+            
+            "first kings"            :"1 Kings",
+            "second kings"           :"2 Kings",
+            
+            "first chronicles"       :"1 Chronicles",
+            "second chronicles"      :"2 Chronicles",
+            
+            "first corinthians"      :"1 Corinthians",
+            "second corinthians"     :"2 Corinthians",
+            
+            "first thessalonians"    :"1 Thessalonians",
+            "second thessalonians"   :"2 Thessalonians",
+            
+            "first timothy"          :"1 Timothy",
+            "second timothy"         :"2 Timothy",
+            
+            "first peter"             :"1 Peter",
+            "second peter"            :"2 Peter",
+            
+            "first john"      :"1 John",
+            "second john"     :"2 John",
+            "third john"      :"3 John"
+        ]
+    }
+
+    func textToNumbers() -> [String:String]?
+    {
+        var textToNumbers = [String:String]()
         
         let singleNumbers = [
            "one"        :"1",
@@ -364,26 +806,45 @@ class TextViewController : UIViewController
            "one hundred"     :"100"
         ]
         
-//        var textToNumbers = [String:String]()
-        
-        for key in books.keys {
-            changes[key] = books[key]
-        }
-        
         for key in singleNumbers.keys {
-            changes[key] = singleNumbers[key]
+            textToNumbers[key] = singleNumbers[key]
         }
         
         for key in teenNumbers.keys {
-            changes[key] = teenNumbers[key]
+            textToNumbers[key] = teenNumbers[key]
         }
         
         for key in decades.keys {
-            changes[key] = decades[key]
+            textToNumbers[key] = decades[key]
         }
         
         for key in centuries.keys {
-            changes[key] = centuries[key]
+            textToNumbers[key] = centuries[key]
+        }
+        
+        for hundred in ["one"] {
+            for teenNumbersKey in teenNumbers.keys {
+                let key = hundred + " " + teenNumbersKey
+                let value = "1" + teenNumbers[teenNumbersKey]!
+                
+                textToNumbers[key] = value
+            }
+            
+            for decadesKey in decades.keys {
+                let key = hundred + " " + decadesKey
+                let value = "1" + decades[decadesKey]!
+                
+                textToNumbers[key] = value
+                
+                if decadesKey != "ten" {
+                    for singleNumbersKey in singleNumbers.keys {
+                        let key = hundred + " " + decadesKey + " " + singleNumbersKey
+                        let value = "1" + decades[decadesKey]!.replacingOccurrences(of:"0",with:"") +  singleNumbers[singleNumbersKey]!
+                        
+                        textToNumbers[key] = value
+                    }
+                }
+            }
         }
         
         for decade in decades.keys {
@@ -393,7 +854,7 @@ class TextViewController : UIViewController
                     let singleNumber = singleNumbers[singleNumber] //?.replacingOccurrences(of: " ", with: "")
                 {
                     let value = decade + singleNumber //+ " "
-                    changes[key] = value
+                    textToNumbers[key] = value
 //                    print(key,value)
                 }
             }
@@ -406,7 +867,7 @@ class TextViewController : UIViewController
                     let singleNumber = singleNumbers[singleNumber] //?.replacingOccurrences(of: " ", with: "")
                     {
                     let value = century + singleNumber //+ " "
-                    changes[key] = value
+                    textToNumbers[key] = value
 //                    print(key,value)
                 }
             }
@@ -416,7 +877,7 @@ class TextViewController : UIViewController
                     let teenNumber = teenNumbers[teenNumber] //?.replacingOccurrences(of: " ", with: "")
                     {
                     let value = century + teenNumber //+ " "
-                    changes[key] = value
+                    textToNumbers[key] = value
 //                    print(key,value)
                 }
             }
@@ -429,7 +890,7 @@ class TextViewController : UIViewController
                     let decade = decades[decade] //?.replacingOccurrences(of: " ", with: "")
                 {
                     let value = century + decade //+ " "
-                    changes[key] = value
+                    textToNumbers[key] = value
 //                    print(key,value)
                 }
             }
@@ -444,168 +905,114 @@ class TextViewController : UIViewController
                         let singleNumber = singleNumbers[singleNumber] //?.replacingOccurrences(of: " ", with: "")
                     {
                         let value = (century + decade + singleNumber) //+ " "
-                        changes[key] = value
+                        textToNumbers[key] = value
 //                        print(key,value)
                     }
                 }
             }
         }
-//        
+
+//        print(textToNumbers)
+        
 //        changeText(interactive:interactive,text: textView.text, startingRange: nil, changes: changes, completion: { (string:String) in
 //            self.textView.text = string
 //        })
         
-        return changes
+        return textToNumbers.count > 0 ? textToNumbers : nil
     }
     
-    func changeText(interactive:Bool,text:String?,startingRange : Range<String.Index>?,changes:[String:String]?,completion:((String)->(Void))?)
+    func masterChanges(interactive: Bool) -> [String:[String:String]]?
     {
-        var range : Range<String.Index>?
+        guard let textToNumbers = textToNumbers() else {
+            return nil
+        }
         
-//        print(changes)
-//        print(changes?.count)
+        guard let books = books() else {
+            return nil
+        }
         
-        if var text = text,var changes = changes,var key = changes.keys.sorted(by: { $0.endIndex > $1.endIndex }).first {
-            if (key == key.lowercased()) && (key.lowercased() != changes[key]?.lowercased()) {
-                if startingRange == nil {
-                    range = text.lowercased().range(of: key)
-                } else {
-                    range = text.lowercased().range(of: key, options: [], range:  startingRange, locale: nil)
-                }
-            } else {
-                if startingRange == nil {
-                    range = text.range(of: key)
-                } else {
-                    range = text.range(of: key, options: [], range:  startingRange, locale: nil)
-                }
-            }
-
-            while range == nil {
-                changes[key] = nil
-                
-                if let first = changes.keys.sorted(by: { $0.endIndex > $1.endIndex }).first {
-                    key = first
-                    
-//                    print(key)
-                    if (key == key.lowercased()) && (key.lowercased() != changes[key]?.lowercased()) {
-                        range = text.lowercased().range(of: key)
+        var changes = [String:[String:String]]()
+        
+        changes["words"] = words()
+        changes["books"] = books
+        
+        if interactive {
+            changes["textToNumbers"] = textToNumbers
+        }
+        
+        // These should really be hierarchical.
+        for key in textToNumbers.keys {
+            if let value = textToNumbers[key] {
+                for context in ["verse","verses","chapter","chapters"] {
+                    if changes[context] == nil {
+                        changes[context] = ["\(context) " + key:"\(context) " + value]
                     } else {
-                        range = text.range(of: key)
+                        changes[context]?["\(context) " + key] = "\(context) " + value
                     }
-                } else {
-                    break
                 }
-            }
-            
-            if let range = range, let value = changes[key] {
-                let attributedString = NSMutableAttributedString()
                 
-                let before = "..." + String(text.substring(to: range.lowerBound).characters.dropFirst(max(text.substring(to: range.lowerBound).characters.count - 10,0)))
-                let string = text.substring(with: range)
-                let after = String(text.substring(from: range.upperBound).characters.dropLast(max(text.substring(from: range.upperBound).characters.count - 10,0))) + "..."
-                
-                attributedString.append(NSAttributedString(string: before,attributes: Constants.Fonts.Attributes.normal))
-                attributedString.append(NSAttributedString(string: string,attributes: Constants.Fonts.Attributes.highlighted))
-                attributedString.append(NSAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal))
-                
-                let prior = text.substring(to: range.lowerBound).characters.last?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-                let following = text.substring(from: range.upperBound).characters.first?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-                
-                if ((prior == nil) || prior!.isEmpty) && ((following == nil) || following!.isEmpty || (following == ".")) {
-                    if interactive {
-                        var actions = [AlertAction]()
-                        
-                        actions.append(AlertAction(title: "Yes", style: .destructive, action: {
-                            text.replaceSubrange(range, with: value)
-
-                            completion?(text)
-                            
-                            let before = text.substring(to: range.lowerBound)
-                            
-                            if let completedRange = text.range(of: before + value) {
-                                let startingRange = Range(uncheckedBounds: (lower: completedRange.upperBound, upper: text.endIndex))
-                                self.changeText(interactive:interactive,text:text,startingRange:startingRange,changes:changes,completion:completion)
+                for book in books.keys {
+                    if let bookName = books[book], let index = Constants.OLD_TESTAMENT_BOOKS.index(of: bookName) {
+                        if Int(value) <= Constants.OLD_TESTAMENT_CHAPTERS[index] {
+                            if changes[book] == nil {
+                                changes[book] = ["\(book) " + key:"\(bookName) " + value]
                             } else {
-                                // ERROR
+                                changes[book]?["\(book) " + key] = "\(bookName) " + value
                             }
-                        }))
-                        
-                        actions.append(AlertAction(title: "No", style: .default, action: {
-                            let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
-                            self.changeText(interactive:interactive,text:text,startingRange:startingRange,changes:changes,completion:completion)
-                        }))
-                        
-                        actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, action: {
-                            
-                        }))
-                        
-                        globals.alert(category:nil,title:"Change \"\(string)\" to \"\(value)\"?",message:nil,attributedText:attributedString,actions:actions)
-                    } else {
-                        text.replaceSubrange(range, with: value)
-                        
-                        DispatchQueue.main.async {
-                            completion?(text)
+//                            changes[book + " " + key] = bookName + " " + value
                         }
-
-                        let operation = BlockOperation(block: {
-                            let before = text.substring(to: range.lowerBound)
-                            
-                            if let completedRange = text.range(of: before + value) {
-                                let startingRange = Range(uncheckedBounds: (lower: completedRange.upperBound, upper: text.endIndex))
-                                self.changeText(interactive:interactive,text:text,startingRange:startingRange,changes:changes,completion:completion)
-                            } else {
-                                // ERROR
-                            }
-                        })
-//                        operation.name = ""
-                        operationQueue.addOperation(operation)
-                        
-//                        globals.queue.async(execute: { () -> Void in
-//                            // Must start over (startingRange == nil) to avoid skipping
-//                            self.changeText(interactive:interactive,text:text,startingRange:nil,changes:changes,completion:completion)
-//                        })
                     }
-                } else {
-                    if interactive {
-                        let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
-                        self.changeText(interactive:interactive,text:text,startingRange:startingRange,changes:changes,completion:completion)
-                    } else {
-                        let operation = BlockOperation(block: {
-                            let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
-                            self.changeText(interactive:interactive,text:text,startingRange:startingRange,changes:changes,completion:completion)
-                        })
-                        //                        operation.name = ""
-                        operationQueue.addOperation(operation)
-                        
-//                        globals.queue.async(execute: { () -> Void in
-//                            let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
-//                            self.changeText(interactive:interactive,text:text,startingRange:startingRange,changes:changes,completion:completion)
-//                        })
+                    
+                    if let bookName = books[book], let index = Constants.NEW_TESTAMENT_BOOKS.index(of: bookName) {
+                        if Int(value) <= Constants.NEW_TESTAMENT_CHAPTERS[index] {
+                            if changes[book] == nil {
+                                changes[book] = ["\(book) " + key:"\(bookName) " + value]
+                            } else {
+                                changes[book]?["\(book) " + key] = "\(bookName) " + value
+                            }
+//                            changes[book + " " + key] = bookName + " " + value
+                        }
                     }
                 }
-            } else {
-                if interactive {
-                    changes[key] = nil
-                    self.changeText(interactive:interactive,text:text,startingRange:nil,changes:changes,completion:completion)
-                } else {
-                    let operation = BlockOperation(block: {
-                        changes[key] = nil
-                        self.changeText(interactive:interactive,text:text,startingRange:nil,changes:changes,completion:completion)
-                    })
-                    //                        operation.name = ""
-                    operationQueue.addOperation(operation)
-                    
-//                    globals.queue.async(execute: { () -> Void in
-//                        changes[key] = nil
-//                        self.changeText(interactive:interactive,text:text,startingRange:nil,changes:changes,completion:completion)
-//                    })
+                
+                for book in Constants.OLD_TESTAMENT_BOOKS {
+                    if !books.values.contains(book) {
+                        if Int(value) <= Constants.OLD_TESTAMENT_CHAPTERS[Constants.OLD_TESTAMENT_BOOKS.index(of: book)!] {
+                            if changes[book.lowercased()] == nil {
+                                changes[book.lowercased()] = ["\(book.lowercased()) " + key:"\(book) " + value]
+                            } else {
+                                changes[book.lowercased()]?["\(book.lowercased()) " + key] = "\(book) " + value
+                            }
+//                            changes[book.lowercased() + " " + key] = book + " " + value
+                        }
+                    } else {
+                        //                        print(book)
+                    }
+                }
+                
+                for book in Constants.NEW_TESTAMENT_BOOKS {
+                    if !books.values.contains(book) {
+                        if Int(value) <= Constants.NEW_TESTAMENT_CHAPTERS[Constants.NEW_TESTAMENT_BOOKS.index(of: book)!] {
+                            if changes[book.lowercased()] == nil {
+                                changes[book.lowercased()] = ["\(book.lowercased()) " + key:"\(book) " + value]
+                            } else {
+                                changes[book.lowercased()]?["\(book.lowercased()) " + key] = "\(book) " + value
+                            }
+//                            changes[book.lowercased() + " " + key] = book + " " + value
+                        }
+                    } else {
+                        //                        print(book)
+                    }
                 }
             }
-        } else {
-            print(text as Any)
-            print(changes as Any)
-            print(changes?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first as Any)
-            
+        }
+        
+        return changes.count > 0 ? changes : nil
+    }
+    
+    func changeText(interactive:Bool,text:String?,startingRange : Range<String.Index>?,masterChanges:[String:[String:String]]?,completion:((String)->(Void))?)
+    {
+        guard var masterChanges = masterChanges, masterChanges.count > 0 else {
             if !automatic {
                 var actions = [AlertAction]()
                 
@@ -615,20 +1022,260 @@ class TextViewController : UIViewController
                 
                 globals.alert(category:nil,title:"Assisted Editing Process Completed",message:nil,attributedText: nil, actions: actions)
             } else {
-                if Thread.isMainThread {
+                Thread.onMainThread {
                     self.dismiss(animated: true, completion: nil)
-                    self.completion?(self.textView.text)
-                } else {
-                    DispatchQueue.main.async {
-                        self.dismiss(animated: true, completion: nil)
-                        self.completion?(self.textView.text)
-                    }
+                    self.completion?(self.textView.attributedText.string)
                 }
                 
                 self.automaticCompletion?()
             }
+            return
+        }
+        
+        let keyOrder = ["words","textToNumbers","books","verse","verses","chapter","chapters"]
+        
+        let masterKeys = masterChanges.keys.sorted(by: { (first:String, second:String) -> Bool in
+            let firstIndex = keyOrder.index(of: first)
+            let secondIndex = keyOrder.index(of: second)
+            
+            if let firstIndex = firstIndex, let secondIndex = secondIndex {
+                return firstIndex > secondIndex
+            }
+            
+            if firstIndex != nil {
+                return false
+            }
+            
+            if secondIndex != nil {
+                return true
+            }
+            
+            return first.endIndex > second.endIndex
+        })
+        
+        guard var text = text else {
+            return
+        }
+        
+        for masterKey in masterKeys {
+            if !["words","books","textToNumbers"].contains(masterKey) {
+                if !text.lowercased().contains(masterKey.lowercased()) {
+                    masterChanges[masterKey] = nil
+                }
+            }
+        }
+        
+        guard let masterKey = masterChanges.keys.sorted(by: { (first:String, second:String) -> Bool in
+            let firstIndex = keyOrder.index(of: first)
+            let secondIndex = keyOrder.index(of: second)
+            
+            if let firstIndex = firstIndex, let secondIndex = secondIndex {
+                return firstIndex > secondIndex
+            }
+            
+            if firstIndex != nil {
+                return false
+            }
+            
+            if secondIndex != nil {
+                return true
+            }
+            
+            return first.endIndex > second.endIndex
+        }).first else {
+            return
+        }
+        
+//        guard var changes = masterChanges[masterKey] else {
+//            return
+//        }
+        
+        guard var key = masterChanges[masterKey]?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first else {
+            return
+        }
+        
+        var range : Range<String.Index>?
+        
+//        print(changes)
+//        print(changes?.count)
+        
+//        print(masterKey,key,masterChanges[masterKey]?[key])
+        
+        if (key == key.lowercased()) && (key.lowercased() != masterChanges[masterKey]?[key]?.lowercased()) {
+            if startingRange == nil {
+                range = text.lowercased().range(of: key)
+            } else {
+                range = text.lowercased().range(of: key, options: [], range:  startingRange, locale: nil)
+            }
+        } else {
+            if startingRange == nil {
+                range = text.range(of: key)
+            } else {
+                range = text.range(of: key, options: [], range:  startingRange, locale: nil)
+            }
+        }
+        
+        while range == nil {
+            masterChanges[masterKey]?[key] = nil
+            
+            if let first = masterChanges[masterKey]?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first {
+                key = first
+                
+                //                    print(key)
+                if (key == key.lowercased()) && (key.lowercased() != masterChanges[masterKey]?[key]?.lowercased()) {
+                    range = text.lowercased().range(of: key)
+                } else {
+                    range = text.range(of: key)
+                }
+            } else {
+                break
+            }
+        }
+        
+        if let range = range, let value = masterChanges[masterKey]?[key] {
+            let attributedString = NSMutableAttributedString()
+            
+            let before = "..." + String(text.substring(to: range.lowerBound).characters.dropFirst(max(text.substring(to: range.lowerBound).characters.count - 10,0)))
+            let string = text.substring(with: range)
+            let after = String(text.substring(from: range.upperBound).characters.dropLast(max(text.substring(from: range.upperBound).characters.count - 10,0))) + "..."
+            
+            attributedString.append(NSAttributedString(string: before,attributes: Constants.Fonts.Attributes.normal))
+            attributedString.append(NSAttributedString(string: string,attributes: Constants.Fonts.Attributes.highlighted))
+            attributedString.append(NSAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal))
+            
+            let prior = text.substring(to: range.lowerBound).characters.last?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            let following = text.substring(from: range.upperBound).characters.first?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            
+            if ((prior == nil) || prior!.isEmpty) && ((following == nil) || following!.isEmpty || (following == ".")) {
+                if interactive {
+                    var actions = [AlertAction]()
+                    
+                    actions.append(AlertAction(title: "Yes", style: .destructive, action: {
+                        text.replaceSubrange(range, with: value)
+                        
+                        completion?(text)
+                        
+                        let before = text.substring(to: range.lowerBound)
+                        
+                        if let completedRange = text.range(of: before + value) {
+                            let startingRange = Range(uncheckedBounds: (lower: completedRange.upperBound, upper: text.endIndex))
+                            self.changeText(interactive:interactive,text:text,startingRange:startingRange,masterChanges:masterChanges,completion:completion)
+                        } else {
+                            // ERROR
+                        }
+                    }))
+                    
+                    actions.append(AlertAction(title: "No", style: .default, action: {
+                        let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
+                        self.changeText(interactive:interactive,text:text,startingRange:startingRange,masterChanges:masterChanges,completion:completion)
+                    }))
+                    
+                    actions.append(AlertAction(title: Constants.Strings.Cancel, style: .default, action: {
+                        
+                    }))
+                    
+                    globals.alert(category:nil,title:"Change \"\(string)\" to \"\(value)\"?",message:nil,attributedText:attributedString,actions:actions)
+                } else {
+                    text.replaceSubrange(range, with: value)
+                    
+                    DispatchQueue.main.async {
+                        completion?(text)
+                    }
+                    
+                    let operation = BlockOperation(block: {
+                        let before = text.substring(to: range.lowerBound)
+                        
+                        if let completedRange = text.range(of: before + value) {
+                            let startingRange = Range(uncheckedBounds: (lower: completedRange.upperBound, upper: text.endIndex))
+                            self.changeText(interactive:interactive,text:text,startingRange:startingRange,masterChanges:masterChanges,completion:completion)
+                        } else {
+                            // ERROR
+                        }
+                    })
+                    //                        operation.name = ""
+                    operationQueue.addOperation(operation)
+                }
+            } else {
+                if interactive {
+                    let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
+                    self.changeText(interactive:interactive,text:text,startingRange:startingRange,masterChanges:masterChanges,completion:completion)
+                } else {
+                    let operation = BlockOperation(block: {
+                        let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
+                        self.changeText(interactive:interactive,text:text,startingRange:startingRange,masterChanges:masterChanges,completion:completion)
+                    })
+                    //                        operation.name = ""
+                    operationQueue.addOperation(operation)
+                }
+            }
+        } else {
+            if interactive {
+                print(key)
+                masterChanges[masterKey]?[key] = nil
+                if masterChanges[masterKey]?.count == 0 {
+                    print(masterKey)
+                    masterChanges[masterKey] = nil
+                }
+                self.changeText(interactive:interactive,text:text,startingRange:nil,masterChanges:masterChanges,completion:completion)
+            } else {
+                let operation = BlockOperation(block: {
+                    masterChanges[masterKey]?[key] = nil
+                    if masterChanges[masterKey]?.count == 0 {
+                        masterChanges[masterKey] = nil
+                    }
+                    self.changeText(interactive:interactive,text:text,startingRange:nil,masterChanges:masterChanges,completion:completion)
+                })
+                //                        operation.name = ""
+                operationQueue.addOperation(operation)
+            }
         }
     }
+    
+//    func changes(interactive: Bool)
+//    {
+//        if let hierarchicalChanges = heirarchicalChanges() {
+//            for hierarchicalChange in hierarchicalChanges.keys {
+//                print(hierarchicalChange)
+//                if self.textView.attributedText.string.lowercased().contains(hierarchicalChange), let hierarchicalChanges = hierarchicalChanges[hierarchicalChange] {
+//                    self.changeText(interactive: interactive, text: self.textView.attributedText.string, startingRange: nil, changes: hierarchicalChanges, completion: { (string:String) -> (Void) in
+//                        self.changedText = string
+//                        self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
+//                    })
+//                    
+//                    while self.operationQueue.operationCount > 0 {
+//                        
+//                    }
+//                }
+//            }
+//        }
+//        
+////        self.changeText(interactive: interactive, text: self.textView.attributedText.string, startingRange: nil, changes: self.textToNumbers(), completion: { (string:String) -> (Void) in
+////            self.changedText = string
+////            self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
+////        })
+////        
+////        while self.operationQueue.operationCount > 0 {
+////            
+////        }
+////
+////        self.changeText(interactive: interactive, text: self.textView.attributedText.string, startingRange: nil, changes: self.books(), completion: { (string:String) -> (Void) in
+////            self.changedText = string
+////            self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
+////        })
+////        
+////        while self.operationQueue.operationCount > 0 {
+////            
+////        }
+////
+////        self.changeText(interactive: interactive, text: self.textView.attributedText.string, startingRange: nil, changes: self.words(), completion: { (string:String) -> (Void) in
+////            self.changedText = string
+////            self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
+////        })
+////        
+////        while self.operationQueue.operationCount > 0 {
+////            
+////        }
+//    }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -637,26 +1284,33 @@ class TextViewController : UIViewController
         
         if automatic {
             process(viewController: self, work: { () -> (Any?) in
-                self.changeText(interactive: self.automaticInteractive, text: self.textView.text, startingRange: nil, changes: self.changes(), completion: { (string:String) -> (Void) in
-                    self.textView.text = string
+                self.changeText(interactive: self.automaticInteractive, text: self.textView.attributedText.string, startingRange: nil, masterChanges: self.masterChanges(interactive: self.automaticInteractive), completion: { (string:String) -> (Void) in
+                    self.changedText = string
+                    self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                 })
                 
                 while self.operationQueue.operationCount > 0 {
                     
                 }
-                
+
                 return nil
             }) { (data:Any?) in
 //                self.dismiss(animated: true, completion: nil)
 //                self.completion?(self.textView.text)
 //                self.automaticCompletion?()
             }
+        } else {
+//            if track {
+//                follow()
+//            }
         }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-
+        
+        trackingTimer?.invalidate()
+        trackingTimer = nil
     }
     
     override func viewDidDisappear(_ animated: Bool) {

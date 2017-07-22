@@ -280,157 +280,347 @@ class PopoverTableViewController : UIViewController
     
     var sort = Sort()
  
-    var startTimes:[Double]?
+//    var startTimes:[Double]?
     
-    func follow()
+    func stopTracking()
     {
-        guard startTimes != nil else {
+        guard track else {
             return
         }
         
-        if let seconds = globals.mediaPlayer.currentTime?.seconds {
-            var index = 0
+        globals.mediaPlayer.pause()
+        
+        trackingTimer?.invalidate()
+        trackingTimer = nil
+    }
+    
+    func startTracking()
+    {
+        guard track else {
+            return
+        }
+        
+        globals.mediaPlayer.play()
+        
+        if trackingTimer == nil {
+            if let indexPath = tableView.indexPathForSelectedRow {
+                self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+            }
             
+            trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+        } else {
+            print("ERROR: trackingTimer not nil!")
+        }
+    }
+    
+    var lastFollow : IndexPath?
+    
+    func follow()
+    {
+//        guard let startTimes = startTimes else {
+//            return
+//        }
+        
+        guard let srtComponents = section.strings else {
+            return
+        }
+        
+        guard let seconds = globals.mediaPlayer.currentTime?.seconds else {
+            return
+        }
+        
+        // Since the sequence of timed segments is non-overlapping and not guaranteed to be continuous, there may be gaps.
+        // That is, seconds may fall in the gap between two rows.
+
+        var timeWindowFound = false
+        
+        var index = 0
+        
 //            print("seconds: ",seconds)
-            
-            for startTime in startTimes! {
+
+        for srtComponent in srtComponents {
 //                print("startTime: ",startTime)
 //                print(seconds,startTime)
-                if seconds < startTime {
-                    break
-                }
-                index += 1
+            var srtArray = srtComponent.components(separatedBy: "\n")
+            
+            if let count = srtArray.first, !count.isEmpty {
+                srtArray.remove(at: 0)
             }
-            index -= 1
             
-            index = max(index,0)
-            
-//            print("Row: ",row-1)
-
-            if self.section.counts?.count == self.section.indexes?.count {
-                var section = 0
+            if let timeWindow = srtArray.first, !timeWindow.isEmpty {
+                srtArray.remove(at: 0)
                 
-                while index >= (self.section.indexes![section] + self.section.counts![section]) {
-                    section += 1
-                }
-                
-                if let sectionIndex = self.section.indexes?[section] {
-
-                    let row = index - sectionIndex
-
-                    if (section >= 0) && (section < tableView.numberOfSections) && (row >= 0) && (row < tableView.numberOfRows(inSection: section)) {
-                        let indexPath = IndexPath(row: row, section: section)
-                        
-                        if tableView.indexPathForSelectedRow != indexPath {
-                            tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
+                if  let start = timeWindow.components(separatedBy: " to ").first,
+                    let end = timeWindow.components(separatedBy: " to ").last {
+                    
+                    if (seconds >= hmsToSeconds(string: start)) && (seconds <= hmsToSeconds(string: end))  {
+                        timeWindowFound = true
+                        break
+                    } else {
+                        if (seconds < hmsToSeconds(string: start))  {
+                            break
                         }
                     }
                 }
+            }
+
+            index += 1
+        }
+//        index -= 1
+        
+        index = max(index,0)
+        
+//            print("Row: ",row-1)
+
+        if self.section.counts?.count == self.section.indexes?.count {
+            var section = 0
+            
+            while section < self.section.counts?.count, (index >= (self.section.indexes![section] + self.section.counts![section])) {
+                section += 1
+            }
+            
+            if section < self.section.indexes?.count, let sectionIndex = self.section.indexes?[section] {
+
+                let row = index - sectionIndex
+
+                if (section >= 0) && (section < tableView.numberOfSections) && (row >= 0) && (row < tableView.numberOfRows(inSection: section)) {
+                    let indexPath = IndexPath(row: row, section: section)
+                    
+                    if timeWindowFound {
+                        if tableView.indexPathForSelectedRow != indexPath {
+                            tableView.selectRow(at: indexPath, animated: true, scrollPosition: .middle)
+                        }
+                    } else {
+                        if let lastFollow = lastFollow, indexPath != lastFollow {
+                            tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                        }
+                    }
+
+                    lastFollow = indexPath
+                } else {
+                    print("CELL NOT FOUND")
+                }
+            } else {
+                print("CELL NOT FOUND")
             }
         }
     }
     
     func tracking()
     {
-        if isTracking {
-            globals.mediaPlayer.pause()
-            
-            if let count = navigationItem.leftBarButtonItems?.count {
-                navigationItem.leftBarButtonItems?[count - 1].title = "Sync"
-            }
+        isTracking = !isTracking
+        
+//        if isTracking {
+//            globals.mediaPlayer.pause()
+//            
+//            if let count = navigationItem.leftBarButtonItems?.count {
+//                navigationItem.leftBarButtonItems?[count - 1].title = "Sync"
+//            }
+//            
+//            isTracking = false
+//            trackingTimer?.invalidate()
+//            trackingTimer = nil
+//        } else {
+//            globals.mediaPlayer.play()
+//            
+//            if let count = navigationItem.leftBarButtonItems?.count {
+//                navigationItem.leftBarButtonItems?[count - 1].title = "Stop"
+//            }
 //
-//            if navigationItem.leftBarButtonItems != nil {
-//                navigationItem.leftBarButtonItems?.append(UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking)))
+//            if trackingTimer != nil {
+//                isTracking = true
+//                
+//                if let indexPath = tableView.indexPathForSelectedRow {
+//                    self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+//                }
+//                
+//                trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
 //            } else {
-//                navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
+//                print("ERROR: trackingTimer not nil!")
 //            }
-            
-            isTracking = false
-            trackingTimer?.invalidate()
-        } else {
-            globals.mediaPlayer.play()
-            
-            if let count = navigationItem.leftBarButtonItems?.count {
-                navigationItem.leftBarButtonItems?[count - 1].title = "Stop"
-            }
-
-//            if navigationItem.leftBarButtonItems != nil {
-//                navigationItem.leftBarButtonItems?.append(UIBarButtonItem(title: "Stop", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking)))
-//            } else {
-//                navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Stop", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
-//            }
-//            navigationItem.leftBarButtonItems = UIBarButtonItem(title: "Stop", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
-
-            isTracking = true
-
-            if let indexPath = tableView.indexPathForSelectedRow {
-                self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-            }
-
-            trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
-        }
+//        }
     }
+    
+    var assist = false
     
     var track = false
     {
         didSet {
-            if track { //  && globals.mediaPlayer.isPlaying
-                startTimes = section.strings?.filter({ (string:String) -> Bool in
-                    return string.components(separatedBy: "\n").count > 1
-                }).map({ (string:String) -> Double in
-                    var srtArray = string.components(separatedBy: "\n")
-                    
-                    if let count = srtArray.first, !count.isEmpty {
-                        srtArray.remove(at: 0)
-                    }
-                    
-                    if let timeWindow = srtArray.first, !timeWindow.isEmpty {
-                        srtArray.remove(at: 0)
-                        
-                        let start = timeWindow.components(separatedBy: " to ").first
-                        //                    let end = timeWindow.components(separatedBy: " to ").last
-                        
-                        return hmsToSeconds(string: start)!
-                    }
-                    
-                    return 0.0
-                })
-            }
+//            if track { //  && globals.mediaPlayer.isPlaying
+//                var strings : [String]?
+//                
+//                if let stringsFunction = stringsFunction {
+//                    strings = stringsFunction()
+//                } else {
+//                    strings = section.strings
+//                }
+//                
+//                startTimes = strings?.filter({ (string:String) -> Bool in
+//                    return string.components(separatedBy: "\n").count > 1
+//                }).map({ (string:String) -> Double in
+//                    var srtArray = string.components(separatedBy: "\n")
+//                    
+//                    if let count = srtArray.first, !count.isEmpty {
+//                        srtArray.remove(at: 0)
+//                    }
+//                    
+//                    if let timeWindow = srtArray.first, !timeWindow.isEmpty {
+//                        srtArray.remove(at: 0)
+//                        
+//                        let start = timeWindow.components(separatedBy: " to ").first
+//                        //                    let end = timeWindow.components(separatedBy: " to ").last
+//                        
+//                        return hmsToSeconds(string: start)!
+//                    }
+//                    
+//                    return 0.0
+//                })
+//            }
         }
     }
+
+    func removeTracking()
+    {
+        guard track else {
+            return
+        }
+        
+        isTracking = false
+        stopTracking()
+        
+        navigationItem.leftBarButtonItem = nil
+    }
+    
+    func restoreTracking()
+    {
+        guard track else {
+            return
+        }
+        
+        if isTracking {
+            startTracking()
+        }
+        
+        if navigationItem.leftBarButtonItems != nil {
+            navigationItem.leftBarButtonItems?.append(syncButton)
+        } else {
+            navigationItem.leftBarButtonItem = syncButton
+        }
+    }
+    
+    func removeAssist()
+    {
+        guard assist else {
+            return
+        }
+        
+        navigationItem.rightBarButtonItems = [doneButton]
+    }
+    
+    func restoreAssist()
+    {
+        guard assist else {
+            return
+        }
+        
+        guard !isTracking else {
+            return
+        }
+        
+        if navigationItem.rightBarButtonItems != nil {
+            navigationItem.rightBarButtonItems?.append(assistButton)
+        } else {
+            navigationItem.rightBarButtonItem = assistButton
+        }
+    }
+    
     var isTracking = false
+    {
+        didSet {
+            if isTracking != oldValue {
+                if !isTracking {
+                    syncButton.title = "Sync"
+                    stopTracking()
+                    restoreAssist()
+                }
+                
+                if isTracking {
+                    syncButton.title = "Stop"
+                    startTracking()
+                    removeAssist()
+                }
+            }
+
+//            if isTracking {
+//                globals.mediaPlayer.pause()
+//                
+//                if let count = navigationItem.leftBarButtonItems?.count {
+//                    navigationItem.leftBarButtonItems?[count - 1].title = "Sync"
+//                }
+//                
+//                isTracking = false
+//                trackingTimer?.invalidate()
+//                trackingTimer = nil
+//            } else {
+//                globals.mediaPlayer.play()
+//                
+//                if let count = navigationItem.leftBarButtonItems?.count {
+//                    navigationItem.leftBarButtonItems?[count - 1].title = "Stop"
+//                }
+//                
+//                if trackingTimer != nil {
+//                    isTracking = true
+//                    
+//                    if let indexPath = tableView.indexPathForSelectedRow {
+//                        self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+//                    }
+//                    
+//                    trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+//                } else {
+//                    print("ERROR: trackingTimer not nil!")
+//                }
+//            }
+        }
+    }
+    
     var trackingTimer : Timer?
     
+    var doneButton : UIBarButtonItem!
+    var syncButton : UIBarButtonItem!
+    var assistButton : UIBarButtonItem!
+        
     var search          = false
-    var searchActive    = false {
+        
+    var searchActive    = false
+    {
         didSet {
-            if searchActive {
-                if track {
-                    navigationItem.leftBarButtonItems = nil
-                    trackingTimer?.invalidate()
-                    isTracking = false
-                }
-            } else {
-                if track { //  && globals.mediaPlayer.isPlaying
-                    if isTracking {
-                        if navigationItem.leftBarButtonItems != nil {
-                            navigationItem.leftBarButtonItems?.append(UIBarButtonItem(title: "Stop", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking)))
-                        } else {
-                            navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Stop", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
-                        }
-//                        navigationItem.leftBarButtonItems = UIBarButtonItem(title: "Stop", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
-                    } else {
-                        if navigationItem.leftBarButtonItems != nil {
-                            navigationItem.leftBarButtonItems?.append(UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking)))
-                        } else {
-                            navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
-                        }
-//                        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
-                    }
+            if searchActive != oldValue {
+                if searchActive {
+                    removeTracking()
+                } else {
+                    restoreTracking()
                 }
             }
+
+//            if searchActive {
+//                if track {
+//                    navigationItem.leftBarButtonItems = nil
+//                    trackingTimer?.invalidate()
+//                    trackingTimer = nil
+//                    isTracking = false
+//                }
+//            } else {
+//                if track { //  && globals.mediaPlayer.isPlaying
+//                    if isTracking {
+//                        syncButton.title = "Stop"
+//                    } else {
+//                        syncButton.title = "Sync"
+//                    }
+//                }
+//            }
         }
     }
+        
     var searchText      : String?
     var wholeWordsOnly  = false
     
@@ -732,6 +922,9 @@ class PopoverTableViewController : UIViewController
     
     func done()
     {
+        if self.isTracking {
+            self.stopTracking()
+        }
         dismiss(animated: true, completion: nil)
     }
     
@@ -782,9 +975,14 @@ class PopoverTableViewController : UIViewController
         alert(viewController:self,title:"Start Assisted Editing?",message:nil,actions:actions)
     }
     
-    override func viewDidLoad() {
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
-        
+    
+        doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.done))
+        assistButton = UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(self.autoEdit))
+        syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
+
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
             case .overCurrentContext:
@@ -793,14 +991,14 @@ class PopoverTableViewController : UIViewController
                 fallthrough
             case .overFullScreen:
                 if navigationItem.rightBarButtonItems != nil {
-                    navigationItem.rightBarButtonItems?.append(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.done)))
-                    if (transcript != nil) && (purpose == .selectingTime) {
-                        navigationItem.rightBarButtonItems?.append(UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(self.autoEdit)))
+                    navigationItem.rightBarButtonItems?.append(doneButton)
+                    if assist && (transcript != nil) && (purpose == .selectingTime) {
+                        navigationItem.rightBarButtonItems?.append(assistButton)
                     }
                 } else {
-                    navigationItem.setRightBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.done)), animated: true)
-                    if (transcript != nil) && (purpose == .selectingTime) {
-                        navigationItem.rightBarButtonItems?.append(UIBarButtonItem(title: "Assist", style: UIBarButtonItemStyle.plain, target: self, action: #selector(self.autoEdit)))
+                    navigationItem.setRightBarButton(doneButton, animated: true)
+                    if assist && (transcript != nil) && (purpose == .selectingTime) {
+                        navigationItem.rightBarButtonItems?.append(assistButton)
                     }
                 }
                 
@@ -811,12 +1009,10 @@ class PopoverTableViewController : UIViewController
         
         if track {
             if navigationItem.leftBarButtonItems != nil {
-                navigationItem.leftBarButtonItems?.append(UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking)))
+                navigationItem.leftBarButtonItems?.append(syncButton)
             } else {
-                navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
+                navigationItem.leftBarButtonItem = syncButton
             }
-            //                navigationItem.leftBarButtonItems = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverTableViewController.tracking))
-            
         }
         
         searchBar.autocapitalizationType = .none
@@ -1104,6 +1300,7 @@ class PopoverTableViewController : UIViewController
         NotificationCenter.default.removeObserver(self)
         
         trackingTimer?.invalidate()
+        trackingTimer = nil
         
 //        if mediaListGroupSort != nil {
 //            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: mediaListGroupSort?.lexicon)
@@ -1849,6 +2046,7 @@ extension PopoverTableViewController : UITableViewDelegate
         }
         
         trackingTimer?.invalidate()
+        trackingTimer = nil
         
         if search {
             self.searchBar.resignFirstResponder()

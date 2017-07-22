@@ -314,6 +314,8 @@ struct Constants {
         
         static let DID_ENTER_BACKGROUND     = "DID ENTER BACKGROUND"
         
+        static let VOICE_BASE_FINISHED      = "VOICE BASE FINISHED"
+        
         static let SET_PREFERRED_CONTENT_SIZE = "SET PREFERRED CONTENT SIZE"
         
         static let UPDATE_SEARCH            = "UPDATE SEARCH"
@@ -592,6 +594,9 @@ struct Constants {
             static let normal = [ NSFontAttributeName: Fonts.body ]
             
             static let bold = [ NSFontAttributeName: Fonts.bold ]
+            
+            static let marked = [ NSBackgroundColorAttributeName: UIColor.lightGray,
+                                       NSFontAttributeName: Fonts.body ]
             
             static let highlighted = [ NSBackgroundColorAttributeName: UIColor.yellow,
                                        NSFontAttributeName: Fonts.body ]

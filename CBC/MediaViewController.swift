@@ -377,7 +377,7 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                                     if  let start = timeWindow.components(separatedBy: " --> ").first,
                                         let end = timeWindow.components(separatedBy: " --> ").last,
                                         let range = srtComponent.range(of: timeWindow+"\n") {
-                                        let text = "\(count)\n\(start) to \(end)\n" + srtComponent.substring(from: range.upperBound)
+                                        let text = "\(count)\n\(start.replacingOccurrences(of: ",", with: ".")) to \(end.replacingOccurrences(of: ",", with: "."))\n" + srtComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
                                         
                                         //                                    for string in srtArray {
                                         //                                        text = text + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
@@ -472,10 +472,11 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
             if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = hmsToSeconds(string: time) {
                 globals.mediaPlayer.seek(to: seconds,completion:{ (finished:Bool)->(Void) in
-                    if let isTracking = self.popover?.isTracking, isTracking {
+                    if finished, let isTracking = self.popover?.isTracking, isTracking {
 //                        self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-                        
-                        self.popover?.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self.popover as Any, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+                        Thread.onMainThread() {
+                            self.popover?.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self.popover as Any, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+                        }
                     }
                 })
             }
@@ -4260,6 +4261,10 @@ class MediaViewController: UIViewController // MediaController
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:setupSliderAndTimes", completion: nil)
+            return
+        }
+        
+        guard controlView != nil else {
             return
         }
         
