@@ -826,6 +826,12 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             if newValue != nil {
                 UserDefaults.standard.set(newValue, forKey: Constants.VOICEBASE_API_KEY)
                 UserDefaults.standard.synchronize()
+                
+                // Do we need to notify VoiceBase objects?  
+                // No, because if it was nil before there shouldn't be anything on VB.com
+                // No, because if it was not nil before then they either the new KEY is good or bad.
+                // If bad, then it will fail.  If good, then they will finish.
+                // So, nothing needs to be done.
             } else {
                 UserDefaults.standard.removeObject(forKey: Constants.VOICEBASE_API_KEY)
                 UserDefaults.standard.synchronize()

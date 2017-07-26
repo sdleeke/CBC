@@ -239,8 +239,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 popover.mediaListGroupSort = MediaListGroupSort(mediaItems: [selectedMediaItem!])
 
-                let doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done))
-                popover.navigationItem.leftBarButtonItem = doneButton
+//                let doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done))
+//                popover.navigationItem.leftBarButtonItem = doneButton
 
                 present(navigationController, animated: true, completion: nil)
             }
@@ -992,11 +992,12 @@ class WebViewController: UIViewController
         minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.decreaseFontSize))
         minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
         
-        
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
             case .overCurrentContext:
-                navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
+                if self.navigationController?.viewControllers.count == 1 {
+                    navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
+                }
                 navigationItem.setRightBarButtonItems([fullScreenButton!,minusButton!,plusButton!], animated: true)
 
             case .fullScreen:
@@ -1687,10 +1688,10 @@ class WebViewController: UIViewController
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
-        
-        navigationItem.hidesBackButton = false
 
-        navigationController?.navigationBar.backItem?.title = Constants.Strings.Back
+        // WHY WERE THESE ADDED?
+//        navigationItem.hidesBackButton = false
+//        navigationController?.navigationBar.backItem?.title = Constants.Strings.Back
     }
     
     override func viewWillDisappear(_ animated: Bool)

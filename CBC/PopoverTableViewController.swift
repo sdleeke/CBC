@@ -268,9 +268,16 @@ struct SegmentAction {
     var action:((Void)->(Void))?
 }
 
+class PopoverTableViewControllerHeaderView : UITableViewHeaderFooterView
+{
+    var label : UILabel?
+}
+
 class PopoverTableViewController : UIViewController
 {
     var vc:UIViewController?
+    
+    var changesPending = false
     
     var selectedText:String!
     
@@ -633,6 +640,11 @@ class PopoverTableViewController : UIViewController
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     @IBOutlet weak var tableView: UITableView!
+    {
+        didSet {
+            tableView.register(PopoverTableViewControllerHeaderView.self, forHeaderFooterViewReuseIdentifier: "PopoverTableViewController")
+        }
+    }
     
     @IBOutlet weak var searchBar: UISearchBar!
     
@@ -679,6 +691,10 @@ class PopoverTableViewController : UIViewController
     
     var stringsFunction:((Void)->[String]?)?
     
+    var stringsAny : [String:Any]?
+    var stringsArray : [String]?
+    var stringsAnyArray : [[String:Any]]?
+    
     var allowsSelection:Bool = true
     var allowsMultipleSelection:Bool = false
     
@@ -718,6 +734,10 @@ class PopoverTableViewController : UIViewController
     
     func setPreferredContentSize()
     {
+        guard self.navigationController?.modalPresentationStyle == .popover else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             return
         }
@@ -1619,7 +1639,7 @@ class PopoverTableViewController : UIViewController
             }
         } else
 
-        if stringsFunction != nil {
+        if (stringsFunction != nil) && (self.section.strings == nil) {
             DispatchQueue.global(qos: .background).async {
                 Thread.onMainThread() {
                     self.activityIndicator.startAnimating()
@@ -1642,7 +1662,52 @@ class PopoverTableViewController : UIViewController
                 }
             }
         } else
-
+            
+        if (stringsAny != nil) && (self.section.strings == nil) {
+            if let keys = self.stringsAny?.keys.sorted() {
+                var strings = [String]()
+                for key in keys {
+                    var string = key
+                    if let value = self.stringsAny?[key] as? String {
+                        string = string + ": " + value
+                    }
+                    if let value = self.stringsAny?[key] as? Double {
+                        string = string + ": \(value)"
+                    } else
+                        if let value = self.stringsAny?[key] as? Int {
+                            string = string + ": \(value)"
+                    }
+                    strings.append(string)
+                }
+                self.section.strings = strings
+                
+                self.setPreferredContentSize()
+            }
+        } else
+            
+        if (stringsArray != nil) && (self.section.strings == nil) {
+            self.section.strings = self.stringsArray
+            
+            self.setPreferredContentSize()
+        } else
+            
+        if (stringsAnyArray != nil) && (self.section.strings == nil) {
+            if let stringsAnyArray = self.stringsAnyArray {
+                var strings = [String]()
+                for stringsAny in stringsAnyArray {
+                    if let string = stringsAny["name"] as? String {
+                        strings.append(string)
+                    }
+                    if let string = stringsAny["w"] as? String {
+                        strings.append(string)
+                    }
+                }
+                self.section.strings = strings
+                
+                self.setPreferredContentSize()
+            }
+        } else
+            
         if section.strings != nil {
             if section.showIndex {
                 if (self.section.indexStrings?.count > 1) {
@@ -1652,7 +1717,8 @@ class PopoverTableViewController : UIViewController
                 }
             }
 
-            tableView.reloadData()
+            // Causes problems when other view controllers are pushed on top of this and then the user comes "Back" to this one - section titles dont' show correctly.
+//            tableView.reloadData()
             
             setPreferredContentSize()
             
@@ -1760,6 +1826,11 @@ extension PopoverTableViewController : UITableViewDataSource
 //        }
         
         guard index >= 0 else {
+            print("ERROR")
+            return cell
+        }
+        
+        guard index < section.strings?.count else {
             print("ERROR")
             return cell
         }
@@ -1952,6 +2023,24 @@ extension PopoverTableViewController : UITableViewDelegate
 {
     // MARK: UITableViewDelegate
     
+    func tableView(_ tableView:UITableView, willBeginEditingRowAt indexPath: IndexPath)
+    {
+        // Tells the delegate that the table view is about to go into editing mode.
+        
+    }
+    
+    func tableView(_ tableView:UITableView, didEndEditingRowAt indexPath: IndexPath?)
+    {
+        // Tells the delegate that the table view has left editing mode.
+        if changesPending {
+            Thread.onMainThread() {
+                self.tableView.reloadData()
+            }
+        }
+        
+        changesPending = false
+    }
+    
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
     {
         guard self.section.showIndex || self.section.showHeaders else {
@@ -1971,32 +2060,44 @@ extension PopoverTableViewController : UITableViewDelegate
         return height
     }
     
+    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int)
+    {
+        if let header = view as? UITableViewHeaderFooterView {
+            header.textLabel?.text = nil
+        }
+    }
+
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView?
     {
         guard self.section.showIndex || self.section.showHeaders else {
             return nil
         }
         
-        var view : UIView?
+        var view : PopoverTableViewControllerHeaderView?
+        
+        view = tableView.dequeueReusableHeaderFooterView(withIdentifier: "PopoverTableViewController") as? PopoverTableViewControllerHeaderView
+        if view == nil {
+            view = PopoverTableViewControllerHeaderView()
+        }
         
         if section >= 0, section < self.section.headers?.count, let title = self.section.headers?[section] {
-            view = UIView()
+            view?.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
             
-            view?.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+            if view?.label == nil {
+                view?.label = UILabel()
+                
+                view?.label?.numberOfLines = 0
+                view?.label?.lineBreakMode = .byWordWrapping
+                
+                view?.label?.translatesAutoresizingMaskIntoConstraints = false
+                
+                view?.addSubview(view!.label!)
+                
+                view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":view!.label!]))
+                view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":view!.label!]))
+            }
             
-            let label = UILabel()
-            
-            label.numberOfLines = 0
-            label.lineBreakMode = .byWordWrapping
-            
-            label.attributedText = NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold)
-            
-            label.translatesAutoresizingMaskIntoConstraints = false
-            
-            view?.addSubview(label)
-            
-            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
-            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":label]))
+            view?.label?.attributedText = NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold)
             
             view?.alpha = 0.85
         }
@@ -2025,6 +2126,31 @@ extension PopoverTableViewController : UITableViewDelegate
     func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath)
     {
         detailAction?(tableView,indexPath)
+    }
+    
+    func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool
+    {
+        let index = section.index(indexPath)
+        
+        if let keys = self.stringsAny?.keys.sorted().map({ (string:String) -> String in
+            return string
+        }) {
+            if let string = self.stringsAny?[keys[index]] as? String {
+                return false
+            }
+            if let string = self.stringsAny?[keys[index]] as? Double {
+                return false
+            }
+            if let string = self.stringsAny?[keys[index]] as? Int {
+                return false
+            }
+        }
+        
+        if let string = self.stringsArray?[index] as? String {
+            return false
+        }
+        
+        return true
     }
     
     func tableView(_ TableView: UITableView, didSelectRowAt indexPath: IndexPath)
@@ -2056,6 +2182,10 @@ extension PopoverTableViewController : UITableViewDelegate
 //            }
 //        }
 
+        guard let string = section.strings?[index] else {
+            return
+        }
+        
         if let range = section.strings?[index].range(of: " (") {
             selectedText = section.strings?[index].substring(to: range.lowerBound).uppercased()
         }
@@ -2067,6 +2197,41 @@ extension PopoverTableViewController : UITableViewDelegate
         default:
             delegate?.rowClickedAtIndex(index, strings: section.strings, purpose: purpose!, mediaItem: selectedMediaItem)
             break
+        }
+
+        var stringsAny : [String : Any]?
+        var stringsArray : [String]?
+        var stringsAnyArray : [[String : Any]]?
+
+        if self.stringsAny != nil {
+            stringsAny = self.stringsAny?[string] as? [String : Any]
+            stringsArray = self.stringsAny?[string] as? [String]
+            stringsAnyArray = self.stringsAny?[string] as? [[String : Any]]
+        }
+        
+        if self.stringsArray != nil {
+            
+        }
+        
+        if self.stringsAnyArray != nil {
+            stringsAny = self.stringsAnyArray?[index]
+        }
+        
+        if (delegate == nil) && ((stringsAny != nil) || (stringsArray != nil) || (stringsAnyArray != nil)) {
+            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                popover.search = true
+                
+                popover.navigationItem.title = string
+                
+                popover.stringsAny = stringsAny
+                popover.stringsArray = stringsArray
+                popover.stringsAnyArray = stringsAnyArray
+                
+                popover.purpose = .showingVoiceBaseMediaItem
+                
+                self.navigationController?.pushViewController(popover, animated: true)
+            }
         }
         
         if isTracking {

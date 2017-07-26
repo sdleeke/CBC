@@ -23,6 +23,176 @@ extension VoiceBase // Class Methods
         return "https://apis.voicebase.com/v2-beta/media" + (mediaID != nil ? "/"+mediaID! : "") + (path != nil ? "/"+path! : "")
     }
     
+    static func html(_ json:[String:Any]?) -> String?
+    {
+        guard json != nil else {
+            return nil
+        }
+        
+        var htmlString = "<!DOCTYPE html><html><body>"
+        
+        if let media = json?["media"] as? [String:Any] {
+            if let mediaID = media["mediaId"] as? String {
+                htmlString = htmlString + "MediaID: \(mediaID)\n"
+            }
+            
+            if let status = media["status"] as? String {
+                htmlString = htmlString + "Status: \(status)\n"
+            }
+            
+            //                                            if let tasks = media["tasks"] as? [String:Any] {
+            //                                                htmlString = htmlString + "Tasks: \(tasks.count)\n"
+            //                                            }
+            
+            if let dateCreated = media["dateCreated"] as? String {
+                htmlString = htmlString + "Date Created: \(dateCreated)\n"
+            }
+            
+            if let job = media["job"] as? [String:Any] {
+                htmlString = htmlString + "\nJob\n"
+                
+                if let jobProgress = job["progress"] as? [String:Any] {
+                    if let jobStatus = jobProgress["status"] as? String {
+                        htmlString = htmlString + "Job Status: \(jobStatus)\n"
+                    }
+                    if let jobTasks = jobProgress["tasks"] as? [String:Any] {
+                        htmlString = htmlString + "Job Tasks: \(jobTasks.count)\n"
+                        
+                        var stats = [String:Int]()
+                        
+                        for task in jobTasks.keys {
+                            if let status = (jobTasks[task] as? [String:Any])?["status"] as? String {
+                                if stats[status] == nil {
+                                    stats[status] = 1
+                                } else {
+                                    stats[status] = stats[status]! + 1
+                                }
+                            }
+                        }
+                        
+                        for key in stats.keys {
+                            htmlString = htmlString + "\(key): \(stats[key]!)\n"
+                        }
+                    }
+                }
+            }
+            
+            if let metadata = media["metadata"] as? [String:Any] {
+                htmlString = htmlString + "\nMetadata\n"
+                
+                if let length = metadata["length"] as? [String:Any] {
+                    if let length = length["milliseconds"] as? Int, let hms = secondsToHMS(seconds: "\(Double(length) / 1000.0)") {
+                        htmlString = htmlString + "Length: \(hms)\n"
+                    }
+                }
+                
+                if let metadataTitle = metadata["title"] as? String {
+                    htmlString = htmlString + "Title: \(metadataTitle)\n"
+                }
+                
+                if let device = metadata["device"] as? [String:String] {
+                    htmlString = htmlString + "\nDevice Information:\n"
+                    
+                    if let model = device["model"] {
+                        htmlString = htmlString + "Model: \(model)\n"
+                    }
+                    
+                    if let modelName = device["modelName"] {
+                        htmlString = htmlString + "Name: \(modelName)\n"
+                    }
+                    
+                    if let name = device["name"] {
+                        htmlString = htmlString + "Name: \(name)\n"
+                    }
+                    
+                    if let deviceUUID = device["UUID"] {
+                        htmlString = htmlString + "UUID: \(deviceUUID)\n"
+                    }
+                }
+                
+                if let mediaItem = metadata["mediaItem"] as? [String:String] {
+                    htmlString = htmlString + "\nMediaItem\n"
+                    
+                    if let category = mediaItem["category"] {
+                        htmlString = htmlString + "Category: \(category)\n"
+                    }
+                    
+                    if let id = mediaItem["id"] {
+                        htmlString = htmlString + "id: \(id)\n"
+                    }
+                    
+                    if let title = mediaItem["title"] {
+                        htmlString = htmlString + "Title: \(title)\n"
+                    }
+                    
+                    if let date = mediaItem["date"] {
+                        htmlString = htmlString + "Date: \(date)\n"
+                    }
+                    
+                    if let service = mediaItem["service"] {
+                        htmlString = htmlString + "Service: \(service)\n"
+                    }
+                    
+                    if let speaker = mediaItem["speaker"] {
+                        htmlString = htmlString + "Speaker: \(speaker)\n"
+                    }
+                    
+                    if let scripture = mediaItem["scripture"] {
+                        htmlString = htmlString + "Scripture: \(scripture)\n"
+                    }
+                    
+                    if let purpose = mediaItem["purpose"] {
+                        htmlString = htmlString + "Purpose: \(purpose)\n"
+                    }
+                }
+            }
+            
+            if let transcripts = media["transcripts"] as? [String:Any] {
+                htmlString = htmlString + "\nTranscripts\n"
+                
+                if let latest = transcripts["latest"] as? [String:Any] {
+                    htmlString = htmlString + "Latest\n"
+                    
+                    if let engine = latest["engine"] as? String {
+                        htmlString = htmlString + "Engine: \(engine)\n"
+                    }
+                    
+                    if let confidence = latest["confidence"] as? String {
+                        htmlString = htmlString + "Confidence: \(confidence)\n"
+                    }
+                    
+                    if let words = latest["words"] as? [[String:Any]] {
+                        htmlString = htmlString + "Words: \(words.count)\n"
+                    }
+                }
+            }
+            
+            if let keywords = media["keywords"] as? [String:Any] {
+                htmlString = htmlString + "\nKeywords\n"
+                
+                if let keywordsLatest = keywords["latest"] as? [String:Any] {
+                    if let words = keywordsLatest["words"] as? [[String:Any]] {
+                        htmlString = htmlString + "Keywords: \(words.count)\n"
+                    }
+                }
+            }
+            
+            if let topics = media["topics"] as? [String:Any] {
+                htmlString = htmlString + "\nTopics\n"
+                
+                if let topicsLatest = topics["latest"] as? [String:Any] {
+                    if let topics = topicsLatest["topics"] as? [[String:Any]] {
+                        htmlString = htmlString + "Topics: \(topics.count)\n"
+                    }
+                }
+            }
+        }
+        
+        htmlString = htmlString.replacingOccurrences(of: "\n", with: "<br/>") + "</body></html>"
+
+        return htmlString
+    }
+    
     func post(mediaID:String?,path:String?,parameters:[String:String]?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
         guard globals.reachability.currentReachabilityStatus != .notReachable else {
@@ -180,14 +350,14 @@ extension VoiceBase // Class Methods
             
             if let data = data {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
-                print(string as Any)
+//                print(string as Any)
 
                 if let acceptText = accept?.contains("text"), acceptText {
                     json = ["text":string as Any]
                 } else {
                     do {
                         json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
-                        print(json as Any)
+//                        print(json as Any)
                         
                         if let errors = json?["errors"] {
                             print(errors)
@@ -575,30 +745,23 @@ class VoiceBase {
                 }
             } else {
                 if !transcribing && (_transcript == nil) && (self.resultsTimer == nil) { //  && (mediaID != "Completed")
-                    if mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
-                        return self._transcript != nil
-                    }).count == 0 {
-                        globals.queue.sync(execute: { () -> Void in
-                            mediaItem.removeTag("Machine Generated Transcript")
-                        })
-                    }
-                    
                     transcribing = true
                     
-                    if self.resultsTimer != nil {
-                        print("TIMER NOT NIL!")
-                    }
                     Thread.onMainThread() {
                         self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(), repeats: true)
                     }
                 } else {
                     // Overkill to make sure the cloud storage is cleaned-up?
                     //                mediaItem.voicebase?.delete()  // Actually it causes recurive access to voicebase when voicebase is being lazily instantiated and causes a crash!
+                    if self.resultsTimer != nil {
+                        print("TIMER NOT NIL!")
+                    }
                 }
             }
             
             return _transcript
         }
+        
         set {
             _transcript = newValue
             
@@ -613,10 +776,6 @@ class VoiceBase {
             }
 
             if _transcript != nil {
-                globals.queue.sync(execute: { () -> Void in
-                    mediaItem.addTag("Machine Generated Transcript")
-                })
-                
                 DispatchQueue.global(qos: .background).async {
                     if let destinationURL = cachesURL()?.appendingPathComponent(mediaItem.id!+".\(self.purpose!)") {
                         // Check if file exist
@@ -638,14 +797,6 @@ class VoiceBase {
                     }
                 }
             } else {
-                if mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
-                    return self._transcript != nil
-                }).count == 0 {
-                    globals.queue.sync(execute: { () -> Void in
-                        mediaItem.removeTag("Machine Generated Transcript")
-                    })
-                }
-                
                 DispatchQueue.global(qos: .background).async {
                     if let destinationURL = cachesURL()?.appendingPathComponent(mediaItem.id!+".\(self.purpose!)") {
                         // Check if file exist
@@ -669,7 +820,21 @@ class VoiceBase {
     var _transcript:String?
     {
         didSet {
-
+            guard let mediaItem = mediaItem else {
+                return
+            }
+            
+            if mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+                return self._transcript != nil
+            }).count == 0 {
+                globals.queue.sync(execute: { () -> Void in
+                    mediaItem.removeTag("Machine Generated Transcript")
+                })
+            } else {
+                globals.queue.sync(execute: { () -> Void in
+                    mediaItem.addTag("Machine Generated Transcript")
+                })
+            }
         }
     }
     
@@ -738,6 +903,10 @@ class VoiceBase {
     var mediaJSON: [String:Any]?
     {
         get {
+            guard completed else {
+                return nil
+            }
+            
             guard _mediaJSON == nil else {
 //                print(_mediaJSON)
                 return _mediaJSON
@@ -1228,11 +1397,12 @@ class VoiceBase {
                     
                     globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nhas been started.  You will be notified when it is complete.")
                     
-                    if self.resultsTimer != nil {
+                    if self.resultsTimer == nil {
+                        Thread.onMainThread() {
+                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(), repeats: true)
+                        }
+                    } else {
                         print("TIMER NOT NIL!")
-                    }
-                    Thread.onMainThread() {
-                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(), repeats: true)
                     }
                 }
             } else {
@@ -1726,11 +1896,12 @@ class VoiceBase {
                         
                         globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
                         
-                        if self.resultsTimer != nil {
+                        if self.resultsTimer == nil {
+                            Thread.onMainThread() {
+                                self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(), repeats: true)
+                            }
+                        } else {
                             print("TIMER NOT NIL!")
-                        }
-                        Thread.onMainThread() {
-                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(), repeats: true)
                         }
                     }
                 } else {
@@ -1822,11 +1993,12 @@ class VoiceBase {
                                             
                                             globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
                                             
-                                            if self.resultsTimer != nil {
+                                            if self.resultsTimer == nil {
+                                                Thread.onMainThread() {
+                                                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(), repeats: true)
+                                                }
+                                            } else {
                                                 print("TIMER NOT NIL!")
-                                            }
-                                            Thread.onMainThread() {
-                                                self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(), repeats: true)
                                             }
                                         }
                                     } else {
@@ -1878,11 +2050,12 @@ class VoiceBase {
 //                            })
                         }
                         
-                        if self.resultsTimer != nil {
+                        if self.resultsTimer == nil {
+                            Thread.onMainThread() {
+                                self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: userInfo, repeats: true)
+                            }
+                        } else {
                             print("TIMER NOT NIL!")
-                        }
-                        Thread.onMainThread() {
-                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: userInfo, repeats: true)
                         }
                     }
                 } else {
@@ -1939,6 +2112,7 @@ class VoiceBase {
             _srtArrays = newValue
         }
     }
+    
     var _srtArrays:[[String]]?
     {
         didSet {
@@ -1996,6 +2170,7 @@ class VoiceBase {
             _srtTokensTimes = newValue
         }
     }
+    
     var _srtTokensTimes : [String:[String]]?
     {
         didSet {
@@ -2104,6 +2279,7 @@ class VoiceBase {
             _srtComponents = newValue
         }
     }
+    
     var _srtComponents:[String]?
     {
         didSet {
@@ -2124,6 +2300,10 @@ class VoiceBase {
     var transcriptSRT:String?
     {
         get {
+            guard completed else {
+                return nil
+            }
+            
             guard _transcriptSRT == nil else {
                 return _transcriptSRT
             }
@@ -2238,6 +2418,7 @@ class VoiceBase {
             }
         }
     }
+    
     var _transcriptSRT:String?
     {
         didSet {
@@ -2635,7 +2816,7 @@ class VoiceBase {
 
                     alertActionsCancel( viewController: viewController,
                                         title: "Show",
-                                        message: nil,
+                                        message: "This is a machine generated transcript.  It may lack proper formatting and have signifcant errors.",
                                         alertActions: alertActions,
                                         cancelAction: nil)
                 }))
@@ -2895,7 +3076,7 @@ class VoiceBase {
                 
                 alertActionsCancel(  viewController: viewController,
                                      title: "Machine Generated Transcript (\(self.transcriptPurpose))",
-                    message: "This is a machine generated transcript.  It may lack proper formatting and have signifcant errors.",
+                    message: nil,
                     alertActions: alertActions,
                     cancelAction: nil)
             }
@@ -2967,7 +3148,7 @@ class VoiceBase {
 //            }
             
             textPopover.completion = { (text:String) -> Void in
-                print(text)
+//                print(text)
                 
                 guard text != textPopover.text else {
                     if playing {
@@ -2983,7 +3164,7 @@ class VoiceBase {
                 popover.unfilteredSection.strings?[srtIndex] = "\(count)\n\(timing)\n\(text)"
                 
                 DispatchQueue.global(qos: .background).async {
-                    self.transcriptSRT  = self.transcriptSRTFromSRTs
+                    self.transcriptSRT = self.transcriptSRTFromSRTs
                 }
                 
                 Thread.onMainThread {

@@ -319,6 +319,11 @@ extension LexiconIndexViewController : UIPopoverPresentationControllerDelegate
     }
 }
 
+class LexiconIndexViewControllerHeaderView : UITableViewHeaderFooterView
+{
+    var label : UILabel?
+}
+
 class LexiconIndexViewController : UIViewController
 {
     var mediaListGroupSort:MediaListGroupSort?
@@ -363,6 +368,11 @@ class LexiconIndexViewController : UIViewController
     @IBOutlet weak var spinner: UIActivityIndicatorView!
     
     @IBOutlet weak var tableView: UITableView!
+    {
+        didSet {
+            tableView.register(LexiconIndexViewControllerHeaderView.self, forHeaderFooterViewReuseIdentifier: "LexiconIndexViewController")
+        }
+    }
     
     @IBOutlet weak var container: UIView!
     
@@ -645,6 +655,8 @@ class LexiconIndexViewController : UIViewController
         super.viewDidAppear(animated)
 
         ptvc.selectString(searchText,scroll: true,select: true)
+        
+        navigationController?.setToolbarHidden(false, animated: true)
     }
     
     func setupMediaItemsHTMLLexicon(includeURLs:Bool,includeColumns:Bool) -> String?
@@ -1177,7 +1189,7 @@ extension LexiconIndexViewController : UITableViewDelegate
                     
                     self.navigationController?.navigationItem.hidesBackButton = false
                     
-                    self.navigationController?.setToolbarHidden(true, animated: true)
+//                    self.navigationController?.setToolbarHidden(true, animated: true)
                     
                     self.navigationController?.pushViewController(viewController, animated: true)
                 }
@@ -1379,29 +1391,43 @@ extension LexiconIndexViewController : UITableViewDataSource
         return max(Constants.HEADER_HEIGHT,height + 28)
     }
     
+    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int)
+    {
+        if let header = view as? UITableViewHeaderFooterView {
+            header.textLabel?.text = nil
+        }
+    }
+
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView?
     {
-        let view = UIView()
+        var view : LexiconIndexViewControllerHeaderView?
         
-        view.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
-        
-        if section >= 0, section < results?.section?.headerStrings?.count, let title = results?.section?.headerStrings?[section] {
-            let label = UILabel()
-            
-            label.numberOfLines = 0
-            label.lineBreakMode = .byWordWrapping
-            
-            label.attributedText = NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold)
-            
-            label.translatesAutoresizingMaskIntoConstraints = false
-
-            view.addSubview(label)
-
-            view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
-            view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":label]))
+        view = tableView.dequeueReusableHeaderFooterView(withIdentifier: "LexiconIndexViewController") as? LexiconIndexViewControllerHeaderView
+        if view == nil {
+            view = LexiconIndexViewControllerHeaderView()
         }
         
-        view.alpha = 0.85
+        if section >= 0, section < results?.section?.headerStrings?.count, let title = results?.section?.headerStrings?[section] {
+            view?.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+            
+            if view?.label == nil {
+                view?.label = UILabel()
+                
+                view?.label?.numberOfLines = 0
+                view?.label?.lineBreakMode = .byWordWrapping
+                
+                view?.label?.translatesAutoresizingMaskIntoConstraints = false
+                
+                view?.addSubview(view!.label!)
+                
+                view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":view!.label!]))
+                view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":view!.label!]))
+            }
+            
+            view?.label?.attributedText = NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold)
+            
+            view?.alpha = 0.85
+        }
         
         return view
     }

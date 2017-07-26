@@ -1187,10 +1187,7 @@ class MediaViewController: UIViewController // MediaController
                 
                 setupSliderAndTimes()
                 
-                // If video was playing we need to show slides or transcript and adjust the STV control to hide the video segment and show the other(s).
-                if globals.mediaPlayer.mediaItem == selectedMediaItem {
-                    setupDocumentsAndVideo() // Calls setupSTVControl()
-                }
+                setupDocumentsAndVideo() // Calls setupSTVControl()
                 break
                 
             default:
@@ -2927,8 +2924,14 @@ class MediaViewController: UIViewController // MediaController
             break
             
         case (false,false):
-            if selectedMediaItem!.showing != Showing.none {
-                print("ERROR")
+            if selectedMediaItem!.hasVideo {
+                if (selectedMediaItem!.showing != Showing.none) && (selectedMediaItem!.showing != Showing.video) {
+                    print("ERROR")
+                }
+            } else {
+                if (selectedMediaItem!.showing != Showing.none) {
+                    print("ERROR")
+                }
             }
             break
         }
@@ -3773,30 +3776,30 @@ class MediaViewController: UIViewController // MediaController
         }
 
         switch UIDevice.current.orientation {
-        case .faceUp:
-            break
-            
-        case .faceDown:
-            break
-            
-        case .landscapeLeft:
-            orientation = UIDevice.current.orientation
-            break
-            
-        case .landscapeRight:
-            orientation = UIDevice.current.orientation
-            break
-            
-        case .portrait:
-            orientation = UIDevice.current.orientation
-            break
-            
-        case .portraitUpsideDown:
-            orientation = UIDevice.current.orientation
-            break
-            
-        case .unknown:
-            break
+            case .faceUp:
+                break
+                
+            case .faceDown:
+                break
+                
+            case .landscapeLeft:
+                orientation = UIDevice.current.orientation
+                break
+                
+            case .landscapeRight:
+                orientation = UIDevice.current.orientation
+                break
+                
+            case .portrait:
+                orientation = UIDevice.current.orientation
+                break
+                
+            case .portraitUpsideDown:
+                orientation = UIDevice.current.orientation
+                break
+                
+            case .unknown:
+                break
         }
     }
     

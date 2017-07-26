@@ -2918,6 +2918,11 @@ func sort(method:String?,strings:[String]?) -> [String]?
 
 func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any?)->())?)
 {
+    process(viewController:viewController,disableEnable:true,work:work,completion:completion)
+}
+
+func process(viewController:UIViewController,disableEnable:Bool,work:(()->(Any?))?,completion:((Any?)->())?)
+{
     guard (work != nil)  && (completion != nil) else {
         return
     }
@@ -2928,21 +2933,23 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
     }
 
     Thread.onMainThread() {
-        if let buttons = viewController.navigationItem.rightBarButtonItems {
-            for button in buttons {
-                button.isEnabled = false
+        if disableEnable {
+            if let buttons = viewController.navigationItem.rightBarButtonItems {
+                for button in buttons {
+                    button.isEnabled = false
+                }
             }
-        }
-        
-        if let buttons = viewController.navigationItem.leftBarButtonItems {
-            for button in buttons {
-                button.isEnabled = false
+            
+            if let buttons = viewController.navigationItem.leftBarButtonItems {
+                for button in buttons {
+                    button.isEnabled = false
+                }
             }
-        }
-        
-        if let buttons = viewController.toolbarItems {
-            for button in buttons {
-                button.isEnabled = false
+            
+            if let buttons = viewController.toolbarItems {
+                for button in buttons {
+                    button.isEnabled = false
+                }
             }
         }
         
@@ -2965,21 +2972,23 @@ func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any
                     container.removeFromSuperview()
                 }
                 
-                if let buttons = viewController.navigationItem.rightBarButtonItems {
-                    for button in buttons {
-                        button.isEnabled = true
+                if disableEnable {
+                    if let buttons = viewController.navigationItem.rightBarButtonItems {
+                        for button in buttons {
+                            button.isEnabled = true
+                        }
                     }
-                }
-                
-                if let buttons = viewController.navigationItem.leftBarButtonItems {
-                    for button in buttons {
-                        button.isEnabled = true
+                    
+                    if let buttons = viewController.navigationItem.leftBarButtonItems {
+                        for button in buttons {
+                            button.isEnabled = true
+                        }
                     }
-                }
-                
-                if let buttons = viewController.toolbarItems {
-                    for button in buttons {
-                        button.isEnabled = true
+                    
+                    if let buttons = viewController.toolbarItems {
+                        for button in buttons {
+                            button.isEnabled = true
+                        }
                     }
                 }
                 
@@ -3247,9 +3256,9 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
     
     if let navigationController = viewController.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
         let popover = navigationController.viewControllers[0] as? WebViewController {
-        Thread.onMainThread() {
-            viewController.dismiss(animated: true, completion: nil)
-        }
+//        Thread.onMainThread() {
+//            viewController.dismiss(animated: true, completion: nil)
+//        }
         
         if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
             let hClass = viewController.traitCollection.horizontalSizeClass
