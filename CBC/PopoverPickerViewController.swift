@@ -361,7 +361,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                     
                     return bodyHTML
                 }, completion: { (data:Any?) in
-                    presentHTMLModal(viewController: self, medaiItem: nil, style: .fullScreen, title: "Expanded Word Picker", htmlString: data as? String)
+                    presentHTMLModal(viewController: self, medaiItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
                 })
                 break
                 

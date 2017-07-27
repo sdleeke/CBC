@@ -33,7 +33,7 @@ extension UIViewController {
             if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
                 if let isCollapsed = splitViewController?.isCollapsed {
                     if isCollapsed {
-                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.navigationItem.backBarButtonItem
+                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.navigationController?.navigationItem.backBarButtonItem
 //                        if UIDevice.current.userInterfaceIdiom == .phone {
 //                        }
                     } else {

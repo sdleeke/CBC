@@ -2530,6 +2530,8 @@ class MediaViewController: UIViewController // MediaController
     func clearView()
     {
         Thread.onMainThread() {
+            self.dismiss(animated: true, completion: nil) // In case a dialog is visible.
+            
             self.navigationItem.hidesBackButton = true // In case this MVC was pushed from the ScriptureIndexController.
             
             self.selectedMediaItem = nil
