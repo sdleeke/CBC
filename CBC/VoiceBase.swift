@@ -845,6 +845,8 @@ class VoiceBase {
                 return nil
             }
             
+            let transcript = transcriptFromWords
+            
             var segment : String?
             
             var following = [[String:Any]]()
@@ -858,7 +860,7 @@ class VoiceBase {
                 while words.count > 0 {
                     let word = words.removeFirst()
                     
-                    segment = word["w"] as! String
+                    segment = word["w"] as? String
                     
                     start = Double(word["s"] as! Int) / 1000.0
                     end = Double(word["e"] as! Int) / 1000.0
@@ -2331,6 +2333,7 @@ class VoiceBase {
             
             return _transcriptSRT
         }
+        
         set {
             guard let mediaItem = mediaItem else {
                 return
@@ -2357,10 +2360,10 @@ class VoiceBase {
                             let timeWindow = srtArray.removeFirst()
                             
                             if let range = srtComponent.range(of: timeWindow + "\n") {
-                                let text = srtComponent.substring(from: range.upperBound)
+                                let text = srtComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
                                 
                                 if let index = srtComponents.index(of: srtComponent) {
-                                    srtComponents[index] = "\(count)\n\(timeWindow)\n\(text)"
+                                    srtComponents[index] = "\(count)\n\(timeWindow)\n" + text
                                     changed = true
                                 }
                             }
@@ -2424,6 +2427,35 @@ class VoiceBase {
         didSet {
             srtComponents = _transcriptSRT?.components(separatedBy: VoiceBase.separator)
             //            print(srtComponents)
+        }
+    }
+    
+    var transcriptSRTFromWords:String?
+    {
+        get {
+            var str : String?
+            
+            if let following = following {
+                var count = 1
+                var srtComponents = [String]()
+                
+                for element in following {
+                    if  let start = element["start"] as? Double,
+                        let startSeconds = secondsToHMS(seconds: "\(start)"),
+                        let end = element["end"] as? Double,
+                        let endSeconds = secondsToHMS(seconds: "\(end)"),
+                        let text = element["text"] as? String {
+                        srtComponents.append("\(count)\n\(startSeconds) --> \(endSeconds)\n\(text)")
+                    }
+                    count += 1
+                }
+
+                for srtComponent in srtComponents {
+                    str = str != nil ? str! + VoiceBase.separator + srtComponent : srtComponent
+                }
+            }
+            
+            return str
         }
     }
     
@@ -2783,13 +2815,14 @@ class VoiceBase {
                                     if srtArray.count > 2  {
                                         let count = srtArray.removeFirst()
                                         let timeWindow = srtArray.removeFirst()
+                                        let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
                                         
-                                        if  let start = timeWindow.components(separatedBy: " --> ").first?.replacingOccurrences(of: ",", with: "."),
-                                            let end = timeWindow.components(separatedBy: " --> ").last?.replacingOccurrences(of: ",", with: "."),
+                                        if  let start = times.first,
+                                            let end = times.last,
                                             let range = srtComponent.range(of: timeWindow+"\n") {
                                             let text = srtComponent.substring(from: range.upperBound)
                                             
-                                            let row = "<tr valign=\"top\"><td>\(count)</td><td>\(start)</td><td>\(end)</td><td>\(text.replacingOccurrences(of: "\n", with: "<br/>"))</td></tr>"
+                                            let row = "<tr valign=\"top\"><td>\(count)</td><td>\(start)</td><td>\(end)</td><td>\(text.replacingOccurrences(of: "\n", with: " "))</td></tr>"
                                             srtHTML = srtHTML + row
                                         }
                                     }
@@ -2830,7 +2863,7 @@ class VoiceBase {
                         
                         textPopover.navigationController?.isNavigationBarHidden = false
                         
-                        textPopover.navigationItem.title = "Edit Text" //
+                        textPopover.navigationItem.title = "Edit Text"
                         
                         let text = self.transcript
                         
@@ -2853,7 +2886,33 @@ class VoiceBase {
                                 return
                             }
                             
-                            print(text)
+//                            print(text)
+                            
+                            // Not clear that NSLinguisticTagger does anything for us since it doesn't know how to punctuate, correct grammar, or segment into paragraphs.
+                            // Just knowing the part of speech for a token doesn't do much.
+                            
+//                            let options = NSLinguisticTagger.Options.omitWhitespace.rawValue | NSLinguisticTagger.Options.joinNames.rawValue
+//
+//                            let tagger = NSLinguisticTagger(tagSchemes: NSLinguisticTagger.availableTagSchemes(forLanguage: "en"), options: Int(options))
+//                            tagger.string = text
+//                            
+//                            let range = NSRange(location: 0, length: text.utf16.count)
+//                            tagger.enumerateTags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: NSLinguisticTagger.Options(rawValue: options)) { tag, tokenRange, sentenceRange, stop in
+//                                let token = (text as NSString).substring(with: tokenRange)
+////                                let sentence = (text as NSString).substring(with: sentenceRange)
+//                                print("\(tokenRange.location):\(tokenRange.length) \(tag): \(token)") // \n\(sentence)\n
+//                            }
+
+//                            var ranges : NSArray?
+//                            
+//                            let tags = tagger.tags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: NSLinguisticTagger.Options(rawValue: options), tokenRanges: &ranges)
+//                            
+//                            var index = 0
+//                            for tag in tags {
+//                                let token = (text as NSString).substring(with: ranges![index] as! NSRange)
+//                                print("\(tag): \(token)") // \n\(sentence)\n
+//                                index += 1
+//                            }
                             
                             self.transcript = text
                         }
@@ -2891,74 +2950,6 @@ class VoiceBase {
                     } else {
                         print("ERROR")
                     }
-                }))
-                
-                alertActions.append(AlertAction(title: "Restore", style: .default, action: {
-                    var alertActions = [AlertAction]()
-                    
-                    alertActions.append(AlertAction(title: "Regenerate Transcript", style: .default, action: {
-                        var alertActions = [AlertAction]()
-                        
-                        alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
-                            self.transcript = self.transcriptFromWords
-                        }))
-                        
-                        alertActions.append(AlertAction(title: "No", style: .default, action: nil))
-                        
-                        alertActionsCancel( viewController: viewController,
-                                            title: "Confirm Regeneration of Transcript",
-                                            message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nwill be regenerated from the individually recognized words.",
-                            alertActions: alertActions,
-                            cancelAction: nil)
-                    }))
-                    
-                    alertActions.append(AlertAction(title: "Reload from VoiceBase", style: .default, action: {
-                        self.metadata(completion: { (dict:[String:Any]?)->(Void) in
-                            if let text = self.mediaItem?.text {
-                                var alertActions = [AlertAction]()
-                                
-                                alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
-                                    globals.alert(title:"Reloading Machine Generated Transcript", message:"Reloading the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it has been completed.")
-                                    
-                                    if self.resultsTimer != nil {
-                                        print("TIMER NOT NIL!")
-
-                                        var actions = [AlertAction]()
-                                        
-                                        actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
-                                        
-                                        globals.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
-                                    } else {
-                                        Thread.onMainThread() {
-                                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(), repeats: true)
-                                        }
-                                    }
-                                }))
-                                
-                                alertActions.append(AlertAction(title: "No", style: .default, action: nil))
-                                
-                                alertActionsCancel( viewController: viewController,
-                                                    title: "Confirm Reloading",
-                                                    message: "The results of speech recognition for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nwill be reloaded from VoiceBase.",
-                                    alertActions: alertActions,
-                                    cancelAction: nil)
-                            }
-                        }, onError:  { (dict:[String:Any]?)->(Void) in
-                            if let text = self.mediaItem?.text {
-                                var actions = [AlertAction]()
-                                
-                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
-                                
-                                globals.alert(title:"Not on VoiceBase", message:text + "\nis not on VoiceBase.", actions:actions)
-                            }
-                        })
-                    }))
-                    
-                    alertActionsCancel( viewController: viewController,
-                                        title: "Restore Options",
-                                        message: "For\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))",
-                        alertActions: alertActions,
-                        cancelAction: nil)
                 }))
                 
                 alertActions.append(AlertAction(title: "Media ID", style: .default, action: {
@@ -3057,6 +3048,74 @@ class VoiceBase {
                         cancelAction: nil)
                 }))
                 
+                alertActions.append(AlertAction(title: "Restore", style: .destructive, action: {
+                    var alertActions = [AlertAction]()
+                    
+                    alertActions.append(AlertAction(title: "Regenerate Transcript", style: .destructive, action: {
+                        var alertActions = [AlertAction]()
+                        
+                        alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
+                            self.transcript = self.transcriptFromWords
+                        }))
+                        
+                        alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+                        
+                        alertActionsCancel( viewController: viewController,
+                                            title: "Confirm Regeneration of Transcript",
+                                            message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nwill be regenerated from the individually recognized words.",
+                            alertActions: alertActions,
+                            cancelAction: nil)
+                    }))
+                    
+                    alertActions.append(AlertAction(title: "Reload from VoiceBase", style: .destructive, action: {
+                        self.metadata(completion: { (dict:[String:Any]?)->(Void) in
+                            if let text = self.mediaItem?.text {
+                                var alertActions = [AlertAction]()
+                                
+                                alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
+                                    globals.alert(title:"Reloading Machine Generated Transcript", message:"Reloading the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it has been completed.")
+                                    
+                                    if self.resultsTimer != nil {
+                                        print("TIMER NOT NIL!")
+                                        
+                                        var actions = [AlertAction]()
+                                        
+                                        actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
+                                        
+                                        globals.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
+                                    } else {
+                                        Thread.onMainThread() {
+                                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(), repeats: true)
+                                        }
+                                    }
+                                }))
+                                
+                                alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+                                
+                                alertActionsCancel( viewController: viewController,
+                                                    title: "Confirm Reloading",
+                                                    message: "The results of speech recognition for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nwill be reloaded from VoiceBase.",
+                                    alertActions: alertActions,
+                                    cancelAction: nil)
+                            }
+                        }, onError:  { (dict:[String:Any]?)->(Void) in
+                            if let text = self.mediaItem?.text {
+                                var actions = [AlertAction]()
+                                
+                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
+                                
+                                globals.alert(title:"Not on VoiceBase", message:text + "\nis not on VoiceBase.", actions:actions)
+                            }
+                        })
+                    }))
+                    
+                    alertActionsCancel( viewController: viewController,
+                                        title: "Restore Options",
+                                        message: "For\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))",
+                        alertActions: alertActions,
+                        cancelAction: nil)
+                }))
+                
                 alertActions.append(AlertAction(title: "Delete", style: .destructive, action: {
                     var alertActions = [AlertAction]()
                     
@@ -3108,7 +3167,7 @@ class VoiceBase {
         let srtTiming = timing.replacingOccurrences(of: ".", with: ",").replacingOccurrences(of: "to", with: "-->") // Timing
         
         if  let first = srtComponents?.filter({ (string:String) -> Bool in
-            print(srtTiming,string)
+//            print(srtTiming,string)
             return string.contains(srtTiming)
         }).first,
             let navigationController = popover.storyboard!.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
@@ -3117,11 +3176,11 @@ class VoiceBase {
             let range = string.range(of:timing+"\n") {
             navigationController.modalPresentationStyle = .overCurrentContext
             
-            navigationController.popoverPresentationController?.delegate = popover as? UIPopoverPresentationControllerDelegate
+            navigationController.popoverPresentationController?.delegate = popover
             
             Thread.onMainThread {
                 textPopover.navigationController?.isNavigationBarHidden = false
-                textPopover.navigationItem.title = "Edit Text" //
+                textPopover.navigationItem.title = "Edit Text"
             }
             
             let text = string.substring(from: range.upperBound)
@@ -3165,6 +3224,10 @@ class VoiceBase {
                 
                 DispatchQueue.global(qos: .background).async {
                     self.transcriptSRT = self.transcriptSRTFromSRTs
+                    
+//                    print(self.transcriptSRTFromSRTs)
+//                    print("\n\n")
+//                    print(self.transcriptSRTFromWords)
                 }
                 
                 Thread.onMainThread {
@@ -3198,11 +3261,11 @@ class VoiceBase {
     
     func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]? // popover:PopoverTableViewController,
     {
-        let stringIndex = popover.section.index(indexPath)
+//        let stringIndex = popover.section.index(indexPath)
         
-        guard let string = popover.section.strings?[stringIndex] else {
-            return nil
-        }
+//        guard let string = popover.section.strings?[stringIndex] else {
+//            return nil
+//        }
         
 //        let transcript = popover.transcript
         
@@ -3339,13 +3402,15 @@ class VoiceBase {
                             if srtArray.count > 2  {
                                 let count = srtArray.removeFirst()
                                 let timeWindow = srtArray.removeFirst()
+                                let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
                                 
-                                if  let start = timeWindow.components(separatedBy: " --> ").first?.replacingOccurrences(of: ",", with: "."),
-                                    let end = timeWindow.components(separatedBy: " --> ").last?.replacingOccurrences(of: ",", with: "."),
+                                if  let start = times.first,
+                                    let end = times.last,
                                     let range = srtComponent.range(of: timeWindow+"\n") {
-                                    let text = "\(count)\n\(start) to \(end)\n" + srtComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                    let text = srtComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                    let string = "\(count)\n\(start) to \(end)\n" + text
                                     
-                                    return text
+                                    return string
                                 }
                             }
                             

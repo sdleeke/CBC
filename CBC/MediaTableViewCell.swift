@@ -330,7 +330,10 @@ class MediaTableViewCell: UITableViewCell
     
     func stopEditing()
     {
-        isEditing = false
+        if isEditing {
+            (vc as? MediaTableViewController)?.tableView?.isEditing = false
+            (vc as? MediaViewController)?.tableView.isEditing = false
+        }
     }
     
     func updateUI()

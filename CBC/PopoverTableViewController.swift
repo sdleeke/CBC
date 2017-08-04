@@ -2132,21 +2132,35 @@ extension PopoverTableViewController : UITableViewDelegate
     {
         let index = section.index(indexPath)
         
-        if let keys = self.stringsAny?.keys.sorted().map({ (string:String) -> String in
-            return string
-        }) {
-            if let string = self.stringsAny?[keys[index]] as? String {
-                return false
-            }
-            if let string = self.stringsAny?[keys[index]] as? Double {
-                return false
-            }
-            if let string = self.stringsAny?[keys[index]] as? Int {
-                return false
-            }
+        guard let strings = section.strings else {
+            return false
         }
         
-        if let string = self.stringsArray?[index] as? String {
+//        if let keys = self.stringsAny?.keys.sorted().map({ (string:String) -> String in
+//            return string
+//        }) {
+//            if let _ = self.stringsAny?[keys[index]] as? String {
+//                return false
+//            }
+//            if let _ = self.stringsAny?[keys[index]] as? Double {
+//                return false
+//            }
+//            if let _ = self.stringsAny?[keys[index]] as? Int {
+//                return false
+//            }
+//        }
+
+        if let _ = self.stringsAny?[strings[index]] as? String {
+            return false
+        }
+        if let _ = self.stringsAny?[strings[index]] as? Double {
+            return false
+        }
+        if let _ = self.stringsAny?[strings[index]] as? Int {
+            return false
+        }
+        
+        if let _ = self.stringsArray?[index] {
             return false
         }
         

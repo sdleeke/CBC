@@ -537,8 +537,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     let localDevice = "This Device"
                     let otherDevices = "Other Devices"
                     
-                    let stringIndex = StringIndex() // [String:[String]]()
-
                     func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
                     {
                         // Presence of a detailed disclosure means the action buttons don't get the right font.  Not sure why.
@@ -552,13 +550,13 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         
                         var actions = [UITableViewRowAction]()
                         
-                        if  let keys = stringIndex.keys?.sorted(){
+                        if  let keys = self.stringIndex.keys?.sorted(){
                             guard indexPath.section >= 0, indexPath.section < keys.count else {
                                 return actions
                             }
                             
                             let key = keys[indexPath.section]
-                            let values = stringIndex[key]
+                            let values = self.stringIndex[key]
                             
                             guard indexPath.row >= 0, indexPath.row < values?.count else {
                                 return actions
@@ -577,17 +575,17 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                         alertItem -> Void in
                                         VoiceBase.delete(mediaID: mediaID)
                                         
-                                        stringIndex[key]?.remove(at: indexPath.row)
+                                        self.stringIndex[key]?.remove(at: indexPath.row)
                                         
-                                        if stringIndex[key]?.count == 0 {
-                                            stringIndex[key] = nil
+                                        if self.stringIndex[key]?.count == 0 {
+                                            self.stringIndex[key] = nil
                                         }
                                         
                                         var strings = [String]()
                                         
-                                        if let keys = stringIndex.keys?.sorted() {
+                                        if let keys = self.stringIndex.keys?.sorted() {
                                             for key in keys {
-                                                for value in stringIndex[key]! {
+                                                for value in self.stringIndex[key]! {
                                                     strings.append(value["title"] as! String)
                                                 }
                                             }
@@ -598,16 +596,16 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                         var counts = [Int]()
                                         var indexes = [Int]()
                                         
-                                        if let keys = stringIndex.keys?.sorted() {
+                                        if let keys = self.stringIndex.keys?.sorted() {
                                             for key in keys {
                                                 indexes.append(counter)
-                                                counts.append(stringIndex[key]!.count)
+                                                counts.append(self.stringIndex[key]!.count)
                                                 
-                                                counter += stringIndex[key]!.count
+                                                counter += self.stringIndex[key]!.count
                                             }
                                         }
                                         
-                                        popover.section.headerStrings = stringIndex.keys?.sorted()
+                                        popover.section.headerStrings = self.stringIndex.keys?.sorted()
                                         popover.section.strings = strings.count > 0 ? strings : nil
                                         //                                            popover.section.indexHeaders = popover.section.headers
                                         
@@ -664,7 +662,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                         var data : Any?
                                         
                                         VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
-                                            print(json)
+                                            print(json as Any)
                                             
                                             data = json
                                         }, onError: { (json:[String : Any]?) -> (Void) in
@@ -705,7 +703,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                         var data : Any?
                                         
                                         VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
-                                            print(json)
+                                            print(json as Any)
                                             
                                             data = json
                                             
@@ -772,13 +770,13 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //                        mediaID.backgroundColor = UIColor.gray
 //                        actions.append(mediaID)
                         
-                        if  let keys = stringIndex.keys?.sorted(){
+                        if  let keys = self.stringIndex.keys?.sorted(){
                             guard indexPath.section >= 0, indexPath.section < keys.count else {
                                 return actions
                             }
                             
                             let key = keys[indexPath.section]
-                            let values = stringIndex[key]
+                            let values = self.stringIndex[key]
 
                             guard indexPath.row >= 0, indexPath.row < values?.count else {
                                 return actions
@@ -815,11 +813,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
                     func detailDisclosure(tableView:UITableView,indexPath:IndexPath) -> Bool
                     {
-                        guard indexPath.section >= 0, indexPath.section < stringIndex.keys?.count else {
+                        guard indexPath.section >= 0, indexPath.section < self.stringIndex.keys?.count else {
                             return false
                         }
                         
-                        if let keys = stringIndex.keys?.sorted() {
+                        if let keys = self.stringIndex.keys?.sorted() {
                             if (indexPath.section >= 0) && (indexPath.section < keys.count) {
                                 let key = keys[indexPath.section]
                                 
@@ -827,7 +825,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                     return false
                                 }
                                 
-                                if let values = stringIndex[key], indexPath.row >= 0, indexPath.row < values.count {
+                                if let values = self.stringIndex[key], indexPath.row >= 0, indexPath.row < values.count {
                                     let value = values[indexPath.row]
                                     
                                     guard let mediaID = value["mediaID"] as? String else {
@@ -868,10 +866,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     {
                         var value : [String:Any]?
                         
-                        if let keys = stringIndex.keys?.sorted() {
+                        if let keys = self.stringIndex.keys?.sorted() {
                             let key = keys[indexPath.section]
                             
-                            if let values = stringIndex[key] {
+                            if let values = self.stringIndex[key] {
                                 value = values[indexPath.row]
                                 
                                 if let mediaID = value?["mediaID"] as? String,let title = value?["title"] as? String {
@@ -887,17 +885,17 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                             alertItem -> Void in
                                             VoiceBase.delete(mediaID: mediaID)
                                             
-                                            stringIndex[key]?.remove(at: indexPath.row)
+                                            self.stringIndex[key]?.remove(at: indexPath.row)
                                             
-                                            if stringIndex[key]?.count == 0 {
-                                                stringIndex[key] = nil
+                                            if self.stringIndex[key]?.count == 0 {
+                                                self.stringIndex[key] = nil
                                             }
                                             
                                             var strings = [String]()
                                             
-                                            if let keys = stringIndex.keys?.sorted() {
+                                            if let keys = self.stringIndex.keys?.sorted() {
                                                 for key in keys {
-                                                    for value in stringIndex[key]! {
+                                                    for value in self.stringIndex[key]! {
                                                         strings.append(value["title"] as! String)
                                                     }
                                                 }
@@ -908,16 +906,16 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                             var counts = [Int]()
                                             var indexes = [Int]()
                                             
-                                            if let keys = stringIndex.keys?.sorted() {
+                                            if let keys = self.stringIndex.keys?.sorted() {
                                                 for key in keys {
                                                     indexes.append(counter)
-                                                    counts.append(stringIndex[key]!.count)
+                                                    counts.append(self.stringIndex[key]!.count)
                                                     
-                                                    counter += stringIndex[key]!.count
+                                                    counter += self.stringIndex[key]!.count
                                                 }
                                             }
                                             
-                                            self.popover?.section.headerStrings = stringIndex.keys?.sorted()
+                                            self.popover?.section.headerStrings = self.stringIndex.keys?.sorted()
                                             self.popover?.section.strings = strings.count > 0 ? strings : nil
                                             //                                                            self.popover?.section.indexHeaders = self.popover?.section.headers
                                             
@@ -969,7 +967,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                             var data : Any?
                                             
                                             VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
-                                                print(json)
+                                                print(json as Any)
                                                 
                                                 data = json
                                             }, onError: { (json:[String : Any]?) -> (Void) in
@@ -1006,7 +1004,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                             var data : Any?
                                             
                                             VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
-                                                print(json)
+                                                print(json as Any)
                                                 
                                                 data = json
                                                 
@@ -1059,28 +1057,28 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                             return transcript.mediaID == mediaID
                                         }).count == 1
                                     }).count == 1 {
-                                        if stringIndex[localDevice] == nil {
-                                            stringIndex[localDevice] = [[String:String]]()
+                                        if self.stringIndex[localDevice] == nil {
+                                            self.stringIndex[localDevice] = [[String:String]]()
                                         }
                                         print(localDevice,mediaID)
-                                        stringIndex[localDevice]?.append(["title":title,"mediaID":mediaID])
+                                        self.stringIndex[localDevice]?.append(["title":title,"mediaID":mediaID])
                                     } else {
-                                        if stringIndex[otherDevices] == nil {
-                                            stringIndex[otherDevices] = [[String:String]]()
+                                        if self.stringIndex[otherDevices] == nil {
+                                            self.stringIndex[otherDevices] = [[String:String]]()
                                         }
                                         print(otherDevices,mediaID)
-                                        stringIndex[otherDevices]?.append(["title":title,"mediaID":mediaID])
+                                        self.stringIndex[otherDevices]?.append(["title":title,"mediaID":mediaID])
                                     }
                                 } else {
                                     print("Unable to add: \(mediaItem)")
                                 }
                             }
                             
-                            print(stringIndex[localDevice]?.count as Any,stringIndex[otherDevices]?.count as Any)
+                            print(self.stringIndex[localDevice]?.count as Any,self.stringIndex[otherDevices]?.count as Any)
                             
-                            if let keys = stringIndex.keys {
+                            if let keys = self.stringIndex.keys {
                                 for key in keys {
-                                    stringIndex[key] = stringIndex[key]?.sorted(by: {
+                                    self.stringIndex[key] = self.stringIndex[key]?.sorted(by: {
                                         var date0 = ($0["title"] as? String)?.components(separatedBy: "\n").first
                                         var date1 = ($1["title"] as? String)?.components(separatedBy: "\n").first
                                         
@@ -1106,9 +1104,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         
                         var strings = [String]()
                         
-                        if let keys = stringIndex.keys?.sorted() {
+                        if let keys = self.stringIndex.keys?.sorted() {
                             for key in keys {
-                                for value in stringIndex[key]! {
+                                for value in self.stringIndex[key]! {
                                     strings.append(value["title"] as! String)
                                 }
                             }
@@ -1119,17 +1117,17 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         var counts = [Int]()
                         var indexes = [Int]()
                         
-                        if let keys = stringIndex.keys?.sorted() {
+                        if let keys = self.stringIndex.keys?.sorted() {
                             for key in keys {
                                 indexes.append(counter)
-                                counts.append(stringIndex[key]!.count)
+                                counts.append(self.stringIndex[key]!.count)
                                 
-                                counter += stringIndex[key]!.count
+                                counter += self.stringIndex[key]!.count
                             }
                         }
                         
                         self.popover?.section.strings = strings.count > 0 ? strings : nil
-                        self.popover?.section.headerStrings = stringIndex.keys?.sorted()
+                        self.popover?.section.headerStrings = self.stringIndex.keys?.sorted()
                         self.popover?.section.counts = counts.count > 0 ? counts : nil
                         self.popover?.section.indexes = indexes.count > 0 ? indexes : nil
                     }
@@ -1150,7 +1148,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             }
                             
                             // Begin by separating media into what was created on this device and what was created on something else.
-                            let stringIndex = StringIndex() // [String:[String]]()
+                            self.stringIndex = StringIndex() // [String:[String]]()
                             
                             buildInitialList()
                             self.popover?.tableView?.reloadData()
@@ -1201,7 +1199,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         //                    popover.popoverPresentationController?.passthroughViews = [globals.splitViewController.view!]
                         
                         self.present(navigationController, animated: true, completion: {
-                            self.popover?.activityIndicator.startAnimating()
+//                            self.popover?.activityIndicator.startAnimating()
                             self.presentingVC = navigationController
                         })
                     }
@@ -1212,10 +1210,15 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         guard let mediaID = mediaItems.first?["mediaId"] as? String else {
                             print("No mediaId: \(String(describing: mediaItem))")
 
-                            // Would have preferred to dispatch to main here direclty but compiler crashed, using a notification instead. 
+                            if self.stringIndex.dict == nil {
+                                Thread.sleep(forTimeInterval: 0.2)
+                            }
+
+                            // Would have preferred to dispatch to main here direclty but compiler crashed, using a notification instead.
                             Thread.onMainThread() {
                                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.VOICE_BASE_FINISHED), object: nil)
                             }
+                            
                             return
                         }
                         
@@ -1248,47 +1251,47 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                         deviceName += " (this device)"
                                     }
                                     
-                                    if stringIndex[deviceName] == nil {
-                                        stringIndex[deviceName] = [["title":title,"mediaID":mediaID,"metadata":metadata as Any]]
+                                    if self.stringIndex[deviceName] == nil {
+                                        self.stringIndex[deviceName] = [["title":title,"mediaID":mediaID,"metadata":metadata as Any]]
                                     } else {
-                                        stringIndex[deviceName]?.append(["title":title,"mediaID":mediaID,"metadata":metadata as Any])
+                                        self.stringIndex[deviceName]?.append(["title":title,"mediaID":mediaID,"metadata":metadata as Any])
                                     }
                                     // Update the popover section information and reload the popover tableview to update
                                     // Need to find a way to remove mediaItems from Local Device and Other Devices sections when we find
                                     // the actual device name
-                                    //                                    print(stringIndex.dict as Any)
+                                    //                                    print(self.stringIndex.dict as Any)
                                     
-                                    if let records = stringIndex[localDevice] {
+                                    if let records = self.stringIndex[localDevice] {
                                         var i = 0
                                         for record in records {
                                             if (record["mediaID"] as? String == mediaID) {
                                                 print("removing: \(mediaID)")
-                                                stringIndex[localDevice]?.remove(at: i)
+                                                self.stringIndex[localDevice]?.remove(at: i)
                                             }
                                             i += 1
                                         }
-                                        if stringIndex[localDevice]?.count == 0 {
-                                            stringIndex[localDevice] = nil
+                                        if self.stringIndex[localDevice]?.count == 0 {
+                                            self.stringIndex[localDevice] = nil
                                         }
                                     }
                                     
-                                    if let records = stringIndex[otherDevices] {
+                                    if let records = self.stringIndex[otherDevices] {
                                         var i = 0
                                         for record in records {
                                             if (record["mediaID"] as? String == mediaID) {
                                                 print("removing: \(mediaID)")
-                                                stringIndex[otherDevices]?.remove(at: i)
+                                                self.stringIndex[otherDevices]?.remove(at: i)
                                             }
                                             i += 1
                                         }
-                                        if stringIndex[otherDevices]?.count == 0 {
-                                            stringIndex[otherDevices] = nil
+                                        if self.stringIndex[otherDevices]?.count == 0 {
+                                            self.stringIndex[otherDevices] = nil
                                         }
                                     }
                                     
-                                    if let keys = stringIndex.keys {
+                                    if let keys = self.stringIndex.keys {
                                         for key in keys {
-                                            stringIndex[key] = stringIndex[key]?.sorted(by: {
+                                            self.stringIndex[key] = self.stringIndex[key]?.sorted(by: {
                                                     var date0 = ($0["title"] as? String)?.components(separatedBy: "\n").first
                                                     var date1 = ($1["title"] as? String)?.components(separatedBy: "\n").first
                                                     
@@ -1315,9 +1318,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                         
                                         var strings = [String]()
                                         
-                                        if let keys = stringIndex.keys?.sorted() {
+                                        if let keys = self.stringIndex.keys?.sorted() {
                                             for key in keys {
-                                                if let values = stringIndex[key] {
+                                                if let values = self.stringIndex[key] {
                                                     for value in values {
                                                         strings.append(value["title"] as! String)
                                                     }
@@ -1328,7 +1331,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                         self.popover?.detailDisclosure = detailDisclosure
                                         self.popover?.detailAction = detailAction
                                         
-                                        self.popover?.section.headerStrings = stringIndex.keys?.sorted()
+                                        self.popover?.section.headerStrings = self.stringIndex.keys?.sorted()
                                         self.popover?.section.strings = strings.count > 0 ? strings : nil
                                         //                                    self.popover?.section.indexHeaders = self.popover?.section.headers
                                         
@@ -1337,12 +1340,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                         var counts = [Int]()
                                         var indexes = [Int]()
                                         
-                                        if let keys = stringIndex.keys?.sorted() {
+                                        if let keys = self.stringIndex.keys?.sorted() {
                                             for key in keys {
                                                 indexes.append(counter)
-                                                counts.append(stringIndex[key]!.count)
+                                                counts.append(self.stringIndex[key]!.count)
                                                 
-                                                counter += stringIndex[key]!.count
+                                                counter += self.stringIndex[key]!.count
                                             }
                                         }
                                         
@@ -1366,7 +1369,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                         print("Unable to add: \(dict!.description)")
                                     }
                                     
-                                    print(stringIndex.keys?.count as Any,stringIndex[localDevice]?.count as Any,stringIndex[otherDevices]?.count as Any)
+                                    print(self.stringIndex.keys?.count as Any,self.stringIndex[localDevice]?.count as Any,self.stringIndex[otherDevices]?.count as Any)
                                     
                                     // MUST be inside the background dispatch to serialize processing.
                                     mediaItems.removeFirst()
@@ -1946,11 +1949,19 @@ class MediaTableViewController : UIViewController // MediaController
     var popover : PopoverTableViewController?
     var deleteButton : UIBarButtonItem?
     
+    var stringIndex = StringIndex() // [String:[String]]()
+
     func finish()
     {
         Thread.onMainThread() {
-            self.deleteButton?.isEnabled = true
-            self.popover?.activityIndicator.stopAnimating()
+            self.popover?.activityIndicator?.stopAnimating()
+            
+            if self.stringIndex.dict == nil {
+                self.dismiss(animated: true, completion: nil)
+                globals.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase for transcription.")
+            } else {
+                self.deleteButton?.isEnabled = true
+            }
         }
     }
     

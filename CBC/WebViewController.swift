@@ -110,6 +110,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
     {
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? WebViewController {
+            dismiss(animated: false, completion: nil)
             
             navigationController.modalPresentationStyle = .overFullScreen
             navigationController.popoverPresentationController?.delegate = popover
@@ -123,10 +124,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
             popover.selectedMediaItem = self.selectedMediaItem
             
             popover.content = self.content
-            
+
             popover.navigationController?.isNavigationBarHidden = false
             
-            present(navigationController, animated: true, completion: nil)
+            globals.splitViewController?.present(navigationController, animated: true, completion: nil)
         }
     }
 

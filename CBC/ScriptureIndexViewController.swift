@@ -1723,7 +1723,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
                 
                 self.navigationController?.navigationItem.hidesBackButton = false
                 
-                self.navigationController?.setToolbarHidden(true, animated: true)
+//                self.navigationController?.setToolbarHidden(true, animated: true)
                 
                 self.navigationController?.pushViewController(viewController, animated: true)
             }

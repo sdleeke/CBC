@@ -373,17 +373,19 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                                 if srtArray.count > 2  {
                                     let count = srtArray.removeFirst()
                                     let timeWindow = srtArray.removeFirst()
+                                    let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
                                     
-                                    if  let start = timeWindow.components(separatedBy: " --> ").first,
-                                        let end = timeWindow.components(separatedBy: " --> ").last,
+                                    if  let start = times.first,
+                                        let end = times.last,
                                         let range = srtComponent.range(of: timeWindow+"\n") {
-                                        let text = "\(count)\n\(start.replacingOccurrences(of: ",", with: ".")) to \(end.replacingOccurrences(of: ",", with: "."))\n" + srtComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                        let text = srtComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                        let string = "\(count)\n\(start) to \(end)\n" + text
                                         
                                         //                                    for string in srtArray {
                                         //                                        text = text + string + (srtArray.index(of: string) == (srtArray.count - 1) ? "" : " ")
                                         //                                    }
                                         
-                                        strings.append(text)
+                                        strings.append(string)
                                     }
                                 }
                                 break
