@@ -2149,7 +2149,11 @@ extension PopoverTableViewController : UITableViewDelegate
 //                return false
 //            }
 //        }
-
+        
+        if (stringsAny != nil) && (stringsAny?[strings[index]] == nil) {
+            return false
+        }
+        
         if let _ = self.stringsAny?[strings[index]] as? String {
             return false
         }

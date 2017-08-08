@@ -701,6 +701,9 @@ struct Constants {
     static let HTML_MIN_FONT_SIZE = 4
     
     struct Strings {
+        static let LocalDevice = "This Device"
+        static let OtherDevices = "Other Devices"
+
         //    static let Scripture_Full_Screen = "Scripture Full Screen"
         static let Scripture_in_Browser = "Scripture in Browser"
         

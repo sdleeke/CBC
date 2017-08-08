@@ -1064,20 +1064,31 @@ class MediaViewController: UIViewController // MediaController
             if oldValue != nil {
                 NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: oldValue)
             }
-            
-            if (selectedMediaItem != nil) && (selectedMediaItem != globals.mediaPlayer.mediaItem) {
-                if let url = selectedMediaItem?.playingURL {
-                    playerURL(url: url)
-                } else {
-                    print(selectedMediaItem?.dict as Any)
-                    networkUnavailable(self,"Media Not Available")
-                }
-            }
+
+            setupTitle()
             
             notesDocument = nil // CRITICAL because it removes the scrollView.delegate from the last one (if any)
             slidesDocument = nil // CRITICAL because it removes the scrollView.delegate from the last one (if any)
             
             if (selectedMediaItem != nil) {
+                if (selectedMediaItem == globals.mediaPlayer.mediaItem) {
+                    removePlayerObserver()
+                    
+                    if globals.mediaPlayer.url != selectedMediaItem?.playingURL {
+                        updateUI()
+                    }
+                    
+                    // Crashes because it uses UI and this is done before viewWillAppear when the mediaItemSelected is set in prepareForSegue, but it only happens on an iPhone because the MVC isn't setup already.
+                    //                addSliderObserver()
+                } else {
+                    if let url = selectedMediaItem?.playingURL {
+                        playerURL(url: url)
+                    } else {
+                        print(selectedMediaItem?.dict as Any)
+                        networkUnavailable(self,"Media Not Available")
+                    }
+                }
+
                 if (selectedMediaItem!.hasNotes) {
                     notesDocument = documents[selectedMediaItem!.id]?[Purpose.notes]
                     
@@ -1112,17 +1123,6 @@ class MediaViewController: UIViewController // MediaController
                     }
                     documents[key] = nil
                 }
-            }
-            
-            if (selectedMediaItem != nil) && (selectedMediaItem == globals.mediaPlayer.mediaItem) {
-                removePlayerObserver()
-                
-                if globals.mediaPlayer.url != selectedMediaItem?.playingURL {
-                    updateUI()
-                }
-                
-                // Crashes because it uses UI and this is done before viewWillAppear when the mediaItemSelected is set in prepareForSegue, but it only happens on an iPhone because the MVC isn't setup already.
-                //                addSliderObserver()
             }
         }
     }
@@ -3489,20 +3489,22 @@ class MediaViewController: UIViewController // MediaController
     
     fileprivate func setupTitle()
     {
-        if (selectedMediaItem != nil) {
-            self.navigationItem.title = selectedMediaItem?.title
-            
-            // Prefere to see the specific title
-//            if (selectedMediaItem!.hasMultipleParts) {
-//                //The selected mediaItem is in a series so set the title.
-//                self.navigationItem.title = selectedMediaItem?.multiPartName
-//            } else {
-////                print(selectedMediaItem?.title ?? nil)
-//                self.navigationItem.title = selectedMediaItem?.title
-//            }
-        } else {
-            self.navigationItem.title = nil
-        }
+        self.navigationItem.title = selectedMediaItem?.title
+
+//        if (selectedMediaItem != nil) {
+//            self.navigationItem.title = selectedMediaItem?.title
+//            
+//            // Prefere to see the specific title
+////            if (selectedMediaItem!.hasMultipleParts) {
+////                //The selected mediaItem is in a series so set the title.
+////                self.navigationItem.title = selectedMediaItem?.multiPartName
+////            } else {
+//////                print(selectedMediaItem?.title ?? nil)
+////                self.navigationItem.title = selectedMediaItem?.title
+////            }
+//        } else {
+//            self.navigationItem.title = nil
+//        }
     }
     
     fileprivate func setupAudioOrVideo()
