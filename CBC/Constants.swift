@@ -357,6 +357,8 @@ struct Constants {
         static let MEDIA_UPDATE_CELL        = "MEDIA UPDATE CELL"
         static let MEDIA_STOP_EDITING_CELL  = "MEDIA STOP EDITING CELL"
         
+        static let MEDIA_STOP_EDITING       = "MEDIA STOP EDITING"
+        
         static let FAILED_TO_UPLOAD         = "FAILED TO UPLOAD"
         
         static let TRANSCRIPT_FAILED_TO_START        = "TRANSCRIPT FAILED TO START"

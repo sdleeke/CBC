@@ -195,7 +195,11 @@ extension VoiceBase // Class Methods
     
     func post(mediaID:String?,path:String?,parameters:[String:String]?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//            return
+//        }
+        
+        guard globals.voiceBaseAvailable else {
             return
         }
         
@@ -296,7 +300,11 @@ extension VoiceBase // Class Methods
 
     static func get(accept:String?,mediaID:String?,path:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//            return
+//        }
+        
+        guard (globals.voiceBaseAvailable == nil) || globals.voiceBaseAvailable else {
             return
         }
         
@@ -411,7 +419,11 @@ extension VoiceBase // Class Methods
     {
         print("VoiceBase.delete")
 
-        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//            return
+//        }
+        
+        guard globals.voiceBaseAvailable else {
             return
         }
         
@@ -503,7 +515,7 @@ extension VoiceBase // Class Methods
 //            return
 //        }
 //        
-//        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+//        guard globals.voiceBaseAvailable else {
 //            return
 //        }
         
@@ -1223,7 +1235,11 @@ class VoiceBase {
     
     func post(path:String?,parameters:[String:String]?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//            return
+//        }
+        
+        guard globals.voiceBaseAvailable else {
             return
         }
         
@@ -1388,7 +1404,7 @@ class VoiceBase {
         
         transcribing = true
 
-        let parameters:[String:String] = ["media":url,"metadata":self.metadata,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+        let parameters:[String:String] = ["media":url,"metadata":self.metadata]//,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
         
         post(path:nil,parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
             self.uploadJSON = json
@@ -1444,7 +1460,11 @@ class VoiceBase {
     
     func delete()
     {
-        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//            return
+//        }
+        
+        guard globals.voiceBaseAvailable else {
             return
         }
         
@@ -1531,9 +1551,9 @@ class VoiceBase {
     
     func remove()
     {
-        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-            return
-        }
+//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//            return
+//        }
         
         delete()
 
@@ -1873,7 +1893,7 @@ class VoiceBase {
         
         // Check whether the media is on VB
         progress(completion: { (json:[String : Any]?) -> (Void) in
-            let parameters = ["transcript":transcript,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+            let parameters = ["transcript":transcript]//,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
             
             self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
                 self.uploadJSON = json
@@ -1968,7 +1988,7 @@ class VoiceBase {
 //                                self.details()
                                 
                                 // Now do the relignment
-                                let parameters:[String:String] = ["transcript":self.transcript!,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+                                let parameters:[String:String] = ["transcript":self.transcript!]//,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
                                 
                                 self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
                                     self.uploadJSON = json
@@ -2526,6 +2546,10 @@ class VoiceBase {
             return
         }
         
+        guard globals.voiceBaseAvailable else {
+            return
+        }
+        
         guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
             return
         }
@@ -2970,83 +2994,85 @@ class VoiceBase {
                     viewController.present(alert, animated: true, completion: nil)
                 }))
                 
-                alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, action: {
-                    self.metadata(completion: { (dict:[String:Any]?)->(Void) in
-                        if let text = self.mediaItem?.text {
-                            var actions = [AlertAction]()
-                            
-                            actions.append(AlertAction(title: "Remove", style: .destructive, action: {
+                if globals.voiceBaseAvailable {
+                    alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, action: {
+                        self.metadata(completion: { (dict:[String:Any]?)->(Void) in
+                            if let text = self.mediaItem?.text {
                                 var actions = [AlertAction]()
                                 
-                                actions.append(AlertAction(title: "Yes", style: .destructive, action: { (Void) -> (Void) in
-                                    VoiceBase.delete(mediaID: self.mediaID)
+                                actions.append(AlertAction(title: "Remove", style: .destructive, action: {
+                                    var actions = [AlertAction]()
+                                    
+                                    actions.append(AlertAction(title: "Yes", style: .destructive, action: { (Void) -> (Void) in
+                                        VoiceBase.delete(mediaID: self.mediaID)
+                                    }))
+                                    
+                                    actions.append(AlertAction(title: "No", style: .default, action:nil))
+                                    
+                                    globals.alert(title:"Confirm Removal From VoiceBase", message:text, actions:actions)
                                 }))
                                 
-                                actions.append(AlertAction(title: "No", style: .default, action:nil))
+                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
                                 
-                                globals.alert(title:"Confirm Removal From VoiceBase", message:text, actions:actions)
-                            }))
-                            
-                            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
-                            
-                            globals.alert(title:"On VoiceBase", message:text + "\nis on VoiceBase.", actions:actions)
-                        }
-                    }, onError:  { (dict:[String:Any]?)->(Void) in
-                        if let text = self.mediaItem?.text {
-                            var actions = [AlertAction]()
-                            
-                            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
-                            
-                            globals.alert(title:"Not on VoiceBase", message:text + "\nis not on VoiceBase.", actions:actions)
-                        }
-                    })
-                }))
-                
-                alertActions.append(AlertAction(title: "Align", style: .destructive, action: {
-                    guard !self.aligning else {
-                        alertActionsCancel( viewController: viewController,
-                                            title: "Alignment Underway",
-                                            message: "There is an alignment already underway (\(self.percentComplete!)% complete) for:\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nPlease try again later.",
-                            alertActions: nil,
-                            cancelAction: nil)
-                        return
-                    }
+                                globals.alert(title:"On VoiceBase", message:text + "\nis on VoiceBase.", actions:actions)
+                            }
+                        }, onError:  { (dict:[String:Any]?)->(Void) in
+                            if let text = self.mediaItem?.text {
+                                var actions = [AlertAction]()
+                                
+                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
+                                
+                                globals.alert(title:"Not on VoiceBase", message:text + "\nis not on VoiceBase.", actions:actions)
+                            }
+                        })
+                    }))
                     
-                    var alertActions = [AlertAction]()
-                    
-                    alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
+                    alertActions.append(AlertAction(title: "Align", style: .destructive, action: {
+                        guard !self.aligning else {
+                            alertActionsCancel( viewController: viewController,
+                                                title: "Alignment Underway",
+                                                message: "There is an alignment already underway (\(self.percentComplete!)% complete) for:\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                                alertActions: nil,
+                                cancelAction: nil)
+                            return
+                        }
+                        
                         var alertActions = [AlertAction]()
                         
-                        alertActions.append(AlertAction(title: "Transcript", style: .default, action: {
-                            self.align(self.transcript)
-                            tableView.setEditing(false, animated: true)
+                        alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
+                            var alertActions = [AlertAction]()
+                            
+                            alertActions.append(AlertAction(title: "Transcript", style: .default, action: {
+                                self.align(self.transcript)
+                                tableView.setEditing(false, animated: true)
+                            }))
+                            
+                            alertActions.append(AlertAction(title: "Segments", style: .default, action: {
+                                self.align(self.transcriptFromSRTs)
+                                tableView.setEditing(false, animated: true)
+                            }))
+                            
+                            alertActions.append(AlertAction(title: "Words", style: .default, action: {
+                                self.align(self.transcriptFromWords)
+                                tableView.setEditing(false, animated: true)
+                            }))
+                            
+                            alertActionsCancel( viewController: viewController,
+                                                title: "Select Source for Realignment",
+                                                message: nil,
+                                                alertActions: alertActions,
+                                                cancelAction: nil)
                         }))
                         
-                        alertActions.append(AlertAction(title: "Segments", style: .default, action: {
-                            self.align(self.transcriptFromSRTs)
-                            tableView.setEditing(false, animated: true)
-                        }))
-                        
-                        alertActions.append(AlertAction(title: "Words", style: .default, action: {
-                            self.align(self.transcriptFromWords)
-                            tableView.setEditing(false, animated: true)
-                        }))
+                        alertActions.append(AlertAction(title: "No", style: .default, action: nil))
                         
                         alertActionsCancel( viewController: viewController,
-                                            title: "Select Source for Realignment",
-                                            message: nil,
+                                            title: "Confirm Realignment of Machine Generated Transcript",
+                                            message: "Depending on the source selected, this may change both the transcript and timing for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))",
                             alertActions: alertActions,
                             cancelAction: nil)
                     }))
-                    
-                    alertActions.append(AlertAction(title: "No", style: .default, action: nil))
-                    
-                    alertActionsCancel( viewController: viewController,
-                                        title: "Confirm Realignment of Machine Generated Transcript",
-                                        message: "Depending on the source selected, this may change both the transcript and timing for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))",
-                        alertActions: alertActions,
-                        cancelAction: nil)
-                }))
+                }
                 
                 alertActions.append(AlertAction(title: "Restore", style: .destructive, action: {
                     var alertActions = [AlertAction]()
@@ -3067,47 +3093,49 @@ class VoiceBase {
                             cancelAction: nil)
                     }))
                     
-                    alertActions.append(AlertAction(title: "Reload from VoiceBase", style: .destructive, action: {
-                        self.metadata(completion: { (dict:[String:Any]?)->(Void) in
-                            if let text = self.mediaItem?.text {
-                                var alertActions = [AlertAction]()
-                                
-                                alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
-                                    globals.alert(title:"Reloading Machine Generated Transcript", message:"Reloading the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it has been completed.")
+                    if globals.voiceBaseAvailable {
+                        alertActions.append(AlertAction(title: "Reload from VoiceBase", style: .destructive, action: {
+                            self.metadata(completion: { (dict:[String:Any]?)->(Void) in
+                                if let text = self.mediaItem?.text {
+                                    var alertActions = [AlertAction]()
                                     
-                                    if self.resultsTimer != nil {
-                                        print("TIMER NOT NIL!")
+                                    alertActions.append(AlertAction(title: "Yes", style: .destructive, action: {
+                                        globals.alert(title:"Reloading Machine Generated Transcript", message:"Reloading the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nYou will be notified when it has been completed.")
                                         
-                                        var actions = [AlertAction]()
-                                        
-                                        actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
-                                        
-                                        globals.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
-                                    } else {
-                                        Thread.onMainThread() {
-                                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(), repeats: true)
+                                        if self.resultsTimer != nil {
+                                            print("TIMER NOT NIL!")
+                                            
+                                            var actions = [AlertAction]()
+                                            
+                                            actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
+                                            
+                                            globals.alert(title:"Processing Not Complete", message:text + "\nPlease try again later.", actions:actions)
+                                        } else {
+                                            Thread.onMainThread() {
+                                                self.resultsTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.relaodUserInfo(), repeats: true)
+                                            }
                                         }
-                                    }
-                                }))
-                                
-                                alertActions.append(AlertAction(title: "No", style: .default, action: nil))
-                                
-                                alertActionsCancel( viewController: viewController,
-                                                    title: "Confirm Reloading",
-                                                    message: "The results of speech recognition for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nwill be reloaded from VoiceBase.",
-                                    alertActions: alertActions,
-                                    cancelAction: nil)
-                            }
-                        }, onError:  { (dict:[String:Any]?)->(Void) in
-                            if let text = self.mediaItem?.text {
-                                var actions = [AlertAction]()
-                                
-                                actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
-                                
-                                globals.alert(title:"Not on VoiceBase", message:text + "\nis not on VoiceBase.", actions:actions)
-                            }
-                        })
-                    }))
+                                    }))
+                                    
+                                    alertActions.append(AlertAction(title: "No", style: .default, action: nil))
+                                    
+                                    alertActionsCancel( viewController: viewController,
+                                                        title: "Confirm Reloading",
+                                                        message: "The results of speech recognition for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nwill be reloaded from VoiceBase.",
+                                        alertActions: alertActions,
+                                        cancelAction: nil)
+                                }
+                            }, onError:  { (dict:[String:Any]?)->(Void) in
+                                if let text = self.mediaItem?.text {
+                                    var actions = [AlertAction]()
+                                    
+                                    actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
+                                    
+                                    globals.alert(title:"Not on VoiceBase", message:text + "\nis not on VoiceBase.", actions:actions)
+                                }
+                            })
+                        }))
+                    }
                     
                     alertActionsCancel( viewController: viewController,
                                         title: "Restore Options",

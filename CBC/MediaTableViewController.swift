@@ -2317,7 +2317,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             showMenu.append(Constants.VOICEBASE_API_KEY)
             
-            if globals.voiceBaseAPIKey != nil {
+            if globals.voiceBaseAvailable {
                 showMenu.append("VoiceBase Media")
             }
             
@@ -4208,6 +4208,11 @@ class MediaTableViewController : UIViewController // MediaController
 
     }
 
+    func stopEditing()
+    {
+        tableView.isEditing = false
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -4223,6 +4228,8 @@ class MediaTableViewController : UIViewController // MediaController
         
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.playingPaused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYING_PAUSED), object: nil)
+
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
 
 //        if (self.splitViewController?.viewControllers.count > 1) {
 //            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.setupShowHide), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SHOW_HIDE), object: nil)

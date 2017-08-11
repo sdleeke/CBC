@@ -3809,6 +3809,11 @@ class MediaViewController: UIViewController // MediaController
         }
     }
     
+    func stopEditing()
+    {
+        tableView.isEditing = false
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -3839,6 +3844,8 @@ class MediaViewController: UIViewController // MediaController
         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.readyToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.setupPlayPauseButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
         
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
+
         if (self.splitViewController?.viewControllers.count > 1) {
             updateView()
             

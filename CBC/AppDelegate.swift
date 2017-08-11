@@ -63,6 +63,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
     {
         globals = Globals()
         
+        VoiceBase.all(completion: { (json:[String : Any]?) -> (Void) in
+            globals.voiceBaseAvailable = true
+        }, onError: { (json:[String : Any]?) -> (Void) in
+            globals.voiceBaseAvailable = false
+        })
+
         Thread.onMainThread() {
             globals.alertTimer = Timer.scheduledTimer(timeInterval: 0.25, target: globals, selector: #selector(Globals.alertViewer), userInfo: nil, repeats: true)
         }

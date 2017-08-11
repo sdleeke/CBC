@@ -814,28 +814,74 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 {
     var queue = DispatchQueue(label: "CBC")
     
-    var allowMGTs : Bool {
-        return voiceBaseAPIKey != nil
+    var allowMGTs : Bool
+    {
+        get {
+            return voiceBaseAvailable != nil ? voiceBaseAvailable : false
+        }
     }
+    
+    var voiceBaseAvailable : Bool! // = false
+    {
+        didSet {
+            if voiceBaseAvailable != oldValue {
+                Thread.onMainThread() {
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
+                }
+            }
+        }
+    }
+    
+//    {
+//        get {
+//            if let isEmpty = voiceBaseAPIKey?.isEmpty, !isEmpty {
+//                return true
+//            }
+//            
+//            return false
+//        }
+//    }
     
     var voiceBaseAPIKey : String? {
         get {
-            return UserDefaults.standard.string(forKey: Constants.VOICEBASE_API_KEY)
+            if let key = UserDefaults.standard.string(forKey: Constants.VOICEBASE_API_KEY) {
+                if key.isEmpty {
+                    return nil
+                }
+                
+                return key
+            } else {
+                return nil
+            }
         }
         set {
-            if newValue != nil {
-                UserDefaults.standard.set(newValue, forKey: Constants.VOICEBASE_API_KEY)
-                UserDefaults.standard.synchronize()
+            if let key = newValue {
+                if !key.isEmpty {
+                    voiceBaseAvailable = nil
+                    
+                    VoiceBase.all(completion: { (json:[String : Any]?) -> (Void) in
+                        self.voiceBaseAvailable = true
+                    }, onError: { (json:[String : Any]?) -> (Void) in
+                        self.voiceBaseAvailable = false
+                    })
+                    
+                    UserDefaults.standard.set(newValue, forKey: Constants.VOICEBASE_API_KEY)
+                } else {
+                    voiceBaseAvailable = false
+                    UserDefaults.standard.removeObject(forKey: Constants.VOICEBASE_API_KEY)
+                }
                 
-                // Do we need to notify VoiceBase objects?  
+                // Do we need to notify VoiceBase objects?
                 // No, because if it was nil before there shouldn't be anything on VB.com
                 // No, because if it was not nil before then they either the new KEY is good or bad.
                 // If bad, then it will fail.  If good, then they will finish.
                 // So, nothing needs to be done.
             } else {
+                voiceBaseAvailable = false
                 UserDefaults.standard.removeObject(forKey: Constants.VOICEBASE_API_KEY)
-                UserDefaults.standard.synchronize()
             }
+
+            UserDefaults.standard.synchronize()
         }
     }
     
@@ -1046,10 +1092,19 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         
         if (reachabilityStatus == .notReachable) && (reachability.currentReachabilityStatus != .notReachable) {
             globals.alert(title: "Network Connection Restored",message: "")
+
+            voiceBaseAvailable = nil
+
+            VoiceBase.all(completion: { (json:[String : Any]?) -> (Void) in
+                self.voiceBaseAvailable = true
+            }, onError: { (json:[String : Any]?) -> (Void) in
+                self.voiceBaseAvailable = false
+            })
         }
         
         if (reachabilityStatus != .notReachable) && (reachability.currentReachabilityStatus == .notReachable) {
             globals.alert(title: "No Network Connection",message: "Without a network connection only audio, slides, and transcripts previously downloaded will be available.")
+            voiceBaseAvailable = false
         }
         
         reachabilityStatus = reachability.currentReachabilityStatus
