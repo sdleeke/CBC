@@ -474,10 +474,14 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             
             if let time = string.components(separatedBy: "\n")[1].components(separatedBy: " to ").first, let seconds = hmsToSeconds(string: time) {
                 globals.mediaPlayer.seek(to: seconds,completion:{ (finished:Bool)->(Void) in
-                    if finished, let isTracking = self.popover?.isTracking, isTracking {
+                    if finished, let ptvc = self.popover?.navigationController?.visibleViewController as? PopoverTableViewController, ptvc.isTracking {
 //                        self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-                        Thread.onMainThread() {
-                            self.popover?.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self.popover as Any, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+                        if ptvc.trackingTimer == nil {
+                            Thread.onMainThread() {
+                                ptvc.trackingTimer = Timer.scheduledTimer(timeInterval: 0.1, target: ptvc as Any, selector: #selector(PopoverTableViewController.follow), userInfo: nil, repeats: true)
+                            }
+                        } else {
+                            print("ptvc.trackingTimer not nil")
                         }
                     }
                 })
@@ -4826,7 +4830,9 @@ extension MediaViewController : UITableViewDataSource
 //                let cancelButton = UIBarButtonItem(title: Constants.Strings.Cancel, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.cancel))
 //                popover.navigationItem.leftBarButtonItem = cancelButton
                 
-                self.present(navigationController, animated: true, completion: {self.popover = popover})
+                self.present(navigationController, animated: true, completion: {
+                    self.popover = popover
+                })
             }
         }
         topics.backgroundColor = UIColor.cyan

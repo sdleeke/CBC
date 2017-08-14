@@ -181,6 +181,10 @@ extension PopoverTableViewController: UISearchBarDelegate
         
         tableView.reloadData()
         
+        if track {
+            follow()
+        }
+        
         filteredSection = Section()
     }
 }
@@ -1664,6 +1668,10 @@ class PopoverTableViewController : UIViewController
                         
                         self.activityIndicator.stopAnimating()
                         self.activityIndicator?.isHidden = true
+                        
+                        if self.track {
+                            self.follow()
+                        }
                     }
                 }
             }
