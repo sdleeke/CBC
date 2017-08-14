@@ -817,11 +817,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     var allowMGTs : Bool
     {
         get {
-            return voiceBaseAvailable != nil ? voiceBaseAvailable : false
+            return voiceBaseAvailable != nil ? voiceBaseAvailable! : false
         }
     }
     
-    var voiceBaseAvailable : Bool! // = false
+    var voiceBaseAvailable : Bool? // = false
     {
         didSet {
             if voiceBaseAvailable != oldValue {

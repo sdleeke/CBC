@@ -2317,7 +2317,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             showMenu.append(Constants.VOICEBASE_API_KEY)
             
-            if globals.voiceBaseAvailable {
+            if let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable {
                 showMenu.append("VoiceBase Media")
             }
             

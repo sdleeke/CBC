@@ -498,7 +498,9 @@ class PopoverTableViewController : UIViewController
         isTracking = false
         stopTracking()
         
-        navigationItem.leftBarButtonItem = nil
+        syncButton.isEnabled = false
+        
+//        navigationItem.rightBarButtonItems = [doneButton,assistButton]
     }
     
     func restoreTracking()
@@ -510,12 +512,14 @@ class PopoverTableViewController : UIViewController
         if isTracking {
             startTracking()
         }
+
+        syncButton.isEnabled = true
         
-        if navigationItem.leftBarButtonItems != nil {
-            navigationItem.leftBarButtonItems?.append(syncButton)
-        } else {
-            navigationItem.leftBarButtonItem = syncButton
-        }
+//        if navigationItem.rightBarButtonItems != nil {
+//            navigationItem.rightBarButtonItems?.append(syncButton)
+//        } else {
+//            navigationItem.rightBarButtonItem = syncButton
+//        }
     }
     
     func removeAssist()
@@ -524,7 +528,9 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-        navigationItem.rightBarButtonItems = [doneButton]
+        assistButton.isEnabled = false
+        
+//        navigationItem.rightBarButtonItems = [doneButton,syncButton]
     }
     
     func restoreAssist()
@@ -537,11 +543,13 @@ class PopoverTableViewController : UIViewController
             return
         }
         
-        if navigationItem.rightBarButtonItems != nil {
-            navigationItem.rightBarButtonItems?.append(assistButton)
-        } else {
-            navigationItem.rightBarButtonItem = assistButton
-        }
+        assistButton.isEnabled = true
+        
+//        if navigationItem.rightBarButtonItems != nil {
+//            navigationItem.rightBarButtonItems?.append(assistButton)
+//        } else {
+//            navigationItem.rightBarButtonItem = assistButton
+//        }
     }
     
     var isTracking = false
@@ -1013,28 +1021,26 @@ class PopoverTableViewController : UIViewController
             case .fullScreen:
                 fallthrough
             case .overFullScreen:
-                if navigationItem.rightBarButtonItems != nil {
-                    navigationItem.rightBarButtonItems?.append(doneButton)
-                    if assist && (transcript != nil) && (purpose == .selectingTime) {
-                        navigationItem.rightBarButtonItems?.append(assistButton)
-                    }
-                } else {
-                    navigationItem.setRightBarButton(doneButton, animated: true)
-                    if assist && (transcript != nil) && (purpose == .selectingTime) {
-                        navigationItem.rightBarButtonItems?.append(assistButton)
-                    }
-                }
+                navigationItem.rightBarButtonItems = [doneButton]
                 
             default:
                 break
             }
         }
-        
+
         if track {
-            if navigationItem.leftBarButtonItems != nil {
-                navigationItem.leftBarButtonItems?.append(syncButton)
+            if navigationItem.rightBarButtonItems != nil {
+                navigationItem.rightBarButtonItems?.append(syncButton)
             } else {
-                navigationItem.leftBarButtonItem = syncButton
+                navigationItem.rightBarButtonItem = syncButton
+            }
+        }
+        
+        if assist && (transcript != nil) && (purpose == .selectingTime) {
+            if navigationItem.rightBarButtonItems != nil {
+                navigationItem.rightBarButtonItems?.append(assistButton)
+            } else {
+                navigationItem.rightBarButtonItem = assistButton
             }
         }
         
@@ -2180,10 +2186,14 @@ extension PopoverTableViewController : UITableViewDelegate
         trackingTimer?.invalidate()
         trackingTimer = nil
         
-        if search {
+        if searchActive {
             self.searchBar.resignFirstResponder()
         }
         
+        if isTracking {
+            tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+        }
+
         var index = -1
         
         index = section.index(indexPath)
@@ -2217,6 +2227,76 @@ extension PopoverTableViewController : UITableViewDelegate
             break
         }
 
+        if searchActive && (transcript !=  nil) && (purpose == .selectingTime) {
+            if  let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                
+//                navigationController.modalPresentationStyle = .overCurrentContext
+//                
+//                navigationController.popoverPresentationController?.delegate = self // as? UIPopoverPresentationControllerDelegate
+//                navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
+                
+                //                    navigationController.popoverPresentationController?.sourceView = sourceView
+                //                    navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
+                
+//                popover.navigationController?.isNavigationBarHidden = false
+                
+                popover.navigationItem.title = string.components(separatedBy: "\n").first //"Timing Index (\(self.transcriptPurpose))" //
+                
+                popover.selectedMediaItem = self.selectedMediaItem
+                popover.transcript = self.transcript
+                
+                popover.vc = self.vc
+                popover.search = false // This keeps it to one level deep.
+                
+                popover.editActionsAtIndexPath = self.editActionsAtIndexPath
+                
+                popover.delegate = self.delegate // as? PopoverTableViewControllerDelegate
+                popover.purpose = self.purpose
+                
+                popover.parser = self.parser
+                
+                popover.section.showIndex = true
+                popover.section.indexStringsTransform = century
+                popover.section.indexHeadersTransform = { (string:String?)->(String?) in
+                    return string
+                }
+                //                        popover.section.showHeaders = true
+                
+//                popover.stringsFunction = self.stringsFunction
+                popover.stringsFunction = { (Void) -> [String]? in
+                    return self.transcript?.srtComponents?.filter({ (string:String) -> Bool in
+                        return string.components(separatedBy: "\n").count > 1
+                    }).map({ (srtComponent:String) -> String in
+                        //                            print("srtComponent: ",srtComponent)
+                        var srtArray = srtComponent.components(separatedBy: "\n")
+                        
+                        if srtArray.count > 2  {
+                            let count = srtArray.removeFirst()
+                            let timeWindow = srtArray.removeFirst()
+                            let times = timeWindow.replacingOccurrences(of: ",", with: ".").components(separatedBy: " --> ")
+                            
+                            if  let start = times.first,
+                                let end = times.last,
+                                let range = srtComponent.range(of: timeWindow+"\n") {
+                                let text = srtComponent.substring(from: range.upperBound).replacingOccurrences(of: "\n", with: " ")
+                                let string = "\(count)\n\(start) to \(end)\n" + text
+                                
+                                return string
+                            }
+                        }
+                        
+                        return "ERROR"
+                    })
+                }
+
+                popover.track = true
+                popover.assist = true
+                
+                self.navigationController?.pushViewController(popover, animated: true)
+            }
+        }
+        
         var stringsAny : [String : Any]?
         var stringsArray : [String]?
         var stringsAnyArray : [[String : Any]]?
@@ -2250,10 +2330,6 @@ extension PopoverTableViewController : UITableViewDelegate
                 
                 self.navigationController?.pushViewController(popover, animated: true)
             }
-        }
-        
-        if isTracking {
-            tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
         }
     }
 }

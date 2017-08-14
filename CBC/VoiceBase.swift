@@ -199,7 +199,7 @@ extension VoiceBase // Class Methods
 //            return
 //        }
         
-        guard globals.voiceBaseAvailable else {
+        guard let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable else {
             return
         }
         
@@ -304,7 +304,7 @@ extension VoiceBase // Class Methods
 //            return
 //        }
         
-        guard (globals.voiceBaseAvailable == nil) || globals.voiceBaseAvailable else {
+        guard (globals.voiceBaseAvailable == nil) || globals.voiceBaseAvailable! else {
             return
         }
         
@@ -423,7 +423,7 @@ extension VoiceBase // Class Methods
 //            return
 //        }
         
-        guard globals.voiceBaseAvailable else {
+        guard let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable else {
             return
         }
         
@@ -1239,7 +1239,7 @@ class VoiceBase {
 //            return
 //        }
         
-        guard globals.voiceBaseAvailable else {
+        guard let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable else {
             return
         }
         
@@ -1464,7 +1464,7 @@ class VoiceBase {
 //            return
 //        }
         
-        guard globals.voiceBaseAvailable else {
+        guard let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable else {
             return
         }
         
@@ -2546,7 +2546,7 @@ class VoiceBase {
             return
         }
         
-        guard globals.voiceBaseAvailable else {
+        guard let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable else {
             return
         }
         
@@ -2994,7 +2994,7 @@ class VoiceBase {
                     viewController.present(alert, animated: true, completion: nil)
                 }))
                 
-                if globals.voiceBaseAvailable {
+                if let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable {
                     alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, action: {
                         self.metadata(completion: { (dict:[String:Any]?)->(Void) in
                             if let text = self.mediaItem?.text {
@@ -3093,7 +3093,7 @@ class VoiceBase {
                             cancelAction: nil)
                     }))
                     
-                    if globals.voiceBaseAvailable {
+                    if let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable {
                         alertActions.append(AlertAction(title: "Reload from VoiceBase", style: .destructive, action: {
                             self.metadata(completion: { (dict:[String:Any]?)->(Void) in
                                 if let text = self.mediaItem?.text {
