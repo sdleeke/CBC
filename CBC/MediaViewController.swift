@@ -3135,12 +3135,13 @@ class MediaViewController: UIViewController // MediaController
             return
         }
         
-        guard (selectedMediaItem != nil) else  {
+        guard let selectedMediaItem = selectedMediaItem, selectedMediaItem.hasAudio || selectedMediaItem.hasVideo else {
+            playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState.normal)
             playPauseButton.isEnabled = false
-            playPauseButton.isHidden = true
+            playPauseButton.isHidden = false
             return
         }
-
+        
         func showState(_ state:String)
         {
 //            print(state)

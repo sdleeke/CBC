@@ -13,6 +13,7 @@
 		1713B1871DF8DD8900BE3EDF /* style.txt in Resources */ = {isa = PBXBuildFile; fileRef = 1713B1861DF8DD8900BE3EDF /* style.txt */; };
 		17196DB21E22EBFD00A7DD00 /* ScriptureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17196DB11E22EBFD00A7DD00 /* ScriptureViewController.swift */; };
 		171A6ED51BF2172100E3323C /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171A6ED41BF2172100E3323C /* WebViewController.swift */; };
+		172B7FCD1F41FBD200C714C0 /* Section.swift in Sources */ = {isa = PBXBuildFile; fileRef = 172B7FCC1F41FBD200C714C0 /* Section.swift */; };
 		1742C6891F1127F00096B150 /* TextViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1742C6881F1127F00096B150 /* TextViewController.swift */; };
 		1749C4571DAAAE8A00FC90E0 /* PopoverPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */; };
 		174A14A51E020A0500736CEC /* CachedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174A14A41E020A0500736CEC /* CachedString.swift */; };
@@ -77,6 +78,7 @@
 		1713B1861DF8DD8900BE3EDF /* style.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = style.txt; sourceTree = "<group>"; };
 		17196DB11E22EBFD00A7DD00 /* ScriptureViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScriptureViewController.swift; sourceTree = "<group>"; };
 		171A6ED41BF2172100E3323C /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
+		172B7FCC1F41FBD200C714C0 /* Section.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Section.swift; sourceTree = "<group>"; };
 		1742C6881F1127F00096B150 /* TextViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextViewController.swift; sourceTree = "<group>"; };
 		1749C4561DAAAE8A00FC90E0 /* PopoverPickerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PopoverPickerViewController.swift; sourceTree = "<group>"; };
 		174A14A41E020A0500736CEC /* CachedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CachedString.swift; sourceTree = "<group>"; };
@@ -177,6 +179,7 @@
 			children = (
 				174EEE931B74C145004F6942 /* AppDelegate.swift */,
 				1798C74D1CA93BC900CED4A5 /* Globals.swift */,
+				172B7FCC1F41FBD200C714C0 /* Section.swift */,
 				174A14A61E02122100736CEC /* MediaPlayer.swift */,
 				17763BE21BEA329400BB5556 /* Constants.swift */,
 				174A14A81E02128700736CEC /* MediaListGroupSort.swift */,
@@ -429,6 +432,7 @@
 				174EEE901B74C11E004F6942 /* MediaViewController.swift in Sources */,
 				1798C7501CA93BF600CED4A5 /* LiveViewController.swift in Sources */,
 				1712CD701C77449B005E09D6 /* SettingsViewController.swift in Sources */,
+				172B7FCD1F41FBD200C714C0 /* Section.swift in Sources */,
 				174EEE911B74C11E004F6942 /* AboutViewController.swift in Sources */,
 				174EEE8D1B74C11E004F6942 /* MediaTableViewController.swift in Sources */,
 				175EDA261BAC80F600942E6D /* Reachability.swift in Sources */,

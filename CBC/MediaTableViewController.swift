@@ -60,8 +60,10 @@ enum PopoverPurpose {
     case selectingCategory
     
     case selectingKeyword
+    
     case selectingTopic
     case selectingTopicKeyword
+
     case selectingTime
     
     case selectingTags

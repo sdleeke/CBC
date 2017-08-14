@@ -842,8 +842,12 @@ class MediaItem : NSObject {
     var playingURL:URL? {
         get {
             var url:URL?
-            
-            switch playing! {
+
+            guard let playing = playing else {
+                return nil
+            }
+
+            switch playing {
             case Playing.audio:
                 url = audioFileSystemURL
                 if (!FileManager.default.fileExists(atPath: url!.path)){
@@ -900,7 +904,7 @@ class MediaItem : NSObject {
             }
 
             if !hasVideo && (dict![Field.playing] == Playing.video) {
-                dict![Field.playing] = hasAudio ? Playing.video : nil
+                dict![Field.playing] = hasAudio ? Playing.audio : nil
             }
             
             return dict![Field.playing]

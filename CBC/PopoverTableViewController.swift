@@ -181,7 +181,7 @@ extension PopoverTableViewController: UISearchBarDelegate
         
         tableView.reloadData()
         
-        if track {
+        if purpose == .selectingTime {
             follow()
         }
         
@@ -367,11 +367,14 @@ class PopoverTableViewController : UIViewController
                 if  let start = timeWindow.components(separatedBy: " to ").first,
                     let end = timeWindow.components(separatedBy: " to ").last {
                     
+//                    print(hmsToSeconds(string: start),seconds,hmsToSeconds(string: end))
+                    
                     if (seconds >= hmsToSeconds(string: start)) && (seconds <= hmsToSeconds(string: end))  {
                         timeWindowFound = true
                         break
                     } else {
                         if (seconds < hmsToSeconds(string: start))  {
+                            timeWindowFound = true
                             break
                         }
                     }
@@ -1669,7 +1672,7 @@ class PopoverTableViewController : UIViewController
                         self.activityIndicator.stopAnimating()
                         self.activityIndicator?.isHidden = true
                         
-                        if self.track {
+                        if self.purpose == .selectingTime {
                             self.follow()
                         }
                     }
@@ -1752,7 +1755,7 @@ class PopoverTableViewController : UIViewController
         
         tableView.flashScrollIndicators()
         
-        if track {
+        if purpose == .selectingTime {
             follow()
         }
     }
@@ -2235,7 +2238,8 @@ extension PopoverTableViewController : UITableViewDelegate
             break
         }
 
-        if searchActive && (transcript !=  nil) && (purpose == .selectingTime) {
+        if  (transcript !=  nil) && (purpose == .selectingTime) &&
+            (!track || searchActive) {
             if  let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 

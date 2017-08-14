@@ -3467,11 +3467,29 @@ class VoiceBase {
                     
                     popover.navigationItem.title = "Timing Index (\(self.transcriptPurpose))" //
                     
+                    popover.selectedMediaItem = self.mediaItem
+                    popover.transcript = self
+                    
                     popover.vc = viewController
                     popover.search = true
                     
                     popover.delegate = viewController as? PopoverTableViewControllerDelegate
                     popover.purpose = .selectingTime
+                    
+                    popover.section.showIndex = true
+                    popover.section.indexStringsTransform = century
+                    popover.section.indexSort = { (first:String?,second:String?) -> Bool in
+                        guard let first = first else {
+                            return false
+                        }
+                        guard let second = second else {
+                            return true
+                        }
+                        return Int(first) < Int(second)
+                    }
+                    popover.section.indexHeadersTransform = { (string:String?)->(String?) in
+                        return string
+                    }
                     
                     popover.stringsFunction = { (Void) -> [String]? in
                         return self.words?.filter({ (dict:[String:Any]) -> Bool in
