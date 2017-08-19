@@ -80,6 +80,59 @@ enum JSONSource {
     case download
 }
 
+extension MediaTableViewController : UIScrollViewDelegate
+{
+    // This shortens the distance the tableView must be pulled to initiate a refresh.
+    func scrollViewDidScroll(_ scrollView: UIScrollView)
+    {
+        if scrollView.contentOffset.y < -100 { //change 100 to whatever you want
+            if !globals.isRefreshing {
+                refreshControl?.beginRefreshing()
+                handleRefresh(refreshControl!)
+            }
+        } else if scrollView.contentOffset.y >= 0 {
+            
+        }
+        
+//        tableView?.isEditing = false
+    }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
+    {
+//        tableView?.isEditing = false
+    }
+
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView)
+    {
+//        tableView.setEditing(false, animated: false)
+        tableView?.isEditing = false
+//
+//        if let cells = tableView?.visibleCells {
+//            for cell in cells {
+//                cell.isEditing = false
+//            }
+//        }
+    }
+    
+//    func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool
+//    {
+//        tableView?.isEditing = false
+//        return true
+//    }
+    
+    func scrollViewDidScrollToTop(_ scrollView: UIScrollView)
+    {
+//        tableView.setEditing(false, animated: false)
+        tableView?.isEditing = false
+//
+//        if let cells = tableView?.visibleCells {
+//            for cell in cells {
+//                cell.isEditing = false
+//            }
+//        }
+    }
+}
+
 extension MediaTableViewController : UISearchBarDelegate
 {
     // MARK: UISearchBarDelegate
@@ -301,7 +354,8 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
         tagLabel.text = nil
         
         // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
-        globals.media = Media()
+        globals.media = Globals.Media()
+        globals.media.globals = globals
         
         loadMediaItems()
         {
@@ -996,6 +1050,38 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     //                                    Thread.sleep(forTimeInterval: 0.1)
                 }
                 
+                if  let mimd = metadata["mediaItem"] as? [String:Any],
+                    let id = mimd["id"] as? String,
+                    let purpose = mimd["purpose"] as? String,
+                    let mediaItem = globals.mediaRepository.index?[id] {
+                    var transcript : VoiceBase?
+                    
+                    switch purpose.uppercased() {
+                    case Purpose.audio:
+                        transcript = mediaItem.audioTranscript
+                        
+                    case Purpose.video:
+                        transcript = mediaItem.videoTranscript
+                        
+                    default:
+                        break
+                    }
+                    
+                    if  transcript?.transcript == nil,
+                        transcript?.mediaID == nil,
+                        transcript?.resultsTimer == nil,
+                        let transcribing = transcript?.transcribing, !transcribing {
+                        transcript?.mediaID = mediaID
+                        transcript?.transcribing = true
+                        
+                        Thread.onMainThread() {
+                            transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert:false), repeats: true)
+                        }
+                    }
+                } else {
+                    
+                }
+
                 if  let device = metadata["device"] as? [String:String],
                     var deviceName = device["name"] {
                     if deviceName == UIDevice.current.deviceName {
@@ -1331,7 +1417,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 guard let mediaItems = json?["media"] as? [[String:Any]] else {
                     return
                 }
-                
+
                 if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
                     DispatchQueue.global(qos: .userInitiated).async {
                         self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
@@ -1472,8 +1558,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             tagLabel.text = nil
             
             // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
-            globals.media = Media()
-            
+            globals.media = Globals.Media()
+            globals.media.globals = globals
+
             loadMediaItems()
             {
                 self.rowClickedCompletion()
@@ -1670,8 +1757,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     break
                 }
                 
-                tableView?.setEditing(false, animated: true)
-                
+//                tableView.setEditing(false, animated: false)
+//                tableView?.isEditing = false
+
                 //Can't use this reliably w/ variable row heights.
                 tableView?.scrollToRow(at: indexPath, at: UITableViewScrollPosition.top, animated: true)
             }
@@ -2319,7 +2407,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             showMenu.append(Constants.VOICEBASE_API_KEY)
             
-            if let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable {
+            if let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable {
                 showMenu.append("VoiceBase Media")
             }
             
@@ -3151,19 +3239,6 @@ class MediaTableViewController : UIViewController // MediaController
         }
     }
     
-    // This shortens the distance the tableView must be pulled to initiate a refresh.
-    func scrollViewDidScroll(_ scrollView: UIScrollView)
-    {
-        if scrollView.contentOffset.y < -100 { //change 100 to whatever you want
-            if !globals.isRefreshing {
-                refreshControl?.beginRefreshing()
-                handleRefresh(refreshControl!)
-            }
-        } else if scrollView.contentOffset.y >= 0 {
-            
-        }
-    }
-
     func handleRefresh(_ refreshControl: UIRefreshControl)
     {
         guard Thread.isMainThread else {
@@ -3203,8 +3278,9 @@ class MediaTableViewController : UIViewController // MediaController
         setupBarButtons()
         
         // This is ABSOLUTELY ESSENTIAL to reset all of the Media so that things load as if from a cold start.
-        globals.media = Media()
-        
+        globals.media = Globals.Media()
+        globals.media.globals = globals
+
 //        loadCategories()
         
         // loadMediaItems or downloadJSON
@@ -4633,7 +4709,7 @@ extension MediaTableViewController : UITableViewDataSource
                 }
             }
         }
-
+        
         return cell
     }
     
@@ -4698,6 +4774,15 @@ extension MediaTableViewController : UITableViewDataSource
 extension MediaTableViewController : UITableViewDelegate
 {
     // MARK: UITableViewDelegate
+
+//    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle
+//    {
+//        return .none
+//    }
+
+//    func tableView(_ tableView: UITableView, shouldIndentWhileEditingRowAt indexPath: IndexPath) -> Bool {
+//        return false
+//    }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {

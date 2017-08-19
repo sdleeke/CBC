@@ -199,7 +199,7 @@ extension VoiceBase // Class Methods
 //            return
 //        }
         
-        guard let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable else {
+        guard let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable else {
             return
         }
         
@@ -304,7 +304,7 @@ extension VoiceBase // Class Methods
 //            return
 //        }
         
-        guard (globals.voiceBaseAvailable == nil) || globals.voiceBaseAvailable! else {
+        guard globals.isVoiceBaseAvailable == nil || globals.isVoiceBaseAvailable! else {
             return
         }
         
@@ -423,7 +423,7 @@ extension VoiceBase // Class Methods
 //            return
 //        }
         
-        guard let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable else {
+        guard let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable else {
             return
         }
         
@@ -760,7 +760,7 @@ class VoiceBase {
                     transcribing = true
                     
                     Thread.onMainThread() {
-                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(), repeats: true)
+                        self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true), repeats: true)
                     }
                 } else {
                     // Overkill to make sure the cloud storage is cleaned-up?
@@ -1239,7 +1239,7 @@ class VoiceBase {
 //            return
 //        }
         
-        guard let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable else {
+        guard let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable else {
             return
         }
         
@@ -1338,14 +1338,16 @@ class VoiceBase {
         task.resume()
     }
     
-    func uploadUserInfo() -> [String:Any]?
+    func uploadUserInfo(alert:Bool) -> [String:Any]?
     {
         var userInfo = [String:Any]()
         
         userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
             if let status = json?["status"] as? String, status == "finished" {
-                globals.alert(title: "Transcription Completed",message: "The transcription process for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nhas completed.")
-
+                if alert {
+                    globals.alert(title: "Transcription Completed",message: "The transcription process for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nhas completed.")
+                }
+                
                 self.transcribing = false
                 self.completed = true
 
@@ -1354,10 +1356,10 @@ class VoiceBase {
                 
                 self.percentComplete = nil
                 
-                self.getTranscript()
-                self.getTranscriptSRT()
+                self.getTranscript(alert:alert)
+                self.getTranscriptSRT(alert:alert)
                 
-                self.details()
+                self.details(alert:alert)
             } else {
                 if let progress = json?["progress"] as? [String:Any] {
                     if let tasks = progress["tasks"] as? [String:Any] {
@@ -1417,7 +1419,7 @@ class VoiceBase {
                     
                     if self.resultsTimer == nil {
                         Thread.onMainThread() {
-                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(), repeats: true)
+                            self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.uploadUserInfo(alert:true), repeats: true)
                         }
                     } else {
                         print("TIMER NOT NIL!")
@@ -1464,7 +1466,7 @@ class VoiceBase {
 //            return
 //        }
         
-        guard let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable else {
+        guard let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable else {
             return
         }
         
@@ -1774,17 +1776,23 @@ class VoiceBase {
         VoiceBase.details(mediaID: mediaID, completion: completion, onError: onError)
     }
 
-    func details()
+    func details(alert:Bool)
     {
         details(completion: { (json:[String : Any]?) -> (Void) in
             if let json = json?["media"] as? [String:Any] {
                 self.mediaJSON = json
-                globals.alert(title: "Keywords Available",message: "The keywords for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nare available.")
+                if alert {
+                    globals.alert(title: "Keywords Available",message: "The keywords for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nare available.")
+                }
             } else {
-                globals.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nare not available.")
+                if alert {
+                    globals.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nare not available.")
+                }
             }
         }, onError: { (json:[String : Any]?) -> (Void) in
-            globals.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nare not available.")
+            if alert {
+                globals.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nare not available.")
+            }
         })
     }
     
@@ -1804,13 +1812,16 @@ class VoiceBase {
         })
     }
     
-    func alignUserInfo() -> [String:Any]?
+    func alignUserInfo(alert:Bool) -> [String:Any]?
     {
         var userInfo = [String:Any]()
         
         userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
             if let status = json?["status"] as? String, status == "finished" {
-                globals.alert(title: "Transcript Realignment Complete",message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nhas been realigned.")
+                if alert {
+                    globals.alert(title: "Transcript Realignment Complete",message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nhas been realigned.")
+                }
+                
                 self.aligning = false
 
                 self.percentComplete = nil
@@ -1827,14 +1838,14 @@ class VoiceBase {
 //                self._transcriptSRT = nil
                 
                 // Get the new versions.
-                self.getTranscript()
-                self.getTranscriptSRT()
+                self.getTranscript(alert:alert)
+                self.getTranscriptSRT(alert:alert)
                 
 //                // This will NOT delete the existing versions.
 //                self._mediaJSON = nil
                 
                 // Get the new ones.
-                self.details()
+                self.details(alert:alert)
             } else {
                 if let progress = json?["progress"] as? [String:Any] {
                     if let tasks = progress["tasks"] as? [String:Any] {
@@ -1920,7 +1931,7 @@ class VoiceBase {
                         
                         if self.resultsTimer == nil {
                             Thread.onMainThread() {
-                                self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(), repeats: true)
+                                self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true), repeats: true)
                             }
                         } else {
                             print("TIMER NOT NIL!")
@@ -2017,7 +2028,7 @@ class VoiceBase {
                                             
                                             if self.resultsTimer == nil {
                                                 Thread.onMainThread() {
-                                                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(), repeats: true)
+                                                    self.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(self.monitor(_:)), userInfo: self.alignUserInfo(alert:true), repeats: true)
                                                 }
                                             } else {
                                                 print("TIMER NOT NIL!")
@@ -2095,7 +2106,7 @@ class VoiceBase {
         })
     }
     
-    func getTranscript()
+    func getTranscript(alert:Bool)
     {
         guard let mediaID = mediaID else {
             upload()
@@ -2106,7 +2117,9 @@ class VoiceBase {
             if let text = json?["text"] as? String {
                 self.transcript = text
 
-                globals.alert(title: "Transcript Available",message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis available.")
+                if alert {
+                    globals.alert(title: "Transcript Available",message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis available.")
+                }
                 
                 Thread.onMainThread() {
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
@@ -2523,7 +2536,7 @@ class VoiceBase {
         }
     }
     
-    func getTranscriptSRT()
+    func getTranscriptSRT(alert:Bool)
     {
         VoiceBase.get(accept: "text/srt", mediaID: mediaID, path: "transcripts/latest", completion: { (json:[String : Any]?) -> (Void) in
             if let srt = json?["text"] as? String {
@@ -2531,12 +2544,18 @@ class VoiceBase {
 
                 self.transcriptSRT = srt
 
-                globals.alert(title: "Transcript SRT Available",message: "The transcript SRT for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis available.")
+                if alert {
+                    globals.alert(title: "Transcript SRT Available",message: "The transcript SRT for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis available.")
+                }
             } else {
-                globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis not available.")
+                if alert {
+                    globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis not available.")
+                }
             }
         }, onError: { (json:[String : Any]?) -> (Void) in
-            globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis not available.")
+            if alert {
+                globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis not available.")
+            }
         })
     }
     
@@ -2546,7 +2565,7 @@ class VoiceBase {
             return
         }
         
-        guard let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable else {
+        guard let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable else {
             return
         }
         
@@ -2655,11 +2674,11 @@ class VoiceBase {
                 //                                self.completed = true
                 
                 // Get the new versions.
-                self.getTranscript()
-                self.getTranscriptSRT()
+                self.getTranscript(alert: true)
+                self.getTranscriptSRT(alert: true)
                 
                 // Get the new ones.
-                self.details()
+                self.details(alert: true)
 
                 globals.alert(title: "Transcript Reload Complete",message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nhas been reloaded from VoiceBase.")
             } else {
@@ -2777,7 +2796,7 @@ class VoiceBase {
                         var alertActions = [AlertAction]()
                         
                         alertActions.append(AlertAction(title: "Yes", style: .default, action: {
-                            self.getTranscript()
+                            self.getTranscript(alert: true)
                             //                                DispatchQueue.global(qos: .background).async(execute: { () -> Void in
                             //                                })
                             tableView.setEditing(false, animated: true)
@@ -2994,7 +3013,7 @@ class VoiceBase {
                     viewController.present(alert, animated: true, completion: nil)
                 }))
                 
-                if let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable {
+                if let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable {
                     alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, action: {
                         self.metadata(completion: { (dict:[String:Any]?)->(Void) in
                             if let text = self.mediaItem?.text {
@@ -3093,7 +3112,7 @@ class VoiceBase {
                             cancelAction: nil)
                     }))
                     
-                    if let voiceBaseAvailable = globals.voiceBaseAvailable, voiceBaseAvailable {
+                    if let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable {
                         alertActions.append(AlertAction(title: "Reload from VoiceBase", style: .destructive, action: {
                             self.metadata(completion: { (dict:[String:Any]?)->(Void) in
                                 if let text = self.mediaItem?.text {
