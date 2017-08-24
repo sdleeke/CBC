@@ -42,6 +42,49 @@ extension PopoverTableViewController: UISearchBarDelegate
         return true
     }
     
+    func updateSearchResults()
+    {
+        guard searchActive else {
+            return
+        }
+        
+        guard let text = searchText else { // , !text.isEmpty
+            return
+        }
+        
+        // update the search result array by filtering….
+        if let keys = unfilteredSection.stringIndex?.keys {
+            var filteredStringIndex = [String:[String]]()
+            
+            for key in keys {
+                if let values = unfilteredSection.stringIndex?[key] {
+                    for value in values {
+                        if value.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil {
+                            if filteredStringIndex[key] == nil {
+                                filteredStringIndex[key] = [String]()
+                            }
+                            filteredStringIndex[key]?.append(value)
+                        }
+                    }
+                }
+            }
+            
+            filteredSection.stringIndex = filteredStringIndex.keys.count > 0 ? filteredStringIndex : nil
+        } else
+            
+        if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
+            return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+        }) {
+            filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
+            
+            //                print(self.filteredStrings)
+            
+            //                filteredSection.buildIndex()
+        }
+        
+        tableView.reloadData()
+    }
+    
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar)
     {
         guard Thread.isMainThread else {
@@ -60,23 +103,8 @@ extension PopoverTableViewController: UISearchBarDelegate
         searchBar.showsCancelButton = true
         
         searchText = searchBar.text
-        
-        if let text = searchText { // , (text.isEmpty == false)
-            
-            // update the search result array by filtering….
-            
-            if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
-                return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
-            }) {
-                filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
-                
-                //                print(self.filteredStrings)
-                
-//                filteredSection.buildIndex()
-                
-                tableView.reloadData()
-            }
-        }
+
+        updateSearchResults()
     }
     
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar)
@@ -87,25 +115,8 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         searchText = searchBar.text
-        
-        if let text = searchText { // , (text.isEmpty == false)
-            
-            // update the search result array by filtering….
-            
-            if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
-                return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
-            }) {
-                self.filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
-                
-                //                print(self.filteredStrings)
-                
-//                filteredSection.buildIndex()
-                
-                tableView.reloadData()
-                
-                //                print(filteredSection.indexHeaders)
-            }
-        }
+
+        updateSearchResults()
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String)
@@ -116,23 +127,8 @@ extension PopoverTableViewController: UISearchBarDelegate
         }
         
         self.searchText = searchBar.text
-        
-        if let text = self.searchText { // , (text.isEmpty == false)
-            
-            // update the search result array by filtering….
 
-            if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
-                return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
-            }) {
-                self.filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
-                
-//                print(self.filteredStrings)
-                
-//                filteredSection.buildIndex()
-                
-                tableView.reloadData()
-            }
-        }
+        updateSearchResults()
     }
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
@@ -1618,7 +1614,9 @@ class PopoverTableViewController : UIViewController
 
         orientation = UIDevice.current.orientation
         
-        searchBar.text = searchText
+        if searchActive {
+            searchBar.text = searchText
+        }
         
         NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.willResignActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_RESIGN_ACTIVE), object: nil)
         

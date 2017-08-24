@@ -729,7 +729,45 @@ class Scripture : NSObject
                         if var text = passage["text"] as? String {
                             text = text.replacingOccurrences(of: "span><span", with: "span> <span")
                             text = text.replacingOccurrences(of: "<sup", with: " <sup")
-                            text = text.replacingOccurrences(of: "/p>\n<p", with: "/p><p")
+                            text = text.replacingOccurrences(of: ">\n<", with: "><")
+                            text = text.replacingOccurrences(of: "<p class=\"b\"></p>", with: "")
+                            
+                            
+                            if var lastRange = text.range(of: "</h3>") {
+                                var range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
+                                print(text.substring(with: range))
+                                
+                                while text.range(of: "</h3>", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) != nil {
+                                    if let newRange = text.range(of: "</h3>", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) {
+                                        lastRange = newRange
+                                        range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
+                                        print(text.substring(with: range))
+                                    } else {
+                                        break
+                                    }
+                                }
+                                
+                                if lastRange.upperBound == text.endIndex {
+                                    if let newRange = text.range(of: "<h3 class=\"s\">") {
+                                        lastRange = newRange
+                                        range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
+                                        print(text.substring(with: range))
+                                        
+                                        while text.range(of: "<h3 class=\"s\">", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) != nil {
+                                            if let newRange = text.range(of: "<h3 class=\"s\">", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) {
+                                                lastRange = newRange
+                                                range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
+                                                print(text.substring(with: range))
+                                            } else {
+                                                break
+                                            }
+                                        }
+                                        
+                                        text = text.substring(to: lastRange.lowerBound)
+                                    }
+                                }
+                            }
+
                             
                             bodyString = bodyString! + text // + "<br/>"
                         }

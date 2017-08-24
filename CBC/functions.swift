@@ -305,43 +305,43 @@ func jsonToFileSystemDirectory(key:String)
     }
 }
 
-func jsonDataFromDocumentsDirectory() -> JSON
-{
-    jsonToFileSystemDirectory(key:Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES)
-    
-    if let filename = globals.mediaCategory.filename, let jsonURL = cachesURL()?.appendingPathComponent(filename) {
-        if let data = try? Data(contentsOf: jsonURL) {
-            let json = JSON(data: data)
-            if json != JSON.null {
-                return json
-            } else {
-                print("could not get json from data, make sure the file contains valid json.")
-            }
-        } else {
-            print("could not get data from the json file.")
-        }
-    }
-    
-    return nil
-}
-
-func jsonDataFromCachesDirectory(filename:String?) -> JSON
-{
-    if let filename = filename, let jsonURL = cachesURL()?.appendingPathComponent(filename) {
-        if let data = try? Data(contentsOf: jsonURL) {
-            let json = JSON(data: data)
-            if json != JSON.null {
-                return json
-            } else {
-                print("could not get json from data, make sure the file contains valid json.")
-            }
-        } else {
-            print("could not get data from the json file.")
-        }
-    }
-    
-    return nil
-}
+//func jsonDataFromDocumentsDirectory() -> JSON
+//{
+//    jsonToFileSystemDirectory(key:Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES)
+//    
+//    if let filename = globals.mediaCategory.filename, let jsonURL = cachesURL()?.appendingPathComponent(filename) {
+//        if let data = try? Data(contentsOf: jsonURL) {
+//            let json = JSON(data: data)
+//            if json != JSON.null {
+//                return json
+//            } else {
+//                print("could not get json from data, make sure the file contains valid json.")
+//            }
+//        } else {
+//            print("could not get data from the json file.")
+//        }
+//    }
+//    
+//    return nil
+//}
+//
+//func jsonDataFromCachesDirectory(filename:String?) -> JSON
+//{
+//    if let filename = filename, let jsonURL = cachesURL()?.appendingPathComponent(filename) {
+//        if let data = try? Data(contentsOf: jsonURL) {
+//            let json = JSON(data: data)
+//            if json != JSON.null {
+//                return json
+//            } else {
+//                print("could not get json from data, make sure the file contains valid json.")
+//            }
+//        } else {
+//            print("could not get data from the json file.")
+//        }
+//    }
+//    
+//    return nil
+//}
 
 extension Date
 {

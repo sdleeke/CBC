@@ -3016,7 +3016,7 @@ class VoiceBase {
                 if let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable {
                     alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, action: {
                         self.metadata(completion: { (dict:[String:Any]?)->(Void) in
-                            if let text = self.mediaItem?.text {
+                            if let text = self.mediaItem?.text, let mediaID = self.mediaID {
                                 var actions = [AlertAction]()
                                 
                                 actions.append(AlertAction(title: "Remove", style: .destructive, action: {
@@ -3033,15 +3033,15 @@ class VoiceBase {
                                 
                                 actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
                                 
-                                globals.alert(title:"On VoiceBase", message:text + "\nis on VoiceBase.", actions:actions)
+                                globals.alert(title:"On VoiceBase", message:"A transcript for\n" + text + "\nwith mediaID \(mediaID) is on VoiceBase.", actions:actions)
                             }
                         }, onError:  { (dict:[String:Any]?)->(Void) in
-                            if let text = self.mediaItem?.text {
+                            if let text = self.mediaItem?.text, let mediaID = self.mediaID {
                                 var actions = [AlertAction]()
                                 
                                 actions.append(AlertAction(title: Constants.Strings.Okay, style: .default, action: nil))
                                 
-                                globals.alert(title:"Not on VoiceBase", message:text + "\nis not on VoiceBase.", actions:actions)
+                                globals.alert(title:"Not on VoiceBase", message:"A transcript for\n" + text + "\nwith mediaID \(mediaID) is not on VoiceBase.", actions:actions)
                             }
                         })
                     }))

@@ -405,196 +405,255 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         
         var actions = [UITableViewRowAction]()
         
-        if  let keys = self.stringIndex?.keys?.sorted(){
-            guard indexPath.section >= 0, indexPath.section < keys.count else {
-                return actions
-            }
+        var searchIndex:StringIndex?
+        
+        if popover.searchActive {
+            searchIndex = StringIndex()
             
-            let key = keys[indexPath.section]
-            let values = self.stringIndex?[key]
-            
-            guard indexPath.row >= 0, indexPath.row < values?.count else {
-                return actions
-            }
-            
-            let value = values?[indexPath.row]
-            
-            if let mediaID = value?["mediaID"] as? String, let title = value?["title"] as? String {
-                let deleteAction = UITableViewRowAction(style: .normal, title: Constants.FA.DELETE) { rowAction, indexPath in
-                    let alert = UIAlertController(  title: "Confirm Deletion of VoiceBase Media Item",
-                                                    message: title + "\n created on \(key == UIDevice.current.deviceName ? "this device" : key)",
-                        preferredStyle: .alert)
-                    alert.makeOpaque()
-                    
-                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
-                        alertItem -> Void in
-                        VoiceBase.delete(mediaID: mediaID)
-                        
-                        self.stringIndex?[key]?.remove(at: indexPath.row)
-                        
-                        if self.stringIndex?[key]?.count == 0 {
-                            self.stringIndex?[key] = nil
-                        }
-                        
-                        var strings = [String]()
-                        
-                        if let keys = self.stringIndex?.keys?.sorted() {
-                            for key in keys {
-                                if let values = self.stringIndex?[key] {
-                                    for value in values {
-                                        strings.append(value["title"] as! String)
+            if let text = popover.searchText {
+                if let keys = self.stringIndex?.keys {
+                    for key in keys {
+                        if let values = self.stringIndex?[key] {
+                            for value in values {
+                                if (value["title"] as? String)?.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil {
+                                    if searchIndex?[key] == nil {
+                                        searchIndex?[key] = [[String:Any]]()
                                     }
+                                    searchIndex?[key]?.append(value)
                                 }
                             }
                         }
-                        
-                        var counter = 0
-                        
-                        var counts = [Int]()
-                        var indexes = [Int]()
-                        
-                        if let keys = self.stringIndex?.keys?.sorted() {
-                            for key in keys {
-                                indexes.append(counter)
-                                
-                                if let count = self.stringIndex?[key]?.count {
-                                    counts.append(count)
-                                    counter += count
-                                }
-                            }
-                        }
-                        
-                        popover.section.headerStrings = self.stringIndex?.keys?.sorted()
-                        popover.section.strings = strings.count > 0 ? strings : nil
-                        //                                            popover.section.indexHeaders = popover.section.headers
-                        
-                        popover.section.counts = counts.count > 0 ? counts : nil
-                        popover.section.indexes = indexes.count > 0 ? indexes : nil
-                        
-                        Thread.onMainThread() {
-                            popover.tableView?.isEditing = false
-                            popover.tableView?.reloadData()
-                            popover.tableView?.reloadData()
-                        }
-                    })
-                    alert.addAction(yesAction)
-                    
-                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
-                        alertItem -> Void in
-                        
-                    })
-                    alert.addAction(noAction)
-                    
-                    let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                        (action : UIAlertAction!) -> Void in
-                        
-                    })
-                    alert.addAction(cancel)
-                    
-                    self.present(alert, animated: true, completion: nil)
+                    }
                 }
-                deleteAction.backgroundColor = UIColor.red//controlBlue()
-                actions.append(deleteAction)
-                
-                let mediaIDAction = UITableViewRowAction(style: .normal, title: "ID") { rowAction, indexPath in
-                    let alert = UIAlertController(  title: "VoiceBase Media ID",
-                                                    message: nil,
-                                                    preferredStyle: .alert)
-                    alert.makeOpaque()
-                    
-                    alert.addTextField(configurationHandler: { (textField:UITextField) in
-                        textField.text = mediaID
-                    })
-                    
-                    let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                        alertItem -> Void in
-                    })
-                    alert.addAction(okayAction)
-                    
-                    self.present(alert, animated: true, completion: nil)
-                }
-                mediaIDAction.backgroundColor = UIColor.lightGray
-                actions.append(mediaIDAction)
-                
-                let detailsAction = UITableViewRowAction(style: .normal, title: Constants.FA.INFO) { rowAction, indexPath in
-                    process(viewController: self.popover!, work: { () -> (Any?) in
-                        var data : Any?
-                        
-                        VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
-                            print(json as Any)
-                            
-                            data = json
-                        }, onError: { (json:[String : Any]?) -> (Void) in
-                            data = "VoiceBase Media Item\nNot Found"
-                            globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
-                        })
-                        
-                        while data == nil {
-                            Thread.sleep(forTimeInterval: 0.1)
-                        }
-                        
-                        return data
-                    }, completion: { (data:Any?) in
-                        let json = data as? [String:Any]
-                        
-                        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
-                            let popover = navigationController.viewControllers[0] as? WebViewController {
-                            
-                            popover.html.fontSize = 12
-                            popover.html.string = insertHead(VoiceBase.html(json),fontSize: popover.html.fontSize)
-                            
-                            popover.search = true
-                            popover.content = .html
-                            
-                            popover.navigationItem.title = "VoiceBase Media Item"
-                            
-                            self.popover?.navigationController?.pushViewController(popover, animated: true)
-                        }
-                    })
-                    
-                    //                                    popoverHTML(self, mediaItem: nil, title: "VoiceBase Media Item", barButtonItem: nil, sourceView: nil, sourceRectView: nil, htmlString: htmlString)
-                }
-                detailsAction.backgroundColor = UIColor.gray
-                actions.append(detailsAction)
-                
-                let inspectorAction = UITableViewRowAction(style: .normal, title: Constants.FA.INSPECTOR) { rowAction, indexPath in
-                    process(viewController: self.popover!, work: { () -> (Any?) in
-                        var data : Any?
-                        
-                        VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
-                            print(json as Any)
-                            
-                            data = json
-                            
-                        }, onError: { (json:[String : Any]?) -> (Void) in
-                            data = "VoiceBase Media Item\nNot Found"
-                            globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
-                        })
-                        
-                        while data == nil {
-                            Thread.sleep(forTimeInterval: 0.1)
-                        }
-                        
-                        return data
-                    }, completion: { (data:Any?) in
-                        let json = data as? [String:Any]
-                        
-                        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                            popover.search = true
-                            
-                            popover.navigationItem.title = "VoiceBase Media Item"
-                            
-                            popover.stringsAny = json
-                            popover.purpose = .showingVoiceBaseMediaItem
-                            
-                            self.popover?.navigationController?.pushViewController(popover, animated: true)
-                        }
-                    })
-                }
-                inspectorAction.backgroundColor = UIColor.darkGray
-                actions.append(inspectorAction)
             }
+        } else {
+            searchIndex = self.stringIndex
+        }
+            
+        guard let keys = searchIndex?.keys?.sorted() else {
+            return nil
+        }
+        
+        let key = keys[indexPath.section]
+        
+        guard let values = searchIndex?[key] else {
+            return nil
+        }
+        
+        guard indexPath.section >= 0, indexPath.section < keys.count else {
+            return nil
+        }
+        
+        guard indexPath.row >= 0, indexPath.row < values.count else {
+            return nil
+        }
+        
+        let value = values[indexPath.row]
+        
+        if let mediaID = value["mediaID"] as? String, let title = value["title"] as? String {
+            let deleteAction = UITableViewRowAction(style: .normal, title: Constants.FA.DELETE) { rowAction, indexPath in
+                let alert = UIAlertController(  title: "Confirm Deletion of VoiceBase Media Item",
+                                                message: title + "\n created on \(key == UIDevice.current.deviceName ? "this device" : key)",
+                    preferredStyle: .alert)
+                alert.makeOpaque()
+                
+                let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                    alertItem -> Void in
+                    VoiceBase.delete(mediaID: mediaID)
+                    
+                    searchIndex?[key]?.remove(at: indexPath.row)
+                    
+                    if searchIndex?[key]?.count == 0 {
+                        searchIndex?[key] = nil
+                    }
+
+                    if let keys = self.stringIndex?.keys?.sorted() {
+                        for key in keys {
+                            if let values = self.stringIndex?[key] {
+                                for value in values {
+                                    var count = 0
+                                    
+                                    if (value["mediaID"] as! String) == mediaID {
+                                        self.stringIndex?[key]?.remove(at: count)
+                                        
+                                        if self.stringIndex?[key]?.count == 0 {
+                                            self.stringIndex?[key] = nil
+                                        }
+                                        
+                                        break
+                                    }
+                                    
+                                    count += 1
+                                }
+                            }
+                        }
+                    }
+
+                    var stringIndex = [String:[String]]()
+                    
+                    if let keys = searchIndex?.keys {
+                        for key in keys {
+                            if let values = searchIndex?[key] {
+                                for value in values {
+                                    if stringIndex[key] == nil {
+                                        stringIndex[key] = [String]()
+                                    }
+                                    stringIndex[key]?.append(value["title"] as! String)
+                                }
+                            }
+                        }
+                    }
+                    
+                    popover.section.stringIndex = stringIndex.keys.count > 0 ? stringIndex : nil
+                    
+//                    var strings = [String]()
+//                    
+//                    var counter = 0
+//                    
+//                    var counts = [Int]()
+//                    var indexes = [Int]()
+//                    
+//                    if let keys = self.stringIndex?.keys?.sorted() {
+//                        for key in keys {
+//                            indexes.append(counter)
+//                            
+//                            if let count = self.stringIndex?[key]?.count {
+//                                counts.append(count)
+//                                counter += count
+//                            }
+//                        }
+//                    }
+//                    
+//                    popover.section.headerStrings = self.stringIndex?.keys?.sorted()
+//                    popover.section.strings = strings.count > 0 ? strings : nil
+//                    //                                            popover.section.indexHeaders = popover.section.headers
+//                    
+//                    popover.section.counts = counts.count > 0 ? counts : nil
+//                    popover.section.indexes = indexes.count > 0 ? indexes : nil
+                    
+                    Thread.onMainThread() {
+                        popover.tableView?.isEditing = false
+                        popover.tableView?.reloadData()
+                        popover.tableView?.reloadData()
+                    }
+                })
+                alert.addAction(yesAction)
+                
+                let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                    alertItem -> Void in
+                    
+                })
+                alert.addAction(noAction)
+                
+                let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                    (action : UIAlertAction!) -> Void in
+                    
+                })
+                alert.addAction(cancel)
+                
+                self.present(alert, animated: true, completion: nil)
+            }
+            deleteAction.backgroundColor = UIColor.red//controlBlue()
+            actions.append(deleteAction)
+            
+            let mediaIDAction = UITableViewRowAction(style: .normal, title: "ID") { rowAction, indexPath in
+                let alert = UIAlertController(  title: "VoiceBase Media ID",
+                                                message: nil,
+                                                preferredStyle: .alert)
+                alert.makeOpaque()
+                
+                alert.addTextField(configurationHandler: { (textField:UITextField) in
+                    textField.text = mediaID
+                })
+                
+                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                    alertItem -> Void in
+                })
+                alert.addAction(okayAction)
+                
+                self.present(alert, animated: true, completion: nil)
+            }
+            mediaIDAction.backgroundColor = UIColor.lightGray
+            actions.append(mediaIDAction)
+            
+            let detailsAction = UITableViewRowAction(style: .normal, title: Constants.FA.INFO) { rowAction, indexPath in
+                process(viewController: self.popover!, work: { () -> (Any?) in
+                    var data : Any?
+                    
+                    VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
+                        print(json as Any)
+                        
+                        data = json
+                    }, onError: { (json:[String : Any]?) -> (Void) in
+                        data = "VoiceBase Media Item\nNot Found"
+                        globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+                    })
+                    
+                    while data == nil {
+                        Thread.sleep(forTimeInterval: 0.1)
+                    }
+                    
+                    return data
+                }, completion: { (data:Any?) in
+                    let json = data as? [String:Any]
+                    
+                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                        let popover = navigationController.viewControllers[0] as? WebViewController {
+                        
+                        popover.html.fontSize = 12
+                        popover.html.string = insertHead(VoiceBase.html(json),fontSize: popover.html.fontSize)
+                        
+                        popover.search = true
+                        popover.content = .html
+                        
+                        popover.navigationItem.title = "VoiceBase Media Item"
+                        
+                        self.popover?.navigationController?.pushViewController(popover, animated: true)
+                    }
+                })
+                
+                //                                    popoverHTML(self, mediaItem: nil, title: "VoiceBase Media Item", barButtonItem: nil, sourceView: nil, sourceRectView: nil, htmlString: htmlString)
+            }
+            detailsAction.backgroundColor = UIColor.gray
+            actions.append(detailsAction)
+            
+            let inspectorAction = UITableViewRowAction(style: .normal, title: Constants.FA.INSPECTOR) { rowAction, indexPath in
+                process(viewController: self.popover!, work: { () -> (Any?) in
+                    var data : Any?
+                    
+                    VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
+                        print(json as Any)
+                        
+                        data = json
+                        
+                    }, onError: { (json:[String : Any]?) -> (Void) in
+                        data = "VoiceBase Media Item\nNot Found"
+                        globals.alert(title:"VoiceBase Media Item\nNot Found", message:title)
+                    })
+                    
+                    while data == nil {
+                        Thread.sleep(forTimeInterval: 0.1)
+                    }
+                    
+                    return data
+                }, completion: { (data:Any?) in
+                    let json = data as? [String:Any]
+                    
+                    if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                        let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                        popover.search = true
+                        
+                        popover.navigationItem.title = "VoiceBase Media Item"
+                        
+                        popover.stringsAny = json
+                        popover.purpose = .showingVoiceBaseMediaItem
+                        
+                        self.popover?.navigationController?.pushViewController(popover, animated: true)
+                    }
+                })
+            }
+            inspectorAction.backgroundColor = UIColor.darkGray
+            actions.append(inspectorAction)
         }
         
         //                        mediaID = UITableViewRowAction(style: .normal, title: "ID") { rowAction, indexPath in
@@ -629,38 +688,23 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         //                        mediaID.backgroundColor = UIColor.gray
         //                        actions.append(mediaID)
         
-        if  let keys = self.stringIndex?.keys?.sorted(){
-            guard indexPath.section >= 0, indexPath.section < keys.count else {
-                return actions
-            }
-            
-            let key = keys[indexPath.section]
-            let values = self.stringIndex?[key]
-            
-            guard indexPath.row >= 0, indexPath.row < values?.count else {
-                return actions
-            }
-            
-            let value = values?[indexPath.row]
-            
-            if let mediaID = value?["mediaID"] as? String {
-                if let mediaList = globals.media.all?.list {
-                    if let mediaItem = mediaList.filter({ (mediaItem:MediaItem) -> Bool in
-                        return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
-                            return transcript.mediaID == mediaID
-                        }).count == 1
-                    }).first {
-                        let mediaItemRowAction = UITableViewRowAction(style: .normal, title: Constants.FA.BOOKMARK) { rowAction, indexPath in
-                            if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
-                                self.dismiss(animated: true, completion: nil)
-                            } else {
-                                //                                                self.popover?.tableView.isEditing = false
-                            }
-                            self.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)
+        if let mediaID = value["mediaID"] as? String {
+            if let mediaList = globals.media.all?.list {
+                if let mediaItem = mediaList.filter({ (mediaItem:MediaItem) -> Bool in
+                    return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+                        return transcript.mediaID == mediaID
+                    }).count == 1
+                }).first {
+                    let mediaItemRowAction = UITableViewRowAction(style: .normal, title: Constants.FA.BOOKMARK) { rowAction, indexPath in
+                        if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
+                            self.dismiss(animated: true, completion: nil)
+                        } else {
+                            //                                                self.popover?.tableView.isEditing = false
                         }
-                        mediaItemRowAction.backgroundColor = UIColor.controlBlue()
-                        actions.append(mediaItemRowAction)
+                        self.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)
                     }
+                    mediaItemRowAction.backgroundColor = UIColor.controlBlue()
+                    actions.append(mediaItemRowAction)
                 }
             }
         }
@@ -918,7 +962,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
             return
         }
-
+        
         for mediaItem in mediaItems {
             if  let mediaID = mediaItem["mediaId"] as? String,
                 let metadata = mediaItem["metadata"] as? [String:Any],
@@ -1001,6 +1045,130 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         }
         
         self.popover?.section.strings = strings.count > 0 ? strings : nil
+        self.popover?.section.headerStrings = self.stringIndex?.keys?.sorted()
+        self.popover?.section.counts = counts.count > 0 ? counts : nil
+        self.popover?.section.indexes = indexes.count > 0 ? indexes : nil
+    }
+    
+    func buildList(mediaItems:[[String:Any]]?)
+    {
+        guard let mediaItems = mediaItems else {
+            self.popover?.section.strings = nil
+            self.popover?.section.headerStrings = nil
+            self.popover?.section.counts = nil
+            self.popover?.section.indexes = nil
+            
+            return
+        }
+        
+        for mediaItem in mediaItems {
+            if  let mediaID = mediaItem["mediaId"] as? String,
+                let metadata = mediaItem["metadata"] as? [String:Any],
+                let title = metadata["title"] as? String,
+                let device = metadata["device"] as? [String:String],
+                var deviceName = device["name"],
+                let mimd = metadata["mediaItem"] as? [String:String],
+                let id = mimd["id"],
+                let purpose = mimd["purpose"],
+                let media = globals.mediaRepository.index?[id] {
+                var transcript : VoiceBase?
+                
+                switch purpose.uppercased() {
+                case Purpose.audio:
+                    transcript = media.audioTranscript
+                    
+                case Purpose.video:
+                    transcript = media.videoTranscript
+                    
+                default:
+                    break
+                }
+                
+                if  transcript?.transcript == nil,
+                    transcript?.mediaID == nil,
+                    transcript?.resultsTimer == nil,
+                    let transcribing = transcript?.transcribing, !transcribing {
+                    transcript?.mediaID = mediaID
+                    transcript?.transcribing = true
+                    
+                    Thread.onMainThread() {
+                        transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert:false), repeats: true)
+                    }
+                }
+
+                if deviceName == UIDevice.current.deviceName {
+                    deviceName += " (this device)"
+                }
+                
+                if self.stringIndex?[deviceName] == nil {
+                    self.stringIndex?[deviceName] = [["title":title,"mediaID":mediaID,"metadata":metadata as Any]]
+                } else {
+                    self.stringIndex?[deviceName]?.append(["title":title,"mediaID":mediaID,"metadata":metadata as Any])
+                }
+            } else {
+                print("Unable to add: \(mediaItem)")
+            }
+        }
+        
+        if let keys = self.stringIndex?.keys {
+            for key in keys {
+                self.stringIndex?[key] = self.stringIndex?[key]?.sorted(by: {
+                    var date0 = ($0["title"] as? String)?.components(separatedBy: "\n").first
+                    var date1 = ($1["title"] as? String)?.components(separatedBy: "\n").first
+                    
+                    if let range = date0?.range(of: " PM") {
+                        date0 = date0?.substring(to: range.lowerBound)
+                    }
+                    if let range = date0?.range(of: " AM") {
+                        date0 = date0?.substring(to: range.lowerBound)
+                    }
+                    
+                    if let range = date1?.range(of: " PM") {
+                        date1 = date1?.substring(to: range.lowerBound)
+                    }
+                    if let range = date1?.range(of: " AM") {
+                        date1 = date1?.substring(to: range.lowerBound)
+                    }
+                    
+                    return Date(string: date0!) < Date(string: date1!)
+                })
+            }
+        }
+        
+        var strings = [String]()
+        var stringIndex = [String:[String]]()
+        
+        if let keys = self.stringIndex?.keys?.sorted() {
+            for key in keys {
+                stringIndex[key] = [String]()
+                if let values = self.stringIndex?[key] {
+                    for value in values {
+                        let title = value["title"] as! String
+                        strings.append(title)
+                        stringIndex[key]?.append(title)
+                    }
+                }
+            }
+        }
+        
+        var counter = 0
+        
+        var counts = [Int]()
+        var indexes = [Int]()
+        
+        if let keys = self.stringIndex?.keys?.sorted() {
+            for key in keys {
+                indexes.append(counter)
+                
+                if let count = self.stringIndex?[key]?.count {
+                    counts.append(count)
+                    counter += count
+                }
+            }
+        }
+        
+        self.popover?.section.strings = strings.count > 0 ? strings : nil
+        self.popover?.section.stringIndex = stringIndex.keys.count > 0 ? stringIndex : nil
         self.popover?.section.headerStrings = self.stringIndex?.keys?.sorted()
         self.popover?.section.counts = counts.count > 0 ? counts : nil
         self.popover?.section.indexes = indexes.count > 0 ? indexes : nil
@@ -1438,11 +1606,13 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                 // Begin by separating media into what was created on this device and what was created on something else.
                                 self.stringIndex = StringIndex()
                                 
-                                self.buildInitialList(mediaItems:mediaItems)
+//                                self.buildInitialList(mediaItems:mediaItems)
+                                self.buildList(mediaItems:mediaItems)
+                                self.popover?.updateSearchResults()
                                 self.popover?.tableView?.reloadData()
                                 
-                                // Start over and get specific devices
-                                self.processFirst(mediaItems:mediaItems)
+//                                // Start over and get specific devices
+//                                self.processFirst(mediaItems:mediaItems)
 
                                 if #available(iOS 10.0, *) {
                                     if let isRefreshing = self.popover?.tableView?.refreshControl?.isRefreshing, isRefreshing {
@@ -1466,9 +1636,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         
                         self.popover?.section.showHeaders = true
                         
+                        self.popover?.search = true
+                        
                         self.popover?.vc = self.splitViewController
                         
-                        self.buildInitialList(mediaItems:mediaItems)
+//                        self.buildInitialList(mediaItems:mediaItems)
+                        self.buildList(mediaItems:mediaItems)
                         
                         Thread.onMainThread() {
                             navigationController.modalPresentationStyle = .overCurrentContext
@@ -1482,7 +1655,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             //                    deleteButton.setTitleTextAttributes(Constants.Fonts.Attributes.destructive, for: UIControlState.normal)
                             
                             self.popover?.navigationItem.leftBarButtonItem = self.deleteButton
-                            self.deleteButton?.isEnabled = false
+//                            self.deleteButton?.isEnabled = false
                             
                             self.popover?.navigationItem.title = "VoiceBase Media"
                             
@@ -1495,7 +1668,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         }
                         
                         // Start over and get specific devices
-                        self.processFirst(mediaItems:mediaItems)
+//                        self.processFirst(mediaItems:mediaItems)
                     }
                 }
             }, onError: nil)
@@ -2744,7 +2917,7 @@ class MediaTableViewController : UIViewController // MediaController
 //        }
 //    }
 
-    func jsonFromFileSystem(filename:String?) -> JSON
+    func jsonFromFileSystem(filename:String?) -> Any?
     {
         guard let filename = filename else {
             return nil
@@ -2756,32 +2929,49 @@ class MediaTableViewController : UIViewController // MediaController
         
         do {
             let data = try Data(contentsOf: jsonFileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
-            print("json read from the file system.")
+            print("able to read json from the URL.")
             
-            let json = JSON(data: data)
-            
-            if json != JSON.null {
-//                globals.alert(title:"Network Error",message:"Media list read but failed to load.  Last available copy read and loaded.")
-                
-                print("json read and loaded from the file system.")
-                
-//                print(json)
-                
+            do {
+                let json = try JSONSerialization.jsonObject(with: data, options: [])
                 return json
-            } else {
-//                globals.alert(title:"Network Error",message:"Last available media list could not be loaded.")
-                print("Network unavailable: json read from the file system could not be loaded.")
+            } catch let error as NSError {
+                NSLog(error.localizedDescription)
+                return nil
             }
         } catch let error as NSError {
-//            globals.alert(title:"Network Error",message:"Last available media list could not be read: " + error.localizedDescription)
             print("Network unavailable: json could not be read from the file system.")
             NSLog(error.localizedDescription)
+            return nil
         }
+
+//        do {
+//            let data = try Data(contentsOf: jsonFileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
+//            print("json read from the file system.")
+//            
+////            let json = JSON(data: data)
+////            
+////            if json != JSON.null {
+//////                globals.alert(title:"Network Error",message:"Media list read but failed to load.  Last available copy read and loaded.")
+////                
+////                print("json read and loaded from the file system.")
+////                
+//////                print(json)
+////                
+////                return json
+////            } else {
+//////                globals.alert(title:"Network Error",message:"Last available media list could not be loaded.")
+////                print("Network unavailable: json read from the file system could not be loaded.")
+////            }
+//        } catch let error as NSError {
+////            globals.alert(title:"Network Error",message:"Last available media list could not be read: " + error.localizedDescription)
+//            print("Network unavailable: json could not be read from the file system.")
+//            NSLog(error.localizedDescription)
+//        }
         
         return nil
     }
     
-    func jsonFromURL(url:String,filename:String) -> JSON
+    func jsonFromURL(url:String,filename:String) -> Any?
     {
         guard let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
             return nil
@@ -2799,110 +2989,154 @@ class MediaTableViewController : UIViewController // MediaController
             let data = try Data(contentsOf: URL(string: url)!) // , options: NSData.ReadingOptions.mappedIfSafe
             print("able to read json from the URL.")
 
-            let json = JSON(data: data)
-            
-            if json != JSON.null {
-                print(json)
+            do {
+                let json = try JSONSerialization.jsonObject(with: data, options: [])
 
                 do {
-//                    globals.alert(title:"Pursue sanctification!",message:"Media list read, loaded, and written.")
-  
                     try data.write(to: jsonFileSystemURL)//, options: NSData.WritingOptions.atomic)
                     
                     print("able to write json to the file system")
                 } catch let error as NSError {
-//                    globals.alert(title:"Network Error!",message:"Media list read and loaded but write failed: " + error.localizedDescription)
-                    
                     print("unable to write json to the file system.")
                     
                     NSLog(error.localizedDescription)
                 }
                 
                 return json
-            } else {
-//                globals.alert(title:"Media List Error!",message:"Media list read but not loaded.  Attempting to load last available copy.")
-                
-                print("could not load json from URL.")
-                
+            } catch let error as NSError {
+                NSLog(error.localizedDescription)
                 return jsonFromFileSystem(filename: filename)
-
-//                do {
-//                    let data = try Data(contentsOf: jsonFileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
-//                    print("able to read json from the file system.")
-//                    
-//                    let json = JSON(data: data)
-//                    if json != JSON.null {
-//                        print("able to load json from the file system.")
-////                        print(json)
-//                        return json
-//                    } else {
-//                        globals.alert(title:"Media List Error",message:"Last available media list read but failed to load.")
-//                        print("could not load json from the file system.")
-//                    }
-//                } catch let error as NSError {
-//                    globals.alert(title:"Media List Error",message:"Last available media list could not be read: " + error.localizedDescription)
-//                    print("could not read json from the file system.")
-//                    NSLog(error.localizedDescription)
-//                }
             }
         } catch let error as NSError {
-//            globals.alert(title:"Network Error",message:"Media list could not be read.  Attempting to load last available media list: " + error.localizedDescription)
-            print("unable to read json from the URL.")
-            print(error.localizedDescription)
-            
+            NSLog(error.localizedDescription)
             return jsonFromFileSystem(filename: filename)
-
-//            do {
-//                let data = try Data(contentsOf: jsonFileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
-//                print("able to read json from the file system.")
-//                
-//                let json = JSON(data: data)
-//                if json != JSON.null {
-//                    print("able to load json from the file system.")
-//                    //                        print(json)
-//                    return json
-//                } else {
-//                    globals.alert(title:"Media List Error",message:"Last available media list could be read but not loaded.")
-//                    print("unable to load json from the file system.")
-//                }
-//            } catch let error as NSError {
-//                globals.alert(title:"Media List Error",message:"Last available media list could not be read: " + error.localizedDescription)
-//                print("unable to read json from the file system.")
-//                NSLog(error.localizedDescription)
-//            }
         }
+    }
+    
+//            let json = JSON(data: data)
+//            
+//            if json != JSON.null {
+//                print(json)
+//
+//                do {
+////                    globals.alert(title:"Pursue sanctification!",message:"Media list read, loaded, and written.")
+//  
+//                    try data.write(to: jsonFileSystemURL)//, options: NSData.WritingOptions.atomic)
+//                    
+//                    print("able to write json to the file system")
+//                } catch let error as NSError {
+////                    globals.alert(title:"Network Error!",message:"Media list read and loaded but write failed: " + error.localizedDescription)
+//                    
+//                    print("unable to write json to the file system.")
+//                    
+//                    NSLog(error.localizedDescription)
+//                }
+//
+//                return json
+//            } else {
+////                globals.alert(title:"Media List Error!",message:"Media list read but not loaded.  Attempting to load last available copy.")
+//                
+//                print("could not load json from URL.")
+//                
+//                return jsonFromFileSystem(filename: filename)
+//
+////                do {
+////                    let data = try Data(contentsOf: jsonFileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
+////                    print("able to read json from the file system.")
+////                    
+////                    let json = JSON(data: data)
+////                    if json != JSON.null {
+////                        print("able to load json from the file system.")
+//////                        print(json)
+////                        return json
+////                    } else {
+////                        globals.alert(title:"Media List Error",message:"Last available media list read but failed to load.")
+////                        print("could not load json from the file system.")
+////                    }
+////                } catch let error as NSError {
+////                    globals.alert(title:"Media List Error",message:"Last available media list could not be read: " + error.localizedDescription)
+////                    print("could not read json from the file system.")
+////                    NSLog(error.localizedDescription)
+////                }
+//            }
+//        } catch let error as NSError {
+////            globals.alert(title:"Network Error",message:"Media list could not be read.  Attempting to load last available media list: " + error.localizedDescription)
+//            print("unable to read json from the URL.")
+//            print(error.localizedDescription)
+//            
+//            return jsonFromFileSystem(filename: filename)
+//
+////            do {
+////                let data = try Data(contentsOf: jsonFileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
+////                print("able to read json from the file system.")
+////                
+////                let json = JSON(data: data)
+////                if json != JSON.null {
+////                    print("able to load json from the file system.")
+////                    //                        print(json)
+////                    return json
+////                } else {
+////                    globals.alert(title:"Media List Error",message:"Last available media list could be read but not loaded.")
+////                    print("unable to load json from the file system.")
+////                }
+////            } catch let error as NSError {
+////                globals.alert(title:"Media List Error",message:"Last available media list could not be read: " + error.localizedDescription)
+////                print("unable to read json from the file system.")
+////                NSLog(error.localizedDescription)
+////            }
+//        }
 //
 //        return nil
-    }
+//    }
     
     func loadJSONDictsFromFileSystem(filename:String?,key:String) -> [[String:String]]? // CachesDirectory
     {
         var mediaItemDicts = [[String:String]]()
         
-        let json = jsonFromFileSystem(filename:filename) // jsonDataFromCachesDirectory
-        
-        if json != JSON.null {
-//            print("json:\(json)")
-            
-            let mediaItems = json[key]
-            
-            for i in 0..<mediaItems.count {
-                
-                var dict = [String:String]()
-                
-                for (key,value) in mediaItems[i] {
-                    dict[key] = "\(value)"
+        if let json = jsonFromFileSystem(filename:filename) as? [String:Any] {
+            if let mediaItems = json[key] as? [[String:String]] {
+                for i in 0..<mediaItems.count {
+                    
+                    var dict = [String:String]()
+                    
+                    for (key,value) in mediaItems[i] {
+                        dict[key] = "\(value)"
+                    }
+                    
+                    mediaItemDicts.append(dict)
                 }
                 
-                mediaItemDicts.append(dict)
+                //            print(mediaItemDicts)
+                
+                return mediaItemDicts.count > 0 ? mediaItemDicts : nil
             }
-            
-            //            print(mediaItemDicts)
-            
-            return mediaItemDicts.count > 0 ? mediaItemDicts : nil
         } else {
             print("could not get json from file, make sure that file contains valid json.")
         }
+
+//
+//        if json != nil {
+////            print("json:\(json)")
+//            
+//            let mediaItems = json[key]
+//            
+//            for i in 0..<mediaItems.count {
+//                
+//                var dict = [String:String]()
+//                
+//                for (key,value) in mediaItems[i] {
+//                    dict[key] = "\(value)"
+//                }
+//                
+//                mediaItemDicts.append(dict)
+//            }
+//            
+//            //            print(mediaItemDicts)
+//            
+//            return mediaItemDicts.count > 0 ? mediaItemDicts : nil
+//        } else {
+//            print("could not get json from file, make sure that file contains valid json.")
+//        }
         
         return nil
     }
@@ -2911,31 +3145,50 @@ class MediaTableViewController : UIViewController // MediaController
     {
         var mediaItemDicts = [[String:String]]()
         
-        let json = jsonFromURL(url: url,filename: filename)
-        
-        if json != JSON.null {
-            print(json)
-            
-            let mediaItems = json[key]
-            
-            for i in 0..<mediaItems.count {
-                
-                var dict = [String:String]()
-                
-                for (key,value) in mediaItems[i] {
-//                    print(key,value)
-                    dict[key] = "\(value)".trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        if let json = jsonFromURL(url: url,filename: filename) as? [String:Any] {
+            if let mediaItems = json[key] as? [[String:String]] {
+                for i in 0..<mediaItems.count {
+                    
+                    var dict = [String:String]()
+                    
+                    for (key,value) in mediaItems[i] {
+                        dict[key] = "\(value)".trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                    }
+                    
+                    mediaItemDicts.append(dict)
                 }
                 
-                mediaItemDicts.append(dict)
+                //            print(mediaItemDicts)
+                
+                return mediaItemDicts.count > 0 ? mediaItemDicts : nil
             }
-            
-            //            print(mediaItemDicts)
-            
-            return mediaItemDicts.count > 0 ? mediaItemDicts : nil
         } else {
             print("could not get json from URL, make sure that URL contains valid json.")
         }
+
+//        if json != JSON.null {
+//            print(json)
+//            
+//            let mediaItems = json[key]
+//            
+//            for i in 0..<mediaItems.count {
+//                
+//                var dict = [String:String]()
+//                
+//                for (key,value) in mediaItems[i] {
+////                    print(key,value)
+//                    dict[key] = "\(value)".trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+//                }
+//                
+//                mediaItemDicts.append(dict)
+//            }
+//            
+//            //            print(mediaItemDicts)
+//            
+//            return mediaItemDicts.count > 0 ? mediaItemDicts : nil
+//        } else {
+//            print("could not get json from URL, make sure that URL contains valid json.")
+//        }
         
         return nil
     }

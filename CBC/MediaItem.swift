@@ -1085,7 +1085,7 @@ class MediaItem : NSObject {
         }
     }
 
-    func singleJSONFromURL() -> JSON
+    func singleJSONFromURL() -> [String:String]?
     {
         guard globals.reachability.currentReachabilityStatus != .notReachable else {
             return nil
@@ -1094,13 +1094,20 @@ class MediaItem : NSObject {
         do {
             let data = try Data(contentsOf: URL(string: Constants.JSON.URL.SINGLE + self.id!)!) // , options: NSData.ReadingOptions.mappedIfSafe
             
-            let json = JSON(data: data)
-            if json != JSON.null {
-                
-//                print(json)
-                
-                return json
+            do {
+                let json = try JSONSerialization.jsonObject(with: data, options: [])
+                return json as? [String:String]
+            } catch let error as NSError {
+                NSLog(error.localizedDescription)
             }
+            
+//            let json = JSON(data: data)
+//            if json != JSON.null {
+//                
+////                print(json)
+//                
+//                return json
+//            }
         } catch let error as NSError {
             NSLog(error.localizedDescription)
         }
@@ -1108,37 +1115,37 @@ class MediaItem : NSObject {
         return nil
     }
     
-    func loadSingleDict() -> [String:String]?
-    {
-        var mediaItemDicts = [[String:String]]()
-        
-        let json = singleJSONFromURL() // jsonDataFromDocumentsDirectory()
-        
-        if json != JSON.null {
-            print("single json:\(json)")
-            
-            let mediaItems = json[Constants.JSON.ARRAY_KEY.SINGLE_ENTRY]
-            
-            for i in 0..<mediaItems.count {
-                
-                var dict = [String:String]()
-                
-                for (key,value) in mediaItems[i] {
-                    dict["\(key)"] = "\(value)"
-                }
-                
-                mediaItemDicts.append(dict)
-            }
-            
-//            print(mediaItemDicts)
-            
-            return mediaItemDicts.count > 0 ? mediaItemDicts[0] : nil
-        } else {
-            print("could not get json from URL, make sure that URL contains valid json.")
-        }
-        
-        return nil
-    }
+//    func loadSingleDict() -> [String:String]?
+//    {
+//        var mediaItemDicts = [[String:String]]()
+//        
+//        let json = singleJSONFromURL() // jsonDataFromDocumentsDirectory()
+//        
+//        if json != nil {
+//            print("single json:\(json)")
+//            
+//            let mediaItems = json[Constants.JSON.ARRAY_KEY.SINGLE_ENTRY]
+//            
+//            for i in 0..<mediaItems.count {
+//                
+//                var dict = [String:String]()
+//                
+//                for (key,value) in mediaItems[i] {
+//                    dict["\(key)"] = "\(value)"
+//                }
+//                
+//                mediaItemDicts.append(dict)
+//            }
+//            
+////            print(mediaItemDicts)
+//            
+//            return mediaItemDicts.count > 0 ? mediaItemDicts[0] : nil
+//        } else {
+//            print("could not get json from URL, make sure that URL contains valid json.")
+//        }
+//        
+//        return nil
+//    }
     
     func loadNotesHTML()
     {
@@ -1154,7 +1161,7 @@ class MediaItem : NSObject {
             return
         }
         
-        if let mediaItemDict = self.loadSingleDict() {
+        if let mediaItemDict = self.singleJSONFromURL() {
             if var notesHTML = mediaItemDict[Field.notes_HTML] {
                 notesHTML = notesHTML.replacingOccurrences(of: "&rsquo;", with: "'")
                 notesHTML = notesHTML.replacingOccurrences(of: "&rdquo;", with: "\"")

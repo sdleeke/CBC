@@ -59,6 +59,40 @@ class Section
         return index
     }
     
+    var stringIndex:[String:[String]]?
+    {
+        didSet {
+            var counter = 0
+            
+            var counts = [Int]()
+            var indexes = [Int]()
+            
+            var strings = [String]()
+            
+            if let keys = stringIndex?.keys.sorted() {
+                for key in keys {
+                    indexes.append(counter)
+                    
+                    if let count = self.stringIndex?[key]?.count {
+                        counts.append(count)
+                        counter += count
+                    }
+
+                    if let values = self.stringIndex?[key] {
+                        for value in values {
+                            strings.append(value)
+                        }
+                    }
+                }
+            }
+            
+            self.strings = strings.count > 0 ? strings : nil
+            self.headerStrings = stringIndex?.keys.sorted()
+            self.counts = counts.count > 0 ? counts : nil
+            self.indexes = indexes.count > 0 ? indexes : nil
+        }
+    }
+    
     var strings:[String]? {
         willSet {
             
@@ -133,7 +167,7 @@ class Section
             } else {
                 indexHeaders = indexHeaders?.sorted()
             }
-
+            
             if indexHeaders?.count == 0 {
                 indexHeaders = nil
                 counts = nil
