@@ -359,7 +359,7 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
         
         loadMediaItems()
         {
-            self.stringPickedCompletion()
+            self.loadCompletion() // stringPickedCompletion()
         }
     }
 }
@@ -1511,7 +1511,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                               firstTitle: "Delete", firstAction:    {
                                                                         globals.history = nil
                                                                         let defaults = UserDefaults.standard
-                                                                        defaults.removeObject(forKey: Constants.HISTORY)
+                                                                        defaults.removeObject(forKey: Constants.SETTINGS.HISTORY)
                                                                         defaults.synchronize()
                                                                     }, firstStyle: .destructive,
                               secondTitle: nil, secondAction: nil, secondStyle: .default,
@@ -1519,7 +1519,113 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Live:
-            performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: self)
+            if  globals.streamEntries?.count > 0, globals.reachability.currentReachabilityStatus != .notReachable, //globals.streamEntries?.count > 0,
+                let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .overCurrentContext
+                
+                navigationController.popoverPresentationController?.delegate = self
+                
+                popover.navigationItem.title = "Live Events"
+                
+                popover.allowsSelection = true
+                
+                // An enhancement to selectively highlight (select)
+                popover.shouldSelect = { (indexPath:IndexPath) -> Bool in
+                    if let keys:[String] = popover.section.stringIndex?.keys.map({ (string:String) -> String in
+                        return string
+                    }).sorted() {
+                        // We have to use sorted() because the order of keys is undefined.
+                        // We are assuming they are presented in sort order in the tableView
+                        return keys[indexPath.section] == "Playing"
+                    }
+                    
+                    return false
+                }
+
+                // An alternative to rowClickedAt
+                popover.didSelect = { (indexPath:IndexPath) -> Void in
+                    if let keys:[String] = popover.section.stringIndex?.keys.map({ (string:String) -> String in
+                        return string
+                    }).sorted() {
+                        // We have to use sorted() because the order of keys is undefined.
+                        // We are assuming they are presented in sort order in the tableView
+                        let key = keys[indexPath.section]
+                        
+                        if key == "Playing" {
+                            if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
+                                self.dismiss(animated: true, completion: nil)
+                            }
+                            if let streamEntry = StreamEntry(globals.streamEntryIndex?[key]?[indexPath.row]) {
+                                self.performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: streamEntry)
+                            }
+                        }
+                    }
+                }
+                
+                popover.search = true
+                
+                popover.refresh = {
+                    popover.section.strings = nil
+                    popover.section.headerStrings = nil
+                    popover.section.counts = nil
+                    popover.section.indexes = nil
+                    
+                    popover.tableView?.reloadData()
+                    
+                    self.loadLive() {
+                        if #available(iOS 10.0, *) {
+                            if let isRefreshing = popover.tableView?.refreshControl?.isRefreshing, isRefreshing {
+                                popover.refreshControl?.endRefreshing()
+                            }
+                        } else {
+                            // Fallback on earlier versions
+                            if popover.isRefreshing {
+                                popover.refreshControl?.endRefreshing()
+                                popover.isRefreshing = false
+                            }
+                        }
+                        
+                        //                                popover.section.strings = globals.streamStrings
+                        popover.section.stringIndex = globals.streamStringIndex
+                        
+                        popover.tableView.reloadData()
+                    }
+                }
+                
+                // These assume the streamEntries have been collected!
+//                popover.section.strings = globals.streamStrings
+//                popover.section.stringIndex = globals.streamStringIndex
+                
+                // This was an experiment - finally sorted out the need to set section.indexes/counts when showIndex is false
+//                popover.stringsFunction = { (Void) -> [String]? in
+//                    self.loadLive(completion: nil)
+//                    return globals.streamStrings
+//                }
+
+                // Makes no sense w/o section.showIndex also being true - UNLESS you're using section.stringIndex
+                popover.section.showHeaders = true
+                
+                present(navigationController, animated: true, completion: {
+                    // This is an alternative to popover.stringsFunction
+                    popover.activityIndicator.isHidden = false
+                    popover.activityIndicator.startAnimating()
+                    
+                    self.loadLive() {
+                        popover.section.stringIndex = globals.streamStringIndex
+                        popover.tableView.reloadData()
+                        
+                        popover.activityIndicator.stopAnimating()
+                        popover.activityIndicator.isHidden = true
+                    }
+
+                    self.presentingVC = navigationController
+                    //                        DispatchQueue.main.async(execute: { () -> Void in
+                    //                            // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+                    //                            navigationController.popoverPresentationController?.passthroughViews = nil
+                    //                        })
+                })
+            }
             break
             
         case Constants.Strings.Settings:
@@ -1554,8 +1660,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.VOICEBASE_API_KEY:
-            let alert = UIAlertController(  title: Constants.VOICEBASE_API_KEY,
+        case Constants.Strings.VoiceBase_API_Key:
+            let alert = UIAlertController(  title: Constants.Strings.VoiceBase_API_Key,
                                             message: nil,
                                             preferredStyle: .alert)
             alert.makeOpaque()
@@ -1578,7 +1684,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             present(alert, animated: true, completion: nil)
             break
             
-        case "VoiceBase Media":
+        case Constants.Strings.VoiceBase_Media:
+            guard globals.reachability.currentReachabilityStatus != .notReachable else {
+                return
+            }
+
             VoiceBase.all(completion:{(json:[String:Any]?) -> Void in
                 self.stringIndex = StringIndex()
 
@@ -1608,6 +1718,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                 
 //                                self.buildInitialList(mediaItems:mediaItems)
                                 self.buildList(mediaItems:mediaItems)
+                                
                                 self.popover?.updateSearchResults()
                                 self.popover?.tableView?.reloadData()
                                 
@@ -1736,7 +1847,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
             loadMediaItems()
             {
-                self.rowClickedCompletion()
+                self.loadCompletion() // rowClickedCompletion()
             }
             break
             
@@ -2561,27 +2672,31 @@ class MediaTableViewController : UIViewController // MediaController
                 showMenu.append(Constants.Strings.History)
                 showMenu.append(Constants.Strings.Clear_History)
             }
-            
-            if let isCollapsed = splitViewController?.isCollapsed {
-                if isCollapsed {
-                    showMenu.append(Constants.Strings.Live)
-                } else {
-                    if  let count = splitViewController?.viewControllers.count,
-                        let detailView = splitViewController?.viewControllers[count - 1] as? UINavigationController,
-                        (detailView.viewControllers[0] as? LiveViewController) == nil {
-                        showMenu.append(Constants.Strings.Live)
-                    }
-                }
-            } else {
-                // SHOULD NEVER HAPPEN
+
+            if globals.streamEntries != nil, globals.reachability.currentReachabilityStatus != .notReachable {
+                showMenu.append(Constants.Strings.Live)
             }
+            
+//            if let isCollapsed = splitViewController?.isCollapsed {
+//                if isCollapsed {
+//                    showMenu.append(Constants.Strings.Live)
+//                } else {
+//                    if  let count = splitViewController?.viewControllers.count,
+//                        let detailView = splitViewController?.viewControllers[count - 1] as? UINavigationController,
+//                        (detailView.viewControllers[0] as? LiveViewController) == nil {
+//                        showMenu.append(Constants.Strings.Live)
+//                    }
+//                }
+//            } else {
+//                // SHOULD NEVER HAPPEN
+//            }
             
             showMenu.append(Constants.Strings.Settings)
             
-            showMenu.append(Constants.VOICEBASE_API_KEY)
+            showMenu.append(Constants.Strings.VoiceBase_API_Key)
             
             if let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable {
-                showMenu.append("VoiceBase Media")
+                showMenu.append(Constants.Strings.VoiceBase_Media)
             }
             
             popover.section.strings = showMenu
@@ -2917,33 +3032,34 @@ class MediaTableViewController : UIViewController // MediaController
 //        }
 //    }
 
-    func jsonFromFileSystem(filename:String?) -> Any?
-    {
-        guard let filename = filename else {
-            return nil
-        }
-
-        guard let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
-            return nil
-        }
-        
-        do {
-            let data = try Data(contentsOf: jsonFileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
-            print("able to read json from the URL.")
-            
-            do {
-                let json = try JSONSerialization.jsonObject(with: data, options: [])
-                return json
-            } catch let error as NSError {
-                NSLog(error.localizedDescription)
-                return nil
-            }
-        } catch let error as NSError {
-            print("Network unavailable: json could not be read from the file system.")
-            NSLog(error.localizedDescription)
-            return nil
-        }
-
+//    func jsonFromFileSystem(filename:String?) -> Any?
+//    {
+//        guard let filename = filename else {
+//            return nil
+//        }
+//
+//        guard let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
+//            return nil
+//        }
+//        
+//        do {
+//            let data = try Data(contentsOf: jsonFileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
+//            print("able to read json from the URL.")
+//            
+//            do {
+//                let json = try JSONSerialization.jsonObject(with: data, options: [])
+//                return json
+//            } catch let error as NSError {
+//                NSLog(error.localizedDescription)
+//                return nil
+//            }
+//        } catch let error as NSError {
+//            print("Network unavailable: json could not be read from the file system.")
+//            NSLog(error.localizedDescription)
+//            return nil
+//        }
+//    }
+//    
 //        do {
 //            let data = try Data(contentsOf: jsonFileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
 //            print("json read from the file system.")
@@ -2967,51 +3083,51 @@ class MediaTableViewController : UIViewController // MediaController
 //            print("Network unavailable: json could not be read from the file system.")
 //            NSLog(error.localizedDescription)
 //        }
-        
-        return nil
-    }
+//        
+//        return nil
+//    }
     
-    func jsonFromURL(url:String,filename:String) -> Any?
-    {
-        guard let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
-            return nil
-        }
-        
-        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-            print("json not reachable.")
-
-//            globals.alert(title:"Network Error",message:"Newtork not available, attempting to load last available media list.")
-
-            return jsonFromFileSystem(filename: filename)
-        }
-        
-        do {
-            let data = try Data(contentsOf: URL(string: url)!) // , options: NSData.ReadingOptions.mappedIfSafe
-            print("able to read json from the URL.")
-
-            do {
-                let json = try JSONSerialization.jsonObject(with: data, options: [])
-
-                do {
-                    try data.write(to: jsonFileSystemURL)//, options: NSData.WritingOptions.atomic)
-                    
-                    print("able to write json to the file system")
-                } catch let error as NSError {
-                    print("unable to write json to the file system.")
-                    
-                    NSLog(error.localizedDescription)
-                }
-                
-                return json
-            } catch let error as NSError {
-                NSLog(error.localizedDescription)
-                return jsonFromFileSystem(filename: filename)
-            }
-        } catch let error as NSError {
-            NSLog(error.localizedDescription)
-            return jsonFromFileSystem(filename: filename)
-        }
-    }
+//    func jsonFromURL(url:String,filename:String) -> Any?
+//    {
+//        guard let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
+//            return nil
+//        }
+//        
+//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//            print("json not reachable.")
+//
+////            globals.alert(title:"Network Error",message:"Newtork not available, attempting to load last available media list.")
+//
+//            return jsonFromFileSystem(filename: filename)
+//        }
+//        
+//        do {
+//            let data = try Data(contentsOf: URL(string: url)!) // , options: NSData.ReadingOptions.mappedIfSafe
+//            print("able to read json from the URL.")
+//
+//            do {
+//                let json = try JSONSerialization.jsonObject(with: data, options: [])
+//
+//                do {
+//                    try data.write(to: jsonFileSystemURL)//, options: NSData.WritingOptions.atomic)
+//                    
+//                    print("able to write json to the file system")
+//                } catch let error as NSError {
+//                    print("unable to write json to the file system.")
+//                    
+//                    NSLog(error.localizedDescription)
+//                }
+//                
+//                return json
+//            } catch let error as NSError {
+//                NSLog(error.localizedDescription)
+//                return jsonFromFileSystem(filename: filename)
+//            }
+//        } catch let error as NSError {
+//            NSLog(error.localizedDescription)
+//            return jsonFromFileSystem(filename: filename)
+//        }
+//    }
     
 //            let json = JSON(data: data)
 //            
@@ -3203,7 +3319,34 @@ class MediaTableViewController : UIViewController // MediaController
         
         return nil
     }
-
+    
+    func loadLive() -> [String:Any]?
+    {
+        return jsonFromURL(url: "https://api.countrysidebible.org/cache/streamEntries.json") as? [String:Any]
+    }
+    
+    func loadLive(completion:((Void)->(Void))?)
+    {
+        DispatchQueue.global(qos: .background).async() {
+            Thread.sleep(forTimeInterval: 0.25)
+        
+            if let liveEvents = jsonFromURL(url: "https://api.countrysidebible.org/cache/streamEntries.json") as? [String:Any] {
+                //            print(liveEvents["streamEntries"] as? [[String:Any]])
+                
+                globals.streamEntries = liveEvents["streamEntries"] as? [[String:Any]]
+                
+                Thread.onMainThread(block: {
+                    completion?()
+                })
+                
+                //            print(globals.streamCategories)
+                
+                //            print(globals.streamSchedule)
+                
+            }
+        }
+    }
+    
     func loadCategories()
     {
         if let categoriesDicts = self.loadJSONDictsFromURL(url: Constants.JSON.URL.CATEGORIES,key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES,filename: Constants.JSON.FILENAME.CATEGORIES) {
@@ -3236,6 +3379,8 @@ class MediaTableViewController : UIViewController // MediaController
                 self.navigationItem.title = Constants.Title.Loading_Media
             }
 
+            self.loadLive(completion: nil)
+            
             switch self.jsonSource {
             case .download:
                 // From Caches Directory
@@ -3267,19 +3412,21 @@ class MediaTableViewController : UIViewController // MediaController
                 // From URL
                 //            print(Constants.JSON_CATEGORY_URL + globals.mediaCategoryID!)
                 
-                if let categoriesDicts = self.loadJSONDictsFromURL(url: Constants.JSON.URL.CATEGORIES,key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES,filename: Constants.JSON.FILENAME.CATEGORIES) {
-                    //                print(categoriesDicts)
-                    
-                    var mediaCategoryDicts = [String:String]()
-                    
-                    for categoriesDict in categoriesDicts {
-                        mediaCategoryDicts[categoriesDict["category_name"]!] = categoriesDict["id"]
-                    }
-                    
-                    globals.mediaCategory.dicts = mediaCategoryDicts
-                    
-                    //                print(globals.mediaCategories)
-                }
+                self.loadCategories()
+                
+//                if let categoriesDicts = self.loadJSONDictsFromURL(url: Constants.JSON.URL.CATEGORIES,key:Constants.JSON.ARRAY_KEY.CATEGORY_ENTRIES,filename: Constants.JSON.FILENAME.CATEGORIES) {
+//                    //                print(categoriesDicts)
+//                    
+//                    var mediaCategoryDicts = [String:String]()
+//                    
+//                    for categoriesDict in categoriesDicts {
+//                        mediaCategoryDicts[categoriesDict["category_name"]!] = categoriesDict["id"]
+//                    }
+//                    
+//                    globals.mediaCategory.dicts = mediaCategoryDicts
+//                    
+//                    //                print(globals.mediaCategories)
+//                }
                 
                 print(globals.mediaCategory.filename as Any)
                 
@@ -3548,7 +3695,7 @@ class MediaTableViewController : UIViewController // MediaController
         case .direct:
             loadMediaItems()
             {
-                self.refreshCompletion()
+                self.loadCompletion() // refreshCompletion()
             }
             break
         }
@@ -3645,51 +3792,158 @@ class MediaTableViewController : UIViewController // MediaController
         view.addSubview(container)
     }
     
-    func stringPickedCompletion()
-    {
-        if globals.mediaRepository.list == nil {
-            self.noMediaAvailable() {_ in
-                if globals.isRefreshing {
-                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                        
-                    })
-                } else {
-                    self.setupListActivityIndicator()
-                }
-            }
-        } else {
-            self.selectedMediaItem = globals.selectedMediaItem.master
-            
-            if globals.search.active && !globals.search.complete {
-                self.updateSearchResults(globals.search.text,completion: {
-                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                        Thread.onMainThread() {
-                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                        }
-                    })
-                })
-            } else {
-                // Reload the table
-                self.tableView?.reloadData()
-                
-                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                    Thread.onMainThread() {
-                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                    }
-                })
-            }
-        }
-        
-        self.setupTitle()
-        self.tableView?.isHidden = false
-        self.logo.isHidden = true // !self.tableView?.isHidden // Don't like it offset, just hide it for now
-    }
+//    func stringPickedCompletion()
+//    {
+//        if globals.mediaRepository.list == nil {
+//            self.noMediaAvailable() {_ in
+//                if globals.isRefreshing {
+//                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+//                        
+//                    })
+//                } else {
+//                    self.setupListActivityIndicator()
+//                }
+//            }
+//        } else {
+//            self.selectedMediaItem = globals.selectedMediaItem.master
+//            
+//            if globals.search.active && !globals.search.complete {
+//                self.updateSearchResults(globals.search.text,completion: {
+//                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+//                        Thread.onMainThread() {
+//                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+//                        }
+//                    })
+//                })
+//            } else {
+//                // Reload the table
+//                self.tableView?.reloadData()
+//                
+//                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+//                    Thread.onMainThread() {
+//                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+//                    }
+//                })
+//            }
+//        }
+//        
+//        self.setupTitle()
+//        self.tableView?.isHidden = false
+//        self.logo.isHidden = true // !self.tableView?.isHidden // Don't like it offset, just hide it for now
+//    }
 
-    func refreshCompletion()
+//    func refreshCompletion()
+//    {
+//        let liveStream = globals.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM)
+//        
+//        if liveStream {
+//            Thread.onMainThread() {
+//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
+//            }
+//        }
+//        
+//        loadCompletion()
+//        
+////        if globals.mediaRepository.list == nil {
+////            self.noMediaAvailable() {_ in
+////                if globals.isRefreshing {
+////                    self.refreshControl?.endRefreshing()
+////                    globals.isRefreshing = false
+////                } else {
+////                    self.setupListActivityIndicator()
+////                }
+////            }
+////        } else {
+////            globals.isRefreshing = false
+////            
+////            self.selectedMediaItem = globals.selectedMediaItem.master
+////            
+////            if globals.search.active && !globals.search.complete {
+////                self.updateSearchResults(globals.search.text,completion: {
+////                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+////                        Thread.onMainThread() {
+////                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+////                        }
+////                    })
+////                })
+////            } else {
+////                // Reload the table
+////                self.tableView?.reloadData()
+////                
+////                if self.selectedMediaItem != nil {
+////                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+////                        Thread.onMainThread() {
+////                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+////                        }
+////                    })
+////                } else {
+////                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+////                        Thread.onMainThread() {
+////                            self.tableView?.scrollToRow(at: IndexPath(row:0,section:0), at: UITableViewScrollPosition.top, animated: false)
+////                        }
+////                    })
+////                }
+////            }
+////        }
+////        
+////        self.setupTitle()
+////        self.tableView?.isHidden = false
+////        self.logo.isHidden = true // !self.tableView?.isHidden // Don't like it offset, just hide it for now
+//    }
+//    
+//    func rowClickedCompletion()
+//    {
+////        let liveStream = globals.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM)
+////        
+////        if globals.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM) {
+////            Thread.onMainThread() {
+////                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
+////            }
+////        }
+//        
+//        loadCompletion()
+//        
+////        if globals.mediaRepository.list == nil {
+////            self.noMediaAvailable() {_ in
+////                if globals.isRefreshing {
+////                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+////                        
+////                    })
+////                } else {
+////                    self.setupListActivityIndicator()
+////                }
+////            }
+////        } else {
+////            self.selectedMediaItem = globals.selectedMediaItem.master
+////            
+////            if globals.search.active && !globals.search.complete {
+////                self.updateSearchResults(globals.search.text,completion: {
+////                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+////                        Thread.onMainThread() {
+////                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+////                        }
+////                    })
+////                })
+////            } else {
+////                // Reload the table
+////                self.tableView?.reloadData()
+////                
+////                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+////                    Thread.onMainThread() {
+////                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+////                    }
+////                })
+////            }
+////        }
+////        
+////        self.setupTitle()
+////        self.tableView?.isHidden = false
+////        self.logo.isHidden = true // !self.tableView?.isHidden // Don't like it offset, just hide it for now
+//    }
+    
+    func loadCompletion()
     {
-        let liveStream = globals.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM)
-        
-        if liveStream {
+        if globals.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM) {
             Thread.onMainThread() {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
             }
@@ -3709,7 +3963,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             self.selectedMediaItem = globals.selectedMediaItem.master
             
-            if globals.search.active && !globals.search.complete {
+            if globals.search.active && !globals.search.complete { // && globals.search.transcripts
                 self.updateSearchResults(globals.search.text,completion: {
                     DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                         Thread.onMainThread() {
@@ -3721,6 +3975,12 @@ class MediaTableViewController : UIViewController // MediaController
                 // Reload the table
                 self.tableView?.reloadData()
                 
+//                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+//                    Thread.onMainThread() {
+//                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+//                    }
+//                })
+
                 if self.selectedMediaItem != nil {
                     DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                         Thread.onMainThread() {
@@ -3734,93 +3994,6 @@ class MediaTableViewController : UIViewController // MediaController
                         }
                     })
                 }
-            }
-        }
-        
-        self.setupTitle()
-        self.tableView?.isHidden = false
-        self.logo.isHidden = true // !self.tableView?.isHidden // Don't like it offset, just hide it for now
-    }
-    
-    func rowClickedCompletion()
-    {
-        let liveStream = globals.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM)
-        
-        if liveStream {
-            Thread.onMainThread() {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
-            }
-        }
-        
-        if globals.mediaRepository.list == nil {
-            self.noMediaAvailable() {_ in
-                if globals.isRefreshing {
-                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                        
-                    })
-                } else {
-                    self.setupListActivityIndicator()
-                }
-            }
-        } else {
-            self.selectedMediaItem = globals.selectedMediaItem.master
-            
-            if globals.search.active && !globals.search.complete {
-                self.updateSearchResults(globals.search.text,completion: {
-                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                        Thread.onMainThread() {
-                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                        }
-                    })
-                })
-            } else {
-                // Reload the table
-                self.tableView?.reloadData()
-                
-                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                    Thread.onMainThread() {
-                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                    }
-                })
-            }
-        }
-        
-        self.setupTitle()
-        self.tableView?.isHidden = false
-        self.logo.isHidden = true // !self.tableView?.isHidden // Don't like it offset, just hide it for now
-    }
-    
-    func loadCompletion()
-    {
-        if globals.mediaRepository.list == nil {
-            self.noMediaAvailable() {_ in
-                if globals.isRefreshing {
-                    self.refreshControl?.endRefreshing()
-                    globals.isRefreshing = false
-                } else {
-                    self.setupListActivityIndicator()
-                }
-            }
-        } else {
-            self.selectedMediaItem = globals.selectedMediaItem.master
-            
-            if globals.search.active && !globals.search.complete { // && globals.search.transcripts
-                self.updateSearchResults(globals.search.text,completion: {
-                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                        Thread.onMainThread() {
-                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                        }
-                    })
-                })
-            } else {
-                // Reload the table
-                self.tableView?.reloadData()
-                
-                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                    Thread.onMainThread() {
-                        self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                    }
-                })
             }
         }
         
@@ -4525,7 +4698,7 @@ class MediaTableViewController : UIViewController // MediaController
     
     func liveView()
     {
-        performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: self)
+        performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: nil)
     }
     
     func playingPaused()
@@ -4542,6 +4715,59 @@ class MediaTableViewController : UIViewController // MediaController
     func stopEditing()
     {
         tableView.isEditing = false
+    }
+    
+    func willEnterForeground()
+    {
+        
+    }
+    
+    func didBecomeActive()
+    {
+        guard globals.mediaRepository.list == nil else {
+            return
+        }
+        
+        tableView.isHidden = true
+        
+        loadMediaItems()
+            {
+                if globals.mediaRepository.list == nil {
+                    let alert = UIAlertController(title: "No media available.",
+                                                  message: "Please check your network connection and try again.",
+                                                  preferredStyle: UIAlertControllerStyle.alert)
+                    
+                    let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
+                        self.setupListActivityIndicator()
+                    })
+                    alert.addAction(action)
+                    
+                    self.present(alert, animated: true, completion: nil)
+                } else {
+                    self.selectedMediaItem = globals.selectedMediaItem.master
+                    
+                    if globals.search.active && !globals.search.complete { // && globals.search.transcripts
+                        self.updateSearchResults(globals.search.text,completion: {
+                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                                DispatchQueue.main.async(execute: { () -> Void in
+                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.middle)
+                                })
+                            })
+                        })
+                    } else {
+                        // Reload the table
+                        self.tableView.reloadData()
+                        
+                        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+                            DispatchQueue.main.async(execute: { () -> Void in
+                                self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.middle)
+                            })
+                        })
+                    }
+                }
+                
+                self.tableView.isHidden = false
+        }
     }
     
     override func viewWillAppear(_ animated: Bool)
@@ -4561,7 +4787,10 @@ class MediaTableViewController : UIViewController // MediaController
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.playingPaused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYING_PAUSED), object: nil)
 
         NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
-
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.willEnterForeground), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_ENTER_FORGROUND), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.didBecomeActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DID_BECOME_ACTIVE), object: nil)
+        
 //        if (self.splitViewController?.viewControllers.count > 1) {
 //            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.setupShowHide), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SHOW_HIDE), object: nil)
 //        }
@@ -4686,6 +4915,16 @@ class MediaTableViewController : UIViewController // MediaController
                 
             case Constants.SEGUE.SHOW_LIVE:
                 globals.mediaPlayer.killPIP = true
+                
+                if sender != nil {
+                    (dvc as? LiveViewController)?.streamEntry = sender as? StreamEntry
+                } else {
+                    let defaults = UserDefaults.standard
+                    if let streamEntry = StreamEntry(defaults.object(forKey: Constants.SETTINGS.LIVE) as? [String:Any]) {
+                        (dvc as? LiveViewController)?.streamEntry = streamEntry
+                    }
+                }
+                
 //                splitViewController?.preferredDisplayMode = .primaryHidden
                 break
                 

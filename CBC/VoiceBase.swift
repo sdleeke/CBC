@@ -382,13 +382,16 @@ extension VoiceBase // Class Methods
             }
             
             if errorOccured {
-                Thread.onMainThread() {
-                    onError?(json)
-                }
+                onError?(json)
+                
+                // Avoid blocking the main thread.
+//                Thread.onMainThread() {
+//                }
             } else {
-                Thread.onMainThread() {
-                    completion?(json)
-                }
+                completion?(json)
+                // Avoid blocking the main thread.
+//                Thread.onMainThread() {
+//                }
             }
         })
         
@@ -2125,10 +2128,14 @@ class VoiceBase {
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
                 }
             } else {
-                globals.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis not available.")
+                if alert {
+                    globals.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis not available.")
+                }
             }
         }, onError: { (json:[String : Any]?) -> (Void) in
-            globals.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis not available.")
+            if alert {
+                globals.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis not available.")
+            }
         })
     }
     

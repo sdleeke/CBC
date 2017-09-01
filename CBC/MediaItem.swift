@@ -1085,7 +1085,7 @@ class MediaItem : NSObject {
         }
     }
 
-    func singleJSONFromURL() -> [String:String]?
+    func singleJSONFromURL() -> [[String:String]]?
     {
         guard globals.reachability.currentReachabilityStatus != .notReachable else {
             return nil
@@ -1096,7 +1096,7 @@ class MediaItem : NSObject {
             
             do {
                 let json = try JSONSerialization.jsonObject(with: data, options: [])
-                return json as? [String:String]
+                return (json as? [String:Any])?["singleEntry"] as? [[String:String]]
             } catch let error as NSError {
                 NSLog(error.localizedDescription)
             }
@@ -1161,7 +1161,7 @@ class MediaItem : NSObject {
             return
         }
         
-        if let mediaItemDict = self.singleJSONFromURL() {
+        if let mediaItemDict = self.singleJSONFromURL()?[0] {
             if var notesHTML = mediaItemDict[Field.notes_HTML] {
                 notesHTML = notesHTML.replacingOccurrences(of: "&rsquo;", with: "'")
                 notesHTML = notesHTML.replacingOccurrences(of: "&rdquo;", with: "\"")

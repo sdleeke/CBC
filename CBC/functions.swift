@@ -305,6 +305,108 @@ func jsonToFileSystemDirectory(key:String)
     }
 }
 
+func jsonFromURL(url:String) -> Any?
+{
+    guard globals.reachability.currentReachabilityStatus != .notReachable else {
+        print("json not reachable.")
+        
+        //            globals.alert(title:"Network Error",message:"Newtork not available, attempting to load last available media list.")
+        
+        return nil
+    }
+    
+    guard let url = URL(string: url) else {
+        return nil
+    }
+    
+    do {
+        let data = try Data(contentsOf: url) // , options: NSData.ReadingOptions.mappedIfSafe
+        print("able to read json from the URL.")
+        
+        do {
+            let json = try JSONSerialization.jsonObject(with: data, options: [])
+            
+            return json
+        } catch let error as NSError {
+            NSLog(error.localizedDescription)
+        }
+    } catch let error as NSError {
+        NSLog(error.localizedDescription)
+    }
+
+    return nil
+}
+
+func jsonFromFileSystem(filename:String?) -> Any?
+{
+    guard let filename = filename else {
+        return nil
+    }
+    
+    guard let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
+        return nil
+    }
+    
+    do {
+        let data = try Data(contentsOf: jsonFileSystemURL) // , options: NSData.ReadingOptions.mappedIfSafe
+        print("able to read json from the URL.")
+        
+        do {
+            let json = try JSONSerialization.jsonObject(with: data, options: [])
+            return json
+        } catch let error as NSError {
+            NSLog(error.localizedDescription)
+            return nil
+        }
+    } catch let error as NSError {
+        print("Network unavailable: json could not be read from the file system.")
+        NSLog(error.localizedDescription)
+        return nil
+    }
+}
+
+func jsonFromURL(url:String,filename:String) -> Any?
+{
+    guard let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
+        return nil
+    }
+    
+    guard globals.reachability.currentReachabilityStatus != .notReachable else {
+        print("json not reachable.")
+        
+        //            globals.alert(title:"Network Error",message:"Newtork not available, attempting to load last available media list.")
+        
+        return jsonFromFileSystem(filename: filename)
+    }
+    
+    do {
+        let data = try Data(contentsOf: URL(string: url)!) // , options: NSData.ReadingOptions.mappedIfSafe
+        print("able to read json from the URL.")
+        
+        do {
+            let json = try JSONSerialization.jsonObject(with: data, options: [])
+            
+            do {
+                try data.write(to: jsonFileSystemURL)//, options: NSData.WritingOptions.atomic)
+                
+                print("able to write json to the file system")
+            } catch let error as NSError {
+                print("unable to write json to the file system.")
+                
+                NSLog(error.localizedDescription)
+            }
+            
+            return json
+        } catch let error as NSError {
+            NSLog(error.localizedDescription)
+            return jsonFromFileSystem(filename: filename)
+        }
+    } catch let error as NSError {
+        NSLog(error.localizedDescription)
+        return jsonFromFileSystem(filename: filename)
+    }
+}
+
 //func jsonDataFromDocumentsDirectory() -> JSON
 //{
 //    jsonToFileSystemDirectory(key:Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES)
@@ -361,6 +463,69 @@ extension Date
         dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
         let d = dateStringFormatter.date(from: string)!
         self = Date(timeInterval:0, since:d)
+    }
+    
+    var ymd : String {
+        get {
+            let dateStringFormatter = DateFormatter()
+            dateStringFormatter.dateFormat = "yyyy-MM-dd"
+            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+            
+            return dateStringFormatter.string(from: self)
+        }
+    }
+    
+    var mdyhm : String {
+        get {
+            let dateStringFormatter = DateFormatter()
+            dateStringFormatter.dateFormat = "MMM d, yyyy 'at' h:mm a"
+            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+            
+            dateStringFormatter.amSymbol = "AM"
+            dateStringFormatter.pmSymbol = "PM"
+            
+            return dateStringFormatter.string(from: self)
+        }
+    }
+    
+    var mdy : String {
+        get {
+            let dateStringFormatter = DateFormatter()
+            dateStringFormatter.dateFormat = "MMM d, yyyy"
+            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+            
+            return dateStringFormatter.string(from: self)
+        }
+    }
+    
+    var year : String {
+        get {
+            let dateStringFormatter = DateFormatter()
+            dateStringFormatter.dateFormat = "yyyy"
+            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+            
+            return dateStringFormatter.string(from: self)
+        }
+    }
+    
+    var month : String {
+        get {
+            let dateStringFormatter = DateFormatter()
+            dateStringFormatter.dateFormat = "MMM"
+            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+            
+            return dateStringFormatter.string(from: self)
+        }
+    }
+    
+    var day : String {
+        get {
+            let dateStringFormatter = DateFormatter()
+            dateStringFormatter.dateFormat = "dd"
+            dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
+            
+            return dateStringFormatter.string(from: self)
+        }
     }
     
     func isNewerThan(_ dateToCompare : Date) -> Bool
@@ -2102,7 +2267,7 @@ func seriesSectionsFromMediaItems(_ mediaItems:[MediaItem]?,withTitles:Bool) -> 
                     if (mediaItem.hasMultipleParts) {
                         return mediaItem.multiPartName!
                     } else {
-                        return withTitles ? mediaItem.title! : Constants.Individual_Media
+                        return withTitles ? mediaItem.title! : Constants.Strings.Individual_Media
                     }
                 })
             )

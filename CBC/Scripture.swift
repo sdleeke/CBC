@@ -316,23 +316,23 @@ class Scripture : NSObject
         booksChaptersVerses = booksAndChaptersAndVerses.data?.count > 0 ? booksAndChaptersAndVerses : nil
     }
     
-    func jsonFromURL(url:String) -> [String:Any]?
-    {
-        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-            return nil
-        }
-        
-        if let data = try? Data(contentsOf: URL(string: url)!) {
-            do {
-                let json = try JSONSerialization.jsonObject(with: data, options: [])
-                return json as? [String:Any]
-            } catch let error as NSError {
-                print(error.localizedDescription)
-            }
-        }
-        
-        return nil
-    }
+//    func jsonFromURL(url:String) -> [String:Any]?
+//    {
+//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//            return nil
+//        }
+//        
+//        if let data = try? Data(contentsOf: URL(string: url)!) {
+//            do {
+//                let json = try JSONSerialization.jsonObject(with: data, options: [])
+//                return json as? [String:Any]
+//            } catch let error as NSError {
+//                print(error.localizedDescription)
+//            }
+//        }
+//        
+//        return nil
+//    }
     
     func loadHTMLVerseFromURL() -> String?
     {
@@ -371,18 +371,18 @@ class Scripture : NSObject
         
         let urlString = Constants.SCRIPTURE_BASE_URL + "\(reference!)&include_marginalia=true".replacingOccurrences(of: " ", with: "%20")
 
-        let json = jsonFromURL(url: urlString)
+        return jsonFromURL(url: urlString) as? [String:Any]
         
-        if let json = json {
-            print(json)
-//            print(json["response"])
-            
-            return json
-        } else {
-            print("could not get json from URL, make sure that URL contains valid json.")
-        }
-        
-        return nil
+//        if let json = json {
+//            print(json)
+////            print(json["response"])
+//            
+//            return json
+//        } else {
+//            print("could not get json from URL, make sure that URL contains valid json.")
+//        }
+//        
+//        return nil
     }
     
     func load() // _ reference:String?

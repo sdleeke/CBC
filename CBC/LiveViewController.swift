@@ -13,6 +13,24 @@ import AVKit
 
 class LiveViewController: UIViewController
 {
+    var streamEntry:StreamEntry?
+    {
+        didSet {
+            let defaults = UserDefaults.standard
+            if streamEntry != nil {
+                if (streamEntry?.dict != nil) {
+                    defaults.set(streamEntry?.dict,forKey: Constants.SETTINGS.LIVE)
+                } else {
+                    //Should not happen
+                    defaults.removeObject(forKey: Constants.SETTINGS.LIVE)
+                }
+            } else {
+                defaults.removeObject(forKey: Constants.SETTINGS.LIVE)
+            }
+            defaults.synchronize()
+        }
+    }
+    
     override var canBecomeFirstResponder : Bool {
         return true //let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed //splitViewController == nil
     }
@@ -97,6 +115,8 @@ class LiveViewController: UIViewController
 
         navigationController?.isToolbarHidden = true
         
+        navigationItem.title = streamEntry?.name
+        
         deviceOrientationDidChange()
     }
     
@@ -180,44 +200,46 @@ class LiveViewController: UIViewController
         
         textView.sizeToFit()
         
-        if (globals.mediaPlayer.view != nil) {
-            let view = globals.mediaPlayer.view
+        guard (globals.mediaPlayer.view != nil) else {
+            return
+        }
+        
+        let view = globals.mediaPlayer.view
 
-            view?.gestureRecognizers = nil
-            let pan = UIPanGestureRecognizer(target: self, action: #selector(LiveViewController.showHideNotice(_:)))
-            view?.addGestureRecognizer(pan)
-            
-            view?.isHidden = true
-            view?.removeFromSuperview()
-            
-            view?.frame = webView.bounds
-            
-            view?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
-            
-            webView.addSubview(view!)
-            
-            let centerX = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
-            webView.addConstraint(centerX)
-            
-            let centerY = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-            webView.addConstraint(centerY)
-            
-            let width = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: view!.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
-            webView.addConstraint(width)
-            
-            let height = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: view!.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
-            webView.addConstraint(height)
+        view?.gestureRecognizers = nil
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(LiveViewController.showHideNotice(_:)))
+        view?.addGestureRecognizer(pan)
+        
+        view?.isHidden = true
+        view?.removeFromSuperview()
+        
+        view?.frame = webView.bounds
+        
+        view?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+        
+        webView.addSubview(view!)
+        
+        let centerX = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
+        webView.addConstraint(centerX)
+        
+        let centerY = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+        webView.addConstraint(centerY)
+        
+        let width = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: view!.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
+        webView.addConstraint(width)
+        
+        let height = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: view!.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
+        webView.addConstraint(height)
 
-            webView!.setNeedsLayout()
+        webView!.setNeedsLayout()
 
-            webView.bringSubview(toFront: view!)
+        webView.bringSubview(toFront: view!)
 
-            view?.isHidden = false
+        view?.isHidden = false
 
-            DispatchQueue.global(qos: .background).async {
-                Thread.sleep(forTimeInterval: 0.1)
-                globals.mediaPlayer.play()
-            }
+        DispatchQueue.global(qos: .background).async {
+            Thread.sleep(forTimeInterval: 0.1)
+            globals.mediaPlayer.play()
         }
     }
 }

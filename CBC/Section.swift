@@ -98,7 +98,16 @@ class Section
             
         }
         didSet {
+            guard strings != nil else {
+                self.counts = nil
+                self.indexes = nil
+                self.headerStrings = nil
+                return
+            }
+
             guard showIndex else {
+                self.counts = [strings!.count]
+                self.indexes = [0]
                 return
             }
             

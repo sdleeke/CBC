@@ -709,6 +709,9 @@ class PopoverTableViewController : UIViewController
     var allowsSelection:Bool = true
     var allowsMultipleSelection:Bool = false
     
+    var shouldSelect:((IndexPath)->Bool)?
+    var didSelect:((IndexPath)->Void)?
+    
     var mediaListGroupSort:MediaListGroupSort?
     
     var indexStringsTransform:((String?)->String?)? = stringWithoutPrefixes {
@@ -1850,10 +1853,76 @@ extension PopoverTableViewController : UITableViewDataSource
             return cell
         }
         
-        var string:String!
+        guard let string = section.strings?[index] else {
+            print("ERROR")
+            return cell
+        }
         
-        string = section.strings?[index]
-
+        if search, searchActive, let searchText = searchText?.lowercased(), string.lowercased().contains(searchText) {
+            var titleString = NSMutableAttributedString()
+            
+            let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
+            var before:String?
+            var during:String?
+            var after:String?
+            
+            var range = string.lowercased().range(of: searchText.lowercased())
+            
+            repeat {
+                if let range = range {
+                    before = string.substring(to: range.lowerBound)
+                    during = string.substring(with: range)
+                    after = string.substring(from: range.upperBound)
+                    
+                    titleString = NSMutableAttributedString()
+                    
+                    if let before = before {
+                        titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
+                    }
+                    if let during = during {
+                        titleString.append(NSAttributedString(string: during,   attributes: Constants.Fonts.Attributes.highlighted))
+                    }
+                    if let after = after {
+                        titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
+                    }
+                } else {
+                    break
+                }
+                
+                if wholeWordsOnly {
+                    if let beforeEmpty = before?.isEmpty, beforeEmpty, let afterEmpty = after?.isEmpty, afterEmpty {
+                        break
+                    }
+                    
+                    if let characterBefore:Character = before?.characters.last, let characterAfter:Character = after?.characters.first {
+                        if CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterBefore))!) &&
+                            CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterAfter))!) {
+                            break
+                        }
+                    }
+                    
+                    if let after = after, !after.isEmpty {
+                        range = string.range(of: searchText, options: String.CompareOptions.caseInsensitive, range: string.range(of: after), locale: NSLocale.current)
+                    } else {
+                        break
+                    }
+                } else {
+                    break
+                }
+            } while after != nil ? after!.contains(searchText) : false
+            
+            cell.title.text = string
+            cell.title.attributedText = titleString
+        } else {
+            cell.title.text = string
+            cell.title.attributedText = NSAttributedString(string:string,attributes:Constants.Fonts.Attributes.normal)
+        }
+        
+        guard purpose != nil else {
+            cell.accessoryType = UITableViewCellAccessoryType.none
+            return cell
+        }
+        
         // Configure the cell...
         switch purpose! {
         case .selectingTags:
@@ -1935,72 +2004,6 @@ extension PopoverTableViewController : UITableViewDataSource
         //        print(strings)
         
         //        if let active = self.searchController?.isActive, active {
-        if (index >= 0) && (index < section.strings?.count) {
-            if let title = section.strings?[index] {
-                if search, searchActive, let searchText = searchText?.lowercased(), title.lowercased().contains(searchText) {
-                    let string = title //.lowercased()
-                    
-                    var titleString = NSMutableAttributedString()
-                    
-                    let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
-                    var before:String?
-                    var during:String?
-                    var after:String?
-                    
-                    var range = string.lowercased().range(of: searchText.lowercased())
-                    
-                    repeat {
-                        if let range = range {
-                            before = string.substring(to: range.lowerBound)
-                            during = string.substring(with: range)
-                            after = string.substring(from: range.upperBound)
-                            
-                            titleString = NSMutableAttributedString()
-                            
-                            if let before = before {
-                                titleString.append(NSAttributedString(string: before,   attributes: Constants.Fonts.Attributes.normal))
-                            }
-                            if let during = during {
-                                titleString.append(NSAttributedString(string: during,   attributes: Constants.Fonts.Attributes.highlighted))
-                            }
-                            if let after = after {
-                                titleString.append(NSAttributedString(string: after,   attributes: Constants.Fonts.Attributes.normal))
-                            }
-                        } else {
-                            break
-                        }
-                        
-                        if wholeWordsOnly {
-                            if let beforeEmpty = before?.isEmpty, beforeEmpty, let afterEmpty = after?.isEmpty, afterEmpty {
-                                break
-                            }
-
-                            if let characterBefore:Character = before?.characters.last, let characterAfter:Character = after?.characters.first {
-                                if CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterBefore))!) &&
-                                   CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterAfter))!) {
-                                    break
-                                }
-                            }
-                            
-                            if let after = after, !after.isEmpty {
-                                range = string.range(of: searchText, options: String.CompareOptions.caseInsensitive, range: string.range(of: after), locale: NSLocale.current)
-                            } else {
-                                break
-                            }
-                        } else {
-                            break
-                        }
-                    } while string.contains(searchText)
-
-                    cell.title.text = title
-                    cell.title.attributedText = titleString
-                } else {
-                    cell.title.text = title
-                    cell.title.attributedText = NSAttributedString(string:title,attributes:Constants.Fonts.Attributes.normal)
-                }
-            }
-        }
-        
         //        print("CELL:",cell.title.text)
         
         return cell
@@ -2151,6 +2154,14 @@ extension PopoverTableViewController : UITableViewDelegate
             return false
         }
         
+        guard shouldSelect == nil else {
+            if let shouldSelect = shouldSelect?(indexPath) {
+                return shouldSelect
+            }
+            
+            return false
+        }
+        
 //        if let keys = self.stringsAny?.keys.sorted().map({ (string:String) -> String in
 //            return string
 //        }) {
@@ -2183,12 +2194,17 @@ extension PopoverTableViewController : UITableViewDelegate
             return false
         }
         
-        return true
+        return allowsSelection
     }
     
     func tableView(_ TableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
         guard Thread.isMainThread else {
+            return
+        }
+        
+        guard didSelect == nil else {
+            didSelect?(indexPath)
             return
         }
         
