@@ -1605,16 +1605,28 @@ extension ScriptureIndexViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        return editActionsAtIndexPath(tableView, indexPath: indexPath) != nil
-    }
-    
-    func editActionsAtIndexPath(_ tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
-    {
-        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-            return nil
+        var mediaItem : MediaItem?
+        
+        if let _ = scriptureIndex?.selectedBook {
+            //            print(scriptureIndex?.selectedBook)
+            mediaItem = mediaItems?[indexPath.row]
+        } else {
+            if let sectionTitle = sectionTitles?[indexPath.section] {
+                mediaItem = sections?[sectionTitle]?[indexPath.row]
+            }
         }
         
-        guard let mediaItem = cell.mediaItem else {
+        return editActions(cell: nil, mediaItem: mediaItem) != nil
+    }
+    
+    func editActions(cell: MediaTableViewCell?, mediaItem:MediaItem?) -> [UITableViewRowAction]?
+    {
+        // causes recursive call to cellForRowAt
+//        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+//            return nil
+//        }
+        
+        guard let mediaItem = mediaItem else {
             return nil
         }
         
@@ -1624,8 +1636,8 @@ extension ScriptureIndexViewController : UITableViewDelegate
         var scripture:UITableViewRowAction!
         
         transcript = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
-            let sourceView = cell.subviews[0]
-            let sourceRectView = cell.subviews[0].subviews[actions.index(of: transcript)!]
+            let sourceView = cell?.subviews[0]
+            let sourceRectView = cell?.subviews[0].subviews[actions.index(of: transcript)!]
             
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
@@ -1650,8 +1662,8 @@ extension ScriptureIndexViewController : UITableViewDelegate
         transcript.backgroundColor = UIColor.purple
         
         scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
-            let sourceView = cell.subviews[0]
-            let sourceRectView = cell.subviews[0].subviews[actions.index(of: scripture)!]
+            let sourceView = cell?.subviews[0]
+            let sourceRectView = cell?.subviews[0].subviews[actions.index(of: scripture)!]
             
             if let reference = mediaItem.scriptureReference {
                 if mediaItem.scripture?.html?[reference] != nil {
@@ -1690,7 +1702,11 @@ extension ScriptureIndexViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
-        return editActionsAtIndexPath(tableView, indexPath: indexPath)
+        if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
+            return editActions(cell: cell, mediaItem: cell.mediaItem)
+        }
+        
+        return nil
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)

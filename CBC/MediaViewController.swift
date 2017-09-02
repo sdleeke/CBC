@@ -4716,16 +4716,17 @@ extension MediaViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        return actionsAtIndexPath(tableView,indexPath:indexPath) != nil
+        return editActions(cell: nil,mediaItem:mediaItems?[indexPath.row]) != nil
     }
 
-    func actionsAtIndexPath(_ tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
+    func editActions(cell: MediaTableViewCell?,mediaItem:MediaItem?) -> [UITableViewRowAction]?
     {
-        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-            return nil
-        }
+        // Causes recursive call to cellForRowAt
+//        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+//            return nil
+//        }
         
-        guard let mediaItem = cell.mediaItem else {
+        guard let mediaItem = mediaItem else {
             return nil
         }
         
@@ -4740,8 +4741,8 @@ extension MediaViewController : UITableViewDataSource
         var topics:UITableViewRowAction!
         
         transcript = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
-            let sourceView = cell.subviews[0]
-            let sourceRectView = cell.subviews[0].subviews[actions.index(of: transcript)!]
+            let sourceView = cell?.subviews[0]
+            let sourceRectView = cell?.subviews[0].subviews[actions.index(of: transcript)!]
             
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
@@ -4773,8 +4774,8 @@ extension MediaViewController : UITableViewDataSource
         recognizeVideo = mediaItem.videoTranscript?.recognizeRowActions(viewController: self, tableView: tableView) // recognizeTVTRA(transcript: mediaItem.videoTranscript)
         
         scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
-            let sourceView = cell.subviews[0]
-            let sourceRectView = cell.subviews[0].subviews[actions.index(of: scripture)!]
+            let sourceView = cell?.subviews[0]
+            let sourceRectView = cell?.subviews[0].subviews[actions.index(of: scripture)!]
             
             if let reference = mediaItem.scriptureReference {
                 if mediaItem.scripture?.html?[reference] != nil {
@@ -4811,17 +4812,16 @@ extension MediaViewController : UITableViewDataSource
         videoKeywords.backgroundColor = UIColor.brown
         
         topics = UITableViewRowAction(style: .normal, title: Constants.FA.LIST) { action, index in
-            let sourceView = cell.subviews[0]
-            let sourceRectView = cell.subviews[0].subviews[actions.index(of: topics)!]
-            
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 navigationController.modalPresentationStyle = .overCurrentContext
                 
                 navigationController.popoverPresentationController?.delegate = self
                 
-                navigationController.popoverPresentationController?.sourceView = sourceView
-                navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
+                if let cell = cell {
+                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: topics)!].frame
+                }
                 
                 popover.navigationController?.isNavigationBarHidden = false
                 
@@ -4904,7 +4904,11 @@ extension MediaViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
-        return actionsAtIndexPath(tableView, indexPath: indexPath)
+        if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
+            return editActions(cell: cell, mediaItem: cell.mediaItem)
+        }
+        
+        return nil
     }
 
     /*

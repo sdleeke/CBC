@@ -430,7 +430,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             searchIndex = self.stringIndex
         }
             
-        guard let keys = searchIndex?.keys?.sorted() else {
+        guard let keys = searchIndex?.keys?.sorted(), indexPath.section < keys.count else {
             return nil
         }
         
@@ -696,11 +696,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     }).count == 1
                 }).first {
                     let mediaItemRowAction = UITableViewRowAction(style: .normal, title: Constants.FA.BOOKMARK) { rowAction, indexPath in
-                        if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
-                            self.dismiss(animated: true, completion: nil)
-                        } else {
-                            //                                                self.popover?.tableView.isEditing = false
-                        }
+                        self.dismiss(animated: true, completion: nil)
                         self.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)
                     }
                     mediaItemRowAction.backgroundColor = UIColor.controlBlue()
@@ -5425,7 +5421,21 @@ extension MediaTableViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        return true // actionsAtIndexPath(tableView, indexPath: indexPath) != nil <- This casues a recursive loop on cellForRowAt indexPath
+        var mediaItem : MediaItem?
+        
+        if (globals.display.section.indexes != nil) && (globals.display.mediaItems != nil) {
+            if indexPath.section >= 0, indexPath.section < globals.display.section.indexes!.count {
+                if let section = globals.display.section.indexes?[indexPath.section] {
+                    if (section + indexPath.row) >= 0,(section + indexPath.row) < globals.display.mediaItems!.count {
+                        mediaItem = globals.display.mediaItems?[section + indexPath.row]
+                    }
+                } else {
+                    print("No mediaItem for cell!")
+                }
+            }
+        }
+
+        return editActions(cell: nil, mediaItem: mediaItem) != nil
     }
     
 //    func authentication()
@@ -5449,31 +5459,18 @@ extension MediaTableViewController : UITableViewDelegate
 //        task.resume()
 //    }
 
-    func actionsAtIndexPath(_ tableView: UITableView, indexPath:IndexPath) -> [UITableViewRowAction]?
+    func editActions(cell: MediaTableViewCell?, mediaItem:MediaItem?) -> [UITableViewRowAction]?
     {
         guard Thread.isMainThread else {
             return nil
         }
 
-        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
-            return nil
-        }
-        
-//        var mediaItem : MediaItem!
-//        
-//        if (globals.display.section.indexes != nil) && (globals.display.mediaItems != nil) {
-//            if indexPath.section >= 0, indexPath.section < globals.display.section.indexes!.count {
-//                if let section = globals.display.section.indexes?[indexPath.section] {
-//                    if (section + indexPath.row) >= 0,(section + indexPath.row) < globals.display.mediaItems!.count {
-//                        mediaItem = globals.display.mediaItems?[section + indexPath.row]
-//                    }
-//                } else {
-//                    print("No mediaItem for cell!")
-//                }
-//            }
+        // This casues a recursive loop on cellForRowAt indexPath
+//        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+//            return nil
 //        }
-
-        guard let mediaItem = cell.mediaItem else {
+        
+        guard let mediaItem = mediaItem else {
             return nil
         }
         
@@ -5498,8 +5495,10 @@ extension MediaTableViewController : UITableViewDelegate
                 navigationController.popoverPresentationController?.permittedArrowDirections = .any
                 navigationController.popoverPresentationController?.delegate = self
                 
-                navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
-                navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: search)!].frame
+                if let cell = cell {
+                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: search)!].frame
+                }
                 
                 popover.navigationItem.title = Constants.Strings.Search
                 
@@ -5547,8 +5546,10 @@ extension MediaTableViewController : UITableViewDelegate
                 navigationController.popoverPresentationController?.permittedArrowDirections = .any // [.up,.down]
                 navigationController.popoverPresentationController?.delegate = self
                 
-                navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
-                navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: words)!].frame
+                if let cell = cell {
+                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: words)!].frame
+                }
                 
                 popover.navigationItem.title = Constants.Strings.Search
                 
@@ -5621,8 +5622,8 @@ extension MediaTableViewController : UITableViewDelegate
         words.backgroundColor = UIColor.blue
         
         transcript = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
-            let sourceView = cell.subviews[0]
-            let sourceRectView = cell.subviews[0].subviews[actions.index(of: transcript)!]
+            let sourceView = cell?.subviews[0]
+            let sourceRectView = cell?.subviews[0].subviews[actions.index(of: transcript)!]
             
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
@@ -5664,8 +5665,8 @@ extension MediaTableViewController : UITableViewDelegate
         recognizeVideo = mediaItem.videoTranscript?.recognizeRowActions(viewController:self,tableView:tableView) // recognizeTVTRA(transcript: mediaItem.videoTranscript)
         
         scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
-            let sourceView = cell.subviews[0]
-            let sourceRectView = cell.subviews[0].subviews[actions.index(of: scripture)!]
+            let sourceView = cell?.subviews[0]
+            let sourceRectView = cell?.subviews[0].subviews[actions.index(of: scripture)!]
             
             if let reference = mediaItem.scriptureReference {
                 //                mediaItem.scripture?.html?[reference] = nil // REMOVE THIS LATER
@@ -5741,7 +5742,11 @@ extension MediaTableViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
-        return actionsAtIndexPath(tableView, indexPath: indexPath)
+        if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
+            return editActions(cell: cell, mediaItem: cell.mediaItem)
+        }
+        
+        return nil
     }
     
     /*

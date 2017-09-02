@@ -1217,22 +1217,43 @@ extension LexiconIndexViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        return editActionsForIndexPath(tableView,indexPath: indexPath) != nil
+        var mediaItem : MediaItem?
+        
+        if (indexPath.section >= 0) && (indexPath.section < results?.section?.indexes?.count) {
+            if let section = results?.section?.indexes?[indexPath.section] {
+                if (section + indexPath.row) >= 0, (section + indexPath.row) < results?.mediaItems?.count {
+                    mediaItem = results?.mediaItems?[section + indexPath.row]
+                }
+            } else {
+                print("No mediaItem for cell!")
+            }
+        }
+
+        return editActions(cell: nil,mediaItem: mediaItem) != nil
     }
     
-    func editActionsForIndexPath(_ tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
+    func editActions(cell:MediaTableViewCell?,mediaItem:MediaItem?) -> [UITableViewRowAction]?
     {
-        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+        // causes recursive call to cellForRow 
+//        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+//            return nil
+//        }
+        
+//        guard let mediaItem = cell.mediaItem else {
+//            return nil
+//        }
+        
+//        guard let searchText = cell?.searchText else {
+//            return nil
+//        }
+        
+        guard let mediaItem = mediaItem else {
             return nil
         }
         
-        guard let mediaItem = cell.mediaItem else {
-            return nil
-        }
+//        let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell
         
-        guard let searchText = cell.searchText else {
-            return nil
-        }
+        let searchText = cell?.searchText
         
         var actions = [UITableViewRowAction]()
         
@@ -1240,8 +1261,8 @@ extension LexiconIndexViewController : UITableViewDelegate
         var scripture:UITableViewRowAction!
         
         transcript = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
-            let sourceView = cell.subviews[0]
-            let sourceRectView = cell.subviews[0].subviews[actions.index(of: transcript)!]
+            let sourceView = cell?.subviews[0]
+            let sourceRectView = cell?.subviews[0].subviews[actions.index(of: transcript)!]
             
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
@@ -1267,8 +1288,8 @@ extension LexiconIndexViewController : UITableViewDelegate
         transcript.backgroundColor = UIColor.purple
         
         scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
-            let sourceView = cell.subviews[0]
-            let sourceRectView = cell.subviews[0].subviews[actions.index(of: scripture)!]
+            let sourceView = cell?.subviews[0]
+            let sourceRectView = cell?.subviews[0].subviews[actions.index(of: scripture)!]
             
             if let reference = mediaItem.scriptureReference {
                 if mediaItem.scripture?.html?[reference] != nil {
@@ -1308,7 +1329,11 @@ extension LexiconIndexViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
-        return editActionsForIndexPath(tableView, indexPath: indexPath)
+        if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
+            return editActions(cell: cell, mediaItem: cell.mediaItem)
+        }
+        
+        return nil
     }
 }
 
