@@ -596,9 +596,9 @@ class VoiceBase {
             return "ERROR no mediaItem"
         }
         
-        guard let purpose = purpose else {
-            return "ERROR no purpose"
-        }
+//        guard let purpose = purpose else {
+//            return "ERROR no purpose"
+//        }
         
         guard mediaItem.id != nil else {
             return "ERROR no mediaItem.id"

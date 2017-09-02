@@ -1332,6 +1332,8 @@ class PopoverTableViewController : UIViewController
     {
         super.viewWillDisappear(animated)
 
+        mask = false
+        
         NotificationCenter.default.removeObserver(self)
         
         trackingTimer?.invalidate()
@@ -1611,10 +1613,37 @@ class PopoverTableViewController : UIViewController
         dismiss(animated: true, completion: nil)
     }
     
+    var mask = false
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
 
+        if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
+            var vc : UIViewController?
+            
+            if presentingViewController == globals.splitViewController?.viewControllers[0] {
+                vc = globals.splitViewController!.viewControllers[1]
+            }
+            
+            if presentingViewController == globals.splitViewController?.viewControllers[1] {
+                vc = globals.splitViewController!.viewControllers[0]
+            }
+            
+            mask = true
+            
+            if let vc = vc {
+                process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ (Void) -> Any? in
+                    while self.mask {
+                        Thread.sleep(forTimeInterval: 0.1)
+                    }
+                    return nil
+                },completion:{ (data:Any?) -> Void in
+                    
+                })
+            }
+        }
+        
         orientation = UIDevice.current.orientation
         
         if searchActive {

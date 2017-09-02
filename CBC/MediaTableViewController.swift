@@ -1526,7 +1526,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
                 navigationController.popoverPresentationController?.delegate = self
                 
-                popover.navigationItem.title = "Live Events"
+                popover.navigationItem.title = Constants.Strings.Live_Events
                 
                 popover.allowsSelection = true
                 
@@ -1537,7 +1537,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     }).sorted() {
                         // We have to use sorted() because the order of keys is undefined.
                         // We are assuming they are presented in sort order in the tableView
-                        return keys[indexPath.section] == "Playing"
+                        return keys[indexPath.section] == Constants.Strings.Playing
                     }
                     
                     return false
@@ -1552,10 +1552,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         // We are assuming they are presented in sort order in the tableView
                         let key = keys[indexPath.section]
                         
-                        if key == "Playing" {
-                            if let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed {
-                                self.dismiss(animated: true, completion: nil)
-                            }
+                        if key == Constants.Strings.Playing {
+                            self.dismiss(animated: true, completion: nil)
+
                             if let streamEntry = StreamEntry(globals.streamEntryIndex?[key]?[indexPath.row]) {
                                 self.performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: streamEntry)
                             }
@@ -1688,101 +1687,199 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             guard globals.reachability.currentReachabilityStatus != .notReachable else {
                 return
             }
-
-            VoiceBase.all(completion:{(json:[String:Any]?) -> Void in
-                self.stringIndex = StringIndex()
-
-                guard let mediaItems = json?["media"] as? [[String:Any]] else {
-                    return
-                }
-
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
-                    DispatchQueue.global(qos: .userInitiated).async {
-                        self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
-                        
-                        self.popover?.refresh = {
-                            self.popover?.section.strings = nil
-                            self.popover?.section.headerStrings = nil
-                            self.popover?.section.counts = nil
-                            self.popover?.section.indexes = nil
-                            
-                            self.popover?.tableView?.reloadData()
-
-                            VoiceBase.all(completion:{(json:[String:Any]?) -> Void in
-                                guard let mediaItems = json?["media"] as? [[String:Any]] else {
-                                    return
-                                }
-                                
-                                // Begin by separating media into what was created on this device and what was created on something else.
-                                self.stringIndex = StringIndex()
-                                
-//                                self.buildInitialList(mediaItems:mediaItems)
-                                self.buildList(mediaItems:mediaItems)
-                                
-                                self.popover?.updateSearchResults()
-                                self.popover?.tableView?.reloadData()
-                                
-//                                // Start over and get specific devices
-//                                self.processFirst(mediaItems:mediaItems)
-
-                                if #available(iOS 10.0, *) {
-                                    if let isRefreshing = self.popover?.tableView?.refreshControl?.isRefreshing, isRefreshing {
-                                        self.popover?.refreshControl?.endRefreshing()
-                                    }
-                                } else {
-                                    // Fallback on earlier versions
-                                    if let isRefreshing = self.popover?.isRefreshing, isRefreshing {
-                                        self.popover?.refreshControl?.endRefreshing()
-                                        self.popover?.isRefreshing = false
-                                    }
-                                }
-                            },onError: nil)
+            
+            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
+                navigationController.modalPresentationStyle = .overCurrentContext
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.barButtonItem = self.showButton
+                
+                self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
+                
+                self.deleteButton = UIBarButtonItem(title: "Delete All", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.deleteAllMedia))
+                //                    deleteButton.setTitleTextAttributes(Constants.Fonts.Attributes.destructive, for: UIControlState.normal)
+                
+                self.popover?.navigationItem.leftBarButtonItem = self.deleteButton
+                //                            self.deleteButton?.isEnabled = false
+                
+                self.popover?.navigationItem.title = Constants.Strings.VoiceBase_Media
+                
+                self.popover?.refresh = {
+                    self.popover?.section.strings = nil
+                    self.popover?.section.headerStrings = nil
+                    self.popover?.section.counts = nil
+                    self.popover?.section.indexes = nil
+                    
+                    self.popover?.tableView?.reloadData()
+                    
+                    VoiceBase.all(completion:{(json:[String:Any]?) -> Void in
+                        guard let mediaItems = json?["media"] as? [[String:Any]] else {
+                            return
                         }
                         
-                        self.popover?.editActionsAtIndexPath = self.rowActions
+                        // Begin by separating media into what was created on this device and what was created on something else.
+                        self.stringIndex = StringIndex()
                         
-                        self.popover?.delegate = self
-                        self.popover?.purpose = .showingVoiceBaseMediaItems
-                        self.popover?.allowsSelection = false
-                        
-                        self.popover?.section.showHeaders = true
-                        
-                        self.popover?.search = true
-                        
-                        self.popover?.vc = self.splitViewController
-                        
-//                        self.buildInitialList(mediaItems:mediaItems)
+                        //                                self.buildInitialList(mediaItems:mediaItems)
                         self.buildList(mediaItems:mediaItems)
                         
-                        Thread.onMainThread() {
-                            navigationController.modalPresentationStyle = .overCurrentContext
-                            
-                            navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                            navigationController.popoverPresentationController?.delegate = self
-                            
-                            navigationController.popoverPresentationController?.barButtonItem = self.showButton
-                            
-                            self.deleteButton = UIBarButtonItem(title: "Delete All", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.deleteAllMedia))
-                            //                    deleteButton.setTitleTextAttributes(Constants.Fonts.Attributes.destructive, for: UIControlState.normal)
-                            
-                            self.popover?.navigationItem.leftBarButtonItem = self.deleteButton
-//                            self.deleteButton?.isEnabled = false
-                            
-                            self.popover?.navigationItem.title = "VoiceBase Media"
-                            
-                            //                    popover.popoverPresentationController?.passthroughViews = [globals.splitViewController.view!]
-                            
-                            self.present(navigationController, animated: true, completion: {
-    //                            self.popover?.activityIndicator.startAnimating()
-                                self.presentingVC = navigationController
-                            })
+                        self.popover?.updateSearchResults()
+                        self.popover?.tableView?.reloadData()
+                        
+                        //                                // Start over and get specific devices
+                        //                                self.processFirst(mediaItems:mediaItems)
+                        
+                        if #available(iOS 10.0, *) {
+                            if let isRefreshing = self.popover?.tableView?.refreshControl?.isRefreshing, isRefreshing {
+                                self.popover?.refreshControl?.endRefreshing()
+                            }
+                        } else {
+                            // Fallback on earlier versions
+                            if let isRefreshing = self.popover?.isRefreshing, isRefreshing {
+                                self.popover?.refreshControl?.endRefreshing()
+                                self.popover?.isRefreshing = false
+                            }
+                        }
+                    },onError: nil)
+                }
+                
+                self.popover?.editActionsAtIndexPath = self.rowActions
+                
+                self.popover?.delegate = self
+                self.popover?.purpose = .showingVoiceBaseMediaItems
+                self.popover?.allowsSelection = false
+                
+                self.popover?.section.showHeaders = true
+                
+                self.popover?.search = true
+                
+                self.popover?.vc = self.splitViewController
+                
+                //                    popover.popoverPresentationController?.passthroughViews = [globals.splitViewController.view!]
+                
+                self.present(navigationController, animated: true, completion: {
+                    self.popover?.activityIndicator.startAnimating()
+                    
+                    VoiceBase.all(completion:{(json:[String:Any]?) -> Void in
+                        guard let mediaItems = json?["media"] as? [[String:Any]] else {
+                            return
                         }
                         
-                        // Start over and get specific devices
-//                        self.processFirst(mediaItems:mediaItems)
-                    }
-                }
-            }, onError: nil)
+                        // Begin by separating media into what was created on this device and what was created on something else.
+                        self.stringIndex = StringIndex()
+                        
+                        //                                self.buildInitialList(mediaItems:mediaItems)
+                        self.buildList(mediaItems:mediaItems)
+                        
+                        self.popover?.updateSearchResults()
+                        
+                        Thread.onMainThread(block: { (Void) -> (Void) in
+                            self.popover?.tableView?.reloadData()
+                            self.popover?.activityIndicator.stopAnimating()
+                        })
+                    },onError: nil)
+                    
+                    self.presentingVC = navigationController
+                })
+            }
+
+
+//            VoiceBase.all(completion:{(json:[String:Any]?) -> Void in
+//                self.stringIndex = StringIndex()
+//
+//                guard let mediaItems = json?["media"] as? [[String:Any]] else {
+//                    return
+//                }
+//
+//                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
+//                    DispatchQueue.global(qos: .userInitiated).async {
+//                        self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
+//                        
+//                        self.popover?.refresh = {
+//                            self.popover?.section.strings = nil
+//                            self.popover?.section.headerStrings = nil
+//                            self.popover?.section.counts = nil
+//                            self.popover?.section.indexes = nil
+//                            
+//                            self.popover?.tableView?.reloadData()
+//
+//                            VoiceBase.all(completion:{(json:[String:Any]?) -> Void in
+//                                guard let mediaItems = json?["media"] as? [[String:Any]] else {
+//                                    return
+//                                }
+//                                
+//                                // Begin by separating media into what was created on this device and what was created on something else.
+//                                self.stringIndex = StringIndex()
+//                                
+////                                self.buildInitialList(mediaItems:mediaItems)
+//                                self.buildList(mediaItems:mediaItems)
+//                                
+//                                self.popover?.updateSearchResults()
+//                                self.popover?.tableView?.reloadData()
+//                                
+////                                // Start over and get specific devices
+////                                self.processFirst(mediaItems:mediaItems)
+//
+//                                if #available(iOS 10.0, *) {
+//                                    if let isRefreshing = self.popover?.tableView?.refreshControl?.isRefreshing, isRefreshing {
+//                                        self.popover?.refreshControl?.endRefreshing()
+//                                    }
+//                                } else {
+//                                    // Fallback on earlier versions
+//                                    if let isRefreshing = self.popover?.isRefreshing, isRefreshing {
+//                                        self.popover?.refreshControl?.endRefreshing()
+//                                        self.popover?.isRefreshing = false
+//                                    }
+//                                }
+//                            },onError: nil)
+//                        }
+//                        
+//                        self.popover?.editActionsAtIndexPath = self.rowActions
+//                        
+//                        self.popover?.delegate = self
+//                        self.popover?.purpose = .showingVoiceBaseMediaItems
+//                        self.popover?.allowsSelection = false
+//                        
+//                        self.popover?.section.showHeaders = true
+//                        
+//                        self.popover?.search = true
+//                        
+//                        self.popover?.vc = self.splitViewController
+//                        
+////                        self.buildInitialList(mediaItems:mediaItems)
+//                        self.buildList(mediaItems:mediaItems)
+//                        
+//                        Thread.onMainThread() {
+//                            navigationController.modalPresentationStyle = .overCurrentContext
+//                            
+//                            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+//                            navigationController.popoverPresentationController?.delegate = self
+//                            
+//                            navigationController.popoverPresentationController?.barButtonItem = self.showButton
+//                            
+//                            self.deleteButton = UIBarButtonItem(title: "Delete All", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.deleteAllMedia))
+//                            //                    deleteButton.setTitleTextAttributes(Constants.Fonts.Attributes.destructive, for: UIControlState.normal)
+//                            
+//                            self.popover?.navigationItem.leftBarButtonItem = self.deleteButton
+////                            self.deleteButton?.isEnabled = false
+//                            
+//                            self.popover?.navigationItem.title = "VoiceBase Media"
+//                            
+//                            //                    popover.popoverPresentationController?.passthroughViews = [globals.splitViewController.view!]
+//                            
+//                            self.present(navigationController, animated: true, completion: {
+//    //                            self.popover?.activityIndicator.startAnimating()
+//                                self.presentingVC = navigationController
+//                            })
+//                        }
+//                        
+//                        // Start over and get specific devices
+////                        self.processFirst(mediaItems:mediaItems)
+//                    }
+//                }
+//            }, onError: nil)
             break
             
         default:
@@ -5086,6 +5183,10 @@ class MediaTableViewController : UIViewController // MediaController
         
         let wasNotFullScreen = !UIApplication.shared.isRunningInFullScreen()
         
+        if DeviceType.IS_IPHONE_6P_7P {
+            tableView.reloadData()
+        }
+        
         if wasNotFullScreen || (DeviceType.IS_IPHONE_6P_7P) {
             // This is a HACK.
             
@@ -5324,7 +5425,7 @@ extension MediaTableViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
     {
-        return actionsAtIndexPath(tableView, indexPath: indexPath) != nil
+        return true // actionsAtIndexPath(tableView, indexPath: indexPath) != nil <- This casues a recursive loop on cellForRowAt indexPath
     }
     
 //    func authentication()
@@ -5358,6 +5459,20 @@ extension MediaTableViewController : UITableViewDelegate
             return nil
         }
         
+//        var mediaItem : MediaItem!
+//        
+//        if (globals.display.section.indexes != nil) && (globals.display.mediaItems != nil) {
+//            if indexPath.section >= 0, indexPath.section < globals.display.section.indexes!.count {
+//                if let section = globals.display.section.indexes?[indexPath.section] {
+//                    if (section + indexPath.row) >= 0,(section + indexPath.row) < globals.display.mediaItems!.count {
+//                        mediaItem = globals.display.mediaItems?[section + indexPath.row]
+//                    }
+//                } else {
+//                    print("No mediaItem for cell!")
+//                }
+//            }
+//        }
+
         guard let mediaItem = cell.mediaItem else {
             return nil
         }
@@ -5479,7 +5594,7 @@ extension MediaTableViewController : UITableViewDelegate
 
                 popover.search = popover.section.strings?.count > 10
 
-                self.present(navigationController, animated: true, completion: {
+                present(navigationController, animated: true, completion: {
                     self.presentingVC = navigationController
                 })
             }

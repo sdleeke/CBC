@@ -152,6 +152,11 @@ class LiveViewController: UIViewController
     @IBOutlet weak var textView: UITextView!
     
     @IBOutlet weak var textViewHeight: NSLayoutConstraint!
+    {
+        didSet {
+            textViewHeight.constant = 0
+        }
+    }
     
     func showHideNotice(_ pan:UIPanGestureRecognizer)
     {
@@ -206,9 +211,9 @@ class LiveViewController: UIViewController
         
         let view = globals.mediaPlayer.view
 
-        view?.gestureRecognizers = nil
-        let pan = UIPanGestureRecognizer(target: self, action: #selector(LiveViewController.showHideNotice(_:)))
-        view?.addGestureRecognizer(pan)
+//        view?.gestureRecognizers = nil
+//        let pan = UIPanGestureRecognizer(target: self, action: #selector(LiveViewController.showHideNotice(_:)))
+//        view?.addGestureRecognizer(pan)
         
         view?.isHidden = true
         view?.removeFromSuperview()

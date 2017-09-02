@@ -858,8 +858,11 @@ struct Constants {
         static let Play = "Play"
         static let Pause = "Pause"
         
+        static let Upcoming = "Upcoming"
         static let Playing = "Playing"
         static let Paused = "Paused"
+        
+        static let Live_Events = "Live Events"
         
         struct Menu {
             static let Sorting = "Sorting"

@@ -3083,15 +3083,14 @@ func sort(method:String?,strings:[String]?) -> [String]?
 
 func process(viewController:UIViewController,work:(()->(Any?))?,completion:((Any?)->())?)
 {
-    process(viewController:viewController,disableEnable:true,work:work,completion:completion)
+    process(viewController:viewController,disableEnable:true,hideSubviews:false,work:work,completion:completion)
 }
 
-func process(viewController:UIViewController,disableEnable:Bool,work:(()->(Any?))?,completion:((Any?)->())?)
+func process(viewController:UIViewController,disableEnable:Bool,hideSubviews:Bool,work:(()->(Any?))?,completion:((Any?)->())?)
 {
-    guard (work != nil)  && (completion != nil) else {
+    guard (work != nil) && (completion != nil) else {
         return
     }
-    
     
     guard let loadingViewController = viewController.storyboard?.instantiateViewController(withIdentifier: "Loading View Controller") else {
         return
@@ -3126,6 +3125,12 @@ func process(viewController:UIViewController,disableEnable:Bool,work:(()->(Any?)
         container.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
         
         container.backgroundColor = UIColor.white.withAlphaComponent(0.5)
+        
+        if hideSubviews {
+            for view in container.subviews {
+                view.isHidden = true
+            }
+        }
         
         view.addSubview(container)
         

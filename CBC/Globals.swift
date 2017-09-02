@@ -960,7 +960,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         get {
             var streamStringIndex = [String:[String]]()
             
-            let now = Date() // .addHours(120)
+            let now = Date().addHours(23)
             
             if let streamEntries = streamEntries {
                 for event in streamEntries {
@@ -969,23 +969,23 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                     if let start = streamEntry?.start, let text = streamEntry?.text {
                         // All streaming to start 5 minutes before the scheduled start time
                         if ((now.timeIntervalSince1970 + 5*60) >= Double(start)) && (now <= streamEntry?.endDate) {
-                            if streamStringIndex["Playing"] == nil {
-                                streamStringIndex["Playing"] = [String]()
+                            if streamStringIndex[Constants.Strings.Playing] == nil {
+                                streamStringIndex[Constants.Strings.Playing] = [String]()
                             }
-                            streamStringIndex["Playing"]?.append(text)
+                            streamStringIndex[Constants.Strings.Playing]?.append(text)
                         } else {
                             if (now < streamEntry?.startDate) {
-                                if streamStringIndex["Upcoming"] == nil {
-                                    streamStringIndex["Upcoming"] = [String]()
+                                if streamStringIndex[Constants.Strings.Upcoming] == nil {
+                                    streamStringIndex[Constants.Strings.Upcoming] = [String]()
                                 }
-                                streamStringIndex["Upcoming"]?.append(text)
+                                streamStringIndex[Constants.Strings.Upcoming]?.append(text)
                             }
                         }
                     }
                 }
                 
-                if streamStringIndex["Playing"]?.count == 0 {
-                    streamStringIndex["Playing"] = nil
+                if streamStringIndex[Constants.Strings.Playing]?.count == 0 {
+                    streamStringIndex[Constants.Strings.Playing] = nil
                 }
                 
                 return streamStringIndex.count > 0 ? streamStringIndex : nil
@@ -1000,7 +1000,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         get {
             var streamEntryIndex = [String:[[String:Any]]]()
             
-            let now = Date() // .addHours(120)
+            let now = Date().addHours(23)
             
             if let streamEntries = streamEntries {
                 for event in streamEntries {
@@ -1009,23 +1009,23 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                     if let start = streamEntry?.start {
                         // All streaming to start 5 minutes before the scheduled start time
                         if ((now.timeIntervalSince1970 + 5*60) >= Double(start)) && (now <= streamEntry?.endDate) {
-                            if streamEntryIndex["Playing"] == nil {
-                                streamEntryIndex["Playing"] = [[String:Any]]()
+                            if streamEntryIndex[Constants.Strings.Playing] == nil {
+                                streamEntryIndex[Constants.Strings.Playing] = [[String:Any]]()
                             }
-                            streamEntryIndex["Playing"]?.append(event)
+                            streamEntryIndex[Constants.Strings.Playing]?.append(event)
                         } else {
                             if (now < streamEntry?.startDate) {
-                                if streamEntryIndex["Upcoming"] == nil {
-                                    streamEntryIndex["Upcoming"] = [[String:Any]]()
+                                if streamEntryIndex[Constants.Strings.Upcoming] == nil {
+                                    streamEntryIndex[Constants.Strings.Upcoming] = [[String:Any]]()
                                 }
-                                streamEntryIndex["Upcoming"]?.append(event)
+                                streamEntryIndex[Constants.Strings.Upcoming]?.append(event)
                             }
                         }
                     }
                 }
                 
-                if streamEntryIndex["Playing"]?.count == 0 {
-                    streamEntryIndex["Playing"] = nil
+                if streamEntryIndex[Constants.Strings.Playing]?.count == 0 {
+                    streamEntryIndex[Constants.Strings.Playing] = nil
                 }
                 
                 return streamEntryIndex.count > 0 ? streamEntryIndex : nil
