@@ -73,7 +73,7 @@ extension AboutViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Share_This_App:
-                shareHTML(viewController: self, htmlString: "Countryside Bible Church Media app\n\nhttps://itunes.apple.com/us/app/countryside-bible-church-media/id1166303807?ls=1&mt=8")
+                shareHTML(viewController: self, htmlString: "Countryside Bible Church app\n\nhttps://itunes.apple.com/us/app/countryside-bible-church/id1166303807?mt=8")
                 break
                 
             default:

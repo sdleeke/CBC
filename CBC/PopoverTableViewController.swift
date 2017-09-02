@@ -916,10 +916,12 @@ class PopoverTableViewController : UIViewController
         
         self.isRefreshing = true
 
-        if refresh != nil {
-            refresh?()
+        if self.refresh != nil {
+            self.refresh?()
         } else {
-            self.lexiconUpdated()
+            DispatchQueue.global(qos: .background).async {
+                self.lexiconUpdated()
+            }
         }
     }
     
@@ -1325,6 +1327,8 @@ class PopoverTableViewController : UIViewController
 
             self.activityIndicator?.stopAnimating()
             self.activityIndicator?.isHidden = true
+            
+            self.removeRefreshControl()
         }
     }
     

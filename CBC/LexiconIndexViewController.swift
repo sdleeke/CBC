@@ -527,14 +527,40 @@ class LexiconIndexViewController : UIViewController
                     segmentActions.append(SegmentAction(title: Constants.Sort.Alphabetical, position: 0, action: {
                         self.ptvc.sort.method = Constants.Sort.Alphabetical
                         self.ptvc.section.showIndex = true
-                        self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
-                        self.ptvc.tableView.reloadData()
+                        self.ptvc.tableView.isHidden = true
+                        self.ptvc.activityIndicator.startAnimating()
+                        DispatchQueue.global(qos: .background).async {
+                            self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
+                            Thread.onMainThread(block: { (Void) -> (Void) in
+                                self.ptvc.tableView.isHidden = false
+                                self.ptvc.tableView.reloadData()
+                                
+                                if self.lexicon?.creating == false {
+                                    self.ptvc.activityIndicator.stopAnimating()
+                                }
+                            })
+                        }
+//                        self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
+//                        self.ptvc.tableView.reloadData()
                     }))
                     segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
                         self.ptvc.sort.method = Constants.Sort.Frequency
                         self.ptvc.section.showIndex = false
-                        self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
-                        self.ptvc.tableView.reloadData()
+                        self.ptvc.tableView.isHidden = true
+                        self.ptvc.activityIndicator.startAnimating()
+                        DispatchQueue.global(qos: .background).async {
+                            self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
+                            Thread.onMainThread(block: { (Void) -> (Void) in
+                                self.ptvc.tableView.isHidden = false
+                                self.ptvc.tableView.reloadData()
+                                
+                                if self.lexicon?.creating == false {
+                                    self.ptvc.activityIndicator.stopAnimating()
+                                }
+                            })
+                        }
+//                        self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
+//                        self.ptvc.tableView.reloadData()
                     }))
                     
                     ptvc.segmentActions = segmentActions.count > 0 ? segmentActions : nil

@@ -722,7 +722,7 @@ class MediaTableViewCell: UITableViewCell
             }
 
             if (mediaItem!.hasNotes) {
-                if globals.search.transcripts && mediaItem!.searchHit(searchText).transcriptHTML {
+                if (globals.search.transcripts || ((vc as? LexiconIndexViewController) != nil)) && mediaItem!.searchHit(searchText).transcriptHTML {
                     attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
                 } else {
 //                    print(searchText!)
