@@ -1158,7 +1158,7 @@ class PopoverTableViewController : UIViewController
                                     self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
                                 }
                             } else {
-                                alert(viewController:self,title:"String not found!",message:"THIS SHOULD NOT HAPPEN.",completion:nil)
+//                                alert(viewController:self,title:"String not found!",message:"THIS SHOULD NOT HAPPEN.",completion:nil)
                             }
                         }
                     }
@@ -1180,7 +1180,7 @@ class PopoverTableViewController : UIViewController
                                 self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
                             }
                         } else {
-                            alert(viewController:self,title:"String not found!",message:"THIS SHOULD NOT HAPPEN.",completion:nil)
+//                            alert(viewController:self,title:"String not found!",message:"THIS SHOULD NOT HAPPEN.",completion:nil)
                         }
                     }
                 }
@@ -1217,18 +1217,18 @@ class PopoverTableViewController : UIViewController
         Thread.onMainThread() {
             self.updateTitle()
         }
-
-        unfilteredSection.strings = (sort.function == nil) ? mediaListGroupSort?.lexicon?.section.strings : sort.function?(sort.method,mediaListGroupSort?.lexicon?.section.strings)
         
-//        if sort.method == Constants.Sort.Alphabetical {
-//            unfilteredSection.indexHeaders = mediaListGroupSort?.lexicon?.section.indexHeaders
-//        }
-
-//        unfilteredSection.buildIndex()
-
-        if searchActive {
-            if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
-                if let text = searchText {
+        self.unfilteredSection.strings = (self.sort.function == nil) ? self.mediaListGroupSort?.lexicon?.section.strings : self.sort.function?(self.sort.method,self.mediaListGroupSort?.lexicon?.section.strings)
+        
+        //        if sort.method == Constants.Sort.Alphabetical {
+        //            unfilteredSection.indexHeaders = mediaListGroupSort?.lexicon?.section.indexHeaders
+        //        }
+        
+        //        unfilteredSection.buildIndex()
+        
+        if self.searchActive {
+            if let filteredStrings = self.unfilteredSection.strings?.filter({ (string:String) -> Bool in
+                if let text = self.searchText {
                     return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
                 } else {
                     return false
@@ -1238,7 +1238,7 @@ class PopoverTableViewController : UIViewController
                 
                 //                        print(self.filteredStrings)
                 
-//                self.filteredSection.buildIndex()
+                //                self.filteredSection.buildIndex()
                 
                 //                        print(self.filteredSection.indexHeaders)
             }
@@ -1300,11 +1300,11 @@ class PopoverTableViewController : UIViewController
             }) {
                 filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
                 
-//                    print(self.filteredStrings)
+                //                    print(self.filteredStrings)
                 
-//                self.filteredSection.buildIndex()
+                //                self.filteredSection.buildIndex()
                 
-//                    print(self.filteredSection.indexHeaders)
+                //                    print(self.filteredSection.indexHeaders)
             }
         }
         
@@ -1324,7 +1324,7 @@ class PopoverTableViewController : UIViewController
             self.updateTitle()
             
             self.tableView.reloadData()
-
+            
             self.activityIndicator?.stopAnimating()
             self.activityIndicator?.isHidden = true
             
@@ -2114,7 +2114,12 @@ extension PopoverTableViewController : UITableViewDelegate
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int)
     {
         if let header = view as? UITableViewHeaderFooterView {
+            header.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+            
             header.textLabel?.text = nil
+            header.textLabel?.textColor = UIColor.black
+            
+            header.alpha = 0.85
         }
     }
 

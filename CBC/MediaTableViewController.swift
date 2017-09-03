@@ -5320,8 +5320,12 @@ extension MediaTableViewController : UITableViewDataSource
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int)
     {
         if let header = view as? UITableViewHeaderFooterView {
-//            print(header.textLabel?.text)
+            header.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+            
             header.textLabel?.text = nil
+            header.textLabel?.textColor = UIColor.black
+            
+            header.alpha = 0.85
         }
     }
 
@@ -5351,7 +5355,7 @@ extension MediaTableViewController : UITableViewDataSource
                 view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":view!.label!]))
             }
             
-            view?.label?.attributedText = NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold)
+            view?.label?.attributedText = NSAttributedString(string: title, attributes: Constants.Fonts.Attributes.bold)
 
             view?.alpha = 0.85
         }

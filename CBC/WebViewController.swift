@@ -996,7 +996,7 @@ class WebViewController: UIViewController
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
             case .overCurrentContext:
-                if self.navigationController?.viewControllers.count == 1 {
+                if self.navigationController?.viewControllers.count == 1 { // This allows the back button to show. >1 implies it is below the top view controller in a push stack.
                     navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
                 }
                 navigationItem.setRightBarButtonItems([fullScreenButton!,minusButton!,plusButton!], animated: true)

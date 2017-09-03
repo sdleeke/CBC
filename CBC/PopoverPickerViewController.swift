@@ -765,7 +765,9 @@ class PopoverPickerViewController : UIViewController
                 
                 lexicon?.stringTree.build()
             } else {
-                stringTreeUpdated()
+                DispatchQueue.global(qos: .background).async {
+                    self.stringTreeUpdated()
+                }
             }
         }
         
@@ -776,7 +778,7 @@ class PopoverPickerViewController : UIViewController
             picker.selectRow(index, inComponent: 0, animated: false)
         }
         
-        if (navigationController?.viewControllers.count == 1) {
+        if (navigationController?.viewControllers.count == 1) { // Implies modal, not part of a push.
             if (mediaListGroupSort != nil) {
                 preferredContentSize = CGSize(width: 200, height: 300)
             } else {
@@ -829,7 +831,7 @@ class PopoverPickerViewController : UIViewController
         }
     
 //        print(max(200,width + 40 + count*2))
-        preferredContentSize = CGSize(width: max(200,width + 40 + count*2), height: 300)
+        preferredContentSize = CGSize(width: max(200,width + 70 + count*2), height: 300)
     }
 
     func updatePickerSelections()
@@ -916,7 +918,6 @@ class PopoverPickerViewController : UIViewController
     {
         Thread.onMainThread() {
             self.picker.reloadAllComponents()
-            self.setPreferredContentSize()
 
             var i = 0
             
@@ -924,7 +925,9 @@ class PopoverPickerViewController : UIViewController
                 self.picker.selectRow(self.pickerSelections[i]!,inComponent: i, animated: true)
                 i += 1
             }
-            
+
+            self.setPreferredContentSize()
+
             self.string = self.wordFromPicker()
         }
     }
@@ -943,30 +946,28 @@ class PopoverPickerViewController : UIViewController
         
 //        print(self.mediaListGroupSort?.lexicon?.root.htmlWords(nil))
         
-        DispatchQueue.global(qos: .userInteractive).async {
-            self.updatePickerSelections()
-            self.updatePicker()
+        self.updatePickerSelections()
+        self.updatePicker()
+        
+        Thread.onMainThread() {
+            self.updateActionButton()
             
-            Thread.onMainThread() {
-                self.updateActionButton()
-
-                if let eligible = self.lexicon?.eligible?.count, let depth = self.lexicon?.stringTree.root?.depthBelow(0) {
-                    if eligible == 0,depth > 0 {
-                        // Should NEVER happen
-                    }
-                    if eligible > 0,depth == 0 {
-                        // Waiting for Lexicon
-                    }
-                    if eligible == 0,depth == 0 {
-                        // Empty Lexicon => empty tree
-                        self.spinner.stopAnimating()
-                        self.spinner.isHidden = true
-                    }
-                    if eligible > 0,depth > 0 {
-                        // Lexicon and tree both have entries
-                        self.spinner.stopAnimating()
-                        self.spinner.isHidden = true
-                    }
+            if let eligible = self.lexicon?.eligible?.count, let depth = self.lexicon?.stringTree.root?.depthBelow(0) {
+                if eligible == 0,depth > 0 {
+                    // Should NEVER happen
+                }
+                if eligible > 0,depth == 0 {
+                    // Waiting for Lexicon
+                }
+                if eligible == 0,depth == 0 {
+                    // Empty Lexicon => empty tree
+                    self.spinner.stopAnimating()
+                    self.spinner.isHidden = true
+                }
+                if eligible > 0,depth > 0 {
+                    // Lexicon and tree both have entries
+                    self.spinner.stopAnimating()
+                    self.spinner.isHidden = true
                 }
             }
         }

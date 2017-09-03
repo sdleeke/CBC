@@ -30,18 +30,26 @@ class StringTree {
         }
         
         building = true
+
+        self.root = StringNode(nil)
+        self.root.addStrings(self.lexicon.tokens)
         
-        DispatchQueue.global(qos: .background).async {
-            self.root = StringNode(nil)
-            self.root.addStrings(self.lexicon.tokens)
-            
-            self.building = false
-            self.completed = true
-            
-            globals.queue.async(execute: { () -> Void in
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.lexicon)
-            })
-        }
+        self.building = false
+        self.completed = true
+        
+        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.lexicon)
+
+//        DispatchQueue.global(qos: .background).async {
+//            self.root = StringNode(nil)
+//            self.root.addStrings(self.lexicon.tokens)
+//            
+//            self.building = false
+//            self.completed = true
+//
+//            globals.queue.async(execute: { () -> Void in
+//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.lexicon)
+//            })
+//        }
     }
 }
 

@@ -3926,7 +3926,9 @@ class MediaViewController: UIViewController // MediaController
     {
         super.viewDidAppear(animated)
 
-        if globals.isLoading && (navigationController?.visibleViewController == self) && (splitViewController?.viewControllers.count == 1) {
+        // Seems like a strange way to force MTVC to be the visible view controller.  Not sure this ever happens since it would only be during loading while the splitViewController is collapsed.
+        // Which means either on an iPhone (not plus) or iPad in split screen model w/ compact width.
+        if globals.isLoading, navigationController?.visibleViewController == self, let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
             if let navigationController = splitViewController?.viewControllers[0] as? UINavigationController {
                 navigationController.popToRootViewController(animated: false)
             }

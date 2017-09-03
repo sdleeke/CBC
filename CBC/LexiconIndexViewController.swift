@@ -529,6 +529,7 @@ class LexiconIndexViewController : UIViewController
                         self.ptvc.section.showIndex = true
                         self.ptvc.tableView.isHidden = true
                         self.ptvc.activityIndicator.startAnimating()
+                        self.updateLocateButton()
                         DispatchQueue.global(qos: .background).async {
                             self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
                             Thread.onMainThread(block: { (Void) -> (Void) in
@@ -538,6 +539,7 @@ class LexiconIndexViewController : UIViewController
                                 if self.lexicon?.creating == false {
                                     self.ptvc.activityIndicator.stopAnimating()
                                 }
+                                self.updateLocateButton()
                             })
                         }
 //                        self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
@@ -548,6 +550,7 @@ class LexiconIndexViewController : UIViewController
                         self.ptvc.section.showIndex = false
                         self.ptvc.tableView.isHidden = true
                         self.ptvc.activityIndicator.startAnimating()
+                        self.updateLocateButton()
                         DispatchQueue.global(qos: .background).async {
                             self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
                             Thread.onMainThread(block: { (Void) -> (Void) in
@@ -557,6 +560,7 @@ class LexiconIndexViewController : UIViewController
                                 if self.lexicon?.creating == false {
                                     self.ptvc.activityIndicator.stopAnimating()
                                 }
+                                self.updateLocateButton()
                             })
                         }
 //                        self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
@@ -627,7 +631,12 @@ class LexiconIndexViewController : UIViewController
         if (self.searchText != nil) {
             Thread.onMainThread() {
                 self.locateButton.isHidden = false
-                self.locateButton.isEnabled = true
+                
+                if !self.ptvc.tableView.isHidden {
+                    self.locateButton.isEnabled = true
+                } else {
+                    self.locateButton.isEnabled = false
+                }
             }
         } else {
             Thread.onMainThread() {
@@ -1203,7 +1212,7 @@ extension LexiconIndexViewController : UITableViewDelegate
 
             globals.addToHistory(mediaItem)
 
-            if (splitViewController?.viewControllers.count > 1) {
+            if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
                 if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
                     let viewController = navigationController.viewControllers[0] as? MediaViewController {
                     viewController.selectedMediaItem = mediaItem
@@ -1350,6 +1359,10 @@ extension LexiconIndexViewController : UITableViewDelegate
             actions.append(transcript)
         }
         
+        if actions.count == 0 {
+            print("")
+        }
+        
         return actions.count > 0 ? actions : nil
     }
     
@@ -1445,7 +1458,12 @@ extension LexiconIndexViewController : UITableViewDataSource
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int)
     {
         if let header = view as? UITableViewHeaderFooterView {
+            header.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+            
             header.textLabel?.text = nil
+            header.textLabel?.textColor = UIColor.black
+            
+            header.alpha = 0.85
         }
     }
 
@@ -1475,7 +1493,7 @@ extension LexiconIndexViewController : UITableViewDataSource
                 view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":view!.label!]))
             }
             
-            view?.label?.attributedText = NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold)
+            view?.label?.attributedText = NSAttributedString(string: title, attributes: Constants.Fonts.Attributes.bold)
             
             view?.alpha = 0.85
         }

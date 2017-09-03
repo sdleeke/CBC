@@ -10,6 +10,11 @@ import UIKit
 import MessageUI
 
 
+class ScriptureIndexViewControllerHeaderView : UITableViewHeaderFooterView
+{
+    var label : UILabel?
+}
+
 extension ScriptureIndexViewController : UIAdaptivePresentationControllerDelegate
 {
     // MARK: UIAdaptivePresentationControllerDelegate
@@ -530,7 +535,12 @@ class ScriptureIndexViewController : UIViewController
     @IBOutlet weak var spinner: UIActivityIndicatorView!
     
     @IBOutlet weak var tableView: UITableView!
-    
+    {
+        didSet {
+            tableView.register(ScriptureIndexViewControllerHeaderView.self, forHeaderFooterViewReuseIdentifier: "ScriptureIndexViewController")
+        }
+    }
+
     var sections:[String:[MediaItem]]?
     {
         get {
@@ -1697,6 +1707,10 @@ extension ScriptureIndexViewController : UITableViewDelegate
             actions.append(transcript)
         }
         
+        if actions.count == 0 {
+            print("")
+        }
+        
         return actions.count > 0 ? actions : nil
     }
     
@@ -1727,7 +1741,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
         
 //        print(selectedMediaItem?.booksChaptersVerses?.data as Any)
         
-        if (splitViewController?.viewControllers.count > 1) {
+        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
                 let viewController = navigationController.viewControllers[0] as? MediaViewController {
                 viewController.selectedMediaItem = selectedMediaItem
@@ -1750,11 +1764,51 @@ extension ScriptureIndexViewController : UITableViewDelegate
     {
         if let header = view as? UITableViewHeaderFooterView {
             header.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
-
+            
+            header.textLabel?.text = nil
             header.textLabel?.textColor = UIColor.black
-
+            
             header.alpha = 0.85
         }
+    }
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView?
+    {
+        var view : ScriptureIndexViewControllerHeaderView?
+        
+        view = tableView.dequeueReusableHeaderFooterView(withIdentifier: "ScriptureIndexViewController") as? ScriptureIndexViewControllerHeaderView
+        if view == nil {
+            view = ScriptureIndexViewControllerHeaderView()
+        }
+        
+        if  section >= 0, section < scriptureIndex?.sections?.keys.count,
+            let keys : [String] = scriptureIndex?.sections?.keys.map({ (string:String) -> String in
+                return string
+            }) {
+            view?.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+            
+            if view?.label == nil {
+                view?.label = UILabel()
+                
+                view?.label?.numberOfLines = 0
+                view?.label?.lineBreakMode = .byWordWrapping
+                
+                view?.label?.translatesAutoresizingMaskIntoConstraints = false
+                
+                view?.addSubview(view!.label!)
+                
+                view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":view!.label!]))
+                view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":view!.label!]))
+            }
+            
+            let title = keys[section]
+            
+            view?.label?.attributedText = NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold)
+            
+            view?.alpha = 0.85
+        }
+        
+        return view
     }
 }
 
