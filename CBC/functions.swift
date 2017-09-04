@@ -3002,7 +3002,12 @@ func mailMediaItem(viewController:UIViewController, mediaItem:MediaItem?,stringF
     }
 }
 
-func presentHTMLModal(viewController:UIViewController, medaiItem:MediaItem?, style: UIModalPresentationStyle, title: String?, htmlString: String?)
+func presentHTMLModal(viewController:UIViewController, mediaItem:MediaItem?, style: UIModalPresentationStyle, title: String?, htmlString: String?)
+{
+    presentHTMLModal(viewController:viewController, dismiss:true, mediaItem:mediaItem, style:style, title:title, htmlString:htmlString)
+}
+
+func presentHTMLModal(viewController:UIViewController, dismiss:Bool, mediaItem:MediaItem?, style: UIModalPresentationStyle, title: String?, htmlString: String?)
 {
     guard (htmlString != nil) else {
         return
@@ -3010,8 +3015,10 @@ func presentHTMLModal(viewController:UIViewController, medaiItem:MediaItem?, sty
     
     if let navigationController = viewController.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
         let popover = navigationController.viewControllers[0] as? WebViewController {
-        Thread.onMainThread() {
-            viewController.dismiss(animated: true, completion: nil)
+        if dismiss {
+            Thread.onMainThread() {
+                viewController.dismiss(animated: true, completion: nil)
+            }
         }
         
         navigationController.modalPresentationStyle = style
@@ -3021,7 +3028,7 @@ func presentHTMLModal(viewController:UIViewController, medaiItem:MediaItem?, sty
         popover.navigationItem.title = title
         
         popover.search = true
-        popover.selectedMediaItem = medaiItem
+        popover.selectedMediaItem = mediaItem
         
         popover.html.string = htmlString
         popover.content = .html
@@ -3867,7 +3874,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
         bodyString = bodyString! + "<br/>"
         
         if includeURLs, keys.count > 1 {
-            bodyString = bodyString! + "<div><a id=\"index\" name=\"index\" href=\"#top\">Index</a><br/><br/>"
+            bodyString = bodyString! + "<div id=\"index\" name=\"index\">Index (<a href=\"#top\">Return to Top</a>)<br/><br/>"
             
             switch globals.grouping! {
             case GROUPING.CLASS:

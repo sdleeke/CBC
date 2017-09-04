@@ -361,7 +361,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                     
                     return bodyHTML
                 }, completion: { (data:Any?) in
-                    presentHTMLModal(viewController: self, medaiItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+                    presentHTMLModal(viewController: self, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
                 })
                 break
                 
@@ -398,6 +398,54 @@ class PopoverPickerViewController : UIViewController
     @IBOutlet weak var picker: UIPickerView!
     
     @IBOutlet weak var selectButton: UIButton!
+    @IBOutlet weak var expandedViewButton: UIButton!
+    
+    @IBAction func expandedViewAction(_ sender: UIButton)
+    {
+        process(viewController: self, work: { () -> (Any?) in
+            var bodyHTML = "<!DOCTYPE html>"
+            
+            bodyHTML = bodyHTML + "<html><body>"
+            
+//            bodyHTML = bodyHTML + "<center>"
+            
+            if let roots = self.lexicon?.stringTree.root?.stringNodes {
+                bodyHTML = bodyHTML + "<table><tr><td>Index</td>"
+                
+                for root in roots {
+                    if let string = root.string {
+                        bodyHTML = bodyHTML + "<td>" + "<a id=\"index\(string)\" name=\"index\(string)\" href=#\(string)>" + string + "</a>" + "</td>"
+                    }
+                }
+                
+                bodyHTML = bodyHTML + "</tr></table>"
+                
+                bodyHTML = bodyHTML + "<table>"
+                
+                for root in roots {
+                    if let string = root.string {
+                        bodyHTML = bodyHTML + "<tr><td>" + "<a id=\"\(string)\" name=\"\(string)\" href=#index\(string)>" + string + "</a>" + "</td></tr>"
+                    }
+                    
+                    if let rows = root.htmlWords(nil) {
+                        for row in rows {
+                            bodyHTML = bodyHTML + "<tr>" + row + "</tr>"
+                        }
+                    }
+                }
+                
+                bodyHTML = bodyHTML + "</table>"
+            }
+            
+//            bodyHTML = bodyHTML + "</center>"
+            
+            bodyHTML = bodyHTML + "</body></html>"
+            
+            return bodyHTML
+        }, completion: { (data:Any?) in
+            presentHTMLModal(viewController: self, dismiss:false, mediaItem: nil, style: .fullScreen, title: Constants.Strings.Expanded_View, htmlString: data as? String)
+        })
+    }
     
     @IBAction func selectButtonAction(sender: UIButton)
     {
@@ -411,7 +459,7 @@ class PopoverPickerViewController : UIViewController
     {
         var actionMenu = [String]()
         
-        actionMenu.append(Constants.Strings.Expanded_View)
+//        actionMenu.append(Constants.Strings.Expanded_View)
         
         return actionMenu.count > 0 ? actionMenu : nil
     }
@@ -763,9 +811,11 @@ class PopoverPickerViewController : UIViewController
 
                 lexicon?.build()
                 
-                lexicon?.stringTree.build()
+                DispatchQueue.global(qos: .userInteractive).async {
+                    self.lexicon?.stringTree.build()
+                }
             } else {
-                DispatchQueue.global(qos: .background).async {
+                DispatchQueue.global(qos: .userInteractive).async {
                     self.stringTreeUpdated()
                 }
             }

@@ -164,7 +164,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
                 return self.results?.html?.string
             }, completion: { (data:Any?) in
-                presentHTMLModal(viewController: self, medaiItem: nil, style: .overFullScreen, title: "Lexicon Index For: \(self.searchText!)", htmlString: data as? String)
+                presentHTMLModal(viewController: self, mediaItem: nil, style: .overFullScreen, title: "Lexicon Index For: \(self.searchText!)", htmlString: data as? String)
             })
             break
             
@@ -646,7 +646,8 @@ class LexiconIndexViewController : UIViewController
         }
     }
     
-    override func viewWillAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool)
+    {
         super.viewWillAppear(animated)
         
         selectedWord.text = searchText
@@ -661,8 +662,6 @@ class LexiconIndexViewController : UIViewController
         
         navigationItem.hidesBackButton = false
         
-        navigationController?.setToolbarHidden(false, animated: true)
-        
         if  let count = lexicon?.entries?.count,
             let total = lexicon?.eligible?.count {
             self.navigationItem.title = "Lexicon Index \(count) of \(total)"
@@ -670,6 +669,8 @@ class LexiconIndexViewController : UIViewController
         
         updateSearchResults()
         updateUI()
+        
+        navigationController?.setToolbarHidden(false, animated: false)
     }
     
     override func viewWillDisappear(_ animated: Bool)
@@ -691,7 +692,7 @@ class LexiconIndexViewController : UIViewController
 
         ptvc.selectString(searchText,scroll: true,select: true)
         
-        navigationController?.setToolbarHidden(false, animated: true)
+        navigationController?.setToolbarHidden(false, animated: false)
     }
     
     func setupMediaItemsHTMLLexicon(includeURLs:Bool,includeColumns:Bool) -> String?
@@ -1161,9 +1162,9 @@ class LexiconIndexViewController : UIViewController
             return
         }
         
-        navigationController?.setToolbarHidden(false, animated: true)
+//        navigationController?.setToolbarHidden(false, animated: false)
 
-        toolbarItems?[1].isEnabled = results?.mediaItems?.count > 0
+        toolbarItems?[1].isEnabled = tableView.numberOfSections > 1
         
         spinner.isHidden = true
         spinner.stopAnimating()

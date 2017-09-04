@@ -84,7 +84,7 @@ extension ScriptureIndexViewController : PopoverTableViewControllerDelegate
                     
                     return self.scriptureIndex?.html?.string
                 }, completion: { (data:Any?) in
-                    presentHTMLModal(viewController: self, medaiItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: data as? String)
+                    presentHTMLModal(viewController: self, mediaItem: nil, style: .overFullScreen, title: globals.contextTitle, htmlString: data as? String)
                 })
                 break
                 
@@ -1489,6 +1489,8 @@ class ScriptureIndexViewController : UIViewController
     func updateToolbar()
     {
         navigationController?.setToolbarHidden(scriptureIndex?.selectedBook != nil, animated: true)
+        
+        // Why are we doing both of the following?
         
         navigationController?.toolbar.items?[1].isEnabled = mediaItems?.count > 0
         
