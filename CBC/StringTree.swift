@@ -8,7 +8,10 @@
 
 import Foundation
 
-class StringTree {
+// Crucial for Word Picker that this be a struct so that it is passed by value, not reference; i.e. a copy is made.
+// That means all of the stringNodes are frozen when it is passed by value so that Expanded Views are always complete as of that moment and
+// are not affected by changes to the tree while the expanded view is being prepared.
+struct StringTree {
     weak var lexicon:Lexicon!
     
     init(lexicon:Lexicon?)
@@ -23,7 +26,7 @@ class StringTree {
     var building = false
     var completed = false
     
-    func build()
+    mutating func build()
     {
         guard !building else {
             return

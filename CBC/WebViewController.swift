@@ -318,11 +318,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Open_in_Browser:
-            if selectedMediaItem?.downloadURL != nil {
-                if (UIApplication.shared.canOpenURL(selectedMediaItem!.downloadURL!)) { // Reachability.isConnectedToNetwork() &&
-                    UIApplication.shared.openURL(selectedMediaItem!.downloadURL!)
-                } else {
-                    networkUnavailable(self,"Unable to open in browser at: \(selectedMediaItem!.downloadURL!)")
+            if let url = selectedMediaItem?.downloadURL {
+                open(scheme: url.absoluteString) {
+                    networkUnavailable(self,"Unable to open: \(url)")
                 }
             }
             break
@@ -488,11 +486,7 @@ extension WebViewController : WKNavigationDelegate
                     decisionHandler(WKNavigationActionPolicy.cancel)
                 }
             } else {
-                if let url = navigationAction.request.url {
-                    if UIApplication.shared.canOpenURL(url) { // Reachability.isConnectedToNetwork() &&
-                        UIApplication.shared.openURL(url)
-                    }
-                }
+                open(scheme: navigationAction.request.url?.absoluteString) {}
                 decisionHandler(WKNavigationActionPolicy.cancel)
             }
         }

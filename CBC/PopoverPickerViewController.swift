@@ -38,7 +38,7 @@ extension PopoverPickerViewController : UIPickerViewDataSource
         if mediaListGroupSort != nil {
             var depth = 0
             
-            if let depthBelow = root?.depthBelow(0) {
+            if let depthBelow = lexicon?.stringTree.root?.depthBelow(0) {
                 depth = depthBelow
             }
             //            print("Depth: ",depth)
@@ -51,7 +51,7 @@ extension PopoverPickerViewController : UIPickerViewDataSource
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int
     {
         if mediaListGroupSort != nil {
-            var stringNode = root
+            var stringNode = lexicon?.stringTree.root
             
             switch component {
             case 0:
@@ -132,7 +132,7 @@ extension PopoverPickerViewController : UIPickerViewDataSource
     
     func title(forRow row:Int, forComponent component:Int) -> String?
     {
-        var stringNode = root
+        var stringNode = lexicon?.stringTree.root
         
         switch component {
         case 0:
@@ -190,7 +190,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
     func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat
     {
         if mediaListGroupSort != nil {
-            var stringNode = root
+            var stringNode = lexicon?.stringTree.root
             
             switch component {
             case 0:
@@ -341,11 +341,11 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                         bodyHTML = bodyHTML + "<table>"
                         
                         for root in roots {
-                            if let string = root.string {
-                                bodyHTML = bodyHTML + "<tr><td>" + "<a id=\"\(string)\" name=\"\(string)\" href=#index\(string)>" + string + "</a>" + "</td></tr>"
-                            }
-                            
                             if let rows = root.htmlWords(nil) {
+                                if let string = root.string {
+                                    bodyHTML = bodyHTML + "<tr><td>" + "<a id=\"\(string)\" name=\"\(string)\" href=#index\(string)>" + string + "</a>" + " (\(rows.count))</td></tr>"
+                                }
+                                
                                 for row in rows {
                                     bodyHTML = bodyHTML + "<tr>" + row + "</tr>"
                                 }
@@ -382,7 +382,12 @@ class PopoverPickerViewController : UIViewController
     
     var mediaListGroupSort:MediaListGroupSort?
     var pickerSelections = [Int:Int]()
-    var root:StringNode?
+//    var root:StringNode?
+//    {
+//        get {
+//            return lexicon?.stringTree.root
+//        }
+//    }
     
     var lexicon:Lexicon?
     {
@@ -405,41 +410,54 @@ class PopoverPickerViewController : UIViewController
         process(viewController: self, work: { () -> (Any?) in
             var bodyHTML = "<!DOCTYPE html>"
             
+            var wordsHTML = ""
+            var indexHTML = ""
+            
             bodyHTML = bodyHTML + "<html><body>"
             
 //            bodyHTML = bodyHTML + "<center>"
             
             if let roots = self.lexicon?.stringTree.root?.stringNodes {
-                bodyHTML = bodyHTML + "<table><tr><td>Index</td>"
+                var total = 0
+                
+                wordsHTML = "<table>"
                 
                 for root in roots {
-                    if let string = root.string {
-                        bodyHTML = bodyHTML + "<td>" + "<a id=\"index\(string)\" name=\"index\(string)\" href=#\(string)>" + string + "</a>" + "</td>"
-                    }
-                }
-                
-                bodyHTML = bodyHTML + "</tr></table>"
-                
-                bodyHTML = bodyHTML + "<table>"
-                
-                for root in roots {
-                    if let string = root.string {
-                        bodyHTML = bodyHTML + "<tr><td>" + "<a id=\"\(string)\" name=\"\(string)\" href=#index\(string)>" + string + "</a>" + "</td></tr>"
-                    }
-                    
                     if let rows = root.htmlWords(nil) {
+                        total += rows.count
+
+                        if let string = root.string {
+                            wordsHTML = wordsHTML + "<tr id=\"\(string)\" name=\"\(string)\"><td><br/></td></tr>"
+                            
+                            wordsHTML = wordsHTML + "<tr><td>" + "<a href=#index>" + string + "</a>" + " (\(rows.count))</td></tr>" //#index\(string)
+                        }
+                        
                         for row in rows {
-                            bodyHTML = bodyHTML + "<tr>" + row + "</tr>"
+                            wordsHTML = wordsHTML + "<tr>" + row + "</tr>"
                         }
                     }
                 }
                 
-                bodyHTML = bodyHTML + "</table>"
+                wordsHTML = wordsHTML + "</table>"
+
+                indexHTML = "<table>"
+                
+                indexHTML = indexHTML + "<tr id=\"index\" name=\"index\"><td><br/></td></tr>" // \(string)
+                
+                indexHTML = indexHTML + "<tr><td>Index to \(total) Words</td>"
+
+                for root in roots {
+                    if let string = root.string {
+                        indexHTML = indexHTML + "<td>" + "<a href=#\(string)>" + string + "</a>" + "</td>"
+                    }
+                }
+                
+                indexHTML = indexHTML + "</tr></table>"
             }
             
 //            bodyHTML = bodyHTML + "</center>"
             
-            bodyHTML = bodyHTML + "</body></html>"
+            bodyHTML = bodyHTML + indexHTML + wordsHTML + "</body></html>"
             
             return bodyHTML
         }, completion: { (data:Any?) in
@@ -804,9 +822,9 @@ class PopoverPickerViewController : UIViewController
             spinner.isHidden = false
             spinner.startAnimating()
             
-            root = lexicon?.stringTree.root
+//            root = lexicon?.stringTree.root
 
-            if (root == nil) || root!.isLeaf {
+            if (lexicon?.stringTree.root == nil) || lexicon!.stringTree.root!.isLeaf { // not sure why isLeaf is used.
 //                print("building")
 
                 lexicon?.build()
@@ -886,11 +904,11 @@ class PopoverPickerViewController : UIViewController
 
     func updatePickerSelections()
     {
-        guard root?.stringNodes != nil else {
+        guard lexicon?.stringTree.root?.stringNodes != nil else {
             return
         }
         
-        var stringNode = root
+        var stringNode = lexicon?.stringTree.root
         
         var i = 0
         
@@ -931,7 +949,7 @@ class PopoverPickerViewController : UIViewController
     {
         var word:String?
         
-        var stringNode = root
+        var stringNode = lexicon?.stringTree.root
         
         var i = 0
         
@@ -992,7 +1010,7 @@ class PopoverPickerViewController : UIViewController
 //        let words = lexicon?.stringTree.root.htmlWords(nil)
 //        print(words)
         
-        root = lexicon?.stringTree.root
+//        root = lexicon?.stringTree.root
         
 //        print(self.mediaListGroupSort?.lexicon?.root.htmlWords(nil))
         

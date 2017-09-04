@@ -529,6 +529,7 @@ class LexiconIndexViewController : UIViewController
                         self.ptvc.section.showIndex = true
                         self.ptvc.tableView.isHidden = true
                         self.ptvc.activityIndicator.startAnimating()
+                        self.ptvc.segmentedControl.isEnabled = false
                         self.updateLocateButton()
                         DispatchQueue.global(qos: .background).async {
                             self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
@@ -539,6 +540,7 @@ class LexiconIndexViewController : UIViewController
                                 if self.lexicon?.creating == false {
                                     self.ptvc.activityIndicator.stopAnimating()
                                 }
+                                self.ptvc.segmentedControl.isEnabled = true
                                 self.updateLocateButton()
                             })
                         }
@@ -550,6 +552,7 @@ class LexiconIndexViewController : UIViewController
                         self.ptvc.section.showIndex = false
                         self.ptvc.tableView.isHidden = true
                         self.ptvc.activityIndicator.startAnimating()
+                        self.ptvc.segmentedControl.isEnabled = false
                         self.updateLocateButton()
                         DispatchQueue.global(qos: .background).async {
                             self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
@@ -560,6 +563,7 @@ class LexiconIndexViewController : UIViewController
                                 if self.lexicon?.creating == false {
                                     self.ptvc.activityIndicator.stopAnimating()
                                 }
+                                self.ptvc.segmentedControl.isEnabled = true
                                 self.updateLocateButton()
                             })
                         }
@@ -751,10 +755,9 @@ class LexiconIndexViewController : UIViewController
         bodyString = bodyString! + "Sorted: \(translate(globals.sorting)!)<br/>"
         
         if let keys = results?.section?.indexStrings {
-            bodyString = bodyString! + "<br/>"
-            
             if includeURLs, (keys.count > 1) {
-                bodyString = bodyString! + "<a href=\"#index\">Index</a><br/><br/>"
+                bodyString = bodyString! + "<br/>"
+                bodyString = bodyString! + "<a href=\"#index\">Index</a><br/>"
             }
             
             if includeColumns {
@@ -778,14 +781,15 @@ class LexiconIndexViewController : UIViewController
                     
                     let speakerCount = speakerCounts.keys.count
                     
+                    let tag = key.replacingOccurrences(of: " ", with: "")
+
                     if includeColumns {
-                        bodyString = bodyString! + "<tr>"
-                        bodyString = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
+                        bodyString = bodyString! + "<tr id=\"\(tag)\" name=\"\(tag)\"><td><br/></td></tr>"
+                        bodyString = bodyString! + "<tr><td valign=\"baseline\" colspan=\"7\">"
                     }
                     
                     if includeURLs, (keys.count > 1) {
-                        let tag = key.replacingOccurrences(of: " ", with: "")
-                        bodyString = bodyString! + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + " (\(mediaItems.count))" + "</a>"
+                        bodyString = bodyString! + "<a href=\"#index\(tag)\">" + name + " (\(mediaItems.count))" + "</a>"
                     } else {
                         bodyString = bodyString! + name + " (\(mediaItems.count))"
                     }
@@ -832,17 +836,17 @@ class LexiconIndexViewController : UIViewController
                     }
                 }
                 
-                if includeColumns {
-                    bodyString = bodyString! + "<tr>"
-                    bodyString = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
-                }
-                
-                bodyString = bodyString! + "<br/>"
-                
-                if includeColumns {
-                    bodyString = bodyString! + "</td>"
-                    bodyString = bodyString! + "</tr>"
-                }
+//                if includeColumns {
+//                    bodyString = bodyString! + "<tr>"
+//                    bodyString = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
+//                }
+//                
+//                bodyString = bodyString! + "<br/>"
+//                
+//                if includeColumns {
+//                    bodyString = bodyString! + "</td>"
+//                    bodyString = bodyString! + "</tr>"
+//                }
             }
             
             if includeColumns {
@@ -852,7 +856,9 @@ class LexiconIndexViewController : UIViewController
             bodyString = bodyString! + "<br/>"
             
             if includeURLs, keys.count > 1 {
-                bodyString = bodyString! + "<div><a id=\"index\" name=\"index\" href=\"#top\">Index</a><br/><br/>"
+                bodyString = bodyString! + "<div id=\"index\" name=\"index\">Index (<a href=\"#top\">Return to Top</a>)<br/><br/>"
+                
+//                bodyString = bodyString! + "<div><a id=\"index\" name=\"index\" href=\"#top\">Index</a><br/><br/>"
                 
                 switch globals.grouping! {
                 case GROUPING.CLASS:

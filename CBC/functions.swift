@@ -12,6 +12,39 @@ import AVKit
 import MessageUI
 import UserNotifications
 
+func open(scheme: String?,cannotOpen:((Void)->(Void))?)
+{
+    guard let scheme = scheme else {
+        return
+    }
+    
+    guard let url = URL(string: scheme) else {
+        return
+    }
+    
+    guard UIApplication.shared.canOpenURL(url) else { // Reachability.isConnectedToNetwork() &&
+        cannotOpen?()
+        return
+    }
+    
+    if #available(iOS 10, *) {
+        //UIApplicationOpenURLOptionUniversalLinksOnly:
+        //Use a boolean value set to true (YES) to only open the URL if it is a valid universal link with an application configured to open it.
+        //If there is no application configured or the user disabled using it to open the link the completion handler is called with false (NO).
+        
+//        let options = [UIApplicationOpenURLOptionUniversalLinksOnly : true]
+
+        UIApplication.shared.open(url, options: [:],
+                                  completionHandler: {
+                                    (success) in
+                                    print("Open \(scheme): \(success)")
+        })
+    } else {
+        let success = UIApplication.shared.openURL(url)
+        print("Open \(scheme): \(success)")
+    }
+}
+
 public extension UIDevice
 {
     var isSimulator : Bool
@@ -3773,10 +3806,9 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
 
         bodyString = bodyString! + "Total: \(count)<br/>"
 
-        bodyString = bodyString! + "<br/>"
-        
         if includeURLs, (keys.count > 1) {
-            bodyString = bodyString! + "<a href=\"#index\">Index</a><br/><br/>"
+            bodyString = bodyString! + "<br/>"
+            bodyString = bodyString! + "<a href=\"#index\">Index</a><br/>"
         }
         
         if includeColumns {
@@ -3800,14 +3832,29 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                 
                 let speakerCount = speakerCounts.keys.count
                 
+                let tag = key.replacingOccurrences(of: " ", with: "")
+
+                if includeColumns {
+                    if includeURLs {
+                        bodyString = bodyString! + "<tr id=\"\(tag)\" name=\"\(tag)\"><td><br/></td></tr>"
+                    } else {
+                        bodyString = bodyString! + "<tr><td><br/></td></tr>"
+                    }
+                } else {
+                    if includeURLs {
+                        bodyString = bodyString! + "<br id=\"\(tag)\" name=\"\(tag)\"/>"
+                    } else {
+                        bodyString = bodyString! + "<br/>"
+                    }
+                }
+                
                 if includeColumns {
                     bodyString = bodyString! + "<tr>"
                     bodyString = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
                 }
                 
                 if includeURLs, (keys.count > 1) {
-                    let tag = key.replacingOccurrences(of: " ", with: "")
-                    bodyString = bodyString! + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + " (\(mediaItems.count))" + "</a>"
+                    bodyString = bodyString! + "<a href=\"#index\(tag)\">" + name + " (\(mediaItems.count))" + "</a>"
                 } else {
                     bodyString = bodyString! + name + " (\(mediaItems.count))"
                 }
@@ -3853,18 +3900,18 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                     }
                 }
             }
-            
-            if includeColumns {
-                bodyString = bodyString! + "<tr>"
-                bodyString = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
-            }
-            
-            bodyString = bodyString! + "<br/>"
-            
-            if includeColumns {
-                bodyString = bodyString! + "</td>"
-                bodyString = bodyString! + "</tr>"
-            }
+//            
+//            if includeColumns {
+//                bodyString = bodyString! + "<tr>"
+//                bodyString = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
+//            }
+//            
+//            bodyString = bodyString! + "<br/>"
+//            
+//            if includeColumns {
+//                bodyString = bodyString! + "</td>"
+//                bodyString = bodyString! + "</tr>"
+//            }
         }
         
         if includeColumns {
@@ -3917,11 +3964,12 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                     bodyString = bodyString! + "<div><a id=\"sections\" name=\"sections\">Sections</a> "
                     
                     if index != nil {
-                        bodyString = bodyString! + index! + "<br/><br/>"
+                        bodyString = bodyString! + index! + "<br/>"
                     }
                     
                     for title in titles {
-                        bodyString = bodyString! + "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a><br/>"
+                        bodyString = bodyString! + "<div id=\"\(title)\" name=\"\(title)\"/><br/>"
+                        bodyString = bodyString! + "<a href=\"#index\">\(title)</a><br/>"
                         
                         if let keys = stringIndex[title] {
                             for key in keys {
@@ -3931,7 +3979,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                                     bodyString = bodyString! + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
                                 }
                             }
-                            bodyString = bodyString! + "<br/>"
+//                            bodyString = bodyString! + "<br/>"
                         }
                     }
                     
@@ -4007,8 +4055,11 @@ func translate(_ string:String?) -> String?
     case GROUPING.CLASS:
         return Grouping.Class
         
+    case GROUPING.EVENT:
+        return Grouping.Event
+        
     default:
-        return nil
+        return "ERROR"
     }
 }
 

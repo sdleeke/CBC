@@ -92,13 +92,15 @@ extension PopoverTableViewController: UISearchBarDelegate
             return
         }
         
-        searchActive = true
-        
         // To make sure we start out right
-        filteredSection.showIndex = unfilteredSection.showIndex
-        filteredSection.showHeaders = unfilteredSection.showHeaders
-        filteredSection.indexStringsTransform = unfilteredSection.indexStringsTransform
-        filteredSection.indexHeadersTransform = unfilteredSection.indexHeadersTransform
+        if !searchActive {
+            filteredSection.showIndex = unfilteredSection.showIndex
+            filteredSection.showHeaders = unfilteredSection.showHeaders
+            filteredSection.indexStringsTransform = unfilteredSection.indexStringsTransform
+            filteredSection.indexHeadersTransform = unfilteredSection.indexHeadersTransform
+        }
+        
+        searchActive = true
         
         searchBar.showsCancelButton = true
         
@@ -892,13 +894,22 @@ class PopoverTableViewController : UIViewController
         if self.section.showIndex {
             width += indexSpace
         }
+
+        print(width)
+
+        print(height)
         
-        if self.section.showIndex || self.section.showHeaders {
-            height += self.tableView.sectionHeaderHeight * CGFloat(self.section.headers!.count)
+        if self.section.showIndex || self.section.showHeaders, let count = self.section.headers?.count, (count > 1) || (self.section.strings?.count > 1) {
+//            for index in 0..<self.section.headers!.count {
+//                if let headerHeight = self.tableView.headerView(forSection: index)?.bounds.height {
+//                    height += headerHeight
+//                }
+//            }
+            height += CGFloat(40 * count)
+//            height += self.tableView.sectionHeaderHeight * CGFloat(self.section.headers!.count)
         }
         
-//        print(height)
-//        print(width)
+        print(height)
         
         self.preferredContentSize = CGSize(width: width, height: height)
     }
@@ -1206,6 +1217,8 @@ class PopoverTableViewController : UIViewController
         guard let pause = mediaListGroupSort?.lexicon?.pauseUpdates, !pause else {
             return
         }
+
+        var text : String?
         
         Thread.onMainThread() {
             if let completed = self.mediaListGroupSort?.lexicon?.completed, !completed {
@@ -1216,6 +1229,12 @@ class PopoverTableViewController : UIViewController
         
         Thread.onMainThread() {
             self.updateTitle()
+            
+            if self.tableView.visibleCells.count > 1 { // 1 seems to be optimal
+                if let cell = self.tableView.visibleCells[self.tableView.visibleCells.count/2] as? PopoverTableViewCell {
+                    text = cell.title.text
+                }
+            }
         }
         
         self.unfilteredSection.strings = (self.sort.function == nil) ? self.mediaListGroupSort?.lexicon?.section.strings : self.sort.function?(self.sort.method,self.mediaListGroupSort?.lexicon?.section.strings)
@@ -1247,6 +1266,10 @@ class PopoverTableViewController : UIViewController
         Thread.onMainThread() {
             if let pause = self.mediaListGroupSort?.lexicon?.pauseUpdates, !pause {
                 self.tableView.reloadData()
+                if let indexPath = self.section.indexPath(from: text) {
+                    self.tableView.scrollToRow(at: indexPath, at: .middle, animated: false)
+                }
+//                self.tableView.reloadData()
             }
         }
         

@@ -115,12 +115,8 @@ class AboutViewController: UIViewController
     
     fileprivate func openWebSite(_ urlString:String)
     {
-        if let url = URL(string:urlString) {
-            if (UIApplication.shared.canOpenURL(url)) { // Reachability.isConnectedToNetwork() &&
-                UIApplication.shared.openURL(url)
-            } else {
-                networkUnavailable(self,"Unable to open web site: \(urlString)")
-            }
+        open(scheme: urlString) {
+            networkUnavailable(self,"Unable to open web site: \(urlString)")
         }
     }
     
@@ -128,10 +124,8 @@ class AboutViewController: UIViewController
     {
         let urlAddress = Constants.CBC.FULL_ADDRESS.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.PLUS, options: NSString.CompareOptions.literal, range: nil)
         
-        if (UIApplication.shared.canOpenURL(URL(string:"comgooglemaps://")!)) { // Reachability.isConnectedToNetwork() &&
-            let querystring = "comgooglemaps://?q="+urlAddress
-            UIApplication.shared.openURL(URL(string:querystring)!)
-        } else {
+        let querystring = "comgooglemaps://?q="+urlAddress
+        open(scheme: querystring) {
             alert(viewController:self,title: "Google Maps is not available", message: "", completion: nil)
         }
     }

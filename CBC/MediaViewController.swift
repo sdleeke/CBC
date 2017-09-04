@@ -166,21 +166,17 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Open_on_CBC_Website:
-            if selectedMediaItem?.websiteURL != nil {
-                if (UIApplication.shared.canOpenURL(selectedMediaItem!.websiteURL!)) { // Reachability.isConnectedToNetwork() &&
-                    UIApplication.shared.openURL(selectedMediaItem!.websiteURL!)
-                } else {
-                    networkUnavailable(self,"Unable to open transcript in browser at: \(String(describing: selectedMediaItem?.websiteURL))")
+            if let url = self.selectedMediaItem?.websiteURL {
+                open(scheme: url.absoluteString) {
+                    networkUnavailable(self,"Unable to open: \(url)")
                 }
             }
             break
             
         case Constants.Strings.Open_in_Browser:
-            if selectedMediaItem?.downloadURL != nil {
-                if (UIApplication.shared.canOpenURL(selectedMediaItem!.downloadURL!)) { // Reachability.isConnectedToNetwork() &&
-                    UIApplication.shared.openURL(selectedMediaItem!.downloadURL!)
-                } else {
-                    networkUnavailable(self,"Unable to open transcript in browser at: \(String(describing: selectedMediaItem?.downloadURL))")
+            if let url = self.selectedMediaItem?.downloadURL {
+                open(scheme: url.absoluteString) {
+                    networkUnavailable(self,"Unable to open: \(url)")
                 }
             }
             break
@@ -536,9 +532,7 @@ extension MediaViewController : WKNavigationDelegate
                 }
             } else {
                 if let url = navigationAction.request.url {
-                    if UIApplication.shared.canOpenURL(url) { // Reachability.isConnectedToNetwork() &&
-                        UIApplication.shared.openURL(url)
-                    }
+                    open(scheme: url.absoluteString) {}
                 }
                 decisionHandler(WKNavigationActionPolicy.cancel)
             }
@@ -1902,12 +1896,8 @@ class MediaViewController: UIViewController // MediaController
 //        print("\(urlString)")
 //        print("\(NSURL(string:urlString))")
         
-        if let url = URL(string:urlString) {
-            if (UIApplication.shared.canOpenURL(url)) { // Reachability.isConnectedToNetwork() &&
-                UIApplication.shared.openURL(url)
-            } else {
-                networkUnavailable(self,"Unable to open scripture at: \(url)")
-            }
+        open(scheme: urlString) {
+            networkUnavailable(self,"Unable to open scripture at: \(urlString)")
         }
     }
     

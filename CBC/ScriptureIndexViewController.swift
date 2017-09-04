@@ -1016,12 +1016,13 @@ class ScriptureIndexViewController : UIViewController
         
         bodyString = bodyString! + "Items are grouped and sorted by Scripture reference.<br/>"
 
-        bodyString = bodyString! + "Total: \(mediaItems!.count)<br/><br/>"
-
+        bodyString = bodyString! + "Total: \(mediaItems!.count)<br/>"
+        
         let books = bodyItems.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
         
         if includeURLs, (books.count > 1) {
-            bodyString = bodyString! + "<a href=\"#index\">Index</a><br/><br/>"
+            bodyString = bodyString! + "<br/>"
+            bodyString = bodyString! + "<a href=\"#index\">Index</a><br/>"
         }
         
         if includeColumns {
@@ -1029,15 +1030,16 @@ class ScriptureIndexViewController : UIViewController
         }
         
         for book in books {
-            if includeColumns {
-                bodyString  = bodyString! + "<tr>"
-                bodyString  = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
-            }
+            let tag = book.replacingOccurrences(of: " ", with: "")
 
+            if includeColumns {
+                bodyString  = bodyString! + "<tr id=\"\(tag)\" name=\"\(tag)\"><td><br/></td></tr>"
+                bodyString  = bodyString! + "<tr><td valign=\"baseline\" colspan=\"7\">"
+            }
+            
             if let mediaItems = bodyItems[book] {
                 if includeURLs && (books.count > 1) {
-                    let tag = book.replacingOccurrences(of: " ", with: "")
-                    bodyString = bodyString! + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">" + book + " (\(mediaItems.count))" + "</a>"
+                    bodyString = bodyString! + "<a href=\"#index\">" + book + " (\(mediaItems.count))" + "</a>"
                 } else {
                     bodyString = bodyString! + book
                 }
@@ -1087,17 +1089,17 @@ class ScriptureIndexViewController : UIViewController
                     }
                 }
                 
-                if includeColumns {
-                    bodyString  = bodyString! + "<tr>"
-                    bodyString  = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
-                }
-                
-                bodyString = bodyString! + "<br/>"
-                
-                if includeColumns {
-                    bodyString  = bodyString! + "</td>"
-                    bodyString  = bodyString! + "</tr>"
-                }
+//                if includeColumns {
+//                    bodyString  = bodyString! + "<tr>"
+//                    bodyString  = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
+//                }
+//                
+//                bodyString = bodyString! + "<br/>"
+//                
+//                if includeColumns {
+//                    bodyString  = bodyString! + "</td>"
+//                    bodyString  = bodyString! + "</tr>"
+//                }
             }
         }
         
@@ -1108,7 +1110,9 @@ class ScriptureIndexViewController : UIViewController
         bodyString = bodyString! + "<br/>"
         
         if includeURLs, (books.count > 1) {
-            bodyString = bodyString! + "<div><a id=\"index\" name=\"index\" href=\"#top\">Index</a><br/><br/>"
+            bodyString = bodyString! + "<div id=\"index\" name=\"index\">Index (<a href=\"#top\">Return to Top</a>)<br/><br/>"
+
+//            bodyString = bodyString! + "<div><a id=\"index\" name=\"index\" href=\"#top\">Index</a><br/><br/>"
             
             for book in books {
                 if let count = bodyItems[book]?.count {

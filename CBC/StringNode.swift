@@ -263,7 +263,7 @@ class StringNode {
             let newStringRemainder = newString?.substring(from: fragment!.endIndex)
             
             if let isEmpty = stringRemainder?.isEmpty, !isEmpty {
-                let newNode = StringNode(stringRemainder)
+                var newNode = StringNode(stringRemainder)
                 newNode.stringNodes = stringNodes
                 
                 newNode.wordEnding = wordEnding

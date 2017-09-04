@@ -16,13 +16,29 @@ class Section
             return nil
         }
         
-        guard let string = string else {
+        guard var string = string else {
             return nil
         }
         
-        guard let index = strings?.index(of: string) else {
+        if let range = string.range(of: " (") {
+            string = string.substring(to: range.lowerBound) //.uppercased()
+        }
+        
+        guard let index = strings?.index(where: { (str:String) -> Bool in
+            var match = str
+            
+            if let range = str.range(of: " (") {
+                match = str.substring(to: range.lowerBound) //.uppercased()
+            }
+            
+            return match == string
+        }) else {
             return nil
         }
+        
+//        guard let index = strings?.index(of: string) else {
+//            return nil
+//        }
         
         if counts?.count == indexes?.count {
             var section = 0
