@@ -551,9 +551,10 @@ class ScriptureIndexViewController : UIViewController
         }
     }
 
-    var sectionTitles:[String]? {
+    var sectionTitles:[String]?
+    {
         get {
-            return sections?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
+            return scriptureIndex?.sectionTitles // sections?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
         }
     }
     

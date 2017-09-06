@@ -24,13 +24,23 @@ class ScriptureIndex {
     var sections:[String:[MediaItem]]?
     {
         get {
-            return context != nil ? sectionsIndex[context!] : nil
+            guard (context != nil) else {
+                return nil
+            }
+            return sectionsIndex[context!]
         }
         set {
             guard (context != nil) else {
                 return
             }
             sectionsIndex[context!] = newValue
+        }
+    }
+    
+    var sectionTitles : [String]?
+    {
+        get {
+            return sections?.keys.sorted() { bookNumberInBible($0) < bookNumberInBible($1) }
         }
     }
     
