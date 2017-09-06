@@ -258,14 +258,17 @@ class AboutViewController: UIViewController
                 self.mapView?.addAnnotation(pointAnnotation)
                 self.mapView?.setCenter(coordinates, animated: false)
                 self.mapView?.selectAnnotation(pointAnnotation, animated: false)
-                self.mapView?.isZoomEnabled = true
                 
                 let mkPlacemark = MKPlacemark(coordinate: coordinates, addressDictionary: nil)
                 self.item = MKMapItem(placemark: mkPlacemark)
                 
-                let viewRegion = MKCoordinateRegionMakeWithDistance(coordinates, 10000, 10000)
+                let viewRegion = MKCoordinateRegionMakeWithDistance(coordinates, 50000, 50000)
                 let adjustedRegion = self.mapView?.regionThatFits(viewRegion)
                 self.mapView?.setRegion(adjustedRegion!, animated: false)
+                
+                self.mapView?.isZoomEnabled = false
+                self.mapView?.isUserInteractionEnabled = false
+                
                 self.mapView?.isHidden = false
             }
         })

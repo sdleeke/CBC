@@ -1554,18 +1554,21 @@ extension ScriptureIndexViewController : UITableViewDataSource
         return 0
     }
     
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if let _ = scriptureIndex?.selectedBook {
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
+    {
+        guard sectionTitles != nil else {
             return nil
-        } else {
-            if sectionTitles != nil {
-                if section >= 0, section < sectionTitles!.count {
-                    return sectionTitles![section]
-                }
-            }
         }
-        
-        return nil
+
+        guard section >= 0, section < sectionTitles!.count else {
+            return nil
+        }
+
+        guard scriptureIndex?.selectedBook == nil else {
+            return nil
+        }
+
+        return sectionTitles![section]
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -1787,33 +1790,29 @@ extension ScriptureIndexViewController : UITableViewDelegate
             view = ScriptureIndexViewControllerHeaderView()
         }
         
-        if  section >= 0, section < scriptureIndex?.sections?.keys.count,
-            let keys : [String] = scriptureIndex?.sections?.keys.map({ (string:String) -> String in
-                return string
-            }) {
-            view?.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+        view?.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+        view?.alpha = 0.85
+        
+        if view?.label == nil {
+            view?.label = UILabel()
             
-            if view?.label == nil {
-                view?.label = UILabel()
-                
-                view?.label?.numberOfLines = 0
-                view?.label?.lineBreakMode = .byWordWrapping
-                
-                view?.label?.translatesAutoresizingMaskIntoConstraints = false
-                
-                view?.addSubview(view!.label!)
-                
-                view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":view!.label!]))
-                view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":view!.label!]))
-            }
+            view?.label?.numberOfLines = 0
+            view?.label?.lineBreakMode = .byWordWrapping
             
-            let title = keys[section]
+            view?.label?.translatesAutoresizingMaskIntoConstraints = false
             
-            view?.label?.attributedText = NSAttributedString(string: title,   attributes: Constants.Fonts.Attributes.bold)
+            view?.addSubview(view!.label!)
             
-            view?.alpha = 0.85
+            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":view!.label!]))
+            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":view!.label!]))
         }
         
+        if sectionTitles != nil, section >= 0, section < sectionTitles!.count {
+            view?.label?.attributedText = NSAttributedString(string: sectionTitles![section], attributes: Constants.Fonts.Attributes.bold)
+        } else {
+            view?.label?.attributedText = NSAttributedString(string: "ERROR", attributes: Constants.Fonts.Attributes.bold)
+        }
+
         return view
     }
 }

@@ -5338,26 +5338,28 @@ extension MediaTableViewController : UITableViewDataSource
             view = MediaTableViewControllerHeaderView()
         }
         
+        view?.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
+        
+        if view?.label == nil {
+            view?.label = UILabel()
+            
+            view?.label?.numberOfLines = 0
+            view?.label?.lineBreakMode = .byWordWrapping
+            
+            view?.label?.translatesAutoresizingMaskIntoConstraints = false
+            
+            view?.addSubview(view!.label!)
+            
+            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":view!.label!]))
+            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":view!.label!]))
+        }
+        
+        view?.alpha = 0.85
+        
         if section >= 0, section < globals.display.section.headers?.count, let title = globals.display.section.headers?[section] {
-            view?.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
-            
-            if view?.label == nil {
-                view?.label = UILabel()
-                
-                view?.label?.numberOfLines = 0
-                view?.label?.lineBreakMode = .byWordWrapping
-                
-                view?.label?.translatesAutoresizingMaskIntoConstraints = false
-                
-                view?.addSubview(view!.label!)
-                
-                view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":view!.label!]))
-                view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":view!.label!]))
-            }
-            
             view?.label?.attributedText = NSAttributedString(string: title, attributes: Constants.Fonts.Attributes.bold)
-
-            view?.alpha = 0.85
+        } else {
+            view?.label?.attributedText = NSAttributedString(string: "ERROR", attributes: Constants.Fonts.Attributes.bold)
         }
 
         return view

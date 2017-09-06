@@ -238,7 +238,8 @@ extension PopoverPickerViewController : UIPickerViewDelegate
 
             //            print("Component: ",component," Width: ",width)
             
-            if let index = pickerSelections[component], let string = stringNode?.stringNodes?[index].string, string == Constants.WORD_ENDING {
+            if  component < pickerSelections.count, let index = pickerSelections[component], index < stringNode?.stringNodes?.count,
+                let string = stringNode?.stringNodes?[index].string, string == Constants.WORD_ENDING {
                 return width + 20
             } else {
                 return width + 10
