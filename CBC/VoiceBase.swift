@@ -1175,20 +1175,20 @@ class VoiceBase {
         }
     }
     
-    init(mediaItem:MediaItem,purpose:String)
-    {
-        self.mediaItem = mediaItem
-        
-        self.purpose = purpose
-
-        if let mediaID = mediaItem.mediaItemSettings?["mediaID."+self.purpose!] {
-            self.mediaID = mediaID
-        }
-        
-        if let completed = mediaItem.mediaItemSettings?["completed."+self.purpose!] {
-            self.completed = completed == "YES"
-        }
-    }
+//    init(mediaItem:MediaItem,purpose:String)
+//    {
+//        self.mediaItem = mediaItem
+//        
+//        self.purpose = purpose
+//
+//        if let mediaID = mediaItem.mediaItemSettings?["mediaID."+self.purpose!] {
+//            self.mediaID = mediaID
+//        }
+//        
+//        if let completed = mediaItem.mediaItemSettings?["completed."+self.purpose!] {
+//            self.completed = completed == "YES"
+//        }
+//    }
     
     func createBody(parameters: [String: String],boundary: String) -> NSData
     {
@@ -1960,7 +1960,7 @@ class VoiceBase {
             // Upload then align
             self.mediaID = nil
             
-            let parameters:[String:String] = ["media":self.url!,"metadata":self.metadata,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+            let parameters:[String:String] = ["media":self.url!,"metadata":self.metadata] // "configuration":"{\"configuration\":{\"executor\":\"v2\"}}"
             
             self.post(path:nil,parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
                 self.uploadJSON = json
@@ -3362,7 +3362,7 @@ class VoiceBase {
         action = UITableViewRowAction(style: .normal, title: prefix + "\n" + Constants.FA.LIST) { action, index in
             
 //            let sourceView = self.view // cell.subviews[0]
-//            let sourceRectView = self.controlView! // cell.subviews[0].subviews[actions.index(of: action)!]
+//            let sourceRectView = self.controlView! // cell.subviews[0].subviews[actions.index(of: action)!] // memory leak!
             
             var alertActions = [AlertAction]()
             

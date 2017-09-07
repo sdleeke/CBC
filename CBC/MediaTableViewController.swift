@@ -5531,7 +5531,11 @@ extension MediaTableViewController : UITableViewDelegate
                 
                 if let cell = cell {
                     navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
-                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: search)!].frame
+                    if mediaItem.books != nil {
+                        navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[1].frame
+                    } else {
+                        navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[0].frame
+                    }
                 }
                 
                 popover.navigationItem.title = Constants.Strings.Search
@@ -5583,7 +5587,7 @@ extension MediaTableViewController : UITableViewDelegate
                 
                 if let cell = cell {
                     navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
-                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: words)!].frame
+                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].frame // .subviews[actions.index(of: words)!].frame // memory leak!
                 }
                 
                 popover.navigationItem.title = Constants.Strings.Search
@@ -5658,7 +5662,7 @@ extension MediaTableViewController : UITableViewDelegate
         
         transcript = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
             let sourceView = cell?.subviews[0]
-            let sourceRectView = cell?.subviews[0].subviews[actions.index(of: transcript)!]
+            let sourceRectView = cell?.subviews[0] // .subviews[actions.index(of: transcript)!] // memory leak!
             
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
@@ -5701,7 +5705,7 @@ extension MediaTableViewController : UITableViewDelegate
         
         scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
             let sourceView = cell?.subviews[0]
-            let sourceRectView = cell?.subviews[0].subviews[actions.index(of: scripture)!]
+            let sourceRectView = cell?.subviews[0] // .subviews[actions.index(of: scripture)!] // memory leak!
             
             if let reference = mediaItem.scriptureReference {
                 //                mediaItem.scripture?.html?[reference] = nil // REMOVE THIS LATER

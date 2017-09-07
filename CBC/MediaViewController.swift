@@ -4746,7 +4746,7 @@ extension MediaViewController : UITableViewDataSource
         
         transcript = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
             let sourceView = cell?.subviews[0]
-            let sourceRectView = cell?.subviews[0].subviews[actions.index(of: transcript)!]
+            let sourceRectView = cell?.subviews[0] //.subviews[actions.index(of: transcript)!] // memory leak!
             
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
@@ -4779,7 +4779,7 @@ extension MediaViewController : UITableViewDataSource
         
         scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
             let sourceView = cell?.subviews[0]
-            let sourceRectView = cell?.subviews[0].subviews[actions.index(of: scripture)!]
+            let sourceRectView = cell?.subviews[0] //.subviews[actions.index(of: scripture)!] // memory leak!
             
             if let reference = mediaItem.scriptureReference {
                 if mediaItem.scripture?.html?[reference] != nil {
@@ -4824,7 +4824,7 @@ extension MediaViewController : UITableViewDataSource
                 
                 if let cell = cell {
                     navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
-                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[actions.index(of: topics)!].frame
+                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].frame // .subviews[actions.index(of: topics)!].frame // memory leak!
                 }
                 
                 popover.navigationController?.isNavigationBarHidden = false

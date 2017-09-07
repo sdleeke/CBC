@@ -1598,7 +1598,9 @@ class MediaItem : NSObject {
 //            print(tags)
         
         while tags?.index(of: tag) != nil {
-            tags?.remove(at: tags!.index(of: tag)!)
+            if let index = tags!.index(of: tag) {
+                tags?.remove(at: index)
+            }
         }
         
 //            print(tags)
@@ -2365,7 +2367,10 @@ class MediaItem : NSObject {
     
     lazy var audioTranscript:VoiceBase? = {
         [unowned self] in
-        let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.audio)
+        let voicebase = VoiceBase()
+//        let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.audio)
+        voicebase.mediaItem = self
+        voicebase.purpose = Purpose.audio
 //        if (voicebase.transcript != nil) && (voicebase.mediaID != "Completed") {
 //            voicebase.delete() // Clean up the cloud.
 //        }
@@ -2375,7 +2380,10 @@ class MediaItem : NSObject {
     
     lazy var videoTranscript:VoiceBase? = {
         [unowned self] in
-        let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.video)
+//        let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.video)
+        let voicebase = VoiceBase()
+        voicebase.mediaItem = self
+        voicebase.purpose = Purpose.video
 //        if (voicebase.transcript != nil) && (voicebase.mediaID != "Completed") {
 //            voicebase.delete() // Clean up the cloud.
 //        }
