@@ -3452,6 +3452,7 @@ func secondsToHMS(seconds:String?) -> String?
 func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:String?,barButtonItem:UIBarButtonItem?,sourceView:UIView?,sourceRectView:UIView?,htmlString:String?)
 {
     guard Thread.isMainThread else {
+        alert(viewController:viewController,title: "Not Main Thread", message: "functions:popoverHTML", completion: nil)
         return
     }
     
@@ -3530,6 +3531,7 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
 func shareHTML(viewController:UIViewController,htmlString:String?)
 {
     guard Thread.isMainThread else {
+        alert(viewController:viewController,title: "Not Main Thread", message: "functions:shareHTML", completion: nil)
         return
     }
     
@@ -4327,6 +4329,7 @@ func alert(viewController:UIViewController,title:String?,message:String?,complet
 func alert(viewController:UIViewController,title:String?,message:String?,actions:[AlertAction]?)
 {
     guard Thread.isMainThread else {
+        print("Not Main Thread","functions:alert")
         return
     }
     

@@ -330,8 +330,14 @@ class MediaTableViewCell: UITableViewCell
     
     func stopEditing()
     {
+        guard Thread.isMainThread else {
+            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:stopEditing", completion: nil)
+            return
+        }
+        
         if isEditing {
-            (vc as? MediaTableViewController)?.tableView?.isEditing = false
+            // tableView.isEditing must be done on the main thread.
+            (vc as? MediaTableViewController)?.tableView.isEditing = false
             (vc as? MediaViewController)?.tableView.isEditing = false
         }
     }
@@ -350,6 +356,7 @@ class MediaTableViewCell: UITableViewCell
         }
 
         if isEditing {
+            // tableView.isEditing must be done on the main thread.
             (vc as? MediaTableViewController)?.tableView?.isEditing = false
             (vc as? MediaViewController)?.tableView.isEditing = false
         }

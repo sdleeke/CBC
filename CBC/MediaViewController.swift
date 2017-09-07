@@ -593,6 +593,7 @@ extension MediaViewController : WKNavigationDelegate
         print("wkWebViewDidFinishNavigation Loading:\(webView.isLoading)")
         
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:webView", completion: nil)
             return
         }
         
@@ -2252,6 +2253,11 @@ class MediaViewController: UIViewController // MediaController
     
     func swapVideoLocation()
     {
+        guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:swapVideoLocation", completion: nil)
+            return
+        }
+        
         switch videoLocation {
         case .withDocuments:
             selectedMediaItem?.showing = selectedMediaItem?.wasShowing
@@ -2380,6 +2386,7 @@ class MediaViewController: UIViewController // MediaController
     func readyToPlay()
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:readyToPlay", completion: nil)
             return
         }
         
@@ -2468,6 +2475,7 @@ class MediaViewController: UIViewController // MediaController
     func showPlaying()
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:showPlaying", completion: nil)
             return
         }
         
@@ -2706,6 +2714,7 @@ class MediaViewController: UIViewController // MediaController
     fileprivate func loadDocument(_ document:Document?)
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:loadDocument", completion: nil)
             return
         }
         
@@ -3179,6 +3188,7 @@ class MediaViewController: UIViewController // MediaController
     func tags(_ object:AnyObject?)
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:tags", completion: nil)
             return
         }
 
@@ -3813,6 +3823,11 @@ class MediaViewController: UIViewController // MediaController
     
     func stopEditing()
     {
+        guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:stopEditing", completion: nil)
+            return
+        }
+        
         tableView.isEditing = false
     }
     
@@ -3821,10 +3836,6 @@ class MediaViewController: UIViewController // MediaController
         super.viewWillAppear(animated)
 
         orientation = UIDevice.current.orientation
-        
-        guard Thread.isMainThread else {
-            return
-        }
         
         navigationController?.isToolbarHidden = true
 
@@ -4144,6 +4155,7 @@ class MediaViewController: UIViewController // MediaController
     fileprivate func setSliderAndTimesToAudio()
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaViewController:setSliderAndTimesToAudio", completion: nil)
             return
         }
         

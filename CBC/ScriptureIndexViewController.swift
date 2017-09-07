@@ -1180,6 +1180,7 @@ class ScriptureIndexViewController : UIViewController
     func index(_ object:AnyObject?)
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:index",completion:nil)
             return
         }
 
@@ -1218,6 +1219,12 @@ class ScriptureIndexViewController : UIViewController
     
     func selectOrScrollToMediaItem(_ mediaItem:MediaItem?, select:Bool, scroll:Bool, position: UITableViewScrollPosition)
     {
+        guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "ScriptureIndexViewController:selectOrScrollToMediaItem",completion:nil)
+            return
+        }
+        
+        // isEditing must be on main thread.
         guard !tableView.isEditing else {
             return
         }
@@ -1263,7 +1270,9 @@ class ScriptureIndexViewController : UIViewController
     {
         updateSearchResults()
         
-        selectOrScrollToMediaItem(selectedMediaItem, select: true, scroll: true, position: .top)
+        Thread.onMainThread { (Void) -> (Void) in
+            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: .top)
+        }
     }
 
     override func viewDidLoad() {

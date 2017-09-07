@@ -80,6 +80,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
     func actionMenu(action: String?,mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:actionMenu", completion: nil)
             return
         }
         
@@ -960,6 +961,7 @@ class LexiconIndexViewController : UIViewController
     func actions()
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:actions", completion: nil)
             return
         }
         
@@ -1053,6 +1055,7 @@ class LexiconIndexViewController : UIViewController
     func index(_ object:AnyObject?)
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:index", completion: nil)
             return
         }
         

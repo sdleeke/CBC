@@ -1210,10 +1210,18 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             }
             
             DispatchQueue.global(qos: .background).async {
-                while (self.popover?.tableView != nil) && self.popover!.tableView.isEditing {
-                    //                                    Thread.sleep(forTimeInterval: 0.1)
-                }
+                // tableView.isEditing msut must be on main thread.
+                var wait = false
                 
+                Thread.onMainThread(block: { (Void) -> (Void) in
+                    wait = (self.popover?.tableView != nil) && self.popover!.tableView.isEditing
+                
+                    while wait {
+                        Thread.sleep(forTimeInterval: 0.1)
+                        wait = (self.popover?.tableView != nil) && self.popover!.tableView.isEditing
+                    }
+                })
+
                 if  let mimd = metadata["mediaItem"] as? [String:Any],
                     let id = mimd["id"] as? String,
                     let purpose = mimd["purpose"] as? String,
@@ -1389,6 +1397,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
     func showMenu(action:String?,mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:showMenu", completion: nil)
             return
         }
 
@@ -2542,6 +2551,7 @@ class MediaTableViewController : UIViewController // MediaController
 //        print("categoryButtonAction")
         
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:mediaCategoryButtonAction", completion: nil)
             return
         }
 
@@ -2637,6 +2647,7 @@ class MediaTableViewController : UIViewController // MediaController
     @IBAction func show(_ button: UIBarButtonItem)
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:show", completion: nil)
             return
         }
 
@@ -2881,6 +2892,7 @@ class MediaTableViewController : UIViewController // MediaController
     func index(_ object:AnyObject?)
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:index", completion: nil)
             return
         }
 
@@ -2970,6 +2982,7 @@ class MediaTableViewController : UIViewController // MediaController
     func grouping(_ object:AnyObject?)
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:grouping", completion: nil)
             return
         }
 
@@ -3013,6 +3026,7 @@ class MediaTableViewController : UIViewController // MediaController
     func sorting(_ object:AnyObject?)
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:sorting", completion: nil)
             return
         }
 
@@ -4098,6 +4112,7 @@ class MediaTableViewController : UIViewController // MediaController
     func load()
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:load", completion: nil)
             return
         }
         
@@ -4211,6 +4226,7 @@ class MediaTableViewController : UIViewController // MediaController
     func actions()
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:actions", completion: nil)
             return
         }
         
@@ -4336,6 +4352,7 @@ class MediaTableViewController : UIViewController // MediaController
     @IBAction func selectingTagsAction(_ sender: UIButton)
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:selectingTagsAction", completion: nil)
             return
         }
 
@@ -4807,6 +4824,11 @@ class MediaTableViewController : UIViewController // MediaController
 
     func stopEditing()
     {
+        guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:stopEditing", completion: nil)
+            return
+        }
+        
         tableView.isEditing = false
     }
     
@@ -4818,6 +4840,11 @@ class MediaTableViewController : UIViewController // MediaController
     func didBecomeActive()
     {
         guard globals.mediaRepository.list == nil else {
+            return
+        }
+        
+        guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:didBecomeActive", completion: nil)
             return
         }
         
@@ -5468,6 +5495,7 @@ extension MediaTableViewController : UITableViewDelegate
     func editActions(cell: MediaTableViewCell?, mediaItem:MediaItem?) -> [UITableViewRowAction]?
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:editActions", completion: nil)
             return nil
         }
 
@@ -5532,6 +5560,7 @@ extension MediaTableViewController : UITableViewDelegate
         func transcriptTokens()
         {
             guard Thread.isMainThread else {
+                alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:transcriptTokens", completion: nil)
                 return
             }
 

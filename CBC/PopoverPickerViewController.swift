@@ -271,6 +271,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverPickerViewController:pickerView", completion: nil)
             return
         }
         

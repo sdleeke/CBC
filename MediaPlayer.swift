@@ -693,6 +693,7 @@ class MediaPlayer : NSObject {
     func unobserve()
     {
         guard Thread.isMainThread else {
+            print("Not Main Thread","mediaPlayer:unobserve")
             return
         }
         
@@ -731,6 +732,7 @@ class MediaPlayer : NSObject {
     func observe()
     {
         guard Thread.isMainThread else {
+            print("Not Main Thread","mediaPlayer:observe")
             return
         }
         
@@ -796,7 +798,7 @@ class MediaPlayer : NSObject {
     func stop()
     {
         guard Thread.isMainThread else {
-            print("Not Main Thread")
+            print("Not Main Thread","mediaPlayer:stop")
             return
         }
 

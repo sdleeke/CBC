@@ -192,6 +192,7 @@ extension PopoverTableViewController : PopoverTableViewControllerDelegate
     func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose: PopoverPurpose, mediaItem: MediaItem?)
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:rowClickedAtIndex",completion:nil)
             return
         }
         
@@ -755,6 +756,7 @@ class PopoverTableViewController : UIViewController
         }
         
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:setPreferredContentSize",completion:nil)
             return
         }
 
@@ -2263,6 +2265,7 @@ extension PopoverTableViewController : UITableViewDelegate
     func tableView(_ TableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
         guard Thread.isMainThread else {
+            alert(viewController:self,title: "Not Main Thread", message: "PopoverTableViewController:didSelectRowAt",completion:nil)
             return
         }
         
