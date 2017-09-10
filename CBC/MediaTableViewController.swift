@@ -3111,6 +3111,7 @@ class MediaTableViewController : UIViewController // MediaController
         showButton?.title = Constants.FA.REORDER
         showButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
         showButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
+        showButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.selected)
 
         showButton?.isEnabled = (globals.media.all != nil) //&& !globals.mediaItemsSortingOrGrouping
     }

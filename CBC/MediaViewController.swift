@@ -4859,12 +4859,20 @@ extension MediaViewController : UITableViewDataSource
             if let actions = mediaItem.audioTranscript?.keywordAlertActions(viewController:self,tableView:self.tableView, completion: { (popover:PopoverTableViewController)->(Void) in
                 self.popover = popover
             }) {
-                alertActions.append(actions)
+                if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.audio) && (mediaItem == self.selectedMediaItem)  {
+                    if mediaItem.audioTranscript?.keywords != nil {
+                        alertActions.append(actions)
+                    }
+                }
             }
             if let actions = mediaItem.videoTranscript?.keywordAlertActions(viewController:self,tableView:self.tableView, completion: { (popover:PopoverTableViewController)->(Void) in
                 self.popover = popover
             }) {
-                alertActions.append(actions)
+                if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.video) && (mediaItem == self.selectedMediaItem)  {
+                    if mediaItem.videoTranscript?.keywords != nil {
+                        alertActions.append(actions)
+                    }
+                }
             }
             
             alertActionsCancel( viewController: self,
