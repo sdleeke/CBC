@@ -16,7 +16,7 @@ import UIKit
 //    case Pad
 //}
 
-struct ScreenSize
+enum ScreenSize
 {
     static let SCREEN_WIDTH         = UIScreen.main.bounds.size.width
     static let SCREEN_HEIGHT        = UIScreen.main.bounds.size.height
@@ -24,7 +24,7 @@ struct ScreenSize
     static let SCREEN_MIN_LENGTH    = min(ScreenSize.SCREEN_WIDTH, ScreenSize.SCREEN_HEIGHT)
 }
 
-struct DeviceType
+enum DeviceType
 {
     static let IS_IPHONE_4_OR_LESS  = UIDevice.current.userInterfaceIdiom == .phone && ScreenSize.SCREEN_MAX_LENGTH < 568.0
     static let IS_IPHONE_5          = UIDevice.current.userInterfaceIdiom == .phone && ScreenSize.SCREEN_MAX_LENGTH == 568.0
@@ -79,7 +79,7 @@ struct DeviceType
 //    case year
 //}
 
-struct Field {
+enum Field {
     static let id       = "mediacode"
     
     static let date     = "date"
@@ -131,7 +131,7 @@ struct Field {
 //    case NONE
 //}
 
-struct MediaType {
+enum MediaType {
     static let AUDIO    = "AUDIO"
     static let VIDEO    = "VIDEO"
     static let SLIDES   = "SLIDES"
@@ -152,7 +152,7 @@ struct MediaType {
 //    case NONE
 //}
 
-struct Purpose {
+enum Purpose {
     static let audio    = MediaType.AUDIO
     static let video    = MediaType.VIDEO
     static let slides   = MediaType.SLIDES
@@ -165,7 +165,7 @@ struct Purpose {
 //    case VIDEO
 //}
 
-struct Playing {
+enum Playing {
     static let audio    = MediaType.AUDIO
     static let video    = MediaType.VIDEO
 }
@@ -177,7 +177,7 @@ struct Playing {
 //    case NONE
 //}
 
-struct Showing {
+enum Showing {
     static let video    = MediaType.VIDEO
     static let notes    = MediaType.NOTES
     static let slides   = MediaType.SLIDES
@@ -202,7 +202,7 @@ struct Showing {
 //    case EVENT
 //}
 
-struct Grouping {
+enum Grouping {
     static let Year     = "Year"
     static let Book     = "Book"
     static let Speaker  = "Speaker"
@@ -211,7 +211,7 @@ struct Grouping {
     static let Event    = "Event"
 }
 
-struct GROUPING {
+enum GROUPING {
     static let YEAR     = "year"
     static let BOOK     = "book"
     static let SPEAKER  = "speaker"
@@ -225,7 +225,7 @@ struct GROUPING {
 //    case Oldest_to_Newest = "Oldest to Newest"
 //}
 
-struct Sorting {
+enum Sorting {
     static let Newest_to_Oldest = "Newest to Oldest"
     static let Oldest_to_Newest = "Oldest to Newest"
 }
@@ -238,7 +238,7 @@ struct Sorting {
 //    //    static let Reverse_Chronological = "Reverse Chronological"
 //}
 
-struct SORTING {
+enum SORTING {
     static let CHRONOLOGICAL = "chronological"
     //    static let Chronological = "Chronological"
     
@@ -246,7 +246,7 @@ struct SORTING {
     //    static let Reverse_Chronological = "Reverse Chronological"
 }
 
-struct Constants {
+enum Constants {
     static let sortings = [SORTING.CHRONOLOGICAL, SORTING.REVERSE_CHRONOLOGICAL]
     static let SortingTitles = [Sorting.Oldest_to_Newest, Sorting.Newest_to_Oldest]
     
@@ -255,12 +255,12 @@ struct Constants {
     
     static var SCRIPTURE_BASE_URL = "http://17iPVurdk9fn2ZKLVnnfqN4HKKIb9WXMKzN0l5K5:@bibles.org/v2/eng-NASB/passages.js?q[]="
     
-    struct JSON {
+    enum JSON {
         static let MEDIA_PATH = "media" //
         
         static let CATEGORIES_PATH = "categories" //
 
-        struct URL {
+        enum URL {
             static let BASE = "https://api.countrysidebible.org/?return=" // "http://countrysidebible.org/medialist_all.php?return="
             
             static let MEDIA = BASE + MEDIA_PATH //
@@ -274,7 +274,7 @@ struct Constants {
             static let SINGLE = BASE + "single&mediacode="
         }
 
-        struct ARRAY_KEY {
+        enum ARRAY_KEY {
             static let CATEGORY_ENTRIES = "categoryEntries"
             static let MEDIA_ENTRIES    = "mediaEntries"
             static let SINGLE_ENTRY     = "singleEntry"
@@ -283,13 +283,13 @@ struct Constants {
         static let TYPE = "json"
         static let FILENAME_EXTENSION = ".json"
         
-        struct FILENAME {
+        enum FILENAME {
             static let CATEGORIES = ARRAY_KEY.CATEGORY_ENTRIES + FILENAME_EXTENSION
 //            static let MEDIA      = ARRAY_KEY.MEDIA_ENTRIES + FILENAME_EXTENSION
         }
     }
 
-    struct BASE_URL {
+    enum BASE_URL {
         static let MEDIA = "http://media.countrysidebible.org/"
         
         static let VIDEO_PREFIX = "https://player.vimeo.com/external/"
@@ -301,13 +301,13 @@ struct Constants {
         //    Transcript: {year}/{mediacode}transcript.pdf
     }
     
-    struct URL {
+    enum URL {
         static let LIVE_STREAM = "https://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
         
         static let REACHABILITY_TEST = "https://www.countrysidebible.org/"
     }
 
-    struct NOTIFICATION {
+    enum NOTIFICATION {
         static let FREE_MEMORY              = "FREE MEMORY"
         
         static let REACHABLE                = "REACHABLE"
@@ -386,7 +386,7 @@ struct Constants {
 //        static let NOT_EDITING              = "NOT EDITING"
     }
     
-    struct IDENTIFIER {
+    enum IDENTIFIER {
         static let POPOVER_CELL             = "PopoverCell"
         static let POPOVER_TABLEVIEW        = "PopoverTableView"
         
@@ -412,7 +412,7 @@ struct Constants {
         static let SHOW_MEDIAITEM           = "Show MediaItem"
     }
     
-    struct TIMER_INTERVAL {
+    enum TIMER_INTERVAL {
         static let SLIDER       = 0.1
         static let PLAYER       = 0.1
         static let LOADING      = 0.1
@@ -424,7 +424,7 @@ struct Constants {
     
     static let BACK_UP_TIME  = 1.5
     
-    struct CBC {
+    enum CBC {
         static let EMAIL = "cbcstaff@countrysidebible.org"
         static let WEBSITE = "https://www.countrysidebible.org"
         static let MEDIA_WEBSITE = WEBSITE + "/cbcmedia"
@@ -437,7 +437,7 @@ struct Constants {
         static let SHORT = "CBC"
         static let LONG = "Countryside Bible Church"
         
-        struct TITLE {
+        enum TITLE {
             static let POSTFIX  = SINGLE_SPACE + Strings.Media
             
             static let SHORT    = CBC.SHORT + POSTFIX
@@ -445,12 +445,12 @@ struct Constants {
         }
     }
     
-    struct Sort {
+    enum Sort {
         static let Alphabetical = "Alphabetical"
         static let Frequency    = "Frequency"
     }
     
-    struct SCRIPTURE_URL {
+    enum SCRIPTURE_URL {
         static let PREFIX = "https://www.biblegateway.com/passage/?search="
         static let POSTFIX = "&version=NASB"
     }
@@ -464,7 +464,7 @@ struct Constants {
     static let VIEW_SPLIT = "VIEW SPLIT"
     static let SLIDE_SPLIT = "SLIDE SPLIT"
     
-    struct Title {
+    enum Title {
         static let Downloading_Media    = "Downloading Media"
         static let Loading_Media        = "Loading Media"
         static let Synthesizing_Tags    = "Synthesizing Tags"
@@ -540,10 +540,10 @@ struct Constants {
     
     static let TAGS_SEPARATOR = "|"
     
-    struct SETTINGS {
+    enum SETTINGS {
         static let prefix = "settings:"
         
-        struct VERSION {
+        enum VERSION {
             static let KEY = prefix + "version"
             static let NUMBER = "3.0"
         }
@@ -570,7 +570,7 @@ struct Constants {
         static let MEDIA            = prefix + "media"
         static let MULTI_PART_MEDIA = prefix + "multiPart media"
         
-        struct SELECTED_MEDIA {
+        enum SELECTED_MEDIA {
             static let MASTER   = prefix + "selected master"
             static let DETAIL   = prefix + "selected detail"
         }
@@ -579,7 +579,7 @@ struct Constants {
     static let MIN_SLIDER_WIDTH         = CGFloat(60)
     static let MIN_STV_SEGMENT_WIDTH    = CGFloat(25)
     
-    struct AV_SEGMENT_INDEX {
+    enum AV_SEGMENT_INDEX {
         static let AUDIO = 0
         static let VIDEO = 1
     }
@@ -587,17 +587,17 @@ struct Constants {
     static let AUDIO_VIDEO_MAX_WIDTH = CGFloat(50)
     
     // first.service < second.service relies upon the face that AM and PM are alphabetically sorted the same way they are related chronologically, i.e. AM comes before PM in both cases.
-    struct SERVICE {
+    enum SERVICE {
         static let MORNING = "AM"
         static let EVENING = "PM"
     }
     
-    struct Fonts {
+    enum Fonts {
         static let body = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
         
         static let bold = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
         
-        struct Attributes {
+        enum Attributes {
             static let normal = [ NSFontAttributeName: Fonts.body ]
             
             static let bold = [ NSFontAttributeName: Fonts.bold ]
@@ -616,16 +616,16 @@ struct Constants {
         }
     }
     
-    struct FA {
+    enum FA {
         static let name = "FontAwesome"
 
-        struct Fonts {
+        enum Fonts {
             static let tags     = UIFont(name: "FontAwesome", size: TAGS_FONT_SIZE)!
             static let show     = UIFont(name: "FontAwesome", size: SHOW_FONT_SIZE)!
             static let icons    = UIFont(name: "FontAwesome", size: ICONS_FONT_SIZE)!
             static let download = UIFont(name: "FontAwesome", size: DOWNLOAD_FONT_SIZE)!
             
-            struct Attributes {
+            enum Attributes {
                 static let icons = [ NSFontAttributeName: Fonts.icons ]
                 
                 static let highlightedIcons = [ NSBackgroundColorAttributeName: UIColor.yellow,
@@ -687,13 +687,13 @@ struct Constants {
         static let TAGS = "\u{f02c}"
     }
 
-    struct STV_SEGMENT_TITLE {
+    enum STV_SEGMENT_TITLE {
         static let SLIDES       = FA.SLIDES
         static let TRANSCRIPT   = FA.TRANSCRIPT
         static let VIDEO        = FA.VIDEO
     }
 
-    struct SEGUE {
+    enum SEGUE {
         static let SHOW_LIVE                = "Show Live"
         static let SHOW_ABOUT               = "Show About"
         static let SHOW_ABOUT2              = "Show About2"
@@ -707,7 +707,7 @@ struct Constants {
 
     static let HTML_MIN_FONT_SIZE = 4
     
-    struct Strings {
+    enum Strings {
         static let Selected_Scriptures  = "Selected Scriptures"
         
         static let Individual_Media     = "Single Part Media"
@@ -864,13 +864,13 @@ struct Constants {
         
         static let Live_Events = "Live Events"
         
-        struct Menu {
+        enum Menu {
             static let Sorting = "Sorting"
             static let Grouping = "Grouping"
             static let Index = "Index"
         }
         
-        struct Options_Title {
+        enum Options_Title {
             static let Sorting = "Sort By"
             static let Grouping = "Group By"
         }
@@ -897,7 +897,7 @@ struct Constants {
     
     static let DOWNLOAD_IDENTIFIER = APP_ID + ".download."
     
-    struct FILENAME_EXTENSION {
+    enum FILENAME_EXTENSION {
         static let MP3  = ".mp3"
         static let MP4  = ".mp4"
         static let M3U8 = ".m3u8"
@@ -905,7 +905,7 @@ struct Constants {
         static let PDF  = ".pdf"
     }
 
-    struct SCRIPTURE_INDEX {
+    enum SCRIPTURE_INDEX {
         static let BASE         = "SCRIPTURE INDEX"
         static let TESTAMENT    = BASE + " TESTAMENT"
         static let BOOK         = BASE + " BOOK"

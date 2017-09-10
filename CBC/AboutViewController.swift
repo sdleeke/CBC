@@ -217,6 +217,7 @@ class AboutViewController: UIViewController
         if actionMenu()?.count > 0 {
             let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(AboutViewController.actions))
             actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+            actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
             
             navigationItem.rightBarButtonItem = actionButton
         }

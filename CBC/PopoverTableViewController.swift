@@ -289,7 +289,7 @@ class PopoverTableViewController : UIViewController
     var detailAction:((UITableView,IndexPath)->(Void))?
     var detailDisclosure:((UITableView,IndexPath)->(Bool))?
     
-    var editActionsAtIndexPath : ((PopoverTableViewController,UITableView,IndexPath)->([UITableViewRowAction]?))?
+    var editActionsAtIndexPath : ((PopoverTableViewController,UITableView,IndexPath)->([AlertAction]?))?
     
     var sort = Sort()
  
@@ -1651,12 +1651,12 @@ class PopoverTableViewController : UIViewController
         if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
             var vc : UIViewController?
             
-            if presentingViewController == globals.splitViewController?.viewControllers[0] {
-                vc = globals.splitViewController!.viewControllers[1]
+            if presentingViewController == globals.splitViewController.viewControllers[0] {
+                vc = globals.splitViewController.viewControllers[1]
             }
             
-            if presentingViewController == globals.splitViewController?.viewControllers[1] {
-                vc = globals.splitViewController!.viewControllers[0]
+            if presentingViewController == globals.splitViewController.viewControllers[1] {
+                vc = globals.splitViewController.viewControllers[0]
             }
             
             mask = true
@@ -2199,11 +2199,39 @@ extension PopoverTableViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
-        if let transcript = transcript {
-            return transcript.rowActions(popover: self, tableView: tableView, indexPath: indexPath)
+        var alertActions : [AlertAction]?
+        
+        if let transcript = self.transcript {
+            alertActions = transcript.rowActions(popover: self, tableView: tableView, indexPath: indexPath)
+        } else {
+            alertActions = self.editActionsAtIndexPath?(self,tableView,indexPath)
         }
         
-        return editActionsAtIndexPath?(self,tableView,indexPath)
+        let action = UITableViewRowAction(style: .normal, title: "Actions") { rowAction, indexPath in
+            let alert = UIAlertController(  title: "Actions",
+                                            message: self.section.strings?[indexPath.row],
+                                            preferredStyle: .alert)
+            alert.makeOpaque()
+            
+            if let alertActions = alertActions {
+                for alertAction in alertActions {
+                    let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+                        alertAction.action?()
+                    })
+                    alert.addAction(action)
+                }
+            }
+            
+            let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                alertItem -> Void in
+            })
+            alert.addAction(okayAction)
+            
+            self.present(alert, animated: true, completion: nil)
+        }
+        action.backgroundColor = UIColor.controlBlue()
+        
+        return alertActions != nil ? [action] : nil
     }
 
     func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath)

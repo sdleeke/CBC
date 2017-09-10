@@ -62,7 +62,7 @@ class Download : NSObject {
             
         }
         didSet {
-            state = isDownloaded() ? .downloaded : .none
+            state = isDownloaded ? .downloaded : .none
         }
     }
     
@@ -173,14 +173,16 @@ class Download : NSObject {
     
     var completionHandler: ((Void) -> (Void))?
     
-    func isDownloaded() -> Bool
+    var isDownloaded : Bool
     {
-        if fileSystemURL != nil {
-            //            print(fileSystemURL!.path!)
-            //            print(FileManager.default.fileExists(atPath: fileSystemURL!.path!))
-            return FileManager.default.fileExists(atPath: fileSystemURL!.path)
-        } else {
-            return false
+        get {
+            if fileSystemURL != nil {
+                //            print(fileSystemURL!.path!)
+                //            print(FileManager.default.fileExists(atPath: fileSystemURL!.path!))
+                return FileManager.default.fileExists(atPath: fileSystemURL!.path)
+            } else {
+                return false
+            }
         }
     }
     
@@ -240,8 +242,6 @@ class Download : NSObject {
     func delete()
     {
         if (state == .downloaded) {
-            state = .none
-
             // Check if file exists and if so, delete it.
             if (FileManager.default.fileExists(atPath: fileSystemURL!.path)){
                 do {
@@ -251,6 +251,7 @@ class Download : NSObject {
                 }
             }
             
+            state = .none // MUST delete file first as state change updates UI.
             totalBytesWritten = 0
             totalBytesExpectedToWrite = 0
         }

@@ -609,9 +609,11 @@ class ScriptureViewController : UIViewController
         
         plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(ScriptureViewController.increaseFontSize))
         plusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+        plusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
         
         minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(ScriptureViewController.decreaseFontSize))
         minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+        minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
         
         navigationItem.setRightBarButtonItems([minusButton!,plusButton!], animated: true) // actionButton!,
         

@@ -392,18 +392,18 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 {
     // MARK: PopoverTableViewControllerDelegate
     
-    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]?
+    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]?
     {
         // Presence of a detailed disclosure means the action buttons don't get the right font.  Not sure why.
-        guard !detailDisclosure(tableView:popover.tableView, indexPath:indexPath) else {
-            return nil
-        }
+//        guard !detailDisclosure(tableView:popover.tableView, indexPath:indexPath) else {
+//            return nil
+//        }
         
         guard self.deleteButton?.isEnabled == true else {
             return nil
         }
         
-        var actions = [UITableViewRowAction]()
+        var actions = [AlertAction]()
         
         var searchIndex:StringIndex?
         
@@ -451,7 +451,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         let value = values[indexPath.row]
         
         if let mediaID = value["mediaID"] as? String, let title = value["title"] as? String {
-            let deleteAction = UITableViewRowAction(style: .normal, title: Constants.FA.DELETE) { rowAction, indexPath in
+            let deleteAction = AlertAction(title: Constants.Strings.Delete, style: .destructive) {
                 let alert = UIAlertController(  title: "Confirm Deletion of VoiceBase Media Item",
                                                 message: title + "\n created on \(key == UIDevice.current.deviceName ? "this device" : key)",
                     preferredStyle: .alert)
@@ -553,10 +553,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
                 self.present(alert, animated: true, completion: nil)
             }
-            deleteAction.backgroundColor = UIColor.red//controlBlue()
+//            deleteAction.backgroundColor = UIColor.red//controlBlue()
             actions.append(deleteAction)
             
-            let mediaIDAction = UITableViewRowAction(style: .normal, title: "ID") { rowAction, indexPath in
+            let mediaIDAction = AlertAction(title: "ID", style: .default) {
                 let alert = UIAlertController(  title: "VoiceBase Media ID",
                                                 message: nil,
                                                 preferredStyle: .alert)
@@ -573,10 +573,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
                 self.present(alert, animated: true, completion: nil)
             }
-            mediaIDAction.backgroundColor = UIColor.lightGray
+//            mediaIDAction.backgroundColor = UIColor.lightGray
             actions.append(mediaIDAction)
             
-            let detailsAction = UITableViewRowAction(style: .normal, title: Constants.FA.INFO) { rowAction, indexPath in
+            let detailsAction = AlertAction(title: "Information", style: .default) {
                 process(viewController: self.popover!, work: { () -> (Any?) in
                     var data : Any?
                     
@@ -614,10 +614,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
                 //                                    popoverHTML(self, mediaItem: nil, title: "VoiceBase Media Item", barButtonItem: nil, sourceView: nil, sourceRectView: nil, htmlString: htmlString)
             }
-            detailsAction.backgroundColor = UIColor.gray
+//            detailsAction.backgroundColor = UIColor.gray
             actions.append(detailsAction)
             
-            let inspectorAction = UITableViewRowAction(style: .normal, title: Constants.FA.INSPECTOR) { rowAction, indexPath in
+            let inspectorAction = AlertAction(title: "Inspector", style: .default) {
                 process(viewController: self.popover!, work: { () -> (Any?) in
                     var data : Any?
                     
@@ -652,7 +652,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     }
                 })
             }
-            inspectorAction.backgroundColor = UIColor.darkGray
+//            inspectorAction.backgroundColor = UIColor.darkGray
             actions.append(inspectorAction)
         }
         
@@ -695,11 +695,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         return transcript.mediaID == mediaID
                     }).count == 1
                 }).first {
-                    let mediaItemRowAction = UITableViewRowAction(style: .normal, title: Constants.FA.BOOKMARK) { rowAction, indexPath in
+                    let mediaItemRowAction = AlertAction(title: "Locate", style: .default) {
                         self.dismiss(animated: true, completion: nil)
                         self.performSegue(withIdentifier: Constants.SEGUE.SHOW_MEDIAITEM, sender: mediaItem)
                     }
-                    mediaItemRowAction.backgroundColor = UIColor.controlBlue()
+//                    mediaItemRowAction.backgroundColor = UIColor.controlBlue()
                     actions.append(mediaItemRowAction)
                 }
             }
@@ -1065,30 +1065,31 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 var deviceName = device["name"],
                 let mimd = metadata["mediaItem"] as? [String:String],
                 let id = mimd["id"],
-                let purpose = mimd["purpose"],
-                let media = globals.mediaRepository.index?[id] {
+                let purpose = mimd["purpose"] {
                 var transcript : VoiceBase?
                 
-                switch purpose.uppercased() {
-                case Purpose.audio:
-                    transcript = media.audioTranscript
+                if let media = globals.mediaRepository.index?[id] {
+                    switch purpose.uppercased() {
+                    case Purpose.audio:
+                        transcript = media.audioTranscript
+                        
+                    case Purpose.video:
+                        transcript = media.videoTranscript
+                        
+                    default:
+                        break
+                    }
                     
-                case Purpose.video:
-                    transcript = media.videoTranscript
-                    
-                default:
-                    break
-                }
-                
-                if  transcript?.transcript == nil,
-                    transcript?.mediaID == nil,
-                    transcript?.resultsTimer == nil,
-                    let transcribing = transcript?.transcribing, !transcribing {
-                    transcript?.mediaID = mediaID
-                    transcript?.transcribing = true
-                    
-                    Thread.onMainThread() {
-                        transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert:false), repeats: true)
+                    if  transcript?.transcript == nil,
+                        transcript?.mediaID == nil,
+                        transcript?.resultsTimer == nil,
+                        let transcribing = transcript?.transcribing, !transcribing {
+                        transcript?.mediaID = mediaID
+                        transcript?.transcribing = true
+                        
+                        Thread.onMainThread() {
+                            transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert:false), repeats: true)
+                        }
                     }
                 }
 
@@ -1474,41 +1475,78 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.History:
-            if globals.relevantHistoryList == nil {
-                alert(viewController:self,title: "History is empty.",
-                      message: nil,
-                      completion:nil)
-            } else {
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                    navigationController.modalPresentationStyle = .overCurrentContext
+            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                navigationController.modalPresentationStyle = .overCurrentContext
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.barButtonItem = showButton
+                
+                popover.navigationItem.title = Constants.Strings.History
+                
+                popover.delegate = self
+                popover.purpose = .selectingHistory
+                
+                popover.stringsFunction = { (Void)->[String]? in
+                    let strings = globals.relevantHistoryList
                     
-                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                    navigationController.popoverPresentationController?.delegate = self
+                    if strings == nil {
+                        alert(viewController:self,title: "History is empty.",
+                              message: nil,
+                              completion:nil)
+                    }
                     
-                    navigationController.popoverPresentationController?.barButtonItem = showButton
-                    
-                    popover.navigationItem.title = Constants.Strings.History
-                    
-                    popover.delegate = self
-                    popover.purpose = .selectingHistory
-                    
-                    popover.section.strings = globals.relevantHistoryList
-//
-//                    popover.section.showIndex = false
-//                    popover.section.showHeaders = false
-                    
-                    popover.vc = self.splitViewController
-                    
-                    present(navigationController, animated: true, completion: {
-                        self.presentingVC = navigationController
-//                        DispatchQueue.main.async(execute: { () -> Void in
-//                            // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
-//                            navigationController.popoverPresentationController?.passthroughViews = nil
-//                        })
-                    })
+                    return strings
                 }
+                
+                popover.vc = self.splitViewController
+                
+                present(navigationController, animated: true, completion: {
+                    self.presentingVC = navigationController
+                    //                        DispatchQueue.main.async(execute: { () -> Void in
+                    //                            // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+                    //                            navigationController.popoverPresentationController?.passthroughViews = nil
+                    //                        })
+                })
             }
+            
+//            if globals.relevantHistoryList == nil {
+//                alert(viewController:self,title: "History is empty.",
+//                      message: nil,
+//                      completion:nil)
+//            } else {
+//                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//                    let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                    navigationController.modalPresentationStyle = .overCurrentContext
+//                    
+//                    navigationController.popoverPresentationController?.permittedArrowDirections = .up
+//                    navigationController.popoverPresentationController?.delegate = self
+//                    
+//                    navigationController.popoverPresentationController?.barButtonItem = showButton
+//                    
+//                    popover.navigationItem.title = Constants.Strings.History
+//                    
+//                    popover.delegate = self
+//                    popover.purpose = .selectingHistory
+//                    
+//                    popover.section.strings = globals.relevantHistoryList
+////
+////                    popover.section.showIndex = false
+////                    popover.section.showHeaders = false
+//                    
+//                    popover.vc = self.splitViewController
+//                    
+//                    present(navigationController, animated: true, completion: {
+//                        self.presentingVC = navigationController
+////                        DispatchQueue.main.async(execute: { () -> Void in
+////                            // This prevents the Show/Hide button from being tapped, as normally the toolar that contains the barButtonItem that anchors the popoever, and all of the buttons (UIBarButtonItem's) on it, are in the passthroughViews.
+////                            navigationController.popoverPresentationController?.passthroughViews = nil
+////                        })
+//                    })
+//                }
+//            }
             break
             
         case Constants.Strings.Clear_History:
@@ -1789,7 +1827,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     self.presentingVC = navigationController
                 })
             }
-
 
 //            VoiceBase.all(completion:{(json:[String:Any]?) -> Void in
 //                self.stringIndex = StringIndex()
@@ -3073,7 +3110,8 @@ class MediaTableViewController : UIViewController // MediaController
         
         showButton?.title = Constants.FA.REORDER
         showButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-        
+        showButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
+
         showButton?.isEnabled = (globals.media.all != nil) //&& !globals.mediaItemsSortingOrGrouping
     }
     
@@ -4284,7 +4322,9 @@ class MediaTableViewController : UIViewController // MediaController
     func setupActionAndTagsButton()
     {
         guard !globals.isLoading && !globals.isRefreshing else {
-            navigationItem.rightBarButtonItems = nil
+            Thread.onMainThread(block: {
+                self.navigationItem.rightBarButtonItems = nil
+            })
             return
         }
         
@@ -4292,6 +4332,7 @@ class MediaTableViewController : UIViewController // MediaController
         
         actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.actions))
         actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+        actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
 
         if actionMenu()?.count > 0 {
             barButtons.append(actionButton!)
@@ -4303,16 +4344,19 @@ class MediaTableViewController : UIViewController // MediaController
             tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.selectingTagsAction(_:)))
         }
         tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags, for: UIControlState.normal)
+        tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags, for: UIControlState.disabled)
 
         if tagsMenu()?.count > 0 {
             barButtons.append(tagsButton!)
         }
         
-        if barButtons.count > 0 {
-            navigationItem.setRightBarButtonItems(barButtons, animated: true)
-        } else {
-            navigationItem.rightBarButtonItems = nil
-        }
+        Thread.onMainThread(block: {
+            if barButtons.count > 0 {
+                self.navigationItem.setRightBarButtonItems(barButtons, animated: true)
+            } else {
+                self.navigationItem.rightBarButtonItems = nil
+            }
+        })
 
 //        let tagsButton = self.tagsButton
 //        
@@ -5492,7 +5536,7 @@ extension MediaTableViewController : UITableViewDelegate
 //        task.resume()
 //    }
 
-    func editActions(cell: MediaTableViewCell?, mediaItem:MediaItem?) -> [UITableViewRowAction]?
+    func editActions(cell: MediaTableViewCell?, mediaItem:MediaItem?) -> [AlertAction]?
     {
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "MediaTableViewController:editActions", completion: nil)
@@ -5508,16 +5552,84 @@ extension MediaTableViewController : UITableViewDelegate
             return nil
         }
         
-        var search:UITableViewRowAction!
-        var transcript:UITableViewRowAction!
-        var recognizeAudio:UITableViewRowAction!
-        var recognizeVideo:UITableViewRowAction!
-        var words:UITableViewRowAction!
-        var scripture:UITableViewRowAction!
+        var tags:AlertAction!
+        var download:AlertAction!
+        var search:AlertAction!
+        var transcript:AlertAction!
+        var voiceBase:AlertAction!
+        var words:AlertAction!
+        var scripture:AlertAction!
         
-        var actions = [UITableViewRowAction]()
+        var actions = [AlertAction]()
         
-        search = UITableViewRowAction(style: .normal, title: Constants.FA.SEARCH) { action, index in
+        tags = AlertAction(title: Constants.Strings.Tags, style: .default) {
+            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+//                dismiss(animated: true, completion: nil)
+                
+                navigationController.modalPresentationStyle = .popover
+                navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                navigationController.popoverPresentationController?.delegate = self
+
+                navigationController.popoverPresentationController?.barButtonItem = self.tagsButton
+
+                popover.navigationItem.title = Constants.Strings.Show // Show MediaItems Tagged With
+                
+                popover.delegate = self
+                popover.purpose = .selectingTags
+                
+                popover.section.strings = mediaItem.tagsArray
+                popover.section.strings?.insert(Constants.Strings.All,at: 0)
+                //
+                //            popover.section.showIndex = false
+                //            popover.section.showHeaders = false
+                
+                popover.vc = self
+                
+                self.present(navigationController, animated: true, completion: nil)
+            }
+        }
+        
+        var title = ""
+        
+        if mediaItem.hasAudio {
+            switch mediaItem.audioDownload!.state {
+            case .none:
+                title = Constants.Strings.Download_Audio
+                break
+                
+            case .downloading:
+                title = Constants.Strings.Cancel_Audio_Download
+                break
+            case .downloaded:
+                title = Constants.Strings.Delete_Audio_Download
+                break
+            }
+        }
+        
+        download = AlertAction(title: title, style: .default, action: {
+            switch title {
+            case Constants.Strings.Download_Audio:
+                mediaItem.audioDownload?.download()
+                Thread.onMainThread(block: {
+                    NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
+                })
+                break
+                
+            case Constants.Strings.Delete_Audio_Download:
+                mediaItem.audioDownload?.delete()
+                break
+                
+            case Constants.Strings.Cancel_Audio_Download:
+                mediaItem.audioDownload?.cancelOrDelete()
+                break
+                
+            default:
+                break
+            }
+        })
+        
+        search = AlertAction(title: Constants.Strings.Search, style: .default) {
             if let searchStrings = mediaItem.searchStrings(),
                 let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -5528,15 +5640,18 @@ extension MediaTableViewController : UITableViewDelegate
                 navigationController.modalPresentationStyle = .popover
                 navigationController.popoverPresentationController?.permittedArrowDirections = .any
                 navigationController.popoverPresentationController?.delegate = self
-                
-                if let cell = cell {
-                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
-                    if mediaItem.books != nil {
-                        navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[1].frame
-                    } else {
-                        navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[0].frame
-                    }
-                }
+
+                navigationController.popoverPresentationController?.sourceView = self.view
+                navigationController.popoverPresentationController?.sourceRect = self.searchBar.frame
+
+//                if let cell = cell {
+//                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+//                    if mediaItem.books != nil {
+//                        navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[1].frame
+//                    } else {
+//                        navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].subviews[0].frame
+//                    }
+//                }
                 
                 popover.navigationItem.title = Constants.Strings.Search
                 
@@ -5559,7 +5674,7 @@ extension MediaTableViewController : UITableViewDelegate
                 })
             }
         }
-        search.backgroundColor = UIColor.controlBlue()
+//        search.backgroundColor = UIColor.controlBlue()
         
         func transcriptTokens()
         {
@@ -5640,7 +5755,7 @@ extension MediaTableViewController : UITableViewDelegate
             }
         }
         
-        words = UITableViewRowAction(style: .normal, title: Constants.FA.WORDS) { action, index in
+        words = AlertAction(title: Constants.Strings.Words, style: .default) {
             if mediaItem.hasNotesHTML {
                 if mediaItem.notesTokens == nil {
                     guard globals.reachability.currentReachabilityStatus != .notReachable else {
@@ -5658,9 +5773,9 @@ extension MediaTableViewController : UITableViewDelegate
                 }
             }
         }
-        words.backgroundColor = UIColor.blue
+//        words.backgroundColor = UIColor.blue
         
-        transcript = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
+        transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
             let sourceView = cell?.subviews[0]
             let sourceRectView = cell?.subviews[0] // .subviews[actions.index(of: transcript)!] // memory leak!
             
@@ -5698,12 +5813,29 @@ extension MediaTableViewController : UITableViewDelegate
                 })
             }
         }
-        transcript.backgroundColor = UIColor.purple
+//        transcript.backgroundColor = UIColor.purple
         
-        recognizeAudio = mediaItem.audioTranscript?.recognizeRowActions(viewController:self,tableView:tableView) // recognizeTVTRA(transcript: mediaItem.audioTranscript)
-        recognizeVideo = mediaItem.videoTranscript?.recognizeRowActions(viewController:self,tableView:tableView) // recognizeTVTRA(transcript: mediaItem.videoTranscript)
+//        recognizeAudio = mediaItem.audioTranscript?.recognizeAlertActions(viewController:self,tableView:tableView) // recognizeTVTRA(transcript: mediaItem.audioTranscript)
+//        recognizeVideo = mediaItem.videoTranscript?.recognizeAlertActions(viewController:self,tableView:tableView) // recognizeTVTRA(transcript: mediaItem.videoTranscript)
         
-        scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
+        voiceBase = AlertAction(title: "VoiceBase", style: .default) {
+            var alertActions = [AlertAction]()
+            
+            if let actions = mediaItem.audioTranscript?.recognizeAlertActions(viewController:self,tableView:self.tableView) {
+                alertActions.append(actions)
+            }
+            if let actions = mediaItem.videoTranscript?.recognizeAlertActions(viewController:self,tableView:self.tableView) {
+                alertActions.append(actions)
+            }
+            
+            alertActionsCancel( viewController: self,
+                                title: "VoiceBase",
+                                message: "Machine Generated Transcript",
+                                alertActions: alertActions,
+                                cancelAction: nil)
+        }
+        
+        scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
             let sourceView = cell?.subviews[0]
             let sourceRectView = cell?.subviews[0] // .subviews[actions.index(of: scripture)!] // memory leak!
             
@@ -5732,57 +5864,93 @@ extension MediaTableViewController : UITableViewDelegate
                 }
             }
         }
-        
-        scripture.backgroundColor = UIColor.orange
-        
+//        scripture.backgroundColor = UIColor.orange
+
         if mediaItem.books != nil {
             actions.append(scripture)
         }
-        
+
+        if mediaItem.hasTags {
+            actions.append(tags)
+        }
         actions.append(search)
         
         if mediaItem.hasNotesHTML {
             actions.append(words)
             actions.append(transcript)
         }
-
-        if mediaItem.audioTranscript?.transcript != nil {
-            recognizeAudio.backgroundColor = UIColor.lightGray
-            actions.append(recognizeAudio)
-        } else {
-            if let transcribing = mediaItem.audioTranscript?.transcribing, transcribing {
-                recognizeAudio.backgroundColor = UIColor.gray
-                actions.append(recognizeAudio)
-            } else {
-                if mediaItem.hasAudio && globals.allowMGTs {
-                    recognizeAudio.backgroundColor = UIColor.darkGray
-                    actions.append(recognizeAudio)
-                }
-            }
+        
+        if mediaItem.hasAudio {
+            actions.append(download)
         }
         
-        if mediaItem.videoTranscript?.transcript != nil {
-            recognizeVideo.backgroundColor = UIColor.lightGray
-            actions.append(recognizeVideo)
-        } else {
-            if let transcribing = mediaItem.videoTranscript?.transcribing, transcribing {
-                recognizeVideo.backgroundColor = UIColor.gray
-                actions.append(recognizeVideo)
-            } else {
-                if mediaItem.hasVideo && globals.allowMGTs {
-                    recognizeVideo.backgroundColor = UIColor.darkGray
-                    actions.append(recognizeVideo)
-                }
-            }
+        if globals.allowMGTs {
+            actions.append(voiceBase)
         }
+        
+//        if mediaItem.audioTranscript?.transcript != nil {
+////            recognizeAudio.backgroundColor = UIColor.lightGray
+//            actions.append(recognizeAudio)
+//        } else {
+//            if let transcribing = mediaItem.audioTranscript?.transcribing, transcribing {
+////                recognizeAudio.backgroundColor = UIColor.gray
+//                actions.append(recognizeAudio)
+//            } else {
+//                if mediaItem.hasAudio && globals.allowMGTs {
+////                    recognizeAudio.backgroundColor = UIColor.darkGray
+//                    actions.append(recognizeAudio)
+//                }
+//            }
+//        }
+//        
+//        if mediaItem.videoTranscript?.transcript != nil {
+////            recognizeVideo.backgroundColor = UIColor.lightGray
+//            actions.append(recognizeVideo)
+//        } else {
+//            if let transcribing = mediaItem.videoTranscript?.transcribing, transcribing {
+////                recognizeVideo.backgroundColor = UIColor.gray
+//                actions.append(recognizeVideo)
+//            } else {
+//                if mediaItem.hasVideo && globals.allowMGTs {
+////                    recognizeVideo.backgroundColor = UIColor.darkGray
+//                    actions.append(recognizeVideo)
+//                }
+//            }
+//        }
     
         return actions.count > 0 ? actions : nil
     }
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
-        if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
-            return editActions(cell: cell, mediaItem: cell.mediaItem)
+        if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell, let message = cell.mediaItem?.text {
+            //            return editActions(cell: cell, mediaItem: cell.mediaItem)
+            
+            let action = UITableViewRowAction(style: .normal, title: "Actions") { rowAction, indexPath in
+                let alert = UIAlertController(  title: "Actions",
+                                                message: message,
+                                                preferredStyle: .alert)
+                alert.makeOpaque()
+                
+                if let alertActions = self.editActions(cell: cell, mediaItem: cell.mediaItem) {
+                    for alertAction in alertActions {
+                        let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+                            alertAction.action?()
+                        })
+                        alert.addAction(action)
+                    }
+                }
+                
+                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                    alertItem -> Void in
+                })
+                alert.addAction(okayAction)
+                
+                self.present(alert, animated: true, completion: nil)
+            }
+            action.backgroundColor = UIColor.controlBlue()
+            
+            return [action]
         }
         
         return nil

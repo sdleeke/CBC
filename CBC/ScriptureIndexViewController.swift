@@ -1314,6 +1314,7 @@ class ScriptureIndexViewController : UIViewController
 
         let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureIndexViewController.actionMenu))
         actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
 
         navigationItem.setRightBarButton(actionButton, animated: true) //
 
@@ -1648,7 +1649,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
         return editActions(cell: nil, mediaItem: mediaItem) != nil
     }
     
-    func editActions(cell: MediaTableViewCell?, mediaItem:MediaItem?) -> [UITableViewRowAction]?
+    func editActions(cell: MediaTableViewCell?, mediaItem:MediaItem?) -> [AlertAction]?
     {
         // causes recursive call to cellForRowAt
 //        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
@@ -1659,12 +1660,52 @@ extension ScriptureIndexViewController : UITableViewDelegate
             return nil
         }
         
-        var actions = [UITableViewRowAction]()
+        var actions = [AlertAction]()
         
-        var transcript:UITableViewRowAction!
-        var scripture:UITableViewRowAction!
+        var download:AlertAction!
+        var transcript:AlertAction!
+        var scripture:AlertAction!
         
-        transcript = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
+        var title = ""
+        
+        if mediaItem.hasAudio {
+            switch mediaItem.audioDownload!.state {
+            case .none:
+                title = Constants.Strings.Download_Audio
+                break
+                
+            case .downloading:
+                title = Constants.Strings.Cancel_Audio_Download
+                break
+            case .downloaded:
+                title = Constants.Strings.Delete_Audio_Download
+                break
+            }
+        }
+        
+        download = AlertAction(title: title, style: .default, action: {
+            switch title {
+            case Constants.Strings.Download_Audio:
+                mediaItem.audioDownload?.download()
+                Thread.onMainThread(block: {
+                    NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
+                })
+                break
+                
+            case Constants.Strings.Delete_Audio_Download:
+                mediaItem.audioDownload?.delete()
+                break
+                
+            case Constants.Strings.Cancel_Audio_Download:
+                mediaItem.audioDownload?.cancelOrDelete()
+                break
+                
+            default:
+                break
+            }
+        })
+        
+        transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
             let sourceView = cell?.subviews[0]
             let sourceRectView = cell?.subviews[0] // .subviews[actions.index(of: transcript)!] // memory leak!
             
@@ -1688,9 +1729,9 @@ extension ScriptureIndexViewController : UITableViewDelegate
                 })
             }
         }
-        transcript.backgroundColor = UIColor.purple
+//        transcript.backgroundColor = UIColor.purple
         
-        scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
+        scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
             let sourceView = cell?.subviews[0]
             let sourceRectView = cell?.subviews[0] // .subviews[actions.index(of: scripture)!] // memory leak!
             
@@ -1716,7 +1757,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
                 }
             }
         }
-        scripture.backgroundColor = UIColor.orange
+//        scripture.backgroundColor = UIColor.orange
         
         if mediaItem.books != nil {
             actions.append(scripture)
@@ -1724,6 +1765,10 @@ extension ScriptureIndexViewController : UITableViewDelegate
         
         if mediaItem.hasNotesHTML {
             actions.append(transcript)
+        }
+        
+        if mediaItem.hasAudio {
+            actions.append(download)
         }
         
         if actions.count == 0 {
@@ -1735,8 +1780,34 @@ extension ScriptureIndexViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
-        if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
-            return editActions(cell: cell, mediaItem: cell.mediaItem)
+        if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell, let message = cell.mediaItem?.text {
+            //            return editActions(cell: cell, mediaItem: cell.mediaItem)
+            
+            let action = UITableViewRowAction(style: .normal, title: "Actions") { rowAction, indexPath in
+                let alert = UIAlertController(  title: "Actions",
+                                                message: message,
+                                                preferredStyle: .alert)
+                alert.makeOpaque()
+                
+                if let alertActions = self.editActions(cell: cell, mediaItem: cell.mediaItem) {
+                    for alertAction in alertActions {
+                        let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+                            alertAction.action?()
+                        })
+                        alert.addAction(action)
+                    }
+                }
+                
+                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                    alertItem -> Void in
+                })
+                alert.addAction(okayAction)
+                
+                self.present(alert, animated: true, completion: nil)
+            }
+            action.backgroundColor = UIColor.controlBlue()
+            
+            return [action]
         }
         
         return nil

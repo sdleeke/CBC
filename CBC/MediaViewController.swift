@@ -1396,6 +1396,7 @@ class MediaViewController: UIViewController // MediaController
         var videoIndex = 0
 
         stvControl.setTitleTextAttributes(Constants.FA.Fonts.Attributes.icons, for: UIControlState.normal)
+        stvControl.setTitleTextAttributes(Constants.FA.Fonts.Attributes.icons, for: UIControlState.disabled)
         
         // This order: Transcript (aka Notes), Slides, Video matches the CBC web site.
         
@@ -3243,6 +3244,7 @@ class MediaViewController: UIViewController // MediaController
         if actionMenu()?.count > 0 {
             actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.actions))
             actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+            actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
             
             barButtons.append(actionButton!)
         }
@@ -3255,6 +3257,7 @@ class MediaViewController: UIViewController // MediaController
             }
             
             tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags, for: UIControlState.normal)
+            tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags, for: UIControlState.disabled)
             
             barButtons.append(tagsButton!)
         } else {
@@ -3552,6 +3555,7 @@ class MediaViewController: UIViewController // MediaController
             }
 
             audioOrVideoControl.setTitleTextAttributes(Constants.FA.Fonts.Attributes.icons, for: UIControlState.normal)
+            audioOrVideoControl.setTitleTextAttributes(Constants.FA.Fonts.Attributes.icons, for: UIControlState.disabled)
             
             audioOrVideoControl.setTitle(Constants.FA.AUDIO, forSegmentAt: Constants.AV_SEGMENT_INDEX.AUDIO) // Audio
 
@@ -4539,7 +4543,7 @@ class MediaViewController: UIViewController // MediaController
             var doNotPlay = true
             
             if (mediaItem?.playing == Playing.audio) {
-                if let audioDownload = mediaItem?.audioDownload, audioDownload.isDownloaded() {
+                if let audioDownload = mediaItem?.audioDownload, audioDownload.isDownloaded {
                     doNotPlay = false
                 }
             }
@@ -4723,7 +4727,7 @@ extension MediaViewController : UITableViewDataSource
         return editActions(cell: nil,mediaItem:mediaItems?[indexPath.row]) != nil
     }
 
-    func editActions(cell: MediaTableViewCell?,mediaItem:MediaItem?) -> [UITableViewRowAction]?
+    func editActions(cell: MediaTableViewCell?,mediaItem:MediaItem?) -> [AlertAction]?
     {
         // Causes recursive call to cellForRowAt
 //        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
@@ -4734,17 +4738,58 @@ extension MediaViewController : UITableViewDataSource
             return nil
         }
         
-        var actions = [UITableViewRowAction]()
+        var actions = [AlertAction]()
         
-        var transcript:UITableViewRowAction!
-        var recognizeAudio:UITableViewRowAction!
-        var recognizeVideo:UITableViewRowAction!
-        var scripture:UITableViewRowAction!
-        var audioKeywords:UITableViewRowAction!
-        var videoKeywords:UITableViewRowAction!
-        var topics:UITableViewRowAction!
+        var download:AlertAction!
+        var transcript:AlertAction!
+        var scripture:AlertAction!
+        var voiceBase:AlertAction!
+//        var recognizeAudio:AlertAction!
+//        var recognizeVideo:AlertAction!
+//        var audioKeywords:AlertAction!
+//        var videoKeywords:AlertAction!
+        var topics:AlertAction!
         
-        transcript = UITableViewRowAction(style: .normal, title: Constants.FA.TRANSCRIPT) { action, index in
+        var title = ""
+        
+        if mediaItem.hasAudio {
+            switch mediaItem.audioDownload!.state {
+            case .none:
+                title = Constants.Strings.Download_Audio
+                break
+                
+            case .downloading:
+                title = Constants.Strings.Cancel_Audio_Download
+                break
+            case .downloaded:
+                title = Constants.Strings.Delete_Audio_Download
+                break
+            }
+        }
+        
+        download = AlertAction(title: title, style: .default, action: {
+            switch title {
+            case Constants.Strings.Download_Audio:
+                mediaItem.audioDownload?.download()
+                Thread.onMainThread(block: {
+                    NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
+                })
+                break
+                
+            case Constants.Strings.Delete_Audio_Download:
+                mediaItem.audioDownload?.delete()
+                break
+                
+            case Constants.Strings.Cancel_Audio_Download:
+                mediaItem.audioDownload?.cancelOrDelete()
+                break
+                
+            default:
+                break
+            }
+        })
+        
+        transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
             let sourceView = cell?.subviews[0]
             let sourceRectView = cell?.subviews[0] //.subviews[actions.index(of: transcript)!] // memory leak!
             
@@ -4772,12 +4817,9 @@ extension MediaViewController : UITableViewDataSource
                 })
             }
         }
-        transcript.backgroundColor = UIColor.purple//controlBlue()
+//        transcript.backgroundColor = UIColor.purple//controlBlue()
         
-        recognizeAudio = mediaItem.audioTranscript?.recognizeRowActions(viewController: self, tableView: tableView) // recognizeTVTRA(transcript: mediaItem.audioTranscript)
-        recognizeVideo = mediaItem.videoTranscript?.recognizeRowActions(viewController: self, tableView: tableView) // recognizeTVTRA(transcript: mediaItem.videoTranscript)
-        
-        scripture = UITableViewRowAction(style: .normal, title: Constants.FA.SCRIPTURE) { action, index in
+        scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
             let sourceView = cell?.subviews[0]
             let sourceRectView = cell?.subviews[0] //.subviews[actions.index(of: scripture)!] // memory leak!
             
@@ -4803,19 +4845,49 @@ extension MediaViewController : UITableViewDataSource
                 }
             }
         }
-        scripture.backgroundColor = UIColor.orange
+//        scripture.backgroundColor = UIColor.orange
         
-        audioKeywords = mediaItem.audioTranscript?.keywordRowActions(viewController: self, tableView: tableView, completion: { (popover:PopoverTableViewController)->(Void) in
-            self.popover = popover
-        }) // keywordsTVTRA(transcript: mediaItem.audioTranscript)
-        audioKeywords.backgroundColor = UIColor.brown
+        voiceBase = AlertAction(title: "VoiceBase", style: .default) {
+            var alertActions = [AlertAction]()
+            
+            if let actions = mediaItem.audioTranscript?.recognizeAlertActions(viewController:self,tableView:self.tableView) {
+                alertActions.append(actions)
+            }
+            if let actions = mediaItem.videoTranscript?.recognizeAlertActions(viewController:self,tableView:self.tableView) {
+                alertActions.append(actions)
+            }
+            if let actions = mediaItem.audioTranscript?.keywordAlertActions(viewController:self,tableView:self.tableView, completion: { (popover:PopoverTableViewController)->(Void) in
+                self.popover = popover
+            }) {
+                alertActions.append(actions)
+            }
+            if let actions = mediaItem.videoTranscript?.keywordAlertActions(viewController:self,tableView:self.tableView, completion: { (popover:PopoverTableViewController)->(Void) in
+                self.popover = popover
+            }) {
+                alertActions.append(actions)
+            }
+            
+            alertActionsCancel( viewController: self,
+                                title: "VoiceBase",
+                                message: "Machine Generated Transcript",
+                                alertActions: alertActions,
+                                cancelAction: nil)
+        }
         
-        videoKeywords = mediaItem.videoTranscript?.keywordRowActions(viewController: self, tableView: tableView, completion: { (popover:PopoverTableViewController)->(Void) in
-            self.popover = popover
-        }) // keywordsTVTRA(transcript: mediaItem.videoTranscript)
-        videoKeywords.backgroundColor = UIColor.brown
+//        recognizeAudio = mediaItem.audioTranscript?.recognizeRowActions(viewController: self, tableView: tableView) // recognizeTVTRA(transcript: mediaItem.audioTranscript)
+//        recognizeVideo = mediaItem.videoTranscript?.recognizeRowActions(viewController: self, tableView: tableView) // recognizeTVTRA(transcript: mediaItem.videoTranscript)
         
-        topics = UITableViewRowAction(style: .normal, title: Constants.FA.LIST) { action, index in
+//        audioKeywords = mediaItem.audioTranscript?.keywordRowActions(viewController: self, tableView: tableView, completion: { (popover:PopoverTableViewController)->(Void) in
+//            self.popover = popover
+//        }) // keywordsTVTRA(transcript: mediaItem.audioTranscript)
+////        audioKeywords.backgroundColor = UIColor.brown
+//        
+//        videoKeywords = mediaItem.videoTranscript?.keywordRowActions(viewController: self, tableView: tableView, completion: { (popover:PopoverTableViewController)->(Void) in
+//            self.popover = popover
+//        }) // keywordsTVTRA(transcript: mediaItem.videoTranscript)
+////        videoKeywords.backgroundColor = UIColor.brown
+        
+        topics = AlertAction(title: "List", style: .default) {
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 navigationController.modalPresentationStyle = .overCurrentContext
@@ -4847,69 +4919,103 @@ extension MediaViewController : UITableViewDataSource
                 })
             }
         }
-        topics.backgroundColor = UIColor.cyan
+//        topics.backgroundColor = UIColor.cyan
         
         if mediaItem.books != nil {
             actions.append(scripture)
         }
-        
+
         if mediaItem.hasNotesHTML {
             actions.append(transcript)
         }
         
-        if mediaItem.audioTranscript?.transcript != nil {
-            recognizeAudio.backgroundColor = UIColor.lightGray
-            actions.append(recognizeAudio)
-        } else {
-            if let transcribing = mediaItem.audioTranscript?.transcribing, transcribing {
-                recognizeAudio.backgroundColor = UIColor.gray
-                actions.append(recognizeAudio)
-            } else {
-                if mediaItem.hasAudio && globals.allowMGTs {
-                    recognizeAudio.backgroundColor = UIColor.darkGray
-                    actions.append(recognizeAudio)
-                }
-            }
+        if mediaItem.hasAudio {
+            actions.append(download)
         }
         
-        if mediaItem.hasAudio && globals.allowMGTs {
-            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.audio) && (mediaItem == selectedMediaItem) {
-                if mediaItem.audioTranscript?.keywords != nil {
-                    actions.append(audioKeywords)
-                }
-            }
+        if globals.allowMGTs {
+            actions.append(voiceBase)
         }
         
-        if mediaItem.videoTranscript?.transcript != nil {
-            recognizeVideo.backgroundColor = UIColor.lightGray
-            actions.append(recognizeVideo)
-        } else {
-            if let transcribing = mediaItem.videoTranscript?.transcribing, transcribing {
-                recognizeVideo.backgroundColor = UIColor.gray
-                actions.append(recognizeVideo)
-            } else {
-                if mediaItem.hasVideo && globals.allowMGTs {
-                    recognizeVideo.backgroundColor = UIColor.darkGray
-                    actions.append(recognizeVideo)
-                }
-            }
-        }
-        
-        if mediaItem.hasVideo && globals.allowMGTs {
-            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.video) && (mediaItem == selectedMediaItem)  {
-                if mediaItem.videoTranscript?.keywords != nil {
-                    actions.append(videoKeywords)
-                }
-            }
-        }
+//        if mediaItem.audioTranscript?.transcript != nil {
+////            recognizeAudio.backgroundColor = UIColor.lightGray
+//            actions.append(recognizeAudio)
+//        } else {
+//            if let transcribing = mediaItem.audioTranscript?.transcribing, transcribing {
+////                recognizeAudio.backgroundColor = UIColor.gray
+//                actions.append(recognizeAudio)
+//            } else {
+//                if mediaItem.hasAudio && globals.allowMGTs {
+////                    recognizeAudio.backgroundColor = UIColor.darkGray
+//                    actions.append(recognizeAudio)
+//                }
+//            }
+//        }
+//        
+//        if mediaItem.hasAudio && globals.allowMGTs {
+//            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.audio) && (mediaItem == selectedMediaItem) {
+//                if mediaItem.audioTranscript?.keywords != nil {
+//                    actions.append(audioKeywords)
+//                }
+//            }
+//        }
+//        
+//        if mediaItem.videoTranscript?.transcript != nil {
+////            recognizeVideo.backgroundColor = UIColor.lightGray
+//            actions.append(recognizeVideo)
+//        } else {
+//            if let transcribing = mediaItem.videoTranscript?.transcribing, transcribing {
+////                recognizeVideo.backgroundColor = UIColor.gray
+//                actions.append(recognizeVideo)
+//            } else {
+//                if mediaItem.hasVideo && globals.allowMGTs {
+////                    recognizeVideo.backgroundColor = UIColor.darkGray
+//                    actions.append(recognizeVideo)
+//                }
+//            }
+//        }
+//        
+//        if mediaItem.hasVideo && globals.allowMGTs {
+//            if (mediaItem == globals.mediaPlayer.mediaItem) && (mediaItem.playing == Playing.video) && (mediaItem == selectedMediaItem)  {
+//                if mediaItem.videoTranscript?.keywords != nil {
+//                    actions.append(videoKeywords)
+//                }
+//            }
+//        }
         
         return actions.count > 0 ? actions : nil
     }
     
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
-        if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
-            return editActions(cell: cell, mediaItem: cell.mediaItem)
+        if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell, let message = cell.mediaItem?.text {
+//            return editActions(cell: cell, mediaItem: cell.mediaItem)
+            
+            let action = UITableViewRowAction(style: .normal, title: "Actions") { rowAction, indexPath in
+                let alert = UIAlertController(  title: "Actions",
+                                                message: message,
+                                                preferredStyle: .alert)
+                alert.makeOpaque()
+                
+                if let alertActions = self.editActions(cell: cell, mediaItem: cell.mediaItem) {
+                    for alertAction in alertActions {
+                        let action = UIAlertAction(title: alertAction.title, style: alertAction.style, handler: { (UIAlertAction) -> Void in
+                            alertAction.action?()
+                        })
+                        alert.addAction(action)
+                    }
+                }
+                
+                let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                    alertItem -> Void in
+                })
+                alert.addAction(okayAction)
+                
+                self.present(alert, animated: true, completion: nil)
+            }
+            action.backgroundColor = UIColor.controlBlue()
+            
+            return [action]
         }
         
         return nil

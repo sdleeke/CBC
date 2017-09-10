@@ -1175,20 +1175,20 @@ class VoiceBase {
         }
     }
     
-//    init(mediaItem:MediaItem,purpose:String)
-//    {
-//        self.mediaItem = mediaItem
-//        
-//        self.purpose = purpose
-//
-//        if let mediaID = mediaItem.mediaItemSettings?["mediaID."+self.purpose!] {
-//            self.mediaID = mediaID
-//        }
-//        
-//        if let completed = mediaItem.mediaItemSettings?["completed."+self.purpose!] {
-//            self.completed = completed == "YES"
-//        }
-//    }
+    init(mediaItem:MediaItem,purpose:String)
+    {
+        self.mediaItem = mediaItem
+        
+        self.purpose = purpose
+
+        if let mediaID = mediaItem.mediaItemSettings?["mediaID."+self.purpose!] {
+            self.mediaID = mediaID
+        }
+        
+        if let completed = mediaItem.mediaItemSettings?["completed."+self.purpose!] {
+            self.completed = completed == "YES"
+        }
+    }
     
     func createBody(parameters: [String: String],boundary: String) -> NSData
     {
@@ -2726,10 +2726,10 @@ class VoiceBase {
         return userInfo.count > 0 ? userInfo : nil
     }
     
-    func recognizeRowActions(viewController:UIViewController,tableView:UITableView) -> UITableViewRowAction
+    func recognizeAlertActions(viewController:UIViewController,tableView:UITableView) -> AlertAction?
     {
         guard let purpose = purpose else {
-            return UITableViewRowAction()
+            return nil
         }
         
         func mgtUpdate()
@@ -2779,19 +2779,19 @@ class VoiceBase {
         
         switch purpose {
         case Purpose.audio:
-            prefix = Constants.FA.AUDIO
+            prefix = Constants.Strings.Audio
             
         case Purpose.video:
-            prefix = Constants.FA.VIDEO
+            prefix = Constants.Strings.Video
             
         default:
             prefix = ""
             break
         }
         
-        var action : UITableViewRowAction!
+        var action : AlertAction!
         
-        action = UITableViewRowAction(style: .normal, title: prefix + "\n" + Constants.FA.TRANSCRIPT) { action, index in
+        action = AlertAction(title: prefix + " " + Constants.Strings.Transcript, style: .default) {
             if self.transcript == nil {
                 guard globals.reachability.currentReachabilityStatus != .notReachable else {
                     networkUnavailable(viewController,"Machine generated transcript unavailable.")
@@ -3313,7 +3313,7 @@ class VoiceBase {
         }
     }
     
-    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [UITableViewRowAction]? // popover:PopoverTableViewController,
+    func rowActions(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath) -> [AlertAction]? // popover:PopoverTableViewController,
     {
 //        let stringIndex = popover.section.index(indexPath)
         
@@ -3323,24 +3323,24 @@ class VoiceBase {
         
 //        let transcript = popover.transcript
         
-        var actions = [UITableViewRowAction]()
+        var actions = [AlertAction]()
         
-        var edit:UITableViewRowAction!
+        var edit:AlertAction!
         
-        edit = UITableViewRowAction(style: .normal, title: Constants.FA.EDIT) { rowAction, indexPath in
+        edit = AlertAction(title: "Edit", style: .default) {
             self.editSRT(popover:popover,tableView:tableView,indexPath:indexPath)
         }
-        edit.backgroundColor = UIColor.cyan//controlBlue()
+//        edit.backgroundColor = UIColor.cyan//controlBlue()
         
         actions.append(edit)
         
-        return actions
+        return actions.count > 0 ? actions : nil
     }
 
-    func keywordRowActions(viewController:UIViewController,tableView:UITableView,completion:((PopoverTableViewController)->(Void))?) -> UITableViewRowAction
+    func keywordAlertActions(viewController:UIViewController,tableView:UITableView,completion:((PopoverTableViewController)->(Void))?) -> AlertAction?
     {
         guard let purpose = purpose else {
-            return UITableViewRowAction()
+            return nil
         }
         
         var prefix:String!
@@ -3357,9 +3357,9 @@ class VoiceBase {
             break
         }
         
-        var action : UITableViewRowAction!
+        var action : AlertAction!
         
-        action = UITableViewRowAction(style: .normal, title: prefix + "\n" + Constants.FA.LIST) { action, index in
+        action = AlertAction(title: prefix + "\n" + Constants.Strings.List, style: .default) {
             
 //            let sourceView = self.view // cell.subviews[0]
 //            let sourceRectView = self.controlView! // cell.subviews[0].subviews[actions.index(of: action)!] // memory leak!

@@ -127,7 +127,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
             popover.navigationController?.isNavigationBarHidden = false
             
-            globals.splitViewController?.present(navigationController, animated: true, completion: nil)
+            globals.splitViewController.present(navigationController, animated: true, completion: nil)
         }
     }
 
@@ -977,15 +977,19 @@ class WebViewController: UIViewController
     {
         fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.showFullScreen))
         fullScreenButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+        fullScreenButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
         
         actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.actionMenu))
         actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+        actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
         
         plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.increaseFontSize))
         plusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+        plusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
         
         minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.decreaseFontSize))
         minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
+        minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
         
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
@@ -1627,12 +1631,12 @@ class WebViewController: UIViewController
         if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
             var vc : UIViewController?
             
-            if presentingViewController == globals.splitViewController?.viewControllers[0] {
-                vc = globals.splitViewController!.viewControllers[1]
+            if presentingViewController == globals.splitViewController.viewControllers[0] {
+                vc = globals.splitViewController.viewControllers[1]
             }
             
-            if presentingViewController == globals.splitViewController?.viewControllers[1] {
-                vc = globals.splitViewController!.viewControllers[0]
+            if presentingViewController == globals.splitViewController.viewControllers[1] {
+                vc = globals.splitViewController.viewControllers[0]
             }
             
             mask = true

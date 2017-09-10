@@ -536,6 +536,9 @@ class MediaItem : NSObject {
     
     lazy var audioDownload:Download? = {
         [unowned self] in
+        guard self.hasAudio else {
+            return nil
+        }
         var download = Download()
         download.mediaItem = self
         download.purpose = Purpose.audio
@@ -547,6 +550,9 @@ class MediaItem : NSObject {
     
     lazy var videoDownload:Download? = {
         [unowned self] in
+        guard self.hasVideo else {
+            return nil
+        }
         var download = Download()
         download.mediaItem = self
         download.purpose = Purpose.video
@@ -558,6 +564,9 @@ class MediaItem : NSObject {
     
     lazy var slidesDownload:Download? = {
         [unowned self] in
+        guard self.hasSlides else {
+            return nil
+        }
         var download = Download()
         download.mediaItem = self
         download.purpose = Purpose.slides
@@ -569,6 +578,9 @@ class MediaItem : NSObject {
     
     lazy var notesDownload:Download? = {
         [unowned self] in
+        guard self.hasNotes else {
+            return nil
+        }
         var download = Download()
         download.mediaItem = self
         download.purpose = Purpose.notes
@@ -580,6 +592,9 @@ class MediaItem : NSObject {
     
     lazy var outlineDownload:Download? = {
         [unowned self] in
+        guard self.hasOutline else {
+            return nil
+        }
         var download = Download()
         download.mediaItem = self
         download.purpose = Purpose.outline
@@ -2367,10 +2382,13 @@ class MediaItem : NSObject {
     
     lazy var audioTranscript:VoiceBase? = {
         [unowned self] in
-        let voicebase = VoiceBase()
-//        let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.audio)
-        voicebase.mediaItem = self
-        voicebase.purpose = Purpose.audio
+        guard self.hasAudio else {
+            return nil
+        }
+        let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.audio) // CRITICAL: This initializer sets mediaID and completed from settings.
+//        let voicebase = VoiceBase()
+//        voicebase.mediaItem = self
+//        voicebase.purpose = Purpose.audio
 //        if (voicebase.transcript != nil) && (voicebase.mediaID != "Completed") {
 //            voicebase.delete() // Clean up the cloud.
 //        }
@@ -2380,10 +2398,13 @@ class MediaItem : NSObject {
     
     lazy var videoTranscript:VoiceBase? = {
         [unowned self] in
-//        let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.video)
-        let voicebase = VoiceBase()
-        voicebase.mediaItem = self
-        voicebase.purpose = Purpose.video
+        guard self.hasVideo else {
+            return nil
+        }
+        let voicebase = VoiceBase(mediaItem:self,purpose:Purpose.video) // CRITICAL: This initializer sets mediaID and completed from settings.
+//        let voicebase = VoiceBase()
+//        voicebase.mediaItem = self
+//        voicebase.purpose = Purpose.video
 //        if (voicebase.transcript != nil) && (voicebase.mediaID != "Completed") {
 //            voicebase.delete() // Clean up the cloud.
 //        }

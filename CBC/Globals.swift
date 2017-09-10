@@ -27,39 +27,47 @@ extension UIViewController {
     func setDVCLeftBarButton()
     {
         // MUST be called from the detail view ONLY
-        if  //let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
-            //let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
-            let count = self.splitViewController?.viewControllers.count {
-            if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
-                if let isCollapsed = splitViewController?.isCollapsed {
-                    if isCollapsed {
-                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.navigationController?.navigationItem.backBarButtonItem
-//                        if UIDevice.current.userInterfaceIdiom == .phone {
-//                        }
-                    } else {
-                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
-                    }
-                }
-//                switch UIDevice.current.userInterfaceIdiom {
-//                case .phone:
-//                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-//                    } else {
-//                    }
-//                    break
-//                    
-//                case .pad:
-//                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-//                        navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
-//                    } else {
-//                        navigationController?.topViewController?.navigationItem.leftBarButtonItem = nil
-//                    }
-//                    break
-//                    
-//                default:
-//                    break
-//                }
+        if let isCollapsed = splitViewController?.isCollapsed {
+            if isCollapsed {
+                navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.navigationController?.navigationItem.backBarButtonItem
+            } else {
+                navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
             }
         }
+
+//        if  //let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
+//            //let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
+//            let count = self.splitViewController?.viewControllers.count {
+//            if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
+//                if let isCollapsed = splitViewController?.isCollapsed {
+//                    if isCollapsed {
+//                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.navigationController?.navigationItem.backBarButtonItem
+////                        if UIDevice.current.userInterfaceIdiom == .phone {
+////                        }
+//                    } else {
+//                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+//                    }
+//                }
+////                switch UIDevice.current.userInterfaceIdiom {
+////                case .phone:
+////                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+////                    } else {
+////                    }
+////                    break
+////                    
+////                case .pad:
+////                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
+////                        navigationController?.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
+////                    } else {
+////                        navigationController?.topViewController?.navigationItem.leftBarButtonItem = nil
+////                    }
+////                    break
+////                    
+////                default:
+////                    break
+////                }
+//            }
+//        }
     }
 }
 
@@ -1590,7 +1598,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         
         if mediaRepository.list != nil {
             for mediaItem in mediaRepository.list! {
-                if let download = mediaItem.downloads[purpose], download.isDownloaded() {
+                if let download = mediaItem.downloads[purpose], download.isDownloaded {
                     totalFileSize += download.fileSize
                 }
             }
