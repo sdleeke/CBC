@@ -29,9 +29,9 @@ enum DeviceType
     static let IS_IPHONE_4_OR_LESS  = UIDevice.current.userInterfaceIdiom == .phone && ScreenSize.SCREEN_MAX_LENGTH < 568.0
     static let IS_IPHONE_5          = UIDevice.current.userInterfaceIdiom == .phone && ScreenSize.SCREEN_MAX_LENGTH == 568.0
     static let IS_IPHONE_6_7        = UIDevice.current.userInterfaceIdiom == .phone && ScreenSize.SCREEN_MAX_LENGTH == 667.0
-    static let IS_IPHONE_6P_7P      = UIDevice.current.userInterfaceIdiom == .phone && ScreenSize.SCREEN_MAX_LENGTH == 736.0
+    static let IS_IPHONE_6P_7P      = UIDevice.current.userInterfaceIdiom == .phone && ScreenSize.SCREEN_MAX_LENGTH >= 736.0
     static let IS_IPAD              = UIDevice.current.userInterfaceIdiom == .pad && ScreenSize.SCREEN_MAX_LENGTH == 1024.0
-    static let IS_IPAD_PRO          = UIDevice.current.userInterfaceIdiom == .pad && ScreenSize.SCREEN_MAX_LENGTH == 1366.0
+    static let IS_IPAD_PRO          = UIDevice.current.userInterfaceIdiom == .pad && ScreenSize.SCREEN_MAX_LENGTH >= 1366.0
 }
 
 //enum Field : String {
@@ -576,15 +576,21 @@ enum Constants {
         }
     }
     
+    static let SEGMENT_CHANGE_WIDTH     = CGFloat(420)
+    
+    static let REGULAR_SEGMENT_WIDTH    = CGFloat(50)
+    
+    static let COMPACT_SEGMENT_WIDTH    = CGFloat(25)
+    
     static let MIN_SLIDER_WIDTH         = CGFloat(60)
-    static let MIN_STV_SEGMENT_WIDTH    = CGFloat(25)
+//    static let MIN_STV_SEGMENT_WIDTH    = CGFloat(40)
     
     enum AV_SEGMENT_INDEX {
         static let AUDIO = 0
         static let VIDEO = 1
     }
     
-    static let AUDIO_VIDEO_MAX_WIDTH = CGFloat(50)
+//    static let AUDIO_VIDEO_WIDTH = 2 * SEGMENT_WIDTH
     
     // first.service < second.service relies upon the face that AM and PM are alphabetically sorted the same way they are related chronologically, i.e. AM comes before PM in both cases.
     enum SERVICE {
@@ -664,7 +670,7 @@ enum Constants {
         
         static let PLAYING = "\u{f028}"
 
-        static let ICONS_FONT_SIZE = CGFloat(12.0)
+        static let ICONS_FONT_SIZE = CGFloat(18.0)
         static let SLIDES = "\u{f022}"
         static let TRANSCRIPT = "\u{f0f6}"
         static let AUDIO = "\u{f025}"

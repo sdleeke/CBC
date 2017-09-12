@@ -621,7 +621,9 @@ extension MediaViewController : WKNavigationDelegate
                     
                     self.progressIndicator.isHidden = true
                     
+                    self.setupAudioOrVideo()
                     self.setupSTVControl()
+                    self.setSegmentWidths()
                     
                     //                            print("webView:hidden=panning")
                     
@@ -1383,6 +1385,7 @@ class MediaViewController: UIViewController // MediaController
         guard (selectedMediaItem != nil) else {
             stvControl.isEnabled = false
             stvControl.isHidden = true
+            stvControl.removeAllSegments()
             stvWidthConstraint.constant = 0
             view.setNeedsLayout()
             return
@@ -1395,9 +1398,6 @@ class MediaViewController: UIViewController // MediaController
         var notesIndex = 0
         var videoIndex = 0
 
-        stvControl.setTitleTextAttributes(Constants.FA.Fonts.Attributes.icons, for: UIControlState.normal)
-        stvControl.setTitleTextAttributes(Constants.FA.Fonts.Attributes.icons, for: UIControlState.disabled)
-        
         // This order: Transcript (aka Notes), Slides, Video matches the CBC web site.
         
         if selectedMediaItem!.hasNotes {
@@ -1420,9 +1420,6 @@ class MediaViewController: UIViewController // MediaController
             }
         }
         
-        stvWidthConstraint.constant = Constants.MIN_STV_SEGMENT_WIDTH * CGFloat(index)
-        view.setNeedsLayout()
-
         switch selectedMediaItem!.showing! {
         case Showing.slides:
             stvControl.selectedSegmentIndex = slidesIndex
@@ -1449,14 +1446,79 @@ class MediaViewController: UIViewController // MediaController
         if (stvControl.numberOfSegments < 2) {
             stvControl.isEnabled = false
             stvControl.isHidden = true
+            stvControl.removeAllSegments()
             stvWidthConstraint.constant = 0
             view.setNeedsLayout()
         } else {
             stvControl.isEnabled = true
             stvControl.isHidden = false
+
+//            if view.frame.width <= Constants.SEGMENT_CHANGE_WIDTH {
+//                stvControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: 16.0) ], for: UIControlState.normal)
+//                stvControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: 16.0) ], for: UIControlState.disabled)
+//                
+//                stvWidthConstraint.constant = CGFloat(stvControl.numberOfSegments) * Constants.COMPACT_SEGMENT_WIDTH
+//            } else {
+//                stvControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: 20.0) ], for: UIControlState.normal)
+//                stvControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: 20.0) ], for: UIControlState.disabled)
+//                
+//                stvWidthConstraint.constant = CGFloat(stvControl.numberOfSegments) * Constants.REGULAR_SEGMENT_WIDTH
+//            }
+//            
+//            view.setNeedsLayout()
         }
     }
 
+    func setSegmentWidths()
+    {
+        let minSliderWidth = CGFloat(75)
+        
+        let minTimeWidth = CGFloat(50)
+        
+        let avSpace:CGFloat = 4.0 * (audioOrVideoControl.numberOfSegments > 1 ? 2 : 1)
+        
+        let stvSpace:CGFloat = 4.0 * (stvControl.numberOfSegments > 1 ? 2 : 1)
+        
+        let freeWidth = view.frame.width - minSliderWidth - avSpace - stvSpace - (2 * minTimeWidth) // Time Elapsed and Remaining
+        
+        var segmentWidth:CGFloat = 0
+        var fontSize:CGFloat = 0
+        var maxSegmentWidth:CGFloat = 0
+        
+        if DeviceType.IS_IPHONE_6P_7P {
+            maxSegmentWidth = 50
+        } else {
+            maxSegmentWidth = 60
+        }
+        
+        
+        if (audioOrVideoControl.numberOfSegments > 1) || (stvControl.numberOfSegments > 1) {
+            segmentWidth = min(maxSegmentWidth,freeWidth / CGFloat(stvControl.numberOfSegments + audioOrVideoControl.numberOfSegments))
+        }
+        
+        if audioOrVideoControl.numberOfSegments > 1 {
+            audioOrVideoWidthConstraint.constant = CGFloat(audioOrVideoControl.numberOfSegments) * segmentWidth
+
+            fontSize = min(audioOrVideoControl.frame.height,segmentWidth) / 1.75
+
+            audioOrVideoControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: fontSize) as Any], for: UIControlState.normal)
+            audioOrVideoControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: fontSize) as Any], for: UIControlState.disabled)
+
+            view.setNeedsLayout()
+        }
+        
+        if stvControl.numberOfSegments > 1 {
+            stvWidthConstraint.constant = CGFloat(stvControl.numberOfSegments) * segmentWidth
+            
+            fontSize = min(stvControl.frame.height,segmentWidth) / 1.75
+            
+            stvControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: fontSize) as Any], for: UIControlState.normal)
+            stvControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: fontSize) as Any], for: UIControlState.disabled)
+
+            view.setNeedsLayout()
+        }
+    }
+    
     @IBAction func playPause(_ sender: UIButton)
     {
         guard (selectedMediaItem != nil) && (globals.mediaPlayer.mediaItem == selectedMediaItem) else {
@@ -2431,9 +2493,12 @@ class MediaViewController: UIViewController // MediaController
         }
         
         setupSpinner()
-        setupSTVControl()
         setupSliderAndTimes()
         setupPlayPauseButton()
+
+        setupAudioOrVideo()
+        setupSTVControl()
+        setSegmentWidths()
     }
     
     func paused()
@@ -2867,7 +2932,9 @@ class MediaViewController: UIViewController // MediaController
                 mediaItemNotesAndSlides.bringSubview(toFront: self.logo)
             }
             
+            setupAudioOrVideo()
             setupSTVControl()
+            setSegmentWidths()
             return
         }
         
@@ -3087,7 +3154,9 @@ class MediaViewController: UIViewController // MediaController
             break
         }
 
+        setupAudioOrVideo()
         setupSTVControl()
+        setSegmentWidths()
     }
     
     func scrollToMediaItem(_ mediaItem:MediaItem?,select:Bool,position:UITableViewScrollPosition)
@@ -3329,6 +3398,10 @@ class MediaViewController: UIViewController // MediaController
             
             self.setupVerticalSplit()
             self.setupHorizontalSplit()
+            
+            self.setupAudioOrVideo()
+            self.setupSTVControl()
+            self.setSegmentWidths()
         }) { (UIViewControllerTransitionCoordinatorContext) -> Void in
             self.setupTitle()
             
@@ -3527,14 +3600,42 @@ class MediaViewController: UIViewController // MediaController
         guard (selectedMediaItem != nil) else {
             audioOrVideoControl.isEnabled = false
             audioOrVideoControl.isHidden = true
+            audioOrVideoControl.removeAllSegments()
+            audioOrVideoWidthConstraint.constant = 0
+            view.setNeedsLayout()
             return
+        }
+        
+        audioOrVideoControl.removeAllSegments()
+
+        var index = 0
+        
+        if selectedMediaItem!.hasAudio {
+            audioOrVideoControl.insertSegment(withTitle: Constants.FA.AUDIO, at: index, animated: false)
+            index += 1
+        }
+        
+        if selectedMediaItem!.hasVideo {
+            audioOrVideoControl.insertSegment(withTitle: Constants.FA.VIDEO, at: index, animated: false)
         }
         
         if (selectedMediaItem!.hasAudio && selectedMediaItem!.hasVideo) {
             audioOrVideoControl.isEnabled = true
             audioOrVideoControl.isHidden = false
-            audioOrVideoWidthConstraint.constant = Constants.AUDIO_VIDEO_MAX_WIDTH
-            view.setNeedsLayout()
+            
+//            if view.frame.width <= Constants.SEGMENT_CHANGE_WIDTH {
+//                audioOrVideoControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: 16.0) ], for: UIControlState.normal)
+//                audioOrVideoControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: 16.0) ], for: UIControlState.disabled)
+//                
+//                audioOrVideoWidthConstraint.constant = CGFloat(audioOrVideoControl.numberOfSegments) * Constants.COMPACT_SEGMENT_WIDTH
+//            } else {
+//                audioOrVideoControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: 20.0) ], for: UIControlState.normal)
+//                audioOrVideoControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: 20.0) ], for: UIControlState.disabled)
+//                
+//                audioOrVideoWidthConstraint.constant = CGFloat(audioOrVideoControl.numberOfSegments) * Constants.REGULAR_SEGMENT_WIDTH
+//            }
+//            
+//            view.setNeedsLayout()
 
             audioOrVideoControl.setEnabled(true, forSegmentAt: Constants.AV_SEGMENT_INDEX.AUDIO)
             audioOrVideoControl.setEnabled(true, forSegmentAt: Constants.AV_SEGMENT_INDEX.VIDEO)
@@ -3554,15 +3655,12 @@ class MediaViewController: UIViewController // MediaController
                 break
             }
 
-            audioOrVideoControl.setTitleTextAttributes(Constants.FA.Fonts.Attributes.icons, for: UIControlState.normal)
-            audioOrVideoControl.setTitleTextAttributes(Constants.FA.Fonts.Attributes.icons, for: UIControlState.disabled)
-            
             audioOrVideoControl.setTitle(Constants.FA.AUDIO, forSegmentAt: Constants.AV_SEGMENT_INDEX.AUDIO) // Audio
-
             audioOrVideoControl.setTitle(Constants.FA.VIDEO, forSegmentAt: Constants.AV_SEGMENT_INDEX.VIDEO) // Video
         } else {
             audioOrVideoControl.isEnabled = false
             audioOrVideoControl.isHidden = true
+            audioOrVideoControl.removeAllSegments()
             audioOrVideoWidthConstraint.constant = 0
             view.setNeedsLayout()
         }
@@ -3599,12 +3697,15 @@ class MediaViewController: UIViewController // MediaController
         addSliderObserver()
         
         setupTitle()
-        setupAudioOrVideo()
         setupPlayPauseButton()
         setupSpinner()
         setupSliderAndTimes()
         setupDocumentsAndVideo()
         setupActionAndTagsButtons()
+        
+        setupAudioOrVideo()
+        setupSTVControl()
+        setSegmentWidths()
     }
     
     func doneSeeking()
@@ -4573,10 +4674,13 @@ class MediaViewController: UIViewController // MediaController
         
         addSliderObserver()
         
-        setupSTVControl()
         setupSliderAndTimes()
         setupPlayPauseButton()
         setupActionAndTagsButtons()
+
+        setupAudioOrVideo()
+        setupSTVControl()
+        setSegmentWidths()
     }
     
     func setupSpinner()
@@ -5062,11 +5166,14 @@ extension MediaViewController : UITableViewDelegate
         selectedMediaItem = mediaItems![indexPath.row]
         
         setupSpinner()
-        setupAudioOrVideo()
         setupPlayPauseButton()
         setupSliderAndTimes()
         setupDocumentsAndVideo()
         setupActionAndTagsButtons()
+
+        setupAudioOrVideo()
+        setupSTVControl()
+        setSegmentWidths()
     }
 
     func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath)
