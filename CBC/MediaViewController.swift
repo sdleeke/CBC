@@ -191,10 +191,10 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 
                 navigationController.modalPresentationStyle = .overCurrentContext
                 
-                navigationController.popoverPresentationController?.permittedArrowDirections = .up
                 navigationController.popoverPresentationController?.delegate = self
                 
-                navigationController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
+//                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+//                navigationController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
                 
                 //                    popover.navigationItem.title = title
                 
@@ -219,23 +219,155 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Cancel_Audio_Download:
-            selectedMediaItem?.audioDownload?.cancelOrDelete()
+            if let state = selectedMediaItem?.audioDownload?.state {
+                switch state {
+                case .downloading:
+                    selectedMediaItem?.audioDownload?.cancel()
+                    break
+                    
+                case .downloaded:
+                    let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+                                                    message: nil,
+                                                    preferredStyle: .alert)
+                    alert.makeOpaque()
+                    
+                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                        alertItem -> Void in
+                        self.selectedMediaItem?.audioDownload?.delete()
+                    })
+                    alert.addAction(yesAction)
+                    
+                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                        alertItem -> Void in
+                        
+                    })
+                    alert.addAction(noAction)
+                    
+                    let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                        (action : UIAlertAction!) -> Void in
+                        
+                    })
+                    alert.addAction(cancel)
+                    
+                    // For .actionSheet style
+                    //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
+                    
+                    self.present(alert, animated: true, completion: nil)
+                    break
+                    
+                default:
+                    break
+                }
+            }
             break
             
         case Constants.Strings.Cancel_All_Audio_Downloads:
             for mediaItem in mediaItems! {
-                mediaItem.audioDownload?.cancel()
+                if let state = selectedMediaItem?.audioDownload?.state {
+                    switch state {
+                    case .downloading:
+                        mediaItem.audioDownload?.cancel()
+                        break
+                        
+                    case .downloaded:
+                        let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+                                                        message: nil,
+                                                        preferredStyle: .alert)
+                        alert.makeOpaque()
+                        
+                        let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                            alertItem -> Void in
+                            mediaItem.audioDownload?.delete()
+                        })
+                        alert.addAction(yesAction)
+                        
+                        let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                            alertItem -> Void in
+                            
+                        })
+                        alert.addAction(noAction)
+                        
+                        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                            (action : UIAlertAction!) -> Void in
+                            
+                        })
+                        alert.addAction(cancel)
+                        
+                        // For .actionSheet style
+                        //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
+                        
+                        self.present(alert, animated: true, completion: nil)
+                        break
+                        
+                    default:
+                        break
+                    }
+                }
             }
             break
             
         case Constants.Strings.Delete_Audio_Download:
-            selectedMediaItem?.audioDownload?.delete()
+            let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+                                            message: nil,
+                                            preferredStyle: .alert)
+            alert.makeOpaque()
+            
+            let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                alertItem -> Void in
+                self.selectedMediaItem?.audioDownload?.delete()
+            })
+            alert.addAction(yesAction)
+            
+            let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                alertItem -> Void in
+                
+            })
+            alert.addAction(noAction)
+            
+            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                (action : UIAlertAction!) -> Void in
+                
+            })
+            alert.addAction(cancel)
+            
+            // For .actionSheet style
+            //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
+            
+            self.present(alert, animated: true, completion: nil)
             break
             
         case Constants.Strings.Delete_All_Audio_Downloads:
-            for mediaItem in mediaItems! {
-                mediaItem.audioDownload?.delete()
-            }
+            let alert = UIAlertController(  title: "Confirm Deletion of All Audio Downloads",
+                                            message: nil,
+                                            preferredStyle: .alert)
+            alert.makeOpaque()
+            
+            let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                alertItem -> Void in
+                if let mediaItems = self.mediaItems {
+                    for mediaItem in mediaItems {
+                        mediaItem.audioDownload?.delete()
+                    }
+                }
+            })
+            alert.addAction(yesAction)
+            
+            let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                alertItem -> Void in
+                
+            })
+            alert.addAction(noAction)
+            
+            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                (action : UIAlertAction!) -> Void in
+                
+            })
+            alert.addAction(cancel)
+            
+            // For .actionSheet style
+            //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
+            
+            self.present(alert, animated: true, completion: nil)
             break
             
         case Constants.Strings.Print:
@@ -1062,6 +1194,10 @@ class MediaViewController: UIViewController // MediaController
             
         }
         didSet {
+            guard Thread.isMainThread else {
+                return
+            }
+            
             if oldValue != nil {
                 NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: oldValue)
             }
@@ -1471,6 +1607,10 @@ class MediaViewController: UIViewController // MediaController
 
     func setSegmentWidths()
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         let minSliderWidth = CGFloat(75)
         
         let minTimeWidth = CGFloat(50)
@@ -2178,11 +2318,11 @@ class MediaViewController: UIViewController // MediaController
 //                navigationController.modalPresentationStyle = .popover
 //            }
             
-            navigationController.modalPresentationStyle = .popover
+            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
             
-            navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
             
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.barButtonItem = actionButton
             
             popover.delegate = self
@@ -2624,11 +2764,6 @@ class MediaViewController: UIViewController // MediaController
         //This makes accurate scrolling to sections impossible using scrollToRowAtIndexPath.
 //        tableView.estimatedRowHeight = tableView.rowHeight
 //        tableView.rowHeight = UITableViewAutomaticDimension
-
-        if (selectedMediaItem == nil) {
-            //Will only happen on an iPad
-            selectedMediaItem = globals.selectedMediaItem.detail
-        }
 
         // Forces MasterViewController to show.  App MUST start in preferredDisplayMode == .automatic or the MVC can't be dragged out after it is hidden!
 //        if (splitViewController?.preferredDisplayMode == .automatic) { // UIDeviceOrientationIsPortrait(UIDevice.current.orientation) && 
@@ -3272,12 +3407,11 @@ class MediaViewController: UIViewController // MediaController
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             let button = object as? UIBarButtonItem
             
-            navigationController.modalPresentationStyle = .popover
+            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
             
-            navigationController.popoverPresentationController?.permittedArrowDirections = .up
-
             navigationController.popoverPresentationController?.delegate = self
             
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.barButtonItem = button
             
             popover.navigationItem.title = Constants.Strings.Tags
@@ -3301,6 +3435,10 @@ class MediaViewController: UIViewController // MediaController
     
     func setupActionAndTagsButtons()
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         guard (selectedMediaItem != nil) else {
             actionButton = nil
             tagsButton = nil
@@ -3519,6 +3657,10 @@ class MediaViewController: UIViewController // MediaController
     
     fileprivate func setupHorizontalSplit()
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         guard tableViewWidth.isActive else {
             return
         }
@@ -3535,6 +3677,10 @@ class MediaViewController: UIViewController // MediaController
     
     fileprivate func setupVerticalSplit()
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         guard view.subviews.contains(verticalSplit) else {
             return
         }
@@ -3577,6 +3723,10 @@ class MediaViewController: UIViewController // MediaController
     
     fileprivate func setupTitle()
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         self.navigationItem.title = selectedMediaItem?.title
 
 //        if (selectedMediaItem != nil) {
@@ -3597,6 +3747,10 @@ class MediaViewController: UIViewController // MediaController
     
     fileprivate func setupAudioOrVideo()
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         guard (selectedMediaItem != nil) else {
             audioOrVideoControl.isEnabled = false
             audioOrVideoControl.isHidden = true
@@ -3936,6 +4090,38 @@ class MediaViewController: UIViewController // MediaController
         tableView.isEditing = false
     }
     
+    func willEnterForeground()
+    {
+        
+    }
+    
+    func didBecomeActive()
+    {
+        setDVCLeftBarButton()
+    }
+    
+    func addNotifications()
+    {
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.doneSeeking), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.showPlaying), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SHOW_PLAYING), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.paused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.failedToLoad), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_LOAD), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.failedToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.readyToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.setupPlayPauseButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.willEnterForeground), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_ENTER_FORGROUND), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.didBecomeActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DID_BECOME_ACTIVE), object: nil)
+    }
+    
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
@@ -3947,25 +4133,12 @@ class MediaViewController: UIViewController // MediaController
         // Shouldn't some or all of these have object values of selectedMediaItem?
         
 //        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.REACHABLE), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateUI), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.NOT_REACHABLE), object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.doneSeeking), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DONE_SEEKING), object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.showPlaying), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SHOW_PLAYING), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.paused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.failedToLoad), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_LOAD), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.failedToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_PLAY), object: nil)
 
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.readyToPlay), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.setupPlayPauseButton), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_PLAY_PAUSE), object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
+        addNotifications()
 
         if (self.splitViewController?.viewControllers.count > 1) {
-            updateView()
+//            updateView()  // This caused a bug where PDF's would not appear.  The document.mediaItem == selectedMediaItem was SOMETIMES(!) false, seemingly depending on the run
+                            // i.e. starting over might give you a different result, but I'm not even sure that was the real cause or why!
             
             NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.updateView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.clearView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)
@@ -4576,6 +4749,10 @@ class MediaViewController: UIViewController // MediaController
     
     func addSliderObserver()
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         removeSliderObserver()
         
 //        self.counter += 1
@@ -4855,7 +5032,8 @@ extension MediaViewController : UITableViewDataSource
         var topics:AlertAction!
         
         var title = ""
-        
+        var style = UIAlertActionStyle.default
+
         if mediaItem.hasAudio {
             switch mediaItem.audioDownload!.state {
             case .none:
@@ -4867,11 +5045,12 @@ extension MediaViewController : UITableViewDataSource
                 break
             case .downloaded:
                 title = Constants.Strings.Delete_Audio_Download
+                style = UIAlertActionStyle.destructive
                 break
             }
         }
         
-        download = AlertAction(title: title, style: .default, action: {
+        download = AlertAction(title: title, style: style, action: {
             switch title {
             case Constants.Strings.Download_Audio:
                 mediaItem.audioDownload?.download()
@@ -4881,11 +5060,76 @@ extension MediaViewController : UITableViewDataSource
                 break
                 
             case Constants.Strings.Delete_Audio_Download:
-                mediaItem.audioDownload?.delete()
+                let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+                                                message: nil,
+                                                preferredStyle: .alert)
+                alert.makeOpaque()
+                
+                let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                    alertItem -> Void in
+                    mediaItem.audioDownload?.delete()
+                })
+                alert.addAction(yesAction)
+                
+                let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                    alertItem -> Void in
+                    
+                })
+                alert.addAction(noAction)
+                
+                let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                    (action : UIAlertAction!) -> Void in
+                    
+                })
+                alert.addAction(cancel)
+                
+                // For .actionSheet style
+                //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
+                
+                self.present(alert, animated: true, completion: nil)
                 break
                 
             case Constants.Strings.Cancel_Audio_Download:
-                mediaItem.audioDownload?.cancelOrDelete()
+                if let state = mediaItem.audioDownload?.state {
+                    switch state {
+                    case .downloading:
+                        mediaItem.audioDownload?.cancel()
+                        break
+                        
+                    case .downloaded:
+                        let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+                                                        message: nil,
+                                                        preferredStyle: .alert)
+                        alert.makeOpaque()
+                        
+                        let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                            alertItem -> Void in
+                            mediaItem.audioDownload?.delete()
+                        })
+                        alert.addAction(yesAction)
+                        
+                        let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                            alertItem -> Void in
+                            
+                        })
+                        alert.addAction(noAction)
+                        
+                        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                            (action : UIAlertAction!) -> Void in
+                            
+                        })
+                        alert.addAction(cancel)
+                        
+                        // For .actionSheet style
+                        //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
+                        
+                        self.present(alert, animated: true, completion: nil)
+                        break
+                        
+                    default:
+                        break
+                    }
+                }
                 break
                 
             default:
@@ -5006,10 +5250,10 @@ extension MediaViewController : UITableViewDataSource
                 
                 navigationController.popoverPresentationController?.delegate = self
                 
-                if let cell = cell {
-                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
-                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].frame // .subviews[actions.index(of: topics)!].frame // memory leak!
-                }
+//                if let cell = cell {
+//                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+//                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].frame // .subviews[actions.index(of: topics)!].frame // memory leak!
+//                }
                 
                 popover.navigationController?.isNavigationBarHidden = false
                 

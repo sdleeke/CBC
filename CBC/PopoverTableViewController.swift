@@ -1067,22 +1067,6 @@ class PopoverTableViewController : UIViewController
         
         searchBar.autocapitalizationType = .none
 
-        switch (search,segments) {
-        case (true,true):
-            tableViewTopConstraint.constant = 88
-            break
-        case (true,false):
-            segmentedControl.removeFromSuperview()
-            break
-        case (false,true):
-            searchBar.removeFromSuperview()
-            break
-        case (false,false):
-            searchBar.removeFromSuperview()
-            tableViewTopConstraint.constant = 0
-            break
-        }
-        
 //        if segments {
 //            segmentedControl.removeAllSegments()
 //            if let segmentActions = segmentActions {
@@ -1648,6 +1632,25 @@ class PopoverTableViewController : UIViewController
     {
         super.viewWillAppear(animated)
 
+        switch (search,segments) {
+        case (true,true):
+            tableViewTopConstraint.constant = searchBar.frame.height + segmentedControl.frame.height + 16
+            break
+        case (true,false):
+            segmentedControl.removeFromSuperview()
+            tableViewTopConstraint.constant = searchBar.frame.height
+            break
+        case (false,true):
+            searchBar.removeFromSuperview()
+            tableViewTopConstraint.constant = segmentedControl.frame.height + 16
+            break
+        case (false,false):
+            searchBar.removeFromSuperview()
+            segmentedControl.removeFromSuperview()
+            tableViewTopConstraint.constant = 0
+            break
+        }
+        
         if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
             var vc : UIViewController?
             

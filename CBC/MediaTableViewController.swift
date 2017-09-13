@@ -308,10 +308,10 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
 {
     // MARK: PopoverPickerControllerDelegate
     
-    func noMediaAvailable(handler:@escaping (UIAlertAction) -> Void)
-    {
-        alert(viewController:self,title: "No Media Available",message: "Please check your network connection and try again.",completion:nil)
-    }
+//    func noMediaAvailable(handler:@escaping (UIAlertAction) -> Void)
+//    {
+//        alert(viewController:self,title: "No Media Available",message: "Please check your network connection and try again.",completion:nil)
+//    }
 
     func stringPicked(_ string:String?)
     {
@@ -1479,10 +1479,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 navigationController.modalPresentationStyle = .overCurrentContext
                 
-                navigationController.popoverPresentationController?.permittedArrowDirections = .up
                 navigationController.popoverPresentationController?.delegate = self
-                
-                navigationController.popoverPresentationController?.barButtonItem = showButton
+
+//                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+//                navigationController.popoverPresentationController?.barButtonItem = showButton
                 
                 popover.navigationItem.title = Constants.Strings.History
                 
@@ -1685,11 +1685,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //                } else {
 //                    navigationController.modalPresentationStyle = .popover
 //                }
-                navigationController.modalPresentationStyle = .popover
+                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
                 
-                navigationController.popoverPresentationController?.permittedArrowDirections = .up
                 navigationController.popoverPresentationController?.delegate = self
-                
+
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
                 navigationController.popoverPresentationController?.barButtonItem = showButton
                 
                 present(navigationController, animated: true, completion: {
@@ -1733,11 +1733,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController {
                 navigationController.modalPresentationStyle = .overCurrentContext
-                
-                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+
                 navigationController.popoverPresentationController?.delegate = self
-                
-                navigationController.popoverPresentationController?.barButtonItem = self.showButton
+
+//                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+//                navigationController.popoverPresentationController?.barButtonItem = self.showButton
                 
                 self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
                 
@@ -1768,23 +1768,23 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         //                                self.buildInitialList(mediaItems:mediaItems)
                         self.buildList(mediaItems:mediaItems)
                         
-                        self.popover?.updateSearchResults()
-                        self.popover?.tableView?.reloadData()
-                        
-                        //                                // Start over and get specific devices
-                        //                                self.processFirst(mediaItems:mediaItems)
-                        
-                        if #available(iOS 10.0, *) {
-                            if let isRefreshing = self.popover?.tableView?.refreshControl?.isRefreshing, isRefreshing {
-                                self.popover?.refreshControl?.endRefreshing()
+                        Thread.onMainThread(block: {
+                            self.popover?.updateSearchResults()
+                            
+                            self.popover?.tableView?.reloadData()
+                            
+                            if #available(iOS 10.0, *) {
+                                if let isRefreshing = self.popover?.tableView?.refreshControl?.isRefreshing, isRefreshing {
+                                    self.popover?.refreshControl?.endRefreshing()
+                                }
+                            } else {
+                                // Fallback on earlier versions
+                                if let isRefreshing = self.popover?.isRefreshing, isRefreshing {
+                                    self.popover?.refreshControl?.endRefreshing()
+                                    self.popover?.isRefreshing = false
+                                }
                             }
-                        } else {
-                            // Fallback on earlier versions
-                            if let isRefreshing = self.popover?.isRefreshing, isRefreshing {
-                                self.popover?.refreshControl?.endRefreshing()
-                                self.popover?.isRefreshing = false
-                            }
-                        }
+                        })
                     },onError: nil)
                 }
                 
@@ -2602,19 +2602,21 @@ class MediaTableViewController : UIViewController // MediaController
                     navigationController.modalPresentationStyle = .overCurrentContext
                 } else {
                     // I don't think this ever happens: collapsed and regular
-                    navigationController.modalPresentationStyle = .popover
+                    navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
                 }
             } else {
-                navigationController.modalPresentationStyle = .popover
+                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
             }
 
 //            navigationController.modalPresentationStyle = .overCurrentContext
 
-            navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
-
-            navigationController.popoverPresentationController?.sourceView = self.view
-            navigationController.popoverPresentationController?.sourceRect = mediaCategoryButton.frame
+            
+            if navigationController.modalPresentationStyle == .popover {
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                navigationController.popoverPresentationController?.sourceView = self.view
+                navigationController.popoverPresentationController?.sourceRect = mediaCategoryButton.frame
+            }
 
             popover.navigationItem.title = Constants.Strings.Select_Category
             
@@ -2711,11 +2713,11 @@ class MediaTableViewController : UIViewController // MediaController
 //                navigationController.modalPresentationStyle = .popover
 //            }
 
-            navigationController.modalPresentationStyle = .popover
+            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
             
-            navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
-            
+
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.barButtonItem = button
             
 //            popover.navigationItem.title = "Select" // Constants.Strings.Show
@@ -2862,7 +2864,9 @@ class MediaTableViewController : UIViewController // MediaController
             
         }
         didSet {
-            globals.selectedMediaItem.master = selectedMediaItem
+            if selectedMediaItem != globals.selectedMediaItem.master {
+                globals.selectedMediaItem.master = selectedMediaItem
+            }
         }
     }
     
@@ -2945,11 +2949,11 @@ class MediaTableViewController : UIViewController // MediaController
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             let button = object as? UIBarButtonItem
             
-            navigationController.modalPresentationStyle = .popover
+            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
             
-            navigationController.popoverPresentationController?.permittedArrowDirections = .down
             navigationController.popoverPresentationController?.delegate = self
             
+            navigationController.popoverPresentationController?.permittedArrowDirections = .down
             navigationController.popoverPresentationController?.barButtonItem = button
             
             popover.navigationItem.title = Constants.Strings.Menu.Index
@@ -3035,11 +3039,11 @@ class MediaTableViewController : UIViewController // MediaController
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             let button = object as? UIBarButtonItem
             
-            navigationController.modalPresentationStyle = .popover
+            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
             
-            navigationController.popoverPresentationController?.permittedArrowDirections = .down
             navigationController.popoverPresentationController?.delegate = self
             
+            navigationController.popoverPresentationController?.permittedArrowDirections = .down
             navigationController.popoverPresentationController?.barButtonItem = button
             
             popover.navigationItem.title = Constants.Strings.Options_Title.Grouping
@@ -3079,11 +3083,11 @@ class MediaTableViewController : UIViewController // MediaController
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             let button = object as? UIBarButtonItem
             
-            navigationController.modalPresentationStyle = .popover
+            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
             
-            navigationController.popoverPresentationController?.permittedArrowDirections = .down
             navigationController.popoverPresentationController?.delegate = self
             
+            navigationController.popoverPresentationController?.permittedArrowDirections = .down
             navigationController.popoverPresentationController?.barButtonItem = button
             
             popover.navigationItem.title = Constants.Strings.Options_Title.Sorting
@@ -3143,31 +3147,31 @@ class MediaTableViewController : UIViewController // MediaController
         setToolbarItems(barButtons, animated: true)
     }
     
-    func setupViews()
-    {
-        setupTag()
-        
-        Thread.onMainThread() {
-            self.tableView?.reloadData()
-        }
-        
-        setupTitle()
-        
-        selectedMediaItem = globals.selectedMediaItem.master
-        
-        //Without this background/main dispatching there isn't time to scroll after a reload.
-        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-            Thread.onMainThread() {
-                self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
-            }
-        })
-        
-        if (splitViewController?.viewControllers.count > 1) {
-            Thread.onMainThread() {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
-            }
-        }
-    }
+//    func setupViews()
+//    {
+//        setupTag()
+//
+//        Thread.onMainThread() {
+//            self.tableView?.reloadData()
+//        }
+//
+//        setupTitle()
+//
+//        selectedMediaItem = globals.selectedMediaItem.master
+//
+//        //Without this background/main dispatching there isn't time to scroll after a reload.
+//        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+//            Thread.onMainThread() {
+//                self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
+//            }
+//        })
+//
+//        if (splitViewController?.viewControllers.count > 1) {
+//            Thread.onMainThread() {
+//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
+//            }
+//        }
+//    }
     
 //    func jsonAlert(title:String,message:String)
 //    {
@@ -3457,13 +3461,9 @@ class MediaTableViewController : UIViewController // MediaController
     
     func mediaItemsFromMediaItemDicts(_ mediaItemDicts:[[String:String]]?) -> [MediaItem]?
     {
-        if (mediaItemDicts != nil) {
-            return mediaItemDicts?.map({ (mediaItemDict:[String : String]) -> MediaItem in
-                MediaItem(dict: mediaItemDict)
-            })
-        }
-        
-        return nil
+        return mediaItemDicts?.map({ (mediaItemDict:[String : String]) -> MediaItem in
+            MediaItem(dict: mediaItemDict)
+        })
     }
     
     func loadLive() -> [String:Any]?
@@ -3677,18 +3677,11 @@ class MediaTableViewController : UIViewController // MediaController
 
                 self.navigationItem.title = Constants.CBC.TITLE.SHORT
                 
-                self.setupViews()
-                
-                self.setupListActivityIndicator()
-                
-                if globals.mediaRepository.list != nil {
-                    if globals.isRefreshing {
-                        self.refreshControl?.endRefreshing()
-                        self.tableView?.setContentOffset(CGPoint(x:self.tableView!.frame.origin.x, y:self.tableView!.frame.origin.y - 44), animated: false)
-                        globals.isRefreshing = false
-                    }
+//                self.setupViews()
+                if (self.splitViewController?.viewControllers.count > 1) {
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
                 }
-
+                
                 globals.isLoading = false
                 
                 completion?()
@@ -4089,23 +4082,36 @@ class MediaTableViewController : UIViewController // MediaController
     
     func loadCompletion()
     {
+        guard Thread.isMainThread else {
+            return
+        }
+        
         if globals.mediaPlayer.url == URL(string: Constants.URL.LIVE_STREAM) {
-            Thread.onMainThread() {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
-            }
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
         }
         
         if globals.mediaRepository.list == nil {
-            self.noMediaAvailable() {_ in
-                if globals.isRefreshing {
-                    self.refreshControl?.endRefreshing()
-                    globals.isRefreshing = false
-                } else {
-                    self.setupListActivityIndicator()
-                }
+            if globals.isRefreshing {
+                self.refreshControl?.endRefreshing()
+                globals.isRefreshing = false
             }
+
+            alert(viewController:self,title: "No Media Available",message: "Please check your network connection and try again.",completion: nil)
+
+//            self.noMediaAvailable() {_ in
+//                if globals.isRefreshing {
+//                    self.refreshControl?.endRefreshing()
+//                    globals.isRefreshing = false
+//                } else {
+//                    self.setupListActivityIndicator()
+//                }
+//            }
         } else {
-            globals.isRefreshing = false
+            if globals.isRefreshing {
+                self.refreshControl?.endRefreshing()
+                self.tableView?.setContentOffset(CGPoint(x:self.tableView!.frame.origin.x, y:self.tableView!.frame.origin.y - 44), animated: false)
+                globals.isRefreshing = false
+            }
             
             self.selectedMediaItem = globals.selectedMediaItem.master
             
@@ -4128,17 +4134,21 @@ class MediaTableViewController : UIViewController // MediaController
 //                })
 
                 if self.selectedMediaItem != nil {
-                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                        Thread.onMainThread() {
-                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
-                        }
-                    })
+                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+                    
+//                    DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+//                        Thread.onMainThread() {
+//                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.top)
+//                        }
+//                    })
                 } else {
-                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                        Thread.onMainThread() {
-                            self.tableView?.scrollToRow(at: IndexPath(row:0,section:0), at: UITableViewScrollPosition.top, animated: false)
-                        }
-                    })
+                    self.tableView?.scrollToRow(at: IndexPath(row:0,section:0), at: UITableViewScrollPosition.top, animated: false)
+
+//                    DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+//                        Thread.onMainThread() {
+//                            self.tableView?.scrollToRow(at: IndexPath(row:0,section:0), at: UITableViewScrollPosition.top, animated: false)
+//                        }
+//                    })
                 }
             }
         }
@@ -4200,6 +4210,24 @@ class MediaTableViewController : UIViewController // MediaController
             break
         }
     }
+    
+    func addNotifications()
+    {
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.finish), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.VOICE_BASE_FINISHED), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateSearch), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.playingPaused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYING_PAUSED), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.willEnterForeground), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_ENTER_FORGROUND), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.didBecomeActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DID_BECOME_ACTIVE), object: nil)
+    }
 
     override func viewDidLoad()
     {
@@ -4207,6 +4235,8 @@ class MediaTableViewController : UIViewController // MediaController
 
 //        setupTagsToolbar()
 
+        addNotifications()
+        
         setupSortingAndGroupingOptions()
         setupShowMenu()
         
@@ -4219,7 +4249,7 @@ class MediaTableViewController : UIViewController // MediaController
         
         // Uncomment the following line to preserve selection between presentations
         // clearsSelectionOnViewWillAppear = false
-
+        
         navigationController?.isToolbarHidden = false
     }
     
@@ -4276,15 +4306,15 @@ class MediaTableViewController : UIViewController // MediaController
         
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-            navigationController.modalPresentationStyle = .popover
+            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+            
+            navigationController.popoverPresentationController?.delegate = self
+            
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+            navigationController.popoverPresentationController?.barButtonItem = actionButton
             
             popover.navigationItem.title = "Select"
             navigationController.isNavigationBarHidden = false
-
-            navigationController.popoverPresentationController?.permittedArrowDirections = .up
-            navigationController.popoverPresentationController?.delegate = self
-            
-            navigationController.popoverPresentationController?.barButtonItem = actionButton
             
 //            popover.navigationController?.isNavigationBarHidden = true
             
@@ -4432,18 +4462,20 @@ class MediaTableViewController : UIViewController // MediaController
                     navigationController.modalPresentationStyle = .overCurrentContext
                 } else {
                     // I don't think this ever happens: collapsed and regular
-                    navigationController.modalPresentationStyle = .popover
+                    navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
                 }
             } else {
-                navigationController.modalPresentationStyle = .popover
+                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
             }
 
 //            navigationController.modalPresentationStyle = .overCurrentContext
-            
-            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+
             navigationController.popoverPresentationController?.delegate = self
 
-            navigationController.popoverPresentationController?.barButtonItem = tagsButton
+            if navigationController.modalPresentationStyle == .popover {
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
+                navigationController.popoverPresentationController?.barButtonItem = tagsButton
+            }
 
             popover.navigationItem.title = Constants.Strings.Show
             
@@ -4660,6 +4692,7 @@ class MediaTableViewController : UIViewController // MediaController
         }
         
         guard globals.media.active?.mediaItems?.index(of: mediaItem!) != nil else {
+//            print(mediaItem)
             return
         }
         
@@ -4733,17 +4766,13 @@ class MediaTableViewController : UIViewController // MediaController
 
             Thread.onMainThread() {
                 self.tableView?.setEditing(false, animated: true)
-            }
-
-            if (select) {
-                Thread.onMainThread() {
+                
+                if (select) {
                     self.tableView?.selectRow(at: indexPath, animated: false, scrollPosition: UITableViewScrollPosition.none)
                 }
-            }
-            
-            if (scroll) {
-                //Scrolling when the user isn't expecting it can be jarring.
-                Thread.onMainThread() {
+                
+                if (scroll) {
+                    //Scrolling when the user isn't expecting it can be jarring.
                     self.tableView?.scrollToRow(at: indexPath, at: position, animated: false)
                 }
             }
@@ -4896,42 +4925,34 @@ class MediaTableViewController : UIViewController // MediaController
         tableView.isHidden = true
         
         loadMediaItems()
-            {
-                if globals.mediaRepository.list == nil {
-                    let alert = UIAlertController(title: "No media available.",
-                                                  message: "Please check your network connection and try again.",
-                                                  preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-                        self.setupListActivityIndicator()
-                    })
-                    alert.addAction(action)
-                    
-                    self.present(alert, animated: true, completion: nil)
-                } else {
-                    self.selectedMediaItem = globals.selectedMediaItem.master
-                    
-                    if globals.search.active && !globals.search.complete { // && globals.search.transcripts
-                        self.updateSearchResults(globals.search.text,completion: {
-                            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                                DispatchQueue.main.async(execute: { () -> Void in
-                                    self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.middle)
-                                })
-                            })
-                        })
-                    } else {
-                        // Reload the table
-                        self.tableView.reloadData()
-                        
-                        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                            DispatchQueue.main.async(execute: { () -> Void in
-                                self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.middle)
-                            })
-                        })
-                    }
-                }
-                
-                self.tableView.isHidden = false
+        {
+            self.loadCompletion()
+//            if globals.mediaRepository.list == nil {
+//                alert(viewController:self,title: "No Media Available",message: "Please check your network connection and try again.",completion: nil)
+//            } else {
+//                self.selectedMediaItem = globals.selectedMediaItem.master
+//
+//                if globals.search.active && !globals.search.complete { // && globals.search.transcripts
+//                    self.updateSearchResults(globals.search.text,completion: {
+//                        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+//                            DispatchQueue.main.async(execute: { () -> Void in
+//                                self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.middle)
+//                            })
+//                        })
+//                    })
+//                } else {
+//                    // Reload the table
+//                    self.tableView.reloadData()
+//
+//                    DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+//                        DispatchQueue.main.async(execute: { () -> Void in
+//                            self.selectOrScrollToMediaItem(self.selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.middle)
+//                        })
+//                    })
+//                }
+//            }
+//
+//            self.tableView.isHidden = false
         }
     }
     
@@ -4939,22 +4960,10 @@ class MediaTableViewController : UIViewController // MediaController
     {
         super.viewWillAppear(animated)
 
-        load()
+        // Happens in didBecomeActive.
+//        load()
 
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
-
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.finish), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.VOICE_BASE_FINISHED), object: nil)
-
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateList), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.updateSearch), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SEARCH), object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.liveView), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LIVE_VIEW), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.playingPaused), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.PLAYING_PAUSED), object: nil)
-
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.stopEditing), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING), object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.willEnterForeground), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.WILL_ENTER_FORGROUND), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.didBecomeActive), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.DID_BECOME_ACTIVE), object: nil)
+        addNotifications()
         
 //        if (self.splitViewController?.viewControllers.count > 1) {
 //            NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.setupShowHide), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_SHOW_HIDE), object: nil)
@@ -4997,11 +5006,6 @@ class MediaTableViewController : UIViewController // MediaController
         super.viewDidAppear(animated)
 
         navigationController?.isToolbarHidden = false
-        
-        if (!globals.scrolledToMediaItemLastSelected) {
-            selectOrScrollToMediaItem(selectedMediaItem, select: true, scroll: true, position: UITableViewScrollPosition.none) // was Middle
-            globals.scrolledToMediaItemLastSelected = true
-        }
     }
     
     override func viewWillDisappear(_ animated: Bool)
@@ -5142,44 +5146,44 @@ class MediaTableViewController : UIViewController // MediaController
 
     }
 
-    func showHide()
-    {
-        //It works!  Problem was in globals.mediaPlayer.controller?.player?.removeFromSuperview() in viewWillDisappear().  Moved it to viewWillAppear()
-        //Thank you StackOverflow!
-        
-        //        globals.mediaPlayer.controller?.player?.setFullscreen(!globals.mediaPlayer.controller?.player!.isFullscreen, animated: true)
-        
-        if splitViewController?.viewControllers.count > 1 {
-//            print(splitViewController!.displayMode.rawValue)
-            
-            switch splitViewController!.displayMode {
-            case .automatic:
-                splitViewController?.preferredDisplayMode = .automatic
-                break
-                
-            case .primaryHidden:
-                splitViewController?.preferredDisplayMode = .allVisible
-                break
-                
-            case .allVisible:
-                splitViewController?.preferredDisplayMode = .primaryHidden
-                break
-                
-            case .primaryOverlay:
-                splitViewController?.preferredDisplayMode = .allVisible
-                if globals.mediaPlayer.fullScreen {
-                    globals.mediaPlayer.fullScreen = false
-                }
-                break
-            }
-
-            Thread.onMainThread() {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
-            }
-
-//            setupShowHide()
-        }
-    }
+//    func showHide()
+//    {
+//        //It works!  Problem was in globals.mediaPlayer.controller?.player?.removeFromSuperview() in viewWillDisappear().  Moved it to viewWillAppear()
+//        //Thank you StackOverflow!
+//        
+//        //        globals.mediaPlayer.controller?.player?.setFullscreen(!globals.mediaPlayer.controller?.player!.isFullscreen, animated: true)
+//        
+//        if splitViewController?.viewControllers.count > 1 {
+////            print(splitViewController!.displayMode.rawValue)
+//            
+//            switch splitViewController!.displayMode {
+//            case .automatic:
+//                splitViewController?.preferredDisplayMode = .automatic
+//                break
+//                
+//            case .primaryHidden:
+//                splitViewController?.preferredDisplayMode = .allVisible
+//                break
+//                
+//            case .allVisible:
+//                splitViewController?.preferredDisplayMode = .primaryHidden
+//                break
+//                
+//            case .primaryOverlay:
+//                splitViewController?.preferredDisplayMode = .allVisible
+//                if globals.mediaPlayer.fullScreen {
+//                    globals.mediaPlayer.fullScreen = false
+//                }
+//                break
+//            }
+//
+//            Thread.onMainThread() {
+//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_VIEW), object: nil)
+//            }
+//
+////            setupShowHide()
+//        }
+//    }
  
 //    func setupShowHide()
 //    {
@@ -5568,11 +5572,12 @@ extension MediaTableViewController : UITableViewDelegate
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
 //                dismiss(animated: true, completion: nil)
                 
-                navigationController.modalPresentationStyle = .popover
-                navigationController.popoverPresentationController?.permittedArrowDirections = .any
+                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+
                 navigationController.popoverPresentationController?.delegate = self
 
                 navigationController.popoverPresentationController?.barButtonItem = self.tagsButton
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
 
                 popover.navigationItem.title = Constants.Strings.Show // Show MediaItems Tagged With
                 
@@ -5592,6 +5597,7 @@ extension MediaTableViewController : UITableViewDelegate
         }
         
         var title = ""
+        var style = UIAlertActionStyle.default
         
         if mediaItem.hasAudio {
             switch mediaItem.audioDownload!.state {
@@ -5604,11 +5610,12 @@ extension MediaTableViewController : UITableViewDelegate
                 break
             case .downloaded:
                 title = Constants.Strings.Delete_Audio_Download
+                style = UIAlertActionStyle.destructive
                 break
             }
         }
         
-        download = AlertAction(title: title, style: .default, action: {
+        download = AlertAction(title: title, style: style, action: {
             switch title {
             case Constants.Strings.Download_Audio:
                 mediaItem.audioDownload?.download()
@@ -5618,11 +5625,76 @@ extension MediaTableViewController : UITableViewDelegate
                 break
                 
             case Constants.Strings.Delete_Audio_Download:
-                mediaItem.audioDownload?.delete()
+                let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+                                                message: nil,
+                                                preferredStyle: .alert)
+                alert.makeOpaque()
+                
+                let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                    alertItem -> Void in
+                    mediaItem.audioDownload?.delete()
+                })
+                alert.addAction(yesAction)
+                
+                let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                    alertItem -> Void in
+                    
+                })
+                alert.addAction(noAction)
+                
+                let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                    (action : UIAlertAction!) -> Void in
+                    
+                })
+                alert.addAction(cancel)
+                
+                // For .actionSheet style
+                //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
+                
+                self.present(alert, animated: true, completion: nil)
                 break
                 
             case Constants.Strings.Cancel_Audio_Download:
-                mediaItem.audioDownload?.cancelOrDelete()
+                if let state = mediaItem.audioDownload?.state {
+                    switch state {
+                    case .downloading:
+                        mediaItem.audioDownload?.cancel()
+                        break
+                        
+                    case .downloaded:
+                        let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+                                                        message: nil,
+                                                        preferredStyle: .alert)
+                        alert.makeOpaque()
+                        
+                        let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                            alertItem -> Void in
+                            mediaItem.audioDownload?.delete()
+                        })
+                        alert.addAction(yesAction)
+                        
+                        let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                            alertItem -> Void in
+                            
+                        })
+                        alert.addAction(noAction)
+                        
+                        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                            (action : UIAlertAction!) -> Void in
+                            
+                        })
+                        alert.addAction(cancel)
+                        
+                        // For .actionSheet style
+                        //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
+                        
+                        self.present(alert, animated: true, completion: nil)
+                        break
+                        
+                    default:
+                        break
+                    }
+                }
                 break
                 
             default:
@@ -5638,10 +5710,11 @@ extension MediaTableViewController : UITableViewDelegate
                     self.presentingVC = nil
                 })
                 
-                navigationController.modalPresentationStyle = .popover
-                navigationController.popoverPresentationController?.permittedArrowDirections = .any
-                navigationController.popoverPresentationController?.delegate = self
+                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
 
+                navigationController.popoverPresentationController?.delegate = self
+                
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
                 navigationController.popoverPresentationController?.sourceView = self.view
                 navigationController.popoverPresentationController?.sourceRect = self.searchBar.frame
 
@@ -5698,13 +5771,13 @@ extension MediaTableViewController : UITableViewDelegate
                 })
                 
                 navigationController.modalPresentationStyle = .overCurrentContext
-                navigationController.popoverPresentationController?.permittedArrowDirections = .any // [.up,.down]
+//                navigationController.popoverPresentationController?.permittedArrowDirections = .any // [.up,.down]
                 navigationController.popoverPresentationController?.delegate = self
                 
-                if let cell = cell {
-                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
-                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].frame // .subviews[actions.index(of: words)!].frame // memory leak!
-                }
+//                if let cell = cell {
+//                    navigationController.popoverPresentationController?.sourceView = cell.subviews[0]
+//                    navigationController.popoverPresentationController?.sourceRect = cell.subviews[0].frame // .subviews[actions.index(of: words)!].frame // memory leak!
+//                }
                 
                 popover.navigationItem.title = Constants.Strings.Search
                 

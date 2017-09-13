@@ -3374,7 +3374,8 @@ class VoiceBase {
                     navigationController.modalPresentationStyle = .overCurrentContext
                     
                     navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-                    navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
+                    
+//                    navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
                     
 //                    navigationController.popoverPresentationController?.sourceView = sourceView
 //                    navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
@@ -3411,7 +3412,8 @@ class VoiceBase {
                     navigationController.modalPresentationStyle = .overCurrentContext
                     
                     navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-                    navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
+                    
+//                    navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
                     
                     //                    navigationController.popoverPresentationController?.sourceView = sourceView
                     //                    navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
@@ -3487,7 +3489,8 @@ class VoiceBase {
                     navigationController.modalPresentationStyle = .overCurrentContext
                     
                     navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-                    navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
+                    
+//                    navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
                     
                     popover.navigationController?.isNavigationBarHidden = false
                     

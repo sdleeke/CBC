@@ -92,11 +92,11 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
         case Constants.Strings.Sorting:
             if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-                navigationController.modalPresentationStyle = .popover
+                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
                 
-                navigationController.popoverPresentationController?.permittedArrowDirections = .up
                 navigationController.popoverPresentationController?.delegate = self
                 
+                navigationController.popoverPresentationController?.permittedArrowDirections = .up
                 navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
                 
                 //                popover.navigationItem.title = Constants.Actions
@@ -133,18 +133,17 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                         navigationController.modalPresentationStyle = .overCurrentContext
                     } else {
                         // I don't think this ever happens: collapsed and regular
-                        navigationController.modalPresentationStyle = .popover
+                        navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
                     }
                 } else {
-                    navigationController.modalPresentationStyle = .popover
+                    navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
                 }
                 
-//                navigationController.modalPresentationStyle = .popover
+//                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
                 
                 navigationController.popoverPresentationController?.delegate = self
                 
                 navigationController.popoverPresentationController?.permittedArrowDirections = .up
-                
                 navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
                 
                 popover.navigationItem.title = Constants.Strings.Word_Picker
@@ -988,11 +987,11 @@ class LexiconIndexViewController : UIViewController
 //                navigationController.modalPresentationStyle = .popover
 //            }
             
-            navigationController.modalPresentationStyle = .popover
+            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
             
-            navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
-            
+
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
             
             popover.navigationItem.title = "Select"
@@ -1071,11 +1070,11 @@ class LexiconIndexViewController : UIViewController
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             let button = object as? UIBarButtonItem
             
-            navigationController.modalPresentationStyle = .popover
+            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
             
-            navigationController.popoverPresentationController?.permittedArrowDirections = .down
             navigationController.popoverPresentationController?.delegate = self
             
+            navigationController.popoverPresentationController?.permittedArrowDirections = .down
             navigationController.popoverPresentationController?.barButtonItem = button
             
             popover.navigationItem.title = Constants.Strings.Menu.Index
@@ -1310,7 +1309,8 @@ extension LexiconIndexViewController : UITableViewDelegate
         var scripture:AlertAction!
         
         var title = ""
-        
+        var style = UIAlertActionStyle.default
+
         if mediaItem.hasAudio {
             switch mediaItem.audioDownload!.state {
             case .none:
@@ -1322,11 +1322,12 @@ extension LexiconIndexViewController : UITableViewDelegate
                 break
             case .downloaded:
                 title = Constants.Strings.Delete_Audio_Download
+                style = UIAlertActionStyle.destructive
                 break
             }
         }
         
-        download = AlertAction(title: title, style: .default, action: {
+        download = AlertAction(title: title, style: style, action: {
             switch title {
             case Constants.Strings.Download_Audio:
                 mediaItem.audioDownload?.download()
@@ -1336,11 +1337,76 @@ extension LexiconIndexViewController : UITableViewDelegate
                 break
                 
             case Constants.Strings.Delete_Audio_Download:
-                mediaItem.audioDownload?.delete()
+                let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+                                                message: nil,
+                                                preferredStyle: .alert)
+                alert.makeOpaque()
+                
+                let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                    alertItem -> Void in
+                    mediaItem.audioDownload?.delete()
+                })
+                alert.addAction(yesAction)
+                
+                let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                    alertItem -> Void in
+                    
+                })
+                alert.addAction(noAction)
+                
+                let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                    (action : UIAlertAction!) -> Void in
+                    
+                })
+                alert.addAction(cancel)
+                
+                // For .actionSheet style
+                //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
+                
+                self.present(alert, animated: true, completion: nil)
                 break
                 
             case Constants.Strings.Cancel_Audio_Download:
-                mediaItem.audioDownload?.cancelOrDelete()
+                if let state = mediaItem.audioDownload?.state {
+                    switch state {
+                    case .downloading:
+                        mediaItem.audioDownload?.cancel()
+                        break
+                        
+                    case .downloaded:
+                        let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+                                                        message: nil,
+                                                        preferredStyle: .alert)
+                        alert.makeOpaque()
+                        
+                        let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                            alertItem -> Void in
+                            mediaItem.audioDownload?.delete()
+                        })
+                        alert.addAction(yesAction)
+                        
+                        let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                            alertItem -> Void in
+                            
+                        })
+                        alert.addAction(noAction)
+                        
+                        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                            (action : UIAlertAction!) -> Void in
+                            
+                        })
+                        alert.addAction(cancel)
+                        
+                        // For .actionSheet style
+                        //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
+                        
+                        self.present(alert, animated: true, completion: nil)
+                        break
+                        
+                    default:
+                        break
+                    }
+                }
                 break
                 
             default:

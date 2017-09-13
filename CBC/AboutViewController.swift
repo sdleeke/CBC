@@ -178,11 +178,11 @@ class AboutViewController: UIViewController
 //                navigationController.modalPresentationStyle = .popover
 //            }
 
-            navigationController.modalPresentationStyle = .popover
+            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
             
-            navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.delegate = self
             
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
             
             popover.vc = self

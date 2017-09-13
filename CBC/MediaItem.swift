@@ -498,7 +498,13 @@ extension MediaItem : URLSessionDownloadDelegate
     }
 }
 
-class MediaItem : NSObject {
+class MediaItem : NSObject
+{
+    static func ==(lhs: MediaItem, rhs: MediaItem) -> Bool
+    {
+        return lhs.id == rhs.id
+    }
+    
     var dict:[String:String]?
     
     var booksChaptersVerses:BooksChaptersVerses?

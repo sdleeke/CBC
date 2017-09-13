@@ -3478,7 +3478,7 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
                 navigationController.modalPresentationStyle = .fullScreen
             } else {
                 // I don't think this ever happens: collapsed and regular
-                navigationController.modalPresentationStyle = .popover
+                navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
                 
                 navigationController.popoverPresentationController?.permittedArrowDirections = .any
                 navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate

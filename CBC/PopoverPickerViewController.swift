@@ -488,14 +488,14 @@ class PopoverPickerViewController : UIViewController
     {
         if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-            navigationController.modalPresentationStyle = .popover
-            
             popover.navigationItem.title = "Select"
             navigationController.isNavigationBarHidden = false
-
-            navigationController.popoverPresentationController?.permittedArrowDirections = .up
+            
+            navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
+            
             navigationController.popoverPresentationController?.delegate = self
             
+            navigationController.popoverPresentationController?.permittedArrowDirections = .up
             navigationController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
             
 //            popover.navigationController?.isNavigationBarHidden = true
@@ -938,12 +938,13 @@ class PopoverPickerViewController : UIViewController
         //        print(wordPicker.numberOfComponents)
         
         var index = i
-        while index < picker.numberOfComponents {
-            pickerSelections[index] = nil
-            index += 1
-        }
         
-        Thread.onMainThread() {
+        Thread.onMainThread {
+            while index < self.picker.numberOfComponents {
+                self.pickerSelections[index] = nil
+                index += 1
+            }
+            
             self.picker.setNeedsLayout()
         }
     }
