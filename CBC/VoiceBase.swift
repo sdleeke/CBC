@@ -23,6 +23,55 @@ extension VoiceBase // Class Methods
         return "https://apis.voicebase.com/v2-beta/media" + (mediaID != nil ? "/"+mediaID! : "") + (path != nil ? "/"+path! : "")
     }
     
+    static func load()
+    {
+        all(completion: { (json:[String : Any]?) -> (Void) in
+            guard let mediaItems = json?["media"] as? [[String:Any]] else {
+                return
+            }
+            
+            for mediaItem in mediaItems {
+                if  let mediaID = mediaItem["mediaId"] as? String,
+                    let metadata = mediaItem["metadata"] as? [String:Any],
+                    let mimd = metadata["mediaItem"] as? [String:Any],
+                    let id = mimd["id"] as? String,
+                    let purpose = mimd["purpose"] as? String,
+                    let mediaItem = globals.mediaRepository.index?[id] {
+                    var transcript : VoiceBase?
+                    
+                    switch purpose {
+                    case Purpose.audio:
+                        transcript = mediaItem.audioTranscript
+                        
+                    case Purpose.video:
+                        transcript = mediaItem.videoTranscript
+                        
+                    default:
+                        break
+                    }
+                    
+                    if  transcript?.transcript == nil,
+                        transcript?.mediaID == nil,
+                        transcript?.resultsTimer == nil,
+                        let transcribing = transcript?.transcribing, !transcribing {
+                        transcript?.mediaID = mediaID
+                        transcript?.transcribing = true
+                        
+                        // Should we alert the user to what is being loaded from VB or how many?
+                        
+                        Thread.onMainThread() {
+                            transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: false), repeats: true)
+                        }
+                    }
+                } else {
+                    
+                }
+            }
+        }, onError: { (json:[String : Any]?) -> (Void) in
+            
+        })
+    }
+    
     static func html(_ json:[String:Any]?) -> String?
     {
         guard json != nil else {
@@ -262,7 +311,7 @@ extension VoiceBase // Class Methods
             
             var json : [String:Any]?
             
-            if let data = data {
+            if let data = data, data.count > 0 {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
                 print(string as Any)
                 
@@ -356,7 +405,7 @@ extension VoiceBase // Class Methods
             
             var json : [String:Any]?
             
-            if let data = data {
+            if let data = data, data.count > 0 {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
 //                print(string as Any)
 
@@ -474,7 +523,7 @@ extension VoiceBase // Class Methods
             
             var json : [String:Any]?
             
-            if let data = data {
+            if let data = data, data.count > 0 {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
                 print(string as Any)
                 
@@ -1305,7 +1354,7 @@ class VoiceBase {
 
             var json : [String:Any]?
 
-            if let data = data {
+            if let data = data, data.count > 0 {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
                 print(string as Any)
                 
@@ -1522,7 +1571,7 @@ class VoiceBase {
             
             var json : [String:Any]?
             
-            if let data = data {
+            if let data = data, data.count > 0 {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
                 print(string as Any)
                 
@@ -2629,7 +2678,7 @@ class VoiceBase {
             
             var json : [String:Any]?
             
-            if let data = data {
+            if let data = data, data.count > 0 {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
                 print(string as Any)
                 

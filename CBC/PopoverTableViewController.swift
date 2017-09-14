@@ -715,7 +715,7 @@ class PopoverTableViewController : UIViewController
     var shouldSelect:((IndexPath)->Bool)?
     var didSelect:((IndexPath)->Void)?
     
-    var mediaListGroupSort:MediaListGroupSort?
+//    var mediaListGroupSort:MediaListGroupSort?
     
     var indexStringsTransform:((String?)->String?)? = stringWithoutPrefixes {
         willSet {
@@ -726,6 +726,8 @@ class PopoverTableViewController : UIViewController
             unfilteredSection.indexStringsTransform = indexStringsTransform
         }
     }
+    
+    var stringSelected : String?
     
     var filteredSection = Section()
     var unfilteredSection = Section()
@@ -929,13 +931,15 @@ class PopoverTableViewController : UIViewController
         
         self.isRefreshing = true
 
-        if self.refresh != nil {
-            self.refresh?()
-        } else {
-            DispatchQueue.global(qos: .background).async {
-                self.lexiconUpdated()
-            }
-        }
+        self.refresh?()
+
+//        if self.refresh != nil {
+//            self.refresh?()
+//        } else {
+//            DispatchQueue.global(qos: .background).async {
+//                self.lexiconUpdated()
+//            }
+//        }
     }
     
     var refreshControl:UIRefreshControl?
@@ -1080,11 +1084,11 @@ class PopoverTableViewController : UIViewController
             addRefreshControl()
         }
         
-        if mediaListGroupSort != nil {
-            addRefreshControl()
-            
-            mediaListGroupSort?.lexicon?.pauseUpdates = false
-        }
+//        if mediaListGroupSort != nil {
+//            addRefreshControl()
+//            
+//            mediaListGroupSort?.lexicon?.pauseUpdates = false
+//        }
 
         //This makes accurate scrolling to sections impossible but since we don't use scrollToRowAtIndexPath with
         //the popover, this makes multi-line rows possible.
@@ -1189,157 +1193,157 @@ class PopoverTableViewController : UIViewController
             alert(viewController:self,title:"String not found!",message:"Search is active and the string \(selectedText!) is not in the results.",completion:nil)
         }
     }
-    
-    func lexiconStarted()
-    {
-        Thread.onMainThread() {
-            self.activityIndicator.startAnimating()
-            self.activityIndicator?.isHidden = false
-        }
-    }
-    
-    func lexiconUpdated()
-    {
-        guard let pause = mediaListGroupSort?.lexicon?.pauseUpdates, !pause else {
-            return
-        }
 
-        var text : String?
-        
-        Thread.onMainThread() {
-            if let completed = self.mediaListGroupSort?.lexicon?.completed, !completed {
-                self.activityIndicator.startAnimating()
-                self.activityIndicator?.isHidden = false
-            }
-        }
-        
-        Thread.onMainThread() {
-            self.updateTitle()
-            
-            if self.tableView.visibleCells.count > 1 { // 1 seems to be optimal
-                if let cell = self.tableView.visibleCells[self.tableView.visibleCells.count/2] as? PopoverTableViewCell {
-                    text = cell.title.text
-                }
-            }
-        }
-        
-        self.unfilteredSection.strings = (self.sort.function == nil) ? self.mediaListGroupSort?.lexicon?.section.strings : self.sort.function?(self.sort.method,self.mediaListGroupSort?.lexicon?.section.strings)
-        
-        //        if sort.method == Constants.Sort.Alphabetical {
-        //            unfilteredSection.indexHeaders = mediaListGroupSort?.lexicon?.section.indexHeaders
-        //        }
-        
-        //        unfilteredSection.buildIndex()
-        
-        if self.searchActive {
-            if let filteredStrings = self.unfilteredSection.strings?.filter({ (string:String) -> Bool in
-                if let text = self.searchText {
-                    return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
-                } else {
-                    return false
-                }
-            }) {
-                self.filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
-                
-                //                        print(self.filteredStrings)
-                
-                //                self.filteredSection.buildIndex()
-                
-                //                        print(self.filteredSection.indexHeaders)
-            }
-        }
-        
-        Thread.onMainThread() {
-            if let pause = self.mediaListGroupSort?.lexicon?.pauseUpdates, !pause {
-                self.tableView.reloadData()
-                if let indexPath = self.section.indexPath(from: text) {
-                    self.tableView.scrollToRow(at: indexPath, at: .middle, animated: false)
-                }
-//                self.tableView.reloadData()
-            }
-        }
-        
-        Thread.onMainThread() {
-            if let completed = self.mediaListGroupSort?.lexicon?.completed, completed {
-                self.activityIndicator.stopAnimating()
-                self.activityIndicator?.isHidden = true
-            }
-            if #available(iOS 10.0, *) {
-                if let isRefreshing = self.tableView.refreshControl?.isRefreshing, isRefreshing {
-                    self.refreshControl?.endRefreshing()
-                }
-            } else {
-                // Fallback on earlier versions
-                if self.isRefreshing {
-                    self.refreshControl?.endRefreshing()
-                    self.isRefreshing = false
-                }
-            }
-        }
-    }
-    
-    func lexiconCompleted()
-    {
-        Thread.onMainThread() {
-            self.activityIndicator.startAnimating()
-            self.activityIndicator?.isHidden = false
-        }
-
-        unfilteredSection.strings = (sort.function == nil) ? mediaListGroupSort?.lexicon?.section.strings : sort.function?(sort.method,mediaListGroupSort?.lexicon?.section.strings)
-
-//        unfilteredSection.strings = mediaListGroupSort?.lexicon?.section.strings
+//    func lexiconStarted()
+//    {
+//        Thread.onMainThread() {
+//            self.activityIndicator.startAnimating()
+//            self.activityIndicator?.isHidden = false
+//        }
+//    }
+//    
+//    func lexiconUpdated()
+//    {
+//        guard let pause = mediaListGroupSort?.lexicon?.pauseUpdates, !pause else {
+//            return
+//        }
+//
+//        var text : String?
 //        
-//        if let function = sort.function {
-//            unfilteredSection.strings = function(sort.method,unfilteredSection.strings)
+//        Thread.onMainThread() {
+//            if let completed = self.mediaListGroupSort?.lexicon?.completed, !completed {
+//                self.activityIndicator.startAnimating()
+//                self.activityIndicator?.isHidden = false
+//            }
 //        }
-
-//        if sort.method == Constants.Sort.Alphabetical {
-//            unfilteredSection.indexHeaders = mediaListGroupSort?.lexicon?.section.indexHeaders
+//        
+//        Thread.onMainThread() {
+//            self.updateTitle()
+//            
+//            if self.tableView.visibleCells.count > 1 { // 1 seems to be optimal
+//                if let cell = self.tableView.visibleCells[self.tableView.visibleCells.count/2] as? PopoverTableViewCell {
+//                    text = cell.title.text
+//                }
+//            }
 //        }
-        
-//        unfilteredSection.buildIndex()
-
-        if searchActive {
-            if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
-                if let text = searchText {
-                    return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
-                } else {
-                    return false
-                }
-            }) {
-                filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
-                
-                //                    print(self.filteredStrings)
-                
-                //                self.filteredSection.buildIndex()
-                
-                //                    print(self.filteredSection.indexHeaders)
-            }
-        }
-        
-        Thread.onMainThread() {
-            if #available(iOS 10.0, *) {
-                if let isRefreshing = self.tableView.refreshControl?.isRefreshing, isRefreshing {
-                    self.refreshControl?.endRefreshing()
-                }
-            } else {
-                // Fallback on earlier versions
-                if self.isRefreshing {
-                    self.refreshControl?.endRefreshing()
-                    self.isRefreshing = false
-                }
-            }
-            
-            self.updateTitle()
-            
-            self.tableView.reloadData()
-            
-            self.activityIndicator?.stopAnimating()
-            self.activityIndicator?.isHidden = true
-            
-            self.removeRefreshControl()
-        }
-    }
+//        
+//        self.unfilteredSection.strings = (self.sort.function == nil) ? self.mediaListGroupSort?.lexicon?.section.strings : self.sort.function?(self.sort.method,self.mediaListGroupSort?.lexicon?.section.strings)
+//        
+//        //        if sort.method == Constants.Sort.Alphabetical {
+//        //            unfilteredSection.indexHeaders = mediaListGroupSort?.lexicon?.section.indexHeaders
+//        //        }
+//        
+//        //        unfilteredSection.buildIndex()
+//        
+//        if self.searchActive {
+//            if let filteredStrings = self.unfilteredSection.strings?.filter({ (string:String) -> Bool in
+//                if let text = self.searchText {
+//                    return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+//                } else {
+//                    return false
+//                }
+//            }) {
+//                self.filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
+//                
+//                //                        print(self.filteredStrings)
+//                
+//                //                self.filteredSection.buildIndex()
+//                
+//                //                        print(self.filteredSection.indexHeaders)
+//            }
+//        }
+//
+//        Thread.onMainThread() {
+//            if let pause = self.mediaListGroupSort?.lexicon?.pauseUpdates, !pause {
+//                self.tableView.reloadData()
+//                if let indexPath = self.section.indexPath(from: text) {
+//                    self.tableView.scrollToRow(at: indexPath, at: .middle, animated: false)
+//                }
+////                self.tableView.reloadData()
+//            }
+//        }
+//        
+//        Thread.onMainThread() {
+//            if let completed = self.mediaListGroupSort?.lexicon?.completed, completed {
+//                self.activityIndicator.stopAnimating()
+//                self.activityIndicator?.isHidden = true
+//            }
+//            if #available(iOS 10.0, *) {
+//                if let isRefreshing = self.tableView.refreshControl?.isRefreshing, isRefreshing {
+//                    self.refreshControl?.endRefreshing()
+//                }
+//            } else {
+//                // Fallback on earlier versions
+//                if self.isRefreshing {
+//                    self.refreshControl?.endRefreshing()
+//                    self.isRefreshing = false
+//                }
+//            }
+//        }
+//    }
+//    
+//    func lexiconCompleted()
+//    {
+//        Thread.onMainThread() {
+//            self.activityIndicator.startAnimating()
+//            self.activityIndicator?.isHidden = false
+//        }
+//
+//        unfilteredSection.strings = (sort.function == nil) ? mediaListGroupSort?.lexicon?.section.strings : sort.function?(sort.method,mediaListGroupSort?.lexicon?.section.strings)
+//
+////        unfilteredSection.strings = mediaListGroupSort?.lexicon?.section.strings
+////        
+////        if let function = sort.function {
+////            unfilteredSection.strings = function(sort.method,unfilteredSection.strings)
+////        }
+//
+////        if sort.method == Constants.Sort.Alphabetical {
+////            unfilteredSection.indexHeaders = mediaListGroupSort?.lexicon?.section.indexHeaders
+////        }
+//        
+////        unfilteredSection.buildIndex()
+//
+//        if searchActive {
+//            if let filteredStrings = unfilteredSection.strings?.filter({ (string:String) -> Bool in
+//                if let text = searchText {
+//                    return string.range(of:text, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil
+//                } else {
+//                    return false
+//                }
+//            }) {
+//                filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
+//                
+//                //                    print(self.filteredStrings)
+//                
+//                //                self.filteredSection.buildIndex()
+//                
+//                //                    print(self.filteredSection.indexHeaders)
+//            }
+//        }
+//        
+//        Thread.onMainThread() {
+//            if #available(iOS 10.0, *) {
+//                if let isRefreshing = self.tableView.refreshControl?.isRefreshing, isRefreshing {
+//                    self.refreshControl?.endRefreshing()
+//                }
+//            } else {
+//                // Fallback on earlier versions
+//                if self.isRefreshing {
+//                    self.refreshControl?.endRefreshing()
+//                    self.isRefreshing = false
+//                }
+//            }
+//            
+//            self.updateTitle()
+//            
+//            self.tableView.reloadData()
+//            
+//            self.activityIndicator?.stopAnimating()
+//            self.activityIndicator?.isHidden = true
+//            
+//            self.removeRefreshControl()
+//        }
+//    }
     
     override func viewWillDisappear(_ animated: Bool)
     {
@@ -1399,10 +1403,10 @@ class PopoverTableViewController : UIViewController
 
     func updateTitle()
     {
-        if  let count = self.mediaListGroupSort?.lexicon?.entries?.count,
-            let total = self.mediaListGroupSort?.lexicon?.eligible?.count {
-            self.navigationItem.title = "Lexicon \(count) of \(total)"
-        }
+//        if  let count = self.mediaListGroupSort?.lexicon?.entries?.count,
+//            let total = self.mediaListGroupSort?.lexicon?.eligible?.count {
+//            self.navigationItem.title = "Lexicon \(count) of \(total)"
+//        }
     }
     
 //    var ptvc:PopoverTableViewController?
@@ -1632,23 +1636,36 @@ class PopoverTableViewController : UIViewController
     {
         super.viewWillAppear(animated)
 
-        switch (search,segments) {
-        case (true,true):
-            tableViewTopConstraint.constant = searchBar.frame.height + segmentedControl.frame.height + 16
-            break
-        case (true,false):
-            segmentedControl.removeFromSuperview()
-            tableViewTopConstraint.constant = searchBar.frame.height
-            break
-        case (false,true):
-            searchBar.removeFromSuperview()
-            tableViewTopConstraint.constant = segmentedControl.frame.height + 16
-            break
-        case (false,false):
-            searchBar.removeFromSuperview()
-            segmentedControl.removeFromSuperview()
-            tableViewTopConstraint.constant = 0
-            break
+        if tableViewTopConstraint.isActive {
+            var searchBarHeight:CGFloat = 0.0
+
+            if #available(iOS 11.0, *) {
+                searchBarHeight = 56.0
+            } else {
+                // Fallback on earlier versions
+                searchBarHeight = 44.0
+            }
+            
+            switch (search,segments) {
+            case (true,true):
+                tableViewTopConstraint.constant = searchBarHeight + segmentedControl.frame.height + 16
+                break
+            case (true,false):
+                segmentedControl.removeFromSuperview()
+                tableViewTopConstraint.constant = searchBarHeight
+                break
+            case (false,true):
+                searchBar.removeFromSuperview()
+                tableViewTopConstraint.constant = segmentedControl.frame.height + 16
+                break
+            case (false,false):
+                searchBar.removeFromSuperview()
+                segmentedControl.removeFromSuperview()
+                tableViewTopConstraint.constant = 0
+                break
+            }
+            
+            self.view.setNeedsLayout()
         }
         
         if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
@@ -1696,23 +1713,23 @@ class PopoverTableViewController : UIViewController
 //            }
 //        }
         
-        if mediaListGroupSort != nil {
-            globals.queue.async(execute: { () -> Void in
-                NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconStarted), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.mediaListGroupSort?.lexicon)
-                NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconUpdated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self.mediaListGroupSort?.lexicon)
-                NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconCompleted), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self.mediaListGroupSort?.lexicon)
-            })
-            
-            if  let completed = mediaListGroupSort?.lexicon?.completed, !completed {
-                // Start lexicon creation if it isn't already being created.
-                if let creating = mediaListGroupSort?.lexicon?.creating, !creating {
-                    mediaListGroupSort?.lexicon?.build()
-                }
-                lexiconUpdated()
-            } else {
-                lexiconCompleted()
-            }
-        } else
+//        if mediaListGroupSort != nil {
+//            globals.queue.async(execute: { () -> Void in
+//                NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconStarted), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.mediaListGroupSort?.lexicon)
+//                NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconUpdated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self.mediaListGroupSort?.lexicon)
+//                NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.lexiconCompleted), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self.mediaListGroupSort?.lexicon)
+//            })
+//            
+//            if  let completed = mediaListGroupSort?.lexicon?.completed, !completed {
+//                // Start lexicon creation if it isn't already being created.
+//                if let creating = mediaListGroupSort?.lexicon?.creating, !creating {
+//                    mediaListGroupSort?.lexicon?.build()
+//                }
+//                lexiconUpdated()
+//            } else {
+//                lexiconCompleted()
+//            }
+//        } else
 
         if (stringsFunction != nil) && (self.section.strings == nil) {
             DispatchQueue.global(qos: .background).async {
@@ -1730,6 +1747,10 @@ class PopoverTableViewController : UIViewController
                         self.tableView.reloadData()
                         
                         self.setPreferredContentSize()
+                        
+                        if let indexPath = self.section.indexPath(from: self.stringSelected) {
+                            self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                        }
                         
                         self.activityIndicator.stopAnimating()
                         self.activityIndicator?.isHidden = true
@@ -1761,6 +1782,10 @@ class PopoverTableViewController : UIViewController
                 self.section.strings = strings
                 
                 self.setPreferredContentSize()
+                
+                if let indexPath = section.indexPath(from: stringSelected) {
+                    tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                }
             }
         } else
             
@@ -1782,8 +1807,12 @@ class PopoverTableViewController : UIViewController
                     }
                 }
                 self.section.strings = strings
-                
+
                 self.setPreferredContentSize()
+                
+                if let indexPath = section.indexPath(from: stringSelected) {
+                    tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                }
             }
         } else
             
@@ -1801,6 +1830,10 @@ class PopoverTableViewController : UIViewController
             
             setPreferredContentSize()
             
+            if let indexPath = section.indexPath(from: stringSelected) {
+                tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+            }
+
             activityIndicator?.stopAnimating()
             activityIndicator?.isHidden = true
         } else {
@@ -1985,82 +2018,93 @@ extension PopoverTableViewController : UITableViewDataSource
         }
         
         // Configure the cell...
-        switch purpose! {
-        case .selectingTags:
-            //            print("strings: \(strings[indexPath.row]) mediaItemTag: \(globals.mediaItemTag)")
-            
-            switch globals.media.tags.showing! {
-            case Constants.TAGGED:
-                if (tagsArrayFromTagsString(globals.media.tags.selected)!.index(of: string) != nil) {
-                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                } else {
-                    cell.accessoryType = UITableViewCellAccessoryType.none
-                }
-                break
-                
-            case Constants.ALL:
-                if ((globals.media.tags.selected == nil) && (string == Constants.Strings.All)) {
-                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                } else {
-                    cell.accessoryType = UITableViewCellAccessoryType.none
-                }
-                break
-                
-            default:
-                break
-            }
-            break
-            
-        case .selectingCategory:
-            if (globals.mediaCategory.names?[index] == globals.mediaCategory.selected) {
-                cell.accessoryType = UITableViewCellAccessoryType.checkmark
-            } else {
-                cell.accessoryType = UITableViewCellAccessoryType.none
-            }
-            break
-            
-        case .selectingGrouping:
-            if (globals.groupings[index] == globals.grouping) {
-                cell.accessoryType = UITableViewCellAccessoryType.checkmark
-            } else {
-                cell.accessoryType = UITableViewCellAccessoryType.none
-            }
-            break
-            
-        case .selectingSorting:
-            if (Constants.sortings[index] == globals.sorting) {
-                cell.accessoryType = UITableViewCellAccessoryType.checkmark
-            } else {
-                cell.accessoryType = UITableViewCellAccessoryType.none
-            }
-            
-            if let sorting = (vc as? PopoverTableViewController)?.sort.method {
-                //                print(sorting, string)
-                if sorting == string {
-                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                } else {
-                    cell.accessoryType = UITableViewCellAccessoryType.none
-                }
-            }
-            
-            if let sorting = (vc as? LexiconIndexViewController)?.ptvc.sort.method {
-                //                print(sorting, string)
-                if sorting == string {
-                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
-                } else {
-                    cell.accessoryType = UITableViewCellAccessoryType.none
-                }
-            }
-            break
-            
-        default:
+        
+        if stringSelected == string {
+            cell.accessoryType = UITableViewCellAccessoryType.checkmark
+        } else {
             if let detailDisclosure = detailDisclosure?(tableView,indexPath), detailDisclosure {
                 cell.accessoryType = UITableViewCellAccessoryType.detailButton
             } else {
                 cell.accessoryType = UITableViewCellAccessoryType.none
             }
-            break // UITableViewCellAccessoryType.none
         }
+
+//        switch purpose! {
+//        case .selectingTags:
+//            //            print("strings: \(strings[indexPath.row]) mediaItemTag: \(globals.mediaItemTag)")
+//            
+//            switch globals.media.tags.showing! {
+//            case Constants.TAGGED:
+//                if (tagsArrayFromTagsString(globals.media.tags.selected)!.index(of: string) != nil) {
+//                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
+//                } else {
+//                    cell.accessoryType = UITableViewCellAccessoryType.none
+//                }
+//                break
+//                
+//            case Constants.ALL:
+//                if ((globals.media.tags.selected == nil) && (string == Constants.Strings.All)) {
+//                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
+//                } else {
+//                    cell.accessoryType = UITableViewCellAccessoryType.none
+//                }
+//                break
+//                
+//            default:
+//                break
+//            }
+//            break
+//            
+//        case .selectingCategory:
+//            if (globals.mediaCategory.names?[index] == globals.mediaCategory.selected) {
+//                cell.accessoryType = UITableViewCellAccessoryType.checkmark
+//            } else {
+//                cell.accessoryType = UITableViewCellAccessoryType.none
+//            }
+//            break
+//            
+//        case .selectingGrouping:
+//            if (globals.groupings[index] == globals.grouping) {
+//                cell.accessoryType = UITableViewCellAccessoryType.checkmark
+//            } else {
+//                cell.accessoryType = UITableViewCellAccessoryType.none
+//            }
+//            break
+//            
+//        case .selectingSorting:
+//            if (Constants.sortings[index] == globals.sorting) {
+//                cell.accessoryType = UITableViewCellAccessoryType.checkmark
+//            } else {
+//                cell.accessoryType = UITableViewCellAccessoryType.none
+//            }
+//            
+//            if let sorting = (vc as? PopoverTableViewController)?.sort.method {
+//                //                print(sorting, string)
+//                if sorting == string {
+//                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
+//                } else {
+//                    cell.accessoryType = UITableViewCellAccessoryType.none
+//                }
+//            }
+//            
+//            if let sorting = (vc as? LexiconIndexViewController)?.ptvc.sort.method {
+//                //                print(sorting, string)
+//                if sorting == string {
+//                    cell.accessoryType = UITableViewCellAccessoryType.checkmark
+//                } else {
+//                    cell.accessoryType = UITableViewCellAccessoryType.none
+//                }
+//            }
+//            break
+//            
+//        default:
+//            if let detailDisclosure = detailDisclosure?(tableView,indexPath), detailDisclosure {
+//                cell.accessoryType = UITableViewCellAccessoryType.detailButton
+//            } else {
+//                cell.accessoryType = UITableViewCellAccessoryType.none
+//            }
+//            break // UITableViewCellAccessoryType.none
+//        }
         
         //        print(strings)
         
@@ -2212,7 +2256,7 @@ extension PopoverTableViewController : UITableViewDelegate
         
         let action = UITableViewRowAction(style: .normal, title: "Actions") { rowAction, indexPath in
             let alert = UIAlertController(  title: "Actions",
-                                            message: self.section.strings?[indexPath.row],
+                                            message: self.section.string(from: indexPath),
                                             preferredStyle: .alert)
             alert.makeOpaque()
             

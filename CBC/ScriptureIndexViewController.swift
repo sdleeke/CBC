@@ -1689,9 +1689,9 @@ extension ScriptureIndexViewController : UITableViewDelegate
             switch title {
             case Constants.Strings.Download_Audio:
                 mediaItem.audioDownload?.download()
-                Thread.onMainThread(block: {
-                    NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
-                })
+//                Thread.onMainThread(block: {
+//                    NotificationCenter.default.addObserver(self, selector: #selector(ScriptureIndexViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
+//                })
                 break
                 
             case Constants.Strings.Delete_Audio_Download:

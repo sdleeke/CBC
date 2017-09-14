@@ -223,6 +223,7 @@ class Download : NSObject {
             //            let configuration = URLSessionConfiguration.background(withIdentifier: Constants.DOWNLOAD_IDENTIFIER + fileSystemURL!.lastPathComponent)
             //            configuration.sessionSendsLaunchEvents = true
             
+            // Why is the mediaItem the delegate rather than this download object?
             session = URLSession(configuration: configuration, delegate: mediaItem, delegateQueue: nil)
             session?.reset() {}
             

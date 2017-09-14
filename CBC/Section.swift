@@ -58,6 +58,11 @@ class Section
         return nil
     }
     
+    func string(from indexPath:IndexPath) -> String?
+    {
+        return strings?[index(indexPath)]
+    }
+    
     func index(_ indexPath:IndexPath) -> Int
     {
         var index = 0

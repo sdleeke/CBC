@@ -108,6 +108,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                 
                 popover.delegate = self
                 popover.purpose = .selectingSorting
+                popover.stringSelected = self.ptvc.sort.method
                 
                 popover.section.strings = [Constants.Sort.Alphabetical,Constants.Sort.Frequency]
 //                
@@ -579,9 +580,12 @@ class LexiconIndexViewController : UIViewController
                     ptvc.search = true
                     ptvc.segments = true
                     
-                    ptvc.mediaListGroupSort = mediaListGroupSort
-                    
+//                    ptvc.mediaListGroupSort = mediaListGroupSort
+
                     ptvc.section.showIndex = true
+
+                    ptvc.section.strings = self.mediaListGroupSort?.lexicon?.section.strings
+                    
 //                    destination.section.showHeaders = true
                 }
                 break
@@ -675,6 +679,8 @@ class LexiconIndexViewController : UIViewController
         
         updateSearchResults()
         updateUI()
+
+        lexicon?.build()
         
         navigationController?.setToolbarHidden(false, animated: false)
     }
@@ -695,6 +701,10 @@ class LexiconIndexViewController : UIViewController
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
+        
+        if lexicon?.completed == false {
+            ptvc.activityIndicator.startAnimating()
+        }
 
         ptvc.selectString(searchText,scroll: true,select: true)
         
@@ -1038,6 +1048,13 @@ class LexiconIndexViewController : UIViewController
         updateLocateButton()
         
         updateSearchResults()
+        
+        Thread.onMainThread {
+            self.ptvc.unfilteredSection.strings = (self.ptvc.sort.function == nil) ? self.lexicon?.section.strings : self.ptvc.sort.function?(self.ptvc.sort.method,self.lexicon?.section.strings)
+            self.ptvc.updateSearchResults()
+
+            self.ptvc.tableView.reloadData()
+        }
     }
     
     func completed()
@@ -1051,6 +1068,15 @@ class LexiconIndexViewController : UIViewController
         updateLocateButton()
         
         updateSearchResults()
+        
+        Thread.onMainThread {
+            self.ptvc.activityIndicator.stopAnimating()
+
+            self.ptvc.unfilteredSection.strings = (self.ptvc.sort.function == nil) ? self.lexicon?.section.strings : self.ptvc.sort.function?(self.ptvc.sort.method,self.lexicon?.section.strings)
+            self.ptvc.updateSearchResults()
+            
+            self.ptvc.tableView.reloadData()
+        }
     }
     
     func index(_ object:AnyObject?)
@@ -1331,9 +1357,9 @@ extension LexiconIndexViewController : UITableViewDelegate
             switch title {
             case Constants.Strings.Download_Audio:
                 mediaItem.audioDownload?.download()
-                Thread.onMainThread(block: {
-                    NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
-                })
+//                Thread.onMainThread(block: {
+//                    NotificationCenter.default.addObserver(self, selector: #selector(LexiconIndexViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
+//                })
                 break
                 
             case Constants.Strings.Delete_Audio_Download:

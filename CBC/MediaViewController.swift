@@ -2949,7 +2949,9 @@ class MediaViewController: UIViewController // MediaController
 //                        }
                     }
 
-                    NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: document?.download)
+                    Thread.onMainThread(block: {
+                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: document?.download)
+                    })
 
 //                    document?.download?.observer = #selector(MediaViewController.downloadFailed)
 
@@ -5055,7 +5057,7 @@ extension MediaViewController : UITableViewDataSource
             case Constants.Strings.Download_Audio:
                 mediaItem.audioDownload?.download()
                 Thread.onMainThread(block: {
-                    NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
+                    NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
                 })
                 break
                 

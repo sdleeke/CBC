@@ -172,53 +172,6 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         }
     }
     
-    func loadFromVoiceBase()
-    {
-        VoiceBase.all(completion: { (json:[String : Any]?) -> (Void) in
-            guard let mediaItems = json?["media"] as? [[String:Any]] else {
-                return
-            }
-            
-            for mediaItem in mediaItems {
-                if  let mediaID = mediaItem["mediaId"] as? String,
-                    let metadata = mediaItem["metadata"] as? [String:Any],
-                    let mimd = metadata["mediaItem"] as? [String:Any],
-                    let id = mimd["id"] as? String,
-                    let purpose = mimd["purpose"] as? String,
-                    let mediaItem = globals.mediaRepository.index?[id] {
-                    var transcript : VoiceBase?
-                    
-                    switch purpose {
-                    case Purpose.audio:
-                        transcript = mediaItem.audioTranscript
-                        
-                    case Purpose.video:
-                        transcript = mediaItem.videoTranscript
-                        
-                    default:
-                        break
-                    }
-                    
-                    if  transcript?.transcript == nil,
-                        transcript?.mediaID == nil,
-                        transcript?.resultsTimer == nil,
-                        let transcribing = transcript?.transcribing, !transcribing {
-                        transcript?.mediaID = mediaID
-                        transcript?.transcribing = true
-                        
-                        Thread.onMainThread() {
-                            transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: false), repeats: true)
-                        }
-                    }
-                } else {
-                    
-                }
-            }
-        }, onError: { (json:[String : Any]?) -> (Void) in
-
-        })
-    }
-    
     func checkVoiceBaseAvailability()
     {
         VoiceBase.all(completion: { (json:[String : Any]?) -> (Void) in

@@ -364,7 +364,8 @@ extension MediaTableViewController : PopoverPickerControllerDelegate
     }
 }
 
-class StringIndex {
+class StringIndex : NSObject
+{
     var dict : [String:[[String:Any]]]?
     
     subscript(key:String) -> [[String:Any]]? {
@@ -385,6 +386,88 @@ class StringIndex {
         return dict?.keys.map({ (string:String) -> String in
             return string
         })
+    }
+    
+    func stringIndex(key:String,sort:((String,String)->(Bool))?) -> [String:[String]]?
+    {
+        guard let keys = dict?.keys.sorted() else {
+            return nil
+        }
+        
+        var stringIndex = [String:[String]]()
+        
+        for dk in keys {
+            if let values = dict?[dk] {
+                for value in values {
+                    if let string = value[key] as? String {
+                        if stringIndex[dk] == nil {
+                            stringIndex[dk] = [string]
+                        } else {
+                            stringIndex[dk]?.append(string)
+                        }
+                    }
+                }
+            }
+        }
+        
+        if sort != nil {
+            for key in stringIndex.keys {
+                stringIndex[key] = stringIndex[key]?.sorted(by: { (lhs:String, rhs:String) -> Bool in
+                    return sort!(lhs,rhs)
+                })
+            }
+        }
+        
+        return stringIndex.count > 0 ? stringIndex : nil
+    }
+    
+    convenience init?(mediaItems:[[String:Any]]?,sort:(([String:Any],[String:Any])->(Bool))?)
+    {
+        self.init()
+        
+        guard let mediaItems = mediaItems else {
+            return nil
+        }
+        
+        var dict = [String:[[String:Any]]]()
+
+        for mediaItem in mediaItems {
+            if  let mediaID = mediaItem["mediaId"] as? String,
+                let metadata = mediaItem["metadata"] as? [String:Any],
+                let title = metadata["title"] as? String,
+                let device = metadata["device"] as? [String:String],
+                var deviceName = device["name"] {
+                if deviceName == UIDevice.current.deviceName {
+                    deviceName += " (this device)"
+                }
+                
+                if dict[deviceName] == nil {
+                    dict[deviceName] = [["title":title,"mediaID":mediaID,"metadata":metadata as Any]]
+                } else {
+                    dict[deviceName]?.append(["title":title,"mediaID":mediaID,"metadata":metadata as Any])
+                }
+            } else {
+                print("Unable to add: \(mediaItem)")
+            }
+        }
+        
+        if sort != nil {
+            let keys = dict.keys.map({ (string:String) -> String in
+                return string
+            })
+            
+            for key in keys {
+                dict[key] = dict[key]?.sorted(by: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
+                    return sort!(lhs,rhs)
+                })
+            }
+        }
+        
+        if dict.count > 0 {
+            self.dict = dict
+        } else {
+            return nil
+        }
     }
 }
 
@@ -429,8 +512,33 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         } else {
             searchIndex = self.stringIndex
         }
-            
-        guard let keys = searchIndex?.keys?.sorted(), indexPath.section < keys.count else {
+        
+//        if let keys = searchIndex?.keys {
+//            for key in keys {
+//                searchIndex?[key] = searchIndex?[key]?.sorted(by: { (lhs:[String : Any], rhs:[String : Any]) -> Bool in
+//                    var date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first
+//                    var date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first
+//                    
+//                    if let range = date0?.range(of: " PM") {
+//                        date0 = date0?.substring(to: range.lowerBound)
+//                    }
+//                    if let range = date0?.range(of: " AM") {
+//                        date0 = date0?.substring(to: range.lowerBound)
+//                    }
+//                    
+//                    if let range = date1?.range(of: " PM") {
+//                        date1 = date1?.substring(to: range.lowerBound)
+//                    }
+//                    if let range = date1?.range(of: " AM") {
+//                        date1 = date1?.substring(to: range.lowerBound)
+//                    }
+//                    
+//                    return Date(string: date0!) < Date(string: date1!)
+//                })
+//            }
+//        }
+        
+        guard let keys = searchIndex?.keys?.sorted(), indexPath.section >= 0, indexPath.section < keys.count else {
             return nil
         }
         
@@ -440,21 +548,18 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             return nil
         }
         
-        guard indexPath.section >= 0, indexPath.section < keys.count else {
-            return nil
-        }
-        
         guard indexPath.row >= 0, indexPath.row < values.count else {
             return nil
         }
         
         let value = values[indexPath.row]
         
-        if let mediaID = value["mediaID"] as? String, let title = value["title"] as? String {
+        if let mediaID = value["mediaID"] as? String,let title = value["title"] as? String {
             let deleteAction = AlertAction(title: Constants.Strings.Delete, style: .destructive) {
                 let alert = UIAlertController(  title: "Confirm Deletion of VoiceBase Media Item",
                                                 message: title + "\n created on \(key == UIDevice.current.deviceName ? "this device" : key)",
                     preferredStyle: .alert)
+                
                 alert.makeOpaque()
                 
                 let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
@@ -467,12 +572,12 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         searchIndex?[key] = nil
                     }
 
-                    if let keys = self.stringIndex?.keys?.sorted() {
+                    if searchIndex != self.stringIndex, let keys = self.stringIndex?.keys?.sorted() {
                         for key in keys {
                             if let values = self.stringIndex?[key] {
+                                var count = 0
+                                
                                 for value in values {
-                                    var count = 0
-                                    
                                     if (value["mediaID"] as! String) == mediaID {
                                         self.stringIndex?[key]?.remove(at: count)
                                         
@@ -489,22 +594,22 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         }
                     }
 
-                    var stringIndex = [String:[String]]()
+//                    var stringIndex = [String:[String]]()
+//                    
+//                    if let keys = searchIndex?.keys {
+//                        for key in keys {
+//                            if let values = searchIndex?[key] {
+//                                for value in values {
+//                                    if stringIndex[key] == nil {
+//                                        stringIndex[key] = [String]()
+//                                    }
+//                                    stringIndex[key]?.append(value["title"] as! String)
+//                                }
+//                            }
+//                        }
+//                    }
                     
-                    if let keys = searchIndex?.keys {
-                        for key in keys {
-                            if let values = searchIndex?[key] {
-                                for value in values {
-                                    if stringIndex[key] == nil {
-                                        stringIndex[key] = [String]()
-                                    }
-                                    stringIndex[key]?.append(value["title"] as! String)
-                                }
-                            }
-                        }
-                    }
-                    
-                    popover.section.stringIndex = stringIndex.keys.count > 0 ? stringIndex : nil
+                    popover.section.stringIndex = searchIndex?.stringIndex(key: "title", sort: nil) //.keys.count > 0 ? stringIndex : nil
                     
 //                    var strings = [String]()
 //                    
@@ -947,453 +1052,431 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
         }
     }
     
-    // Begin by separating media into what was created on this device and what was created on something else.
-    func buildInitialList(mediaItems:[[String:Any]]?)
-    {
-        guard let mediaList = globals.media.all?.list, let mediaItems = mediaItems else {
-            self.popover?.section.strings = nil
-            self.popover?.section.headerStrings = nil
-            self.popover?.section.counts = nil
-            self.popover?.section.indexes = nil
-            
-            return
-        }
-        
-        for mediaItem in mediaItems {
-            if  let mediaID = mediaItem["mediaId"] as? String,
-                let metadata = mediaItem["metadata"] as? [String:Any],
-                let title = metadata["title"] as? String {
-                if mediaList.filter({ (mediaItem:MediaItem) -> Bool in
-                    return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
-                        return transcript.mediaID == mediaID
-                    }).count == 1
-                }).count == 1 {
-                    if self.stringIndex?[Constants.Strings.LocalDevice] == nil {
-                        self.stringIndex?[Constants.Strings.LocalDevice] = [[String:String]]()
-                    }
-                    print(Constants.Strings.LocalDevice,mediaID)
-                    self.stringIndex?[Constants.Strings.LocalDevice]?.append(["title":title,"mediaID":mediaID])
-                } else {
-                    if self.stringIndex?[Constants.Strings.OtherDevices] == nil {
-                        self.stringIndex?[Constants.Strings.OtherDevices] = [[String:String]]()
-                    }
-                    print(Constants.Strings.OtherDevices,mediaID)
-                    self.stringIndex?[Constants.Strings.OtherDevices]?.append(["title":title,"mediaID":mediaID])
-                }
-            } else {
-                print("Unable to add: \(mediaItem)")
-            }
-        }
-        
-        print(self.stringIndex?[Constants.Strings.LocalDevice]?.count as Any,self.stringIndex?[Constants.Strings.OtherDevices]?.count as Any)
-        
-        if let keys = self.stringIndex?.keys {
-            for key in keys {
-                self.stringIndex?[key] = self.stringIndex?[key]?.sorted(by: {
-                    var date0 = ($0["title"] as? String)?.components(separatedBy: "\n").first
-                    var date1 = ($1["title"] as? String)?.components(separatedBy: "\n").first
-                    
-                    if let range = date0?.range(of: " PM") {
-                        date0 = date0?.substring(to: range.lowerBound)
-                    }
-                    if let range = date0?.range(of: " AM") {
-                        date0 = date0?.substring(to: range.lowerBound)
-                    }
-                    
-                    if let range = date1?.range(of: " PM") {
-                        date1 = date1?.substring(to: range.lowerBound)
-                    }
-                    if let range = date1?.range(of: " AM") {
-                        date1 = date1?.substring(to: range.lowerBound)
-                    }
-                    
-                    return Date(string: date0!) < Date(string: date1!)
-                })
-            }
-        }
-        
-        var strings = [String]()
-        
-        if let keys = self.stringIndex?.keys?.sorted() {
-            for key in keys {
-                if let values = self.stringIndex?[key] {
-                    for value in values {
-                        strings.append(value["title"] as! String)
-                    }
-                }
-            }
-        }
-        
-        var counter = 0
-        
-        var counts = [Int]()
-        var indexes = [Int]()
-        
-        if let keys = self.stringIndex?.keys?.sorted() {
-            for key in keys {
-                indexes.append(counter)
-                
-                if let count = self.stringIndex?[key]?.count {
-                    counts.append(count)
-                    counter += count
-                }
-            }
-        }
-        
-        self.popover?.section.strings = strings.count > 0 ? strings : nil
-        self.popover?.section.headerStrings = self.stringIndex?.keys?.sorted()
-        self.popover?.section.counts = counts.count > 0 ? counts : nil
-        self.popover?.section.indexes = indexes.count > 0 ? indexes : nil
-    }
+//    // Begin by separating media into what was created on this device and what was created on something else.
+//    func buildInitialList(mediaItems:[[String:Any]]?)
+//    {
+//        guard let mediaList = globals.media.all?.list, let mediaItems = mediaItems else {
+//            self.popover?.section.strings = nil
+//            self.popover?.section.headerStrings = nil
+//            self.popover?.section.counts = nil
+//            self.popover?.section.indexes = nil
+//            
+//            return
+//        }
+//        
+//        for mediaItem in mediaItems {
+//            if  let mediaID = mediaItem["mediaId"] as? String,
+//                let metadata = mediaItem["metadata"] as? [String:Any],
+//                let title = metadata["title"] as? String {
+//                if mediaList.filter({ (mediaItem:MediaItem) -> Bool in
+//                    return mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
+//                        return transcript.mediaID == mediaID
+//                    }).count == 1
+//                }).count == 1 {
+//                    if self.stringIndex?[Constants.Strings.LocalDevice] == nil {
+//                        self.stringIndex?[Constants.Strings.LocalDevice] = [[String:String]]()
+//                    }
+//                    print(Constants.Strings.LocalDevice,mediaID)
+//                    self.stringIndex?[Constants.Strings.LocalDevice]?.append(["title":title,"mediaID":mediaID])
+//                } else {
+//                    if self.stringIndex?[Constants.Strings.OtherDevices] == nil {
+//                        self.stringIndex?[Constants.Strings.OtherDevices] = [[String:String]]()
+//                    }
+//                    print(Constants.Strings.OtherDevices,mediaID)
+//                    self.stringIndex?[Constants.Strings.OtherDevices]?.append(["title":title,"mediaID":mediaID])
+//                }
+//            } else {
+//                print("Unable to add: \(mediaItem)")
+//            }
+//        }
+//        
+//        print(self.stringIndex?[Constants.Strings.LocalDevice]?.count as Any,self.stringIndex?[Constants.Strings.OtherDevices]?.count as Any)
+//        
+//        if let keys = self.stringIndex?.keys {
+//            for key in keys {
+//                self.stringIndex?[key] = self.stringIndex?[key]?.sorted(by: {
+//                    var date0 = ($0["title"] as? String)?.components(separatedBy: "\n").first
+//                    var date1 = ($1["title"] as? String)?.components(separatedBy: "\n").first
+//                    
+//                    if let range = date0?.range(of: " PM") {
+//                        date0 = date0?.substring(to: range.lowerBound)
+//                    }
+//                    if let range = date0?.range(of: " AM") {
+//                        date0 = date0?.substring(to: range.lowerBound)
+//                    }
+//                    
+//                    if let range = date1?.range(of: " PM") {
+//                        date1 = date1?.substring(to: range.lowerBound)
+//                    }
+//                    if let range = date1?.range(of: " AM") {
+//                        date1 = date1?.substring(to: range.lowerBound)
+//                    }
+//                    
+//                    return Date(string: date0!) < Date(string: date1!)
+//                })
+//            }
+//        }
+//        
+//        var strings = [String]()
+//        
+//        if let keys = self.stringIndex?.keys?.sorted() {
+//            for key in keys {
+//                if let values = self.stringIndex?[key] {
+//                    for value in values {
+//                        strings.append(value["title"] as! String)
+//                    }
+//                }
+//            }
+//        }
+//        
+//        var counter = 0
+//        
+//        var counts = [Int]()
+//        var indexes = [Int]()
+//        
+//        if let keys = self.stringIndex?.keys?.sorted() {
+//            for key in keys {
+//                indexes.append(counter)
+//                
+//                if let count = self.stringIndex?[key]?.count {
+//                    counts.append(count)
+//                    counter += count
+//                }
+//            }
+//        }
+//        
+//        self.popover?.section.strings = strings.count > 0 ? strings : nil
+//        self.popover?.section.headerStrings = self.stringIndex?.keys?.sorted()
+//        self.popover?.section.counts = counts.count > 0 ? counts : nil
+//        self.popover?.section.indexes = indexes.count > 0 ? indexes : nil
+//    }
     
-    func buildList(mediaItems:[[String:Any]]?)
-    {
-        guard let mediaItems = mediaItems else {
-            self.popover?.section.strings = nil
-            self.popover?.section.headerStrings = nil
-            self.popover?.section.counts = nil
-            self.popover?.section.indexes = nil
-            
-            return
-        }
-        
-        for mediaItem in mediaItems {
-            if  let mediaID = mediaItem["mediaId"] as? String,
-                let metadata = mediaItem["metadata"] as? [String:Any],
-                let title = metadata["title"] as? String,
-                let device = metadata["device"] as? [String:String],
-                var deviceName = device["name"],
-                let mimd = metadata["mediaItem"] as? [String:String],
-                let id = mimd["id"],
-                let purpose = mimd["purpose"] {
-                var transcript : VoiceBase?
-                
-                if let media = globals.mediaRepository.index?[id] {
-                    switch purpose.uppercased() {
-                    case Purpose.audio:
-                        transcript = media.audioTranscript
-                        
-                    case Purpose.video:
-                        transcript = media.videoTranscript
-                        
-                    default:
-                        break
-                    }
-                    
-                    if  transcript?.transcript == nil,
-                        transcript?.mediaID == nil,
-                        transcript?.resultsTimer == nil,
-                        let transcribing = transcript?.transcribing, !transcribing {
-                        transcript?.mediaID = mediaID
-                        transcript?.transcribing = true
-                        
-                        Thread.onMainThread() {
-                            transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert:false), repeats: true)
-                        }
-                    }
-                }
-
-                if deviceName == UIDevice.current.deviceName {
-                    deviceName += " (this device)"
-                }
-                
-                if self.stringIndex?[deviceName] == nil {
-                    self.stringIndex?[deviceName] = [["title":title,"mediaID":mediaID,"metadata":metadata as Any]]
-                } else {
-                    self.stringIndex?[deviceName]?.append(["title":title,"mediaID":mediaID,"metadata":metadata as Any])
-                }
-            } else {
-                print("Unable to add: \(mediaItem)")
-            }
-        }
-        
-        if let keys = self.stringIndex?.keys {
-            for key in keys {
-                self.stringIndex?[key] = self.stringIndex?[key]?.sorted(by: {
-                    var date0 = ($0["title"] as? String)?.components(separatedBy: "\n").first
-                    var date1 = ($1["title"] as? String)?.components(separatedBy: "\n").first
-                    
-                    if let range = date0?.range(of: " PM") {
-                        date0 = date0?.substring(to: range.lowerBound)
-                    }
-                    if let range = date0?.range(of: " AM") {
-                        date0 = date0?.substring(to: range.lowerBound)
-                    }
-                    
-                    if let range = date1?.range(of: " PM") {
-                        date1 = date1?.substring(to: range.lowerBound)
-                    }
-                    if let range = date1?.range(of: " AM") {
-                        date1 = date1?.substring(to: range.lowerBound)
-                    }
-                    
-                    return Date(string: date0!) < Date(string: date1!)
-                })
-            }
-        }
-        
-        var strings = [String]()
-        var stringIndex = [String:[String]]()
-        
-        if let keys = self.stringIndex?.keys?.sorted() {
-            for key in keys {
-                stringIndex[key] = [String]()
-                if let values = self.stringIndex?[key] {
-                    for value in values {
-                        let title = value["title"] as! String
-                        strings.append(title)
-                        stringIndex[key]?.append(title)
-                    }
-                }
-            }
-        }
-        
-        var counter = 0
-        
-        var counts = [Int]()
-        var indexes = [Int]()
-        
-        if let keys = self.stringIndex?.keys?.sorted() {
-            for key in keys {
-                indexes.append(counter)
-                
-                if let count = self.stringIndex?[key]?.count {
-                    counts.append(count)
-                    counter += count
-                }
-            }
-        }
-        
-        self.popover?.section.strings = strings.count > 0 ? strings : nil
-        self.popover?.section.stringIndex = stringIndex.keys.count > 0 ? stringIndex : nil
-        self.popover?.section.headerStrings = self.stringIndex?.keys?.sorted()
-        self.popover?.section.counts = counts.count > 0 ? counts : nil
-        self.popover?.section.indexes = indexes.count > 0 ? indexes : nil
-    }
+//    func build(mediaItems:[[String:Any]]?)
+//    {
+////        guard let mediaItems = mediaItems else {
+////            self.popover?.section.strings = nil
+////            self.popover?.section.headerStrings = nil
+////            self.popover?.section.counts = nil
+////            self.popover?.section.indexes = nil
+////            
+////            return
+////        }
+////        
+//        guard let mediaItems = mediaItems else {
+//            self.stringIndex = nil
+//            return
+//        }
+//        
+//        for mediaItem in mediaItems {
+//            if  let mediaID = mediaItem["mediaId"] as? String,
+//                let metadata = mediaItem["metadata"] as? [String:Any],
+//                let title = metadata["title"] as? String,
+//                let device = metadata["device"] as? [String:String],
+//                var deviceName = device["name"] {
+//                if deviceName == UIDevice.current.deviceName {
+//                    deviceName += " (this device)"
+//                }
+//                
+//                if self.stringIndex == nil {
+//                    self.stringIndex = StringIndex()
+//                }
+//
+//                if self.stringIndex?[deviceName] == nil {
+//                    self.stringIndex?[deviceName] = [["title":title,"mediaID":mediaID,"metadata":metadata as Any]]
+//                } else {
+//                    self.stringIndex?[deviceName]?.append(["title":title,"mediaID":mediaID,"metadata":metadata as Any])
+//                }
+//            } else {
+//                print("Unable to add: \(mediaItem)")
+//            }
+//        }
+//        
+//        if let keys = self.stringIndex?.keys {
+//            for key in keys {
+//                self.stringIndex?[key] = self.stringIndex?[key]?.sorted(by: {
+//                    var date0 = ($0["title"] as? String)?.components(separatedBy: "\n").first
+//                    var date1 = ($1["title"] as? String)?.components(separatedBy: "\n").first
+//                    
+//                    if let range = date0?.range(of: " PM") {
+//                        date0 = date0?.substring(to: range.lowerBound)
+//                    }
+//                    if let range = date0?.range(of: " AM") {
+//                        date0 = date0?.substring(to: range.lowerBound)
+//                    }
+//                    
+//                    if let range = date1?.range(of: " PM") {
+//                        date1 = date1?.substring(to: range.lowerBound)
+//                    }
+//                    if let range = date1?.range(of: " AM") {
+//                        date1 = date1?.substring(to: range.lowerBound)
+//                    }
+//                    
+//                    return Date(string: date0!) < Date(string: date1!)
+//                })
+//            }
+//        }
+//        
+////        var strings = [String]()
+////        var stringIndex = [String:[String]]()
+////        
+////        if let keys = self.stringIndex?.keys?.sorted() {
+////            for key in keys {
+////                stringIndex[key] = [String]()
+////                if let values = self.stringIndex?[key] {
+////                    for value in values {
+////                        let title = value["title"] as! String
+////                        strings.append(title)
+////                        stringIndex[key]?.append(title)
+////                    }
+////                }
+////            }
+////        }
+////        
+////        var counter = 0
+////        
+////        var counts = [Int]()
+////        var indexes = [Int]()
+////        
+////        if let keys = self.stringIndex?.keys?.sorted() {
+////            for key in keys {
+////                indexes.append(counter)
+////                
+////                if let count = self.stringIndex?[key]?.count {
+////                    counts.append(count)
+////                    counter += count
+////                }
+////            }
+////        }
+////        
+////        self.popover?.section.strings = strings.count > 0 ? strings : nil
+////        self.popover?.section.stringIndex = stringIndex.keys.count > 0 ? stringIndex : nil
+////        self.popover?.section.headerStrings = self.stringIndex?.keys?.sorted()
+////        self.popover?.section.counts = counts.count > 0 ? counts : nil
+////        self.popover?.section.indexes = indexes.count > 0 ? indexes : nil
+//    }
     
-    func processFirst(mediaItems:[[String:Any]]?)
-    {
-        guard var mediaItems = mediaItems else {
-            return
-        }
-        
-        guard let mediaID = mediaItems.first?["mediaId"] as? String else {
-            print("No mediaId: \(String(describing: mediaItems.first))")
-            
-            if self.stringIndex?.dict == nil {
-                Thread.sleep(forTimeInterval: 0.3)
-            }
-            
-            // Would have preferred to dispatch to main here direclty but compiler crashed, using a notification instead.
-            Thread.onMainThread() {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.VOICE_BASE_FINISHED), object: nil)
-            }
-            
-            return
-        }
-        
-        Thread.onMainThread() {
-            self.popover?.activityIndicator?.startAnimating()
-        }
-        
-        VoiceBase.metadata(mediaID:mediaID,completion:{ (dict:[String:Any]?) -> Void in
-            //                                print(dict)
-            guard let metadata = dict?["metadata"] as? [String:Any] else {
-                mediaItems.removeFirst()
-                self.processFirst(mediaItems:mediaItems)
-                return
-            }
-            
-            guard let title = metadata["title"] as? String else {
-                mediaItems.removeFirst()
-                self.processFirst(mediaItems:mediaItems)
-                return
-            }
-            
-            DispatchQueue.global(qos: .background).async {
-                // tableView.isEditing msut must be on main thread.
-                var wait = false
-                
-                Thread.onMainThread(block: { (Void) -> (Void) in
-                    wait = (self.popover?.tableView != nil) && self.popover!.tableView.isEditing
-                
-                    while wait {
-                        Thread.sleep(forTimeInterval: 0.1)
-                        wait = (self.popover?.tableView != nil) && self.popover!.tableView.isEditing
-                    }
-                })
-
-                if  let mimd = metadata["mediaItem"] as? [String:Any],
-                    let id = mimd["id"] as? String,
-                    let purpose = mimd["purpose"] as? String,
-                    let mediaItem = globals.mediaRepository.index?[id] {
-                    var transcript : VoiceBase?
-                    
-                    switch purpose.uppercased() {
-                    case Purpose.audio:
-                        transcript = mediaItem.audioTranscript
-                        
-                    case Purpose.video:
-                        transcript = mediaItem.videoTranscript
-                        
-                    default:
-                        break
-                    }
-                    
-                    if  transcript?.transcript == nil,
-                        transcript?.mediaID == nil,
-                        transcript?.resultsTimer == nil,
-                        let transcribing = transcript?.transcribing, !transcribing {
-                        transcript?.mediaID = mediaID
-                        transcript?.transcribing = true
-                        
-                        Thread.onMainThread() {
-                            transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert:false), repeats: true)
-                        }
-                    }
-                } else {
-                    
-                }
-
-                if  let device = metadata["device"] as? [String:String],
-                    var deviceName = device["name"] {
-                    if deviceName == UIDevice.current.deviceName {
-                        deviceName += " (this device)"
-                    }
-                    
-                    if self.stringIndex?[deviceName] == nil {
-                        self.stringIndex?[deviceName] = [["title":title,"mediaID":mediaID,"metadata":metadata as Any]]
-                    } else {
-                        self.stringIndex?[deviceName]?.append(["title":title,"mediaID":mediaID,"metadata":metadata as Any])
-                    }
-                    // Update the popover section information and reload the popover tableview to update
-                    // Need to find a way to remove mediaItems from Local Device and Other Devices sections when we find
-                    // the actual device name
-                    //                                    print(self.stringIndex?.dict as Any)
-                    
-                    if let records = self.stringIndex?[Constants.Strings.LocalDevice] {
-                        var i = 0
-                        for record in records {
-                            if (record["mediaID"] as? String == mediaID) {
-                                print("removing: \(mediaID)")
-                                self.stringIndex?[Constants.Strings.LocalDevice]?.remove(at: i)
-                            }
-                            i += 1
-                        }
-                        if self.stringIndex?[Constants.Strings.LocalDevice]?.count == 0 {
-                            self.stringIndex?[Constants.Strings.LocalDevice] = nil
-                        }
-                    }
-                    
-                    if let records = self.stringIndex?[Constants.Strings.OtherDevices] {
-                        var i = 0
-                        for record in records {
-                            if (record["mediaID"] as? String == mediaID) {
-                                print("removing: \(mediaID)")
-                                self.stringIndex?[Constants.Strings.OtherDevices]?.remove(at: i)
-                            }
-                            i += 1
-                        }
-                        if self.stringIndex?[Constants.Strings.OtherDevices]?.count == 0 {
-                            self.stringIndex?[Constants.Strings.OtherDevices] = nil
-                        }
-                    }
-                    
-                    if let keys = self.stringIndex?.keys {
-                        for key in keys {
-                            self.stringIndex?[key] = self.stringIndex?[key]?.sorted(by: {
-                                var date0 = ($0["title"] as? String)?.components(separatedBy: "\n").first
-                                var date1 = ($1["title"] as? String)?.components(separatedBy: "\n").first
-                                
-                                if let range = date0?.range(of: " PM") {
-                                    date0 = date0?.substring(to: range.lowerBound)
-                                }
-                                if let range = date0?.range(of: " AM") {
-                                    date0 = date0?.substring(to: range.lowerBound)
-                                }
-                                
-                                if let range = date1?.range(of: " PM") {
-                                    date1 = date1?.substring(to: range.lowerBound)
-                                }
-                                if let range = date1?.range(of: " AM") {
-                                    date1 = date1?.substring(to: range.lowerBound)
-                                }
-                                
-                                return Date(string: date0!) < Date(string: date1!)
-                                //                                        return stringWithoutPrefixes($0["title"] as? String) < stringWithoutPrefixes($1["title"] as? String)
-                            })
-                        }
-                    }
-                    
-                    
-                    var strings = [String]()
-                    
-                    if let keys = self.stringIndex?.keys?.sorted() {
-                        for key in keys {
-                            if let values = self.stringIndex?[key] {
-                                for value in values {
-                                    strings.append(value["title"] as! String)
-                                }
-                            }
-                        }
-                    }
-                    
-                    self.popover?.detailDisclosure = self.detailDisclosure
-                    self.popover?.detailAction = self.detailAction
-                    
-                    self.popover?.section.headerStrings = self.stringIndex?.keys?.sorted()
-                    self.popover?.section.strings = strings.count > 0 ? strings : nil
-                    //                                    self.popover?.section.indexHeaders = self.popover?.section.headers
-                    
-                    var counter = 0
-                    
-                    var counts = [Int]()
-                    var indexes = [Int]()
-                    
-                    if let keys = self.stringIndex?.keys?.sorted() {
-                        for key in keys {
-                            indexes.append(counter)
-                            
-                            if let count = self.stringIndex?[key]?.count {
-                                counts.append(count)
-                                counter += count
-                            }
-                        }
-                    }
-                    
-                    self.popover?.section.counts = counts.count > 0 ? counts : nil
-                    self.popover?.section.indexes = indexes.count > 0 ? indexes : nil
-                    
-                    //                                    self.popover?.section.showIndex = false
-                    self.popover?.section.showHeaders = true
-                    
-                    if (self.popover?.tableView != nil) {
-                        Thread.onMainThread() {
-                            if self.popover?.tableView.isEditing == false {
-                                self.popover?.tableView.reloadData()
-                                self.popover?.setPreferredContentSize()
-                            } else {
-                                self.popover?.changesPending = true
-                            }
-                        }
-                    }
-                } else {
-                    print("Unable to add: \(dict!.description)")
-                }
-                
-                print(self.stringIndex?.keys?.count as Any,self.stringIndex?[Constants.Strings.LocalDevice]?.count as Any,self.stringIndex?[Constants.Strings.OtherDevices]?.count as Any)
-                
-                // MUST be inside the background dispatch to serialize processing.
-                mediaItems.removeFirst()
-                self.processFirst(mediaItems:mediaItems)
-            }
-        }, onError: { (dict:[String:Any]?) -> Void in
-            print("ERROR: \(String(describing: dict))")
-            
-            mediaItems.removeFirst()
-            self.processFirst(mediaItems:mediaItems)
-        })
-    }
+//    func processFirst(mediaItems:[[String:Any]]?)
+//    {
+//        guard var mediaItems = mediaItems else {
+//            return
+//        }
+//        
+//        guard let mediaID = mediaItems.first?["mediaId"] as? String else {
+//            print("No mediaId: \(String(describing: mediaItems.first))")
+//            
+//            if self.stringIndex?.dict == nil {
+//                Thread.sleep(forTimeInterval: 0.3)
+//            }
+//            
+//            // Would have preferred to dispatch to main here direclty but compiler crashed, using a notification instead.
+//            Thread.onMainThread() {
+//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.VOICE_BASE_FINISHED), object: nil)
+//            }
+//            
+//            return
+//        }
+//        
+//        Thread.onMainThread() {
+//            self.popover?.activityIndicator?.startAnimating()
+//        }
+//        
+//        VoiceBase.metadata(mediaID:mediaID,completion:{ (dict:[String:Any]?) -> Void in
+//            //                                print(dict)
+//            guard let metadata = dict?["metadata"] as? [String:Any] else {
+//                mediaItems.removeFirst()
+//                self.processFirst(mediaItems:mediaItems)
+//                return
+//            }
+//            
+//            guard let title = metadata["title"] as? String else {
+//                mediaItems.removeFirst()
+//                self.processFirst(mediaItems:mediaItems)
+//                return
+//            }
+//            
+//            DispatchQueue.global(qos: .background).async {
+//                // tableView.isEditing msut must be on main thread.
+//                var wait = false
+//                
+//                Thread.onMainThread(block: { (Void) -> (Void) in
+//                    wait = (self.popover?.tableView != nil) && self.popover!.tableView.isEditing
+//                
+//                    while wait {
+//                        Thread.sleep(forTimeInterval: 0.1)
+//                        wait = (self.popover?.tableView != nil) && self.popover!.tableView.isEditing
+//                    }
+//                })
+//
+//                if  let mimd = metadata["mediaItem"] as? [String:Any],
+//                    let id = mimd["id"] as? String,
+//                    let purpose = mimd["purpose"] as? String,
+//                    let mediaItem = globals.mediaRepository.index?[id] {
+//                    var transcript : VoiceBase?
+//                    
+//                    switch purpose.uppercased() {
+//                    case Purpose.audio:
+//                        transcript = mediaItem.audioTranscript
+//                        
+//                    case Purpose.video:
+//                        transcript = mediaItem.videoTranscript
+//                        
+//                    default:
+//                        break
+//                    }
+//                    
+//                    if  transcript?.transcript == nil,
+//                        transcript?.mediaID == nil,
+//                        transcript?.resultsTimer == nil,
+//                        let transcribing = transcript?.transcribing, !transcribing {
+//                        transcript?.mediaID = mediaID
+//                        transcript?.transcribing = true
+//                        
+//                        Thread.onMainThread() {
+//                            transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert:false), repeats: true)
+//                        }
+//                    }
+//                } else {
+//                    
+//                }
+//
+//                if  let device = metadata["device"] as? [String:String],
+//                    var deviceName = device["name"] {
+//                    if deviceName == UIDevice.current.deviceName {
+//                        deviceName += " (this device)"
+//                    }
+//                    
+//                    if self.stringIndex?[deviceName] == nil {
+//                        self.stringIndex?[deviceName] = [["title":title,"mediaID":mediaID,"metadata":metadata as Any]]
+//                    } else {
+//                        self.stringIndex?[deviceName]?.append(["title":title,"mediaID":mediaID,"metadata":metadata as Any])
+//                    }
+//                    // Update the popover section information and reload the popover tableview to update
+//                    // Need to find a way to remove mediaItems from Local Device and Other Devices sections when we find
+//                    // the actual device name
+//                    //                                    print(self.stringIndex?.dict as Any)
+//                    
+//                    if let records = self.stringIndex?[Constants.Strings.LocalDevice] {
+//                        var i = 0
+//                        for record in records {
+//                            if (record["mediaID"] as? String == mediaID) {
+//                                print("removing: \(mediaID)")
+//                                self.stringIndex?[Constants.Strings.LocalDevice]?.remove(at: i)
+//                            }
+//                            i += 1
+//                        }
+//                        if self.stringIndex?[Constants.Strings.LocalDevice]?.count == 0 {
+//                            self.stringIndex?[Constants.Strings.LocalDevice] = nil
+//                        }
+//                    }
+//                    
+//                    if let records = self.stringIndex?[Constants.Strings.OtherDevices] {
+//                        var i = 0
+//                        for record in records {
+//                            if (record["mediaID"] as? String == mediaID) {
+//                                print("removing: \(mediaID)")
+//                                self.stringIndex?[Constants.Strings.OtherDevices]?.remove(at: i)
+//                            }
+//                            i += 1
+//                        }
+//                        if self.stringIndex?[Constants.Strings.OtherDevices]?.count == 0 {
+//                            self.stringIndex?[Constants.Strings.OtherDevices] = nil
+//                        }
+//                    }
+//                    
+//                    if let keys = self.stringIndex?.keys {
+//                        for key in keys {
+//                            self.stringIndex?[key] = self.stringIndex?[key]?.sorted(by: {
+//                                var date0 = ($0["title"] as? String)?.components(separatedBy: "\n").first
+//                                var date1 = ($1["title"] as? String)?.components(separatedBy: "\n").first
+//                                
+//                                if let range = date0?.range(of: " PM") {
+//                                    date0 = date0?.substring(to: range.lowerBound)
+//                                }
+//                                if let range = date0?.range(of: " AM") {
+//                                    date0 = date0?.substring(to: range.lowerBound)
+//                                }
+//                                
+//                                if let range = date1?.range(of: " PM") {
+//                                    date1 = date1?.substring(to: range.lowerBound)
+//                                }
+//                                if let range = date1?.range(of: " AM") {
+//                                    date1 = date1?.substring(to: range.lowerBound)
+//                                }
+//                                
+//                                return Date(string: date0!) < Date(string: date1!)
+//                                //                                        return stringWithoutPrefixes($0["title"] as? String) < stringWithoutPrefixes($1["title"] as? String)
+//                            })
+//                        }
+//                    }
+//                    
+//                    var strings = [String]()
+//                    
+//                    if let keys = self.stringIndex?.keys?.sorted() {
+//                        for key in keys {
+//                            if let values = self.stringIndex?[key] {
+//                                for value in values {
+//                                    strings.append(value["title"] as! String)
+//                                }
+//                            }
+//                        }
+//                    }
+//                    
+//                    self.popover?.detailDisclosure = self.detailDisclosure
+//                    self.popover?.detailAction = self.detailAction
+//                    
+//                    self.popover?.section.headerStrings = self.stringIndex?.keys?.sorted()
+//                    self.popover?.section.strings = strings.count > 0 ? strings : nil
+//                    //                                    self.popover?.section.indexHeaders = self.popover?.section.headers
+//                    
+//                    var counter = 0
+//                    
+//                    var counts = [Int]()
+//                    var indexes = [Int]()
+//                    
+//                    if let keys = self.stringIndex?.keys?.sorted() {
+//                        for key in keys {
+//                            indexes.append(counter)
+//                            
+//                            if let count = self.stringIndex?[key]?.count {
+//                                counts.append(count)
+//                                counter += count
+//                            }
+//                        }
+//                    }
+//                    
+//                    self.popover?.section.counts = counts.count > 0 ? counts : nil
+//                    self.popover?.section.indexes = indexes.count > 0 ? indexes : nil
+//                    
+//                    //                                    self.popover?.section.showIndex = false
+//                    self.popover?.section.showHeaders = true
+//                    
+//                    if (self.popover?.tableView != nil) {
+//                        Thread.onMainThread() {
+//                            if self.popover?.tableView.isEditing == false {
+//                                self.popover?.tableView.reloadData()
+//                                self.popover?.setPreferredContentSize()
+//                            } else {
+//                                self.popover?.changesPending = true
+//                            }
+//                        }
+//                    }
+//                } else {
+//                    print("Unable to add: \(dict!.description)")
+//                }
+//                
+//                print(self.stringIndex?.keys?.count as Any,self.stringIndex?[Constants.Strings.LocalDevice]?.count as Any,self.stringIndex?[Constants.Strings.OtherDevices]?.count as Any)
+//                
+//                // MUST be inside the background dispatch to serialize processing.
+//                mediaItems.removeFirst()
+//                self.processFirst(mediaItems:mediaItems)
+//            }
+//        }, onError: { (dict:[String:Any]?) -> Void in
+//            print("ERROR: \(String(describing: dict))")
+//            
+//            mediaItems.removeFirst()
+//            self.processFirst(mediaItems:mediaItems)
+//        })
+//    }
     
     func showMenu(action:String?,mediaItem:MediaItem?)
     {
@@ -1763,11 +1846,31 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         }
                         
                         // Begin by separating media into what was created on this device and what was created on something else.
-                        self.stringIndex = StringIndex()
                         
                         //                                self.buildInitialList(mediaItems:mediaItems)
-                        self.buildList(mediaItems:mediaItems)
+                        self.stringIndex = StringIndex(mediaItems:mediaItems, sort: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
+                            var date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first
+                            var date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first
+                            
+                            if let range = date0?.range(of: " PM") {
+                                date0 = date0?.substring(to: range.lowerBound)
+                            }
+                            if let range = date0?.range(of: " AM") {
+                                date0 = date0?.substring(to: range.lowerBound)
+                            }
+                            
+                            if let range = date1?.range(of: " PM") {
+                                date1 = date1?.substring(to: range.lowerBound)
+                            }
+                            if let range = date1?.range(of: " AM") {
+                                date1 = date1?.substring(to: range.lowerBound)
+                            }
+                            
+                            return Date(string: date0!) < Date(string: date1!)
+                        })
                         
+                        self.popover?.section.stringIndex = self.stringIndex?.stringIndex(key: "title", sort: nil)
+
                         Thread.onMainThread(block: {
                             self.popover?.updateSearchResults()
                             
@@ -1811,10 +1914,30 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                         }
                         
                         // Begin by separating media into what was created on this device and what was created on something else.
-                        self.stringIndex = StringIndex()
                         
                         //                                self.buildInitialList(mediaItems:mediaItems)
-                        self.buildList(mediaItems:mediaItems)
+                        self.stringIndex = StringIndex(mediaItems:mediaItems, sort: { (lhs:[String:Any], rhs:[String:Any]) -> Bool in
+                            var date0 = (lhs["title"] as? String)?.components(separatedBy: "\n").first
+                            var date1 = (rhs["title"] as? String)?.components(separatedBy: "\n").first
+                            
+                            if let range = date0?.range(of: " PM") {
+                                date0 = date0?.substring(to: range.lowerBound)
+                            }
+                            if let range = date0?.range(of: " AM") {
+                                date0 = date0?.substring(to: range.lowerBound)
+                            }
+                            
+                            if let range = date1?.range(of: " PM") {
+                                date1 = date1?.substring(to: range.lowerBound)
+                            }
+                            if let range = date1?.range(of: " AM") {
+                                date1 = date1?.substring(to: range.lowerBound)
+                            }
+                            
+                            return Date(string: date0!) < Date(string: date1!)
+                        })
+                        
+                        self.popover?.section.stringIndex = self.stringIndex?.stringIndex(key: "title", sort: nil)
                         
                         self.popover?.updateSearchResults()
                         
@@ -2011,7 +2134,9 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             switch string {
             case Constants.Strings.Download_Audio:
                 mediaItem?.audioDownload?.download()
-                NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
+                Thread.onMainThread(block: {
+                    NotificationCenter.default.addObserver(self, selector: #selector(MediaTableViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem?.audioDownload)
+                })
                 break
                 
             case Constants.Strings.Delete_Audio_Download:
@@ -2623,6 +2748,8 @@ class MediaTableViewController : UIViewController // MediaController
             popover.delegate = self
             popover.purpose = .selectingCategory
             
+            popover.stringSelected = globals.mediaCategory.selected
+            
             popover.section.strings = globals.mediaCategory.names
 //            
 //            popover.section.showIndex = false
@@ -3052,6 +3179,7 @@ class MediaTableViewController : UIViewController // MediaController
             
             popover.purpose = .selectingGrouping
             popover.section.strings = globals.groupingTitles
+            popover.stringSelected = translate(globals.grouping)
 //            
 //            popover.section.showIndex = false
 //            popover.section.showHeaders = false
@@ -3096,7 +3224,8 @@ class MediaTableViewController : UIViewController // MediaController
             
             popover.purpose = .selectingSorting
             popover.section.strings = Constants.SortingTitles
-//            
+            popover.stringSelected = translate(globals.sorting)
+            
 //            popover.section.showIndex = false
 //            popover.section.showHeaders = false
             
@@ -3686,10 +3815,7 @@ class MediaTableViewController : UIViewController // MediaController
                 
                 completion?()
 
-                self.setupBarButtons()
-                self.setupActionAndTagsButton()
-                self.setupCategoryButton()
-                self.setupListActivityIndicator()
+                self.updateUI()
             }
         })
     }
@@ -4482,6 +4608,8 @@ class MediaTableViewController : UIViewController // MediaController
             popover.delegate = self
             popover.purpose = .selectingTags
             
+            popover.stringSelected = globals.media.tags.selected ?? Constants.Strings.All
+            
 //            print(globals.media.all!.mediaItemTags!)
             
 //            print(globals.media.all!.proposedTags)
@@ -4782,8 +4910,12 @@ class MediaTableViewController : UIViewController // MediaController
     
     fileprivate func setupTag()
     {
+        guard let showing = globals.media.tags.showing else {
+            return
+        }
+        
         Thread.onMainThread() {
-            switch globals.media.tags.showing! {
+            switch showing {
             case Constants.ALL:
                 self.tagLabel.text = Constants.Strings.All // searchBar.placeholder
                 break
@@ -5584,6 +5716,8 @@ extension MediaTableViewController : UITableViewDelegate
                 popover.delegate = self
                 popover.purpose = .selectingTags
                 
+                popover.stringSelected = globals.media.tags.selected ?? Constants.Strings.All
+
                 popover.section.strings = mediaItem.tagsArray
                 popover.section.strings?.insert(Constants.Strings.All,at: 0)
                 //
