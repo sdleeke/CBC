@@ -85,7 +85,7 @@ class LiveViewController: UIViewController
     {
         if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
 //            self.splitViewController?.preferredDisplayMode = .allVisible
-            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PLAYING_PAUSED), object: nil)
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.SHOW_LAST_SEGUE), object: nil)
         }
     }
 
@@ -205,42 +205,40 @@ class LiveViewController: UIViewController
         
         textView.sizeToFit()
         
-        guard (globals.mediaPlayer.view != nil) else {
+        guard let view = globals.mediaPlayer.view else {
             return
         }
-        
-        let view = globals.mediaPlayer.view
 
 //        view?.gestureRecognizers = nil
 //        let pan = UIPanGestureRecognizer(target: self, action: #selector(LiveViewController.showHideNotice(_:)))
 //        view?.addGestureRecognizer(pan)
         
-        view?.isHidden = true
-        view?.removeFromSuperview()
+        view.isHidden = true
+        view.removeFromSuperview()
         
-        view?.frame = webView.bounds
+        view.frame = webView.bounds
         
-        view?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+        view.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
         
-        webView.addSubview(view!)
+        webView.addSubview(view)
         
-        let centerX = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
+        let centerX = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: view.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
         webView.addConstraint(centerX)
         
-        let centerY = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: view!.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+        let centerY = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: view.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
         webView.addConstraint(centerY)
         
-        let width = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: view!.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
+        let width = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: view.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
         webView.addConstraint(width)
         
-        let height = NSLayoutConstraint(item: view!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: view!.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
+        let height = NSLayoutConstraint(item: view, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: view.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
         webView.addConstraint(height)
 
-        webView!.setNeedsLayout()
+        webView.setNeedsLayout()
 
-        webView.bringSubview(toFront: view!)
+        webView.bringSubview(toFront: view)
 
-        view?.isHidden = false
+        view.isHidden = false
 
         DispatchQueue.global(qos: .background).async {
             Thread.sleep(forTimeInterval: 0.1)

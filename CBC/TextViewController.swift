@@ -109,14 +109,14 @@ extension TextViewController: UISearchBarDelegate
         
         textView.attributedText = stringMarkedBySearchAsAttributedString(string: changedText, searchText: searchText, wholeWordsOnly: false)
         
-        if lastRange != nil {
-            let startingRange = Range(uncheckedBounds: (lower: lastRange!.upperBound, upper: textView.attributedText.string.endIndex))
+        if let lastRange = lastRange {
+            let startingRange = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: textView.attributedText.string.endIndex))
 
             if let searchText = searchText,let range = textView.attributedText.string.lowercased().range(of: searchText.lowercased(), options: [], range: startingRange, locale: nil) {
                 textView.scrollToRange(range)
-                lastRange = range
+                self.lastRange = range
             } else {
-                lastRange = nil
+                self.lastRange = nil
             }
         }
         
@@ -138,7 +138,10 @@ extension TextViewController: UISearchBarDelegate
         searchText = nil
         searchActive = false
         
-        self.textView.attributedText = NSMutableAttributedString(string: changedText!,attributes: Constants.Fonts.Attributes.normal)
+        if let changedText = changedText {
+            self.textView.attributedText = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
+        }
+        
 //        textView.attributedText = nil
 //        textView.text = changedText
         
@@ -157,7 +160,10 @@ extension TextViewController : UITextViewDelegate
 
         editingActive = true
         
-        self.textView.attributedText = NSAttributedString(string: changedText!,attributes: Constants.Fonts.Attributes.normal)
+        if let changedText = changedText {
+            self.textView.attributedText = NSAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
+        }
+        
 //        textView.attributedText = nil
 //        textView.text = changedText
 
@@ -419,7 +425,9 @@ class TextViewController : UIViewController
         trackingTimer?.invalidate()
         trackingTimer = nil
         
-        textView.attributedText = NSMutableAttributedString(string: changedText!,attributes: Constants.Fonts.Attributes.normal)
+        if let changedText = changedText {
+            textView.attributedText = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
+        }
     }
     
     func startTracking()
@@ -714,7 +722,9 @@ class TextViewController : UIViewController
         searchBar.text = searchText
         searchBar.isUserInteractionEnabled = searchInteractive
 
-        self.textView.attributedText = NSMutableAttributedString(string: changedText!,attributes: Constants.Fonts.Attributes.normal)
+        if let changedText = changedText {
+            self.textView.attributedText = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
+        }
     }
     
     func words() -> [String:String]?
@@ -839,9 +849,11 @@ class TextViewController : UIViewController
                 if decadesKey != "ten" {
                     for singleNumbersKey in singleNumbers.keys {
                         let key = hundred + " " + decadesKey + " " + singleNumbersKey
-                        let value = "1" + decades[decadesKey]!.replacingOccurrences(of:"0",with:"") +  singleNumbers[singleNumbersKey]!
                         
-                        textToNumbers[key] = value
+                        if let decade = decades[decadesKey]?.replacingOccurrences(of:"0",with:""), let singleNumber = singleNumbers[singleNumbersKey] {
+                            let value = "1" + decade + singleNumber
+                            textToNumbers[key] = value
+                        }
                     }
                 }
             }
@@ -977,7 +989,7 @@ class TextViewController : UIViewController
                 
                 for book in Constants.OLD_TESTAMENT_BOOKS {
                     if !books.values.contains(book) {
-                        if Int(value) <= Constants.OLD_TESTAMENT_CHAPTERS[Constants.OLD_TESTAMENT_BOOKS.index(of: book)!] {
+                        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book), Int(value) <= Constants.OLD_TESTAMENT_CHAPTERS[index] {
                             if changes[book.lowercased()] == nil {
                                 changes[book.lowercased()] = ["\(book.lowercased()) " + key:"\(book) " + value]
                             } else {
@@ -992,7 +1004,7 @@ class TextViewController : UIViewController
                 
                 for book in Constants.NEW_TESTAMENT_BOOKS {
                     if !books.values.contains(book) {
-                        if Int(value) <= Constants.NEW_TESTAMENT_CHAPTERS[Constants.NEW_TESTAMENT_BOOKS.index(of: book)!] {
+                        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book), Int(value) <= Constants.NEW_TESTAMENT_CHAPTERS[index] {
                             if changes[book.lowercased()] == nil {
                                 changes[book.lowercased()] = ["\(book.lowercased()) " + key:"\(book) " + value]
                             } else {
@@ -1144,6 +1156,7 @@ class TextViewController : UIViewController
             attributedString.append(NSAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal))
             
             let prior = text.substring(to: range.lowerBound).characters.last?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            
             let following = text.substring(from: range.upperBound).characters.first?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
             
             if ((prior == nil) || prior!.isEmpty) && ((following == nil) || following!.isEmpty || (following == ".")) {

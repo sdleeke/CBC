@@ -90,83 +90,89 @@ class Download : NSObject {
             
         }
         didSet {
-            if state != oldValue {
-                switch state {
-                case .downloading:
+            guard state != oldValue else {
+                return
+            }
+            
+            switch state {
+            case .downloading:
 //                    if observer == nil {
 //                        observer = #selector(AppDelegate.downloadFailed)
 //                        DispatchQueue.main.async {
 //                            NotificationCenter.default.addObserver(self, selector: #selector(Download.downloadFailed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
 //                        }
 //                    }
+                break
+                
+            case .downloaded:
+                // This will remove the observer before an error notification is processed - so leave the observer in place.
+//                    if observer == #selector(AppDelegate.downloadFailed) {
+//                        DispatchQueue.main.async {
+//                            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
+//                        }
+//                    }
+                break
+                
+            case .none:
+                // This will remove the observer before an error notification is processed - so leave the observer in place.
+//                    if observer == #selector(AppDelegate.downloadFailed) {
+//                        DispatchQueue.main.async {
+//                            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
+//                        }
+//                    }
+                break
+            }
+
+            guard let purpose = purpose else {
+                return
+            }
+            
+            switch purpose {
+            case Purpose.audio:
+                switch state {
+                case .downloading:
                     break
                     
                 case .downloaded:
-                    // This will remove the observer before an error notification is processed - so leave the observer in place.
-//                    if observer == #selector(AppDelegate.downloadFailed) {
-//                        DispatchQueue.main.async {
-//                            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
-//                        }
-//                    }
+                    globals.queue.sync(execute: { () -> Void in
+                        self.mediaItem?.addTag(Constants.Strings.Downloaded)
+                    })
                     break
                     
                 case .none:
-                    // This will remove the observer before an error notification is processed - so leave the observer in place.
-//                    if observer == #selector(AppDelegate.downloadFailed) {
-//                        DispatchQueue.main.async {
-//                            NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: self)
-//                        }
-//                    }
+                    globals.queue.sync(execute: { () -> Void in
+                        self.mediaItem?.removeTag(Constants.Strings.Downloaded)
+                    })
                     break
                 }
-
-                switch purpose! {
-                case Purpose.audio:
-                    switch state {
-                    case .downloading:
-                        break
-                        
-                    case .downloaded:
-                        globals.queue.sync(execute: { () -> Void in
-                            self.mediaItem?.addTag(Constants.Strings.Downloaded)
-                        })
-                        break
-                        
-                    case .none:
-                        globals.queue.sync(execute: { () -> Void in
-                            self.mediaItem?.removeTag(Constants.Strings.Downloaded)
-                        })
-                        break
-                    }
+                
+                Thread.onMainThread() {
+                    // The following must appear AFTER we change the state
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+                }
+                break
+                
+            case Purpose.notes:
+                fallthrough
+            case Purpose.slides:
+                switch state {
+                case .downloading:
+                    break
                     
+                case .downloaded:
                     Thread.onMainThread() {
                         // The following must appear AFTER we change the state
-                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: self.mediaItem)
+                        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.mediaItem)
                     }
                     break
                     
-                case Purpose.notes:
-                    fallthrough
-                case Purpose.slides:
-                    switch state {
-                    case .downloading:
-                        break
-                        
-                    case .downloaded:
-                        Thread.onMainThread() {
-                            // The following must appear AFTER we change the state
-                            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self.mediaItem)
-                        }
-                        break
-                        
-                    case .none:
-                        break
-                    }
-                    break
-                    
-                default:
+                case .none:
                     break
                 }
+                break
+                
+            default:
+                break
             }
         }
     }
@@ -176,10 +182,10 @@ class Download : NSObject {
     var isDownloaded : Bool
     {
         get {
-            if fileSystemURL != nil {
+            if let fileSystemURL = fileSystemURL {
                 //            print(fileSystemURL!.path!)
                 //            print(FileManager.default.fileExists(atPath: fileSystemURL!.path!))
-                return FileManager.default.fileExists(atPath: fileSystemURL!.path)
+                return FileManager.default.fileExists(atPath: fileSystemURL.path)
             } else {
                 return false
             }
@@ -190,13 +196,15 @@ class Download : NSObject {
     {
         var size = 0
         
-        if fileSystemURL != nil {
-            do {
-                let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileSystemURL!.path)
-                size = fileAttributes[FileAttributeKey.size] as! Int
-            } catch let error as NSError {
-                print("failed to get file attributes for \(fileSystemURL!): \(error.localizedDescription)")
-            }
+        guard let fileSystemURL = fileSystemURL else {
+            return size
+        }
+        
+        do {
+            let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileSystemURL.path)
+            size = fileAttributes[FileAttributeKey.size] as! Int
+        } catch let error as NSError {
+            print("failed to get file attributes for \(fileSystemURL): \(error.localizedDescription)")
         }
         
         return size
@@ -204,7 +212,7 @@ class Download : NSObject {
     
     func download()
     {
-        guard (downloadURL != nil) else {
+        guard let downloadURL = downloadURL else {
             print(mediaItem?.title as Any)
             print(purpose as Any)
             print(fileSystemURL as Any)
@@ -215,7 +223,7 @@ class Download : NSObject {
         if (state == .none) {
             state = .downloading
 
-            let downloadRequest = URLRequest(url: downloadURL!)
+            let downloadRequest = URLRequest(url: downloadURL)
             
             let configuration = URLSessionConfiguration.ephemeral
             
@@ -227,7 +235,7 @@ class Download : NSObject {
             session = URLSession(configuration: configuration, delegate: mediaItem, delegateQueue: nil)
             session?.reset() {}
             
-            session?.sessionDescription = fileSystemURL!.lastPathComponent
+            session?.sessionDescription = fileSystemURL?.lastPathComponent
             
             task = session?.downloadTask(with: downloadRequest)
             task?.taskDescription = fileSystemURL?.lastPathComponent
@@ -242,11 +250,15 @@ class Download : NSObject {
     
     func delete()
     {
+        guard let fileSystemURL = fileSystemURL else {
+            return
+        }
+        
         if (state == .downloaded) {
             // Check if file exists and if so, delete it.
-            if (FileManager.default.fileExists(atPath: fileSystemURL!.path)){
+            if (FileManager.default.fileExists(atPath: fileSystemURL.path)){
                 do {
-                    try FileManager.default.removeItem(at: fileSystemURL!)
+                    try FileManager.default.removeItem(at: fileSystemURL)
                 } catch let error as NSError {
                     print("failed to delete download: \(error.localizedDescription)")
                 }

@@ -44,9 +44,11 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
         
         activityViewController?.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
         
-        // present the view controller
-        Thread.onMainThread() {
-            self.present(self.activityViewController!, animated: false, completion: nil)
+        if let activityViewController = self.activityViewController {
+            // present the view controller
+            Thread.onMainThread() {
+                self.present(activityViewController, animated: false, completion: nil)
+            }
         }
     }
     
@@ -67,20 +69,20 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
         case .selectingAction:
             switch strings[index] {
             case Constants.Strings.Full_Screen:
-                if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? WebViewController {
                     navigationController.modalPresentationStyle = .overFullScreen
                     navigationController.popoverPresentationController?.delegate = popover
                     
                     popover.navigationItem.title = self.navigationItem.title
                     
-                    popover.html.fontSize = self.webViewController!.html.fontSize
-                    popover.html.string = self.webViewController?.html.string
-                    
-                    popover.selectedMediaItem = self.webViewController?.selectedMediaItem
-                    
-                    popover.content = self.webViewController!.content
-                    
+                    if let webViewController = self.webViewController {
+                        popover.html.fontSize = webViewController.html.fontSize
+                        popover.html.string = webViewController.html.string
+                        popover.selectedMediaItem = webViewController.selectedMediaItem
+                        popover.content = webViewController.content
+                    }
+                                        
                     popover.navigationController?.isNavigationBarHidden = false
                     
                     present(navigationController, animated: true, completion: nil)
@@ -88,7 +90,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                 break
                 
             case Constants.Strings.Print:
-                if webViewController?.html.string != nil, webViewController!.html.string!.contains(" href=") {
+                if let string = webViewController?.html.string, string.contains(" href=") {
                     firstSecondCancel(viewController: self, title: "Remove Links?", message: nil, //"This can take some time.",
                                       firstTitle: "Yes",
                                       firstAction: {
@@ -142,16 +144,18 @@ extension ScriptureViewController : UIPickerViewDataSource
             break
             
         case 1:
-            if (scripture?.selected.testament != nil) {
-                numberOfRows = scripture!.picker.books!.count
+            if scripture?.selected.testament != nil, let books = scripture?.picker.books {
+                numberOfRows = books.count
             } else {
                 numberOfRows = 0 // number of books in testament
             }
             break
             
         case 2:
-            if (scripture?.selected.testament != nil) && (scripture?.selected.book != nil) {
-                numberOfRows = scripture!.picker.chapters!.count
+            if  scripture?.selected.testament != nil,
+                scripture?.selected.book != nil,
+                let chapters = scripture?.picker.chapters {
+                numberOfRows = chapters.count
             } else {
                 numberOfRows = 0 // number of chapters in book
             }
@@ -208,8 +212,8 @@ extension ScriptureViewController : UIPickerViewDataSource
             break
             
         case 2:
-            if (scripture?.selected.testament != nil) {
-                return "\(scripture!.picker.chapters![row])"
+            if scripture?.selected.testament != nil, let chapters = scripture?.picker.chapters {
+                return "\(chapters[row])"
             }
             break
             
@@ -274,24 +278,28 @@ extension ScriptureViewController : UIPickerViewDelegate
             
             //            startingVerse = 0
             
-            switch scripture!.selected.testament! {
-            case Constants.OT:
-                scripture?.picker.books = Constants.OLD_TESTAMENT_BOOKS
-                break
-                
-            case Constants.NT:
-                scripture?.picker.books = Constants.NEW_TESTAMENT_BOOKS
-                break
-                
-            default:
-                break
+            if let testament = scripture?.selected.testament {
+                switch testament {
+                case Constants.OT:
+                    scripture?.picker.books = Constants.OLD_TESTAMENT_BOOKS
+                    break
+                    
+                case Constants.NT:
+                    scripture?.picker.books = Constants.NEW_TESTAMENT_BOOKS
+                    break
+                    
+                default:
+                    break
+                }
             }
             
             scripture?.selected.book = scripture?.picker.books?[0]
             
             updatePicker()
             
-            scripture?.selected.chapter = scripture!.picker.chapters![0]
+            if let chapter = scripture?.picker.chapters?[0] {
+                scripture?.selected.chapter = chapter
+            }
             
             pickerView.reloadAllComponents()
             
@@ -312,7 +320,9 @@ extension ScriptureViewController : UIPickerViewDelegate
                 
                 updatePicker()
                 
-                scripture?.selected.chapter = scripture!.picker.chapters![0]
+                if let chapter = scripture?.picker.chapters?[0] {
+                    scripture?.selected.chapter = chapter
+                }
                 
                 pickerView.reloadAllComponents()
                 
@@ -326,7 +336,9 @@ extension ScriptureViewController : UIPickerViewDelegate
             
         case 2: // Chapter
             if (scripture?.selected.testament != nil) && (scripture?.selected.book != nil) {
-                scripture?.selected.chapter = scripture!.picker.chapters![row]
+                if let chapter = scripture?.picker.chapters?[row] {
+                    scripture?.selected.chapter = chapter
+                }
                 
                 //                startingVerse = 0
                 
@@ -396,10 +408,8 @@ class ScriptureViewController : UIViewController
         // this next if-statement makes sure the segue prepares properly even
         //   if the MVC we're seguing to is wrapped in a UINavigationController
         
-        let navCon = destination as? UINavigationController
-        
-        if navCon != nil {
-            destination = navCon!.visibleViewController!
+        if let visibleViewController = (destination as? UINavigationController)?.visibleViewController {
+            destination = visibleViewController
         }
         
         if let identifier = segue.identifier {
@@ -469,9 +479,9 @@ class ScriptureViewController : UIViewController
     
     func setPreferredContentSize()
     {
-        if let widthView = (presentingViewController != nil) ? presentingViewController!.view : view {
+        if let widthView = presentingViewController?.view ?? view, let wkWebView = webViewController?.wkWebView {
             preferredContentSize = CGSize(  width:  widthView.frame.width,//webViewController!.wkWebView!.scrollView.contentSize.width,
-                                            height: webViewController!.wkWebView!.scrollView.contentSize.height + scripturePicker.frame.height + 60)
+                                            height: wkWebView.scrollView.contentSize.height + scripturePicker.frame.height + 60)
         }
     }
     
@@ -554,7 +564,7 @@ class ScriptureViewController : UIViewController
 //        //In case we have one already showing
 //        //        dismiss(animated: true, completion: nil)
 //        
-//        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
 //            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
 //            navigationController.modalPresentationStyle = .popover
 //            
@@ -615,7 +625,9 @@ class ScriptureViewController : UIViewController
         minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
         minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
         
-        navigationItem.setRightBarButtonItems([minusButton!,plusButton!], animated: true) // actionButton!,
+        if let minusButton = minusButton, let plusButton = plusButton {
+            navigationItem.setRightBarButtonItems([minusButton,plusButton], animated: true) // actionButton!,
+        }
         
         if let presentationStyle = navigationController?.modalPresentationStyle {
             switch presentationStyle {
@@ -989,8 +1001,8 @@ class ScriptureViewController : UIViewController
         }
         scripture?.picker.chapters = chapters
             
-        if scripture?.selected.chapter == 0 {
-            scripture?.selected.chapter = scripture!.picker.chapters![0]
+        if scripture?.selected.chapter == 0, let chapter = scripture?.picker.chapters?[0] {
+            scripture?.selected.chapter = chapter
         }
 
         scripturePicker.reloadAllComponents()
@@ -1004,7 +1016,7 @@ class ScriptureViewController : UIViewController
                 scripturePicker.selectRow(index, inComponent: 1, animated: false)
             }
             
-            if scripture?.selected.chapter > 0, let index = scripture?.picker.chapters?.index(of: scripture!.selected.chapter) {
+            if let chapter = scripture?.selected.chapter, chapter > 0, let index = scripture?.picker.chapters?.index(of: chapter) {
                 scripturePicker.selectRow(index, inComponent: 2, animated: false)
             }
             

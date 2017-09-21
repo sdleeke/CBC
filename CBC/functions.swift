@@ -252,16 +252,20 @@ func cachesURL() -> URL?
 
 func filesOfTypeInCache(_ fileType:String) -> [String]?
 {
+    guard let path = cachesURL()?.path else {
+        return nil
+    }
+    
     var files = [String]()
     
     let fileManager = FileManager.default
-    let path = cachesURL()?.path
+
     do {
-        let array = try fileManager.contentsOfDirectory(atPath: path!)
+        let array = try fileManager.contentsOfDirectory(atPath: path)
         
         for string in array {
-            if string.range(of: fileType) != nil {
-                if fileType == string.substring(from: string.range(of: fileType)!.lowerBound) {
+            if let range = string.range(of: fileType) {
+                if fileType == string.substring(from: range.lowerBound) {
                     files.append(string)
                 }
             }
@@ -275,60 +279,60 @@ func filesOfTypeInCache(_ fileType:String) -> [String]?
 
 func jsonToFileSystemDirectory(key:String)
 {
-    let fileManager = FileManager.default
+    guard let jsonBundlePath = Bundle.main.path(forResource: key, ofType: Constants.JSON.TYPE) else {
+        return
+    }
     
-    let jsonBundlePath = Bundle.main.path(forResource: key, ofType: Constants.JSON.TYPE)
+    let fileManager = FileManager.default
     
     if let filename = globals.mediaCategory.filename, let jsonFileURL = cachesURL()?.appendingPathComponent(filename) {
         // Check if file exist
         if (!fileManager.fileExists(atPath: jsonFileURL.path)){
-            if (jsonBundlePath != nil) {
-                do {
-                    // Copy File From Bundle To Documents Directory
-                    try fileManager.copyItem(atPath: jsonBundlePath!,toPath: jsonFileURL.path)
-                } catch let error as NSError {
-                    print("failed to copy mediaItems.json: \(error.localizedDescription)")
-                }
+            do {
+                // Copy File From Bundle To Documents Directory
+                try fileManager.copyItem(atPath: jsonBundlePath,toPath: jsonFileURL.path)
+            } catch let error as NSError {
+                print("failed to copy mediaItems.json: \(error.localizedDescription)")
             }
         } else {
             //    fileManager.removeItemAtPath(destination)
             // Which is newer, the bundle file or the file in the Documents folder?
             do {
-                let jsonBundleAttributes = try fileManager.attributesOfItem(atPath: jsonBundlePath!)
+                let jsonBundleAttributes = try fileManager.attributesOfItem(atPath: jsonBundlePath)
                 
                 let jsonDocumentsAttributes = try fileManager.attributesOfItem(atPath: jsonFileURL.path)
                 
-                let jsonBundleModDate = jsonBundleAttributes[FileAttributeKey.modificationDate] as! Date
-                let jsonDocumentsModDate = jsonDocumentsAttributes[FileAttributeKey.modificationDate] as! Date
-                
-                if (jsonDocumentsModDate.isNewerThan(jsonBundleModDate)) {
-                    //Do nothing, the json in Documents is newer, i.e. it was downloaded after the install.
-                    print("JSON in Documents is newer than JSON in bundle")
-                }
-                
-                if (jsonDocumentsModDate.isEqualTo(jsonBundleModDate)) {
-                    print("JSON in Documents is the same date as JSON in bundle")
-                    let jsonBundleFileSize = jsonBundleAttributes[FileAttributeKey.size] as! Int
-                    let jsonDocumentsFileSize = jsonDocumentsAttributes[FileAttributeKey.size] as! Int
-                    
-                    if (jsonBundleFileSize != jsonDocumentsFileSize) {
-                        print("Same dates different file sizes")
-                        //We have a problem.
-                    } else {
-                        print("Same dates same file sizes")
-                        //Do nothing, they are the same.
+                if  let jsonBundleModDate = jsonBundleAttributes[FileAttributeKey.modificationDate] as? Date,
+                    let jsonDocumentsModDate = jsonDocumentsAttributes[FileAttributeKey.modificationDate] as? Date {
+                    if (jsonDocumentsModDate.isNewerThan(jsonBundleModDate)) {
+                        //Do nothing, the json in Documents is newer, i.e. it was downloaded after the install.
+                        print("JSON in Documents is newer than JSON in bundle")
                     }
-                }
-                
-                if (jsonBundleModDate.isNewerThan(jsonDocumentsModDate)) {
-                    print("JSON in bundle is newer than JSON in Documents")
-                    //copy the bundle into Documents directory
-                    do {
-                        // Copy File From Bundle To Documents Directory
-                        try fileManager.removeItem(atPath: jsonFileURL.path)
-                        try fileManager.copyItem(atPath: jsonBundlePath!,toPath: jsonFileURL.path)
-                    } catch let error as NSError {
-                        print("failed to copy mediaItems.json: \(error.localizedDescription)")
+                    
+                    if (jsonDocumentsModDate.isEqualTo(jsonBundleModDate)) {
+                        print("JSON in Documents is the same date as JSON in bundle")
+                        if  let jsonBundleFileSize = jsonBundleAttributes[FileAttributeKey.size] as? Int,
+                            let jsonDocumentsFileSize = jsonDocumentsAttributes[FileAttributeKey.size] as? Int {
+                            if (jsonBundleFileSize != jsonDocumentsFileSize) {
+                                print("Same dates different file sizes")
+                                //We have a problem.
+                            } else {
+                                print("Same dates same file sizes")
+                                //Do nothing, they are the same.
+                            }
+                        }
+                    }
+                    
+                    if (jsonBundleModDate.isNewerThan(jsonDocumentsModDate)) {
+                        print("JSON in bundle is newer than JSON in Documents")
+                        //copy the bundle into Documents directory
+                        do {
+                            // Copy File From Bundle To Documents Directory
+                            try fileManager.removeItem(atPath: jsonFileURL.path)
+                            try fileManager.copyItem(atPath: jsonBundlePath,toPath: jsonFileURL.path)
+                        } catch let error as NSError {
+                            print("failed to copy mediaItems.json: \(error.localizedDescription)")
+                        }
                     }
                 }
             } catch let error as NSError {
@@ -400,6 +404,10 @@ func jsonFromFileSystem(filename:String?) -> Any?
 
 func jsonFromURL(url:String,filename:String) -> Any?
 {
+    guard let url = URL(string: url) else {
+        return nil
+    }
+    
     guard let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
         return nil
     }
@@ -413,7 +421,7 @@ func jsonFromURL(url:String,filename:String) -> Any?
     }
     
     do {
-        let data = try Data(contentsOf: URL(string: url)!) // , options: NSData.ReadingOptions.mappedIfSafe
+        let data = try Data(contentsOf: url) // , options: NSData.ReadingOptions.mappedIfSafe
         print("able to read json from the URL.")
         
         do {
@@ -482,19 +490,27 @@ extension Date
 {
     //MARK: Date extension
 
-    init(dateString:String) {
+    init?(dateString:String) {
         let dateStringFormatter = DateFormatter()
         dateStringFormatter.dateFormat = "yyyy-MM-dd"
         dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-        let d = dateStringFormatter.date(from: dateString)!
+        
+        guard let d = dateStringFormatter.date(from: dateString) else {
+            return nil
+        }
+
         self = Date(timeInterval:0, since:d)
     }
     
-    init(string:String) {
+    init?(string:String) {
         let dateStringFormatter = DateFormatter()
         dateStringFormatter.dateFormat = "MMM dd, yyyy"
         dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
-        let d = dateStringFormatter.date(from: string)!
+
+        guard let d = dateStringFormatter.date(from: string) else {
+            return nil
+        }
+        
         self = Date(timeInterval:0, since:d)
     }
     
@@ -612,7 +628,7 @@ func stringWithoutPrefixes(_ fromString:String?) -> String?
     
     for prefix in prefixes {
         if (sourceString?.endIndex >= prefix.endIndex) && (sourceString?.substring(to: prefix.endIndex).lowercased() == prefix.lowercased()) {
-            sortString = sourceString!.substring(from: prefix.endIndex)
+            sortString = sourceString?.substring(from: prefix.endIndex)
             break
         }
     }
@@ -626,9 +642,13 @@ func stringWithoutPrefixes(_ fromString:String?) -> String?
 
 func mediaItemSections(_ mediaItems:[MediaItem]?,sorting:String?,grouping:String?) -> [String]?
 {
+    guard let grouping = grouping else {
+        return nil
+    }
+    
     var strings:[String]?
     
-    switch grouping! {
+    switch grouping {
     case GROUPING.YEAR:
         strings = yearsFromMediaItems(mediaItems, sorting: sorting)?.map() { (year) in
             return "\(year)"
@@ -662,20 +682,32 @@ func mediaItemSections(_ mediaItems:[MediaItem]?,sorting:String?,grouping:String
 
 func yearsFromMediaItems(_ mediaItems:[MediaItem]?, sorting: String?) -> [Int]?
 {
-    return mediaItems != nil ?
-        Array(
+    guard let mediaItems = mediaItems else {
+        return nil
+    }
+ 
+    guard let sorting = sorting else {
+        return nil
+    }
+    
+    return Array(
             Set(
-                mediaItems!.filter({ (mediaItem:MediaItem) -> Bool in
+                mediaItems.filter({ (mediaItem:MediaItem) -> Bool in
                     assert(mediaItem.fullDate != nil) // We're assuming this gets ALL mediaItems.
                     return mediaItem.fullDate != nil
                 }).map({ (mediaItem:MediaItem) -> Int in
                     let calendar = Calendar.current
-                    let components = (calendar as NSCalendar).components(.year, from: mediaItem.fullDate! as Date)
-                    return components.year!
+                    if let fullDate = mediaItem.fullDate {
+                        if let year = (calendar as NSCalendar).components(.year, from: fullDate).year {
+                            return year
+                        }
+                    }
+                    
+                    return -1
                 })
             )
             ).sorted(by: { (first:Int, second:Int) -> Bool in
-                switch sorting! {
+                switch sorting {
                 case SORTING.CHRONOLOGICAL:
                     return first < second
                     
@@ -688,7 +720,6 @@ func yearsFromMediaItems(_ mediaItems:[MediaItem]?, sorting: String?) -> [Int]?
                 
                 return false
             })
-        : nil
 }
 
 func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOnly:Bool) -> String?
@@ -723,7 +754,7 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                     let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
                     
                     if let characterAfter:Character = stringAfter.characters.first {
-                        if !CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterAfter))!) {
+                        if let unicodeScalar = UnicodeScalar(String(characterAfter)), !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                             skip = true
                         }
                         
@@ -738,15 +769,16 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                         }
                     }
                     if let characterBefore:Character = stringBefore.characters.last {
-                        if !CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterBefore))!) {
+                        if let unicodeScalar = UnicodeScalar(String(characterBefore)), !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                             skip = true
                         }
                     }
                 }
                 
                 foundString = string.substring(from: range.lowerBound)
-                let newRange = foundString.lowercased().range(of: searchText.lowercased())
-                foundString = foundString.substring(to: newRange!.upperBound)
+                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+                    foundString = foundString.substring(to: newRange.upperBound)
+                }
                 
                 if !skip {
                     foundString = "<mark>" + foundString + "</mark>"
@@ -807,7 +839,7 @@ func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wh
                 let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
                 
                 if let characterAfter:Character = stringAfter.characters.first {
-                    if !CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterAfter))!) {
+                    if let unicodeScalar = UnicodeScalar(String(characterAfter)), !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                         skip = true
                     }
                     
@@ -822,15 +854,16 @@ func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wh
                     }
                 }
                 if let characterBefore:Character = stringBefore.characters.last {
-                    if !CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterBefore))!) {
+                    if let unicodeScalar = UnicodeScalar(String(characterBefore)), !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                         skip = true
                     }
                 }
             }
             
             foundString = string.substring(from: range.lowerBound)
-            let newRange = foundString.lowercased().range(of: searchText.lowercased())
-            foundString = foundString.substring(to: newRange!.upperBound)
+            if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+                foundString = foundString.substring(to: newRange.upperBound)
+            }
             
             if !skip {
                 foundAttrString = NSAttributedString(string: foundString, attributes: Constants.Fonts.Attributes.highlighted)
@@ -952,96 +985,97 @@ func testament(_ book:String) -> String
 
 func versessFromScripture(_ scripture:String?) -> [Int]?
 {
+    guard let scripture = scripture else {
+        return nil
+    }
+    
     var verses = [Int]()
 
-    if (scripture != nil) {
-        var string = scripture?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
-        
-        if (string == Constants.EMPTY_STRING) {
-            return []
-        }
-        
-        let colon = string?.range(of: ":")
+    var string = scripture.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
+    
+    if (string == Constants.EMPTY_STRING) {
+        return []
+    }
+    
+    guard let colon = string.range(of: ":") else {
+        return []
+    }
 //        let hyphen = string?.range(of: "-")
 //        let comma = string?.range(of: ",")
-        
-        //Is not correct for books with only one chapter
-        // e.g. ["Philemon","Jude","2 John","3 John"]
-        if colon == nil {
-            return []
-        }
+    
+    //Is not correct for books with only one chapter
+    // e.g. ["Philemon","Jude","2 John","3 John"]
 
-        string = string?.substring(from: colon!.upperBound)
-        
-        var chars = Constants.EMPTY_STRING
-        
-        var seenHyphen = false
-        var seenComma = false
-        
-        var startVerse = 0
-        var endVerse = 0
-        
-        var breakOut = false
-        
-        for character in string!.characters {
-            if breakOut {
-                break
+    string = string.substring(from: colon.upperBound)
+    
+    var chars = Constants.EMPTY_STRING
+    
+    var seenHyphen = false
+    var seenComma = false
+    
+    var startVerse = 0
+    var endVerse = 0
+    
+    var breakOut = false
+    
+    for character in string.characters {
+        if breakOut {
+            break
+        }
+        switch character {
+        case "–":
+            fallthrough
+        case "-":
+            seenHyphen = true
+            if (startVerse == 0) {
+                if let num = Int(chars) {
+                    startVerse = num
+                }
             }
-            switch character {
-            case "–":
-                fallthrough
-            case "-":
-                seenHyphen = true
-                if (startVerse == 0) {
-                    if Int(chars) != nil {
-                        startVerse = Int(chars)!
-                    }
-                }
-                chars = Constants.EMPTY_STRING
-                break
-                
-            case "(":
-                breakOut = true
-                break
-                
-            case ",":
-                seenComma = true
-                if (Int(chars) != nil) {
-                    verses.append(Int(chars)!)
-                }
-                chars = Constants.EMPTY_STRING
-                break
-                
-            default:
-                chars.append(character)
+            chars = Constants.EMPTY_STRING
+            break
+            
+        case "(":
+            breakOut = true
+            break
+            
+        case ",":
+            seenComma = true
+            if let num = Int(chars) {
+                verses.append(num)
+            }
+            chars = Constants.EMPTY_STRING
+            break
+            
+        default:
+            chars.append(character)
 //                print(chars)
-                break
-            }
+            break
         }
-        if !seenHyphen {
-            if Int(chars) != nil {
-                startVerse = Int(chars)!
-            }
+    }
+    if !seenHyphen {
+        if let num = Int(chars) {
+            startVerse = num
         }
-        if (startVerse != 0) {
-            if (endVerse == 0) {
-                if (Int(chars) != nil) {
-                    endVerse = Int(chars)!
-                }
-                chars = Constants.EMPTY_STRING
+    }
+    if (startVerse != 0) {
+        if (endVerse == 0) {
+            if let num = Int(chars) {
+                endVerse = num
             }
-            if (endVerse != 0) {
-                for verse in startVerse...endVerse {
-                    verses.append(verse)
-                }
-            } else {
-                verses.append(startVerse)
-            }
+            chars = Constants.EMPTY_STRING
         }
-        if seenComma {
-            if Int(chars) != nil {
-                verses.append(Int(chars)!)
+        if (endVerse != 0) {
+            for verse in startVerse...endVerse {
+                verses.append(verse)
             }
+        } else {
+            verses.append(startVerse)
+        }
+    }
+    if seenComma {
+        if let num = Int(chars) {
+            verses.append(num)
         }
     }
     
@@ -1055,7 +1089,7 @@ func debug(_ string:String)
 
 func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
 {
-    guard (book != nil) else {
+    guard let book = book else {
         return nil
     }
     
@@ -1068,13 +1102,17 @@ func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
 
     startChapter = 1
     
-    switch testament(book!) {
+    switch testament(book) {
     case Constants.Old_Testament:
-        endChapter = Constants.OLD_TESTAMENT_CHAPTERS[Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!]
+        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
+            endChapter = Constants.OLD_TESTAMENT_CHAPTERS[index]
+        }
         break
         
     case Constants.New_Testament:
-        endChapter = Constants.NEW_TESTAMENT_CHAPTERS[Constants.NEW_TESTAMENT_BOOKS.index(of: book!)!]
+        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
+            endChapter = Constants.NEW_TESTAMENT_CHAPTERS[index]
+        }
         break
         
     default:
@@ -1084,13 +1122,17 @@ func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
     for chapter in startChapter...endChapter {
         startVerse = 1
         
-        switch testament(book!) {
+        switch testament(book) {
         case Constants.Old_Testament:
-            endVerse = Constants.OLD_TESTAMENT_VERSES[Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!][chapter - 1]
+            if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
+                endVerse = Constants.OLD_TESTAMENT_VERSES[index][chapter - 1]
+            }
             break
             
         case Constants.New_Testament:
-            endVerse = Constants.NEW_TESTAMENT_VERSES[Constants.NEW_TESTAMENT_BOOKS.index(of: book!)!][chapter - 1]
+            if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
+                endVerse = Constants.NEW_TESTAMENT_VERSES[index][chapter - 1]
+            }
             break
             
         default:
@@ -1111,7 +1153,7 @@ func chaptersAndVersesForBook(_ book:String?) -> [Int:[Int]]?
 
 func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
 {
-    guard book != nil else {
+    guard let book = book else {
         return nil
     }
  
@@ -1120,16 +1162,16 @@ func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
     let startVerse = 1
     var endVerse = 0
     
-    switch testament(book!) {
+    switch testament(book) {
     case Constants.Old_Testament:
-        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
+        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
             index < Constants.OLD_TESTAMENT_VERSES.count,
             chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
             endVerse = Constants.OLD_TESTAMENT_VERSES[index][chapter - 1]
         }
         break
     case Constants.New_Testament:
-        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!),
+        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
             index < Constants.NEW_TESTAMENT_VERSES.count,
             chapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
             endVerse = Constants.NEW_TESTAMENT_VERSES[index][chapter - 1]
@@ -1150,7 +1192,7 @@ func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
     }
     
     if verses.count == 0 {
-        switch testament(book!) {
+        switch testament(book) {
         case Constants.Old_Testament:
 //            let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!)
 //            print(Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!,Constants.OLD_TESTAMENT_VERSES.count,Constants.OLD_TESTAMENT_VERSES[index!].count)
@@ -1172,7 +1214,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
 {
     // This can only comprehend a range of chapters or a range of verses from a single book.
 
-    guard (book != nil) else {
+    guard let book = book else {
         return nil
     }
     
@@ -1211,15 +1253,17 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
     
     var token = Constants.EMPTY_STRING
     
-    for char in string!.characters {
-        if CharacterSet(charactersIn: ":,-").contains(UnicodeScalar(String(char))!) {
-            tokens.append(token)
-            token = Constants.EMPTY_STRING
-            
-            tokens.append(String(char))
-        } else {
-            if CharacterSet(charactersIn: "0123456789").contains(UnicodeScalar(String(char))!) {
-                token.append(char)
+    if let chars = string?.characters {
+        for char in chars {
+            if let unicodeScalar = UnicodeScalar(String(char)), CharacterSet(charactersIn: ":,-").contains(unicodeScalar) {
+                tokens.append(token)
+                token = Constants.EMPTY_STRING
+                
+                tokens.append(String(char))
+            } else {
+                if let unicodeScalar = UnicodeScalar(String(char)), CharacterSet(charactersIn: "0123456789").contains(unicodeScalar) {
+                    token.append(char)
+                }
             }
         }
     }
@@ -1231,11 +1275,11 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
     debug("Done w/ parsing and creating tokens")
     
     if tokens.count > 0 {
-        var startVerses = Constants.NO_CHAPTER_BOOKS.contains(book!)
+        var startVerses = Constants.NO_CHAPTER_BOOKS.contains(book)
         
         if let first = tokens.first, let number = Int(first) {
             tokens.remove(at: 0)
-            if Constants.NO_CHAPTER_BOOKS.contains(book!) {
+            if Constants.NO_CHAPTER_BOOKS.contains(book) {
                 currentChapter = 1
                 startVerse = number
             } else {
@@ -1318,16 +1362,16 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                             for chapter in startChapter...endChapter {
                                                 startVerse = 1
                                                 
-                                                switch testament(book!) {
+                                                switch testament(book) {
                                                 case Constants.Old_Testament:
-                                                    if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
+                                                    if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
                                                         index < Constants.OLD_TESTAMENT_VERSES.count,
                                                         chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
                                                         endVerse = Constants.OLD_TESTAMENT_VERSES[index][chapter - 1]
                                                     }
                                                     break
                                                 case Constants.New_Testament:
-                                                    if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!),
+                                                    if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
                                                         index < Constants.NEW_TESTAMENT_VERSES.count,
                                                         chapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
                                                         endVerse = Constants.NEW_TESTAMENT_VERSES[index][chapter - 1]
@@ -1420,16 +1464,16 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             
                             startVerse = 1
                             
-                            switch testament(book!) {
+                            switch testament(book) {
                             case Constants.Old_Testament:
-                                if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
+                                if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
                                     index < Constants.OLD_TESTAMENT_VERSES.count,
                                     startChapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
                                     endVerse = Constants.OLD_TESTAMENT_VERSES[index][startChapter - 1]
                                 }
                                 break
                             case Constants.New_Testament:
-                                if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!),
+                                if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
                                     index < Constants.NEW_TESTAMENT_VERSES.count,
                                     startChapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
                                     endVerse = Constants.NEW_TESTAMENT_VERSES[index][startChapter - 1]
@@ -1468,16 +1512,16 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 for chapter in start...end {
                                     startVerse = 1
                                     
-                                    switch testament(book!) {
+                                    switch testament(book) {
                                     case Constants.Old_Testament:
-                                        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
+                                        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
                                             index < Constants.OLD_TESTAMENT_VERSES.count,
                                             chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
                                             endVerse = Constants.OLD_TESTAMENT_VERSES[index][chapter - 1]
                                         }
                                         break
                                     case Constants.New_Testament:
-                                        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!),
+                                        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
                                             index < Constants.NEW_TESTAMENT_VERSES.count,
                                             chapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
                                             endVerse = Constants.NEW_TESTAMENT_VERSES[index][chapter - 1]
@@ -1537,16 +1581,16 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                         } else {
                             startVerse = 1
                             
-                            switch testament(book!) {
+                            switch testament(book) {
                             case Constants.Old_Testament:
-                                if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
+                                if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
                                     index < Constants.OLD_TESTAMENT_VERSES.count,
                                     startChapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
                                     endVerse = Constants.OLD_TESTAMENT_VERSES[index][startChapter - 1]
                                 }
                                 break
                             case Constants.New_Testament:
-                                if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!),
+                                if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
                                     index < Constants.NEW_TESTAMENT_VERSES.count,
                                     startChapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
                                     endVerse = Constants.NEW_TESTAMENT_VERSES[index][startChapter - 1]
@@ -1585,16 +1629,16 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 for chapter in start...end {
                                     startVerse = 1
                                     
-                                    switch testament(book!) {
+                                    switch testament(book) {
                                     case Constants.Old_Testament:
-                                        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
+                                        if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
                                             index < Constants.OLD_TESTAMENT_VERSES.count,
                                             chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
                                             endVerse = Constants.OLD_TESTAMENT_VERSES[index][chapter - 1]
                                         }
                                         break
                                     case Constants.New_Testament:
-                                        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!),
+                                        if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
                                             index < Constants.NEW_TESTAMENT_VERSES.count,
                                             chapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
                                                 endVerse = Constants.NEW_TESTAMENT_VERSES[index][chapter - 1]
@@ -1625,16 +1669,16 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                             
                             startVerse = 1
                             
-                            switch testament(book!) {
+                            switch testament(book) {
                             case Constants.Old_Testament:
-                                if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
+                                if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
                                     index < Constants.OLD_TESTAMENT_VERSES.count,
                                     endChapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
                                     endVerse = Constants.OLD_TESTAMENT_VERSES[index][endChapter - 1]
                                 }
                                 break
                             case Constants.New_Testament:
-                                if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!),
+                                if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
                                     index < Constants.NEW_TESTAMENT_VERSES.count,
                                     endChapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
                                     endVerse = Constants.NEW_TESTAMENT_VERSES[index][endChapter - 1]
@@ -1685,12 +1729,16 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                 debug("Reference is split across chapters")
                                 debug("First get the endVerse for the first chapter in the reference")
                                 
-                                switch testament(book!) {
+                                switch testament(book) {
                                 case Constants.Old_Testament:
-                                    endVerse = Constants.OLD_TESTAMENT_VERSES[Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!][currentChapter - 1]
+                                    if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
+                                        endVerse = Constants.OLD_TESTAMENT_VERSES[index][currentChapter - 1]
+                                    }
                                     break
                                 case Constants.New_Testament:
-                                    endVerse = Constants.NEW_TESTAMENT_VERSES[Constants.NEW_TESTAMENT_BOOKS.index(of: book!)!][currentChapter - 1]
+                                    if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
+                                        endVerse = Constants.NEW_TESTAMENT_VERSES[index][currentChapter - 1]
+                                    }
                                     break
                                 default:
                                     break
@@ -1728,16 +1776,16 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
                                     for chapter in start...end {
                                         startVerse = 1
                                         
-                                        switch testament(book!) {
+                                        switch testament(book) {
                                         case Constants.Old_Testament:
-                                            if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!),
+                                            if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book),
                                                 index < Constants.OLD_TESTAMENT_VERSES.count,
                                                 chapter <= Constants.OLD_TESTAMENT_VERSES[index].count {
                                                 endVerse = Constants.OLD_TESTAMENT_VERSES[index][chapter - 1]
                                             }
                                             break
                                         case Constants.New_Testament:
-                                            if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!),
+                                            if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book),
                                                 index < Constants.NEW_TESTAMENT_VERSES.count,
                                                 chapter <= Constants.NEW_TESTAMENT_VERSES[index].count {
                                                 endVerse = Constants.NEW_TESTAMENT_VERSES[index][chapter - 1]
@@ -1910,130 +1958,134 @@ func chaptersFromScriptureReference(_ scriptureReference:String?) -> [Int]?
 {
     // This can only comprehend a range of chapters or a range of verses from a single book.
     
+    guard let scriptureReference = scriptureReference else {
+        return nil
+    }
+    
     var chapters = [Int]()
     
     var colonCount = 0
     
-    if (scriptureReference != nil) {
-        let string = scriptureReference?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
-        
-        if (string == Constants.EMPTY_STRING) {
-            return nil
+    let string = scriptureReference.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
+    
+    if (string == Constants.EMPTY_STRING) {
+        return nil
+    }
+    
+    //        print("\(string!)")
+    
+    let colon = string.range(of: ":")
+    let hyphen = string.range(of: "-")
+    let comma = string.range(of: ",")
+    
+    //        print(scripture,string)
+    
+    if (colon == nil) && (hyphen == nil) &&  (comma == nil) {
+        if let num = Int(string) {
+            chapters = [num]
         }
+    } else {
+        var chars = Constants.EMPTY_STRING
         
-        //        print("\(string!)")
+        var seenColon = false
+        var seenHyphen = false
+        var seenComma = false
         
-        let colon = string!.range(of: ":")
-        let hyphen = string!.range(of: "-")
-        let comma = string!.range(of: ",")
+        var startChapter = 0
+        var endChapter = 0
         
-        //        print(scripture,string)
+        var breakOut = false
         
-        if (colon == nil) && (hyphen == nil) &&  (comma == nil) {
-            if (Int(string!) != nil) {
-                chapters = [Int(string!)!]
+        for character in string.characters {
+            if breakOut {
+                break
             }
-        } else {
-            var chars = Constants.EMPTY_STRING
-            
-            var seenColon = false
-            var seenHyphen = false
-            var seenComma = false
-            
-            var startChapter = 0
-            var endChapter = 0
-            
-            var breakOut = false
-            
-            for character in string!.characters {
-                if breakOut {
-                    break
-                }
-                switch character {
-                case ":":
-                    if !seenColon {
-                        seenColon = true
-                        if (Int(chars) != nil) {
-                            if (startChapter == 0) {
-                                startChapter = Int(chars)!
-                            } else {
-                                endChapter = Int(chars)!
-                            }
-                        }
-                    } else {
-                        if (seenHyphen) {
-                            if (Int(chars) != nil) {
-                                endChapter = Int(chars)!
-                            }
-                        } else {
-                            //Error
-                        }
-                    }
-                    colonCount += 1
-                    chars = Constants.EMPTY_STRING
-                    break
-                    
-                case "–":
-                    fallthrough
-                case "-":
-                    seenHyphen = true
-                    if colonCount == 0 {
-                        // This is a chapter not a verse
+            switch character {
+            case ":":
+                if !seenColon {
+                    seenColon = true
+                    if let num = Int(chars) {
                         if (startChapter == 0) {
-                            if Int(chars) != nil {
-                                startChapter = Int(chars)!
-                            }
+                            startChapter = num
+                        } else {
+                            endChapter = num
                         }
-                    }
-                    chars = Constants.EMPTY_STRING
-                    break
-                    
-                case "(":
-                    breakOut = true
-                    break
-                    
-                case ",":
-                    seenComma = true
-                    if !seenColon {
-                        // This is a chapter not a verse
-                        if (Int(chars) != nil) {
-                            chapters.append(Int(chars)!)
-                        }
-                        chars = Constants.EMPTY_STRING
-                    } else {
-                        // Could be chapter or a verse
-                        chars = Constants.EMPTY_STRING
-                    }
-                    break
-                    
-                default:
-                    chars.append(character)
-                    //                    print(chars)
-                    break
-                }
-            }
-            if (startChapter != 0) {
-                if (endChapter == 0) {
-                    if (colonCount == 0) {
-                        if (Int(chars) != nil) {
-                            endChapter = Int(chars)!
-                        }
-                        chars = Constants.EMPTY_STRING
-                    }
-                }
-                if (endChapter != 0) {
-                    for chapter in startChapter...endChapter {
-                        chapters.append(chapter)
                     }
                 } else {
-                    chapters.append(startChapter)
+                    if (seenHyphen) {
+                        if let num = Int(chars) {
+                            endChapter = num
+                        }
+                    } else {
+                        //Error
+                    }
+                }
+                colonCount += 1
+                chars = Constants.EMPTY_STRING
+                break
+                
+            case "–":
+                fallthrough
+            case "-":
+                seenHyphen = true
+                if colonCount == 0 {
+                    // This is a chapter not a verse
+                    if (startChapter == 0) {
+                        if let num = Int(chars) {
+                            startChapter = num
+                        }
+                    }
+                }
+                chars = Constants.EMPTY_STRING
+                break
+                
+            case "(":
+                breakOut = true
+                break
+                
+            case ",":
+                seenComma = true
+                if !seenColon {
+                    // This is a chapter not a verse
+                    if let num = Int(chars) {
+                        chapters.append(num)
+                    }
+                    chars = Constants.EMPTY_STRING
+                } else {
+                    // Could be chapter or a verse
+                    chars = Constants.EMPTY_STRING
+                }
+                break
+                
+            default:
+                chars.append(character)
+                //                    print(chars)
+                break
+            }
+        }
+        if (startChapter != 0) {
+            if (endChapter == 0) {
+                if (colonCount == 0) {
+                    if let num = Int(chars) {
+                        endChapter = num
+                    }
+                    chars = Constants.EMPTY_STRING
                 }
             }
-            if seenComma {
-                if Int(chars) != nil {
-                    if !seenColon {
-                        // This is a chapter not a verse
-                        chapters.append(Int(chars)!)
+            if (endChapter != 0) {
+                for chapter in startChapter...endChapter {
+                    chapters.append(chapter)
+                }
+            } else {
+                chapters.append(startChapter)
+            }
+        }
+        if seenComma {
+            if Int(chars) != nil {
+                if !seenColon {
+                    // This is a chapter not a verse
+                    if let num = Int(chars) {
+                        chapters.append(num)
                     }
                 }
             }
@@ -2048,87 +2100,93 @@ func chaptersFromScriptureReference(_ scriptureReference:String?) -> [Int]?
 
 func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
 {
+    guard let scriptureReference = scriptureReference else {
+        return nil
+    }
+    
     var books = [String]()
     
-    if (scriptureReference != nil) {
-        var string:String?
-        
-        string = scriptureReference
+    var string:String?
+    
+    string = scriptureReference
 //        print(string)
-        
-        var otBooks = [String]()
-        
-        for book in Constants.OLD_TESTAMENT_BOOKS {
-            if string?.range(of: book) != nil {
-                otBooks.append(book)
-                string = string!.substring(to: string!.range(of: book)!.lowerBound) + Constants.SINGLE_SPACE + string!.substring(from: string!.range(of: book)!.upperBound)
+    
+    var otBooks = [String]()
+    
+    for book in Constants.OLD_TESTAMENT_BOOKS {
+        if let range = string?.range(of: book) {
+            otBooks.append(book)
+            if let before = string?.substring(to: range.lowerBound), let after = string?.substring(from: range.upperBound) {
+                string = before + Constants.SINGLE_SPACE + after
             }
         }
-        
-        for book in Constants.NEW_TESTAMENT_BOOKS.reversed() {
-            if string?.range(of: book) != nil {
-                books.append(book)
-                string = string!.substring(to: string!.range(of: book)!.lowerBound) + Constants.SINGLE_SPACE + string!.substring(from: string!.range(of: book)!.upperBound)
+    }
+    
+    for book in Constants.NEW_TESTAMENT_BOOKS.reversed() {
+        if let range = string?.range(of: book) {
+            books.append(book)
+            if let before = string?.substring(to: range.lowerBound), let after = string?.substring(from: range.upperBound) {
+                string = before + Constants.SINGLE_SPACE + after
             }
         }
-        
-        let ntBooks = books.reversed()
+    }
+    
+    let ntBooks = books.reversed()
 
-        books = otBooks
-        books.append(contentsOf: ntBooks)
-        
-        string = string?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
+    books = otBooks
+    books.append(contentsOf: ntBooks)
+    
+    string = string?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.EMPTY_STRING)
 
 //        print(string)
-        
-        // Only works for "<book> - <book>"
-        
-        if (string == "-") {
-            if books.count == 2 {
-                let book1 = scriptureReference?.range(of: books[0])
-                let book2 = scriptureReference?.range(of: books[1])
-                let hyphen = scriptureReference?.range(of: "-")
+    
+    // Only works for "<book> - <book>"
+    
+    if (string == "-") {
+        if books.count == 2 {
+            let book1 = scriptureReference.range(of: books[0])
+            let book2 = scriptureReference.range(of: books[1])
+            let hyphen = scriptureReference.range(of: "-")
 
-                if ((book1?.upperBound < hyphen?.lowerBound) && (hyphen?.upperBound < book2?.lowerBound)) ||
-                    ((book2?.upperBound < hyphen?.lowerBound) && (hyphen?.upperBound < book1?.lowerBound)) {
-                    //                print(first)
-                    //                print(last)
-                    
-                    books = [String]()
-                    
-                    let first = books[0]
-                    let last = books[1]
-                    
-                    if Constants.OLD_TESTAMENT_BOOKS.contains(first) && Constants.OLD_TESTAMENT_BOOKS.contains(last) {
-                        if let firstIndex = Constants.OLD_TESTAMENT_BOOKS.index(of: first),
-                            let lastIndex = Constants.OLD_TESTAMENT_BOOKS.index(of: last) {
-                            for index in firstIndex...lastIndex {
-                                books.append(Constants.OLD_TESTAMENT_BOOKS[index])
-                            }
+            if ((book1?.upperBound < hyphen?.lowerBound) && (hyphen?.upperBound < book2?.lowerBound)) ||
+                ((book2?.upperBound < hyphen?.lowerBound) && (hyphen?.upperBound < book1?.lowerBound)) {
+                //                print(first)
+                //                print(last)
+                
+                books = [String]()
+                
+                let first = books[0]
+                let last = books[1]
+                
+                if Constants.OLD_TESTAMENT_BOOKS.contains(first) && Constants.OLD_TESTAMENT_BOOKS.contains(last) {
+                    if let firstIndex = Constants.OLD_TESTAMENT_BOOKS.index(of: first),
+                        let lastIndex = Constants.OLD_TESTAMENT_BOOKS.index(of: last) {
+                        for index in firstIndex...lastIndex {
+                            books.append(Constants.OLD_TESTAMENT_BOOKS[index])
                         }
                     }
-                    
-                    if Constants.OLD_TESTAMENT_BOOKS.contains(first) && Constants.NEW_TESTAMENT_BOOKS.contains(last) {
-                        if let firstIndex = Constants.OLD_TESTAMENT_BOOKS.index(of: first) {
-                            let lastIndex = Constants.OLD_TESTAMENT_BOOKS.count - 1
-                            for index in firstIndex...lastIndex {
-                                books.append(Constants.OLD_TESTAMENT_BOOKS[index])
-                            }
-                        }
-                        let firstIndex = 0
-                        if let lastIndex = Constants.NEW_TESTAMENT_BOOKS.index(of: last) {
-                            for index in firstIndex...lastIndex {
-                                books.append(Constants.NEW_TESTAMENT_BOOKS[index])
-                            }
+                }
+                
+                if Constants.OLD_TESTAMENT_BOOKS.contains(first) && Constants.NEW_TESTAMENT_BOOKS.contains(last) {
+                    if let firstIndex = Constants.OLD_TESTAMENT_BOOKS.index(of: first) {
+                        let lastIndex = Constants.OLD_TESTAMENT_BOOKS.count - 1
+                        for index in firstIndex...lastIndex {
+                            books.append(Constants.OLD_TESTAMENT_BOOKS[index])
                         }
                     }
-                    
-                    if Constants.NEW_TESTAMENT_BOOKS.contains(first) && Constants.NEW_TESTAMENT_BOOKS.contains(last) {
-                        if let firstIndex = Constants.NEW_TESTAMENT_BOOKS.index(of: first),
-                            let lastIndex = Constants.NEW_TESTAMENT_BOOKS.index(of: last) {
-                            for index in firstIndex...lastIndex {
-                                books.append(Constants.NEW_TESTAMENT_BOOKS[index])
-                            }
+                    let firstIndex = 0
+                    if let lastIndex = Constants.NEW_TESTAMENT_BOOKS.index(of: last) {
+                        for index in firstIndex...lastIndex {
+                            books.append(Constants.NEW_TESTAMENT_BOOKS[index])
+                        }
+                    }
+                }
+                
+                if Constants.NEW_TESTAMENT_BOOKS.contains(first) && Constants.NEW_TESTAMENT_BOOKS.contains(last) {
+                    if let firstIndex = Constants.NEW_TESTAMENT_BOOKS.index(of: first),
+                        let lastIndex = Constants.NEW_TESTAMENT_BOOKS.index(of: last) {
+                        for index in firstIndex...lastIndex {
+                            books.append(Constants.NEW_TESTAMENT_BOOKS[index])
                         }
                     }
                 }
@@ -2137,26 +2195,32 @@ func booksFromScriptureReference(_ scriptureReference:String?) -> [String]?
     }
     
 //    print(books)
-    return books.count > 0 ? books.sorted() { scriptureReference?.range(of: $0)?.lowerBound < scriptureReference?.range(of: $1)?.lowerBound } : nil // redundant
+    return books.count > 0 ? books.sorted() { scriptureReference.range(of: $0)?.lowerBound < scriptureReference.range(of: $1)?.lowerBound } : nil // redundant
 }
 
 func multiPartMediaItems(_ mediaItem:MediaItem?) -> [MediaItem]?
 {
+    guard let mediaItem = mediaItem else {
+        return nil
+    }
+    
+    guard let multiPartSort = mediaItem.multiPartSort else {
+        return nil
+    }
+    
     var multiPartMediaItems:[MediaItem]?
     
-    if (mediaItem != nil) {
-        if (mediaItem!.hasMultipleParts) {
-            if (globals.media.all?.groupSort?[GROUPING.TITLE]?[mediaItem!.multiPartSort!]?[SORTING.CHRONOLOGICAL] == nil) {
-                let seriesMediaItems = globals.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
-                    return mediaItem!.hasMultipleParts ? (testMediaItem.multiPartName == mediaItem!.multiPartName) : (testMediaItem.id == mediaItem!.id)
-                })
-                multiPartMediaItems = sortMediaItemsByYear(seriesMediaItems, sorting: SORTING.CHRONOLOGICAL)
-            } else {
-                multiPartMediaItems = globals.media.all?.groupSort?[GROUPING.TITLE]?[mediaItem!.multiPartSort!]?[SORTING.CHRONOLOGICAL]
-            }
+    if mediaItem.hasMultipleParts {
+        if (globals.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL] == nil) {
+            let seriesMediaItems = globals.mediaRepository.list?.filter({ (testMediaItem:MediaItem) -> Bool in
+                return mediaItem.hasMultipleParts ? (testMediaItem.multiPartName == mediaItem.multiPartName) : (testMediaItem.id == mediaItem.id)
+            })
+            multiPartMediaItems = sortMediaItemsByYear(seriesMediaItems, sorting: SORTING.CHRONOLOGICAL)
         } else {
-            multiPartMediaItems = [mediaItem!]
+            multiPartMediaItems = globals.media.all?.groupSort?[GROUPING.TITLE]?[multiPartSort]?[SORTING.CHRONOLOGICAL]
         }
+    } else {
+        multiPartMediaItems = [mediaItem]
     }
     
     return multiPartMediaItems
@@ -2164,34 +2228,38 @@ func multiPartMediaItems(_ mediaItem:MediaItem?) -> [MediaItem]?
 
 func mediaItemsInBook(_ mediaItems:[MediaItem]?,book:String?) -> [MediaItem]?
 {
-    guard (book != nil) else {
+    guard let book = book else {
         return nil
     }
     
     return mediaItems?.filter({ (mediaItem:MediaItem) -> Bool in
         if let books = mediaItem.books {
-            return books.contains(book!)
+            return books.contains(book)
         } else {
             return false
         }
     }).sorted(by: { (first:MediaItem, second:MediaItem) -> Bool in
-        if (first.fullDate!.isEqualTo(second.fullDate!)) {
-            return first.service < second.service
+        if let firstDate = first.fullDate, let secondDate = second.fullDate {
+            if (firstDate.isEqualTo(secondDate)) {
+                return first.service < second.service
+            } else {
+                return firstDate.isOlderThan(secondDate)
+            }
         } else {
-            return first.fullDate!.isOlderThan(second.fullDate!)
+            return false // Arbitrary
         }
     })
 }
 
 func booksFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 {
-    guard (mediaItems != nil) else {
+    guard let mediaItems = mediaItems else {
         return nil
     }
     
     var bookSet = Set<String>()
     
-    for mediaItem in mediaItems! {
+    for mediaItem in mediaItems {
         if let books = mediaItem.books {
             for book in books {
                 bookSet.insert(book)
@@ -2225,13 +2293,13 @@ func booksFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 
 func bookSectionsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 {
-    guard (mediaItems != nil) else {
+    guard let mediaItems = mediaItems else {
         return nil
     }
     
     var bookSectionSet = Set<String>()
     
-    for mediaItem in mediaItems! {
+    for mediaItem in mediaItems {
         for bookSection in mediaItem.bookSections {
             bookSectionSet.insert(bookSection)
         }
@@ -2261,10 +2329,14 @@ func bookSectionsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 
 func seriesFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 {
-    return mediaItems != nil ?
+    guard let mediaItems = mediaItems else {
+        return nil
+    }
+    
+    return
         Array(
             Set(
-                mediaItems!.filter({ (mediaItem:MediaItem) -> Bool in
+                mediaItems.filter({ (mediaItem:MediaItem) -> Bool in
                     return mediaItem.hasMultipleParts
                 }).map({ (mediaItem:MediaItem) -> String in
                     return mediaItem.multiPartName!
@@ -2273,30 +2345,40 @@ func seriesFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
             ).sorted(by: { (first:String, second:String) -> Bool in
                 return stringWithoutPrefixes(first) < stringWithoutPrefixes(second)
             })
-        : nil
 }
 
 func seriesSectionsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 {
-    return mediaItems != nil ?
+    guard let mediaItems = mediaItems else {
+        return nil
+    }
+    
+    return
         Array(
             Set(
-                mediaItems!.map({ (mediaItem:MediaItem) -> String in
-                    return mediaItem.multiPartSection!
+                mediaItems.map({ (mediaItem:MediaItem) -> String in
+                    if let multiPartSection = mediaItem.multiPartSection {
+                        return multiPartSection
+                    } else {
+                        return "ERROR"
+                    }
                 })
             )
             ).sorted(by: { (first:String, second:String) -> Bool in
                 return stringWithoutPrefixes(first) < stringWithoutPrefixes(second)
             })
-        : nil
 }
 
 func seriesSectionsFromMediaItems(_ mediaItems:[MediaItem]?,withTitles:Bool) -> [String]?
 {
-    return mediaItems != nil ?
+    guard let mediaItems = mediaItems else {
+        return nil
+    }
+    
+    return
         Array(
             Set(
-                mediaItems!.map({ (mediaItem:MediaItem) -> String in
+                mediaItems.map({ (mediaItem:MediaItem) -> String in
                     if (mediaItem.hasMultipleParts) {
                         return mediaItem.multiPartName!
                     } else {
@@ -2307,20 +2389,19 @@ func seriesSectionsFromMediaItems(_ mediaItems:[MediaItem]?,withTitles:Bool) -> 
             ).sorted(by: { (first:String, second:String) -> Bool in
                 return stringWithoutPrefixes(first) < stringWithoutPrefixes(second)
             })
-        : nil
 }
 
 func bookNumberInBible(_ book:String?) -> Int?
 {
-    guard (book != nil) else {
+    guard let book = book else {
         return nil
     }
 
-    if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!) {
+    if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
         return index
     }
     
-    if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!) {
+    if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
         return Constants.OLD_TESTAMENT_BOOKS.count + index
     }
     
@@ -2362,16 +2443,16 @@ func tokensFromString(_ string:String?) -> [String]?
         return nil
     }
     
-    guard (string != nil) else {
+    guard let string = string else {
         return nil
     }
     
     var tokens = Set<String>()
     
-    var str = string?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    var str = string.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
     
-    if let range = str?.range(of: Constants.PART_INDICATOR_SINGULAR) {
-        str = str?.substring(to: range.lowerBound)
+    if let range = str.range(of: Constants.PART_INDICATOR_SINGULAR) {
+        str = str.substring(to: range.lowerBound)
     }
     
     //        print(name)
@@ -2417,16 +2498,16 @@ func tokensFromString(_ string:String?) -> [String]?
         }
     }
     
-    for char in str!.characters {
+    for char in str.characters {
         //        print(char)
         
-        if UnicodeScalar(String(char)) != nil {
-            if CharacterSet(charactersIn: breakChars).contains(UnicodeScalar(String(char))!) {
+        if let unicodeScalar = UnicodeScalar(String(char)) {
+            if CharacterSet(charactersIn: breakChars).contains(unicodeScalar) {
                 //                print(token)
                 processToken()
             } else {
-                if !CharacterSet(charactersIn: "$0123456789").contains(UnicodeScalar(String(char))!) {
-                    if !CharacterSet(charactersIn: trimChars).contains(UnicodeScalar(String(char))!) || (token != Constants.EMPTY_STRING) {
+                if !CharacterSet(charactersIn: "$0123456789").contains(unicodeScalar) {
+                    if !CharacterSet(charactersIn: trimChars).contains(unicodeScalar) || (token != Constants.EMPTY_STRING) {
                         // DO NOT WANT LEADING CHARS IN SET
                         //                        print(token)
                         token.append(char)
@@ -2456,17 +2537,17 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
         return nil
     }
     
-    guard (string != nil) else {
+    guard let string = string else {
         return nil
     }
     
     var tokens = [String:Int]()
     
-    var str = string?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    var str = string.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
     
     // TOKENIZING A TITLE RATHER THAN THE BODY, THIS MAY CAUSE PROBLEMS FOR BODY TEXT.
-    if let range = str?.range(of: Constants.PART_INDICATOR_SINGULAR) {
-        str = str?.substring(to: range.lowerBound)
+    if let range = str.range(of: Constants.PART_INDICATOR_SINGULAR) {
+        str = str.substring(to: range.lowerBound)
     }
     
     //        print(name)
@@ -2517,16 +2598,16 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
         }
     }
     
-    for char in str!.characters {
+    for char in str.characters {
         //        print(char)
         
-        if UnicodeScalar(String(char)) != nil {
-            if CharacterSet(charactersIn: breakChars).contains(UnicodeScalar(String(char))!) {
+        if let unicodeScalar = UnicodeScalar(String(char)) {
+            if CharacterSet(charactersIn: breakChars).contains(unicodeScalar) {
 //                print(token)
                 processToken()
             } else {
-                if !CharacterSet(charactersIn: "$0123456789").contains(UnicodeScalar(String(char))!) {
-                    if !CharacterSet(charactersIn: trimChars).contains(UnicodeScalar(String(char))!) || (token != Constants.EMPTY_STRING) {
+                if !CharacterSet(charactersIn: "$0123456789").contains(unicodeScalar) {
+                    if !CharacterSet(charactersIn: trimChars).contains(unicodeScalar) || (token != Constants.EMPTY_STRING) {
                         // DO NOT WANT LEADING CHARS IN SET
 //                        print(token)
                         token.append(char)
@@ -2571,25 +2652,24 @@ func century(_ strings:String?) -> String?
 
 func firstNameFromName(_ name:String?) -> String?
 {
+    guard let name = name else {
+        return nil
+    }
+    
     var firstName:String?
     
     var string:String?
     
-    if (name != nil) {
-        if let title = titleFromName(name) {
-            string = name?.substring(from: title.endIndex)
-        } else {
-            string = name
-        }
-        
-        string = string?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    if let title = titleFromName(name) {
+        string = name.substring(from: title.endIndex)
+    } else {
+        string = name
+    }
     
-//        print(name)
-//        print(string)
-        
+    if let string = string?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) {
         var newString = Constants.EMPTY_STRING
         
-        for char in string!.characters {
+        for char in string.characters {
             if String(char) == Constants.SINGLE_SPACE {
                 firstName = newString
                 break
@@ -2597,16 +2677,23 @@ func firstNameFromName(_ name:String?) -> String?
             newString.append(char)
         }
     }
+
+//        print(name)
+//        print(string)
     
     return firstName
 }
 
 func titleFromName(_ name:String?) -> String?
 {
+    guard let name = name else {
+        return nil
+    }
+    
     var title = Constants.EMPTY_STRING
     
-    if (name != nil) && (name?.range(of: ". ") != nil) {
-        for char in name!.characters {
+    if name.range(of: ". ") != nil {
+        for char in name.characters {
             title.append(char)
             if String(char) == "." {
                 break
@@ -2619,35 +2706,45 @@ func titleFromName(_ name:String?) -> String?
 
 func classSectionsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 {
-    return mediaItems != nil ?
+    guard let mediaItems = mediaItems else {
+        return nil
+    }
+    
+    return
         Array(
-            Set(mediaItems!.map({ (mediaItem:MediaItem) -> String in
+            Set(mediaItems.map({ (mediaItem:MediaItem) -> String in
                 return mediaItem.classSection!
             })
             )
             ).sorted()
-        : nil
 }
 
 func speakerSectionsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 {
-    return mediaItems != nil ?
+    guard let mediaItems = mediaItems else {
+        return nil
+    }
+    
+    return
         Array(
-            Set(mediaItems!.map({ (mediaItem:MediaItem) -> String in
+            Set(mediaItems.map({ (mediaItem:MediaItem) -> String in
                 return mediaItem.speakerSection!
             })
             )
             ).sorted(by: { (first:String, second:String) -> Bool in
                 return lastNameFromName(first) < lastNameFromName(second)
             })
-        : nil
 }
 
 func speakersFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 {
-    return mediaItems != nil ?
+    guard let mediaItems = mediaItems else {
+        return nil
+    }
+    
+    return
         Array(
-            Set(mediaItems!.filter({ (mediaItem:MediaItem) -> Bool in
+            Set(mediaItems.filter({ (mediaItem:MediaItem) -> Bool in
                 return mediaItem.hasSpeaker
             }).map({ (mediaItem:MediaItem) -> String in
                 return mediaItem.speaker!
@@ -2656,20 +2753,23 @@ func speakersFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
             ).sorted(by: { (first:String, second:String) -> Bool in
                 return lastNameFromName(first) < lastNameFromName(second)
             })
-        : nil
 }
 
 func sortMediaItemsChronologically(_ mediaItems:[MediaItem]?) -> [MediaItem]?
 {
     return mediaItems?.sorted() {
-        if ($0.fullDate!.isEqualTo($1.fullDate!)) {
+        guard let firstDate = $0.fullDate, let secondDate = $1.fullDate else {
+            return false // arbitrary
+        }
+        
+        if (firstDate.isEqualTo(secondDate)) {
             if ($0.service == $1.service) {
                 return $0.part < $1.part
             } else {
                  return $0.service < $1.service
             }
         } else {
-            return $0.fullDate!.isOlderThan($1.fullDate!)
+            return firstDate.isOlderThan(secondDate)
         }
     }
 }
@@ -2677,23 +2777,31 @@ func sortMediaItemsChronologically(_ mediaItems:[MediaItem]?) -> [MediaItem]?
 func sortMediaItemsReverseChronologically(_ mediaItems:[MediaItem]?) -> [MediaItem]?
 {
     return mediaItems?.sorted() {
-        if ($0.fullDate!.isEqualTo($1.fullDate!)) {
+        guard let firstDate = $0.fullDate, let secondDate = $1.fullDate else {
+            return false // arbitrary
+        }
+        
+        if (firstDate.isEqualTo(secondDate)) {
             if ($0.service == $1.service) {
                 return $0.part > $1.part
             } else {
                 return $0.service > $1.service
             }
         } else {
-            return $0.fullDate!.isNewerThan($1.fullDate!)
+            return firstDate.isNewerThan(secondDate)
         }
     }
 }
 
 func sortMediaItemsByYear(_ mediaItems:[MediaItem]?,sorting:String?) -> [MediaItem]?
 {
+    guard let sorting = sorting else {
+        return nil
+    }
+    
     var sortedMediaItems:[MediaItem]?
 
-    switch sorting! {
+    switch sorting {
     case SORTING.CHRONOLOGICAL:
         sortedMediaItems = sortMediaItemsChronologically(mediaItems)
         break
@@ -2711,22 +2819,34 @@ func sortMediaItemsByYear(_ mediaItems:[MediaItem]?,sorting:String?) -> [MediaIt
 
 func compareMediaItemDates(first:MediaItem, second:MediaItem, sorting:String?) -> Bool
 {
+    guard let sorting = sorting else {
+        return false // arbitrary
+    }
+    
+    guard let firstDate = first.fullDate else {
+        return false // arbitrary
+    }
+    
+    guard let secondDate = second.fullDate else {
+        return false // arbitrary
+    }
+    
     var result = false
 
-    switch sorting! {
+    switch sorting {
     case SORTING.CHRONOLOGICAL:
-        if (first.fullDate!.isEqualTo(second.fullDate!)) {
+        if (firstDate.isEqualTo(secondDate)) {
             result = (first.service < second.service)
         } else {
-            result = first.fullDate!.isOlderThan(second.fullDate!)
+            result = firstDate.isOlderThan(secondDate)
         }
         break
     
     case SORTING.REVERSE_CHRONOLOGICAL:
-        if (first.fullDate!.isEqualTo(second.fullDate!)) {
+        if (firstDate.isEqualTo(secondDate)) {
             result = (first.service > second.service)
         } else {
-            result = first.fullDate!.isNewerThan(second.fullDate!)
+            result = firstDate.isNewerThan(secondDate)
         }
         break
         
@@ -2806,17 +2926,17 @@ func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
 //                    print(".", terminator: Constants.EMPTY_STRING)
                 }
                 
-                if (mediaItem.notes != nil) {
-                    if ((try? Data(contentsOf: mediaItem.notesURL!)) == nil) {
-                        print("Transcript DOES NOT exist for: \(mediaItem.title!) PDF: \(mediaItem.notes!)")
+                if let title = mediaItem.title, let notes = mediaItem.notes, let notesURL = mediaItem.notesURL {
+                    if ((try? Data(contentsOf: notesURL)) == nil) {
+                        print("Transcript DOES NOT exist for: \(title) PDF: \(notes)")
                     } else {
                         
                     }
                 }
                 
-                if (mediaItem.slides != nil) {
-                    if ((try? Data(contentsOf: mediaItem.slidesURL!)) == nil) {
-                        print("Slides DO NOT exist for: \(mediaItem.title!) PDF: \(mediaItem.slides!)")
+                if let title = mediaItem.title, let slides = mediaItem.slides, let slidesURL = mediaItem.slidesURL {
+                    if ((try? Data(contentsOf: slidesURL)) == nil) {
+                        print("Slides DO NOT exist for: \(title) PDF: \(slides)")
                     } else {
                         
                     }
@@ -2844,17 +2964,17 @@ func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
                 if (mediaItem.audio == nil) {
                     print("No Audio file for: \(String(describing: mediaItem.title)) can't test for PDF's")
                 } else {
-                    if (mediaItem.notes == nil) {
-                        if ((try? Data(contentsOf: mediaItem.notesURL!)) != nil) {
-                            print("Transcript DOES exist for: \(mediaItem.title!) ID:\(mediaItem.id)")
+                    if let title = mediaItem.title, let id = mediaItem.id, let notesURL = mediaItem.notesURL {
+                        if ((try? Data(contentsOf: notesURL)) != nil) {
+                            print("Transcript DOES exist for: \(title) ID:\(id)")
                         } else {
                             
                         }
                     }
                     
-                    if (mediaItem.slides == nil) {
-                        if ((try? Data(contentsOf: mediaItem.slidesURL!)) != nil) {
-                            print("Slides DO exist for: \(mediaItem.title!) ID: \(mediaItem.id)")
+                    if let title = mediaItem.title, let id = mediaItem.id, let slidesURL = mediaItem.slidesURL {
+                        if ((try? Data(contentsOf: slidesURL)) != nil) {
+                            print("Slides DO exist for: \(title) ID: \(id)")
                         } else {
                             
                         }
@@ -2929,18 +3049,22 @@ func testMediaItemsForSeries()
 
 func tagsSetFromTagsString(_ tagsString:String?) -> Set<String>?
 {
+    guard let tagsString = tagsString else {
+        return nil
+    }
+    
     var tags = tagsString
     var tag:String
     var setOfTags = Set<String>()
     
-    while (tags?.range(of: Constants.TAGS_SEPARATOR) != nil) {
-        tag = tags!.substring(to: tags!.range(of: Constants.TAGS_SEPARATOR)!.lowerBound)
+    while let range = tags.range(of: Constants.TAGS_SEPARATOR) {
+        tag = tags.substring(to: range.lowerBound)
         setOfTags.insert(tag)
-        tags = tags!.substring(from: tags!.range(of: Constants.TAGS_SEPARATOR)!.upperBound)
+        tags = tags.substring(from: range.upperBound)
     }
     
-    if (tags != nil) {
-        setOfTags.insert(tags!)
+    if !tags.isEmpty {
+        setOfTags.insert(tags)
     }
     
     return setOfTags.count > 0 ? setOfTags : nil
@@ -2948,21 +3072,25 @@ func tagsSetFromTagsString(_ tagsString:String?) -> Set<String>?
 
 func tagsArrayToTagsString(_ tagsArray:[String]?) -> String?
 {
-    if tagsArray != nil {
-        var tagString:String?
-        
-        for tag in tagsArray! {
-            tagString = tagString != nil ? tagString! + Constants.TAGS_SEPARATOR + tag : tag
-        }
-        
-        return tagString
-    } else {
+    guard let tagsArray = tagsArray else {
         return nil
     }
+
+    var tagString:String?
+    
+    for tag in tagsArray {
+        tagString = tagString != nil ? tagString! + Constants.TAGS_SEPARATOR + tag : tag
+    }
+    
+    return tagString
 }
 
 func tagsArrayFromTagsString(_ tagsString:String?) -> [String]?
 {
+    guard let tagsString = tagsString else {
+        return nil
+    }
+    
     var arrayOfTags:[String]?
     
     if let tags = tagsSetFromTagsString(tagsString) {
@@ -2974,30 +3102,33 @@ func tagsArrayFromTagsString(_ tagsString:String?) -> [String]?
 
 func mediaItemsWithTag(_ mediaItems:[MediaItem]?,tag:String?) -> [MediaItem]?
 {
-    return tag != nil ?
+    guard let tag = tag else {
+        return nil
+    }
+    
+    return
         mediaItems?.filter({ (mediaItem:MediaItem) -> Bool in
             if let tagSet = mediaItem.tagsSet {
-                return tagSet.contains(tag!)
+                return tagSet.contains(tag)
             } else {
                 return false
             }
-        }) : nil
+        })
 }
 
 func tagsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 {
-    guard (mediaItems != nil) else {
+    guard let mediaItems = mediaItems else {
         return nil
     }
 
     var tagsSet = Set<String>()
     
-    for mediaItem in mediaItems! {
+    for mediaItem in mediaItems {
         if let tags = mediaItem.tagsSet {
             tagsSet.formUnion(tags)
         }
     }
-    
     
     var tagsArray = Array(tagsSet).sorted(by: { stringWithoutPrefixes($0) < stringWithoutPrefixes($1) })
     
@@ -3042,11 +3173,15 @@ func presentHTMLModal(viewController:UIViewController, mediaItem:MediaItem?, sty
 
 func presentHTMLModal(viewController:UIViewController, dismiss:Bool, mediaItem:MediaItem?, style: UIModalPresentationStyle, title: String?, htmlString: String?)
 {
-    guard (htmlString != nil) else {
+    guard let htmlString = htmlString else {
         return
     }
     
-    if let navigationController = viewController.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+    guard let storyboard = viewController.storyboard else {
+        return
+    }
+    
+    if let navigationController = storyboard.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
         let popover = navigationController.viewControllers[0] as? WebViewController {
         if dismiss {
             Thread.onMainThread() {
@@ -3136,6 +3271,14 @@ func process(viewController:UIViewController,disableEnable:Bool,hideSubviews:Boo
         return
     }
 
+    guard let container = loadingViewController.view else {
+        return
+    }
+    
+    guard let view = viewController.view else {
+        return
+    }
+    
     Thread.onMainThread() {
         if disableEnable {
             if let buttons = viewController.navigationItem.rightBarButtonItems {
@@ -3156,10 +3299,6 @@ func process(viewController:UIViewController,disableEnable:Bool,hideSubviews:Boo
                 }
             }
         }
-        
-        let view = viewController.view!
-        
-        let container = loadingViewController.view!
         
         container.frame = view.frame
         container.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height / 2)
@@ -3243,8 +3382,8 @@ func printJob(viewController:UIViewController,data:Data?,html:String?,orientatio
     pic.showsPageRange = true
     pic.showsPaperSelectionForLoadedPapers = true
 
-    if html != nil {
-        let formatter = UIMarkupTextPrintFormatter(markupText: html!)
+    if let html = html {
+        let formatter = UIMarkupTextPrintFormatter(markupText: html)
         formatter.perPageContentInsets = UIEdgeInsets(top: 54, left: 54, bottom: 54, right: 54) // 72=1" margins
         
         pic.printFormatter = formatter
@@ -3257,7 +3396,9 @@ func printJob(viewController:UIViewController,data:Data?,html:String?,orientatio
     }
     
     Thread.onMainThread() {
-        pic.present(from: viewController.navigationItem.rightBarButtonItem!, animated: true, completionHandler: nil)
+        if let barButtonItem = viewController.navigationItem.rightBarButtonItem {
+            pic.present(from: barButtonItem, animated: true, completionHandler: nil)
+        }
     }
 }
 
@@ -3281,12 +3422,12 @@ func printHTML(viewController:UIViewController,htmlString:String?)
 
 func printDocument(viewController:UIViewController,documentURL:URL?)
 {
-    guard UIPrintInteractionController.isPrintingAvailable && (documentURL != nil) else { // && UIPrintInteractionController.canPrint(printURL!)  is too slow
+    guard UIPrintInteractionController.isPrintingAvailable, let documentURL = documentURL else { // && UIPrintInteractionController.canPrint(printURL!)  is too slow
         return
     }
     
     process(viewController: viewController, work: {
-        return NSData(contentsOf: documentURL!)
+        return NSData(contentsOf: documentURL)
     }, completion: { (data:Any?) in
         printJob(viewController: viewController, data: data as? Data, html: nil, orientation: .portrait)
     })
@@ -3377,7 +3518,9 @@ func mailMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stri
             mailComposeViewController.setToRecipients([])
             mailComposeViewController.setSubject(Constants.EMAIL_ALL_SUBJECT)
             
-            mailComposeViewController.setMessageBody(itemsToMail[0] as! String, isHTML: true)
+            if let body = itemsToMail[0] as? String {
+                mailComposeViewController.setMessageBody(body, isHTML: true)
+            }
             
             viewController.present(mailComposeViewController, animated: true, completion: nil)
         }
@@ -3456,6 +3599,10 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
         return
     }
     
+    guard let storyboard = viewController.storyboard else {
+        return
+    }
+    
     guard htmlString != nil else {
         return
     }
@@ -3465,7 +3612,7 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
 //    }
     
     
-    if let navigationController = viewController.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+    if let navigationController = storyboard.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
         let popover = navigationController.viewControllers[0] as? WebViewController {
 //        Thread.onMainThread() {
 //            viewController.dismiss(animated: true, completion: nil)
@@ -3580,8 +3727,12 @@ func stripHead(_ string:String?) -> String?
     while bodyString?.range(of: "<head>") != nil {
         if let startRange = bodyString?.range(of: "<head>") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: "</head>") {
-                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
-                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
+                    let string = to + from
+                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+                        bodyString = to + from
+                    }
+                }
             }
         }
     }
@@ -3591,12 +3742,18 @@ func stripHead(_ string:String?) -> String?
 
 func insertMenuHead(_ string:String?,fontSize:Int) -> String?
 {
-    let filePath = Bundle.main.resourcePath!
+    guard let filePath = Bundle.main.resourcePath else {
+        return nil
+    }
 
-    let headContent = try! String(contentsOfFile: filePath + "/head.txt", encoding: String.Encoding.utf8)
+    guard let headContent = try? String(contentsOfFile: filePath + "/head.txt", encoding: String.Encoding.utf8) else {
+        return nil
+    }
 
-    let styleContent = try! String(contentsOfFile: filePath + "/style.txt", encoding: String.Encoding.utf8)
-    
+    guard let styleContent = try? String(contentsOfFile: filePath + "/style.txt", encoding: String.Encoding.utf8) else {
+        return nil
+    }
+
     let head = "<html><head><style>body{font: -apple-system-body;font-size:\(fontSize)pt;}td{font-size:\(fontSize)pt;}mark{background-color:silver}\(styleContent)</style>\(headContent)</head>"
     
     return string?.replacingOccurrences(of: "<html>", with: head)
@@ -3642,8 +3799,12 @@ func stripLinks(_ string:String?) -> String?
     while bodyString?.range(of: "<div") != nil {
         if let startRange = bodyString?.range(of: "<div") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: "</div>") {
-                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
-                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
+                    let string = to + from
+                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+                        bodyString = to + from
+                    }
+                }
             }
         }
     }
@@ -3653,8 +3814,12 @@ func stripLinks(_ string:String?) -> String?
     while bodyString?.range(of: "<a") != nil {
         if let startRange = bodyString?.range(of: "<a") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
-                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
-                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
+                    let string = to + from
+                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+                        bodyString = to + from
+                    }
+                }
             }
         }
     }
@@ -3675,8 +3840,15 @@ func stripHTML(_ string:String?) -> String?
     while bodyString?.range(of: "<p ") != nil {
         if let startRange = bodyString?.range(of: "<p ") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
-                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
-                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
+                    let string = to + from
+                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+                        bodyString = to + from
+                    }
+                }
+
+//                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
+//                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
             }
         }
     }
@@ -3684,8 +3856,15 @@ func stripHTML(_ string:String?) -> String?
     while bodyString?.range(of: "<span ") != nil {
         if let startRange = bodyString?.range(of: "<span ") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
-                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
-                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
+                    let string = to + from
+                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+                        bodyString = to + from
+                    }
+                }
+                
+//                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
+//                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
             }
         }
     }
@@ -3693,8 +3872,15 @@ func stripHTML(_ string:String?) -> String?
     while bodyString?.range(of: "<font") != nil {
         if let startRange = bodyString?.range(of: "<font") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
-                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
-                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
+                    let string = to + from
+                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+                        bodyString = to + from
+                    }
+                }
+                
+//                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
+//                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
             }
         }
     }
@@ -3702,8 +3888,15 @@ func stripHTML(_ string:String?) -> String?
     while bodyString?.range(of: "<sup") != nil {
         if let startRange = bodyString?.range(of: "<sup") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
-                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
-                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
+                    let string = to + from
+                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+                        bodyString = to + from
+                    }
+                }
+                
+//                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
+//                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
             }
         }
     }
@@ -3729,8 +3922,15 @@ func stripHTML(_ string:String?) -> String?
     while bodyString?.range(of: "<td") != nil {
         if let startRange = bodyString?.range(of: "<td") {
             if let endRange = bodyString?.substring(from: startRange.lowerBound).range(of: ">") {
-                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
-                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
+                if let to = bodyString?.substring(to: startRange.lowerBound), let from = bodyString?.substring(from: startRange.lowerBound).substring(to: endRange.upperBound) {
+                    let string = to + from
+                    if let range = string.range(of: string), let from = bodyString?.substring(from: range.upperBound) {
+                        bodyString = to + from
+                    }
+                }
+                
+//                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
+//                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
             }
         }
     }
@@ -3761,73 +3961,84 @@ func stripHTML(_ string:String?) -> String?
 
 func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
 {
-    var bodyString:String?
-    
     guard (globals.media.active?.list != nil) else {
         return nil
     }
     
-    bodyString = "<!DOCTYPE html><html><body>"
+    guard let grouping = globals.grouping else {
+        return nil
+    }
     
-    bodyString = bodyString! + "The following media "
+    guard let sorting = globals.sorting else {
+        return nil
+    }
+    
+    var bodyString = "<!DOCTYPE html><html><body>"
+    
+    bodyString = bodyString + "The following media "
     
     if globals.media.active?.list?.count > 1 {
-        bodyString = bodyString! + "are"
+        bodyString = bodyString + "are"
     } else {
-        bodyString = bodyString! + "is"
+        bodyString = bodyString + "is"
     }
     
     if includeURLs {
-        bodyString = bodyString! + " from <a id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+        bodyString = bodyString + " from <a id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
     } else {
-        bodyString = bodyString! + " from " + Constants.CBC.LONG + "<br/><br/>"
+        bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
     }
 
     if let category = globals.mediaCategory.selected {
-        bodyString = bodyString! + "Category: \(category)<br/>"
+        bodyString = bodyString + "Category: \(category)<br/>"
     }
 
     if globals.media.tags.showing == Constants.TAGGED, let tag = globals.media.tags.selected {
-        bodyString = bodyString! + "Collection: \(tag)<br/>"
+        bodyString = bodyString + "Collection: \(tag)<br/>"
     }
     
     if globals.search.valid, let searchText = globals.search.text {
-        bodyString = bodyString! + "Search: \(searchText)<br/>"
+        bodyString = bodyString + "Search: \(searchText)<br/>"
     }
     
-    bodyString = bodyString! + "Grouped: By \(translate(globals.grouping)!)<br/>"
-    bodyString = bodyString! + "Sorted: \(translate(globals.sorting)!)<br/>"
+    if let grouping = translate(grouping) {
+        bodyString = bodyString + "Grouped: By \(grouping)<br/>"
+    }
+
+    if let sorting = translate(sorting) {
+        bodyString = bodyString + "Sorted: \(sorting)<br/>"
+    }
     
     if let keys = globals.media.active?.section?.indexStrings {
         var count = 0
         for key in keys {
-            if let mediaItems = globals.media.active?.groupSort?[globals.grouping!]?[key]?[globals.sorting!] {
+            if let mediaItems = globals.media.active?.groupSort?[grouping]?[key]?[sorting] {
                 count += mediaItems.count
             }
         }
 
-        bodyString = bodyString! + "Total: \(count)<br/>"
+        bodyString = bodyString + "Total: \(count)<br/>"
 
         if includeURLs, (keys.count > 1) {
-            bodyString = bodyString! + "<br/>"
-            bodyString = bodyString! + "<a href=\"#index\">Index</a><br/>"
+            bodyString = bodyString + "<br/>"
+            bodyString = bodyString + "<a href=\"#index\">Index</a><br/>"
         }
         
         if includeColumns {
-            bodyString = bodyString! + "<table>"
+            bodyString = bodyString + "<table>"
         }
         
         for key in keys {
-            if  let name = globals.media.active?.groupNames?[globals.grouping!]?[key],
-                let mediaItems = globals.media.active?.groupSort?[globals.grouping!]?[key]?[globals.sorting!] {
+            if  let name = globals.media.active?.groupNames?[grouping]?[key],
+                let mediaItems = globals.media.active?.groupSort?[grouping]?[key]?[sorting] {
                 var speakerCounts = [String:Int]()
                 
                 for mediaItem in mediaItems {
-                    if mediaItem.speaker != nil {
-                        if speakerCounts[mediaItem.speaker!] == nil {
-                            speakerCounts[mediaItem.speaker!] = 1
+                    if let speaker = mediaItem.speaker {
+                        if let count = speakerCounts[speaker] {
+                            speakerCounts[speaker] = count + 1
                         } else {
-                            speakerCounts[mediaItem.speaker!]! += 1
+                            speakerCounts[speaker] = 1
                         }
                     }
                 }
@@ -3838,40 +4049,40 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
 
                 if includeColumns {
                     if includeURLs {
-                        bodyString = bodyString! + "<tr id=\"\(tag)\" name=\"\(tag)\"><td><br/></td></tr>"
+                        bodyString = bodyString + "<tr id=\"\(tag)\" name=\"\(tag)\"><td><br/></td></tr>"
                     } else {
-                        bodyString = bodyString! + "<tr><td><br/></td></tr>"
+                        bodyString = bodyString + "<tr><td><br/></td></tr>"
                     }
                 } else {
                     if includeURLs {
-                        bodyString = bodyString! + "<br id=\"\(tag)\" name=\"\(tag)\"/>"
+                        bodyString = bodyString + "<br id=\"\(tag)\" name=\"\(tag)\"/>"
                     } else {
-                        bodyString = bodyString! + "<br/>"
+                        bodyString = bodyString + "<br/>"
                     }
                 }
                 
                 if includeColumns {
-                    bodyString = bodyString! + "<tr>"
-                    bodyString = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
+                    bodyString = bodyString + "<tr>"
+                    bodyString = bodyString + "<td valign=\"baseline\" colspan=\"7\">"
                 }
                 
                 if includeURLs, (keys.count > 1) {
-                    bodyString = bodyString! + "<a href=\"#index\(tag)\">" + name + " (\(mediaItems.count))" + "</a>"
+                    bodyString = bodyString + "<a href=\"#index\(tag)\">" + name + " (\(mediaItems.count))" + "</a>"
                 } else {
-                    bodyString = bodyString! + name + " (\(mediaItems.count))"
+                    bodyString = bodyString + name + " (\(mediaItems.count))"
                 }
                 
                 if speakerCount == 1 {
                     if let speaker = mediaItems[0].speaker, name != speaker {
-                        bodyString = bodyString! + " by " + speaker
+                        bodyString = bodyString + " by " + speaker
                     }
                 }
                 
                 if includeColumns {
-                    bodyString = bodyString! + "</td>"
-                    bodyString = bodyString! + "</tr>"
+                    bodyString = bodyString + "</td>"
+                    bodyString = bodyString + "</tr>"
                 } else {
-                    bodyString = bodyString! + "<br/>"
+                    bodyString = bodyString + "<br/>"
                 }
                 
                 for mediaItem in mediaItems {
@@ -3894,38 +4105,38 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                     }
                     
                     if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
-                        bodyString = bodyString! + string
+                        bodyString = bodyString + string
                     }
                     
                     if !includeColumns {
-                        bodyString = bodyString! + "<br/>"
+                        bodyString = bodyString + "<br/>"
                     }
                 }
             }
 //            
 //            if includeColumns {
-//                bodyString = bodyString! + "<tr>"
-//                bodyString = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
+//                bodyString = bodyString + "<tr>"
+//                bodyString = bodyString + "<td valign=\"baseline\" colspan=\"7\">"
 //            }
 //            
-//            bodyString = bodyString! + "<br/>"
+//            bodyString = bodyString + "<br/>"
 //            
 //            if includeColumns {
-//                bodyString = bodyString! + "</td>"
-//                bodyString = bodyString! + "</tr>"
+//                bodyString = bodyString + "</td>"
+//                bodyString = bodyString + "</tr>"
 //            }
         }
         
         if includeColumns {
-            bodyString = bodyString! + "</table>"
+            bodyString = bodyString + "</table>"
         }
         
-        bodyString = bodyString! + "<br/>"
+        bodyString = bodyString + "<br/>"
         
         if includeURLs, keys.count > 1 {
-            bodyString = bodyString! + "<div id=\"index\" name=\"index\">Index (<a href=\"#top\">Return to Top</a>)<br/><br/>"
+            bodyString = bodyString + "<div id=\"index\" name=\"index\">Index (<a href=\"#top\">Return to Top</a>)<br/><br/>"
             
-            switch globals.grouping! {
+            switch grouping {
             case GROUPING.CLASS:
                 fallthrough
             case GROUPING.SPEAKER:
@@ -3936,7 +4147,11 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                 if let indexTitles = globals.media.active?.section?.indexStrings {
                     let titles = Array(Set(indexTitles.map({ (string:String) -> String in
                         if string.endIndex >= a.endIndex {
-                            return stringWithoutPrefixes(string)!.substring(to: a.endIndex).uppercased()
+                            if let string = stringWithoutPrefixes(string)?.substring(to: a.endIndex).uppercased() {
+                                return string
+                            }
+                            
+                            return "ERROR"
                         } else {
                             return string
                         }
@@ -3944,14 +4159,16 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                     
                     var stringIndex = [String:[String]]()
                     
-                    for indexString in globals.media.active!.section!.indexStrings! {
-                        let key = indexString.substring(to: a.endIndex).uppercased()
-                        
-                        if stringIndex[key] == nil {
-                            stringIndex[key] = [String]()
+                    if let indexStrings = globals.media.active?.section?.indexStrings {
+                        for indexString in indexStrings {
+                            let key = indexString.substring(to: a.endIndex).uppercased()
+                            
+                            if stringIndex[key] == nil {
+                                stringIndex[key] = [String]()
+                            }
+                            //                print(testString,string)
+                            stringIndex[key]?.append(indexString)
                         }
-                        //                print(testString,string)
-                        stringIndex[key]?.append(indexString)
                     }
                     
 //                    print(stringIndex)
@@ -3963,48 +4180,48 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                         index = (index != nil) ? index! + " " + link : link
                     }
                     
-                    bodyString = bodyString! + "<div><a id=\"sections\" name=\"sections\">Sections</a> "
+                    bodyString = bodyString + "<div><a id=\"sections\" name=\"sections\">Sections</a> "
                     
-                    if index != nil {
-                        bodyString = bodyString! + index! + "<br/>"
+                    if let index = index {
+                        bodyString = bodyString + index + "<br/>"
                     }
                     
                     for title in titles {
-                        bodyString = bodyString! + "<div id=\"\(title)\" name=\"\(title)\"/><br/>"
-                        bodyString = bodyString! + "<a href=\"#index\">\(title)</a><br/>"
+                        bodyString = bodyString + "<div id=\"\(title)\" name=\"\(title)\"/><br/>"
+                        bodyString = bodyString + "<a href=\"#index\">\(title)</a><br/>"
                         
                         if let keys = stringIndex[title] {
                             for key in keys {
-                                if let title = globals.media.active?.groupNames?[globals.grouping!]?[key],
-                                    let count = globals.media.active?.groupSort?[globals.grouping!]?[key]?[globals.sorting!]?.count {
+                                if let title = globals.media.active?.groupNames?[grouping]?[key],
+                                    let count = globals.media.active?.groupSort?[grouping]?[key]?[sorting]?.count {
                                     let tag = key.replacingOccurrences(of: " ", with: "")
-                                    bodyString = bodyString! + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
+                                    bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
                                 }
                             }
-//                            bodyString = bodyString! + "<br/>"
+//                            bodyString = bodyString + "<br/>"
                         }
                     }
                     
-                    bodyString = bodyString! + "</div>"
+                    bodyString = bodyString + "</div>"
                 }
                 break
                 
             default:
                 for key in keys {
-                    if let title = globals.media.active?.groupNames?[globals.grouping!]?[key],
-                        let count = globals.media.active?.groupSort?[globals.grouping!]?[key]?[globals.sorting!]?.count {
+                    if let title = globals.media.active?.groupNames?[grouping]?[key],
+                        let count = globals.media.active?.groupSort?[grouping]?[key]?[sorting]?.count {
                         let tag = key.replacingOccurrences(of: " ", with: "")
-                        bodyString = bodyString! + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
+                        bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
                     }
                 }
                 break
             }
             
-            bodyString = bodyString! + "</div>"
+            bodyString = bodyString + "</div>"
         }
     }
     
-    bodyString = bodyString! + "</body></html>"
+    bodyString = bodyString + "</body></html>"
     
     return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
 }
@@ -4031,11 +4248,11 @@ func translateTestament(_ testament:String) -> String
 
 func translate(_ string:String?) -> String?
 {
-    guard (string != nil) else {
+    guard let string = string else {
         return nil
     }
     
-    switch string! {
+    switch string {
     case SORTING.CHRONOLOGICAL:
         return Sorting.Oldest_to_Newest
         
@@ -4065,16 +4282,15 @@ func translate(_ string:String?) -> String?
     }
 }
 
-func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String? {
-    var bodyString:String?
-    
-    guard (mediaItems != nil) else {
+func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColumns:Bool) -> String?
+{
+    guard let mediaItems = mediaItems else {
         return nil
     }
     
     var mediaListSort = [String:[MediaItem]]()
     
-    for mediaItem in mediaItems! {
+    for mediaItem in mediaItems {
         if let multiPartName = mediaItem.multiPartName {
             if mediaListSort[multiPartName] == nil {
                 mediaListSort[multiPartName] = [mediaItem]
@@ -4092,32 +4308,32 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
         }
     }
 
-    bodyString = "<!DOCTYPE html><html><body>"
+    var bodyString = "<!DOCTYPE html><html><body>"
     
-    bodyString = bodyString! + "The following media "
+    bodyString = bodyString + "The following media "
     
-    if mediaItems!.count > 1 {
-        bodyString = bodyString! + "are"
+    if mediaItems.count > 1 {
+        bodyString = bodyString + "are"
     } else {
-        bodyString = bodyString! + "is"
+        bodyString = bodyString + "is"
     }
     
     if includeURLs {
-        bodyString = bodyString! + " from <a href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+        bodyString = bodyString + " from <a href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
     } else {
-        bodyString = bodyString! + " from " + Constants.CBC.LONG + "<br/><br/>"
+        bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
     }
     
     if let category = globals.mediaCategory.selected {
-        bodyString = bodyString! + "Category: \(category)<br/><br/>"
+        bodyString = bodyString + "Category: \(category)<br/><br/>"
     }
     
     if globals.media.tags.showing == Constants.TAGGED, let tag = globals.media.tags.selected {
-        bodyString = bodyString! + "Collection: \(tag)<br/><br/>"
+        bodyString = bodyString + "Collection: \(tag)<br/><br/>"
     }
     
     if globals.search.valid, let searchText = globals.search.text {
-        bodyString = bodyString! + "Search: \(searchText)<br/><br/>"
+        bodyString = bodyString + "Search: \(searchText)<br/><br/>"
     }
     
     let keys:[String] = mediaListSort.keys.map({ (string:String) -> String in
@@ -4127,13 +4343,13 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
     }
     
     if includeURLs, (keys.count > 1) {
-        bodyString = bodyString! + "<a href=\"#index\">Index</a><br/><br/>"
+        bodyString = bodyString + "<a href=\"#index\">Index</a><br/><br/>"
     }
     
     var lastKey:String?
     
     if includeColumns {
-        bodyString  = bodyString! + "<table>"
+        bodyString  = bodyString + "<table>"
     }
     
     for key in keys {
@@ -4142,46 +4358,46 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
             case 1:
                 if let mediaItem = mediaItems.first {
                     if let string = mediaItem.bodyHTML(order: ["date","title","scripture","speaker"], token: nil, includeURLs:includeURLs, includeColumns:includeColumns) {
-                        bodyString = bodyString! + string
+                        bodyString = bodyString + string
                     }
                     
                     if includeColumns {
-                        bodyString  = bodyString! + "<tr>"
-                        bodyString  = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
+                        bodyString  = bodyString + "<tr>"
+                        bodyString  = bodyString + "<td valign=\"baseline\" colspan=\"7\">"
                     }
                     
-                    bodyString = bodyString! + "<br/>"
+                    bodyString = bodyString + "<br/>"
                     
                     if includeColumns {
-                        bodyString  = bodyString! + "</td>"
-                        bodyString  = bodyString! + "</tr>"
+                        bodyString  = bodyString + "</td>"
+                        bodyString  = bodyString + "</tr>"
                     }
                 }
                 break
                 
             default:
-                if lastKey != nil, let count = mediaListSort[lastKey!]?.count, count == 1 {
+                if let lastKey = lastKey, let count = mediaListSort[lastKey]?.count, count == 1 {
                     if includeColumns {
-                        bodyString  = bodyString! + "<tr>"
-                        bodyString  = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
+                        bodyString  = bodyString + "<tr>"
+                        bodyString  = bodyString + "<td valign=\"baseline\" colspan=\"7\">"
                     }
                     
-                    bodyString = bodyString! + "<br/>"
+                    bodyString = bodyString + "<br/>"
                     
                     if includeColumns {
-                        bodyString  = bodyString! + "</td>"
-                        bodyString  = bodyString! + "</tr>"
+                        bodyString  = bodyString + "</td>"
+                        bodyString  = bodyString + "</tr>"
                     }
                 }
                 
                 var speakerCounts = [String:Int]()
                 
                 for mediaItem in mediaItems {
-                    if mediaItem.speaker != nil {
-                        if speakerCounts[mediaItem.speaker!] == nil {
-                            speakerCounts[mediaItem.speaker!] = 1
+                    if let speaker = mediaItem.speaker {
+                        if let count = speakerCounts[speaker] {
+                            speakerCounts[speaker] = count + 1
                         } else {
-                            speakerCounts[mediaItem.speaker!]! += 1
+                            speakerCounts[speaker] = 1
                         }
                     }
                 }
@@ -4189,26 +4405,26 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
                 let speakerCount = speakerCounts.keys.count
                 
                 if includeColumns {
-                    bodyString  = bodyString! + "<tr>"
-                    bodyString  = bodyString! + "<td valign=\"baseline\" colspan=\"7\">"
+                    bodyString  = bodyString + "<tr>"
+                    bodyString  = bodyString + "<td valign=\"baseline\" colspan=\"7\">"
                 }
                 
                 if includeURLs, (keys.count > 1) {
                     let tag = key.replacingOccurrences(of: " ", with: "")
-                    bodyString = bodyString! + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">" + key + "</a>"
+                    bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\">" + key + "</a>"
                 } else {
-                    bodyString = bodyString! + key
+                    bodyString = bodyString + key
                 }
 
                 if speakerCount == 1, let speaker = mediaItems[0].speaker, key != speaker {
-                    bodyString = bodyString! + " by " + speaker
+                    bodyString = bodyString + " by " + speaker
                 }
                 
                 if includeColumns {
-                    bodyString  = bodyString! + "</td>"
-                    bodyString  = bodyString! + "</tr>"
+                    bodyString  = bodyString + "</td>"
+                    bodyString  = bodyString + "</tr>"
                 } else {
-                    bodyString = bodyString! + "<br/>"
+                    bodyString = bodyString + "<br/>"
                 }
                 
                 for mediaItem in mediaItems {
@@ -4219,16 +4435,16 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
                     }
                     
                     if let string = mediaItem.bodyHTML(order: order, token: nil, includeURLs: includeURLs, includeColumns: includeColumns) {
-                        bodyString = bodyString! + string
+                        bodyString = bodyString + string
                     }
                     
                     if !includeColumns {
-                        bodyString = bodyString! + "<br/>"
+                        bodyString = bodyString + "<br/>"
                     }
                 }
 
                 if !includeColumns {
-                    bodyString = bodyString! + "<br/>"
+                    bodyString = bodyString + "<br/>"
                 }
               
                 break
@@ -4239,22 +4455,22 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
     }
     
     if includeColumns {
-        bodyString  = bodyString! + "</table>"
+        bodyString  = bodyString + "</table>"
     }
     
-    bodyString = bodyString! + "<br/>"
+    bodyString = bodyString + "<br/>"
     
     if includeURLs, (keys.count > 1) {
-        bodyString = bodyString! + "<div><a id=\"index\" name=\"index\">Index</a><br/><br/>"
+        bodyString = bodyString + "<div><a id=\"index\" name=\"index\">Index</a><br/><br/>"
         
         for key in keys {
-            bodyString = bodyString! + "<a href=\"#\(key.replacingOccurrences(of: " ", with: ""))\">\(key)</a><br/>"
+            bodyString = bodyString + "<a href=\"#\(key.replacingOccurrences(of: " ", with: ""))\">\(key)</a><br/>"
         }
     
-        bodyString = bodyString! + "</div>"
+        bodyString = bodyString + "</div>"
     }
 
-    bodyString = bodyString! + "</body></html>"
+    bodyString = bodyString + "</body></html>"
     
     return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
 }
@@ -4373,14 +4589,14 @@ func searchAlert(viewController:UIViewController,title:String?,message:String?,s
     })
     
     let search = UIAlertAction(title: "Search", style: UIAlertActionStyle.default, handler: {
-        alertItem -> Void in
+        (action : UIAlertAction!) -> Void in
         searchAction?(alert)
     })
     alert.addAction(search)
     
     let clear = UIAlertAction(title: "Clear", style: UIAlertActionStyle.destructive, handler: {
-        alertItem -> Void in
-        (alert.textFields![0] as UITextField).text = ""
+        (action : UIAlertAction!) -> Void in
+        alert.textFields?[0].text = ""
         searchAction?(alert)
     })
     alert.addAction(clear)

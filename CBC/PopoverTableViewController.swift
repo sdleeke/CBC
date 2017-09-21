@@ -762,11 +762,11 @@ class PopoverTableViewController : UIViewController
             return
         }
 
-        guard (vc != nil) else {
+        guard let vc = vc else {
             return
         }
         
-        guard (section.strings != nil) else {
+        guard let strings = section.strings else {
             return
         }
         
@@ -789,22 +789,24 @@ class PopoverTableViewController : UIViewController
             deducts += indexSpace
         }
         
-        switch self.purpose! {
-        case .selectingCategory:
-            fallthrough
-        case .selectingTags:
-            fallthrough
-        case .selectingGrouping:
-            fallthrough
-        case .selectingSorting:
-            deducts += checkmarkSpace
-            break
-            
-        default:
-            break
+        if let purpose = purpose {
+            switch purpose {
+            case .selectingCategory:
+                fallthrough
+            case .selectingTags:
+                fallthrough
+            case .selectingGrouping:
+                fallthrough
+            case .selectingSorting:
+                deducts += checkmarkSpace
+                break
+                
+            default:
+                break
+            }
         }
         
-        let viewWidth = vc!.view.frame.width
+        let viewWidth = vc.view.frame.width
         
         //        print(view.frame.width - deducts)
         
@@ -829,7 +831,7 @@ class PopoverTableViewController : UIViewController
         
         //        print(strings)
         
-        for string in self.section.strings! {
+        for string in strings {
             if let strings = parser != nil ? parser?(string) : [string] {
                 for stringInStrings in strings {
                     let maxHeight = stringInStrings.boundingRect(with: heightSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil)
@@ -956,8 +958,10 @@ class PopoverTableViewController : UIViewController
             tableView.refreshControl = refreshControl
         } else {
             // Fallback on earlier versions
-            Thread.onMainThread() {
-                self.tableView?.addSubview(self.refreshControl!)
+            if let refreshControl = self.refreshControl {
+                Thread.onMainThread() {
+                    self.tableView?.addSubview(refreshControl)
+                }
             }
         }
     }
@@ -1132,7 +1136,11 @@ class PopoverTableViewController : UIViewController
         
 //        if let active = self.searchController?.isActive, active {
         if let selectedText = selectedText,  let index = section.strings?.index(where: { (string:String) -> Bool in
-            return selectedText.uppercased() == string.substring(to: string.range(of: " (")!.lowerBound).uppercased()
+            if let range = string.range(of: " (") {
+                return selectedText.uppercased() == string.substring(to: range.lowerBound).uppercased()
+            } else {
+                return false
+            }
         }) {
             //                if let selectedText = self.selectedText, let index = self.filteredStrings?.index(of: selectedText) {
             switch sort.method {
@@ -1190,7 +1198,9 @@ class PopoverTableViewController : UIViewController
                 break
             }
         } else {
-            alert(viewController:self,title:"String not found!",message:"Search is active and the string \(selectedText!) is not in the results.",completion:nil)
+            if let selectedText = selectedText {
+                alert(viewController:self,title:"String not found!",message:"Search is active and the string \(selectedText) is not in the results.",completion:nil)
+            }
         }
     }
 
@@ -1371,7 +1381,7 @@ class PopoverTableViewController : UIViewController
     
 //    func sortAction()
 //    {
-//        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
 //            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
 //            navigationController.modalPresentationStyle = .popover
 //            
@@ -1870,7 +1880,11 @@ extension PopoverTableViewController : UITableViewDataSource
     {
         // Return the number of sections.
         if section.showIndex || section.showHeaders {
-            return section.counts != nil ? section.counts!.count : 0
+            if let count = section.counts?.count {
+                return count
+            } else {
+                return 0
+            }
         } else {
             return 1
         }
@@ -1880,9 +1894,17 @@ extension PopoverTableViewController : UITableViewDataSource
     {
         // Return the number of rows in the section.
         if self.section.showIndex || self.section.showHeaders {
-            return self.section.counts != nil ? (((section >= 0) && (section < self.section.counts?.count)) ? self.section.counts![section] : 0) : 0
+            if let counts = self.section.counts, (section >= 0) && (section < counts.count) {
+                return counts[section]
+            } else {
+                return 0
+            }
         } else {
-            return self.section.strings != nil ? self.section.strings!.count : 0
+            if let count = self.section.strings?.count {
+                return count
+            } else {
+                return 0
+            }
         }
     }
     
@@ -1989,8 +2011,8 @@ extension PopoverTableViewController : UITableViewDataSource
                     }
                     
                     if let characterBefore:Character = before?.characters.last, let characterAfter:Character = after?.characters.first {
-                        if CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterBefore))!) &&
-                            CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterAfter))!) {
+                        if  let before = UnicodeScalar(String(characterBefore)), CharacterSet(charactersIn: tokenDelimiters).contains(before),
+                            let after = UnicodeScalar(String(characterAfter)), CharacterSet(charactersIn: tokenDelimiters).contains(after) {
                             break
                         }
                     }
@@ -2211,17 +2233,19 @@ extension PopoverTableViewController : UITableViewDelegate
         view?.contentView.backgroundColor = UIColor(red: 200/255, green: 200/255, blue: 200/255, alpha: 1.0)
         
         if view?.label == nil {
-            view?.label = UILabel()
+            let label = UILabel()
             
-            view?.label?.numberOfLines = 0
-            view?.label?.lineBreakMode = .byWordWrapping
+            label.numberOfLines = 0
+            label.lineBreakMode = .byWordWrapping
             
-            view?.label?.translatesAutoresizingMaskIntoConstraints = false
+            label.translatesAutoresizingMaskIntoConstraints = false
             
-            view?.addSubview(view!.label!)
+            view?.addSubview(label)
             
-            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":view!.label!]))
-            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":view!.label!]))
+            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
+            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":label]))
+            
+            view?.label = label
         }
         
         view?.alpha = 0.85
@@ -2270,7 +2294,7 @@ extension PopoverTableViewController : UITableViewDelegate
             }
             
             let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                alertItem -> Void in
+                (action : UIAlertAction) -> Void in
             })
             alert.addAction(okayAction)
             
@@ -2386,16 +2410,17 @@ extension PopoverTableViewController : UITableViewDelegate
 
         //        print(index,strings![index])
         
-        switch purpose! {
-            
-        default:
-            delegate?.rowClickedAtIndex(index, strings: section.strings, purpose: purpose!, mediaItem: selectedMediaItem)
-            break
+        if let purpose = purpose {
+            switch purpose {
+                
+            default:
+                delegate?.rowClickedAtIndex(index, strings: section.strings, purpose: purpose, mediaItem: selectedMediaItem)
+                break
+            }
         }
 
-        if  (transcript !=  nil) && (purpose == .selectingTime) &&
-            (!track || searchActive) {
-            if  let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+        if  (transcript !=  nil) && (purpose == .selectingTime) && (!track || searchActive) {
+            if  let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 
 //                navigationController.modalPresentationStyle = .overCurrentContext
@@ -2483,7 +2508,7 @@ extension PopoverTableViewController : UITableViewDelegate
         }
         
         if (delegate == nil) && ((stringsAny != nil) || (stringsArray != nil) || (stringsAnyArray != nil)) {
-            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 popover.search = true
                 

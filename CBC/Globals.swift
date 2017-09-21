@@ -143,7 +143,11 @@ class StreamEntry {
     
     var text : String? {
         get {
-            return "\(name!)\nStart: \(startDate!.mdyhm)\nEnd: \(endDate!.mdyhm)"
+            if let name = name, let start = startDate?.mdyhm, let end = endDate?.mdyhm {
+                return "\(name)\nStart: \(start)\nEnd: \(end)"
+            } else {
+                return nil
+            }
         }
     }
 }
@@ -800,7 +804,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         
         var selectedID:String? {
             get {
-                return dicts?[selected!] ?? "1" // Sermons are category 1
+                if let selected = selected {
+                    return dicts?[selected] ?? "1" // Sermons are category 1
+                } else {
+                    return nil
+                }
             }
         }
         
@@ -831,14 +839,14 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         
         subscript(key:String) -> String? {
             get {
-                if (selected != nil) {
-                    return settings?[selected!]?[key]
+                if let selected = selected {
+                    return settings?[selected]?[key]
                 } else {
                     return nil
                 }
             }
             set {
-                guard (selected != nil) else {
+                guard let selected = selected else {
                     print("selected == nil!")
                     return
                 }
@@ -852,11 +860,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                     return
                 }
                 
-                if (settings?[selected!] == nil) {
-                    settings?[selected!] = [String:String]()
+                if (settings?[selected] == nil) {
+                    settings?[selected] = [String:String]()
                 }
-                if (settings?[selected!]?[key] != newValue) {
-                    settings?[selected!]?[key] = newValue
+                if (settings?[selected]?[key] != newValue) {
+                    settings?[selected]?[key] = newValue
                     
                     // For a high volume of activity this can be very expensive.
                     saveSettingsBackground()
@@ -911,7 +919,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             return streamEntries?.filter({ (dict:[String : Any]) -> Bool in
                 return StreamEntry(dict)?.startDate > Date()
             }).map({ (dict:[String : Any]) -> String in
-                return StreamEntry(dict)!.text!
+                if let string = StreamEntry(dict)?.text {
+                    return string
+                } else {
+                    return "ERROR"
+                }
             })
         }
     }
@@ -1272,7 +1284,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 
                 switch tags.showing! {
                 case Constants.TAGGED:
-                    mediaItems = tagged[tags.selected!]
+                    if let selected = tags.selected {
+                        mediaItems = tagged[selected]
+                    }
                     break
                     
                 case Constants.ALL:
@@ -1293,7 +1307,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                 
                 switch tags.showing! {
                 case Constants.TAGGED:
-                    mediaItems = tagged[tags.selected!]
+                    if let selected = tags.selected {
+                        mediaItems = tagged[selected]
+                    }
                     break
                     
                 case Constants.ALL:
@@ -1436,19 +1452,25 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
                     media.tags.selected = nil
                 }
 
-                if media.tags.showing == Constants.TAGGED, media.tagged[mediaCategory.tag!] == nil {
+                if media.tags.showing == Constants.TAGGED, let tag = mediaCategory.tag, media.tagged[tag] == nil {
                     if media.all == nil {
                         //This is filtering, i.e. searching all mediaItems => s/b in background
-                        media.tagged[mediaCategory.tag!] = MediaListGroupSort(mediaItems: mediaItemsWithTag(mediaRepository.list, tag: media.tags.selected))
+                        media.tagged[tag] = MediaListGroupSort(mediaItems: mediaItemsWithTag(mediaRepository.list, tag: media.tags.selected))
                     } else {
-                        media.tagged[mediaCategory.tag!] = MediaListGroupSort(mediaItems: media.all?.tagMediaItems?[stringWithoutPrefixes(media.tags.selected!)!])
+                        if let tagSelected = media.tags.selected, let sortTag = stringWithoutPrefixes(tagSelected) {
+                            media.tagged[tag] = MediaListGroupSort(mediaItems: media.all?.tagMediaItems?[sortTag])
+                        }
                     }
                 }
 
                 search.text = defaults.string(forKey: Constants.SEARCH_TEXT) // ?.uppercased()
                 search.active = search.text != nil
 
-                mediaPlayer.mediaItem = mediaCategory.playing != nil ? mediaRepository.index?[mediaCategory.playing!] : nil
+                if let playing = mediaCategory.playing {
+                    mediaPlayer.mediaItem = mediaRepository.index?[playing]
+                } else {
+                    mediaPlayer.mediaItem = nil
+                }
 
                 if let historyArray = defaults.array(forKey: Constants.SETTINGS.HISTORY) {
                     //        print("\(settingsDictionary)")
@@ -1520,12 +1542,17 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     func addToHistory(_ mediaItem:MediaItem?)
     {
-        guard (mediaItem != nil) else {
+        guard let mediaItem = mediaItem else {
             print("mediaItem NIL!")
             return
         }
-
-        let entry = "\(Date())" + Constants.TAGS_SEPARATOR + mediaItem!.id!
+        
+        guard let id = mediaItem.id else {
+            print("mediaItem id NIL!")
+            return
+        }
+        
+        let entry = "\(Date())" + Constants.TAGS_SEPARATOR + mediaItem.id
         
         if history == nil {
             history = [entry]
@@ -1631,18 +1658,26 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 //        MPRemoteCommandCenter.shared().skipBackwardCommand.preferredIntervals = [15]
         MPRemoteCommandCenter.shared().skipBackwardCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
             print("RemoteControlSkipBackward")
-            self.mediaPlayer.seek(to: self.mediaPlayer.currentTime!.seconds - 15)
-            return MPRemoteCommandHandlerStatus.success
+            if let seconds = self.mediaPlayer.currentTime?.seconds {
+                self.mediaPlayer.seek(to: seconds - 15)
+                return MPRemoteCommandHandlerStatus.success
+            } else {
+                return MPRemoteCommandHandlerStatus.commandFailed
+            }
         })
         
         MPRemoteCommandCenter.shared().skipForwardCommand.isEnabled = true
         //        MPRemoteCommandCenter.shared().skipForwardCommand.preferredIntervals = [15]
         MPRemoteCommandCenter.shared().skipForwardCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in
             print("RemoteControlSkipForward")
-            self.mediaPlayer.seek(to: self.mediaPlayer.currentTime!.seconds + 15)
-            return MPRemoteCommandHandlerStatus.success
+            if let seconds = self.mediaPlayer.currentTime?.seconds {
+                self.mediaPlayer.seek(to: seconds + 15)
+                return MPRemoteCommandHandlerStatus.success
+            } else {
+                return MPRemoteCommandHandlerStatus.commandFailed
+            }
         })
-        
+    
         if #available(iOS 9.1, *) {
             MPRemoteCommandCenter.shared().changePlaybackPositionCommand.isEnabled = true
             MPRemoteCommandCenter.shared().changePlaybackPositionCommand.addTarget (handler: { (event:MPRemoteCommandEvent!) -> MPRemoteCommandHandlerStatus in

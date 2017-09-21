@@ -71,7 +71,9 @@ extension WebViewController : PopoverPickerControllerDelegate
         html.string = selectedMediaItem?.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
         html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
         
-        _ = self.wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
+        if let htmlString = self.html.string {
+            _ = self.wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+        }
     }
 }
 
@@ -100,15 +102,17 @@ extension WebViewController : PopoverTableViewControllerDelegate
         
         activityViewController?.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
         
-        // present the view controller
-        Thread.onMainThread() {
-            self.present(self.activityViewController!, animated: false, completion: nil)
+        if let activityViewController = activityViewController {
+            // present the view controller
+            Thread.onMainThread() {
+                self.present(activityViewController, animated: false, completion: nil)
+            }
         }
     }
     
     func showFullScreen()
     {
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
+        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? WebViewController {
             dismiss(animated: false, completion: nil)
             
@@ -148,7 +152,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Print:
-            if html.string != nil, html.string!.contains(" href=") {
+            if let string = html.string, string.contains(" href=") {
                 firstSecondCancel(viewController: self, title: "Remove Links?", message: nil, //"This can take some time.",
                                   firstTitle: "Yes",
                                   firstAction: {
@@ -192,7 +196,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     self.html.string = insertHead(stripHead(self.markedHTML(searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
                 }
                 
-                _ = self.wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
+                if let htmlString = self.html.string {
+                    _ = self.wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+                }
             })
 //            let alert = UIAlertController(title: "Search",
 //                                          message: Constants.EMPTY_STRING,
@@ -203,7 +209,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
 //            })
 //            
 //            let searchAction = UIAlertAction(title: "Search", style: UIAlertActionStyle.default, handler: {
-//                alertItem -> Void in
+//                (action : UIAlertAction) -> Void in
 //                let searchText = (alert.textFields![0] as UITextField).text
 //                
 //                self.wkWebView?.isHidden = true
@@ -226,7 +232,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Word_Picker:
-            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
+            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.STRING_PICKER) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverPickerViewController {
                 navigationController.modalPresentationStyle = .overCurrentContext
 
@@ -238,8 +244,18 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 popover.delegate = self
 
-                popover.mediaListGroupSort = MediaListGroupSort(mediaItems: [selectedMediaItem!])
+//                popover.mediaListGroupSort = MediaListGroupSort(mediaItems: [selectedMediaItem!])
 
+                popover.stringTree = StringTree()
+                
+                selectedMediaItem?.loadNotesTokens()
+                
+                let strings:[String]? = selectedMediaItem?.notesTokens?.keys.map({ (string:String) -> String in
+                    return string
+                }).sorted()
+                
+                popover.strings = strings
+                
 //                let doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done))
 //                popover.navigationItem.leftBarButtonItem = doneButton
 
@@ -248,7 +264,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Words:
-            if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 navigationController.modalPresentationStyle = .overCurrentContext
                 
@@ -288,17 +304,17 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 popover.search = true
                 
-                if mediaItem!.hasNotesHTML {
-                    if mediaItem?.notesTokens == nil {
+                if let mediaItem = mediaItem, mediaItem.hasNotesHTML {
+                    if mediaItem.notesTokens == nil {
                         popover.stringsFunction = {
-                            mediaItem?.loadNotesTokens()
+                            mediaItem.loadNotesTokens()
 
-                            return mediaItem?.notesTokens?.map({ (string:String,count:Int) -> String in
+                            return mediaItem.notesTokens?.map({ (string:String,count:Int) -> String in
                                 return "\(string) (\(count))"
                             }).sorted()
                         }
                     } else {
-                        popover.section.strings = mediaItem?.notesTokens?.map({ (string:String,count:Int) -> String in
+                        popover.section.strings = mediaItem.notesTokens?.map({ (string:String,count:Int) -> String in
                             return "\(string) (\(count))"
                         }).sorted()
                     }
@@ -314,7 +330,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.Email_One:
-            mailHTML(viewController: self, to: [], subject: Constants.CBC.LONG + Constants.SINGLE_SPACE + navigationItem.title!, htmlString: html.string!)
+            if let title = navigationItem.title, let htmlString = html.string {
+                mailHTML(viewController: self, to: [], subject: Constants.CBC.LONG + Constants.SINGLE_SPACE + title, htmlString: htmlString)
+            }
             break
             
         case Constants.Strings.Open_in_Browser:
@@ -383,7 +401,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
             html.string = selectedMediaItem?.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
             html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
             
-            _ = wkWebView?.loadHTMLString(self.html.string!, baseURL: nil)
+            if let htmlString = self.html.string {
+                _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+            }
             break
             
         case .selectingAction:
@@ -600,7 +620,7 @@ class WebViewController: UIViewController
             return nil
         }
         
-        guard let isEmpty = searchText?.isEmpty, !isEmpty else {
+        guard let searchText = searchText, !searchText.isEmpty else {
             return html.original
         }
         
@@ -615,10 +635,10 @@ class WebViewController: UIViewController
             var newString:String = Constants.EMPTY_STRING
             var foundString:String = Constants.EMPTY_STRING
             
-            while (string.lowercased().range(of: searchText!.lowercased()) != nil) {
+            while (string.lowercased().range(of: searchText.lowercased()) != nil) {
                 //                print(string)
                 
-                if let range = string.lowercased().range(of: searchText!.lowercased()) {
+                if let range = string.lowercased().range(of: searchText.lowercased()) {
                     stringBefore = string.substring(to: range.lowerBound)
                     stringAfter = string.substring(from: range.upperBound)
                     
@@ -628,7 +648,8 @@ class WebViewController: UIViewController
                     
                     if wholeWordsOnly {
                         if let characterAfter:Character = stringAfter.characters.first {
-                            if !CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterAfter))!) {
+                            if  let unicodeScalar = UnicodeScalar(String(characterAfter)),
+                                !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                                 skip = true
                             }
                             
@@ -643,15 +664,17 @@ class WebViewController: UIViewController
                             }
                         }
                         if let characterBefore:Character = stringBefore.characters.last {
-                            if !CharacterSet(charactersIn: tokenDelimiters).contains(UnicodeScalar(String(characterBefore))!) {
+                            if  let unicodeScalar = UnicodeScalar(String(characterBefore)),
+                                !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                                 skip = true
                             }
                         }
                     }
                     
                     foundString = string.substring(from: range.lowerBound)
-                    let newRange = foundString.lowercased().range(of: searchText!.lowercased())
-                    foundString = foundString.substring(to: newRange!.upperBound)
+                    if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+                        foundString = foundString.substring(to: newRange.upperBound)
+                    }
                     
                     if !skip {
                         markCounter += 1
@@ -698,9 +721,9 @@ class WebViewController: UIViewController
         var indexString:String!
         
         if markCounter > 0 {
-            indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText!)\": \(markCounter)<br/>"
+            indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)<br/>"
         } else {
-            indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText!)\" were found.<br/>"
+            indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.<br/>"
         }
         
         // If we want an index of links to the occurrences of the searchText.
@@ -823,33 +846,37 @@ class WebViewController: UIViewController
     {
         wkWebView = WKWebView(frame:webView.bounds)
         
-        wkWebView?.isHidden = true
+        guard let wkWebView = wkWebView else {
+            return
+        }
 
-        wkWebView?.isMultipleTouchEnabled = true
-        wkWebView?.isUserInteractionEnabled = true
+        wkWebView.isHidden = true
         
-        wkWebView?.scrollView.scrollsToTop = true
+        wkWebView.isMultipleTouchEnabled = true
+        wkWebView.isUserInteractionEnabled = true
         
-        wkWebView?.scrollView.delegate = self
-
-        wkWebView?.navigationDelegate = self
-        wkWebView?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
+        wkWebView.scrollView.scrollsToTop = true
         
-        webView.addSubview(wkWebView!)
-
-        let centerX = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
-        wkWebView?.superview?.addConstraint(centerX)
+        wkWebView.scrollView.delegate = self
         
-        let centerY = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-        wkWebView?.superview?.addConstraint(centerY)
+        wkWebView.navigationDelegate = self
+        wkWebView.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
         
-        let width = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
-        wkWebView?.superview?.addConstraint(width)
+        webView.addSubview(wkWebView)
         
-        let height = NSLayoutConstraint(item: wkWebView!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: wkWebView!.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
-        wkWebView?.superview?.addConstraint(height)
+        let centerX = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
+        wkWebView.superview?.addConstraint(centerX)
         
-        wkWebView?.superview?.setNeedsLayout()
+        let centerY = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+        wkWebView.superview?.addConstraint(centerY)
+        
+        let width = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
+        wkWebView.superview?.addConstraint(width)
+        
+        let height = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
+        wkWebView.superview?.addConstraint(height)
+        
+        wkWebView.superview?.setNeedsLayout()
     }
     
     func done()
@@ -872,7 +899,7 @@ class WebViewController: UIViewController
         //In case we have one already showing
 //        dismiss(animated: true, completion: nil)
         
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             popover.navigationItem.title = "Select"
             navigationController.isNavigationBarHidden = false
@@ -949,7 +976,10 @@ class WebViewController: UIViewController
         }
 
         html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
-        _ = wkWebView?.loadHTMLString(html.string!, baseURL: nil)
+
+        if let htmlString = html.string {
+            _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+        }
     }
     
     func decreaseFontSize()
@@ -969,7 +999,10 @@ class WebViewController: UIViewController
             }
             
             html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
-            _ = wkWebView?.loadHTMLString(html.string!, baseURL: nil)
+
+            if let htmlString = html.string {
+                _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+            }
         }
     }
     
@@ -992,21 +1025,29 @@ class WebViewController: UIViewController
         minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
         
         if let presentationStyle = navigationController?.modalPresentationStyle {
+            guard   let actionButton = actionButton,
+                    let fullScreenButton = fullScreenButton,
+                    let minusButton = minusButton,
+                    let plusButton = plusButton else {
+                return
+            }
+            
             switch presentationStyle {
             case .overCurrentContext:
                 if self.navigationController?.viewControllers.count == 1 { // This allows the back button to show. >1 implies it is below the top view controller in a push stack.
                     navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
                 }
-                navigationItem.setRightBarButtonItems([fullScreenButton!,minusButton!,plusButton!], animated: true)
+                
+                navigationItem.setRightBarButtonItems([fullScreenButton,minusButton,plusButton], animated: true)
 
             case .fullScreen:
                 fallthrough
             case .overFullScreen:
                 navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
-                navigationItem.setRightBarButtonItems([actionButton!,minusButton!,plusButton!], animated: true)
+                navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton], animated: true)
                 
             default:
-                navigationItem.setRightBarButtonItems([actionButton!,minusButton!,plusButton!], animated: true)
+                navigationItem.setRightBarButtonItems([actionButton,minusButton,plusButton], animated: true)
                 break
             }
         }
@@ -1014,8 +1055,8 @@ class WebViewController: UIViewController
 
     func loading()
     {
-        if (wkWebView != nil) {
-            progressIndicator.progress = Float(wkWebView!.estimatedProgress)
+        if let wkWebView = wkWebView {
+            progressIndicator.progress = Float(wkWebView.estimatedProgress)
         }
         
         if progressIndicator.progress == 1 {
@@ -1051,36 +1092,44 @@ class WebViewController: UIViewController
     
     func setupWKZoomScaleAndContentOffset(_ wkWebView: WKWebView?)
     {
-        if (wkWebView != nil) && (selectedMediaItem != nil) { // !showScripture &&
+        guard let wkWebView = wkWebView else {
+            return
+        }
+        
+        guard let showing = selectedMediaItem?.showing else {
+            return
+        }
+        
+        if (selectedMediaItem != nil) { // !showScripture &&
             var zoomScaleStr:String?
             var contentOffsetXRatioStr:String?
             var contentOffsetYRatioStr:String?
 
-            contentOffsetXRatioStr = selectedMediaItem?.mediaItemSettings?[selectedMediaItem!.showing! + Constants.CONTENT_OFFSET_X_RATIO]
-            contentOffsetYRatioStr = selectedMediaItem?.mediaItemSettings?[selectedMediaItem!.showing! + Constants.CONTENT_OFFSET_Y_RATIO]
-            zoomScaleStr = selectedMediaItem?.mediaItemSettings?[selectedMediaItem!.showing! + Constants.ZOOM_SCALE]
+            contentOffsetXRatioStr = selectedMediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO]
+            contentOffsetYRatioStr = selectedMediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO]
+            zoomScaleStr = selectedMediaItem?.mediaItemSettings?[showing + Constants.ZOOM_SCALE]
 
             var zoomScale:CGFloat = 1.0
             
             var contentOffsetXRatio:CGFloat = 0.0
             var contentOffsetYRatio:CGFloat = 0.0
             
-            if let ratio = contentOffsetXRatioStr {
-                contentOffsetXRatio = CGFloat(Float(ratio)!)
+            if let ratio = contentOffsetXRatioStr, let num = Float(ratio) {
+                contentOffsetXRatio = CGFloat(num)
             }
             
-            if let ratio = contentOffsetYRatioStr {
-                contentOffsetYRatio = CGFloat(Float(ratio)!)
+            if let ratio = contentOffsetYRatioStr, let num = Float(ratio) {
+                contentOffsetYRatio = CGFloat(num)
             }
             
-            if let zoom = zoomScaleStr {
-                zoomScale = CGFloat(Float(zoom)!)
+            if let zoom = zoomScaleStr, let num = Float(zoom) {
+                zoomScale = CGFloat(num)
             }
             
-            let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio * wkWebView!.scrollView.contentSize.width * zoomScale),
-                                            y: CGFloat(contentOffsetYRatio * wkWebView!.scrollView.contentSize.height * zoomScale))
+            let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio * wkWebView.scrollView.contentSize.width * zoomScale),
+                                            y: CGFloat(contentOffsetYRatio * wkWebView.scrollView.contentSize.height * zoomScale))
             
-            setWKZoomScaleThenContentOffset(wkWebView!, scale: zoomScale, offset: contentOffset)
+            setWKZoomScaleThenContentOffset(wkWebView, scale: zoomScale, offset: contentOffset)
         }
     }
     
@@ -1089,36 +1138,46 @@ class WebViewController: UIViewController
         // This used in transition to size to set the content offset.
         
 //        print("Before setContentOffset: \(wkWebView?.scrollView.contentOffset)")
-        
-        if (wkWebView != nil) && (selectedMediaItem != nil) { // !showScripture &&
-            var contentOffsetXRatioStr:String?
-            var contentOffsetYRatioStr:String?
-            
-            contentOffsetXRatioStr = selectedMediaItem?.mediaItemSettings?[selectedMediaItem!.showing! + Constants.CONTENT_OFFSET_X_RATIO]
-            contentOffsetYRatioStr = selectedMediaItem?.mediaItemSettings?[selectedMediaItem!.showing! + Constants.CONTENT_OFFSET_Y_RATIO]
-            
-            var contentOffsetXRatio:CGFloat = 0.0
-            var contentOffsetYRatio:CGFloat = 0.0
-            
-            if let ratio = contentOffsetXRatioStr {
-                contentOffsetXRatio = CGFloat(Float(ratio)!)
-            }
-            
-            if let ratio = contentOffsetYRatioStr {
-                contentOffsetYRatio = CGFloat(Float(ratio)!)
-            }
-            
-            let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio * wkWebView!.scrollView.contentSize.width), //
-                y: CGFloat(contentOffsetYRatio * wkWebView!.scrollView.contentSize.height)) //
-            
-            //            print("About to setContentOffset with: \(contentOffset)")
-            
-            Thread.onMainThread() {
-                wkWebView?.scrollView.setContentOffset(contentOffset,animated: false)
-            }
-            
-            //            print("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
+
+        guard let wkWebView = wkWebView else {
+            return
         }
+        
+        guard let selectedMediaItem = selectedMediaItem else {
+            return
+        }
+        
+        guard let showing = selectedMediaItem.showing else { // !showScripture &&
+            return
+        }
+        
+        var contentOffsetXRatioStr:String?
+        var contentOffsetYRatioStr:String?
+        
+        contentOffsetXRatioStr = selectedMediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO]
+        contentOffsetYRatioStr = selectedMediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO]
+        
+        var contentOffsetXRatio:CGFloat = 0.0
+        var contentOffsetYRatio:CGFloat = 0.0
+        
+        if let ratio = contentOffsetXRatioStr, let num = Float(ratio) {
+            contentOffsetXRatio = CGFloat(num)
+        }
+        
+        if let ratio = contentOffsetYRatioStr, let num = Float(ratio) {
+            contentOffsetYRatio = CGFloat(num)
+        }
+        
+        let contentOffset = CGPoint(x: CGFloat(contentOffsetXRatio * wkWebView.scrollView.contentSize.width), //
+            y: CGFloat(contentOffsetYRatio * wkWebView.scrollView.contentSize.height)) //
+        
+        //            print("About to setContentOffset with: \(contentOffset)")
+        
+        Thread.onMainThread() {
+            wkWebView.scrollView.setContentOffset(contentOffset,animated: false)
+        }
+        
+        //            print("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
     }
     
     func setupHTMLWKZoomScaleAndContentOffset(_ wkWebView: WKWebView?)
@@ -1127,19 +1186,21 @@ class WebViewController: UIViewController
         
         //        print("Before setContentOffset: \(wkWebView?.scrollView.contentOffset)")
         
-        if (wkWebView != nil) { //  && (selectedMediaItem != nil)   !showScripture &&
-            let contentOffset = CGPoint(x: CGFloat(html.xRatio * Double(wkWebView!.scrollView.contentSize.width)),
-                y: CGFloat(html.yRatio * Double(wkWebView!.scrollView.contentSize.height)))
-            
-            //            print("About to setContentOffset with: \(contentOffset)")
-            
-            Thread.onMainThread() {
-                wkWebView?.scrollView.setZoomScale(CGFloat(self.html.zoomScale), animated: false)
-                wkWebView?.scrollView.setContentOffset(contentOffset,animated: false)
-            }
-            
-            //            print("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
+        guard let wkWebView = wkWebView else {
+            return
         }
+        
+        let contentOffset = CGPoint(x: CGFloat(html.xRatio * Double(wkWebView.scrollView.contentSize.width)),
+                                    y: CGFloat(html.yRatio * Double(wkWebView.scrollView.contentSize.height)))
+        
+        //            print("About to setContentOffset with: \(contentOffset)")
+        
+        Thread.onMainThread() {
+            wkWebView.scrollView.setZoomScale(CGFloat(self.html.zoomScale), animated: false)
+            wkWebView.scrollView.setContentOffset(contentOffset,animated: false)
+        }
+        
+        //            print("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
     }
     
     func setupHTMLWKContentOffset(_ wkWebView: WKWebView?)
@@ -1148,18 +1209,20 @@ class WebViewController: UIViewController
         
         //        print("Before setContentOffset: \(wkWebView?.scrollView.contentOffset)")
         
-        if (wkWebView != nil) { //  && (selectedMediaItem != nil)   !showScripture &&
-            let contentOffset = CGPoint(x: CGFloat(html.xRatio * Double(wkWebView!.scrollView.contentSize.width)), //
-                y: CGFloat(html.yRatio * Double(wkWebView!.scrollView.contentSize.height))) //
-            
-            //            print("About to setContentOffset with: \(contentOffset)")
-            
-            Thread.onMainThread() {
-                wkWebView?.scrollView.setContentOffset(contentOffset,animated: false)
-            }
-            
-            //            print("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
+        guard let wkWebView = wkWebView else {
+            return
         }
+        
+        let contentOffset = CGPoint(x: CGFloat(html.xRatio * Double(wkWebView.scrollView.contentSize.width)), //
+            y: CGFloat(html.yRatio * Double(wkWebView.scrollView.contentSize.height))) //
+        
+        //            print("About to setContentOffset with: \(contentOffset)")
+        
+        Thread.onMainThread() {
+            wkWebView.scrollView.setContentOffset(contentOffset,animated: false)
+        }
+        
+        //            print("After setContentOffset: \(wkWebView?.scrollView.contentOffset)")
     }
     
     func captureContentOffsetAndZoomScale()
@@ -1167,14 +1230,24 @@ class WebViewController: UIViewController
         //        print("\(wkWebView!.scrollView.contentOffset)")
         //        print("\(wkWebView!.scrollView.zoomScale)")
         
-        if (selectedMediaItem != nil) && // (UIApplication.shared.applicationState == UIApplicationState.active) && // !showScripture &&
-            (wkWebView != nil) && (!wkWebView!.isLoading) && (wkWebView!.url != nil) {
+        guard let wkWebView = wkWebView else {
+            return
+        }
+        
+        guard let selectedMediaItem = selectedMediaItem else {
+            return
+        }
+        
+        guard let showing = selectedMediaItem.showing else {
+            return
+        }
+        
+        if !wkWebView.isLoading, wkWebView.url != nil {
+            selectedMediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO] = "\(wkWebView.scrollView.contentOffset.x / wkWebView.scrollView.contentSize.width)"
             
-            selectedMediaItem?.mediaItemSettings?[selectedMediaItem!.showing! + Constants.CONTENT_OFFSET_X_RATIO] = "\(wkWebView!.scrollView.contentOffset.x / wkWebView!.scrollView.contentSize.width)"
+            selectedMediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO] = "\(wkWebView.scrollView.contentOffset.y / wkWebView.scrollView.contentSize.height)"
             
-            selectedMediaItem?.mediaItemSettings?[selectedMediaItem!.showing! + Constants.CONTENT_OFFSET_Y_RATIO] = "\(wkWebView!.scrollView.contentOffset.y / wkWebView!.scrollView.contentSize.height)"
-            
-            selectedMediaItem?.mediaItemSettings?[selectedMediaItem!.showing! + Constants.ZOOM_SCALE] = "\(wkWebView!.scrollView.zoomScale)"
+            selectedMediaItem.mediaItemSettings?[showing + Constants.ZOOM_SCALE] = "\(wkWebView.scrollView.zoomScale)"
         }
     }
     
@@ -1183,14 +1256,16 @@ class WebViewController: UIViewController
         //        print("\(wkWebView!.scrollView.contentOffset)")
         //        print("\(wkWebView!.scrollView.zoomScale)")
         
-        if // (UIApplication.shared.applicationState == UIApplicationState.active) && //  && (selectedMediaItem != nil) !showScripture &&
-            (wkWebView != nil) && (!wkWebView!.isLoading) {
-            
-            html.xRatio = Double(wkWebView!.scrollView.contentOffset.x) / Double(wkWebView!.scrollView.contentSize.width)
+        guard let wkWebView = wkWebView else {
+            return
+        }
+        
+        if !wkWebView.isLoading {
+            html.xRatio = Double(wkWebView.scrollView.contentOffset.x) / Double(wkWebView.scrollView.contentSize.width)
 
-            html.yRatio = Double(wkWebView!.scrollView.contentOffset.y) / Double(wkWebView!.scrollView.contentSize.height)
+            html.yRatio = Double(wkWebView.scrollView.contentOffset.y) / Double(wkWebView.scrollView.contentSize.height)
             
-            html.zoomScale = Double(wkWebView!.scrollView.zoomScale)
+            html.zoomScale = Double(wkWebView.scrollView.zoomScale)
             
 //            print(html)
         }
@@ -1202,7 +1277,7 @@ class WebViewController: UIViewController
             if (globals.media.all == nil) {
                 splitViewController?.preferredDisplayMode = .primaryOverlay//iPad only
             } else {
-                if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
+                if let count = splitViewController?.viewControllers.count, let nvc = splitViewController?.viewControllers[count - 1] as? UINavigationController {
                     if let _ = nvc.visibleViewController as? WebViewController {
                         splitViewController?.preferredDisplayMode = .primaryHidden //iPad only
                     } else {
@@ -1211,7 +1286,7 @@ class WebViewController: UIViewController
                 }
             }
         } else {
-            if let nvc = splitViewController?.viewControllers[splitViewController!.viewControllers.count - 1] as? UINavigationController {
+            if let count = splitViewController?.viewControllers.count, let nvc = splitViewController?.viewControllers[count - 1] as? UINavigationController {
                 if let _ = nvc.visibleViewController as? WebViewController {
                     splitViewController?.preferredDisplayMode = .primaryHidden //iPad only
                 } else {
@@ -1254,7 +1329,7 @@ class WebViewController: UIViewController
                 break
             }
             
-            if let title = self.navigationItem.title {
+            if let title = self.navigationItem.title, let wkWebView = self.wkWebView {
                 let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
                 
                 let widthSize: CGSize = CGSize(width: .greatestFiniteMagnitude, height: 48.0)
@@ -1263,8 +1338,8 @@ class WebViewController: UIViewController
                 
 //                print("WebViewController:viewWillTransition",max(width,self.wkWebView!.scrollView.contentSize.width),self.wkWebView!.scrollView.contentSize.height)
                 
-                self.navigationController?.preferredContentSize = CGSize(width: max(width,self.wkWebView!.scrollView.contentSize.width),
-                                                                         height: self.wkWebView!.scrollView.contentSize.height)
+                self.navigationController?.preferredContentSize = CGSize(width: max(width,wkWebView.scrollView.contentSize.width),
+                                                                         height: wkWebView.scrollView.contentSize.height)
             }
         }
     }
@@ -1299,13 +1374,9 @@ class WebViewController: UIViewController
     {
         if #available(iOS 9.0, *) {
             if globals.cacheDownloads {
-                var destinationURL:URL?
-                
-                destinationURL = selectedMediaItem?.fileSystemURL
-
-                if (FileManager.default.fileExists(atPath: destinationURL!.path)){
+                if let destinationURL = selectedMediaItem?.fileSystemURL, FileManager.default.fileExists(atPath: destinationURL.path) {
                     DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-                        _ = self.wkWebView?.loadFileURL(destinationURL!, allowingReadAccessTo: destinationURL!)
+                        _ = self.wkWebView?.loadFileURL(destinationURL, allowingReadAccessTo: destinationURL)
                         
                         Thread.onMainThread() {
                             self.activityIndicator.stopAnimating()
@@ -1322,22 +1393,18 @@ class WebViewController: UIViewController
                     activityIndicator.isHidden = false
                     activityIndicator.startAnimating()
                     
-                    let download = selectedMediaItem!.download
-                    
-                    progressIndicator.progress = download!.totalBytesExpectedToWrite != 0 ? Float(download!.totalBytesWritten) / Float(download!.totalBytesExpectedToWrite) : 0.0
-                    progressIndicator.isHidden = false
-                    
-//                    if loadTimer == nil {
-//                        loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.DOWNLOADING, target: self, selector: #selector(WebViewController.downloading), userInfo: nil, repeats: true)
-//                    }
-
-                    download?.download()
+                    if let download = selectedMediaItem?.download {
+                        progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
+                        progressIndicator.isHidden = false
+                        
+                        //                    if loadTimer == nil {
+                        //                        loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.DOWNLOADING, target: self, selector: #selector(WebViewController.downloading), userInfo: nil, repeats: true)
+                        //                    }
+                        
+                        download.download()
+                    }
                 }
             } else {
-                var url:URL?
-                
-                url = selectedMediaItem?.downloadURL
-
                 DispatchQueue.global(qos: .background).async(execute: { () -> Void in
                     Thread.onMainThread() {
                         self.webView.bringSubview(toFront: self.activityIndicator)
@@ -1353,16 +1420,14 @@ class WebViewController: UIViewController
                         }
                     }
                     
-                    let request = URLRequest(url: url!)
-//                    let request = URLRequest(url: url!, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
-                    _ = self.wkWebView?.load(request) // NSURLRequest(URL: NSURL(string: stringURL!)!)
+                    if let url = self.selectedMediaItem?.downloadURL {
+                        let request = URLRequest(url: url)
+                        //                    let request = URLRequest(url: url!, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
+                        _ = self.wkWebView?.load(request) // NSURLRequest(URL: NSURL(string: stringURL!)!)
+                    }
                 })
             }
         } else {
-            var url:URL?
-            
-            url = selectedMediaItem?.downloadURL
-
             DispatchQueue.global(qos: .background).async(execute: { () -> Void in
                 Thread.onMainThread() {
                     self.webView.bringSubview(toFront: self.activityIndicator)
@@ -1378,9 +1443,11 @@ class WebViewController: UIViewController
                     }
                 }
                 
-                let request = URLRequest(url: url!)
-//                let request = URLRequest(url: url!, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
-                _ = self.wkWebView?.load(request) // NSURLRequest(URL: NSURL(string: stringURL!)!)
+                if let url = self.selectedMediaItem?.downloadURL {
+                    let request = URLRequest(url: url)
+                    //                let request = URLRequest(url: url!, cachePolicy: Constants.CACHE.POLICY, timeoutInterval: Constants.CACHE.TIMEOUT)
+                    _ = self.wkWebView?.load(request) // NSURLRequest(URL: NSURL(string: stringURL!)!)
+                }
             })
         }
     }
@@ -1677,7 +1744,10 @@ class WebViewController: UIViewController
             case .html:
                 if html.string != nil {
                     html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
-                    _ = wkWebView?.loadHTMLString(html.string!, baseURL: nil)
+                    
+                    if let htmlString = html.string {
+                        _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+                    }
                 }
                 break
             }

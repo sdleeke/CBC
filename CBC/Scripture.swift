@@ -260,7 +260,9 @@ class Scripture : NSObject
                 scriptures.append(string.substring(to: lowerBound))
             }
             
-            string = string.substring(from: string.range(of: separator)!.upperBound)
+            if let range = string.range(of: separator) {
+                string = string.substring(from: range.upperBound)
+            }
         }
         
         scriptures.append(string)
@@ -336,11 +338,11 @@ class Scripture : NSObject
     
     func loadHTMLVerseFromURL() -> String?
     {
-        guard reference != nil else {
+        guard let reference = reference else {
             return nil
         }
         
-        let urlString = "http://www.esvapi.org/v2/rest/passageQuery?key=5b906fb1eeed04e1&passage=\(reference!)&include-audio-link=false&include-headings=false&include-footnotes=false".replacingOccurrences(of: " ", with: "%20")
+        let urlString = "http://www.esvapi.org/v2/rest/passageQuery?key=5b906fb1eeed04e1&passage=\(reference)&include-audio-link=false&include-headings=false&include-footnotes=false".replacingOccurrences(of: " ", with: "%20")
 
         if let url = URL(string: urlString) {
             if let data = try? Data(contentsOf: url) {
@@ -365,11 +367,11 @@ class Scripture : NSObject
             return nil
         }
         
-        guard reference != nil else {
+        guard let reference = reference else {
             return nil
         }
         
-        let urlString = Constants.SCRIPTURE_BASE_URL + "\(reference!)&include_marginalia=true".replacingOccurrences(of: " ", with: "%20")
+        let urlString = Constants.SCRIPTURE_BASE_URL + "\(reference)&include_marginalia=true".replacingOccurrences(of: " ", with: "%20")
 
         return jsonFromURL(url: urlString) as? [String:Any]
         
@@ -392,19 +394,23 @@ class Scripture : NSObject
     
     func loadHTML() // _ reference:String?
     {
-        html?[reference!] = loadHTMLVerseFromURL() // reference
+        if let reference = reference {
+            html?[reference] = loadHTMLVerseFromURL() // reference
+        }
     }
     
     func loadXMLVerseFromURL(_ reference:String?) -> [String:Any]?
     {
+        guard let reference = reference else {
+            return nil
+        }
+        
         guard xml.parser == nil else {
             return nil
         }
         
-        guard let scriptureReference = reference?.replacingOccurrences(of: " ", with: "%20") else {
-            return nil
-        }
-    
+        let scriptureReference = reference.replacingOccurrences(of: " ", with: "%20")
+        
         xml.text = nil
         
         let urlString = "http://www.esvapi.org/v2/rest/passageQuery?key=5b906fb1eeed04e1&passage=\(scriptureReference)&include-audio-link=false&include-headings=false&output-format=crossway-xml-1.0"
@@ -419,11 +425,16 @@ class Scripture : NSObject
                 
                 bodyString = "<!DOCTYPE html><html><body>"
                 
-                bodyString = bodyString! + "Scripture: " + reference! + "<br/><br/>"
+                bodyString = bodyString! + "Scripture: " + reference + "<br/><br/>"
                 
-                if let books = xml.text?.keys.sorted(by: {
-                    
-                    reference?.range(of: $0)?.lowerBound < reference?.range(of: $1)?.lowerBound
+                if let books = xml.text?.keys.sorted(by: { (first:String, second:String) -> Bool in
+                    if  let first = reference.range(of: first)?.lowerBound,
+                        let second = reference.range(of: second)?.lowerBound {
+                        return first < second
+                    } else {
+                        return false // arbritrary
+                    }
+                    //reference.range(of: first)?.lowerBound < reference?.range(of: second)?.lowerBound
                 }) {
                     for book in books {
                         bodyString = bodyString! + book
@@ -448,7 +459,7 @@ class Scripture : NSObject
                 
                 bodyString = bodyString! + "</html></body>"
                 
-                html?[reference!] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
+                html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
             }
             
             xml.parser = nil
@@ -461,11 +472,15 @@ class Scripture : NSObject
     
     func loadXML(_ reference:String?)
     {
+        guard let reference = reference else {
+            return
+        }
+        
         var bodyString:String?
         
         bodyString = "<!DOCTYPE html><html><body>"
         
-        bodyString = bodyString! + "Scripture: " + reference!
+        bodyString = bodyString! + "Scripture: " + reference
         
         guard let data = booksChaptersVerses?.data else {
             return
@@ -618,7 +633,7 @@ class Scripture : NSObject
         
         bodyString = bodyString! + "</html></body>"
         
-        html?[reference!] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
+        html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
     }
     
     func loadJSON() // _ reference:String?
@@ -789,6 +804,8 @@ class Scripture : NSObject
         
 //        print(bodyString as Any)
         
-        html?[reference!] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
+        if let reference = reference {
+            html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
+        }
     }
 }

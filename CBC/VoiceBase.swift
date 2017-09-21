@@ -11,8 +11,9 @@ import UIKit
 
 extension NSMutableData {
     func appendString(_ string: String) {
-        let data = string.data(using: String.Encoding.utf8, allowLossyConversion: false)
-        append(data!)
+        if let data = string.data(using: String.Encoding.utf8, allowLossyConversion: false) {
+            append(data)
+        }
     }
 }
 
@@ -111,16 +112,18 @@ extension VoiceBase // Class Methods
                         
                         for task in jobTasks.keys {
                             if let status = (jobTasks[task] as? [String:Any])?["status"] as? String {
-                                if stats[status] == nil {
-                                    stats[status] = 1
+                                if let count = stats[status] {
+                                    stats[status] = count + 1
                                 } else {
-                                    stats[status] = stats[status]! + 1
+                                    stats[status] = 1
                                 }
                             }
                         }
                         
                         for key in stats.keys {
-                            htmlString = htmlString + "\(key): \(stats[key]!)\n"
+                            if let value = stats[key] {
+                                htmlString = htmlString + "\(key): \(value)\n"
+                            }
                         }
                     }
                 }
@@ -268,10 +271,14 @@ extension VoiceBase // Class Methods
         //            return
         //        }
         
-        let service = VoiceBase.url(mediaID:mediaID, path:path)
+//        let service = VoiceBase.url(mediaID:mediaID, path:path)
         //        print(service)
         
-        var request = URLRequest(url: URL(string:service)!)
+        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:path)) else {
+            return
+        }
+        
+        var request = URLRequest(url: url)
         
         request.httpMethod = "POST"
         
@@ -365,10 +372,14 @@ extension VoiceBase // Class Methods
 //            return
 //        }
 
-        let service = VoiceBase.url(mediaID:mediaID,path:path)
-        print(service)
+//        let service = VoiceBase.url(mediaID:mediaID,path:path)
+//        print(service)
         
-        var request = URLRequest(url: URL(string:service)!)
+        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:path)) else {
+            return
+        }
+
+        var request = URLRequest(url: url)
         
         request.httpMethod = "GET"
         
@@ -487,10 +498,14 @@ extension VoiceBase // Class Methods
             return
         }
         
-        let service = VoiceBase.url(mediaID:mediaID,path:nil)
-        print(service)
+//        let service = VoiceBase.url(mediaID:mediaID,path:nil)
+//        print(service)
+
+        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:nil)) else {
+            return
+        }
         
-        var request = URLRequest(url: URL(string:service)!)
+        var request = URLRequest(url: url)
         
         request.httpMethod = "DELETE"
         
@@ -710,9 +725,11 @@ class VoiceBase {
                     mediaItemString = "\(mediaItemString)\"model\":\"\(UIDevice.current.localizedModel)\","
                     
                     mediaItemString = "\(mediaItemString)\"modelName\":\"\(UIDevice.current.modelName)\","
-                    
-                    mediaItemString = "\(mediaItemString)\"UUID\":\"\(UIDevice.current.identifierForVendor!.description)\""
-                    
+        
+                    if let uuid = UIDevice.current.identifierForVendor?.description {
+                        mediaItemString = "\(mediaItemString)\"UUID\":\"\(uuid)\""
+                    }
+        
                 mediaItemString = "\(mediaItemString)}"
         
             mediaItemString = "\(mediaItemString)}"
@@ -725,7 +742,11 @@ class VoiceBase {
     var mediaID:String?
     {
         didSet {
-            mediaItem?.mediaItemSettings?["mediaID."+purpose!] = mediaID
+            guard let purpose = purpose else {
+                return
+            }
+            
+            mediaItem?.mediaItemSettings?["mediaID."+purpose] = mediaID
             
             Thread.onMainThread() {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
@@ -736,7 +757,11 @@ class VoiceBase {
     var completed = false
     {
         didSet {
-            mediaItem?.mediaItemSettings?["completed."+purpose!] = completed ? "YES" : "NO"
+            guard let purpose = purpose else {
+                return
+            }
+            
+            mediaItem?.mediaItemSettings?["completed."+purpose] = completed ? "YES" : "NO"
 
             Thread.onMainThread() {
                 NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
@@ -787,8 +812,16 @@ class VoiceBase {
                 return nil
             }
             
+            guard let id = mediaItem.id else {
+                return nil
+            }
+            
+            guard let purpose = purpose else {
+                return nil
+            }
+            
             if completed {
-                if let destinationURL = cachesURL()?.appendingPathComponent(mediaItem.id!+".\(self.purpose!)") {
+                if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose)") {
                     do {
                         try _transcript = String(contentsOfFile: destinationURL.path, encoding: String.Encoding.utf8)
                         // This will cause an error.  The tag is created in the constantTags getter while loading.
@@ -835,13 +868,17 @@ class VoiceBase {
                 return
             }
 
-            guard mediaItem.id != nil else {
+            guard let id = mediaItem.id else {
                 return
             }
-
+            
+            guard let purpose = purpose else {
+                return
+            }
+            
             if _transcript != nil {
                 DispatchQueue.global(qos: .background).async {
-                    if let destinationURL = cachesURL()?.appendingPathComponent(mediaItem.id!+".\(self.purpose!)") {
+                    if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose)") {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
@@ -862,7 +899,7 @@ class VoiceBase {
                 }
             } else {
                 DispatchQueue.global(qos: .background).async {
-                    if let destinationURL = cachesURL()?.appendingPathComponent(mediaItem.id!+".\(self.purpose!)") {
+                    if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose)") {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
@@ -929,7 +966,7 @@ class VoiceBase {
                     start = Double(word["s"] as! Int) / 1000.0
                     end = Double(word["e"] as! Int) / 1000.0
                     
-                    while ((transcript?.components(separatedBy: segment!).count > 2) || (segment?.components(separatedBy: " ").count < 10) || (words.first?["m"] != nil)) && (words.count > 0) {
+                    while (segment != nil), ((transcript?.components(separatedBy: segment!).count > 2) || (segment?.components(separatedBy: " ").count < 10) || (words.first?["m"] != nil)) && (words.count > 0) {
                         let word = words.removeFirst()
                         
                         if let string = word["w"] as? String {
@@ -956,7 +993,9 @@ class VoiceBase {
                     
 //                    segment = segment?.replacingOccurrences(of: ".   ", with: ".  ")
                     
-                    following.append(["start":start!,"end":end!,"text":segment!])
+                    if let start = start, let end = end, let segment = segment {
+                        following.append(["start":start,"end":end,"text":segment])
+                    }
                     
                     segment = nil
                 }
@@ -982,15 +1021,15 @@ class VoiceBase {
                 return nil
             }
             
-            guard mediaItem.id != nil else {
+            guard let id = mediaItem.id else {
                 return nil
             }
             
-            guard purpose != nil else {
+            guard let purpose = purpose else {
                 return nil
             }
             
-            if let url = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(self.purpose!).media"), let data = try? Data(contentsOf: url) {
+            if let url = cachesURL()?.appendingPathComponent("\(id).\(purpose).media"), let data = try? Data(contentsOf: url) {
                 do {
                     _mediaJSON = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any]
                 } catch let error as NSError {
@@ -1016,11 +1055,11 @@ class VoiceBase {
                 return
             }
             
-            guard mediaItem.id != nil else {
+            guard let id = mediaItem.id else {
                 return
             }
             
-            guard purpose != nil else {
+            guard let purpose = purpose else {
                 return
             }
             
@@ -1034,7 +1073,7 @@ class VoiceBase {
                 if self._mediaJSON != nil {
                     let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self._mediaJSON as Any, format: .xml, options: 0)
                     
-                    if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(self.purpose!).media") {
+                    if let destinationURL = cachesURL()?.appendingPathComponent("\(id).\(purpose).media") {
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
                                 try fileManager.removeItem(at: destinationURL)
@@ -1052,7 +1091,7 @@ class VoiceBase {
                         print("destinationURL nil!")
                     }
                 } else {
-                    if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(self.purpose!).media") {
+                    if let destinationURL = cachesURL()?.appendingPathComponent("\(id).\(purpose).media") {
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
                                 try fileManager.removeItem(at: destinationURL)
@@ -1230,11 +1269,11 @@ class VoiceBase {
         
         self.purpose = purpose
 
-        if let mediaID = mediaItem.mediaItemSettings?["mediaID."+self.purpose!] {
+        if let mediaID = mediaItem.mediaItemSettings?["mediaID."+purpose] {
             self.mediaID = mediaID
         }
         
-        if let completed = mediaItem.mediaItemSettings?["completed."+self.purpose!] {
+        if let completed = mediaItem.mediaItemSettings?["completed."+purpose] {
             self.completed = completed == "YES"
         }
     }
@@ -1311,10 +1350,14 @@ class VoiceBase {
 //            return
 //        }
         
-        let service = VoiceBase.url(mediaID:mediaID, path:path)
+//        let service = VoiceBase.url(mediaID:mediaID, path:path)
         //        print(service)
         
-        var request = URLRequest(url: URL(string:service)!)
+        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:path)) else {
+            return
+        }
+        
+        var request = URLRequest(url: url)
         
         request.httpMethod = "POST"
         
@@ -1396,8 +1439,8 @@ class VoiceBase {
         
         userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
             if let status = json?["status"] as? String, status == "finished" {
-                if alert {
-                    globals.alert(title: "Transcription Completed",message: "The transcription process for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nhas completed.")
+                if alert, let text = self.mediaItem?.text {
+                    globals.alert(title: "Transcription Completed",message: "The transcription process for\n\n\(text) (\(self.transcriptPurpose))\n\nhas completed.")
                 }
                 
                 self.transcribing = false
@@ -1437,9 +1480,10 @@ class VoiceBase {
         userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
             self.remove()
             
-            let error = (json?["errors"] as? [String:Any])?["error"] as? String
-
-            globals.alert(title: "Transcript Failed",message: (error != nil ? "Error: \(error!)\n": "") + "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nwas not completed.  Please try again.")
+            if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
+                let text = self.mediaItem?.text {
+                globals.alert(title: "Transcript Failed",message: "Error: \(error)\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not completed.  Please try again.")
+            }
             
             Thread.onMainThread() {
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
@@ -1467,7 +1511,9 @@ class VoiceBase {
                 if let mediaID = json?["mediaId"] as? String {
                     self.mediaID = mediaID
                     
-                    globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nhas been started.  You will be notified when it is complete.")
+                    if let text = self.mediaItem?.text {
+                        globals.alert(title:"Machine Generated Transcript Started", message:"The machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been started.  You will be notified when it is complete.")
+                    }
                     
                     if self.resultsTimer == nil {
                         Thread.onMainThread() {
@@ -1483,9 +1529,10 @@ class VoiceBase {
         }, onError: { (json:[String : Any]?) -> (Void) in
             self.transcribing = false
             
-            let error = (json?["errors"] as? [String:Any])?["error"] as? String
-            
-            globals.alert(title: "Transcript Failed",message: (error != nil ? "Error: \(error!)\n": "") + "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+            if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
+                let text = self.mediaItem?.text {
+                globals.alert(title: "Transcript Failed",message: "Error: \(error)\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+            }
 
             Thread.onMainThread() {
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.FAILED_TO_UPLOAD), object: self)
@@ -1530,10 +1577,14 @@ class VoiceBase {
             return
         }
         
-        let service = VoiceBase.url(mediaID:mediaID, path:nil)
+//        let service = VoiceBase.url(mediaID:mediaID, path:nil)
         //        print(service)
+
+        guard let url = URL(string: VoiceBase.url(mediaID:mediaID, path:nil)) else {
+            return
+        }
         
-        var request = URLRequest(url: URL(string:service)!)
+        var request = URLRequest(url: url)
         
         request.httpMethod = "DELETE"
         
@@ -1833,17 +1884,17 @@ class VoiceBase {
         details(completion: { (json:[String : Any]?) -> (Void) in
             if let json = json?["media"] as? [String:Any] {
                 self.mediaJSON = json
-                if alert {
-                    globals.alert(title: "Keywords Available",message: "The keywords for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nare available.")
+                if alert, let text = self.mediaItem?.text {
+                    globals.alert(title: "Keywords Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare available.")
                 }
             } else {
-                if alert {
-                    globals.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nare not available.")
+                if alert, let text = self.mediaItem?.text {
+                    globals.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare not available.")
                 }
             }
         }, onError: { (json:[String : Any]?) -> (Void) in
-            if alert {
-                globals.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nare not available.")
+            if alert, let text = self.mediaItem?.text {
+                globals.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare not available.")
             }
         })
     }
@@ -1870,8 +1921,8 @@ class VoiceBase {
         
         userInfo["completion"] = { (json:[String : Any]?) -> (Void) in
             if let status = json?["status"] as? String, status == "finished" {
-                if alert {
-                    globals.alert(title: "Transcript Realignment Complete",message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nhas been realigned.")
+                if alert, let text = self.mediaItem?.text {
+                    globals.alert(title: "Transcript Realignment Complete",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been realigned.")
                 }
                 
                 self.aligning = false
@@ -1923,9 +1974,10 @@ class VoiceBase {
         userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
             self.remove()
             
-            let error = (json?["errors"] as? [String:Any])?["error"] as? String
-            
-            globals.alert(title: "Transcript Alignment Failed",message: (error != nil ? "Error: \(error!)\n": "") + "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again.")
+            if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
+                let text = self.mediaItem?.text {
+                globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again.")
+            }
             
 //            DispatchQueue.main.async(execute: { () -> Void in
 //                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
@@ -1948,7 +2000,9 @@ class VoiceBase {
         }
         
         guard !aligning else {
-            globals.alert(title:"Transcript Alignment in Progress", message:"The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis already being aligned.  You will be notified when it is completed.")
+            if let text = self.mediaItem?.text {
+                globals.alert(title:"Transcript Alignment in Progress", message:"The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis already being aligned.  You will be notified when it is completed.")
+            }
             return
         }
         
@@ -1969,9 +2023,11 @@ class VoiceBase {
                             self.resultsTimer?.invalidate()
                             self.resultsTimer = nil
                             
-                            let error = (json?["errors"] as? [String:Any])?["error"] as? String
+                            if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
+                                let text = self.mediaItem?.text {
+                                globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+                            }
                             
-                            globals.alert(title: "Transcript Alignment Failed",message: (error != nil ? "Error: \(error!)\n": "") + "The transcript realignment for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
                             return
                         }
 
@@ -1979,7 +2035,9 @@ class VoiceBase {
 //                        self.transcribing = true
 //                        self.completed = false
                         
-                        globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
+                        if let text = self.mediaItem?.text {
+                            globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
+                        }
                         
                         if self.resultsTimer == nil {
                             Thread.onMainThread() {
@@ -1998,18 +2056,26 @@ class VoiceBase {
                 self.resultsTimer?.invalidate()
                 self.resultsTimer = nil
                 
-                let error = (json?["errors"] as? [String:Any])?["error"] as? String
-                
-                globals.alert(title: "Transcript Alignment Failed",message: (error != nil ? "Error: \(error!)\n": "") + "The transcript realignment for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+                if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
+                    let text = self.mediaItem?.text {
+                    globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+                }
             })
         }, onError: { (json:[String : Any]?) -> (Void) in
+            guard let url = self.url else {
+                return
+            }
+            
             // Not on VoiceBase
-            globals.alert(title:"Media Not on VoiceBase", message:"The media for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
+            
+            if let text = self.mediaItem?.text {
+                globals.alert(title:"Media Not on VoiceBase", message:"The media for\n\n\(text) (\(self.transcriptPurpose))\n\nis not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
+            }
             
             // Upload then align
             self.mediaID = nil
             
-            let parameters:[String:String] = ["media":self.url!,"metadata":self.metadata] // "configuration":"{\"configuration\":{\"executor\":\"v2\"}}"
+            let parameters:[String:String] = ["media":url,"metadata":self.metadata] // "configuration":"{\"configuration\":{\"executor\":\"v2\"}}"
             
             self.post(path:nil,parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
                 self.uploadJSON = json
@@ -2019,7 +2085,9 @@ class VoiceBase {
                         // We do get a new mediaID
                         self.mediaID = mediaID
                         
-                        globals.alert(title:"Media Upload Started", message:"The transcript realignment for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nwill be started once the media upload has completed.")
+                        if let text = self.mediaItem?.text {
+                            globals.alert(title:"Media Upload Started", message:"The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be started once the media upload has completed.")
+                        }
                         
                         var userInfo = [String:Any]()
                         
@@ -2051,7 +2119,7 @@ class VoiceBase {
 //                                self.details()
                                 
                                 // Now do the relignment
-                                let parameters:[String:String] = ["transcript":self.transcript!]//,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+                                let parameters:[String:String] = ["transcript":transcript]//,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
                                 
                                 self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
                                     self.uploadJSON = json
@@ -2064,9 +2132,11 @@ class VoiceBase {
                                                 self.resultsTimer?.invalidate()
                                                 self.resultsTimer = nil
 
-                                                let error = (json?["errors"] as? [String:Any])?["error"] as? String
+                                                if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
+                                                    let text = self.mediaItem?.text {
+                                                    globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+                                                }
                                                 
-                                                globals.alert(title: "Transcript Alignment Failed",message: (error != nil ? "Error: \(error!)\n": "") + "The transcript realignment for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
                                                 return
                                             }
                                             
@@ -2076,7 +2146,9 @@ class VoiceBase {
                                             
                                             self.aligning = true
                                             
-                                            globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
+                                            if let text = self.mediaItem?.text {
+                                                globals.alert(title:"Machine Generated Transcript Alignment Started", message:"Realigning the machine generated transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas started.  You will be notified when it is complete.")
+                                            }
                                             
                                             if self.resultsTimer == nil {
                                                 Thread.onMainThread() {
@@ -2094,9 +2166,10 @@ class VoiceBase {
                                     self.resultsTimer?.invalidate()
                                     self.resultsTimer = nil
                                     
-                                    let error = (json?["errors"] as? [String:Any])?["error"] as? String
-                                    
-                                    globals.alert(title: "Transcript Alignment Failed",message: (error != nil ? "Error: \(error!)\n": "") + "The transcript realignment for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+                                    if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
+                                        let text = self.mediaItem?.text {
+                                            globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+                                    }
                                 })
                             } else {
                                 if let progress = json?["progress"] as? [String:Any] {
@@ -2125,9 +2198,10 @@ class VoiceBase {
                             self.resultsTimer?.invalidate()
                             self.resultsTimer = nil
 
-                            let error = (json?["errors"] as? [String:Any])?["error"] as? String
-                            
-                            globals.alert(title: "Transcript Alignment Failed",message: (error != nil ? "Error: \(error!)\n": "") + "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again.")
+                            if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
+                                let text = self.mediaItem?.text {
+                                globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again.")
+                            }
 
 //                            DispatchQueue.main.async(execute: { () -> Void in
 //                                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
@@ -2151,9 +2225,10 @@ class VoiceBase {
                 self.resultsTimer?.invalidate()
                 self.resultsTimer = nil
                 
-                let error = (json?["errors"] as? [String:Any])?["error"] as? String
-                
-                globals.alert(title: "Transcript Alignment Failed",message: (error != nil ? "Error: \(error!)\n": "") + "The transcript realignment for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+                if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
+                    let text = self.mediaItem?.text {
+                    globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+                }
             })
         })
     }
@@ -2169,21 +2244,21 @@ class VoiceBase {
             if let text = json?["text"] as? String {
                 self.transcript = text
 
-                if alert {
-                    globals.alert(title: "Transcript Available",message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis available.")
+                if alert, let text = self.mediaItem?.text {
+                    globals.alert(title: "Transcript Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis available.")
                 }
                 
                 Thread.onMainThread() {
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_COMPLETED), object: self)
                 }
             } else {
-                if alert {
-                    globals.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis not available.")
+                if alert, let text = self.mediaItem?.text {
+                    globals.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
                 }
             }
         }, onError: { (json:[String : Any]?) -> (Void) in
-            if alert {
-                globals.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis not available.")
+            if alert, let text = self.mediaItem?.text {
+                globals.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
             }
         })
     }
@@ -2403,11 +2478,15 @@ class VoiceBase {
                 return nil
             }
             
-            guard mediaItem.id != nil else {
+            guard let id = mediaItem.id else {
                 return nil
             }
             
-            if let url = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(self.purpose!).srt") {
+            guard let purpose = purpose else {
+                return nil
+            }
+            
+            if let url = cachesURL()?.appendingPathComponent("\(id).\(purpose).srt") {
                 do {
                     try _transcriptSRT = String(contentsOfFile: url.path, encoding: String.Encoding.utf8)
                 } catch let error as NSError {
@@ -2428,7 +2507,11 @@ class VoiceBase {
                 return
             }
             
-            guard mediaItem.id != nil else {
+            guard let id = mediaItem.id else {
+                return
+            }
+            
+            guard let purpose = purpose else {
                 return
             }
             
@@ -2473,7 +2556,7 @@ class VoiceBase {
                 let fileManager = FileManager.default
                 
                 if self._transcriptSRT != nil {
-                    if let destinationURL = cachesURL()?.appendingPathComponent(mediaItem.id!+".\(self.purpose!).srt") {
+                    if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose).srt") {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
@@ -2492,7 +2575,7 @@ class VoiceBase {
                         print("failed to get destinationURL")
                     }
                 } else {
-                    if let destinationURL = cachesURL()?.appendingPathComponent(mediaItem.id!+".\(self.purpose!).srt") {
+                    if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose).srt") {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
                             do {
@@ -2600,17 +2683,17 @@ class VoiceBase {
 
                 self.transcriptSRT = srt
 
-                if alert {
-                    globals.alert(title: "Transcript SRT Available",message: "The transcript SRT for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis available.")
+                if alert, let text = self.mediaItem?.text {
+                    globals.alert(title: "Transcript SRT Available",message: "The transcript SRT for\n\n\(text) (\(self.transcriptPurpose))\n\nis available.")
                 }
             } else {
-                if alert {
-                    globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis not available.")
+                if alert, let text = self.mediaItem?.text {
+                    globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
                 }
             }
         }, onError: { (json:[String : Any]?) -> (Void) in
-            if alert {
-                globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nis not available.")
+            if alert, let text = self.mediaItem?.text {
+                globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
             }
         })
     }
@@ -2638,12 +2721,15 @@ class VoiceBase {
         //        }
         
         var service = VoiceBase.url(mediaID: nil, path: nil)
-        
         service = service + "q=" + string
         
         //        print(service)
         
-        var request = URLRequest(url: URL(string:service)!)
+        guard let url = URL(string:service) else {
+            return
+        }
+        
+        var request = URLRequest(url: url)
         
         request.httpMethod = "GET"
         
@@ -2736,7 +2822,9 @@ class VoiceBase {
                 // Get the new ones.
                 self.details(alert: true)
 
-                globals.alert(title: "Transcript Reload Complete",message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nhas been reloaded from VoiceBase.")
+                if let text = self.mediaItem?.text {
+                    globals.alert(title: "Transcript Reload Complete",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been reloaded from VoiceBase.")
+                }
             } else {
                 if let progress = json?["progress"] as? [String:Any] {
                     if let tasks = progress["tasks"] as? [String:Any] {
@@ -2762,9 +2850,10 @@ class VoiceBase {
         userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
             self.remove()
             
-            let error = (json?["errors"] as? [String:Any])?["error"] as? String
-            
-            globals.alert(title: "Transcript Alignment Failed",message: (error != nil ? "Error: \(error!)\n": "") + "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again.")
+            if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
+                let text = self.mediaItem?.text {
+                globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again.")
+            }
             
             //            DispatchQueue.main.async(execute: { () -> Void in
             //                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
@@ -2787,7 +2876,11 @@ class VoiceBase {
             
             var title = "Machine Generated Transcript "
             
-            var message = "You will be notified when the machine generated transcript for\n\n\(mediaItem!.text!)\(completion) "
+            guard let text = mediaItem?.text else {
+                return
+            }
+            
+            var message = "You will be notified when the machine generated transcript for\n\n\(text)\(completion) "
             
             if (mediaID != nil) {
                 title = title + "in Progress"
@@ -2806,7 +2899,7 @@ class VoiceBase {
                     })
                     
                     let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                        alertItem -> Void in
+                        (action : UIAlertAction) -> Void in
                     })
                     alert.addAction(okayAction)
                     
@@ -2861,11 +2954,13 @@ class VoiceBase {
                         
                         alertActions.append(AlertAction(title: "No", style: .default, action: nil))
                         
-                        alertActionsCancel( viewController: viewController,
-                                            title: "Begin Creating\nMachine Generated Transcript?",
-                                            message: "\(self.mediaItem!.text!) (\(self.transcriptPurpose))",
-                            alertActions: alertActions,
-                            cancelAction: nil)
+                        if let text = self.mediaItem?.text {
+                            alertActionsCancel( viewController: viewController,
+                                                title: "Begin Creating\nMachine Generated Transcript?",
+                                                message: "\(text) (\(self.transcriptPurpose))",
+                                alertActions: alertActions,
+                                cancelAction: nil)
+                        }
                     } else {
                         networkUnavailable(viewController, "Machine Generated Transcript Unavailable.")
                     }
@@ -2885,15 +2980,20 @@ class VoiceBase {
                         
                         var htmlString = "<!DOCTYPE html><html><body>"
                         
-                        htmlString = htmlString + self.mediaItem!.headerHTML! +
-                            "<br/>" +
-                            "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(self.purpose!))</center>" +
-                            "<br/>" +
-                            self.transcript!.replacingOccurrences(of: "\n", with: "<br/>") +
-                            //                                            "<br/>" +
-                            //                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
-                        "</body></html>"
-                        
+                        if  let transcript = self.transcript,
+                            let purpose = self.purpose,
+                            let headerHTML = self.mediaItem?.headerHTML {
+                            htmlString = htmlString + headerHTML +
+                                "<br/>" +
+                                "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(purpose))</center>" +
+                                "<br/>" +
+                                transcript.replacingOccurrences(of: "\n", with: "<br/>") // +
+                                //                                            "<br/>" +
+                                //                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
+                        }
+
+                        htmlString = htmlString + "</body></html>"
+
                         popoverHTML(viewController,mediaItem:nil,title:self.mediaItem?.title,barButtonItem:nil,sourceView:nil,sourceRectView:nil,htmlString:htmlString)
                     }))
                     
@@ -2930,14 +3030,17 @@ class VoiceBase {
                             
                             srtHTML = srtHTML + "</table>"
                             
-                            htmlString = htmlString + self.mediaItem!.headerHTML! +
-                                "<br/>" +
-                                "<center>MACHINE GENERATED TRANSCRIPT WITH TIMING<br/>(\(self.purpose!))</center>" +
-                                "<br/>" +
-                                
-                                srtHTML +
-                                
-                            "</body></html>"
+                            if  let purpose = self.purpose,
+                                let headerHTML = self.mediaItem?.headerHTML {
+                                    htmlString = htmlString + headerHTML +
+                                        "<br/>" +
+                                        "<center>MACHINE GENERATED TRANSCRIPT WITH TIMING<br/>(\(purpose))</center>" +
+                                        "<br/>" +
+                                        
+                                        srtHTML +
+                                        
+                                    "</body></html>"
+                            }
                             return htmlString as Any
                         }, completion: { (data:Any?) in
                             if let htmlString = data as? String {
@@ -2954,7 +3057,7 @@ class VoiceBase {
                 }))
                 
                 alertActions.append(AlertAction(title: "Edit", style: .default, action: {
-                    if  let navigationController = viewController.storyboard!.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
+                    if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
                         let textPopover = navigationController.viewControllers[0] as? TextViewController {
                         navigationController.modalPresentationStyle = .overCurrentContext
                         
@@ -3039,11 +3142,13 @@ class VoiceBase {
 //                                    index += 1
 //                                }
                                 
-                                alertActionsOkay( viewController: viewController,
-                                                    title: "Transcript Sync Warning",
-                                                    message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\ndiffers from the individually recognized words.  As a result the sync will not be exact.  Please align the transcript for an exact sync.",
-                                    alertActions: nil,
-                                    okayAction: nil)
+                                if let text = self.mediaItem?.text {
+                                    alertActionsOkay( viewController: viewController,
+                                                      title: "Transcript Sync Warning",
+                                                      message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\ndiffers from the individually recognized words.  As a result the sync will not be exact.  Please align the transcript for an exact sync.",
+                                        alertActions: nil,
+                                        okayAction: nil)
+                                }
                             }
                         })
                     } else {
@@ -3062,7 +3167,7 @@ class VoiceBase {
                     })
                     
                     let okayAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                        alertItem -> Void in
+                        (action : UIAlertAction) -> Void in
                     })
                     alert.addAction(okayAction)
                     
@@ -3104,11 +3209,13 @@ class VoiceBase {
                     
                     alertActions.append(AlertAction(title: "Align", style: .destructive, action: {
                         guard !self.aligning else {
-                            alertActionsCancel( viewController: viewController,
-                                                title: "Alignment Underway",
-                                                message: "There is an alignment already underway (\(self.percentComplete!)% complete) for:\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nPlease try again later.",
-                                alertActions: nil,
-                                cancelAction: nil)
+                            if let percentComplete = self.percentComplete, let text = self.mediaItem?.text {
+                                alertActionsCancel( viewController: viewController,
+                                                    title: "Alignment Underway",
+                                                    message: "There is an alignment already underway (\(percentComplete)% complete) for:\n\n\(text) (\(self.transcriptPurpose))\n\nPlease try again later.",
+                                    alertActions: nil,
+                                    cancelAction: nil)
+                            }
                             return
                         }
                         
@@ -3141,11 +3248,13 @@ class VoiceBase {
                         
                         alertActions.append(AlertAction(title: "No", style: .default, action: nil))
                         
-                        alertActionsCancel( viewController: viewController,
-                                            title: "Confirm Realignment of Machine Generated Transcript",
-                                            message: "Depending on the source selected, this may change both the transcript and timing for\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))",
-                            alertActions: alertActions,
-                            cancelAction: nil)
+                        if let text = self.mediaItem?.text {
+                            alertActionsCancel( viewController: viewController,
+                                                title: "Confirm Realignment of Machine Generated Transcript",
+                                                message: "Depending on the source selected, this may change both the transcript and timing for\n\(text) (\(self.transcriptPurpose))",
+                                alertActions: alertActions,
+                                cancelAction: nil)
+                        }
                     }))
                 }
                 
@@ -3161,11 +3270,13 @@ class VoiceBase {
                         
                         alertActions.append(AlertAction(title: "No", style: .default, action: nil))
                         
-                        alertActionsCancel( viewController: viewController,
-                                            title: "Confirm Regeneration of Transcript",
-                                            message: "The transcript for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nwill be regenerated from the individually recognized words.",
-                            alertActions: alertActions,
-                            cancelAction: nil)
+                        if let text = self.mediaItem?.text {
+                            alertActionsCancel( viewController: viewController,
+                                                title: "Confirm Regeneration of Transcript",
+                                                message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be regenerated from the individually recognized words.",
+                                alertActions: alertActions,
+                                cancelAction: nil)
+                        }
                     }))
                     
                     if let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable {
@@ -3194,11 +3305,13 @@ class VoiceBase {
                                     
                                     alertActions.append(AlertAction(title: "No", style: .default, action: nil))
                                     
-                                    alertActionsCancel( viewController: viewController,
-                                                        title: "Confirm Reloading",
-                                                        message: "The results of speech recognition for\n\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))\n\nwill be reloaded from VoiceBase.",
-                                        alertActions: alertActions,
-                                        cancelAction: nil)
+                                    if let text = self.mediaItem?.text {
+                                        alertActionsCancel( viewController: viewController,
+                                                            title: "Confirm Reloading",
+                                                            message: "The results of speech recognition for\n\n\(text) (\(self.transcriptPurpose))\n\nwill be reloaded from VoiceBase.",
+                                            alertActions: alertActions,
+                                            cancelAction: nil)
+                                    }
                                 }
                             }, onError:  { (dict:[String:Any]?)->(Void) in
                                 if let text = self.mediaItem?.text {
@@ -3212,11 +3325,13 @@ class VoiceBase {
                         }))
                     }
                     
-                    alertActionsCancel( viewController: viewController,
-                                        title: "Restore Options",
-                                        message: "For\n\(self.mediaItem!.text!) (\(self.transcriptPurpose))",
-                        alertActions: alertActions,
-                        cancelAction: nil)
+                    if let text = self.mediaItem?.text {
+                        alertActionsCancel( viewController: viewController,
+                                            title: "Restore Options",
+                                            message: "For\n\(text) (\(self.transcriptPurpose))",
+                            alertActions: alertActions,
+                            cancelAction: nil)
+                    }
                 }))
                 
                 alertActions.append(AlertAction(title: "Delete", style: .destructive, action: {
@@ -3229,11 +3344,13 @@ class VoiceBase {
                     
                     alertActions.append(AlertAction(title: "No", style: .default, action: nil))
                     
-                    alertActionsCancel( viewController: viewController,
-                                        title: "Confirm Deletion of Machine Generated Transcript",
-                                        message: "\(self.mediaItem!.text!) (\(self.transcriptPurpose))",
-                        alertActions: alertActions,
-                        cancelAction: nil)
+                    if let text = self.mediaItem?.text {
+                        alertActionsCancel( viewController: viewController,
+                                            title: "Confirm Deletion of Machine Generated Transcript",
+                                            message: "\(text) (\(self.transcriptPurpose))",
+                            alertActions: alertActions,
+                            cancelAction: nil)
+                    }
                 }))
                 
                 alertActionsCancel(  viewController: viewController,
@@ -3273,7 +3390,7 @@ class VoiceBase {
 //            print(srtTiming,string)
             return string.contains(srtTiming)
         }).first,
-            let navigationController = popover.storyboard!.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
+            let navigationController = popover.storyboard?.instantiateViewController(withIdentifier: "TextViewController") as? UINavigationController,
             let textPopover = navigationController.viewControllers[0] as? TextViewController,
             let srtIndex = self.srtComponents?.index(of: first),
             let range = string.range(of:timing+"\n") {
@@ -3418,7 +3535,7 @@ class VoiceBase {
             alertActions.append(AlertAction(title: "By Keyword", style: .default, action: {
 //                print(self.transcriptWords)
                 
-                if  let navigationController = viewController.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+                if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                     navigationController.modalPresentationStyle = .overCurrentContext
                     
@@ -3456,7 +3573,7 @@ class VoiceBase {
             }))
             
             alertActions.append(AlertAction(title: "By Timed Segment", style: .default, action: {
-                if let navigationController = viewController.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController, let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController, let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                     
                     navigationController.modalPresentationStyle = .overCurrentContext
                     
@@ -3533,7 +3650,7 @@ class VoiceBase {
             }))
             
             alertActions.append(AlertAction(title: "By Timed Word", style: .default, action: {
-                if let navigationController = viewController.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController, let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
+                if let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController, let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                     
                     navigationController.modalPresentationStyle = .overCurrentContext
                     

@@ -24,16 +24,18 @@ class ScriptureIndex {
     var sections:[String:[MediaItem]]?
     {
         get {
-            guard (context != nil) else {
+            guard let context = context else {
                 return nil
             }
-            return sectionsIndex[context!]
+            
+            return sectionsIndex[context]
         }
         set {
-            guard (context != nil) else {
+            guard let context = context else {
                 return
             }
-            sectionsIndex[context!] = newValue
+            
+            sectionsIndex[context] = newValue
         }
     }
     
@@ -164,8 +166,8 @@ class ScriptureIndex {
                             }
                             
                             //                            print("\(mediaItem)")
-                            if self.byTestament[testament(book)] != nil {
-                                if !self.byTestament[testament(book)]!.contains(mediaItem) {
+                            if let contains = self.byTestament[testament(book)]?.contains(mediaItem) {
+                                if !contains {
                                     self.byTestament[testament(book)]?.append(mediaItem)
                                 }
                             } else {
@@ -175,8 +177,8 @@ class ScriptureIndex {
                             if self.byBook[testament(book)] == nil {
                                 self.byBook[testament(book)] = [String:[MediaItem]]()
                             }
-                            if self.byBook[testament(book)]?[book] != nil {
-                                if !self.byBook[testament(book)]![book]!.contains(mediaItem) {
+                            if let contains = self.byBook[testament(book)]?[book]?.contains(mediaItem) {
+                                if !contains {
                                     self.byBook[testament(book)]?[book]?.append(mediaItem)
                                 }
                             } else {
@@ -195,8 +197,8 @@ class ScriptureIndex {
                                     if self.byChapter[testament(book)]?[book] == nil {
                                         self.byChapter[testament(book)]?[book] = [Int:[MediaItem]]()
                                     }
-                                    if self.byChapter[testament(book)]?[book]?[chapter] != nil {
-                                        if !self.byChapter[testament(book)]![book]![chapter]!.contains(mediaItem) {
+                                    if let contains = self.byChapter[testament(book)]?[book]?[chapter]?.contains(mediaItem) {
+                                        if !contains {
                                             self.byChapter[testament(book)]?[book]?[chapter]?.append(mediaItem)
                                         }
                                     } else {
@@ -218,8 +220,8 @@ class ScriptureIndex {
                                             if self.byVerse[testament(book)]?[book]?[chapter] == nil {
                                                 self.byVerse[testament(book)]?[book]?[chapter] = [Int:[MediaItem]]()
                                             }
-                                            if self.byVerse[testament(book)]?[book]?[chapter]?[verse] != nil {
-                                                if !self.byVerse[testament(book)]![book]![chapter]![verse]!.contains(mediaItem) {
+                                            if let contains = self.byVerse[testament(book)]?[book]?[chapter]?[verse]?.contains(mediaItem) {
+                                                if !contains {
                                                     self.byVerse[testament(book)]?[book]?[chapter]?[verse]?.append(mediaItem)
                                                 }
                                             } else {

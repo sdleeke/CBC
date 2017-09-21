@@ -13,15 +13,15 @@ class BooksChaptersVerses : Swift.Comparable {
     
     func bookChaptersVerses(book:String?) -> BooksChaptersVerses?
     {
-        guard (book != nil) else {
+        guard let book = book else {
             return self
         }
         
         let bcv = BooksChaptersVerses()
         
-        bcv[book!] = data?[book!]
+        bcv[book] = data?[book]
         
-        //        print(bcv[book!])
+        //        print(bcv[book])
         
         return bcv
     }
@@ -78,55 +78,65 @@ class BooksChaptersVerses : Swift.Comparable {
                             return false
                         } else {
                             //                        print(lhsBooks)
-                            for index in 0...(lhsBooks!.count - 1) {
-                                if lhsBooks?[index] != rhsBooks?[index] {
-                                    return false
+                            if let count = lhsBooks?.count {
+                                for index in 0...(count - 1) {
+                                    if lhsBooks?[index] != rhsBooks?[index] {
+                                        return false
+                                    }
                                 }
                             }
-                            for book in lhsBooks! {
-                                let lhsChapters = lhs[book]?.keys.sorted()
-                                let rhsChapters = rhs[book]?.keys.sorted()
-                                
-                                if (lhsChapters == nil) && (rhsChapters == nil) {
-                                } else
-                                    if (lhsChapters != nil) && (rhsChapters == nil) {
-                                        return false
+                            if let books = lhsBooks {
+                                for book in books {
+                                    let lhsChapters = lhs[book]?.keys.sorted()
+                                    let rhsChapters = rhs[book]?.keys.sorted()
+                                    
+                                    if (lhsChapters == nil) && (rhsChapters == nil) {
                                     } else
-                                        if (lhsChapters == nil) && (rhsChapters != nil) {
+                                        if (lhsChapters != nil) && (rhsChapters == nil) {
                                             return false
-                                        } else {
-                                            if lhsChapters?.count != rhsChapters?.count {
+                                        } else
+                                            if (lhsChapters == nil) && (rhsChapters != nil) {
                                                 return false
                                             } else {
-                                                for index in 0...(lhsChapters!.count - 1) {
-                                                    if lhsChapters?[index] != rhsChapters?[index] {
-                                                        return false
-                                                    }
-                                                }
-                                                for chapter in lhsChapters! {
-                                                    let lhsVerses = lhs[book]?[chapter]?.sorted()
-                                                    let rhsVerses = rhs[book]?[chapter]?.sorted()
-                                                    
-                                                    if (lhsVerses == nil) && (rhsVerses == nil) {
-                                                    } else
-                                                        if (lhsVerses != nil) && (rhsVerses == nil) {
-                                                            return false
-                                                        } else
-                                                            if (lhsVerses == nil) && (rhsVerses != nil) {
+                                                if lhsChapters?.count != rhsChapters?.count {
+                                                    return false
+                                                } else {
+                                                    if let count = lhsChapters?.count {
+                                                        for index in 0...(count - 1) {
+                                                            if lhsChapters?[index] != rhsChapters?[index] {
                                                                 return false
-                                                            } else {
-                                                                if lhsVerses?.count != rhsVerses?.count {
+                                                            }
+                                                        }
+                                                    }
+                                                    if let chapters = lhsChapters {
+                                                        for chapter in chapters {
+                                                            let lhsVerses = lhs[book]?[chapter]?.sorted()
+                                                            let rhsVerses = rhs[book]?[chapter]?.sorted()
+                                                            
+                                                            if (lhsVerses == nil) && (rhsVerses == nil) {
+                                                            } else
+                                                                if (lhsVerses != nil) && (rhsVerses == nil) {
                                                                     return false
-                                                                } else {
-                                                                    for index in 0...(lhsVerses!.count - 1) {
-                                                                        if lhsVerses?[index] != rhsVerses?[index] {
+                                                                } else
+                                                                    if (lhsVerses == nil) && (rhsVerses != nil) {
+                                                                        return false
+                                                                    } else {
+                                                                        if lhsVerses?.count != rhsVerses?.count {
                                                                             return false
+                                                                        } else {
+                                                                            if let count = lhsVerses?.count {
+                                                                                for index in 0...(count - 1) {
+                                                                                    if lhsVerses?[index] != rhsVerses?[index] {
+                                                                                        return false
+                                                                                    }
+                                                                                }
+                                                                            }
                                                                         }
-                                                                    }
-                                                                }
+                                                            }
+                                                        }
                                                     }
                                                 }
-                                            }
+                                    }
                                 }
                             }
                         }
@@ -159,54 +169,60 @@ class BooksChaptersVerses : Swift.Comparable {
                 if (lhsBooks == nil) && (rhsBooks != nil) {
                     return true
                 } else {
-                    for lhsBook in lhsBooks! {
-                        for rhsBook in rhsBooks! {
-                            if lhsBook == rhsBook {
-                                let lhsChapters = lhs[lhsBook]?.keys.sorted()
-                                let rhsChapters = rhs[rhsBook]?.keys.sorted()
-                                
-                                if (lhsChapters == nil) && (rhsChapters == nil) {
-                                    return lhsBooks?.count < rhsBooks?.count
-                                } else
-                                    if (lhsChapters != nil) && (rhsChapters == nil) {
-                                        return true
+                    if let lhsBooks = lhsBooks, let rhsBooks = rhsBooks {
+                        for lhsBook in lhsBooks {
+                            for rhsBook in rhsBooks {
+                                if lhsBook == rhsBook {
+                                    let lhsChapters = lhs[lhsBook]?.keys.sorted()
+                                    let rhsChapters = rhs[rhsBook]?.keys.sorted()
+                                    
+                                    if (lhsChapters == nil) && (rhsChapters == nil) {
+                                        return lhsBooks.count < rhsBooks.count
                                     } else
-                                        if (lhsChapters == nil) && (rhsChapters != nil) {
-                                            return false
-                                        } else {
-                                            for lhsChapter in lhsChapters! {
-                                                for rhsChapter in rhsChapters! {
-                                                    if lhsChapter == rhsChapter {
-                                                        let lhsVerses = lhs[lhsBook]?[lhsChapter]?.sorted()
-                                                        let rhsVerses = rhs[rhsBook]?[rhsChapter]?.sorted()
-                                                        
-                                                        if (lhsVerses == nil) && (rhsVerses == nil) {
-                                                            return lhsChapters?.count < rhsChapters?.count
-                                                        } else
-                                                            if (lhsVerses != nil) && (rhsVerses == nil) {
-                                                                return true
-                                                            } else
-                                                                if (lhsVerses == nil) && (rhsVerses != nil) {
-                                                                    return false
-                                                                } else {
-                                                                    for lhsVerse in lhsVerses! {
-                                                                        for rhsVerse in rhsVerses! {
-                                                                            if lhsVerse == rhsVerse {
-                                                                                return lhs.numberOfVerses() < rhs.numberOfVerses()
-                                                                            } else {
-                                                                                return lhsVerse < rhsVerse
+                                        if (lhsChapters != nil) && (rhsChapters == nil) {
+                                            return true
+                                        } else
+                                            if (lhsChapters == nil) && (rhsChapters != nil) {
+                                                return false
+                                            } else {
+                                                if let lhsChapters = lhsChapters, let rhsChapters = rhsChapters {
+                                                    for lhsChapter in lhsChapters {
+                                                        for rhsChapter in rhsChapters {
+                                                            if lhsChapter == rhsChapter {
+                                                                let lhsVerses = lhs[lhsBook]?[lhsChapter]?.sorted()
+                                                                let rhsVerses = rhs[rhsBook]?[rhsChapter]?.sorted()
+                                                                
+                                                                if (lhsVerses == nil) && (rhsVerses == nil) {
+                                                                    return lhsChapters.count < rhsChapters.count
+                                                                } else
+                                                                    if (lhsVerses != nil) && (rhsVerses == nil) {
+                                                                        return true
+                                                                    } else
+                                                                        if (lhsVerses == nil) && (rhsVerses != nil) {
+                                                                            return false
+                                                                        } else {
+                                                                            if let lhsVerses = lhsVerses, let rhsVerses = rhsVerses {
+                                                                                for lhsVerse in lhsVerses {
+                                                                                    for rhsVerse in rhsVerses {
+                                                                                        if lhsVerse == rhsVerse {
+                                                                                            return lhs.numberOfVerses() < rhs.numberOfVerses()
+                                                                                        } else {
+                                                                                            return lhsVerse < rhsVerse
+                                                                                        }
+                                                                                    }
+                                                                                }
                                                                             }
-                                                                        }
-                                                                    }
+                                                                }
+                                                            } else {
+                                                                return lhsChapter < rhsChapter
+                                                            }
                                                         }
-                                                    } else {
-                                                        return lhsChapter < rhsChapter
                                                     }
                                                 }
-                                            }
+                                    }
+                                } else {
+                                    return bookNumberInBible(lhsBook) < bookNumberInBible(rhsBook)
                                 }
-                            } else {
-                                return bookNumberInBible(lhsBook) < bookNumberInBible(rhsBook)
                             }
                         }
                     }

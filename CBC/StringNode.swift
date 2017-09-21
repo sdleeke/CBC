@@ -31,9 +31,13 @@ class StringNode {
         if isLeaf {
             return cumulative
         } else {
+            guard let stringNodes = stringNodes else {
+                return 0
+            }
+            
             var depthsBelow = [Int]()
             
-            for stringNode in stringNodes!.sorted(by: { $0.string < $1.string }) {
+            for stringNode in stringNodes.sorted(by: { $0.string < $1.string }) {
                 depthsBelow.append(stringNode.depthBelow(cumulative + 1))
             }
             
@@ -55,36 +59,36 @@ class StringNode {
         //        }
         
         if wordEnding {
-            if cumulativeString != nil {
-                if string != nil {
-                    print(cumulativeString!+string!)
+            if let cumulativeString = cumulativeString {
+                if let string = string {
+                    print(cumulativeString + string)
                 } else {
-                    print(cumulativeString!)
+                    print(cumulativeString)
                 }
             } else {
-                if string != nil {
-                    print(string!)
+                if let string = string {
+                    print(string)
                 }
             }
             
             //            print("\n")
         }
         
-        guard stringNodes != nil else {
+        guard let stringNodes = stringNodes else {
             return
         }
         
-        for stringNode in stringNodes!.sorted(by: { $0.string < $1.string }) {
+        for stringNode in stringNodes.sorted(by: { $0.string < $1.string }) {
             //            print(string!+"-")
-            if cumulativeString != nil {
-                if string != nil {
-                    stringNode.printWords(cumulativeString!+string!+"-")
+            if let cumulativeString = cumulativeString {
+                if let string = string {
+                    stringNode.printWords(cumulativeString + string + "-")
                 } else {
-                    stringNode.printWords(cumulativeString!+"-")
+                    stringNode.printWords(cumulativeString + "-")
                 }
             } else {
-                if string != nil {
-                    stringNode.printWords(string!+"-")
+                if let string = string {
+                    stringNode.printWords(string + "-")
                 } else {
                     stringNode.printWords(nil)
                 }
@@ -156,7 +160,7 @@ class StringNode {
     
     func addStringNode(_ newString:String?)
     {
-        guard (newString != nil) else {
+        guard let newString = newString else {
             return
         }
         
@@ -172,13 +176,15 @@ class StringNode {
         
         var foundNode:StringNode?
         
-        var isEmpty = fragment!.isEmpty
+        var isEmpty = fragment.isEmpty
         
         while !isEmpty {
-            for stringNode in stringNodes!.sorted(by: { $0.string < $1.string }) {
-                if stringNode.string?.endIndex >= fragment!.endIndex, stringNode.string?.substring(to: fragment!.endIndex) == fragment {
-                    foundNode = stringNode
-                    break
+            if let stringNodes = stringNodes?.sorted(by: { $0.string < $1.string }) {
+                for stringNode in stringNodes {
+                    if stringNode.string?.endIndex >= fragment.endIndex, stringNode.string?.substring(to: fragment.endIndex) == fragment {
+                        foundNode = stringNode
+                        break
+                    }
                 }
             }
             
@@ -186,13 +192,9 @@ class StringNode {
                 break
             }
             
-            fragment = fragment!.substring(to: fragment!.index(before: fragment!.endIndex))
+            fragment = fragment.substring(to: fragment.index(before: fragment.endIndex))
             
-            if fragment != nil {
-                isEmpty = fragment!.isEmpty
-            } else {
-                isEmpty = true
-            }
+            isEmpty = fragment.isEmpty
         }
         
         if foundNode != nil {
@@ -207,11 +209,11 @@ class StringNode {
     
     func addString(_ newString:String?)
     {
-        guard let stringEmpty = newString?.isEmpty, !stringEmpty else {
+        guard let newString = newString, !newString.isEmpty else {
             return
         }
         
-        guard (string != nil) else {
+        guard let string = string else {
             addStringNode(newString)
             return
         }
@@ -241,31 +243,26 @@ class StringNode {
         
         var fragment = newString
         
-        var isEmpty = fragment!.isEmpty
+        var isEmpty = fragment.isEmpty
         
         while !isEmpty {
-            if string?.endIndex >= fragment!.endIndex, string?.substring(to: fragment!.endIndex) == fragment {
+            if string.endIndex >= fragment.endIndex, string.substring(to: fragment.endIndex) == fragment {
                 break
             }
             
-            fragment = fragment!.substring(to: fragment!.index(before: fragment!.endIndex))
+            fragment = fragment.substring(to: fragment.index(before: fragment.endIndex))
             
-            if fragment != nil {
-                isEmpty = fragment!.isEmpty
-            } else {
-                isEmpty = true
-            }
+            isEmpty = fragment.isEmpty
         }
         
         if !isEmpty {
-            let stringRemainder = string?.substring(from: fragment!.endIndex)
+            let stringRemainder = string.substring(from: fragment.endIndex)
             
-            let newStringRemainder = newString?.substring(from: fragment!.endIndex)
+            let newStringRemainder = newString.substring(from: fragment.endIndex)
             
-            if let isEmpty = stringRemainder?.isEmpty, !isEmpty {
+            if !stringRemainder.isEmpty {
                 let newNode = StringNode(stringRemainder)
                 newNode.stringNodes = stringNodes
-                
                 newNode.wordEnding = wordEnding
                 
                 if !wordEnding, let index = stringNodes?.index(where: { (stringNode:StringNode) -> Bool in
@@ -276,11 +273,11 @@ class StringNode {
                 
                 wordEnding = false
                 
-                string = fragment
+                self.string = fragment
                 stringNodes = [newNode]
             }
             
-            if let isEmpty = newStringRemainder?.isEmpty, !isEmpty {
+            if !newStringRemainder.isEmpty {
                 addStringNode(newStringRemainder)
             } else {
                 wordEnding = true

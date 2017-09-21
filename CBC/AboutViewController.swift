@@ -154,12 +154,14 @@ class AboutViewController: UIViewController
     
     func actions(_ sender: UIBarButtonItem)
     {
-//        print("action!")
+        guard let storyboard = self.storyboard else {
+            return
+        }
         
         //In case we have one already showing
         dismiss(animated: true, completion: nil)
         
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+        if let navigationController = storyboard.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             
             popover.navigationItem.title = "Select"
@@ -249,8 +251,8 @@ class AboutViewController: UIViewController
         
         let geocoder = CLGeocoder()
         geocoder.geocodeAddressString(Constants.CBC.FULL_ADDRESS, completionHandler:{(placemarks, error) -> Void in
-            if let placemark = placemarks?[0] {
-                let coordinates:CLLocationCoordinate2D = placemark.location!.coordinate
+            if let placemark = placemarks?[0], let location = placemark.location {
+                let coordinates:CLLocationCoordinate2D = location.coordinate
                 
                 let pointAnnotation:MKPointAnnotation = MKPointAnnotation()
                 pointAnnotation.coordinate = coordinates
@@ -264,8 +266,9 @@ class AboutViewController: UIViewController
                 self.item = MKMapItem(placemark: mkPlacemark)
                 
                 let viewRegion = MKCoordinateRegionMakeWithDistance(coordinates, 50000, 50000)
-                let adjustedRegion = self.mapView?.regionThatFits(viewRegion)
-                self.mapView?.setRegion(adjustedRegion!, animated: false)
+                if let adjustedRegion = self.mapView?.regionThatFits(viewRegion) {
+                    self.mapView?.setRegion(adjustedRegion, animated: false)
+                }
                 
                 self.mapView?.isZoomEnabled = false
                 self.mapView?.isUserInteractionEnabled = false

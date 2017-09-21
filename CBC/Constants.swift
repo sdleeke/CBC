@@ -353,6 +353,8 @@ enum Constants {
         
         static let SHOW_PLAYING             = "SHOW PLAYING"
         
+        static let SHOW_LAST_SEGUE          = "SHOW LAST SEGUE"
+        
         static let PAUSED                   = "PAUSED"
         
 //        static let UPDATE_SHOW_HIDE         = "UPDATE SHOW HIDE"

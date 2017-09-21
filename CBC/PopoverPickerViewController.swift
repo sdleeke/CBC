@@ -35,10 +35,10 @@ extension PopoverPickerViewController : UIPickerViewDataSource
     // MARK: UIPickerViewDataSource
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        if mediaListGroupSort != nil {
+        if stringTree != nil {
             var depth = 0
             
-            if let depthBelow = lexicon?.stringTree.root?.depthBelow(0) {
+            if let depthBelow = stringTree?.root?.depthBelow(0) {
                 depth = depthBelow
             }
             //            print("Depth: ",depth)
@@ -50,8 +50,8 @@ extension PopoverPickerViewController : UIPickerViewDataSource
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int
     {
-        if mediaListGroupSort != nil {
-            var stringNode = lexicon?.stringTree.root
+        if stringTree != nil {
+            var stringNode = stringTree?.root
             
             switch component {
             case 0:
@@ -105,7 +105,7 @@ extension PopoverPickerViewController : UIPickerViewDataSource
         label.numberOfLines = 0
         label.lineBreakMode = .byWordWrapping
         
-        if mediaListGroupSort != nil {
+        if stringTree != nil {
             if let title = title(forRow: row, forComponent: component) {
                 label.attributedText = NSAttributedString(string: title,attributes: Constants.Fonts.Attributes.normal)
             }
@@ -132,7 +132,7 @@ extension PopoverPickerViewController : UIPickerViewDataSource
     
     func title(forRow row:Int, forComponent component:Int) -> String?
     {
-        var stringNode = lexicon?.stringTree.root
+        var stringNode = stringTree?.root
         
         switch component {
         case 0:
@@ -175,7 +175,7 @@ extension PopoverPickerViewController : UIPickerViewDataSource
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String?
     {
-        if mediaListGroupSort != nil {
+        if stringTree != nil {
             return title(forRow: row,forComponent: component)
         } else {
             return strings?[row]
@@ -189,8 +189,8 @@ extension PopoverPickerViewController : UIPickerViewDelegate
     
     func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat
     {
-        if mediaListGroupSort != nil {
-            var stringNode = lexicon?.stringTree.root
+        if stringTree != nil {
+            var stringNode = stringTree?.root
             
             switch component {
             case 0:
@@ -275,7 +275,7 @@ extension PopoverPickerViewController : UIPickerViewDelegate
             return
         }
         
-        if mediaListGroupSort != nil {
+        if stringTree != nil {
             pickerSelections[component] = row
             
             //        print(pickerSelections)
@@ -329,7 +329,7 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
                     
                     bodyHTML = bodyHTML + "<center>"
                     
-                    if let roots = self.lexicon?.stringTree.root?.stringNodes {
+                    if let roots = self.stringTree?.root?.stringNodes {
                         bodyHTML = bodyHTML + "<table><tr>"
                         
                         for root in roots {
@@ -382,8 +382,13 @@ class PopoverPickerViewController : UIViewController
 {
     var delegate : PopoverPickerControllerDelegate?
     
-    var mediaListGroupSort:MediaListGroupSort?
+    var stringTree : StringTree?
+    var incremental = false
+    
+//    var mediaListGroupSort:MediaListGroupSort?
+    
     var pickerSelections = [Int:Int]()
+    
 //    var root:StringNode?
 //    {
 //        get {
@@ -391,12 +396,12 @@ class PopoverPickerViewController : UIViewController
 //        }
 //    }
     
-    var lexicon:Lexicon?
-    {
-        get {
-            return mediaListGroupSort?.lexicon
-        }
-    }
+//    var lexicon:Lexicon?
+//    {
+//        get {
+//            return mediaListGroupSort?.lexicon
+//        }
+//    }
     
     var strings:[String]?
     var string:String?
@@ -419,7 +424,9 @@ class PopoverPickerViewController : UIViewController
             
 //            bodyHTML = bodyHTML + "<center>"
             
-            if let roots = self.lexicon?.stringTree.root?.stringNodes {
+            if let roots = self.stringTree?.root?.stringNodes?.sorted(by: { (lhs:StringNode, rhs:StringNode) -> Bool in
+                return lhs.string < rhs.string
+            }) {
                 var total = 0
                 
                 wordsHTML = "<table>"
@@ -486,7 +493,7 @@ class PopoverPickerViewController : UIViewController
     
     func actions()
     {
-        if let navigationController = self.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+        if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
             let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
             popover.navigationItem.title = "Select"
             navigationController.isNavigationBarHidden = false
@@ -518,12 +525,12 @@ class PopoverPickerViewController : UIViewController
     
     func updateActionButton()
     {
-        navigationItem.rightBarButtonItem?.isEnabled = lexicon?.stringTree.root.depthBelow(0) > 0
+        navigationItem.rightBarButtonItem?.isEnabled = stringTree?.root.depthBelow(0) > 0
     }
     
     func setupActionButton()
     {
-        guard mediaListGroupSort != nil else {
+        guard stringTree != nil else {
             return
         }
 
@@ -813,49 +820,69 @@ class PopoverPickerViewController : UIViewController
         
         updateActionButton()
         
-        if mediaListGroupSort != nil {
-            globals.queue.async(execute: { () -> Void in
-                NotificationCenter.default.addObserver(self, selector: #selector(PopoverPickerViewController.started), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_STARTED), object: self.lexicon)
-                NotificationCenter.default.addObserver(self, selector: #selector(PopoverPickerViewController.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self.lexicon)
-                NotificationCenter.default.addObserver(self, selector: #selector(PopoverPickerViewController.completed), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.LEXICON_COMPLETED), object: self.lexicon)
-                
-                NotificationCenter.default.addObserver(self, selector: #selector(PopoverPickerViewController.stringTreeUpdated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.lexicon)
-            })
-            
-            spinner.isHidden = false
-            spinner.startAnimating()
-            
-//            root = lexicon?.stringTree.root
-
-            if (lexicon?.stringTree.root == nil) || lexicon!.stringTree.root!.isLeaf { // not sure why isLeaf is used.
-//                print("building")
-
-                lexicon?.build()
-                
-                DispatchQueue.global(qos: .userInteractive).async {
-                    self.lexicon?.stringTree.build()
-                }
-            } else {
-                DispatchQueue.global(qos: .userInteractive).async {
-                    self.stringTreeUpdated()
-                }
+        if stringTree?.incremental == true {
+            if stringTree?.completed == false {
+                spinner.isHidden = false
+                spinner.startAnimating()
             }
+
+            globals.queue.async(execute: { () -> Void in
+                NotificationCenter.default.addObserver(self, selector: #selector(PopoverPickerViewController.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.stringTree)
+            })
+//            
+//            if stringTree?.completed == false {
+//                spinner.isHidden = false
+//                spinner.startAnimating()
+//            }
+//
+////            root = lexicon?.stringTree.root
+//
+//            if (stringTree?.root == nil) || stringTree!.root!.isLeaf { // not sure why isLeaf is used.
+////                print("building")
+//
+////                DispatchQueue.global(qos: .userInteractive).async {
+////                    stringTree?.build()
+////                }
+//            } else {
+////                DispatchQueue.global(qos: .userInteractive).async {
+////                    self.stringTreeUpdated()
+////                }
+//            }
         }
         
 //        print(string)
 //        print(strings)
         
-        if string != nil, let index = strings?.index(of:string!) {
+        if let string = string, let index = strings?.index(of:string) {
             picker.selectRow(index, inComponent: 0, animated: false)
-        }
-        
-        if (navigationController?.viewControllers.count == 1) { // Implies modal, not part of a push.
-            if (mediaListGroupSort != nil) {
-                preferredContentSize = CGSize(width: 200, height: 300)
+        } else
+
+        if (stringTree != nil) && (strings != nil) {
+            if stringTree?.incremental == true {
+                self.stringTree?.build(strings: self.strings)
             } else {
-                preferredContentSize = CGSize(width: 300, height: 300)
+                process(viewController: self, work: { () -> (Any?) in
+                    self.stringTree?.build(strings: self.strings)
+                    
+                    return nil
+                }, completion: { (data:Any?) in
+                    self.updateActionButton()
+                    
+                    self.updatePickerSelections()
+                    self.updatePicker()
+                })
             }
         }
+
+        preferredContentSize = CGSize(width: 300, height: 300)
+
+//        if (navigationController?.viewControllers.count == 1) { // Implies modal, not part of a push.
+//            if (mediaListGroupSort != nil) {
+//                preferredContentSize = CGSize(width: 200, height: 300)
+//            } else {
+//                preferredContentSize = CGSize(width: 300, height: 300)
+//            }
+//        }
     }
     
     override func viewDidAppear(_ animated: Bool)
@@ -907,11 +934,11 @@ class PopoverPickerViewController : UIViewController
 
     func updatePickerSelections()
     {
-        guard lexicon?.stringTree.root?.stringNodes != nil else {
+        guard stringTree?.root?.stringNodes != nil else {
             return
         }
         
-        var stringNode = lexicon?.stringTree.root
+        var stringNode = stringTree?.root
         
         var i = 0
         
@@ -921,7 +948,7 @@ class PopoverPickerViewController : UIViewController
                 stringNode = nil
             } else
                 
-            if pickerSelections[i] >= stringNode!.stringNodes!.count {
+            if let count = stringNode?.stringNodes?.count, pickerSelections[i] >= count {
                 pickerSelections[i] = 0
                 stringNode = stringNode?.stringNodes?[0]
             } else {
@@ -953,7 +980,7 @@ class PopoverPickerViewController : UIViewController
     {
         var word:String?
         
-        var stringNode = lexicon?.stringTree.root
+        var stringNode = stringTree?.root
         
         var i = 0
         
@@ -994,7 +1021,10 @@ class PopoverPickerViewController : UIViewController
             var i = 0
             
             while i < self.picker.numberOfComponents, i < self.pickerSelections.count, self.pickerSelections[i] != nil {
-                self.picker.selectRow(self.pickerSelections[i]!,inComponent: i, animated: true)
+                if let row = self.pickerSelections[i] {
+                    self.picker.selectRow(row,inComponent: i, animated: true)
+                }
+                
                 i += 1
             }
 
@@ -1004,59 +1034,82 @@ class PopoverPickerViewController : UIViewController
         }
     }
     
-    func stringTreeUpdated()
-    {
-//        print(lexicon?.stringTree.root.depthBelow(0))
-        
-//        lexicon?.stringTree.root.printStrings(nil)
-//        lexicon?.stringTree.root.printWords(nil)
-        
-//        let words = lexicon?.stringTree.root.htmlWords(nil)
-//        print(words)
-        
-//        root = lexicon?.stringTree.root
-        
-//        print(self.mediaListGroupSort?.lexicon?.root.htmlWords(nil))
-        
-        self.updatePickerSelections()
-        self.updatePicker()
-        
-        Thread.onMainThread() {
-            self.updateActionButton()
-            
-            if let eligible = self.lexicon?.eligible?.count, let depth = self.lexicon?.stringTree.root?.depthBelow(0) {
-                if eligible == 0,depth > 0 {
-                    // Should NEVER happen
-                }
-                if eligible > 0,depth == 0 {
-                    // Waiting for Lexicon
-                }
-                if eligible == 0,depth == 0 {
-                    // Empty Lexicon => empty tree
-                    self.spinner.stopAnimating()
-                    self.spinner.isHidden = true
-                }
-                if eligible > 0,depth > 0 {
-                    // Lexicon and tree both have entries
-                    self.spinner.stopAnimating()
-                    self.spinner.isHidden = true
-                }
-            }
-        }
-    }
+//    func stringTreeUpdated(eligible:Int)
+//    {
+////        print(lexicon?.stringTree.root.depthBelow(0))
+//        
+////        lexicon?.stringTree.root.printStrings(nil)
+////        lexicon?.stringTree.root.printWords(nil)
+//        
+////        let words = lexicon?.stringTree.root.htmlWords(nil)
+////        print(words)
+//        
+////        root = lexicon?.stringTree.root
+//        
+////        print(self.mediaListGroupSort?.lexicon?.root.htmlWords(nil))
+//        
+//        self.updatePickerSelections()
+//        self.updatePicker()
+//        
+//        Thread.onMainThread() {
+//            self.updateActionButton()
+//            
+//            if let depth = self.stringTree?.root?.depthBelow(0) {
+//                if eligible == 0,depth > 0 {
+//                    // Should NEVER happen
+//                }
+//                if eligible > 0,depth == 0 {
+//                    // Waiting for Lexicon
+//                }
+//                if eligible == 0,depth == 0 {
+//                    // Empty Lexicon => empty tree
+//                    self.spinner.stopAnimating()
+//                    self.spinner.isHidden = true
+//                }
+//                if eligible > 0,depth > 0 {
+//                    // Lexicon and tree both have entries
+//                    self.spinner.stopAnimating()
+//                    self.spinner.isHidden = true
+//                }
+//            }
+//        }
+//    }
     
     func started()
     {
-        
+        self.updatePickerSelections()
+        self.updatePicker()
+
+        Thread.onMainThread {
+            self.updateActionButton()
+        }
     }
     
     func updated()
     {
-        lexicon?.stringTree.build()
+//        stringTree?.build()
+        
+        self.updatePickerSelections()
+        self.updatePicker()
+        
+        Thread.onMainThread {
+            self.updateActionButton()
+            
+            if self.stringTree?.completed == true {
+                self.spinner.stopAnimating()
+            }
+        }
     }
     
     func completed()
     {
-        lexicon?.stringTree.build()
+//        stringTree?.build()
+
+        self.updatePickerSelections()
+        self.updatePicker()
+
+        Thread.onMainThread {
+            self.updateActionButton()
+        }
     }
 }

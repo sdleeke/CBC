@@ -45,9 +45,13 @@ class PlayerStateTime {
     var startTime:String?
     
     var dateEntered:Date?
-    var timeElapsed:TimeInterval {
+    var timeElapsed:TimeInterval? {
         get {
-            return Date().timeIntervalSince(dateEntered!)
+            if let dateEntered = dateEntered {
+                return Date().timeIntervalSince(dateEntered)
+            } else {
+                return nil
+            }
         }
     }
     
@@ -142,7 +146,11 @@ class MediaPlayer : NSObject {
     
     var showsPlaybackControls:Bool{
         get {
-            return controller != nil ? controller!.showsPlaybackControls : false
+            guard let controller = controller else {
+                return false
+            }
+            
+            return controller.showsPlaybackControls
         }
         set {
             controller?.showsPlaybackControls = newValue
@@ -270,20 +278,24 @@ class MediaPlayer : NSObject {
                 //                print(player?.currentItem?.duration.value)
                 //                print(player?.currentItem?.duration.timescale)
                 //                print(player?.currentItem?.duration.seconds)
-                if !loaded && (mediaItem != nil) {
+                if !loaded, let mediaItem = mediaItem {
                     loaded = true
                     
-                    if (mediaItem?.playing == Playing.video) {
-                        if mediaItem?.showing == Showing.none {
-                            mediaItem?.showing = Showing.video
+                    if (mediaItem.playing == Playing.video) {
+                        if mediaItem.showing == Showing.none {
+                            mediaItem.showing = Showing.video
                         }
                     }
                     
-                    if mediaItem!.hasCurrentTime() {
-                        if mediaItem!.atEnd {
-                            seek(to: duration!.seconds)
+                    if mediaItem.hasCurrentTime {
+                        if mediaItem.atEnd {
+                            if let duration = duration {
+                                seek(to: duration.seconds)
+                            }
                         } else {
-                            seek(to: Double(mediaItem!.currentTime!)!)
+                            if let currentTime = mediaItem.currentTime, let time = Double(currentTime) {
+                                seek(to: time)
+                            }
                         }
                         
                         // Why was this needed?
@@ -291,16 +303,16 @@ class MediaPlayer : NSObject {
                         //                            seek(to: Double(mediaItem!.currentTime!))
                         //                        }
                     } else {
-                        mediaItem?.currentTime = Constants.ZERO
+                        mediaItem.currentTime = Constants.ZERO
                         seek(to: 0)
                     }
                     
                     if (self.mediaItem?.playing == Playing.audio) {
                         if playOnLoad {
-                            if mediaItem!.atEnd {
+                            if mediaItem.atEnd {
                                 //                                mediaItem?.currentTime = Constants.ZERO
                                 seek(to: 0)
-                                mediaItem?.atEnd = false
+                                mediaItem.atEnd = false
                             }
                             
                             playOnLoad = false
@@ -309,7 +321,7 @@ class MediaPlayer : NSObject {
                     }
                     
                     Thread.onMainThread() {
-                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil)
+                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.READY_TO_PLAY), object: nil) // why isn't the object mediaItem
                     }
                 }
                 
@@ -337,17 +349,17 @@ class MediaPlayer : NSObject {
     {
         setup(mediaItem,playOnLoad:false)
         
-        if (duration != nil) {
+        if let seconds = duration?.seconds {
             pause()
-            seek(to: duration?.seconds)
-            mediaItem?.currentTime = Float(duration!.seconds).description
+            seek(to: seconds)
+            mediaItem?.currentTime = Float(seconds).description
             mediaItem?.atEnd = true
         }
     }
     
     func setup(url:URL?,playOnLoad:Bool)
     {
-        guard (url != nil) else {
+        guard let url = url else {
             return
         }
         
@@ -382,7 +394,7 @@ class MediaPlayer : NSObject {
         //                player?.replaceCurrentItem(with: AVPlayerItem(url: url!))
         //            }
         
-        player = AVPlayer(url: url!)
+        player = AVPlayer(url: url)
         
         if #available(iOS 10.0, *) {
             player?.automaticallyWaitsToMinimizeStalling = (mediaItem?.playing != Playing.audio) // || !globals.reachability.isReachableViaWiFi
@@ -404,11 +416,11 @@ class MediaPlayer : NSObject {
     
     func setup(_ mediaItem:MediaItem?,playOnLoad:Bool)
     {
-        guard (mediaItem != nil) else {
+        guard let mediaItem = mediaItem else {
             return
         }
         
-        setup(url: mediaItem!.playingURL,playOnLoad: playOnLoad)
+        setup(url: mediaItem.playingURL,playOnLoad: playOnLoad)
     }
     
     func reload()
@@ -417,11 +429,15 @@ class MediaPlayer : NSObject {
             return
         }
         
+        guard let url = url else {
+            return
+        }
+        
         unobserve()
 
         unload()
         
-        player?.replaceCurrentItem(with: AVPlayerItem(url: url!))
+        player?.replaceCurrentItem(with: AVPlayerItem(url: url))
         
         pause() // To reset playOnLoad and set state to .paused
         
@@ -535,17 +551,28 @@ class MediaPlayer : NSObject {
     {
         assert(player != nil,"player should not be nil if we're trying to update the currentTime in userDefaults")
         
-        if loaded && (duration != nil) {
-            var timeNow = 0.0
-            
-            if (currentTime!.seconds > 0) && (currentTime!.seconds <= duration!.seconds) {
-                timeNow = currentTime!.seconds
-            }
-            
-            if ((timeNow > 0) && (Int(timeNow) % 10) == 0) {
-                if Int(Float(mediaItem!.currentTime!)!) != Int(currentTime!.seconds) {
-                    mediaItem?.currentTime = currentTime!.seconds.description
-                }
+        guard loaded else {
+            return
+        }
+        
+        guard let duration = duration else {
+            return
+        }
+        
+        guard let currentTime = currentTime else {
+            return
+        }
+        
+        var timeNow = 0.0
+        
+        if (currentTime.seconds > 0) && (currentTime.seconds <= duration.seconds) {
+            timeNow = currentTime.seconds
+        }
+        
+        if ((timeNow > 0) && (Int(timeNow) % 10) == 0) {
+            if  let string = mediaItem?.currentTime, let num = Float(string),
+                Int(num) != Int(currentTime.seconds) {
+                mediaItem?.currentTime = currentTime.seconds.description
             }
         }
     }
@@ -593,11 +620,11 @@ class MediaPlayer : NSObject {
 
     func play()
     {
-        guard (url != nil) else {
+        guard let url = url else {
             return
         }
         
-        switch url!.absoluteString {
+        switch url.absoluteString {
         case Constants.URL.LIVE_STREAM:
             stateTime = PlayerStateTime(state:.playing)
             player?.play()
@@ -624,7 +651,7 @@ class MediaPlayer : NSObject {
     
     func pause()
     {
-        guard (url != nil) else {
+        guard let url = url else {
             return
         }
         
@@ -633,7 +660,7 @@ class MediaPlayer : NSObject {
         player?.pause()
         playOnLoad = false
 
-        switch url!.absoluteString {
+        switch url.absoluteString {
         case Constants.URL.LIVE_STREAM:
             break
             
@@ -671,14 +698,15 @@ class MediaPlayer : NSObject {
         
         mediaItem?.atEnd = true
         
-        if globals.autoAdvance, mediaItem != nil, mediaItem?.playing == Playing.audio, mediaItem!.atEnd, mediaItem?.multiPartMediaItems?.count > 1,
-            let mediaItems = mediaItem?.multiPartMediaItems, let index = mediaItems.index(of: mediaItem!), index < (mediaItems.count - 1) {
+        if globals.autoAdvance, let mediaItem = mediaItem, mediaItem.playing == Playing.audio, mediaItem.atEnd, mediaItem.multiPartMediaItems?.count > 1,
+            let mediaItems = mediaItem.multiPartMediaItems,
+            let index = mediaItems.index(of: mediaItem), index < (mediaItems.count - 1) {
             let nextMediaItem = mediaItems[index + 1]
             
             nextMediaItem.playing = Playing.audio
             nextMediaItem.currentTime = Constants.ZERO
             
-            mediaItem = nextMediaItem
+            self.mediaItem = nextMediaItem
             
             setup(nextMediaItem,playOnLoad:true)
         } else {
@@ -700,9 +728,9 @@ class MediaPlayer : NSObject {
         playerObserverTimer?.invalidate()
         playerObserverTimer = nil
         
-        if playerTimerReturn != nil {
-            player?.removeTimeObserver(playerTimerReturn!)
-            playerTimerReturn = nil
+        if let playerTimerReturn = playerTimerReturn {
+            player?.removeTimeObserver(playerTimerReturn)
+            self.playerTimerReturn = nil
         }
         
         if observerActive {
@@ -802,7 +830,7 @@ class MediaPlayer : NSObject {
             return
         }
 
-        guard (url != nil) else {
+        guard let url = url else {
             return
         }
 
@@ -810,7 +838,7 @@ class MediaPlayer : NSObject {
         player?.pause()
         playOnLoad = false
 
-        switch url!.absoluteString {
+        switch url.absoluteString {
         case Constants.URL.LIVE_STREAM:
             break
             
@@ -850,7 +878,7 @@ class MediaPlayer : NSObject {
     
     func updateCurrentTimeExact()
     {
-        guard (url != nil) else {
+        guard let url = url else {
             print("Player has no URL.")
             return
         }
@@ -865,15 +893,20 @@ class MediaPlayer : NSObject {
             return
         }
         
-        guard (currentTime != nil) else {
+        guard let currentTime = currentTime else {
             print("Player has no currentTime.")
             return
         }
         
-        var time = currentTime!.seconds
+        guard let duration = duration else {
+            print("Player has no duration.")
+            return
+        }
         
-        if time >= duration!.seconds {
-            time = duration!.seconds
+        var time = currentTime.seconds
+        
+        if time >= duration.seconds {
+            time = duration.seconds
         }
         
         if time < 0 {
@@ -986,8 +1019,8 @@ class MediaPlayer : NSObject {
         set {
             unobserve()
             
-            if self.sliderTimerReturn != nil {
-                self.player?.removeTimeObserver(self.sliderTimerReturn!)
+            if let sliderTimerReturn = sliderTimerReturn {
+                self.player?.removeTimeObserver(sliderTimerReturn)
                 self.sliderTimerReturn = nil
             }
             

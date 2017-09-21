@@ -20,10 +20,10 @@ class Lexicon : NSObject {
         self.mediaListGroupSort = mlgs
     }
     
-    lazy var stringTree:StringTree! = {
-        [unowned self] in
-        return StringTree(lexicon: self)
-        }()
+//    lazy var stringTree:StringTree! = {
+//        [unowned self] in
+//        return StringTree(lexicon: self)
+//        }()
     
     var tokens:[String]? {
         get {
@@ -145,7 +145,7 @@ class Lexicon : NSObject {
     
     var entries:[MediaItem]? {
         get {
-            guard words != nil else {
+            guard let words = words else {
                 return nil
             }
             
@@ -157,7 +157,7 @@ class Lexicon : NSObject {
             
             // Using flatMap
             return Array(Set(
-                words!.flatMap({ (mediaItemFrequency:(key: String, value: [MediaItem : Int])) -> [MediaItem] in
+                words.flatMap({ (mediaItemFrequency:(key: String, value: [MediaItem : Int])) -> [MediaItem] in
                     // .map is required below to return an array of MediaItem, otherwise it returns a LazyMapCollection and I haven't figured that out.
                     return mediaItemFrequency.value.keys.map({ (mediaItem:MediaItem) -> MediaItem in
                         return mediaItem
@@ -197,20 +197,20 @@ class Lexicon : NSObject {
     
     func documents(_ word:String?) -> Int? // nil => not found
     {
-        guard word != nil else {
+        guard let word = word else {
             return nil
         }
         
-        return words?[word!]?.count
+        return words?[word]?.count
     }
     
     func occurrences(_ word:String?) -> Int? // nil => not found
     {
-        guard word != nil else {
+        guard let word = word else {
             return nil
         }
         
-        return words?[word!]?.values
+        return words?[word]?.values
             //            .map({ (count:Int) -> Int in
             //            return count
             //        })
@@ -274,7 +274,7 @@ class Lexicon : NSObject {
                         }
                         
                         if !self.pauseUpdates {
-                            if date.timeIntervalSinceNow < -2 {
+                            if date.timeIntervalSinceNow <= -1 {
                                 //                                print(date)
                                 
                                 self.words = dict.count > 0 ? dict : nil
@@ -347,7 +347,11 @@ class Lexicon : NSObject {
                     string = string + key + "\n"
                     if let mediaItems = words?[key]?.sorted(by: { (first, second) -> Bool in
                         if first.value == second.value {
-                            return first.key.fullDate!.isOlderThan(second.key.fullDate!)
+                            if let firstDate = first.key.fullDate, let secondDate = second.key.fullDate {
+                                return firstDate.isOlderThan(secondDate)
+                            } else {
+                                return false // arbitrary
+                            }
                         } else {
                             return first.value > second.value
                         }

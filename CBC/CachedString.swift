@@ -21,25 +21,25 @@ class CachedString {
     // if index DOES NOT produce the full key
     subscript(key:String?) -> String? {
         get {
-            guard key != nil else {
+            guard let key = key else {
                 return nil
             }
             
             if let index = self.index?() {
-                return cache[index+":"+key!]
+                return cache[index+":"+key]
             } else {
-                return cache[key!]
+                return cache[key]
             }
         }
         set {
-            guard key != nil else {
+            guard let key = key else {
                 return
             }
             
             if let index = self.index?() {
-                cache[index+":"+key!] = newValue
+                cache[index+":"+key] = newValue
             } else {
-                cache[key!] = newValue
+                cache[key] = newValue
             }
         }
     }

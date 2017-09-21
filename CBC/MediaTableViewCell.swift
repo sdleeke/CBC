@@ -43,7 +43,7 @@ class MediaTableViewCell: UITableViewCell
     func clear()
     {
         guard Thread.isMainThread else {
-            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:clear", completion: nil)
+            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:clear")
             return
         }
         
@@ -54,7 +54,7 @@ class MediaTableViewCell: UITableViewCell
     func hideUI()
     {
         guard Thread.isMainThread else {
-            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:hideUI", completion: nil)
+            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:hideUI")
             return
         }
         
@@ -66,7 +66,7 @@ class MediaTableViewCell: UITableViewCell
     func isHiddenUI(_ state:Bool)
     {
         guard Thread.isMainThread else {
-            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:isHiddenUI", completion: nil)
+            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:isHiddenUI")
             return
         }
         
@@ -120,7 +120,7 @@ class MediaTableViewCell: UITableViewCell
     func setupText()
     {
         guard Thread.isMainThread else {
-            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:setupText", completion: nil)
+            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupText")
             return
         }
         
@@ -133,7 +133,7 @@ class MediaTableViewCell: UITableViewCell
             var before:String?
             var after:String?
             
-            if let range = formattedDate.lowercased().range(of: searchText!.lowercased()) {
+            if let searchText = searchText, let range = formattedDate.lowercased().range(of: searchText.lowercased()) {
                 before = formattedDate.substring(to: range.lowerBound)
                 string = formattedDate.substring(with: range)
                 after = formattedDate.substring(from: range.upperBound)
@@ -149,20 +149,24 @@ class MediaTableViewCell: UITableViewCell
                 }
             }
         } else {
-            titleString.append(NSAttributedString(string:mediaItem!.formattedDate!, attributes: Constants.Fonts.Attributes.normal))
+            if let formattedDate = mediaItem?.formattedDate {
+                titleString.append(NSAttributedString(string:formattedDate, attributes: Constants.Fonts.Attributes.normal))
+            }
         }
         
         if !titleString.string.isEmpty {
             titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
         }
-        titleString.append(NSAttributedString(string: mediaItem!.service!, attributes: Constants.Fonts.Attributes.normal))
+        if let service = mediaItem?.service {
+            titleString.append(NSAttributedString(string: service, attributes: Constants.Fonts.Attributes.normal))
+        }
         
         if let searchHit = mediaItem?.searchHit(searchText).speaker, searchHit, let speaker = mediaItem?.speaker {
             var string:String?
             var before:String?
             var after:String?
             
-            if let range = speaker.lowercased().range(of: searchText!.lowercased()) {
+            if let searchText = searchText, let range = speaker.lowercased().range(of: searchText.lowercased()) {
                 before = speaker.substring(to: range.lowerBound)
                 string = speaker.substring(with: range)
                 after = speaker.substring(from: range.upperBound)
@@ -185,7 +189,9 @@ class MediaTableViewCell: UITableViewCell
             if !titleString.string.isEmpty {
                 titleString.append(NSAttributedString(string: Constants.SINGLE_SPACE))
             }
-            titleString.append(NSAttributedString(string:mediaItem!.speaker!, attributes: Constants.Fonts.Attributes.normal))
+            if let speaker = mediaItem?.speaker {
+                titleString.append(NSAttributedString(string:speaker, attributes: Constants.Fonts.Attributes.normal))
+            }
         }
         
         self.title.attributedText = titleString // NSAttributedString(string: "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)", attributes: normal)
@@ -194,10 +200,13 @@ class MediaTableViewCell: UITableViewCell
         
         var title:String?
         
-        if (searchText == nil) && (mediaItem?.title?.range(of: " (Part ") != nil) {
+        if searchText == nil,
+            let string = mediaItem?.title,
+            let rangeTo = string.range(of: " (Part"),
+            let rangeFrom = string.range(of: " (Part ") {
             // This causes searching for "(Part " to present a blank title.
-            let first = mediaItem!.title!.substring(to: (mediaItem!.title!.range(of: " (Part")?.upperBound)!)
-            let second = mediaItem!.title!.substring(from: (mediaItem!.title!.range(of: " (Part ")?.upperBound)!)
+            let first = string.substring(to: rangeTo.upperBound)
+            let second = string.substring(from: rangeFrom.upperBound)
             title = first + Constants.UNBREAKABLE_SPACE + second // replace the space with an unbreakable one
         } else {
             title = mediaItem?.title
@@ -208,7 +217,7 @@ class MediaTableViewCell: UITableViewCell
             var before:String?
             var after:String?
             
-            if let range = title?.lowercased().range(of: searchText!.lowercased()) {
+            if let searchText = searchText, let range = title?.lowercased().range(of: searchText.lowercased()) {
                 before = title?.substring(to: range.lowerBound)
                 string = title?.substring(with: range)
                 after = title?.substring(from: range.upperBound)
@@ -234,7 +243,7 @@ class MediaTableViewCell: UITableViewCell
             var before:String?
             var after:String?
             
-            if let range = scriptureReference.lowercased().range(of: searchText!.lowercased()) {
+            if let searchText = searchText, let range = scriptureReference.lowercased().range(of: searchText.lowercased()) {
                 before = scriptureReference.substring(to: range.lowerBound)
                 string = scriptureReference.substring(with: range)
                 after = scriptureReference.substring(from: range.upperBound)
@@ -261,12 +270,12 @@ class MediaTableViewCell: UITableViewCell
             }
         }
         
-        if mediaItem!.searchHit(searchText).className {
+        if let className = mediaItem?.searchHit(searchText).className, className {
             var string:String?
             var before:String?
             var after:String?
             
-            if let range = mediaItem?.className?.lowercased().range(of: searchText!.lowercased()) {
+            if let searchText = searchText, let range = mediaItem?.className?.lowercased().range(of: searchText.lowercased()) {
                 before = mediaItem?.className?.substring(to: range.lowerBound)
                 string = mediaItem?.className?.substring(with: range)
                 after = mediaItem?.className?.substring(from: range.upperBound)
@@ -293,12 +302,12 @@ class MediaTableViewCell: UITableViewCell
             }
         }
         
-        if mediaItem!.searchHit(searchText).eventName {
+        if let eventName = mediaItem?.searchHit(searchText).eventName, eventName {
             var string:String?
             var before:String?
             var after:String?
             
-            if let range = mediaItem?.eventName?.lowercased().range(of: searchText!.lowercased()) {
+            if let searchText = searchText, let range = mediaItem?.eventName?.lowercased().range(of: searchText.lowercased()) {
                 before = mediaItem?.eventName?.substring(to: range.lowerBound)
                 string = mediaItem?.eventName?.substring(with: range)
                 after = mediaItem?.eventName?.substring(from: range.upperBound)
@@ -331,7 +340,7 @@ class MediaTableViewCell: UITableViewCell
     func stopEditing()
     {
         guard Thread.isMainThread else {
-            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:stopEditing", completion: nil)
+            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:stopEditing")
             return
         }
         
@@ -345,7 +354,7 @@ class MediaTableViewCell: UITableViewCell
     func updateUI()
     {
         guard Thread.isMainThread else {
-            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:updateUI", completion: nil)
+            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:updateUI")
             return
         }
         
@@ -438,7 +447,7 @@ class MediaTableViewCell: UITableViewCell
 //        
 ////        print("Download!")
 //        
-//        if let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//        if let navigationController = vc?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
 //            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
 //            vc?.dismiss(animated: true, completion: nil)
 //            
@@ -515,7 +524,7 @@ class MediaTableViewCell: UITableViewCell
 //            return
 //        }
 //        
-//        if let navigationController = vc?.storyboard!.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+//        if let navigationController = vc?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
 //            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
 //            vc?.dismiss(animated: true, completion: nil)
 //            
@@ -678,15 +687,15 @@ class MediaTableViewCell: UITableViewCell
     func setupIcons()
     {
         guard Thread.isMainThread else {
-            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:setupIcons", completion: nil)
+            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupIcons")
             return
         }
         
-        guard mediaItem != nil else {
+        guard let mediaItem = mediaItem else {
             return
         }
         
-        if (searchText != nil) {
+        if let searchText = searchText {
             let attrString = NSMutableAttributedString()
             
             if (globals.mediaPlayer.mediaItem == mediaItem) {
@@ -712,15 +721,15 @@ class MediaTableViewCell: UITableViewCell
                 }
             }
             
-            if (mediaItem!.hasTags) {
-                if (mediaItem?.tagsSet?.count > 1) {
-                    if mediaItem!.searchHit(searchText).tags {
+            if mediaItem.hasTags {
+                if (mediaItem.tagsSet?.count > 1) {
+                    if mediaItem.searchHit(searchText).tags {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
                     } else {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: Constants.FA.Fonts.Attributes.icons))
                     }
                 } else {
-                    if mediaItem!.searchHit(searchText).tags {
+                    if mediaItem.searchHit(searchText).tags {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
                     } else {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: Constants.FA.Fonts.Attributes.icons))
@@ -728,8 +737,8 @@ class MediaTableViewCell: UITableViewCell
                 }
             }
 
-            if (mediaItem!.hasNotes) {
-                if (globals.search.transcripts || ((vc as? LexiconIndexViewController) != nil)) && mediaItem!.searchHit(searchText).transcriptHTML {
+            if mediaItem.hasNotes {
+                if (globals.search.transcripts || ((vc as? LexiconIndexViewController) != nil)) && mediaItem.searchHit(searchText).transcriptHTML {
                     attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
                 } else {
 //                    print(searchText!)
@@ -737,19 +746,19 @@ class MediaTableViewCell: UITableViewCell
                 }
             }
             
-            if (mediaItem!.hasSlides) {
+            if mediaItem.hasSlides {
                 attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.SLIDES, attributes: Constants.FA.Fonts.Attributes.icons))
             }
             
-            if (mediaItem!.hasVideo) {
+            if mediaItem.hasVideo {
                 attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.VIDEO, attributes: Constants.FA.Fonts.Attributes.icons))
             }
             
-            if (mediaItem!.hasAudio) {
+            if mediaItem.hasAudio {
                 attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.AUDIO, attributes: Constants.FA.Fonts.Attributes.icons))
             }
             
-            if mediaItem?.hasAudio == true, let state = mediaItem?.audioDownload?.state {
+            if mediaItem.hasAudio, let state = mediaItem.audioDownload?.state {
                 switch state {
                 case .none:
                     break
@@ -764,7 +773,7 @@ class MediaTableViewCell: UITableViewCell
                 }
             }
 
-            if mediaItem?.hasAudio == true, mediaItem?.audioDownload?.isDownloaded == true {
+            if mediaItem.hasAudio, mediaItem.audioDownload?.isDownloaded == true {
             }
             
             self.icons.attributedText = attrString
@@ -794,31 +803,31 @@ class MediaTableViewCell: UITableViewCell
                 }
             }
 
-            if (mediaItem!.hasTags) {
-                if (mediaItem?.tagsSet?.count > 1) {
+            if mediaItem.hasTags {
+                if (mediaItem.tagsSet?.count > 1) {
                     string = string + Constants.SINGLE_SPACE + Constants.FA.TAGS
                 } else {
                     string = string + Constants.SINGLE_SPACE + Constants.FA.TAG
                 }
             }
             
-            if (mediaItem!.hasNotes) {
+            if mediaItem.hasNotes {
                 string = string + Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT
             }
             
-            if (mediaItem!.hasSlides) {
+            if mediaItem.hasSlides {
                 string = string + Constants.SINGLE_SPACE + Constants.FA.SLIDES
             }
             
-            if (mediaItem!.hasVideo) {
+            if mediaItem.hasVideo {
                 string = string + Constants.SINGLE_SPACE + Constants.FA.VIDEO
             }
             
-            if (mediaItem!.hasAudio) {
+            if mediaItem.hasAudio {
                 string = string + Constants.SINGLE_SPACE + Constants.FA.AUDIO
             }
             
-            if mediaItem?.hasAudio == true, let state = mediaItem?.audioDownload?.state {
+            if mediaItem.hasAudio, let state = mediaItem.audioDownload?.state {
                 switch state {
                 case .none:
                     break
@@ -840,7 +849,7 @@ class MediaTableViewCell: UITableViewCell
     func setupProgressBarForAudio()
     {
         guard Thread.isMainThread else {
-            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:setupProgressBarForAudio", completion: nil)
+            globals.alert(title: "Not Main Thread", message: "MediaTableViewCell:setupProgressBarForAudio")
             return
         }
         

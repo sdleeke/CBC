@@ -61,6 +61,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool
     {
+        guard let svc = window?.rootViewController as? UISplitViewController else {
+            return false
+        }
+        
         globals = Globals()
         
         globals.checkVoiceBaseAvailability()
@@ -69,7 +73,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
             globals.alertTimer = Timer.scheduledTimer(timeInterval: 0.25, target: globals, selector: #selector(Globals.alertViewer), userInfo: nil, repeats: true)
         }
 
-        globals.splitViewController = window!.rootViewController as! UISplitViewController
+        globals.splitViewController = svc
         
         globals.splitViewController.delegate = self
         
@@ -80,7 +84,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
         
         if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
             let navigationController = globals.splitViewController.viewControllers[globals.splitViewController.viewControllers.count-1] as! UINavigationController
-            navigationController.topViewController!.navigationItem.leftBarButtonItem = globals.splitViewController.displayModeButtonItem
+            navigationController.topViewController?.navigationItem.leftBarButtonItem = globals.splitViewController.displayModeButtonItem
         }
 
         // Override point for customization after application launch.
@@ -197,14 +201,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
         
         filename = identifier.substring(from: Constants.DOWNLOAD_IDENTIFIER.endIndex)
         
-        for mediaItem in globals.mediaRepository.list! {
-            if let download = mediaItem.downloads.filter({ (key:String, value:Download) -> Bool in
-                //                print("handleEventsForBackgroundURLSession: \(filename) \(key)")
-                return value.task?.taskDescription == filename
-            }).first?.value {
-                download.session = URLSession(configuration: configuration, delegate: mediaItem, delegateQueue: nil)
-                download.completionHandler = completionHandler
-                break
+        if let mediaItems = globals.mediaRepository.list {
+            for mediaItem in mediaItems {
+                if let download = mediaItem.downloads.filter({ (key:String, value:Download) -> Bool in
+                    //                print("handleEventsForBackgroundURLSession: \(filename) \(key)")
+                    return value.task?.taskDescription == filename
+                }).first?.value {
+                    download.session = URLSession(configuration: configuration, delegate: mediaItem, delegateQueue: nil)
+                    download.completionHandler = completionHandler
+                    break
+                }
             }
         }
     }
