@@ -631,7 +631,7 @@ enum Constants {
             static let tags     = UIFont(name: "FontAwesome", size: TAGS_FONT_SIZE)!
             static let show     = UIFont(name: "FontAwesome", size: SHOW_FONT_SIZE)!
             static let icons    = UIFont(name: "FontAwesome", size: ICONS_FONT_SIZE)!
-            static let download = UIFont(name: "FontAwesome", size: DOWNLOAD_FONT_SIZE)!
+//            static let download = UIFont(name: "FontAwesome", size: DOWNLOAD_FONT_SIZE)!
             
             enum Attributes {
                 static let icons = [ NSFontAttributeName: Fonts.icons ]
@@ -643,7 +643,7 @@ enum Constants {
                 
                 static let show = [ NSFontAttributeName: Fonts.show ]
                 
-                static let download = [ NSFontAttributeName: Fonts.download ]
+//                static let download = [ NSFontAttributeName: Fonts.download ]
             }
         }
         
@@ -672,7 +672,7 @@ enum Constants {
         
         static let PLAYING = "\u{f028}"
 
-        static let ICONS_FONT_SIZE = CGFloat(18.0)
+        static let ICONS_FONT_SIZE = CGFloat(12.0)
         static let SLIDES = "\u{f022}"
         static let TRANSCRIPT = "\u{f0f6}"
         static let AUDIO = "\u{f025}"
@@ -681,7 +681,7 @@ enum Constants {
         
         static let EDIT = "\u{f040}"
         
-        static let DOWNLOAD_FONT_SIZE = CGFloat(18.0)
+//        static let DOWNLOAD_FONT_SIZE = CGFloat(18.0)
         static let DOWNLOAD = "\u{f019}"
         static let DOWNLOADING = "\u{f0ae}"
         static let DOWNLOADED = "\u{f1c7}"

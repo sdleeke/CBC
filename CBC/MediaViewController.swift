@@ -5329,6 +5329,8 @@ extension MediaViewController : UITableViewDataSource
             if let actions = mediaItem.videoTranscript?.recognizeAlertActions(viewController:self,tableView:self.tableView) {
                 alertActions.append(actions)
             }
+            
+            // At most, only ONE of the following TWO will be added.
             if let actions = mediaItem.audioTranscript?.keywordAlertActions(viewController:self,tableView:self.tableView, completion: { (popover:PopoverTableViewController)->(Void) in
                 self.popover = popover
             }) {

@@ -3526,27 +3526,29 @@ class VoiceBase {
 
     func keywordAlertActions(viewController:UIViewController,tableView:UITableView,completion:((PopoverTableViewController)->(Void))?) -> AlertAction?
     {
-        guard let purpose = purpose else {
-            return nil
-        }
+//        guard let purpose = purpose else {
+//            return nil
+//        }
         
-        var prefix:String!
-        
-        switch purpose {
-        case Purpose.audio:
-            prefix = Constants.FA.AUDIO
-            
-        case Purpose.video:
-            prefix = Constants.FA.VIDEO
-            
-        default:
-            prefix = ""
-            break
-        }
+//        var prefix:String!
+//
+//        switch purpose {
+//        case Purpose.audio:
+//            prefix = // Constants.FA.AUDIO
+//
+//        case Purpose.video:
+//            prefix = Constants.FA.VIDEO
+//
+//        default:
+//            prefix = ""
+//            break
+//        }
         
         var action : AlertAction!
         
-        action = AlertAction(title: prefix + "\n" + Constants.Strings.List, style: .default) {
+        // purpose + "\n" + Constants.Strings.List
+        
+        action = AlertAction(title: "Timing Index", style: .default) {
             
 //            let sourceView = self.view // cell.subviews[0]
 //            let sourceRectView = self.controlView! // cell.subviews[0].subviews[actions.index(of: action)!] // memory leak!
