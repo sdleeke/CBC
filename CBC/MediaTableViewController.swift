@@ -1864,14 +1864,14 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                 if let range = date0.range(of: " AM") {
                                     date0 = date0.substring(to: range.lowerBound)
                                 }
-                                
+
                                 if let range = date1.range(of: " PM") {
                                     date1 = date1.substring(to: range.lowerBound)
                                 }
                                 if let range = date1.range(of: " AM") {
                                     date1 = date1.substring(to: range.lowerBound)
                                 }
-                                
+
                                 return Date(string: date0) < Date(string: date1)
                             } else {
                                 return false // arbitrary
@@ -1897,6 +1897,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                 }
                             }
                         })
+                        
+                        VoiceBase.load()
                     },onError: nil)
                 }
                 
@@ -1934,14 +1936,14 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                 if let range = date0.range(of: " AM") {
                                     date0 = date0.substring(to: range.lowerBound)
                                 }
-                                
+
                                 if let range = date1.range(of: " PM") {
                                     date1 = date1.substring(to: range.lowerBound)
                                 }
                                 if let range = date1.range(of: " AM") {
                                     date1 = date1.substring(to: range.lowerBound)
                                 }
-                                
+
                                 return Date(string: date0) < Date(string: date1)
                             } else {
                                 return false // arbitrary
@@ -1956,6 +1958,8 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             self.popover?.tableView?.reloadData()
                             self.popover?.activityIndicator.stopAnimating()
                         })
+                        
+                        VoiceBase.load()
                     },onError: nil)
                     
                     self.presentingVC = navigationController

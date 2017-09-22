@@ -40,7 +40,7 @@ extension VoiceBase // Class Methods
                     let mediaItem = globals.mediaRepository.index?[id] {
                     var transcript : VoiceBase?
                     
-                    switch purpose {
+                    switch purpose.uppercased() {
                     case Purpose.audio:
                         transcript = mediaItem.audioTranscript
                         
@@ -245,114 +245,114 @@ extension VoiceBase // Class Methods
         return htmlString
     }
     
-    func post(mediaID:String?,path:String?,parameters:[String:String]?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
-    {
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+//    static func post(mediaID:String?,path:String?,parameters:[String:String]?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
+//    {
+////        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+////            return
+////        }
+//        
+//        guard let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable else {
 //            return
 //        }
-        
-        guard let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable else {
-            return
-        }
-        
-        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
-            return
-        }
-        
-        guard let parameters = parameters else {
-            return
-        }
-        
-        //        guard let mediaItem = mediaItem else {
-        //            return
-        //        }
-        
-        //        guard let mediaID = mediaID else {
-        //            return
-        //        }
-        
-//        let service = VoiceBase.url(mediaID:mediaID, path:path)
-        //        print(service)
-        
-        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:path)) else {
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        
-        request.httpMethod = "POST"
-        
-        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
-        
-        let boundary = "Boundary-\(UUID().uuidString)"
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        let body = createBody(parameters: parameters,boundary: boundary)
-        
-        request.httpBody = body as Data
-        request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
-        
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-            var errorOccured = false
-            
-            if let error = error {
-                print("post error: ",error.localizedDescription)
-                errorOccured = true
-            }
-            
-            if let response = response {
-                print("post response: ",response.description)
-                
-                if let httpResponse = response as? HTTPURLResponse {
-                    print("post HTTP response: ",httpResponse.description)
-                    print("post HTTP response: ",httpResponse.allHeaderFields)
-                    print("post HTTP response: ",httpResponse.statusCode)
-                    print("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-                    
-                    if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
-                        errorOccured = true
-                    }
-                }
-            } else {
-                errorOccured = true
-            }
-            
-            var json : [String:Any]?
-            
-            if let data = data, data.count > 0 {
-                let string = String.init(data: data, encoding: String.Encoding.utf8)
-                print(string as Any)
-                
-                do {
-                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
-                    print(json as Any)
-                    
-                    if let errors = json?["errors"] {
-                        print(errors)
-                        errorOccured = true
-                    }
-                } catch let error as NSError {
-                    // JSONSerialization failed
-                    print("JSONSerialization error: ",error.localizedDescription)
-                    
-                }
-            } else {
-                // no data
-                
-            }
-            
-            if errorOccured {
-                Thread.onMainThread() {
-                    onError?(json)
-                }
-            } else {
-                Thread.onMainThread() {
-                    completion?(json)
-                }
-            }
-        })
-        
-        task.resume()
-    }
+//        
+//        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
+//            return
+//        }
+//        
+//        guard let parameters = parameters else {
+//            return
+//        }
+//        
+//        //        guard let mediaItem = mediaItem else {
+//        //            return
+//        //        }
+//        
+//        //        guard let mediaID = mediaID else {
+//        //            return
+//        //        }
+//        
+////        let service = VoiceBase.url(mediaID:mediaID, path:path)
+//        //        print(service)
+//        
+//        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:path)) else {
+//            return
+//        }
+//        
+//        var request = URLRequest(url: url)
+//        
+//        request.httpMethod = "POST"
+//        
+//        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
+//        
+//        let boundary = "Boundary-\(UUID().uuidString)"
+//        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+//        let body = createBody(parameters: parameters,boundary: boundary)
+//        
+//        request.httpBody = body as Data
+//        request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
+//        
+//        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
+//            var errorOccured = false
+//            
+//            if let error = error {
+//                print("post error: ",error.localizedDescription)
+//                errorOccured = true
+//            }
+//            
+//            if let response = response {
+//                print("post response: ",response.description)
+//                
+//                if let httpResponse = response as? HTTPURLResponse {
+//                    print("post HTTP response: ",httpResponse.description)
+//                    print("post HTTP response: ",httpResponse.allHeaderFields)
+//                    print("post HTTP response: ",httpResponse.statusCode)
+//                    print("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+//                    
+//                    if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
+//                        errorOccured = true
+//                    }
+//                }
+//            } else {
+//                errorOccured = true
+//            }
+//            
+//            var json : [String:Any]?
+//            
+//            if let data = data, data.count > 0 {
+//                let string = String.init(data: data, encoding: String.Encoding.utf8)
+//                print(string as Any)
+//                
+//                do {
+//                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
+//                    print(json as Any)
+//                    
+//                    if let errors = json?["errors"] {
+//                        print(errors)
+//                        errorOccured = true
+//                    }
+//                } catch let error as NSError {
+//                    // JSONSerialization failed
+//                    print("JSONSerialization error: ",error.localizedDescription)
+//                    
+//                }
+//            } else {
+//                // no data
+//                
+//            }
+//            
+//            if errorOccured {
+//                Thread.onMainThread() {
+//                    onError?(json)
+//                }
+//            } else {
+//                Thread.onMainThread() {
+//                    completion?(json)
+//                }
+//            }
+//        })
+//        
+//        task.resume()
+//    }
 
     static func get(accept:String?,mediaID:String?,path:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
@@ -742,6 +742,10 @@ class VoiceBase {
     var mediaID:String?
     {
         didSet {
+            guard mediaID != oldValue else {
+                return
+            }
+            
             guard let purpose = purpose else {
                 return
             }
@@ -757,6 +761,10 @@ class VoiceBase {
     var completed = false
     {
         didSet {
+            guard completed != oldValue else {
+                return
+            }
+            
             guard let purpose = purpose else {
                 return
             }
@@ -1442,19 +1450,20 @@ class VoiceBase {
                 if alert, let text = self.mediaItem?.text {
                     globals.alert(title: "Transcription Completed",message: "The transcription process for\n\n\(text) (\(self.transcriptPurpose))\n\nhas completed.")
                 }
-                
-                self.transcribing = false
-                self.completed = true
 
                 self.resultsTimer?.invalidate()
                 self.resultsTimer = nil
                 
                 self.percentComplete = nil
                 
-                self.getTranscript(alert:alert)
-                self.getTranscriptSRT(alert:alert)
-                
-                self.details(alert:alert)
+                self.getTranscript(alert:alert) {
+                    self.getTranscriptSRT(alert:alert) {
+                        self.details(alert:alert) {
+                            self.transcribing = false
+                            self.completed = true
+                        }
+                    }
+                }
             } else {
                 if let progress = json?["progress"] as? [String:Any] {
                     if let tasks = progress["tasks"] as? [String:Any] {
@@ -1879,7 +1888,7 @@ class VoiceBase {
         VoiceBase.details(mediaID: mediaID, completion: completion, onError: onError)
     }
 
-    func details(alert:Bool)
+    func details(alert:Bool, atEnd:(()->())?)
     {
         details(completion: { (json:[String : Any]?) -> (Void) in
             if let json = json?["media"] as? [String:Any] {
@@ -1892,10 +1901,14 @@ class VoiceBase {
                     globals.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare not available.")
                 }
             }
+
+            atEnd?()
         }, onError: { (json:[String : Any]?) -> (Void) in
             if alert, let text = self.mediaItem?.text {
                 globals.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare not available.")
             }
+
+            atEnd?()
         })
     }
     
@@ -1924,8 +1937,6 @@ class VoiceBase {
                 if alert, let text = self.mediaItem?.text {
                     globals.alert(title: "Transcript Realignment Complete",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been realigned.")
                 }
-                
-                self.aligning = false
 
                 self.percentComplete = nil
                 
@@ -1941,14 +1952,16 @@ class VoiceBase {
 //                self._transcriptSRT = nil
                 
                 // Get the new versions.
-                self.getTranscript(alert:alert)
-                self.getTranscriptSRT(alert:alert)
+                self.getTranscript(alert:alert) {
+                    self.getTranscriptSRT(alert:alert) {
+                        self.details(alert:alert) {
+                            self.aligning = false
+                        }
+                    }
+                }
                 
 //                // This will NOT delete the existing versions.
 //                self._mediaJSON = nil
-                
-                // Get the new ones.
-                self.details(alert:alert)
             } else {
                 if let progress = json?["progress"] as? [String:Any] {
                     if let tasks = progress["tasks"] as? [String:Any] {
@@ -2233,7 +2246,7 @@ class VoiceBase {
         })
     }
     
-    func getTranscript(alert:Bool)
+    func getTranscript(alert:Bool, atEnd:(()->())?)
     {
         guard let mediaID = mediaID else {
             upload()
@@ -2256,10 +2269,14 @@ class VoiceBase {
                     globals.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
                 }
             }
+            
+            atEnd?()
         }, onError: { (json:[String : Any]?) -> (Void) in
             if alert, let text = self.mediaItem?.text {
                 globals.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
             }
+            
+            atEnd?()
         })
     }
     
@@ -2675,7 +2692,7 @@ class VoiceBase {
         }
     }
     
-    func getTranscriptSRT(alert:Bool)
+    func getTranscriptSRT(alert:Bool, atEnd:(()->())?)
     {
         VoiceBase.get(accept: "text/srt", mediaID: mediaID, path: "transcripts/latest", completion: { (json:[String : Any]?) -> (Void) in
             if let srt = json?["text"] as? String {
@@ -2691,10 +2708,14 @@ class VoiceBase {
                     globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
                 }
             }
+            
+            atEnd?()
         }, onError: { (json:[String : Any]?) -> (Void) in
             if alert, let text = self.mediaItem?.text {
                 globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
             }
+            
+            atEnd?()
         })
     }
     
@@ -2816,14 +2837,14 @@ class VoiceBase {
                 //                                self.completed = true
                 
                 // Get the new versions.
-                self.getTranscript(alert: true)
-                self.getTranscriptSRT(alert: true)
-                
-                // Get the new ones.
-                self.details(alert: true)
-
-                if let text = self.mediaItem?.text {
-                    globals.alert(title: "Transcript Reload Complete",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been reloaded from VoiceBase.")
+                self.getTranscript(alert: true) {
+                    self.getTranscriptSRT(alert: true) {
+                        self.details(alert: true) {
+                            if let text = self.mediaItem?.text {
+                                globals.alert(title: "Transcript Reload Complete",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nhas been reloaded from VoiceBase.")
+                            }
+                        }
+                    }
                 }
             } else {
                 if let progress = json?["progress"] as? [String:Any] {
@@ -2945,7 +2966,7 @@ class VoiceBase {
                         var alertActions = [AlertAction]()
                         
                         alertActions.append(AlertAction(title: "Yes", style: .default, action: {
-                            self.getTranscript(alert: true)
+                            self.getTranscript(alert: true) {}
                             //                                DispatchQueue.global(qos: .background).async(execute: { () -> Void in
                             //                                })
                             tableView.setEditing(false, animated: true)

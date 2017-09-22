@@ -1247,7 +1247,9 @@ class MediaItem : NSObject
         notesTokens = tokensAndCountsFromString(stripHTML(notesHTML))
     }
     
-    func formatDate(_ format:String?) -> String? {
+    // VERY Computationally Expensive
+    func formatDate(_ format:String?) -> String?
+    {
         let dateStringFormatter = DateFormatter()
         dateStringFormatter.dateFormat = format
         dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
@@ -1256,25 +1258,35 @@ class MediaItem : NSObject
     
     var formattedDate:String? {
         get {
+            // VERY Computationally Expensive
             return formatDate("MMMM d, yyyy")
         }
     }
     
     var formattedDateMonth:String? {
         get {
+            // VERY Computationally Expensive
             return formatDate("MMMM")
         }
     }
     
     var formattedDateDay:String? {
         get {
+            // VERY Computationally Expensive
             return formatDate("d")
         }
     }
     
     var formattedDateYear:String? {
         get {
+            // VERY Computationally Expensive
             return formatDate("yyyy")
+        }
+    }
+    
+    var dateService:String? {
+        get {
+            return dict![Field.date]
         }
     }
     

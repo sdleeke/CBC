@@ -490,6 +490,7 @@ extension Date
 {
     //MARK: Date extension
 
+    // VERY Computationally Expensive
     init?(dateString:String)
     {
         let dateStringFormatter = DateFormatter()
@@ -504,6 +505,7 @@ extension Date
         self = Date(timeInterval:0, since:d)
     }
     
+    // VERY Computationally Expensive
     init?(string:String)
     {
         let dateStringFormatter = DateFormatter()
@@ -518,6 +520,7 @@ extension Date
         self = Date(timeInterval:0, since:d)
     }
     
+    // VERY Computationally Expensive
     var ymd : String
     {
         get {
@@ -529,6 +532,7 @@ extension Date
         }
     }
     
+    // VERY Computationally Expensive
     var mdyhm : String
     {
         get {
@@ -543,6 +547,7 @@ extension Date
         }
     }
     
+    // VERY Computationally Expensive
     var mdy : String
     {
         get {
@@ -554,6 +559,7 @@ extension Date
         }
     }
     
+    // VERY Computationally Expensive
     var year : String
     {
         get {
@@ -565,6 +571,7 @@ extension Date
         }
     }
     
+    // VERY Computationally Expensive
     var month : String
     {
         get {
@@ -576,6 +583,7 @@ extension Date
         }
     }
     
+    // VERY Computationally Expensive
     var day : String
     {
         get {
@@ -2768,38 +2776,46 @@ func speakersFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
 func sortMediaItemsChronologically(_ mediaItems:[MediaItem]?) -> [MediaItem]?
 {
     return mediaItems?.sorted() {
-        guard let firstDate = $0.fullDate, let secondDate = $1.fullDate else {
-            return false // arbitrary
-        }
+//        print($0.dateService,$1.dateService)
+        return $0.dateService < $1.dateService
         
-        if (firstDate.isEqualTo(secondDate)) {
-            if ($0.service == $1.service) {
-                return $0.part < $1.part
-            } else {
-                 return $0.service < $1.service
-            }
-        } else {
-            return firstDate.isOlderThan(secondDate)
-        }
+        // VERY Computationally Expensive
+//        guard let firstDate = $0.fullDate, let secondDate = $1.fullDate else {
+//            return false // arbitrary
+//        }
+//
+//        if (firstDate.isEqualTo(secondDate)) {
+//            if ($0.service == $1.service) {
+//                return $0.part < $1.part
+//            } else {
+//                 return $0.service < $1.service
+//            }
+//        } else {
+//            return firstDate.isOlderThan(secondDate)
+//        }
     }
 }
 
 func sortMediaItemsReverseChronologically(_ mediaItems:[MediaItem]?) -> [MediaItem]?
 {
     return mediaItems?.sorted() {
-        guard let firstDate = $0.fullDate, let secondDate = $1.fullDate else {
-            return false // arbitrary
-        }
+//        print($0.dateService,$1.dateService)
+        return $0.dateService > $1.dateService
         
-        if (firstDate.isEqualTo(secondDate)) {
-            if ($0.service == $1.service) {
-                return $0.part > $1.part
-            } else {
-                return $0.service > $1.service
-            }
-        } else {
-            return firstDate.isNewerThan(secondDate)
-        }
+        // VERY Computationally Expensive
+//        guard let firstDate = $0.fullDate, let secondDate = $1.fullDate else {
+//            return false // arbitrary
+//        }
+//
+//        if (firstDate.isEqualTo(secondDate)) {
+//            if ($0.service == $1.service) {
+//                return $0.part > $1.part
+//            } else {
+//                return $0.service > $1.service
+//            }
+//        } else {
+//            return firstDate.isNewerThan(secondDate)
+//        }
     }
 }
 
