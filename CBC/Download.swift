@@ -177,7 +177,7 @@ class Download : NSObject {
         }
     }
     
-    var completionHandler: ((Void) -> (Void))?
+    var completionHandler: (() -> (Void))?
     
     var isDownloaded : Bool
     {

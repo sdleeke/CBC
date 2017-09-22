@@ -1099,10 +1099,15 @@ class MediaItem : NSObject
     
     var year:Int? {
         get {
-            if let fullDate = fullDate {
-                return (Calendar.current as NSCalendar).components(.year, from: fullDate).year
+//            if let fullDate = fullDate {
+//                return (Calendar.current as NSCalendar).components(.year, from: fullDate).year
+//            }
+            
+            if let range = date?.range(of: "-"), let year = date?.substring(to: range.lowerBound) {
+                return Int(year)
+            } else {
+                return nil
             }
-            return nil
         }
     }
     
@@ -1115,11 +1120,17 @@ class MediaItem : NSObject
     
     var yearString:String! {
         get {
-            if let year = year {
-                return "\(year)"
+            if let range = date?.range(of: "-"), let year = date?.substring(to: range.lowerBound) {
+                return year
             } else {
                 return "None"
             }
+
+//            if let year = year {
+//                return "\(year)"
+//            } else {
+//                return "None"
+//            }
         }
     }
 

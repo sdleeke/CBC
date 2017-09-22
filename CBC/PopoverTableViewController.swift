@@ -268,7 +268,7 @@ struct Sort
 struct SegmentAction {
     var title:String?
     var position:Int
-    var action:((Void)->(Void))?
+    var action:(()->(Void))?
 }
 
 class PopoverTableViewControllerHeaderView : UITableViewHeaderFooterView
@@ -703,7 +703,7 @@ class PopoverTableViewController : UIViewController
     
     var transcript:VoiceBase?
     
-    var stringsFunction:((Void)->[String]?)?
+    var stringsFunction:(()->[String]?)?
     
     var stringsAny : [String:Any]?
     var stringsArray : [String]?
@@ -945,7 +945,7 @@ class PopoverTableViewController : UIViewController
     }
     
     var refreshControl:UIRefreshControl?
-    var refresh:((Void)->(Void))?
+    var refresh:(()->(Void))?
 
     func addRefreshControl()
     {

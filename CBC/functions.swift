@@ -12,7 +12,7 @@ import AVKit
 import MessageUI
 import UserNotifications
 
-func open(scheme: String?,cannotOpen:((Void)->(Void))?)
+func open(scheme: String?,cannotOpen:(()->(Void))?)
 {
     guard let scheme = scheme else {
         return
@@ -490,8 +490,10 @@ extension Date
 {
     //MARK: Date extension
 
-    init?(dateString:String) {
+    init?(dateString:String)
+    {
         let dateStringFormatter = DateFormatter()
+        
         dateStringFormatter.dateFormat = "yyyy-MM-dd"
         dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
         
@@ -502,8 +504,10 @@ extension Date
         self = Date(timeInterval:0, since:d)
     }
     
-    init?(string:String) {
+    init?(string:String)
+    {
         let dateStringFormatter = DateFormatter()
+        
         dateStringFormatter.dateFormat = "MMM dd, yyyy"
         dateStringFormatter.locale = Locale(identifier: "en_US_POSIX")
 
@@ -514,7 +518,8 @@ extension Date
         self = Date(timeInterval:0, since:d)
     }
     
-    var ymd : String {
+    var ymd : String
+    {
         get {
             let dateStringFormatter = DateFormatter()
             dateStringFormatter.dateFormat = "yyyy-MM-dd"
@@ -524,7 +529,8 @@ extension Date
         }
     }
     
-    var mdyhm : String {
+    var mdyhm : String
+    {
         get {
             let dateStringFormatter = DateFormatter()
             dateStringFormatter.dateFormat = "MMM d, yyyy 'at' h:mm a"
@@ -537,7 +543,8 @@ extension Date
         }
     }
     
-    var mdy : String {
+    var mdy : String
+    {
         get {
             let dateStringFormatter = DateFormatter()
             dateStringFormatter.dateFormat = "MMM d, yyyy"
@@ -547,7 +554,8 @@ extension Date
         }
     }
     
-    var year : String {
+    var year : String
+    {
         get {
             let dateStringFormatter = DateFormatter()
             dateStringFormatter.dateFormat = "yyyy"
@@ -557,7 +565,8 @@ extension Date
         }
     }
     
-    var month : String {
+    var month : String
+    {
         get {
             let dateStringFormatter = DateFormatter()
             dateStringFormatter.dateFormat = "MMM"
@@ -567,7 +576,8 @@ extension Date
         }
     }
     
-    var day : String {
+    var day : String
+    {
         get {
             let dateStringFormatter = DateFormatter()
             dateStringFormatter.dateFormat = "dd"
@@ -3446,7 +3456,7 @@ func printMediaItem(viewController:UIViewController, mediaItem:MediaItem?)
     })
 }
 
-func pageOrientation(viewController:UIViewController,portrait:((Void)->(Void))?,landscape:((Void)->(Void))?,cancel:((Void)->(Void))?)
+func pageOrientation(viewController:UIViewController,portrait:(()->(Void))?,landscape:(()->(Void))?,cancel:(()->(Void))?)
 {
     firstSecondCancel(viewController: viewController,
                       title: "Page Orientation", message: nil,
@@ -4521,7 +4531,7 @@ func networkUnavailable(_ viewController:UIViewController,_ message:String?)
 //    }
 //}
 
-func alert(viewController:UIViewController,title:String?,message:String?,completion:((Void)->(Void))?)
+func alert(viewController:UIViewController,title:String?,message:String?,completion:(()->(Void))?)
 {
     guard UIApplication.shared.applicationState == UIApplicationState.active else {
         return
@@ -4632,9 +4642,9 @@ func searchAlert(viewController:UIViewController,title:String?,message:String?,s
 //}
 
 func firstSecondCancel(viewController:UIViewController,title:String?,message:String?,
-                       firstTitle:String?,   firstAction:((Void)->(Void))?, firstStyle: UIAlertActionStyle,
-                       secondTitle:String?,  secondAction:((Void)->(Void))?, secondStyle: UIAlertActionStyle,
-                       cancelAction:((Void)->(Void))?)
+                       firstTitle:String?,   firstAction:(()->(Void))?, firstStyle: UIAlertActionStyle,
+                       secondTitle:String?,  secondAction:(()->(Void))?, secondStyle: UIAlertActionStyle,
+                       cancelAction:(()->(Void))?)
 {
     let alert = UIAlertController(title: title,
                                   message: message,
@@ -4668,10 +4678,10 @@ func firstSecondCancel(viewController:UIViewController,title:String?,message:Str
 struct AlertAction {
     let title : String
     let style : UIAlertActionStyle
-    let action : ((Void)->(Void))?
+    let action : (()->(Void))?
 }
 
-func alertActionsCancel(viewController:UIViewController,title:String?,message:String?,alertActions:[AlertAction]?,cancelAction:((Void)->(Void))?)
+func alertActionsCancel(viewController:UIViewController,title:String?,message:String?,alertActions:[AlertAction]?,cancelAction:(()->(Void))?)
 {
     let alert = UIAlertController(title: title,
                                   message: message,
@@ -4697,7 +4707,7 @@ func alertActionsCancel(viewController:UIViewController,title:String?,message:St
     }
 }
 
-func alertActionsOkay(viewController:UIViewController,title:String?,message:String?,alertActions:[AlertAction]?,okayAction:((Void)->(Void))?)
+func alertActionsOkay(viewController:UIViewController,title:String?,message:String?,alertActions:[AlertAction]?,okayAction:(()->(Void))?)
 {
     let alert = UIAlertController(title: title,
                                   message: message,

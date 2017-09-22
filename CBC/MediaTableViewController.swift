@@ -1579,7 +1579,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 popover.delegate = self
                 popover.purpose = .selectingHistory
                 
-                popover.stringsFunction = { (Void)->[String]? in
+                popover.stringsFunction = { ()->[String]? in
                     let strings = globals.relevantHistoryList
                     
                     if strings == nil {
@@ -3618,7 +3618,7 @@ class MediaTableViewController : UIViewController // MediaController
         return jsonFromURL(url: "https://api.countrysidebible.org/cache/streamEntries.json") as? [String:Any]
     }
     
-    func loadLive(completion:((Void)->(Void))?)
+    func loadLive(completion:(()->(Void))?)
     {
         DispatchQueue.global(qos: .background).async() {
             Thread.sleep(forTimeInterval: 0.25)

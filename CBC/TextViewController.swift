@@ -324,15 +324,15 @@ class TextViewController : UIViewController
     
     var automatic = false
     var automaticInteractive = false
-    var automaticCompletion : ((Void)->(Void))?
+    var automaticCompletion : (()->(Void))?
     
     var completion : ((String)->(Void))?
     
-    var confirmation : ((Void)->Bool)?
+    var confirmation : (()->Bool)?
     var confirmationTitle : String?
     var confirmationMessage : String?
 
-    var onCancel : ((Void)->(Void))?
+    var onCancel : (()->(Void))?
     
     @IBOutlet weak var textView: UITextView!
     

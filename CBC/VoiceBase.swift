@@ -3077,7 +3077,7 @@ class VoiceBase {
                         textPopover.assist = true
                         textPopover.search = true
                         
-//                            textPopover.confirmation = { (Void)->Bool in
+//                            textPopover.confirmation = { ()->Bool in
 //                                return true // self.transcript == self.transcriptFromSRTs
 //                            }
 //                            textPopover.confirmationTitle = "Confirm Saving Changes to Transcript"
@@ -3369,7 +3369,7 @@ class VoiceBase {
         editSRT(popover:popover,tableView:tableView,indexPath:indexPath,automatic:false,automaticInteractive:false,automaticCompletion:nil)
     }
     
-    func editSRT(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath,automatic:Bool,automaticInteractive:Bool,automaticCompletion:((Void)->(Void))?)
+    func editSRT(popover:PopoverTableViewController,tableView:UITableView,indexPath:IndexPath,automatic:Bool,automaticInteractive:Bool,automaticCompletion:(()->(Void))?)
     {
         let stringIndex = popover.section.index(indexPath)
         
@@ -3419,7 +3419,7 @@ class VoiceBase {
             textPopover.automaticCompletion = automaticCompletion
  
 //            if !automatic {
-//                textPopover.confirmation = { (Void)->Bool in
+//                textPopover.confirmation = { ()->Bool in
 //                    return true // self.transcript != self.transcriptFromSRTs
 //                }
 //                textPopover.confirmationTitle = "Confirm Saving Changes to Transcript Element"

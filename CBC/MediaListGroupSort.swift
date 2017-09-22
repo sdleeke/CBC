@@ -172,7 +172,11 @@ class MediaListGroupSort {
     var mediaItemTags:[String]? {
         get {
             return tagMediaItems?.keys.sorted(by: { $0 < $1 }).map({ (string:String) -> String in
-                return self.tagNames![string]!
+                if let tagName = self.tagNames?[string] {
+                    return tagName
+                } else {
+                    return "ERROR"
+                }
             })
         }
     }

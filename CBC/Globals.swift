@@ -11,7 +11,7 @@ import MediaPlayer
 import AVKit
 
 extension Thread {
-    static func onMainThread(block:((Void)->(Void))?)
+    static func onMainThread(block:(()->(Void))?)
     {
         if Thread.isMainThread {
             block?()
@@ -1547,10 +1547,10 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             return
         }
         
-        guard let id = mediaItem.id else {
-            print("mediaItem id NIL!")
-            return
-        }
+//        guard let id = mediaItem.id else {
+//            print("mediaItem id NIL!")
+//            return
+//        }
         
         let entry = "\(Date())" + Constants.TAGS_SEPARATOR + mediaItem.id
         

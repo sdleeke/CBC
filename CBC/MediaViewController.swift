@@ -3785,11 +3785,7 @@ class MediaViewController: UIViewController // MediaController
             return
         }
 
-        guard let mediaItems = mediaItems else {
-            return
-        }
-        
-        var newConstraintConstant:CGFloat
+        var newConstraintConstant:CGFloat = 0
         
 //        print("setupVerticalSplit ratio: \(ratio)")
         
@@ -3799,11 +3795,13 @@ class MediaViewController: UIViewController // MediaController
 //            print("\(self.view.bounds.height)")
             newConstraintConstant = self.view.bounds.height * ratio
         } else {
-            let numberOfAdditionalRows = CGFloat(mediaItems.count)
-            newConstraintConstant = minConstraintConstant + tableView.rowHeight * numberOfAdditionalRows
-            
-            if newConstraintConstant > ((maxConstraintConstant+minConstraintConstant)/2) {
-                newConstraintConstant = (maxConstraintConstant+minConstraintConstant)/2
+            if let count = mediaItems?.count {
+                let numberOfAdditionalRows = CGFloat(count)
+                newConstraintConstant = minConstraintConstant + tableView.rowHeight * numberOfAdditionalRows
+                
+                if newConstraintConstant > ((maxConstraintConstant+minConstraintConstant)/2) {
+                    newConstraintConstant = (maxConstraintConstant+minConstraintConstant)/2
+                }
             }
         }
 
