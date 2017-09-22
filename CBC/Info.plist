@@ -30,7 +30,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.leeke.CBC</string>
+			<string>org.countrysidebible.CBC</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>CBC</string>
@@ -38,7 +38,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1207</string>
+	<string>1208</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
