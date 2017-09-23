@@ -1112,33 +1112,43 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     var relevantHistoryList:[String]? {
         get {
-            var list = [String]()
-            
-            if let historyList = relevantHistory {
-                for history in historyList {
-                    var mediaItemID:String
-                    
-                    if let range = history.range(of: Constants.TAGS_SEPARATOR) {
-                        mediaItemID = history.substring(from: range.upperBound)
-                        
-                        if let mediaItem = mediaRepository.index![mediaItemID] {
-                            if let text = mediaItem.text {
-                                list.append(text)
-                            } else {
-                                print(mediaItem.text as Any)
-                            }
-                        } else {
-                            print(mediaItemID)
-                        }
-                    } else {
-                        print("no range")
-                    }
+            return relevantHistory?.map({ (string:String) -> String in
+                if  let range = string.range(of: Constants.TAGS_SEPARATOR),
+                    let mediaItem = mediaRepository.index?[string.substring(from: range.upperBound)],
+                    let text = mediaItem.text {
+                    return text
                 }
-            } else {
-                print("no historyList")
-            }
+
+                return ("ERROR")
+            })
             
-            return list.count > 0 ? list : nil
+//            var list = [String]()
+//
+//            if let historyList = relevantHistory {
+//                for history in historyList {
+//                    var mediaItemID:String
+//
+//                    if let range = history.range(of: Constants.TAGS_SEPARATOR) {
+//                        mediaItemID = history.substring(from: range.upperBound)
+//
+//                        if let mediaItem = mediaRepository.index![mediaItemID] {
+//                            if let text = mediaItem.text {
+//                                list.append(text)
+//                            } else {
+//                                print(mediaItem.text as Any)
+//                            }
+//                        } else {
+//                            print(mediaItemID)
+//                        }
+//                    } else {
+//                        print("no range")
+//                    }
+//                }
+//            } else {
+//                print("no historyList")
+//            }
+//
+//            return list.count > 0 ? list : nil
         }
     }
 

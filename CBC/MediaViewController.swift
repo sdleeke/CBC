@@ -1477,31 +1477,32 @@ class MediaViewController: UIViewController // MediaController
             toView = logo
         }
 
-        if let view = toView as? WKWebView {
-            view.isHidden = view.isLoading
+        if let toView = toView as? WKWebView {
+            toView.isHidden = toView.isLoading
         } else {
             toView?.isHidden = false
         }
-
-        if let toView = toView {
-            mediaItemNotesAndSlides.bringSubview(toFront: toView)
-        }
-
-        if (fromView != toView) {
-            fromView?.isHidden = true
-        }
     
         if let loaded = document?.loaded, let download = document?.download {
+            toView?.isHidden = !loaded
+            
             if !loaded {
                 if #available(iOS 9.0, *) {
                     if globals.cacheDownloads {
                         if (download.state != .downloading) {
                             setupDocumentsAndVideo()
+                        } else {
+                            progressIndicator.isHidden = false
+                            activityIndicator.isHidden = false
+                            activityIndicator.startAnimating()
                         }
                     } else {
                         if let isLoading = document?.wkWebView?.isLoading {
                             if !isLoading {
                                 setupDocumentsAndVideo()
+                            } else {
+                                activityIndicator.isHidden = false
+                                activityIndicator.startAnimating()
                             }
                         } else {
                             // No WKWebView
@@ -1512,6 +1513,9 @@ class MediaViewController: UIViewController // MediaController
                     if let isLoading = document?.wkWebView?.isLoading {
                         if !isLoading {
                             setupDocumentsAndVideo()
+                        } else {
+                            activityIndicator.isHidden = false
+                            activityIndicator.startAnimating()
                         }
                     } else {
                         // No WKWebView
@@ -1519,6 +1523,14 @@ class MediaViewController: UIViewController // MediaController
                     }
                 }
             }
+        }
+
+        if let toView = toView, !toView.isHidden {
+            mediaItemNotesAndSlides.bringSubview(toFront: toView)
+        }
+        
+        if (fromView != toView) {
+            fromView?.isHidden = true
         }
     }
     
@@ -2925,6 +2937,10 @@ class MediaViewController: UIViewController // MediaController
                 activityIndicator.isHidden = !wkWebView.isHidden
             }
             
+            if !activityIndicator.isHidden {
+                activityIndicator.startAnimating()
+            }
+            
             if document.showing(selectedMediaItem) {
                 if let estimatedProgress = document.wkWebView?.estimatedProgress {
                     print(estimatedProgress)
@@ -3017,8 +3033,8 @@ class MediaViewController: UIViewController // MediaController
                         self.progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
                         self.progressIndicator.isHidden = false
                         
-                        self.mediaItemNotesAndSlides.bringSubview(toFront: self.activityIndicator)
-                        self.mediaItemNotesAndSlides.bringSubview(toFront: self.progressIndicator)
+//                        self.mediaItemNotesAndSlides.bringSubview(toFront: self.activityIndicator)
+//                        self.mediaItemNotesAndSlides.bringSubview(toFront: self.progressIndicator)
                         
                         // Unlike below, this doesn't seem to be necessary
 //                        DispatchQueue.main.async {
@@ -3572,9 +3588,9 @@ class MediaViewController: UIViewController // MediaController
         }
     }
 
-//    override func prefersStatusBarHidden() -> Bool
+//    override var prefersStatusBarHidden : Bool
 //    {
-//        return false
+//        return true
 //    }
     
     func setupWKContentOffsets()
@@ -4268,6 +4284,18 @@ class MediaViewController: UIViewController // MediaController
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
+        
+//        // UGLY Hack to fix iOS 11 constraint problem.
+//        // Will NOT work viewWillAppear
+//        if #available(iOS 11.0, *) {
+//            if UIDevice.current.userInterfaceIdiom == .phone {
+//                if (UIDevice.current.orientation == .landscapeRight) || (UIDevice.current.orientation == .landscapeLeft) {
+//                    view.frame = CGRect(x: view.frame.origin.x, y: view.frame.origin.y - 12, width: view.frame.width, height: view.frame.height + 12)
+//                }
+//            }
+//        } else {
+//            // Fallback on earlier versions
+//        }
 
         // Seems like a strange way to force MTVC to be the visible view controller.  Not sure this ever happens since it would only be during loading while the splitViewController is collapsed.
         // Which means either on an iPhone (not plus) or iPad in split screen model w/ compact width.

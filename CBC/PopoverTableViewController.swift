@@ -1649,6 +1649,7 @@ class PopoverTableViewController : UIViewController
         if tableViewTopConstraint.isActive {
             var searchBarHeight:CGFloat = 0.0
 
+            // iOS 11 changed the height of search bars by 12 points!
             if #available(iOS 11.0, *) {
                 searchBarHeight = 56.0
             } else {

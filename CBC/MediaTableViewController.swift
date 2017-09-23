@@ -484,7 +484,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //            return nil
 //        }
         
-        guard self.deleteButton?.isEnabled == true else {
+        guard self.actionsButton?.isEnabled == true else {
             return nil
         }
         
@@ -810,6 +810,19 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     })
 //                    mediaItemRowAction.backgroundColor = UIColor.controlBlue()
 //                    actions.append(mediaItemRowAction)
+                } else {
+//                    if let id = ((value["metadata"] as? [String:Any])?["mediaItem"] as? [String:Any])?["id"] as? String {
+//                        if let _ = mediaList.filter({ (mediaItem:MediaItem) -> Bool in
+//                            return (mediaItem.id == id)   // also need to find the same purpose transcript (audio or video)
+                                                            // and make sure it doesn't already have a mediaID or is in progress
+                                                            // or completed.
+//                        }).first {
+//                            actions.append(AlertAction(title: "Import", style: .default) {
+//                                self.dismiss(animated: true, completion: nil)
+//
+//                            })
+//                        }
+//                    }
                 }
             }
         }
@@ -1484,6 +1497,32 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //        })
 //    }
     
+    func historyActions()
+    {
+        let alert = UIAlertController(title: "Delete History?",
+                                      message: nil,
+                                      preferredStyle: .alert)
+        alert.makeOpaque()
+        
+        let yesAction = UIAlertAction(title: "Yes", style: .destructive, handler: { (alert:UIAlertAction!) -> Void in
+            globals.history = nil
+            let defaults = UserDefaults.standard
+            defaults.removeObject(forKey: Constants.SETTINGS.HISTORY)
+            defaults.synchronize()
+            self.dismiss(animated: true, completion: nil)
+        })
+        alert.addAction(yesAction)
+
+        let cancelAction = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (alert:UIAlertAction!) -> Void in
+
+        })
+        alert.addAction(cancelAction)
+        
+        Thread.onMainThread() {
+            self.present(alert, animated: true, completion: nil)
+        }
+    }
+    
     func showMenu(action:String?,mediaItem:MediaItem?)
     {
         guard Thread.isMainThread else {
@@ -1565,7 +1604,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.History:
-            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
+            if  let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 navigationController.modalPresentationStyle = .overCurrentContext
                 
@@ -1573,9 +1612,11 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 
 //                navigationController.popoverPresentationController?.permittedArrowDirections = .up
 //                navigationController.popoverPresentationController?.barButtonItem = showButton
+
+                
                 
                 popover.navigationItem.title = Constants.Strings.History
-                
+
                 popover.delegate = self
                 popover.purpose = .selectingHistory
                 
@@ -1583,15 +1624,27 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                     let strings = globals.relevantHistoryList
                     
                     if strings == nil {
-                        alert(viewController:self,title: "History is empty.",
-                              message: nil,
-                              completion:nil)
+                        Thread.onMainThread(block: { () -> (Void) in
+                            popover.navigationItem.leftBarButtonItem?.isEnabled = false
+                            popover.activityIndicator.stopAnimating()
+                            alert(viewController:self,title: "History is empty.",
+                                  message: nil,
+                                  completion:{
+                                    self.presentingVC = nil
+                                    self.dismiss(animated: true, completion: nil)
+                            })
+                        })
                     }
                     
                     return strings
                 }
                 
                 popover.vc = self.splitViewController
+                
+                popover.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Delete All", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.historyActions))
+                
+                // Delete All - deleteAllMedia
+                //                    deleteButton.setTitleTextAttributes(Constants.Fonts.Attributes.destructive, for: UIControlState.normal)
                 
                 present(navigationController, animated: true, completion: {
                     self.presentingVC = navigationController
@@ -1639,17 +1692,17 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //            }
             break
             
-        case Constants.Strings.Clear_History:
-            firstSecondCancel(viewController: self, title: "Delete History?", message: nil,
-                              firstTitle: "Delete", firstAction:    {
-                                                                        globals.history = nil
-                                                                        let defaults = UserDefaults.standard
-                                                                        defaults.removeObject(forKey: Constants.SETTINGS.HISTORY)
-                                                                        defaults.synchronize()
-                                                                    }, firstStyle: .destructive,
-                              secondTitle: nil, secondAction: nil, secondStyle: .default,
-                              cancelAction: nil)
-            break
+//        case Constants.Strings.Clear_History:
+//            firstSecondCancel(viewController: self, title: "Delete History?", message: nil,
+//                              firstTitle: "Delete", firstAction:    {
+//                                                                        globals.history = nil
+//                                                                        let defaults = UserDefaults.standard
+//                                                                        defaults.removeObject(forKey: Constants.SETTINGS.HISTORY)
+//                                                                        defaults.synchronize()
+//                                                                    }, firstStyle: .destructive,
+//                              secondTitle: nil, secondAction: nil, secondStyle: .default,
+//                              cancelAction: nil)
+//            break
             
         case Constants.Strings.Live:
             if  globals.streamEntries?.count > 0, globals.reachability.currentReachabilityStatus != .notReachable, //globals.streamEntries?.count > 0,
@@ -1831,10 +1884,10 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                 
                 self.popover = navigationController.viewControllers[0] as? PopoverTableViewController
                 
-                self.deleteButton = UIBarButtonItem(title: "Delete All", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.deleteAllMedia))
+                self.actionsButton = UIBarButtonItem(title: "Actions", style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaTableViewController.voiceBaseActions)) // Delete All - deleteAllMedia
                 //                    deleteButton.setTitleTextAttributes(Constants.Fonts.Attributes.destructive, for: UIControlState.normal)
                 
-                self.popover?.navigationItem.leftBarButtonItem = self.deleteButton
+                self.popover?.navigationItem.leftBarButtonItem = self.actionsButton
                 //                            self.deleteButton?.isEnabled = false
                 
                 self.popover?.navigationItem.title = Constants.Strings.VoiceBase_Media
@@ -1897,8 +1950,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                                 }
                             }
                         })
-                        
-                        VoiceBase.load()
                     },onError: nil)
                 }
                 
@@ -1958,8 +2009,6 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
                             self.popover?.tableView?.reloadData()
                             self.popover?.activityIndicator.stopAnimating()
                         })
-                        
-                        VoiceBase.load()
                     },onError: nil)
                     
                     self.presentingVC = navigationController
@@ -2630,7 +2679,7 @@ class MediaTableViewControllerHeaderView : UITableViewHeaderFooterView
 class MediaTableViewController : UIViewController // MediaController
 {
     var popover : PopoverTableViewController?
-    var deleteButton : UIBarButtonItem?
+    var actionsButton : UIBarButtonItem?
     
     var stringIndex : StringIndex? // [String:[String]]()
 
@@ -2643,7 +2692,7 @@ class MediaTableViewController : UIViewController // MediaController
                 self.dismiss(animated: true, completion: nil)
                 globals.alert(title: "No VoiceBase Media Items", message: "There are no media files stored on VoiceBase for transcription.")
             } else {
-                self.deleteButton?.isEnabled = true
+                self.actionsButton?.isEnabled = true
             }
         }
     }
@@ -2694,7 +2743,38 @@ class MediaTableViewController : UIViewController // MediaController
         alert.addAction(cancel)
         
         // For .actionSheet style
-//        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
+        //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
+    func voiceBaseActions()
+    {
+        let alert = UIAlertController(  title: "VoiceBase Actions",
+                                        message: nil,
+                                        preferredStyle: .alert)
+        alert.makeOpaque()
+        
+        let deleteAllAction = UIAlertAction(title: "Delete All", style: UIAlertActionStyle.destructive, handler: {
+            (action : UIAlertAction!) -> Void in
+            self.deleteAllMedia()
+        })
+        alert.addAction(deleteAllAction)
+        
+        let loadAllAction = UIAlertAction(title: "Load All", style: UIAlertActionStyle.default, handler: {
+            (action : UIAlertAction!) -> Void in
+            VoiceBase.load()
+        })
+        alert.addAction(loadAllAction)
+        
+        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+            (action : UIAlertAction!) -> Void in
+            
+        })
+        alert.addAction(cancel)
+        
+        // For .actionSheet style
+        //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
         
         present(alert, animated: true, completion: nil)
     }
@@ -2960,10 +3040,11 @@ class MediaTableViewController : UIViewController // MediaController
                 }
             }
             
-            if globals.history != nil {
-                showMenu.append(Constants.Strings.History)
-                showMenu.append(Constants.Strings.Clear_History)
-            }
+            showMenu.append(Constants.Strings.History)
+
+//            if globals.history != nil {
+//                showMenu.append(Constants.Strings.Clear_History)
+//            }
 
             if globals.streamEntries != nil, globals.reachability.currentReachabilityStatus != .notReachable {
                 showMenu.append(Constants.Strings.Live)
