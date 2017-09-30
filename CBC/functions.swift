@@ -344,7 +344,7 @@ func jsonToFileSystemDirectory(key:String)
 
 func jsonFromURL(url:String) -> Any?
 {
-    guard globals.reachability.currentReachabilityStatus != .notReachable else {
+    guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
         print("json not reachable.")
         
         //            globals.alert(title:"Network Error",message:"Newtork not available, attempting to load last available media list.")
@@ -412,7 +412,7 @@ func jsonFromURL(url:String,filename:String) -> Any?
         return nil
     }
     
-    guard globals.reachability.currentReachabilityStatus != .notReachable else {
+    guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
         print("json not reachable.")
         
         //            globals.alert(title:"Network Error",message:"Newtork not available, attempting to load last available media list.")

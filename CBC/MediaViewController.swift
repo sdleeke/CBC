@@ -2869,7 +2869,7 @@ class MediaViewController: UIViewController // MediaController
             
             logo.isHidden = false
             
-            if (globals.reachability.currentReachabilityStatus != .notReachable) {
+            if globals.reachability.isReachable { // currentReachabilityStatus != .notReachable
                 selectedMediaItem.showing = Showing.none
             }
             
@@ -3015,7 +3015,7 @@ class MediaViewController: UIViewController // MediaController
             return
         }
         
-        guard globals.cacheDownloads || (globals.reachability.currentReachabilityStatus != .notReachable) else {
+        guard globals.cacheDownloads || globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
             return
         }
         
@@ -5300,7 +5300,7 @@ extension MediaViewController : UITableViewDataSource
                 htmlString = mediaItem.fullNotesHTML
                 popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
             } else {
-                guard globals.reachability.currentReachabilityStatus != .notReachable else {
+                guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
                     networkUnavailable(self,"HTML transcript unavailable.")
                     return
                 }
@@ -5328,7 +5328,7 @@ extension MediaViewController : UITableViewDataSource
                 if mediaItem.scripture?.html?[reference] != nil {
                     popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
                 } else {
-                    guard globals.reachability.currentReachabilityStatus != .notReachable else {
+                    guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
                         networkUnavailable(self,"Scripture text unavailable.")
                         return
                     }

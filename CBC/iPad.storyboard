@@ -570,19 +570,19 @@
                                 <exclude reference="Ut8-lg-8ab"/>
                             </mask>
                             <mask key="constraints">
-                                <exclude reference="OsV-IC-JLv"/>
-                                <exclude reference="f9R-Gt-YvP"/>
                                 <exclude reference="0Jv-l5-4Tu"/>
                                 <exclude reference="hHn-qT-3ih"/>
-                                <exclude reference="9RS-p5-gJG"/>
-                                <exclude reference="XcF-SL-vQ7"/>
                                 <exclude reference="EC7-xr-i5p"/>
                                 <exclude reference="UIA-aB-fuC"/>
                                 <exclude reference="wWa-1o-oXk"/>
-                                <exclude reference="Bnz-L0-ebT"/>
-                                <exclude reference="Gee-mK-zaj"/>
+                                <exclude reference="9RS-p5-gJG"/>
+                                <exclude reference="XcF-SL-vQ7"/>
                                 <exclude reference="UTu-1b-fA3"/>
                                 <exclude reference="d7L-W7-98W"/>
+                                <exclude reference="OsV-IC-JLv"/>
+                                <exclude reference="f9R-Gt-YvP"/>
+                                <exclude reference="Bnz-L0-ebT"/>
+                                <exclude reference="Gee-mK-zaj"/>
                             </mask>
                         </variation>
                         <variation key="heightClass=compact-widthClass=compact">
@@ -592,27 +592,27 @@
                                 <include reference="Ut8-lg-8ab"/>
                             </mask>
                             <mask key="constraints">
-                                <exclude reference="KCd-mo-EHx"/>
-                                <exclude reference="Ujg-Dd-jZe"/>
-                                <exclude reference="ahL-wp-zfw"/>
-                                <exclude reference="nmy-u3-oU6"/>
                                 <include reference="0Jv-l5-4Tu"/>
                                 <exclude reference="qUY-iM-EXz"/>
                                 <exclude reference="HEd-vY-teK"/>
                                 <exclude reference="HOe-Ks-3kR"/>
                                 <exclude reference="VmD-wu-0aL"/>
                                 <include reference="hHn-qT-3ih"/>
-                                <include reference="9RS-p5-gJG"/>
-                                <include reference="XcF-SL-vQ7"/>
                                 <include reference="EC7-xr-i5p"/>
                                 <include reference="UIA-aB-fuC"/>
                                 <include reference="wWa-1o-oXk"/>
-                                <include reference="Bnz-L0-ebT"/>
-                                <include reference="Gee-mK-zaj"/>
+                                <include reference="9RS-p5-gJG"/>
+                                <include reference="XcF-SL-vQ7"/>
                                 <include reference="UTu-1b-fA3"/>
                                 <include reference="d7L-W7-98W"/>
                                 <exclude reference="dAk-pk-tVX"/>
                                 <exclude reference="wn1-va-00m"/>
+                                <exclude reference="KCd-mo-EHx"/>
+                                <exclude reference="Ujg-Dd-jZe"/>
+                                <exclude reference="ahL-wp-zfw"/>
+                                <exclude reference="nmy-u3-oU6"/>
+                                <include reference="Bnz-L0-ebT"/>
+                                <include reference="Gee-mK-zaj"/>
                             </mask>
                         </variation>
                     </view>
@@ -825,17 +825,17 @@ Email: cbcstaff@countrysidebible.org</string>
         <!--About 2-->
         <scene sceneID="oj2-gh-MLi">
             <objects>
-                <viewController title="About 2" automaticallyAdjustsScrollViewInsets="NO" id="c87-tQ-6Ls" customClass="AboutViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController title="About 2" extendedLayoutIncludesOpaqueBars="YES" automaticallyAdjustsScrollViewInsets="NO" id="c87-tQ-6Ls" customClass="AboutViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="JlN-uu-tst"/>
                         <viewControllerLayoutGuide type="bottom" id="gFB-fu-LKW"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="t0B-Id-nSB">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="1148"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="1200"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ndK-6H-sCB">
-                                <rect key="frame" x="0.0" y="0.0" width="600" height="1148"/>
+                                <rect key="frame" x="0.0" y="52" width="600" height="1148"/>
                                 <subviews>
                                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="tom_pennington" translatesAutoresizingMaskIntoConstraints="NO" id="GJp-uH-K13">
                                         <rect key="frame" x="172" y="20" width="256" height="256"/>
@@ -1032,7 +1032,7 @@ Web site: www.countrysidebible.org</string>
                             </mask>
                         </variation>
                     </view>
-                    <extendedEdge key="edgesForExtendedLayout"/>
+                    <extendedEdge key="edgesForExtendedLayout" top="YES"/>
                     <navigationItem key="navigationItem" title="Countryside Bible Church" id="qQP-cd-dPh"/>
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
                     <size key="freeformSize" width="600" height="1200"/>

@@ -445,7 +445,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             }
         }
         
-        if (reachabilityStatus == .notReachable) && (reachability.currentReachabilityStatus != .notReachable) && (globals.mediaRepository.list != nil) {
+        // (reachabilityStatus == .notReachable) &&
+        
+        if reachability.isReachable && (globals.mediaRepository.list != nil) {
             alert(title: "Network Connection Restored",message: "")
 
             isVoiceBaseAvailable = nil
@@ -453,8 +455,11 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             checkVoiceBaseAvailability()
         }
         
-        if (reachabilityStatus != .notReachable) && (reachability.currentReachabilityStatus == .notReachable) && (globals.mediaRepository.list != nil) {
+        // (reachabilityStatus != .notReachable) && (
+        
+        if !reachability.isReachable && (globals.mediaRepository.list != nil) {
             alert(title: "No Network Connection",message: "Without a network connection only audio, slides, and transcripts previously downloaded will be available.")
+            
             isVoiceBaseAvailable = false
         }
         

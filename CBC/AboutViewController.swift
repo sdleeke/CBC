@@ -238,14 +238,14 @@ class AboutViewController: UIViewController
     
     func reachableTransition()
     {
-        if mapView.isHidden, globals.reachability.currentReachabilityStatus != .notReachable {
+        if mapView.isHidden, globals.reachability.isReachable { // currentReachabilityStatus != .notReachable
             addMap()
         }
     }
     
     func addMap()
     {
-        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+        guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
             return
         }
         

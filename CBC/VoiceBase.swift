@@ -2721,7 +2721,7 @@ class VoiceBase {
     
     func search(string:String?)
     {
-        guard globals.reachability.currentReachabilityStatus != .notReachable else {
+        guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
             return
         }
         
@@ -2956,13 +2956,13 @@ class VoiceBase {
         
         action = AlertAction(title: prefix + " " + Constants.Strings.Transcript, style: .default) {
             if self.transcript == nil {
-                guard globals.reachability.currentReachabilityStatus != .notReachable else {
+                guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
                     networkUnavailable(viewController,"Machine generated transcript unavailable.")
                     return
                 }
                 
                 if !self.transcribing {
-                    if globals.reachability.currentReachabilityStatus != .notReachable {
+                    if globals.reachability.isReachable { // currentReachabilityStatus != .notReachable
                         var alertActions = [AlertAction]()
                         
                         alertActions.append(AlertAction(title: "Yes", style: .default, action: {

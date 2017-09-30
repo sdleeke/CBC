@@ -1705,7 +1705,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
 //            break
             
         case Constants.Strings.Live:
-            if  globals.streamEntries?.count > 0, globals.reachability.currentReachabilityStatus != .notReachable, //globals.streamEntries?.count > 0,
+            if  globals.streamEntries?.count > 0, globals.reachability.isReachable, // currentReachabilityStatus != .notReachable globals.streamEntries?.count > 0,
                 let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                 navigationController.modalPresentationStyle = .overCurrentContext
@@ -1870,7 +1870,7 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             break
             
         case Constants.Strings.VoiceBase_Media:
-            guard globals.reachability.currentReachabilityStatus != .notReachable else {
+            guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
                 return
             }
             
@@ -3046,7 +3046,7 @@ class MediaTableViewController : UIViewController // MediaController
 //                showMenu.append(Constants.Strings.Clear_History)
 //            }
 
-            if globals.streamEntries != nil, globals.reachability.currentReachabilityStatus != .notReachable {
+            if globals.streamEntries != nil, globals.reachability.isReachable { // currentReachabilityStatus != .notReachable
                 showMenu.append(Constants.Strings.Live)
             }
             
@@ -6104,7 +6104,7 @@ extension MediaTableViewController : UITableViewDelegate
         words = AlertAction(title: Constants.Strings.Words, style: .default) {
             if mediaItem.hasNotesHTML {
                 if mediaItem.notesTokens == nil {
-                    guard globals.reachability.currentReachabilityStatus != .notReachable else {
+                    guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
                         networkUnavailable(self,"HTML transcript words unavailable.")
                         return
                     }
@@ -6136,7 +6136,7 @@ extension MediaTableViewController : UITableViewDelegate
                 
                 popoverHTML(self,mediaItem:mediaItem,title:nil,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
             } else {
-                guard globals.reachability.currentReachabilityStatus != .notReachable else {
+                guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
                     networkUnavailable(self,"HTML transcript unavailable.")
                     return
                 }
@@ -6191,7 +6191,7 @@ extension MediaTableViewController : UITableViewDelegate
                 if mediaItem.scripture?.html?[reference] != nil {
                     popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
                 } else {
-                    guard globals.reachability.currentReachabilityStatus != .notReachable else {
+                    guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
                         networkUnavailable(self,"Scripture text unavailable.")
                         return
                     }
