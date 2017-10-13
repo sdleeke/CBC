@@ -269,8 +269,6 @@ enum Constants {
             
             static let CATEGORY = MEDIA + "&categoryID=" //
             
-//            static let CATEGORY_MEDIA = CATEGORY + globals.mediaCategory.selectedID! //
-            
             static let SINGLE = BASE + "single&mediacode="
         }
 
@@ -285,7 +283,6 @@ enum Constants {
         
         enum FILENAME {
             static let CATEGORIES = ARRAY_KEY.CATEGORY_ENTRIES + FILENAME_EXTENSION
-//            static let MEDIA      = ARRAY_KEY.MEDIA_ENTRIES + FILENAME_EXTENSION
         }
     }
 
@@ -295,14 +292,12 @@ enum Constants {
         static let VIDEO_PREFIX = "https://player.vimeo.com/external/"
         
         static let EXTERNAL_VIDEO_PREFIX = "https://vimeo.com/"
-        
-        //    Slides: {year}/{mediacode}slides.pdf
-        //    Outline: {year}/{mediacode}outline.pdf
-        //    Transcript: {year}/{mediacode}transcript.pdf
     }
     
     enum URL {
         static let LIVE_STREAM = "https://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
+        
+        static let VOICE_BASE_ROOT = "https://apis.voicebase.com/v2-beta/media"
         
         static let REACHABILITY_TEST = "https://www.countrysidebible.org/"
     }
@@ -357,8 +352,6 @@ enum Constants {
         
         static let PAUSED                   = "PAUSED"
         
-//        static let UPDATE_SHOW_HIDE         = "UPDATE SHOW HIDE"
-        
         static let PLAYING_PAUSED           = "PLAYING PAUSED"
         
         static let UPDATE_VIEW              = "UPDATE VIEW"
@@ -383,9 +376,6 @@ enum Constants {
         static let MEDIA_DOWNLOAD_FAILED    = "MEDIA DOWNLOAD FAILED"
         
         static let UPDATE_MEDIA_LIST        = "UPDATE MEDIA LIST"
-        
-//        static let EDITING                  = "EDITING"
-//        static let NOT_EDITING              = "NOT EDITING"
     }
     
     enum IDENTIFIER {
@@ -477,11 +467,6 @@ enum Constants {
     
     static let COVER_ART_IMAGE = "cover170x170"
     
-//    struct CACHE {
-//        static let POLICY = NSURLRequest.CachePolicy.reloadRevalidatingCacheData
-//        static let TIMEOUT = 10.0
-//    }
-
     static let HEADER_HEIGHT = CGFloat(48)
     static let VIEW_TRANSITION_TIME = 0.75 // seconds
     
@@ -585,14 +570,11 @@ enum Constants {
     static let COMPACT_SEGMENT_WIDTH    = CGFloat(25)
     
     static let MIN_SLIDER_WIDTH         = CGFloat(60)
-//    static let MIN_STV_SEGMENT_WIDTH    = CGFloat(40)
     
     enum AV_SEGMENT_INDEX {
         static let AUDIO = 0
         static let VIDEO = 1
     }
-    
-//    static let AUDIO_VIDEO_WIDTH = 2 * SEGMENT_WIDTH
     
     // first.service < second.service relies upon the face that AM and PM are alphabetically sorted the same way they are related chronologically, i.e. AM comes before PM in both cases.
     enum SERVICE {
@@ -628,10 +610,10 @@ enum Constants {
         static let name = "FontAwesome"
 
         enum Fonts {
+            // These will cause a crash at start-up if UIFont returns nil.
             static let tags     = UIFont(name: "FontAwesome", size: TAGS_FONT_SIZE)!
             static let show     = UIFont(name: "FontAwesome", size: SHOW_FONT_SIZE)!
             static let icons    = UIFont(name: "FontAwesome", size: ICONS_FONT_SIZE)!
-//            static let download = UIFont(name: "FontAwesome", size: DOWNLOAD_FONT_SIZE)!
             
             enum Attributes {
                 static let icons = [ NSFontAttributeName: Fonts.icons ]
@@ -642,8 +624,6 @@ enum Constants {
                 static let tags = [ NSFontAttributeName: Fonts.tags ]
                 
                 static let show = [ NSFontAttributeName: Fonts.show ]
-                
-//                static let download = [ NSFontAttributeName: Fonts.download ]
             }
         }
         
@@ -681,7 +661,6 @@ enum Constants {
         
         static let EDIT = "\u{f040}"
         
-//        static let DOWNLOAD_FONT_SIZE = CGFloat(18.0)
         static let DOWNLOAD = "\u{f019}"
         static let DOWNLOADING = "\u{f0ae}"
         static let DOWNLOADED = "\u{f1c7}"
@@ -726,7 +705,6 @@ enum Constants {
         static let LocalDevice = "This Device"
         static let OtherDevices = "Other Devices"
 
-        //    static let Scripture_Full_Screen = "Scripture Full Screen"
         static let Scripture_in_Browser = "Scripture in Browser"
         
         static let Scripture_Viewer = "Scripture Viewer"
@@ -744,9 +722,6 @@ enum Constants {
         static let Search = "Search"
         static let Words = "Words"
         static let Word_Picker = "Word Picker"
-        
-        //    static let Search_Terms = "Search Terms"
-        //    static let Search_Transcript = "Search Transcript"
         
         static let Sermon = "Sermon"
         static let Sermons = "Sermons"
@@ -894,8 +869,6 @@ enum Constants {
 
     static let CHECK_FILE_SLEEP_INTERVAL = 0.01
     static let CHECK_FILE_MAX_ITERATIONS = 200
-    
-//    static let TRANSCRIPT_PREFIX = "tx-un-"
     
     static let FONT_SIZE = 12
     

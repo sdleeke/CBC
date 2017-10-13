@@ -50,57 +50,41 @@ extension PopoverPickerViewController : UIPickerViewDataSource
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int
     {
-        if stringTree != nil {
-            var stringNode = stringTree?.root
+        guard stringTree != nil else {
+            return strings?.count ?? 0
+        }
+        
+        var stringNode = stringTree?.root
+        
+        switch component {
+        case 0:
+            break
             
-            switch component {
-            case 0:
-                break
-                
-            default:
-                //                guard (pickerSelections[component-1] != nil) else {
-                //                    return 0
-                //                }
-                
-                for i in 0..<component {
-                    if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
-                        pickerSelections[i] = pickerSelections[i] != nil ? pickerSelections[i] : 0
-                        
-                        if let selection = pickerSelections[i] {
-                            if selection < stringNodes.count {
-                                stringNode = stringNodes[selection]
-                            }
+        default:
+            for i in 0..<component {
+                if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
+                    pickerSelections[i] = pickerSelections[i] != nil ? pickerSelections[i] : 0
+                    
+                    if let selection = pickerSelections[i] {
+                        if selection < stringNodes.count {
+                            stringNode = stringNodes[selection]
                         }
                     }
                 }
-                break
             }
-            
-            if let count = stringNode?.stringNodes?.count {
-                //                print("Component: ",component," Rows: ",count)
-                return count
-            } else {
-                return 0
-            }
+            break
+        }
+        
+        if let count = stringNode?.stringNodes?.count {
+            return count
         } else {
-            return strings != nil ? strings!.count : 0
+            return 0
         }
     }
     
-//    func pickerView(_ pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat
-//    {
-//        return 48.0
-//    }
-    
     func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView
     {
-        var label:UILabel!
-        
-        if view != nil {
-            label = view as! UILabel
-        } else {
-            label = UILabel()
-        }
+        let label = view as? UILabel ?? UILabel()
         
         label.numberOfLines = 0
         label.lineBreakMode = .byWordWrapping
@@ -119,7 +103,6 @@ extension PopoverPickerViewController : UIPickerViewDataSource
             
             if let string = strings?[row] {
                 label.attributedText = NSAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
-//                print("LAST: ",string)
             }
             
             label.textAlignment = .center
@@ -139,10 +122,6 @@ extension PopoverPickerViewController : UIPickerViewDataSource
             break
             
         default:
-            //            guard (pickerSelections[component-1] != nil) else {
-            //                return nil
-            //            }
-            
             for i in 0..<component {
                 if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
                     pickerSelections[i] = pickerSelections[i] != nil ? pickerSelections[i] : 0
@@ -197,10 +176,6 @@ extension PopoverPickerViewController : UIPickerViewDelegate
                 break
                 
             default:
-                //                guard (pickerSelections[component-1] != nil) else {
-                //                    return 0.0
-                //                }
-                
                 for i in 0..<component {
                     if let stringNodes = stringNode?.stringNodes?.sorted(by: { $0.string < $1.string }) {
                         pickerSelections[i] = pickerSelections[i] != nil ? pickerSelections[i] : 0
@@ -235,8 +210,6 @@ extension PopoverPickerViewController : UIPickerViewDelegate
             } else {
                 return 0
             }
-
-            //            print("Component: ",component," Width: ",width)
             
             if  component < pickerSelections.count, let index = pickerSelections[component], index < stringNode?.stringNodes?.count,
                 let string = stringNode?.stringNodes?[index].string, string == Constants.WORD_ENDING {
@@ -251,9 +224,6 @@ extension PopoverPickerViewController : UIPickerViewDelegate
             
             if let strings = strings {
                 for string in strings {
-                    //                print(stringNode.string)
-//                    let string = string.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
-                    
                     let stringWidth = string.boundingRect(with: widthSize, options: .usesLineFragmentOrigin, attributes: Constants.Fonts.Attributes.normal, context: nil).width
                     
                     if stringWidth > width {
@@ -277,8 +247,6 @@ extension PopoverPickerViewController : UIPickerViewDelegate
         
         if stringTree != nil {
             pickerSelections[component] = row
-            
-            //        print(pickerSelections)
             
             DispatchQueue.global(qos: .userInteractive).async {
                 self.updatePickerSelections()
@@ -311,8 +279,6 @@ extension PopoverPickerViewController : PopoverTableViewControllerDelegate
             alert(viewController:self,title: "Not Main Thread", message: "PopoverPickerViewController:rowClickedAtIndex",completion:nil)
             return
         }
-        
-        //        dismiss(animated: true, completion: nil)
         
         guard let string = strings?[index] else {
             return
@@ -422,8 +388,6 @@ class PopoverPickerViewController : UIViewController
             
             bodyHTML = bodyHTML + "<html><body>"
             
-//            bodyHTML = bodyHTML + "<center>"
-            
             if let roots = self.stringTree?.root?.stringNodes?.sorted(by: { (lhs:StringNode, rhs:StringNode) -> Bool in
                 return lhs.string < rhs.string
             }) {
@@ -463,8 +427,6 @@ class PopoverPickerViewController : UIViewController
                 
                 indexHTML = indexHTML + "</tr></table>"
             }
-            
-//            bodyHTML = bodyHTML + "</center>"
             
             bodyHTML = bodyHTML + indexHTML + wordsHTML + "</body></html>"
             
@@ -606,7 +568,11 @@ class PopoverPickerViewController : UIViewController
             ptvc?.dismiss(animated: false, completion: nil)
         }
         
-        switch orientation! {
+        guard let orientation = orientation else {
+            return
+        }
+        
+        switch orientation {
         case .faceUp:
             switch UIDevice.current.orientation {
             case .faceUp:
@@ -790,19 +756,19 @@ class PopoverPickerViewController : UIViewController
             break
             
         case .landscapeLeft:
-            orientation = UIDevice.current.orientation
+            self.orientation = UIDevice.current.orientation
             break
             
         case .landscapeRight:
-            orientation = UIDevice.current.orientation
+            self.orientation = UIDevice.current.orientation
             break
             
         case .portrait:
-            orientation = UIDevice.current.orientation
+            self.orientation = UIDevice.current.orientation
             break
             
         case .portraitUpsideDown:
-            orientation = UIDevice.current.orientation
+            self.orientation = UIDevice.current.orientation
             break
             
         case .unknown:
@@ -829,29 +795,7 @@ class PopoverPickerViewController : UIViewController
             globals.queue.async(execute: { () -> Void in
                 NotificationCenter.default.addObserver(self, selector: #selector(PopoverPickerViewController.updated), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self.stringTree)
             })
-//            
-//            if stringTree?.completed == false {
-//                spinner.isHidden = false
-//                spinner.startAnimating()
-//            }
-//
-////            root = lexicon?.stringTree.root
-//
-//            if (stringTree?.root == nil) || stringTree!.root!.isLeaf { // not sure why isLeaf is used.
-////                print("building")
-//
-////                DispatchQueue.global(qos: .userInteractive).async {
-////                    stringTree?.build()
-////                }
-//            } else {
-////                DispatchQueue.global(qos: .userInteractive).async {
-////                    self.stringTreeUpdated()
-////                }
-//            }
         }
-        
-//        print(string)
-//        print(strings)
         
         if let string = string, let index = strings?.index(of:string) {
             picker.selectRow(index, inComponent: 0, animated: false)
@@ -875,14 +819,6 @@ class PopoverPickerViewController : UIViewController
         }
 
         preferredContentSize = CGSize(width: 300, height: 300)
-
-//        if (navigationController?.viewControllers.count == 1) { // Implies modal, not part of a push.
-//            if (mediaListGroupSort != nil) {
-//                preferredContentSize = CGSize(width: 200, height: 300)
-//            } else {
-//                preferredContentSize = CGSize(width: 300, height: 300)
-//            }
-//        }
     }
     
     override func viewDidAppear(_ animated: Bool)
@@ -910,15 +846,11 @@ class PopoverPickerViewController : UIViewController
             return
         }
 
-//        print("PPVC \(navigationController!.viewControllers.count)")
-
         var width:CGFloat = 0
         
         var count:CGFloat = 0
         
         for component in 0..<picker.numberOfComponents {
-//            print(component,picker.rowSize(forComponent: component).width)
-            
             let componentWidth = pickerView(picker, widthForComponent: component)
             
             if componentWidth > 0 {
@@ -928,7 +860,6 @@ class PopoverPickerViewController : UIViewController
             width += componentWidth
         }
     
-//        print(max(200,width + 40 + count*2))
         preferredContentSize = CGSize(width: max(200,width + 70 + count*2), height: 300)
     }
 
@@ -962,8 +893,6 @@ class PopoverPickerViewController : UIViewController
             i += 1
         }
         
-        //        print(wordPicker.numberOfComponents)
-        
         var index = i
         
         Thread.onMainThread {
@@ -994,7 +923,7 @@ class PopoverPickerViewController : UIViewController
                             stringNode = node
                             
                             if let string = stringNode?.string {
-                                word = word != nil ? word! + string : string
+                                word = (word ?? "") + string
                             }
                         }
                     }
@@ -1003,8 +932,6 @@ class PopoverPickerViewController : UIViewController
             
             i += 1
         }
-        
-        //        print("wordFromPicker: ",word)
         
         if let wordEnding = stringNode?.wordEnding, wordEnding {
             return word
@@ -1034,47 +961,6 @@ class PopoverPickerViewController : UIViewController
         }
     }
     
-//    func stringTreeUpdated(eligible:Int)
-//    {
-////        print(lexicon?.stringTree.root.depthBelow(0))
-//        
-////        lexicon?.stringTree.root.printStrings(nil)
-////        lexicon?.stringTree.root.printWords(nil)
-//        
-////        let words = lexicon?.stringTree.root.htmlWords(nil)
-////        print(words)
-//        
-////        root = lexicon?.stringTree.root
-//        
-////        print(self.mediaListGroupSort?.lexicon?.root.htmlWords(nil))
-//        
-//        self.updatePickerSelections()
-//        self.updatePicker()
-//        
-//        Thread.onMainThread() {
-//            self.updateActionButton()
-//            
-//            if let depth = self.stringTree?.root?.depthBelow(0) {
-//                if eligible == 0,depth > 0 {
-//                    // Should NEVER happen
-//                }
-//                if eligible > 0,depth == 0 {
-//                    // Waiting for Lexicon
-//                }
-//                if eligible == 0,depth == 0 {
-//                    // Empty Lexicon => empty tree
-//                    self.spinner.stopAnimating()
-//                    self.spinner.isHidden = true
-//                }
-//                if eligible > 0,depth > 0 {
-//                    // Lexicon and tree both have entries
-//                    self.spinner.stopAnimating()
-//                    self.spinner.isHidden = true
-//                }
-//            }
-//        }
-//    }
-    
     func started()
     {
         self.updatePickerSelections()
@@ -1087,8 +973,6 @@ class PopoverPickerViewController : UIViewController
     
     func updated()
     {
-//        stringTree?.build()
-        
         self.updatePickerSelections()
         self.updatePicker()
         
@@ -1103,8 +987,6 @@ class PopoverPickerViewController : UIViewController
     
     func completed()
     {
-//        stringTree?.build()
-
         self.updatePickerSelections()
         self.updatePicker()
 

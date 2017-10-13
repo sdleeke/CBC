@@ -11,14 +11,9 @@ import Foundation
 // Crucial for Word Picker that this be a struct so that it is passed by value, not reference; i.e. a copy is made.
 // That means all of the stringNodes are frozen when it is passed by value so that Expanded Views are always complete as of that moment and
 // are not affected by changes to the tree while the expanded view is being prepared.
-class StringTree {
-//    weak var lexicon:Lexicon!
-    
-//    init(lexicon:Lexicon?)
-//    {
-//        self.lexicon = lexicon
-//    }
-    
+
+class StringTree
+{
     lazy var root:StringNode! = {
         return StringNode(nil)
     }()
@@ -32,23 +27,6 @@ class StringTree {
         self.init()
         self.incremental = incremental
     }
-    
-//    convenience init(strings:[String]?)
-//    {
-//        self.init()
-//        
-//        DispatchQueue.global(qos: .background).async {
-//            self.root = StringNode(nil)
-//            self.root.addStrings(strings)
-//            
-//            self.building = false
-//            self.completed = true
-//            
-//            globals.queue.async(execute: { () -> Void in
-//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
-//            })
-//        }
-//    }
     
     func build(strings:[String]?)
     {
@@ -96,8 +74,6 @@ class StringTree {
             self.building = false
             self.completed = true
         }
-        
-//        NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)
     }
 }
 

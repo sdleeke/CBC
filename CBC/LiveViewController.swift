@@ -182,7 +182,6 @@ class LiveViewController: UIViewController
             }
             
             self.view.setNeedsLayout()
-            //                self.view.layoutSubviews()
             
             pan.setTranslation(CGPoint.zero, in: pan.view)
             break
@@ -201,17 +200,13 @@ class LiveViewController: UIViewController
             globals.mediaPlayer.setupPlayingInfoCenter()
         }
         
-        globals.mediaPlayer.showsPlaybackControls = true
-        
-        textView.sizeToFit()
-        
         guard let view = globals.mediaPlayer.view else {
             return
         }
-
-//        view?.gestureRecognizers = nil
-//        let pan = UIPanGestureRecognizer(target: self, action: #selector(LiveViewController.showHideNotice(_:)))
-//        view?.addGestureRecognizer(pan)
+        
+        globals.mediaPlayer.showsPlaybackControls = true
+        
+        textView.sizeToFit()
         
         view.isHidden = true
         view.removeFromSuperview()

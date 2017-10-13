@@ -30,7 +30,6 @@ extension UIApplication
     }
 }
 
-
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, UISplitViewControllerDelegate
 {
@@ -83,25 +82,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
         let vClass = globals.splitViewController.traitCollection.verticalSizeClass
         
         if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-            let navigationController = globals.splitViewController.viewControllers[globals.splitViewController.viewControllers.count-1] as! UINavigationController
-            navigationController.topViewController?.navigationItem.leftBarButtonItem = globals.splitViewController.displayModeButtonItem
+            if let navigationController = globals.splitViewController.viewControllers[globals.splitViewController.viewControllers.count-1] as? UINavigationController {
+                navigationController.topViewController?.navigationItem.leftBarButtonItem = globals.splitViewController.displayModeButtonItem
+            }
         }
 
-        // Override point for customization after application launch.
-//        URLCache.shared = URLCache(memoryCapacity: 10 * 1024 * 1024, diskCapacity: 100 * 1024 * 1024, diskPath: nil)
-        
         globals.addAccessoryEvents()
         
-        globals.startAudio()
-        
-//        if #available(iOS 10.0, *) {
-//            let center = UNUserNotificationCenter.current()
-//            center.requestAuthorization(options: [.alert, .sound]) { (granted, error) in
-//                // Enable or disable features based on authorization.
-//            }
-//        } else {
-//            // Fallback on earlier versions
-//        }
+        startAudio()
         
         return true
     }
@@ -137,18 +125,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
             }
         }
         
-//        if (globals.mediaPlayer.url != nil) {
-//            switch globals.mediaPlayer.url!.absoluteString {
-//            case Constants.URL.LIVE_STREAM:
-//                globals.setupLivePlayingInfoCenter()
-//                break
-//                
-//            default:
-//                globals.setupPlayingInfoCenter()
-//                break
-//            }
-//        }
-
         Thread.onMainThread() {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.WILL_ENTER_FORGROUND), object: nil)
         }

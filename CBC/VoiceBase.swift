@@ -21,7 +21,7 @@ extension VoiceBase // Class Methods
 {
     static func url(mediaID:String?,path:String?) -> String
     {
-        return "https://apis.voicebase.com/v2-beta/media" + (mediaID != nil ? "/"+mediaID! : "") + (path != nil ? "/"+path! : "")
+        return Constants.URL.VOICE_BASE_ROOT + (mediaID != nil ? "/" + mediaID! : "") + (path != nil ? "/" + path! : "")
     }
     
     static func load()
@@ -245,121 +245,8 @@ extension VoiceBase // Class Methods
         return htmlString
     }
     
-//    static func post(mediaID:String?,path:String?,parameters:[String:String]?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
-//    {
-////        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-////            return
-////        }
-//        
-//        guard let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable else {
-//            return
-//        }
-//        
-//        guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
-//            return
-//        }
-//        
-//        guard let parameters = parameters else {
-//            return
-//        }
-//        
-//        //        guard let mediaItem = mediaItem else {
-//        //            return
-//        //        }
-//        
-//        //        guard let mediaID = mediaID else {
-//        //            return
-//        //        }
-//        
-////        let service = VoiceBase.url(mediaID:mediaID, path:path)
-//        //        print(service)
-//        
-//        guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:path)) else {
-//            return
-//        }
-//        
-//        var request = URLRequest(url: url)
-//        
-//        request.httpMethod = "POST"
-//        
-//        request.addValue("Bearer \(voiceBaseAPIKey)", forHTTPHeaderField: "Authorization")
-//        
-//        let boundary = "Boundary-\(UUID().uuidString)"
-//        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-//        let body = createBody(parameters: parameters,boundary: boundary)
-//        
-//        request.httpBody = body as Data
-//        request.setValue(String(body.length), forHTTPHeaderField: "Content-Length")
-//        
-//        let task = URLSession.shared.dataTask(with: request, completionHandler: { (data:Data?, response:URLResponse?, error:Error?) in
-//            var errorOccured = false
-//            
-//            if let error = error {
-//                print("post error: ",error.localizedDescription)
-//                errorOccured = true
-//            }
-//            
-//            if let response = response {
-//                print("post response: ",response.description)
-//                
-//                if let httpResponse = response as? HTTPURLResponse {
-//                    print("post HTTP response: ",httpResponse.description)
-//                    print("post HTTP response: ",httpResponse.allHeaderFields)
-//                    print("post HTTP response: ",httpResponse.statusCode)
-//                    print("post HTTP response: ",HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
-//                    
-//                    if (httpResponse.statusCode < 200) || (httpResponse.statusCode > 299) {
-//                        errorOccured = true
-//                    }
-//                }
-//            } else {
-//                errorOccured = true
-//            }
-//            
-//            var json : [String:Any]?
-//            
-//            if let data = data, data.count > 0 {
-//                let string = String.init(data: data, encoding: String.Encoding.utf8)
-//                print(string as Any)
-//                
-//                do {
-//                    json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
-//                    print(json as Any)
-//                    
-//                    if let errors = json?["errors"] {
-//                        print(errors)
-//                        errorOccured = true
-//                    }
-//                } catch let error as NSError {
-//                    // JSONSerialization failed
-//                    print("JSONSerialization error: ",error.localizedDescription)
-//                    
-//                }
-//            } else {
-//                // no data
-//                
-//            }
-//            
-//            if errorOccured {
-//                Thread.onMainThread() {
-//                    onError?(json)
-//                }
-//            } else {
-//                Thread.onMainThread() {
-//                    completion?(json)
-//                }
-//            }
-//        })
-//        
-//        task.resume()
-//    }
-
     static func get(accept:String?,mediaID:String?,path:String?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-//            return
-//        }
-        
         guard globals.isVoiceBaseAvailable == nil || globals.isVoiceBaseAvailable! else {
             return
         }
@@ -367,13 +254,6 @@ extension VoiceBase // Class Methods
         guard let voiceBaseAPIKey = globals.voiceBaseAPIKey else {
             return
         }
-        
-//        guard let mediaID = mediaID else {
-//            return
-//        }
-
-//        let service = VoiceBase.url(mediaID:mediaID,path:path)
-//        print(service)
         
         guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:path)) else {
             return
@@ -418,14 +298,12 @@ extension VoiceBase // Class Methods
             
             if let data = data, data.count > 0 {
                 let string = String.init(data: data, encoding: String.Encoding.utf8)
-//                print(string as Any)
 
                 if let acceptText = accept?.contains("text"), acceptText {
                     json = ["text":string as Any]
                 } else {
                     do {
                         json = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any]
-//                        print(json as Any)
                         
                         if let errors = json?["errors"] {
                             print(errors)
@@ -443,15 +321,8 @@ extension VoiceBase // Class Methods
             
             if errorOccured {
                 onError?(json)
-                
-                // Avoid blocking the main thread.
-//                Thread.onMainThread() {
-//                }
             } else {
                 completion?(json)
-                // Avoid blocking the main thread.
-//                Thread.onMainThread() {
-//                }
             }
         })
         
@@ -482,11 +353,7 @@ extension VoiceBase // Class Methods
     {
         print("VoiceBase.delete")
 
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-//            return
-//        }
-        
-        guard let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable else {
+        guard globals.isVoiceBaseAvailable ?? false else {
             return
         }
         
@@ -498,9 +365,6 @@ extension VoiceBase // Class Methods
             return
         }
         
-//        let service = VoiceBase.url(mediaID:mediaID,path:nil)
-//        print(service)
-
         guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:nil)) else {
             return
         }
@@ -578,14 +442,6 @@ extension VoiceBase // Class Methods
     {
         print("VoiceBase.deleteAllMedia")
         
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-//            return
-//        }
-//        
-//        guard globals.voiceBaseAvailable else {
-//            return
-//        }
-        
         get(accept: nil, mediaID: nil, path: nil, completion: { (json:[String : Any]?) -> (Void) in
             if let mediaItems = json?["media"] as? [[String:Any]] {
                 if mediaItems.count > 0 {
@@ -624,7 +480,7 @@ class VoiceBase {
     var transcriptPurpose:String
     {
         get {
-            var transcriptPurpose : String!
+            var transcriptPurpose = "ERROR"
             
             if let purpose = self.purpose {
                 switch purpose {
@@ -645,7 +501,6 @@ class VoiceBase {
                     break
                     
                 default:
-                    transcriptPurpose = "ERROR"
                     break
                 }
             }
@@ -659,10 +514,6 @@ class VoiceBase {
         guard let mediaItem = mediaItem else {
             return "ERROR no mediaItem"
         }
-        
-//        guard let purpose = purpose else {
-//            return "ERROR no purpose"
-//        }
         
         guard mediaItem.id != nil else {
             return "ERROR no mediaItem.id"
@@ -793,15 +644,21 @@ class VoiceBase {
     var resultsTimer:Timer?
     
     var url:String? {
-        switch purpose! {
-        case Purpose.video:
-            return mediaItem?.mp4
+        get {
+            guard let purpose = purpose else {
+                return nil
+            }
             
-        case Purpose.audio:
-            return mediaItem?.audio
-            
-        default:
-            return nil
+            switch purpose {
+            case Purpose.video:
+                return mediaItem?.mp4
+                
+            case Purpose.audio:
+                return mediaItem?.audio
+                
+            default:
+                return nil
+            }
         }
     }
     
@@ -812,7 +669,7 @@ class VoiceBase {
                 return _transcript
             }
             
-            guard mediaID != nil else { // (mediaID == "Completed") ||
+            guard mediaID != nil else {
                 return nil
             }
             
@@ -849,7 +706,7 @@ class VoiceBase {
                     completed = false
                 }
             } else {
-                if !transcribing && (_transcript == nil) && (self.resultsTimer == nil) { //  && (mediaID != "Completed")
+                if !transcribing && (_transcript == nil) && (self.resultsTimer == nil) {
                     transcribing = true
                     
                     Thread.onMainThread() {
@@ -960,10 +817,8 @@ class VoiceBase {
             
             var following = [[String:Any]]()
             
-            var start : Double?
-            var end : Double?
-            
-//            print(words)
+            var start : Int?
+            var end : Int?
             
             if var words = words, words.count > 0 {
                 while words.count > 0 {
@@ -971,8 +826,8 @@ class VoiceBase {
                     
                     segment = word["w"] as? String
                     
-                    start = Double(word["s"] as! Int) / 1000.0
-                    end = Double(word["e"] as! Int) / 1000.0
+                    start = word["s"] as? Int
+                    end = word["e"] as? Int
                     
                     while (segment != nil), ((transcript?.components(separatedBy: segment!).count > 2) || (segment?.components(separatedBy: " ").count < 10) || (words.first?["m"] != nil)) && (words.count > 0) {
                         let word = words.removeFirst()
@@ -996,13 +851,11 @@ class VoiceBase {
                             }
                         }
                         
-                        end = Double(word["e"] as! Int) / 1000.0
+                        end = word["e"] as? Int
                     }
                     
-//                    segment = segment?.replacingOccurrences(of: ".   ", with: ".  ")
-                    
                     if let start = start, let end = end, let segment = segment {
-                        following.append(["start":start,"end":end,"text":segment])
+                        following.append(["start":Double(start) / 1000.0,"end":Double(end) / 1000.0,"text":segment])
                     }
                     
                     segment = nil
@@ -1127,7 +980,7 @@ class VoiceBase {
     var keywordsJSON: [String:Any]?
     {
         get {
-            return mediaJSON?["keywords"] as! [String:Any]?
+            return mediaJSON?["keywords"] as? [String:Any]
         }
     }
     
@@ -1231,7 +1084,7 @@ class VoiceBase {
     var topicsJSON : [String:Any]?
     {
         get {
-            return mediaJSON?["topics"] as! [String:Any]?
+            return mediaJSON?["topics"] as? [String:Any]
         }
     }
     
@@ -1296,27 +1149,30 @@ class VoiceBase {
             switch key {
                 // This works, but uploading the file takes A LOT longer than the URL!
 //            case "media":
-//                var mimeType : String!
+//                if let purpose = purpose, let id = mediaItem?.id {
+//                    var mimeType : String?
 //
-//                switch purpose! {
-//                case Purpose.audio:
-//                    mimeType = "audio/mpeg"
-//                    break
+//                    switch purpose {
+//                    case Purpose.audio:
+//                        mimeType = "audio/mpeg"
+//                        break
 //
-//                case Purpose.video:
-//                    mimeType = "video/mp4"
-//                    break
+//                    case Purpose.video:
+//                        mimeType = "video/mp4"
+//                        break
 //
-//                default:
-//                    break
+//                    default:
+//                        break
+//                    }
+//
+//                    if let mimeType = mimeType, let url = URL(string: value), let audioData = try? Data(contentsOf: url) {
+//                        body.appendString(boundaryPrefix)
+//                        body.appendString("Content-Disposition: form-data; name=\"\(key)\"; filename=\"\(id)\"\r\n")
+//                        body.appendString("Content-Type: \(mimeType)\r\n\r\n")
+//                        body.append(audioData)
+//                        body.appendString("\r\n")
+//                    }
 //                }
-//
-//                body.appendString(boundaryPrefix)
-//                let audioData = try? Data(contentsOf: URL(string: value)!)
-//                body.appendString("Content-Disposition: form-data; name=\"\(key)\"; filename=\"\(mediaItem!.id!)\"\r\n")
-//                body.appendString("Content-Type: \(mimeType!)\r\n\r\n")
-//                body.append(audioData!)
-//                body.appendString("\r\n")
 //                break
                 
             default:
@@ -1334,11 +1190,7 @@ class VoiceBase {
     
     func post(path:String?,parameters:[String:String]?,completion:(([String:Any]?)->(Void))?,onError:(([String:Any]?)->(Void))?)
     {
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-//            return
-//        }
-        
-        guard let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable else {
+        guard globals.isVoiceBaseAvailable ?? false else {
             return
         }
         
@@ -1349,17 +1201,6 @@ class VoiceBase {
         guard let parameters = parameters else {
             return
         }
-        
-//        guard let mediaItem = mediaItem else {
-//            return
-//        }
-        
-//        guard let mediaID = mediaID else {
-//            return
-//        }
-        
-//        let service = VoiceBase.url(mediaID:mediaID, path:path)
-        //        print(service)
         
         guard let url = URL(string:VoiceBase.url(mediaID:mediaID, path:path)) else {
             return
@@ -1480,7 +1321,9 @@ class VoiceBase {
                         
                         self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
                         
-                        print("\(self.mediaItem!.title!) (\(self.transcriptPurpose)) is \(self.percentComplete!)% finished")
+                        if let title = self.mediaItem?.title, let percentComplete = self.percentComplete {
+                            print("\(title) (\(self.transcriptPurpose)) is \(percentComplete)% finished")
+                        }
                     }
                 }
             }
@@ -1570,11 +1413,7 @@ class VoiceBase {
     
     func delete()
     {
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-//            return
-//        }
-        
-        guard let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable else {
+        guard globals.isVoiceBaseAvailable ?? false else {
             return
         }
         
@@ -1622,7 +1461,7 @@ class VoiceBase {
                     
                     if (httpResponse.statusCode == 204) || (httpResponse.statusCode == 404) {
                         // It eithber completed w/o error (204) so it is now gone and we should set mediaID to nil OR it couldn't be found (404) in which case it should also be set to nil.
-                        self.mediaID = nil // self._transcript != nil ? "Completed" :
+                        self.mediaID = nil
                     }
                 }
             } else {
@@ -1665,10 +1504,6 @@ class VoiceBase {
     
     func remove()
     {
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-//            return
-//        }
-        
         delete()
 
         // Must retain purpose and mediaItem.
@@ -1691,59 +1526,6 @@ class VoiceBase {
         
         transcript = nil
         transcriptSRT = nil
-        
-//        topicsJSON = nil
-//        
-//        keywordsJSON = nil
-        
-//        globals.queue.sync(execute: { () -> Void in
-//            self.mediaItem.removeTag("Machine Generated Transcript")
-//        })
-        
-//        let fileManager = FileManager.default
-        
-//        if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).keywords") {
-//            if (fileManager.fileExists(atPath: destinationURL.path)){
-//                do {
-//                    try fileManager.removeItem(at: destinationURL)
-//                } catch _ {
-//                    print("failed to remove machine generated transcript keywords")
-//                }
-//            } else {
-//                print("machine generated transcript keywords file doesn't exist")
-//            }
-//        } else {
-//            print("failed to get destinationURL")
-//        }
-        
-//        if let destinationURL = cachesURL()?.appendingPathComponent("\(mediaItem.id!).\(purpose!).topics") {
-//            if (fileManager.fileExists(atPath: destinationURL.path)){
-//                do {
-//                    try fileManager.removeItem(at: destinationURL)
-//                } catch _ {
-//                    print("failed to remove machine generated transcript topics")
-//                }
-//            } else {
-//                print("machine generated transcript topics file doesn't exist")
-//            }
-//        } else {
-//            print("failed to get destinationURL")
-//        }
-        
-//        if let destinationURL = cachesURL()?.appendingPathComponent(mediaItem.id!+".\(purpose!)") {
-//            // Check if file exist
-//            if (fileManager.fileExists(atPath: destinationURL.path)){
-//                do {
-//                    try fileManager.removeItem(at: destinationURL)
-//                } catch _ {
-//                    print("failed to remove machine generated transcript")
-//                }
-//            } else {
-//                print("machine generated transcript file doesn't exist")
-//            }
-//        } else {
-//            print("failed to get destinationURL")
-//        }
     }
     
     func topicKeywordDictionaries(topic:String?) -> [String:[String:Any]]?
@@ -1978,7 +1760,9 @@ class VoiceBase {
                         
                         self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
                         
-                        print("\(self.mediaItem!.title!) (\(self.transcriptPurpose)) is \(self.percentComplete!)% finished")
+                        if let title = self.mediaItem?.title, let percentComplete = self.percentComplete {
+                            print("\(title) (\(self.transcriptPurpose)) is \(percentComplete)% finished")
+                        }
                     }
                 }
             }
@@ -2200,7 +1984,9 @@ class VoiceBase {
                                         
                                         self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
 
-                                        print("\(self.mediaItem!.title!) (\(self.transcriptPurpose)) is \(self.percentComplete!)% finished")
+                                        if let title = self.mediaItem?.title, let percentComplete = self.percentComplete {
+                                            print("\(title) (\(self.transcriptPurpose)) is \(percentComplete)% finished")
+                                        }
                                     }
                                 }
                             }
@@ -2382,11 +2168,15 @@ class VoiceBase {
     
     func srtArrayTimes(srtArray:[String]?) -> [String]?
     {
-        guard srtArray?.count > 1 else {
+        guard let srtArray = srtArray else {
             return nil
         }
         
-        var array = srtArray!
+        guard srtArray.count > 1 else {
+            return nil
+        }
+        
+        var array = srtArray
         
         if let count = array.first, !count.isEmpty {
             array.remove(at: 0)
@@ -2407,13 +2197,17 @@ class VoiceBase {
     
     func srtArrayText(srtArray:[String]?) -> String?
     {
-        guard srtArray?.count > 1 else {
+        guard let srtArray = srtArray else {
+            return nil
+        }
+        
+        guard srtArray.count > 1 else {
             return nil
         }
         
         var string = String()
         
-        var array = srtArray!
+        var array = srtArray
         
         if let count = array.first, !count.isEmpty {
             array.remove(at: 0)
@@ -2436,9 +2230,13 @@ class VoiceBase {
     
     func searchSRTArrays(string:String) -> [[String]]?
     {
+        guard let srtArrays = srtArrays else {
+            return nil
+        }
+        
         var results = [[String]]()
         
-        for srtArray in srtArrays! {
+        for srtArray in srtArrays {
             if let contains = srtArrayText(srtArray: srtArray)?.contains(string.lowercased()), contains {
                 results.append(srtArray)
             }
@@ -2532,10 +2330,6 @@ class VoiceBase {
                 return
             }
             
-//            guard completed else {
-//                return
-//            }
-            
             var changed = false
             
             var value = newValue
@@ -2561,7 +2355,7 @@ class VoiceBase {
                     if changed {
                         value = nil
                         for srtComponent in srtComponents {
-                            value = value != nil ? value! + VoiceBase.separator + srtComponent : srtComponent
+                            value = (value != nil ? value! + VoiceBase.separator : "") + srtComponent
                         }
                     }
                 }
@@ -2640,7 +2434,7 @@ class VoiceBase {
                 }
 
                 for srtComponent in srtComponents {
-                    str = str != nil ? str! + VoiceBase.separator + srtComponent : srtComponent
+                    str = (str != nil ? str! + VoiceBase.separator : "") + srtComponent
                 }
             }
             
@@ -2655,7 +2449,7 @@ class VoiceBase {
             
             if let srtComponents = srtComponents {
                 for srtComponent in srtComponents {
-                    str = str != nil ? str! + VoiceBase.separator + srtComponent : srtComponent
+                    str = (str != nil ? str! + VoiceBase.separator : "") + srtComponent
                 }
             }
             
@@ -2678,16 +2472,12 @@ class VoiceBase {
                         
                         if let range = srtComponent.range(of:timing+"\n") {
                             let string = srtComponent.substring(from:range.upperBound)
-                            str = str != nil ? str! + " " + string : string
+                            str = (str != nil ? str! + " " : "") + string
                         }
                     }
                 }
             }
             
-//            str = str?.replacingOccurrences(of: " . ", with: ".  ").replacingOccurrences(of: ". ", with: ".  ").replacingOccurrences(of: ".   ", with: ".  ")
-//            
-//            str = str != nil ? str! + " " : nil
-
             return str
         }
     }
@@ -2721,11 +2511,11 @@ class VoiceBase {
     
     func search(string:String?)
     {
-        guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
+        guard globals.reachability.isReachable else {
             return
         }
         
-        guard let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable else {
+        guard globals.isVoiceBaseAvailable ?? false else {
             return
         }
         
@@ -2737,14 +2527,8 @@ class VoiceBase {
             return
         }
         
-        //        guard let mediaID = mediaID else {
-        //            return
-        //        }
-        
         var service = VoiceBase.url(mediaID: nil, path: nil)
         service = service + "q=" + string
-        
-        //        print(service)
         
         guard let url = URL(string:service) else {
             return
@@ -2862,7 +2646,9 @@ class VoiceBase {
                         
                         self.percentComplete = String(format: "%0.0f",Double(finished)/Double(count) * 100.0)
                         
-                        print("\(self.mediaItem!.title!) (\(self.transcriptPurpose)) is \(self.percentComplete!)% finished")
+                        if let title = self.mediaItem?.title, let percentComplete = self.percentComplete {
+                            print("\(title) (\(self.transcriptPurpose)) is \(percentComplete)% finished")
+                        }
                     }
                 }
             }
@@ -2893,7 +2679,7 @@ class VoiceBase {
         
         func mgtUpdate()
         {
-            let completion = percentComplete == nil ? " (\(transcriptPurpose))" : " (\(transcriptPurpose))" + "\n(\(percentComplete!)% complete)"
+            let completion = " (\(transcriptPurpose))" + (percentComplete != nil ? "\n(\(percentComplete!)% complete)" : "")
             
             var title = "Machine Generated Transcript "
             
@@ -2956,19 +2742,17 @@ class VoiceBase {
         
         action = AlertAction(title: prefix + " " + Constants.Strings.Transcript, style: .default) {
             if self.transcript == nil {
-                guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
+                guard globals.reachability.isReachable else {
                     networkUnavailable(viewController,"Machine generated transcript unavailable.")
                     return
                 }
                 
                 if !self.transcribing {
-                    if globals.reachability.isReachable { // currentReachabilityStatus != .notReachable
+                    if globals.reachability.isReachable {
                         var alertActions = [AlertAction]()
                         
                         alertActions.append(AlertAction(title: "Yes", style: .default, action: {
                             self.getTranscript(alert: true) {}
-                            //                                DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-                            //                                })
                             tableView.setEditing(false, animated: true)
                             mgtUpdate()
                         }))
@@ -3008,9 +2792,7 @@ class VoiceBase {
                                 "<br/>" +
                                 "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(purpose))</center>" +
                                 "<br/>" +
-                                transcript.replacingOccurrences(of: "\n", with: "<br/>") // +
-                                //                                            "<br/>" +
-                                //                                            "<plaintext>" + transcript!.transcriptSRT! + "</plaintext>" +
+                                transcript.replacingOccurrences(of: "\n", with: "<br/>")
                         }
 
                         htmlString = htmlString + "</body></html>"
@@ -3109,60 +2891,11 @@ class VoiceBase {
                                 return
                             }
                             
-//                            print(text)
-                            
-                            // Not clear that NSLinguisticTagger does anything for us since it doesn't know how to punctuate, correct grammar, or segment into paragraphs.
-                            // Just knowing the part of speech for a token doesn't do much.
-                            
-//                            let options = NSLinguisticTagger.Options.omitWhitespace.rawValue | NSLinguisticTagger.Options.joinNames.rawValue
-//
-//                            let tagger = NSLinguisticTagger(tagSchemes: NSLinguisticTagger.availableTagSchemes(forLanguage: "en"), options: Int(options))
-//                            tagger.string = text
-//                            
-//                            let range = NSRange(location: 0, length: text.utf16.count)
-//                            tagger.enumerateTags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: NSLinguisticTagger.Options(rawValue: options)) { tag, tokenRange, sentenceRange, stop in
-//                                let token = (text as NSString).substring(with: tokenRange)
-////                                let sentence = (text as NSString).substring(with: sentenceRange)
-//                                print("\(tokenRange.location):\(tokenRange.length) \(tag): \(token)") // \n\(sentence)\n
-//                            }
-
-//                            var ranges : NSArray?
-//                            
-//                            let tags = tagger.tags(in: range, scheme: NSLinguisticTagSchemeNameTypeOrLexicalClass, options: NSLinguisticTagger.Options(rawValue: options), tokenRanges: &ranges)
-//                            
-//                            var index = 0
-//                            for tag in tags {
-//                                let token = (text as NSString).substring(with: ranges![index] as! NSRange)
-//                                print("\(tag): \(token)") // \n\(sentence)\n
-//                                index += 1
-//                            }
-                            
                             self.transcript = text
                         }
                         
                         viewController.present(navigationController, animated: true, completion: {
                             if (globals.mediaPlayer.mediaItem == self.mediaItem) && (self.transcript != self.transcriptFromWords) {
-//                                let transcriptCharacters = Array(self.transcript!.characters)
-//                                let transcriptFromWordsCharacters = Array(self.transcriptFromWords!.characters)
-//            
-//                                var index = 0
-//                                for character in transcriptCharacters {
-//                                    if index < transcriptFromWordsCharacters.count {
-//                                        let characterWord = transcriptFromWordsCharacters[index]
-//            
-//                                        if character != characterWord {
-//                                            let window = 15
-//                                            print("\n\ncharacter error: \(character) vs. \(characterWord)\n\n")
-//                                            print("\(transcriptCharacters[max(index-window,0)...min(index+window,transcriptCharacters.count - 1)])\n\(transcriptFromWordsCharacters[max(index-window,0)...min(index+window,transcriptFromWordsCharacters.count - 1)])")
-//                                        } else {
-//                                            print(character)
-//                                        }
-//                                    } else {
-//                                        print(character,"BEYOND THE END OF WORD CHARACTERS")
-//                                    }
-//                                    index += 1
-//                                }
-                                
                                 if let text = self.mediaItem?.text {
                                     alertActionsOkay( viewController: viewController,
                                                       title: "Transcript Sync Warning",
@@ -3195,7 +2928,7 @@ class VoiceBase {
                     viewController.present(alert, animated: true, completion: nil)
                 }))
                 
-                if let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable {
+                if globals.isVoiceBaseAvailable ?? false {
                     alertActions.append(AlertAction(title: "Check VoiceBase", style: .default, action: {
                         self.metadata(completion: { (dict:[String:Any]?)->(Void) in
                             if let text = self.mediaItem?.text, let mediaID = self.mediaID {
@@ -3300,7 +3033,7 @@ class VoiceBase {
                         }
                     }))
                     
-                    if let isVoiceBaseAvailable = globals.isVoiceBaseAvailable, isVoiceBaseAvailable {
+                    if globals.isVoiceBaseAvailable ?? false {
                         alertActions.append(AlertAction(title: "Reload from VoiceBase", style: .destructive, action: {
                             self.metadata(completion: { (dict:[String:Any]?)->(Void) in
                                 if let text = self.mediaItem?.text {
@@ -3439,17 +3172,7 @@ class VoiceBase {
             textPopover.automaticInteractive = automaticInteractive
             textPopover.automaticCompletion = automaticCompletion
  
-//            if !automatic {
-//                textPopover.confirmation = { ()->Bool in
-//                    return true // self.transcript != self.transcriptFromSRTs
-//                }
-//                textPopover.confirmationTitle = "Confirm Saving Changes to Transcript Element"
-//                textPopover.confirmationMessage = "If you save this transcript element the transcript may be overwritten and any changes you have made to the transcript as a whole will be lost."
-//            }
-            
             textPopover.completion = { (text:String) -> Void in
-//                print(text)
-                
                 guard text != textPopover.text else {
                     if playing {
                         globals.mediaPlayer.play()
@@ -3465,10 +3188,6 @@ class VoiceBase {
                 
                 DispatchQueue.global(qos: .background).async {
                     self.transcriptSRT = self.transcriptSRTFromSRTs
-                    
-//                    print(self.transcriptSRTFromSRTs)
-//                    print("\n\n")
-//                    print(self.transcriptSRTFromWords)
                 }
                 
                 Thread.onMainThread {
@@ -3526,48 +3245,17 @@ class VoiceBase {
 
     func keywordAlertActions(viewController:UIViewController,tableView:UITableView,completion:((PopoverTableViewController)->(Void))?) -> AlertAction?
     {
-//        guard let purpose = purpose else {
-//            return nil
-//        }
-        
-//        var prefix:String!
-//
-//        switch purpose {
-//        case Purpose.audio:
-//            prefix = // Constants.FA.AUDIO
-//
-//        case Purpose.video:
-//            prefix = Constants.FA.VIDEO
-//
-//        default:
-//            prefix = ""
-//            break
-//        }
-        
         var action : AlertAction!
         
-        // purpose + "\n" + Constants.Strings.List
-        
         action = AlertAction(title: "Timing Index", style: .default) {
-            
-//            let sourceView = self.view // cell.subviews[0]
-//            let sourceRectView = self.controlView! // cell.subviews[0].subviews[actions.index(of: action)!] // memory leak!
-            
             var alertActions = [AlertAction]()
             
             alertActions.append(AlertAction(title: "By Keyword", style: .default, action: {
-//                print(self.transcriptWords)
-                
                 if  let navigationController = viewController.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                     let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
                     navigationController.modalPresentationStyle = .overCurrentContext
                     
                     navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
-                    
-//                    navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
-                    
-//                    navigationController.popoverPresentationController?.sourceView = sourceView
-//                    navigationController.popoverPresentationController?.sourceRect = sourceRectView.frame
                     
                     popover.navigationController?.isNavigationBarHidden = false
                     
@@ -3583,7 +3271,6 @@ class VoiceBase {
                     popover.purpose = .selectingKeyword
                     
                     popover.section.showIndex = true
-                    //                        popover.section.showHeaders = true
                     
                     popover.section.strings = self.srtTokens?.map({ (string:String) -> String in
                         return string.lowercased()
@@ -3679,8 +3366,6 @@ class VoiceBase {
                     
                     navigationController.popoverPresentationController?.delegate = viewController as? UIPopoverPresentationControllerDelegate
                     
-//                    navigationController.popoverPresentationController?.permittedArrowDirections = [.right,.up]
-                    
                     popover.navigationController?.isNavigationBarHidden = false
                     
                     popover.navigationItem.title = "Timing Index (\(self.transcriptPurpose))" //
@@ -3730,7 +3415,7 @@ class VoiceBase {
                     
                     viewController.present(navigationController, animated: true, completion: {
                         completion?(popover)
-                    }) // {self.popover = popover}
+                    })
                 }
             }))
             

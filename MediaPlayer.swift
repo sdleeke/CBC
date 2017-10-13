@@ -36,9 +36,11 @@ class PlayerStateTime {
             
         }
         didSet {
-            if (state != oldValue) {
-                dateEntered = Date()
+            guard (state != oldValue) else {
+                return
             }
+            
+            dateEntered = Date()
         }
     }
     
@@ -98,8 +100,8 @@ class PlayerStateTime {
             break
         }
         
-        if stateName != nil {
-            print(stateName!)
+        if let stateName = stateName {
+            print(stateName)
         }
     }
 }
@@ -265,8 +267,8 @@ class MediaPlayer : NSObject {
             let status: AVPlayerItemStatus
             
             // Get the status change from the change dictionary
-            if let statusNumber = change?[.newKey] as? NSNumber {
-                status = AVPlayerItemStatus(rawValue: statusNumber.intValue)!
+            if let statusNumber = change?[.newKey] as? NSNumber, let playerStatus = AVPlayerItemStatus(rawValue: statusNumber.intValue) {
+                status = playerStatus
             } else {
                 status = .unknown
             }
@@ -307,10 +309,10 @@ class MediaPlayer : NSObject {
                         seek(to: 0)
                     }
                     
+                    // Why only audio?
                     if (self.mediaItem?.playing == Playing.audio) {
                         if playOnLoad {
                             if mediaItem.atEnd {
-                                //                                mediaItem?.currentTime = Constants.ZERO
                                 seek(to: 0)
                                 mediaItem.atEnd = false
                             }
@@ -336,7 +338,7 @@ class MediaPlayer : NSObject {
             case .unknown:
                 // Player item is not yet ready.
                 if #available(iOS 10.0, *) {
-                    print(player!.reasonForWaitingToPlay!)
+                    print(player?.reasonForWaitingToPlay as Any)
                 } else {
                     // Fallback on earlier versions
                 }
@@ -373,7 +375,7 @@ class MediaPlayer : NSObject {
         
         controller?.delegate = globals
         
-        controller?.showsPlaybackControls = false
+        controller?.showsPlaybackControls = globals.mediaPlayer.fullScreen
         
         if #available(iOS 10.0, *) {
             controller?.updatesNowPlayingInfoCenter = false
@@ -388,16 +390,10 @@ class MediaPlayer : NSObject {
         }
         
         // Just replacing the item will not cause a timeout when the player can't load.
-        //            if player == nil {
-        //                player = AVPlayer(url: url!)
-        //            } else {
-        //                player?.replaceCurrentItem(with: AVPlayerItem(url: url!))
-        //            }
-        
         player = AVPlayer(url: url)
         
         if #available(iOS 10.0, *) {
-            player?.automaticallyWaitsToMinimizeStalling = (mediaItem?.playing != Playing.audio) // || !globals.reachability.isReachableViaWiFi
+            player?.automaticallyWaitsToMinimizeStalling = (mediaItem?.playing != Playing.audio)
         } else {
             // Fallback on earlier versions
         }
@@ -579,13 +575,19 @@ class MediaPlayer : NSObject {
     
     func playerTimer()
     {
-        if (state != nil) && (url != URL(string: Constants.URL.LIVE_STREAM)) {
-            if (rate > 0) {
-                updateCurrentTimeForPlaying()
-            }
-            
-            //            logPlayerState()
+        guard state != nil else {
+            return
         }
+        
+        guard url != URL(string: Constants.URL.LIVE_STREAM) else {
+            return
+        }
+        
+        if (rate > 0) {
+            updateCurrentTimeForPlaying()
+        }
+        
+            //            logPlayerState()
     }
 
     func failedToLoad()
@@ -692,10 +694,6 @@ class MediaPlayer : NSObject {
             NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.PAUSED), object: nil)
         }
         
-        //        if (mediaItem != nil) && !mediaItem!.atEnd {
-        //            reloadPlayer(globals.mediaItem)
-        //        }
-        
         mediaItem?.atEnd = true
         
         if globals.autoAdvance, let mediaItem = mediaItem, mediaItem.playing == Playing.audio, mediaItem.atEnd, mediaItem.multiPartMediaItems?.count > 1,
@@ -737,6 +735,7 @@ class MediaPlayer : NSObject {
             if observedItem != currentItem {
                 print("observedItem != currentPlayer!")
             }
+            
             if observedItem != nil {
                 print("GLOBAL removeObserver: ",observedItem?.observationInfo as Any)
                 
@@ -1095,7 +1094,6 @@ class MediaPlayer : NSObject {
 
             if oldValue != nil {
                 // Remove playing icon if the previous mediaItem was playing.
-                //            globals.queue.async(execute: { () -> Void in
                 Thread.onMainThread() {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_CELL), object: oldValue)
                 }
@@ -1130,7 +1128,14 @@ class MediaPlayer : NSObject {
             nowPlayingInfo[MPMediaItemPropertyAlbumArtist]   = "Countryside Bible Church"
             
             if let image = UIImage(named:Constants.COVER_ART_IMAGE) {
-                nowPlayingInfo[MPMediaItemPropertyArtwork]   = MPMediaItemArtwork(image: image)
+                if #available(iOS 10.0, *) {
+                    nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size, requestHandler: { (CGSize) -> UIImage in
+                        return image
+                    })
+                } else {
+                    // Fallback on earlier versions
+                    nowPlayingInfo[MPMediaItemPropertyArtwork]   = MPMediaItemArtwork(image: image)
+                }
             }
             
             Thread.onMainThread() {
@@ -1144,7 +1149,14 @@ class MediaPlayer : NSObject {
                 nowPlayingInfo[MPMediaItemPropertyArtist]    = mediaItem.speaker
                 
                 if let image = UIImage(named:Constants.COVER_ART_IMAGE) {
-                    nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(image: image)
+                    if #available(iOS 10.0, *) {
+                        nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size, requestHandler: { (CGSize) -> UIImage in
+                            return image
+                        })
+                    } else {
+                        // Fallback on earlier versions
+                        nowPlayingInfo[MPMediaItemPropertyArtwork]   = MPMediaItemArtwork(image: image)
+                    }
                 } else {
                     print("no artwork!")
                 }

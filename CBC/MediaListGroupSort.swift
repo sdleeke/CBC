@@ -229,9 +229,6 @@ class MediaListGroupSort {
                         entries = [(Constants.Strings.None,Constants.Strings.None)]
                     }
                 }
-                //                if entries?.count > 1 {
-                //                    print(mediaItem,entries!)
-                //                }
                 break
                 
             case GROUPING.SPEAKER:

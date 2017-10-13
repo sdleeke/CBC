@@ -54,10 +54,6 @@ class StringNode {
     
     func printWords(_ cumulativeString:String?)
     {
-        //        guard string != nil else {
-        //            return
-        //        }
-        
         if wordEnding {
             if let cumulativeString = cumulativeString {
                 if let string = string {
@@ -98,26 +94,22 @@ class StringNode {
     
     func htmlWords(_ cumulativeString:String?) -> [String]?
     {
-        //        guard string != nil else {
-        //            return
-        //        }
-        
         var html = [String]()
         
         if wordEnding {
-            if cumulativeString != nil {
-                if string != nil {
-                    let word = cumulativeString! + string! + "</td>"
+            if let cumulativeString = cumulativeString {
+                if let string = string {
+                    let word = cumulativeString + string + "</td>"
                     html.append(word)
                     //                    print(word)
                 } else {
-                    let word = cumulativeString! + "</td>"
+                    let word = cumulativeString + "</td>"
                     html.append(word)
                     //                    print(word)
                 }
             } else {
-                if string != nil {
-                    let word = "<td>" + string! + "</td>"
+                if let string = string {
+                    let word = "<td>" + string + "</td>"
                     html.append(word)
                     //                    print(word)
                 }
@@ -132,19 +124,19 @@ class StringNode {
         
         for stringNode in stringNodes.sorted(by: { $0.string < $1.string }) {
             //            print(string!+"-")
-            if cumulativeString != nil {
-                if string != nil {
-                    if let words = stringNode.htmlWords(cumulativeString!+string!+"</td><td>") {
+            if let cumulativeString = cumulativeString {
+                if let string = string {
+                    if let words = stringNode.htmlWords(cumulativeString + string + "</td><td>") {
                         html.append(contentsOf: words)
                     }
                 } else {
-                    if let words = stringNode.htmlWords(cumulativeString!+"</td><td>") {
+                    if let words = stringNode.htmlWords(cumulativeString+"</td><td>") {
                         html.append(contentsOf: words)
                     }
                 }
             } else {
-                if string != nil {
-                    if let words = stringNode.htmlWords("<td>" + string! + "</td><td>") {
+                if let string = string {
+                    if let words = stringNode.htmlWords("<td>" + string + "</td><td>") {
                         html.append(contentsOf: words)
                     }
                 } else {
@@ -289,11 +281,11 @@ class StringNode {
     
     func addStrings(_ strings:[String]?)
     {
-        guard strings != nil else {
+        guard let strings = strings else {
             return
         }
         
-        for string in strings! {
+        for string in strings {
             addString(string)
         }
     }

@@ -202,7 +202,10 @@ class Download : NSObject {
         
         do {
             let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileSystemURL.path)
-            size = fileAttributes[FileAttributeKey.size] as! Int
+            
+            if let num = fileAttributes[FileAttributeKey.size] as? Int {
+                size = num
+            }
         } catch let error as NSError {
             print("failed to get file attributes for \(fileSystemURL): \(error.localizedDescription)")
         }

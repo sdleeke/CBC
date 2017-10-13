@@ -135,8 +135,6 @@ class AboutViewController: UIViewController
         item?.name = Constants.CBC.LONG
         item?.openInMaps(launchOptions: nil)
     }
-    
-//    @IBOutlet weak var actionButton: UIBarButtonItem!
  
     func actionMenu() -> [String]?
     {
@@ -166,19 +164,6 @@ class AboutViewController: UIViewController
             
             popover.navigationItem.title = "Select"
             navigationController.isNavigationBarHidden = false
-
-//            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
-//                let hClass = traitCollection.horizontalSizeClass
-//                
-//                if hClass == .compact {
-//                    navigationController.modalPresentationStyle = .overCurrentContext
-//                } else {
-//                    // I don't think this ever happens: collapsed and regular
-//                    navigationController.modalPresentationStyle = .popover
-//                }
-//            } else {
-//                navigationController.modalPresentationStyle = .popover
-//            }
 
             navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
             
@@ -238,14 +223,14 @@ class AboutViewController: UIViewController
     
     func reachableTransition()
     {
-        if mapView.isHidden, globals.reachability.isReachable { // currentReachabilityStatus != .notReachable
+        if mapView.isHidden, globals.reachability.isReachable {
             addMap()
         }
     }
     
     func addMap()
     {
-        guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
+        guard globals.reachability.isReachable else {
             return
         }
         

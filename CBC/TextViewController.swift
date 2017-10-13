@@ -96,16 +96,12 @@ extension TextViewController: UISearchBarDelegate
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
     {
-        //        print("searchBarSearchButtonClicked:")
-        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "TextViewController:searchBarSearchButtonClicked",completion:nil)
             return
         }
         
         searchText = searchBar.text
-        
-//        searchBar.resignFirstResponder()
         
         textView.attributedText = stringMarkedBySearchAsAttributedString(string: changedText, searchText: searchText, wholeWordsOnly: false)
         
@@ -142,9 +138,6 @@ extension TextViewController: UISearchBarDelegate
             self.textView.attributedText = NSMutableAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
         }
         
-//        textView.attributedText = nil
-//        textView.text = changedText
-        
         searchBar.showsCancelButton = false
         
         searchBar.resignFirstResponder()
@@ -164,9 +157,6 @@ extension TextViewController : UITextViewDelegate
             self.textView.attributedText = NSAttributedString(string: changedText,attributes: Constants.Fonts.Attributes.normal)
         }
         
-//        textView.attributedText = nil
-//        textView.text = changedText
-
         return true
     }
     
@@ -276,19 +266,21 @@ class TextViewController : UIViewController
     var searchActive = false
     {
         didSet {
-            if searchActive != oldValue {
-                if searchActive {
-                    removeTracking()
-                    removeAssist()
-                    disableBarButtons()
-                } else {
-                    enableBarButtons()
-                }
-                
-                if !searchActive && !editingActive {
-                    restoreTracking()
-                    restoreAssist()
-                }
+            guard searchActive != oldValue else {
+                return
+            }
+
+            if searchActive {
+                removeTracking()
+                removeAssist()
+                disableBarButtons()
+            } else {
+                enableBarButtons()
+            }
+            
+            if !searchActive && !editingActive {
+                restoreTracking()
+                restoreAssist()
             }
         }
     }
@@ -306,16 +298,18 @@ class TextViewController : UIViewController
     var editingActive = false
     {
         didSet {
-            if editingActive != oldValue {
-                if editingActive {
-                    removeTracking()
-                    removeAssist()
-                }
-                
-                if !searchActive && !editingActive {
-                    restoreTracking()
-                    restoreAssist()
-                }
+            guard editingActive != oldValue else {
+                return
+            }
+            
+            if editingActive {
+                removeTracking()
+                removeAssist()
+            }
+            
+            if !searchActive && !editingActive {
+                restoreTracking()
+                restoreAssist()
             }
         }
     }
@@ -337,8 +331,6 @@ class TextViewController : UIViewController
     @IBOutlet weak var textView: UITextView!
     
     var transcript:VoiceBase?
-    
-//    var startTimes:[Double]?
     
     var following : [[String:Any]]?
     
@@ -400,7 +392,7 @@ class TextViewController : UIViewController
             return
         }
         
-        isTracking = wasTracking != nil ? wasTracking! : true
+        isTracking = wasTracking ?? true
         wasTracking = nil
         
         if isTracking {
@@ -447,41 +439,27 @@ class TextViewController : UIViewController
     
     func follow()
     {
-        guard following != nil else {
+        guard let following = following else {
             return
         }
-        
-//        guard startTimes != nil else {
-//            return
-//        }
         
         if let seconds = globals.mediaPlayer.currentTime?.seconds {
             var index = 0
             
-            //            print("seconds: ",seconds)
-            
-//            for startTime in startTimes! {
-            
-            for element in following! {
-                //                print("startTime: ",startTime)
-                //                print(seconds,startTime)
-                
-                let startTime = element["start"] as! Double
-                
-                if seconds < startTime {
-                    break
+            for element in following {
+                if let startTime = element["start"] as? Double {
+                    if seconds < startTime {
+                        break
+                    }
                 }
+                
                 index += 1
             }
             index -= 1
             
             index = max(index,0)
             
-            //            print("Row: ",row-1)
-            
-            if let text = following?[index]["text"], let range = changedText?.range(of: text as! String) {
-//                print(text)
-                
+            if let text = (following[index]["text"] as? String), let range = changedText?.range(of: text) {
                 if range != oldRange {
                     if  let before = changedText?.substring(to: range.lowerBound),
                         let text = changedText?.substring(with: range),
@@ -501,7 +479,11 @@ class TextViewController : UIViewController
                     oldRange = range
                 }
             } else {
-                print("RANGE NOT FOUND: ",following?[index]["text"] as! String)
+                if let text = following[index]["text"] {
+                    print("RANGE NOT FOUND: ",text)
+                } else {
+                    print("RANGE NOT FOUND")
+                }
             }
         }
     }
@@ -517,8 +499,7 @@ class TextViewController : UIViewController
     var track = false
     {
         didSet {
-            if track { //  && globals.mediaPlayer.isPlaying
-                
+            if track {
                 DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                     self.following = self.transcript?.following
                 })
@@ -552,9 +533,6 @@ class TextViewController : UIViewController
 
     func done()
     {
-//        searchBar.resignFirstResponder()
-//        textView.resignFirstResponder()
-        
         if text != textView.attributedText.string, let confirmationTitle = confirmationTitle,let needConfirmation = confirmation?(), needConfirmation {
             var actions = [AlertAction]()
             
@@ -574,15 +552,12 @@ class TextViewController : UIViewController
                 stopTracking()
             }
             dismiss(animated: true, completion: nil)
-            completion?(textView.attributedText.string) // textView.text
+            completion?(textView.attributedText.string)
         }
     }
     
     func cancel()
     {
-//        searchBar.resignFirstResponder()
-//        textView.resignFirstResponder()
-        
         if isTracking {
             stopTracking()
         }
@@ -834,25 +809,30 @@ class TextViewController : UIViewController
         
         for hundred in ["one"] {
             for teenNumbersKey in teenNumbers.keys {
-                let key = hundred + " " + teenNumbersKey
-                let value = "1" + teenNumbers[teenNumbersKey]!
-                
-                textToNumbers[key] = value
+                if let num = teenNumbers[teenNumbersKey] {
+                    let key = hundred + " " + teenNumbersKey
+                    
+                    let value = "1" + num
+                    
+                    textToNumbers[key] = value
+                }
             }
             
             for decadesKey in decades.keys {
-                let key = hundred + " " + decadesKey
-                let value = "1" + decades[decadesKey]!
-                
-                textToNumbers[key] = value
-                
-                if decadesKey != "ten" {
-                    for singleNumbersKey in singleNumbers.keys {
-                        let key = hundred + " " + decadesKey + " " + singleNumbersKey
-                        
-                        if let decade = decades[decadesKey]?.replacingOccurrences(of:"0",with:""), let singleNumber = singleNumbers[singleNumbersKey] {
-                            let value = "1" + decade + singleNumber
-                            textToNumbers[key] = value
+                if let num = decades[decadesKey] {
+                    let key = hundred + " " + decadesKey
+                    let value = "1" + num
+                    
+                    textToNumbers[key] = value
+                    
+                    if decadesKey != "ten" {
+                        for singleNumbersKey in singleNumbers.keys {
+                            let key = hundred + " " + decadesKey + " " + singleNumbersKey
+                            
+                            if let decade = decades[decadesKey]?.replacingOccurrences(of:"0",with:""), let singleNumber = singleNumbers[singleNumbersKey] {
+                                let value = "1" + decade + singleNumber
+                                textToNumbers[key] = value
+                            }
                         }
                     }
                 }
@@ -861,49 +841,41 @@ class TextViewController : UIViewController
         
         for decade in decades.keys {
             for singleNumber in singleNumbers.keys {
-                let key = (decade + " " + singleNumber) //.replacingOccurrences(of: "  ", with: " ")
+                let key = (decade + " " + singleNumber)
                 if  let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
-                    let singleNumber = singleNumbers[singleNumber] //?.replacingOccurrences(of: " ", with: "")
-                {
-                    let value = decade + singleNumber //+ " "
+                    let singleNumber = singleNumbers[singleNumber] {
+                    let value = decade + singleNumber
                     textToNumbers[key] = value
-//                    print(key,value)
                 }
             }
         }
         
         for century in centuries.keys {
             for singleNumber in singleNumbers.keys {
-                let key = (century + " " + singleNumber) //.replacingOccurrences(of: "  ", with: " ")
+                let key = (century + " " + singleNumber)
                 if  let century = centuries[century]?.replacingOccurrences(of: "00", with: "0"),
-                    let singleNumber = singleNumbers[singleNumber] //?.replacingOccurrences(of: " ", with: "")
-                    {
-                    let value = century + singleNumber //+ " "
+                    let singleNumber = singleNumbers[singleNumber] {
+                    let value = century + singleNumber
                     textToNumbers[key] = value
-//                    print(key,value)
                 }
             }
             for teenNumber in teenNumbers.keys {
-                let key = (century + " " + teenNumber) //.replacingOccurrences(of: "  ", with: " ")
+                let key = (century + " " + teenNumber)
                 if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
-                    let teenNumber = teenNumbers[teenNumber] //?.replacingOccurrences(of: " ", with: "")
-                    {
-                    let value = century + teenNumber //+ " "
+                    let teenNumber = teenNumbers[teenNumber] {
+                    let value = century + teenNumber
                     textToNumbers[key] = value
-//                    print(key,value)
                 }
             }
         }
         
         for century in centuries.keys {
             for decade in decades.keys {
-                let key = (century + " " + decade) //.replacingOccurrences(of: "  ", with: " ")
+                let key = (century + " " + decade)
                 if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
-                    let decade = decades[decade] //?.replacingOccurrences(of: " ", with: "")
-                {
-                    let value = century + decade //+ " "
+                    let decade = decades[decade] {
+                    let value = century + decade
                     textToNumbers[key] = value
-//                    print(key,value)
                 }
             }
         }
@@ -911,25 +883,18 @@ class TextViewController : UIViewController
         for century in centuries.keys {
             for decade in decades.keys {
                 for singleNumber in singleNumbers.keys {
-                    let key = (century + " " + decade + " " + singleNumber) //.replacingOccurrences(of: "  ", with: " ")
+                    let key = (century + " " + decade + " " + singleNumber)
                     if  let century = centuries[century]?.replacingOccurrences(of: "00", with: ""),
-                        let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""), //.replacingOccurrences(of: " ", with: ""),
-                        let singleNumber = singleNumbers[singleNumber] //?.replacingOccurrences(of: " ", with: "")
+                        let decade = decades[decade]?.replacingOccurrences(of: "0", with: ""),
+                        let singleNumber = singleNumbers[singleNumber]
                     {
-                        let value = (century + decade + singleNumber) //+ " "
+                        let value = (century + decade + singleNumber)
                         textToNumbers[key] = value
-//                        print(key,value)
                     }
                 }
             }
         }
 
-//        print(textToNumbers)
-        
-//        changeText(interactive:interactive,text: textView.text, startingRange: nil, changes: changes, completion: { (string:String) in
-//            self.textView.text = string
-//        })
-        
         return textToNumbers.count > 0 ? textToNumbers : nil
     }
     
@@ -971,7 +936,6 @@ class TextViewController : UIViewController
                             } else {
                                 changes[book]?["\(book) " + key] = "\(bookName) " + value
                             }
-//                            changes[book + " " + key] = bookName + " " + value
                         }
                     }
                     
@@ -982,7 +946,6 @@ class TextViewController : UIViewController
                             } else {
                                 changes[book]?["\(book) " + key] = "\(bookName) " + value
                             }
-//                            changes[book + " " + key] = bookName + " " + value
                         }
                     }
                 }
@@ -995,10 +958,9 @@ class TextViewController : UIViewController
                             } else {
                                 changes[book.lowercased()]?["\(book.lowercased()) " + key] = "\(book) " + value
                             }
-//                            changes[book.lowercased() + " " + key] = book + " " + value
                         }
                     } else {
-                        //                        print(book)
+                    
                     }
                 }
                 
@@ -1010,10 +972,9 @@ class TextViewController : UIViewController
                             } else {
                                 changes[book.lowercased()]?["\(book.lowercased()) " + key] = "\(book) " + value
                             }
-//                            changes[book.lowercased() + " " + key] = book + " " + value
                         }
                     } else {
-                        //                        print(book)
+
                     }
                 }
             }
@@ -1133,7 +1094,6 @@ class TextViewController : UIViewController
             if let first = masterChanges[masterKey]?.keys.sorted(by: { $0.endIndex > $1.endIndex }).first {
                 key = first
                 
-                //                    print(key)
                 if (key == key.lowercased()) && (key.lowercased() != masterChanges[masterKey]?[key]?.lowercased()) {
                     range = text.lowercased().range(of: key)
                 } else {
@@ -1159,7 +1119,7 @@ class TextViewController : UIViewController
             
             let following = text.substring(from: range.upperBound).characters.first?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
             
-            if ((prior == nil) || prior!.isEmpty) && ((following == nil) || following!.isEmpty || (following == ".")) {
+            if (prior?.isEmpty ?? true) && ((following?.isEmpty ?? true) || (following == ".")) {
                 if interactive {
                     var actions = [AlertAction]()
                     

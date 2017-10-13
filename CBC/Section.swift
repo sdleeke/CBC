@@ -12,7 +12,15 @@ class Section
 {
     func indexPath(from string:String?) -> IndexPath?
     {
-        guard counts?.count == indexes?.count else {
+        guard let indexes = self.indexes else {
+            return nil
+        }
+        
+        guard let counts = self.counts else {
+            return nil
+        }
+        
+        guard counts.count == indexes.count else {
             return nil
         }
         
@@ -36,23 +44,16 @@ class Section
             return nil
         }
         
-//        guard let index = strings?.index(of: string) else {
-//            return nil
-//        }
-        
-        if counts?.count == indexes?.count {
+        if counts.count == indexes.count {
             var section = 0
             
-            while index >= (indexes![section] + counts![section]) {
+            while index >= (indexes[section] + counts[section]) {
                 section += 1
             }
             
-            if let sectionIndex = indexes?[section] {
-                
-                let row = index - sectionIndex
-                
-                return IndexPath(row: row, section: section)
-            }
+            let row = index - indexes[section]
+            
+            return IndexPath(row: row, section: section)
         }
         
         return nil
@@ -133,7 +134,7 @@ class Section
             }
             
             indexStrings = strings.map({ (string:String) -> String in
-                return indexStringsTransform != nil ? indexStringsTransform!(string.uppercased())! : string.uppercased()
+                return indexStringsTransform?(string.uppercased()) ?? string.uppercased()
             })
         }
     }
@@ -171,8 +172,16 @@ class Section
             }
             
             let a = "A"
-            
-            if indexHeadersTransform == nil {
+
+            if let indexHeadersTransform = indexHeadersTransform {
+                indexHeaders = Array(Set(
+                    indexStrings.filter({ (string:String) -> Bool in
+                        return indexHeadersTransform(string) != nil
+                    }).map({ (string:String) -> String in
+                        return indexHeadersTransform(string)!
+                    })
+                )) // .sorted()
+            } else {
                 indexHeaders = Array(Set(indexStrings
                     .map({ (string:String) -> String in
                         if string.endIndex >= a.endIndex {
@@ -182,17 +191,11 @@ class Section
                         }
                     })
                 )) // .sorted()
-            } else {
-                indexHeaders = Array(Set(
-                    indexStrings.map({ (string:String) -> String in
-                        return indexHeadersTransform!(string)!
-                    })
-                )) // .sorted()
             }
 
-            if indexSort != nil {
+            if let indexSort = indexSort {
                 indexHeaders = indexHeaders?.sorted(by: {
-                    return indexSort!($0,$1)
+                    return indexSort($0,$1)
                 })
             } else {
                 indexHeaders = indexHeaders?.sorted()
@@ -233,9 +236,9 @@ class Section
                 var indexes = [Int]()
                 var keys = [String]()
                 
-                if indexSort != nil {
+                if let indexSort = indexSort {
                     keys = stringIndex.keys.sorted(by: {
-                        return indexSort!($0,$1)
+                        return indexSort($0,$1)
                     })
                 } else {
                     keys = stringIndex.keys.sorted()
@@ -298,130 +301,4 @@ class Section
     
     var counts:[Int]?
     var indexes:[Int]?
-    
-    //    func buildHeaders()
-    //    {
-    //        guard strings?.count > 0 else {
-    //            indexHeaders = nil
-    //            counts = nil
-    //            indexes = nil
-    //
-    //            return
-    //        }
-    //
-    //        if showIndex {
-    //            guard indexStrings?.count > 0 else {
-    //                indexHeaders = nil
-    //                counts = nil
-    //                indexes = nil
-    //
-    //                return
-    //            }
-    //        }
-    //
-    //        indexHeaders = Array(Set(indexStrings!
-    //            .map({ (string:String) -> String in
-    //                return string
-    //            })
-    //        )).sorted() { $0 < $1 }
-    //
-    //        if indexHeaders?.count == 0 {
-    //            indexHeaders = nil
-    //            counts = nil
-    //            indexes = nil
-    //        } else {
-    //            var stringIndex = [String:[String]]()
-    //
-    //            for headerString in headerStrings! {
-    //                // if string s/b in headerString section
-    ////                stringIndex[headerString]?.append(string)
-    //            }
-    //
-    //            var counter = 0
-    //
-    //            var counts = [Int]()
-    //            var indexes = [Int]()
-    //
-    //            for key in stringIndex.keys.sorted() {
-    //                indexes.append(counter)
-    //                counts.append(stringIndex[key]!.count)
-    //
-    //                counter += stringIndex[key]!.count
-    //            }
-    //
-    //            self.counts = counts.count > 0 ? counts : nil
-    //            self.indexes = indexes.count > 0 ? indexes : nil
-    //        }
-    //    }
-    
-    //    func buildIndex()
-    //    {
-    //        guard showIndex else {
-    //            return
-    //        }
-    //
-    //        guard strings?.count > 0 else {
-    //            indexHeaders = nil
-    //            counts = nil
-    //            indexes = nil
-    //
-    //            return
-    //        }
-    //
-    //        guard indexStrings?.count > 0 else {
-    //            indexHeaders = nil
-    //            counts = nil
-    //            indexes = nil
-    //
-    //            return
-    //        }
-    //
-    //        let a = "A"
-    //
-    ////        indexHeaders = Array(Set(indexStrings!
-    ////            .map({ (string:String) -> String in
-    ////                if string.endIndex >= a.endIndex {
-    ////                    return string.substring(to: a.endIndex).uppercased()
-    ////                } else {
-    ////                    return string
-    ////                }
-    ////            })
-    ////
-    ////        )).sorted() { $0 < $1 }
-    //
-    //        if indexHeaders?.count == 0 {
-    //            indexHeaders = nil
-    //            counts = nil
-    //            indexes = nil
-    //        } else {
-    //            var stringIndex = [String:[String]]()
-    //
-    //            for indexString in indexStrings! {
-    //                if indexString.endIndex >= a.endIndex {
-    //                    if stringIndex[indexString.substring(to: a.endIndex)] == nil {
-    //                        stringIndex[indexString.substring(to: a.endIndex)] = [String]()
-    //                    }
-    //                    //                print(testString,string)
-    //                    stringIndex[indexString.substring(to: a.endIndex)]?.append(indexString)
-    //                }
-    //            }
-    //
-    //            var counter = 0
-    //
-    //            var counts = [Int]()
-    //            var indexes = [Int]()
-    //            
-    //            for key in stringIndex.keys.sorted() {
-    //                //                print(stringIndex[key]!)
-    //                
-    //                indexes.append(counter)
-    //                counts.append(stringIndex[key]!.count)
-    //                
-    //                counter += stringIndex[key]!.count
-    //            }
-    //            
-    //            self.counts = counts.count > 0 ? counts : nil
-    //            self.indexes = indexes.count > 0 ? indexes : nil
-    //        }
-    //    }
 }

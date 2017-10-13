@@ -10,18 +10,8 @@ import Foundation
 
 struct Selected {
     var testament:String?
-//    {
-//        didSet {
-//            print(testament)
-//        }
-//    }
 
     var book:String?
-//    {
-//        didSet {
-//            print(book)
-//        }
-//    }
     
     var chapter:Int = 0
     var verse:Int = 0
@@ -113,15 +103,6 @@ extension Scripture : XMLParserDelegate
     
     func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:])
     {
-//        print("\n\nStart Element\n")
-        
-//        print("parentElementName",xml.elementNames.last as Any)
-        
-//        print("elementName",elementName)
-//        print("namespaceURI",namespaceURI as Any)
-//        print("qName",qName as Any)
-//        print("attributeDict",attributeDict)
-        
         guard let currentDict = xml.dicts.last else {
             return
         }
@@ -144,21 +125,15 @@ extension Scripture : XMLParserDelegate
             (currentDict[name] as? Dict)?["attributes"] = attributeDict
         }
 
-        xml.dicts.append(currentDict[name] as! Dict)
+        if let dict = currentDict[name] as? Dict {
+            xml.dicts.append(dict)
+        }
 
         xml.elementNames.append(name)
-        
-//        print(xml.dict)
     }
     
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?)
     {
-//        print("\n\nEnd Element\n")
-        
-//        print("elementName",elementName)
-//        print("namespaceURI",namespaceURI as Any)
-//        print("qName",qName as Any)
-
         if let currentDict = xml.dicts.last {
             if let string = xml.strings.last {
                 if !string.isEmpty {
@@ -170,10 +145,6 @@ extension Scripture : XMLParserDelegate
         }
         
         xml.elementNames.removeLast()
-        
-//        print("parent elementName",xml.elementNames.last as Any)
-        
-//        print(xml.dict)
     }
     
     func parser(_ parser: XMLParser, foundElementDeclarationWithName elementName: String, model: String)
@@ -184,8 +155,6 @@ extension Scripture : XMLParserDelegate
     
     func parser(_ parser: XMLParser, foundCharacters string: String)
     {
-        //        print(string)
-        
         var count = xml.strings.count
         
         if count > 0 {
@@ -213,7 +182,7 @@ class Scripture : NSObject
     
     override var description: String
     {
-        return reference!
+        return reference ?? ""
     }
     
     var reference:String?
@@ -318,24 +287,6 @@ class Scripture : NSObject
         booksChaptersVerses = booksAndChaptersAndVerses.data?.count > 0 ? booksAndChaptersAndVerses : nil
     }
     
-//    func jsonFromURL(url:String) -> [String:Any]?
-//    {
-//        guard globals.reachability.currentReachabilityStatus != .notReachable else {
-//            return nil
-//        }
-//        
-//        if let data = try? Data(contentsOf: URL(string: url)!) {
-//            do {
-//                let json = try JSONSerialization.jsonObject(with: data, options: [])
-//                return json as? [String:Any]
-//            } catch let error as NSError {
-//                print(error.localizedDescription)
-//            }
-//        }
-//        
-//        return nil
-//    }
-    
     func loadHTMLVerseFromURL() -> String?
     {
         guard let reference = reference else {
@@ -361,9 +312,9 @@ class Scripture : NSObject
         return nil
     }
 
-    func loadJSONVerseFromURL() -> [String:Any]? // _ reference:String?
+    func loadJSONVerseFromURL() -> [String:Any]?
     {
-        guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
+        guard globals.reachability.isReachable else {
             return nil
         }
         
@@ -374,28 +325,17 @@ class Scripture : NSObject
         let urlString = Constants.SCRIPTURE_BASE_URL + "\(reference)&include_marginalia=true".replacingOccurrences(of: " ", with: "%20")
 
         return jsonFromURL(url: urlString) as? [String:Any]
-        
-//        if let json = json {
-//            print(json)
-////            print(json["response"])
-//            
-//            return json
-//        } else {
-//            print("could not get json from URL, make sure that URL contains valid json.")
-//        }
-//        
-//        return nil
     }
     
-    func load() // _ reference:String?
+    func load()
     {
-        loadJSON() // reference
+        loadJSON()
     }
     
-    func loadHTML() // _ reference:String?
+    func loadHTML()
     {
         if let reference = reference {
-            html?[reference] = loadHTMLVerseFromURL() // reference
+            html?[reference] = loadHTMLVerseFromURL()
         }
     }
     
@@ -421,51 +361,48 @@ class Scripture : NSObject
             self.xml.parser?.delegate = self
             
             if let success = self.xml.parser?.parse(), success {
-                var bodyString:String?
+                var bodyString:String!
                 
                 bodyString = "<!DOCTYPE html><html><body>"
                 
-                bodyString = bodyString! + "Scripture: " + reference + "<br/><br/>"
+                bodyString = bodyString + "Scripture: " + reference + "<br/><br/>"
                 
                 if let books = xml.text?.keys.sorted(by: { (first:String, second:String) -> Bool in
                     if  let first = reference.range(of: first)?.lowerBound,
                         let second = reference.range(of: second)?.lowerBound {
                         return first < second
                     } else {
-                        return false // arbritrary
+                        return false
                     }
-                    //reference.range(of: first)?.lowerBound < reference?.range(of: second)?.lowerBound
                 }) {
                     for book in books {
-                        bodyString = bodyString! + book
+                        bodyString = bodyString + book
                         if let chapters = xml.text?[book]?.keys.sorted(by: { Int($0) < Int($1) }) {
                             for chapter in chapters {
-                                bodyString = bodyString! + "<br/>"
+                                bodyString = bodyString + "<br/>"
                                 if !Constants.NO_CHAPTER_BOOKS.contains(book) {
-                                    bodyString = bodyString! + "Chapter " + chapter + "<br/><br/>"
+                                    bodyString = bodyString + "Chapter " + chapter + "<br/><br/>"
                                 }
                                 if let verses = xml.text?[book]?[chapter]?.keys.sorted(by: { Int($0) < Int($1) }) {
                                     for verse in verses {
                                         if let text = xml.text?[book]?[chapter]?[verse] {
-                                            bodyString = bodyString! + "<sup>" + verse + "</sup>" + text + " "
+                                            bodyString = bodyString + "<sup>" + verse + "</sup>" + text + " "
                                         }
                                     }
-                                    bodyString = bodyString! + "<br/>"
+                                    bodyString = bodyString + "<br/>"
                                 }
                             }
                         }
                     }
                 }
                 
-                bodyString = bodyString! + "</html></body>"
+                bodyString = bodyString + "</html></body>"
                 
                 html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
             }
             
             xml.parser = nil
         }
-        
-//        }
         
         return xml.dict.data
     }
@@ -476,11 +413,11 @@ class Scripture : NSObject
             return
         }
         
-        var bodyString:String?
+        var bodyString:String!
         
         bodyString = "<!DOCTYPE html><html><body>"
         
-        bodyString = bodyString! + "Scripture: " + reference
+        bodyString = bodyString + "Scripture: " + reference
         
         guard let data = booksChaptersVerses?.data else {
             return
@@ -547,14 +484,14 @@ class Scripture : NSObject
                         
                         for bookDict in bookDicts {
                             if !header {
-                                bodyString = bodyString! + "<br><br>"
+                                bodyString = bodyString + "<br><br>"
                                 
                                 if let book = bookDict["book_name"] as? String {
-                                    bodyString = bodyString! + book + "<br/><br/>"
+                                    bodyString = bodyString + book + "<br/><br/>"
                                 }
                                 
                                 if let chapter = bookDict["chapter_nr"] as? String {
-                                    bodyString = bodyString! + "Chapter " + chapter + "<br/><br/>"
+                                    bodyString = bodyString + "Chapter " + chapter + "<br/><br/>"
                                 }
                                 
                                 header = true
@@ -565,7 +502,11 @@ class Scripture : NSObject
                                 print(chapterDict.keys.sorted())
                                 
                                 let keys = chapterDict.keys.map({ (string:String) -> Int in
-                                    return Int(string)!
+                                    if let num = Int(string) {
+                                        return num
+                                    } else {
+                                        return -1
+                                    }
                                 }).sorted()
                                 
                                 for key in keys {
@@ -575,33 +516,32 @@ class Scripture : NSObject
                                         if let verseNumber = verseDict["verse_nr"] as? String, let verse = verseDict["verse"] as? String {
                                             if let number = Int(verseNumber) {
                                                 if lastVerse != 0, number != (lastVerse + 1) {
-                                                    bodyString = bodyString! + "<br><br>"
+                                                    bodyString = bodyString + "<br><br>"
                                                 }
                                                 lastVerse = number
                                             }
                                             
-                                            bodyString = bodyString! + "<sup>\(verseNumber)</sup>" + verse + " "
+                                            bodyString = bodyString + "<sup>\(verseNumber)</sup>" + verse + " "
                                         }
                                         if let verseNumber = verseDict["verse_nr"] as? Int, let verse = verseDict["verse"] as? String {
                                             if lastVerse != 0, verseNumber != (lastVerse + 1) {
-                                                bodyString = bodyString! + "<br><br>"
+                                                bodyString = bodyString + "<br><br>"
                                             }
-                                            bodyString = bodyString! + "<sup>\(verseNumber)</sup>" + verse + " "
+                                            bodyString = bodyString + "<sup>\(verseNumber)</sup>" + verse + " "
                                             lastVerse = verseNumber
                                         }
                                     }
                                 }
-                                //                        bodyString = bodyString! + "<br/>"
                             }
                         }
                     } else
                         
                         if let book = dict["book_name"] as? String {
-                            bodyString = bodyString! + book + "<br/><br/>"
+                            bodyString = bodyString + book + "<br/><br/>"
                     }
                     
                     if let chapter = dict["chapter_nr"] as? Int {
-                        bodyString = bodyString! + "Chapter \(chapter)"  + "<br/><br/>"
+                        bodyString = bodyString + "Chapter \(chapter)"  + "<br/><br/>"
                     }
                     
                     if let chapterDict = dict["chapter"] as? [String:Any] {
@@ -609,7 +549,11 @@ class Scripture : NSObject
                         print(chapterDict.keys.sorted())
                         
                         let keys = chapterDict.keys.map({ (string:String) -> Int in
-                            return Int(string)!
+                            if let num = Int(string) {
+                                return num
+                            } else {
+                                return -1
+                            }
                         }).sorted()
                         
                         for key in keys {
@@ -617,10 +561,10 @@ class Scripture : NSObject
                             if let verseDict = chapterDict["\(key)"] as? [String:Any] {
                                 print(verseDict)
                                 if let verseNumber = verseDict["verse_nr"] as? String, let verse = verseDict["verse"] as? String {
-                                    bodyString = bodyString! + "<sup>\(verseNumber)</sup>" + verse + " "
+                                    bodyString = bodyString + "<sup>\(verseNumber)</sup>" + verse + " "
                                 }
                                 if let verseNumber = verseDict["verse_nr"] as? Int, let verse = verseDict["verse"] as? String {
-                                    bodyString = bodyString! + "<sup>\(verseNumber)</sup>" + verse + " "
+                                    bodyString = bodyString + "<sup>\(verseNumber)</sup>" + verse + " "
                                 }
                             }
                         }
@@ -629,16 +573,16 @@ class Scripture : NSObject
             }
         }
         
-        bodyString = bodyString! + "<br/>"
+        bodyString = bodyString + "<br/>"
         
-        bodyString = bodyString! + "</html></body>"
+        bodyString = bodyString + "</html></body>"
         
         html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)
     }
     
-    func loadJSON() // _ reference:String?
+    func loadJSON()
     {
-        var bodyString:String?
+        var bodyString:String!
         
         bodyString = "<!DOCTYPE html><html><body>"
         
@@ -707,8 +651,6 @@ class Scripture : NSObject
                             lastVerse = verse
                         }
                     }
-                    
-//                    print(scriptureReference)
                     
                     guard let dict = Scripture(reference: scriptureReference).loadJSONVerseFromURL() else {
                         return
@@ -784,7 +726,7 @@ class Scripture : NSObject
                             }
 
                             
-                            bodyString = bodyString! + text // + "<br/>"
+                            bodyString = bodyString + text
                         }
                         
                         if copyright == nil {
@@ -796,13 +738,11 @@ class Scripture : NSObject
         }
         
         if let fums = fums, let copyright = copyright {
-            bodyString = bodyString! + "<p class=\"copyright\">" +  copyright.replacingOccurrences(of: ",1", with: ", 1") + "</p>"
-            bodyString = bodyString! + fums
+            bodyString = bodyString + "<p class=\"copyright\">" +  copyright.replacingOccurrences(of: ",1", with: ", 1") + "</p>"
+            bodyString = bodyString + fums
         }
         
-        bodyString = bodyString! + "</html></body>"
-        
-//        print(bodyString as Any)
+        bodyString = bodyString + "</html></body>"
         
         if let reference = reference {
             html?[reference] = insertHead(bodyString,fontSize:Constants.FONT_SIZE)

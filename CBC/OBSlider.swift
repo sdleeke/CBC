@@ -17,13 +17,18 @@ class OBSlider: UISlider
 	required init?(coder: NSCoder)
     {
 		super.init(coder: coder)
-		self.scrubbingSpeed = Float(self.scrubbingSpeeds[0] as! NSNumber)
+        if let num = self.scrubbingSpeeds[0] as? NSNumber {
+            self.scrubbingSpeed = Float(num)
+        }
 	}
 	
 	override init(frame: CGRect)
     {
 		super.init(frame: frame)
-		self.scrubbingSpeed = Float(self.scrubbingSpeeds[0] as! NSNumber)
+        
+        if let num = self.scrubbingSpeeds[0] as? NSNumber {
+            self.scrubbingSpeed = Float(num)
+        }
 	}
     
 	override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool
@@ -113,11 +118,13 @@ class OBSlider: UISlider
 	
 	func indexOfLowerScrubbingSpeed (_ scrubbingSpeedPositions: NSArray, forOffset verticalOffset: CGFloat) -> NSInteger {
 		for i in 0..<scrubbingSpeedPositions.count {
-			let scrubbingSpeedOffset: NSNumber = scrubbingSpeedPositions[i] as! NSNumber
-//            print("indexOfLowerScrubbingSpeed: \(CGFloat(scrubbingSpeedOffset))")
-			if (verticalOffset < CGFloat(scrubbingSpeedOffset)) {
-				return i
-			}
+            if let scrubbingSpeedOffset = scrubbingSpeedPositions[i] as? NSNumber {
+                //            print("indexOfLowerScrubbingSpeed: \(CGFloat(scrubbingSpeedOffset))")
+                if (verticalOffset < CGFloat(scrubbingSpeedOffset)) {
+                    return i
+                }
+            }
+            
 		}
 	
 		return NSNotFound

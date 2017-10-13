@@ -9,36 +9,6 @@
 import UIKit
 import MessageUI
 
-//extension NSLayoutConstraint {
-//  MARK: NSLayoutConstraint extension
-//    /**
-//     Change multiplier constraint
-//     
-//     - parameter multiplier: CGFloat
-//     - returns: NSLayoutConstraint
-//     */
-//    func setMultiplier(multiplier:CGFloat) -> NSLayoutConstraint {
-//        
-//        NSLayoutConstraint.deactivate([self])
-//        
-//        let newConstraint = NSLayoutConstraint(
-//            item: firstItem,
-//            attribute: firstAttribute,
-//            relatedBy: relation,
-//            toItem: secondItem,
-//            attribute: secondAttribute,
-//            multiplier: multiplier,
-//            constant: constant)
-//        
-//        newConstraint.priority = priority
-//        newConstraint.shouldBeArchived = self.shouldBeArchived
-//        newConstraint.identifier = self.identifier
-//        
-//        NSLayoutConstraint.activate([newConstraint])
-//        return newConstraint
-//    }
-//}
-
 extension LexiconIndexViewController : UIAdaptivePresentationControllerDelegate
 {
     // MARK: UIAdaptivePresentationControllerDelegate
@@ -467,14 +437,13 @@ class LexiconIndexViewController : UIViewController
         var dvc = segue.destination as UIViewController
         // this next if-statement makes sure the segue prepares properly even
         //   if the MVC we're seguing to is wrapped in a UINavigationController
-        if let navCon = dvc as? UINavigationController {
-            dvc = navCon.visibleViewController!
+        if let navCon = dvc as? UINavigationController, let visibleViewController = navCon.visibleViewController {
+            dvc = visibleViewController
         }
         
         if let identifier = segue.identifier {
             switch identifier {
             case Constants.SEGUE.SHOW_WORD_LIST:
-//                print("SHOW WORD LIST")
                 if let destination = dvc as? PopoverTableViewController {
                     ptvc = destination
                     
@@ -550,8 +519,6 @@ class LexiconIndexViewController : UIViewController
                                 self.updateLocateButton()
                             })
                         }
-//                        self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
-//                        self.ptvc.tableView.reloadData()
                     }))
                     segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
                         self.ptvc.sort.method = Constants.Sort.Frequency
@@ -573,8 +540,6 @@ class LexiconIndexViewController : UIViewController
                                 self.updateLocateButton()
                             })
                         }
-//                        self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
-//                        self.ptvc.tableView.reloadData()
                     }))
                     
                     ptvc.segmentActions = segmentActions.count > 0 ? segmentActions : nil
@@ -584,14 +549,10 @@ class LexiconIndexViewController : UIViewController
                     
                     ptvc.search = true
                     ptvc.segments = true
-                    
-//                    ptvc.mediaListGroupSort = mediaListGroupSort
 
                     ptvc.section.showIndex = true
 
                     ptvc.section.strings = self.mediaListGroupSort?.lexicon?.section.strings
-                    
-//                    destination.section.showHeaders = true
                 }
                 break
                 
@@ -600,7 +561,7 @@ class LexiconIndexViewController : UIViewController
                     if (selectedMediaItem != myCell.mediaItem) || (globals.history == nil) {
                         globals.addToHistory(myCell.mediaItem)
                     }
-                    selectedMediaItem = myCell.mediaItem //globals.media.activeMediaItems![index]
+                    selectedMediaItem = myCell.mediaItem
                     
                     if selectedMediaItem != nil {
                         if let destination = dvc as? MediaViewController {
@@ -637,9 +598,6 @@ class LexiconIndexViewController : UIViewController
     func updateLocateButton()
     {
         // Not necessarily called on the main thread.
-//        guard Thread.isMainThread else {
-//            return
-//        }
         
         if (self.searchText != nil) {
             Thread.onMainThread() {
@@ -793,11 +751,12 @@ class LexiconIndexViewController : UIViewController
                     
                     for mediaItem in mediaItems {
                         if let speaker = mediaItem.speaker {
-                            if speakerCounts[speaker] == nil {
+                            guard let count = speakerCounts[speaker] else {
                                 speakerCounts[speaker] = 1
-                            } else {
-                                speakerCounts[speaker]! += 1
+                                continue
                             }
+
+                            speakerCounts[speaker] = count + 1
                         }
                     }
                     
@@ -857,18 +816,6 @@ class LexiconIndexViewController : UIViewController
                         }
                     }
                 }
-                
-//                if includeColumns {
-//                    bodyString = bodyString + "<tr>"
-//                    bodyString = bodyString + "<td valign=\"baseline\" colspan=\"7\">"
-//                }
-//                
-//                bodyString = bodyString + "<br/>"
-//                
-//                if includeColumns {
-//                    bodyString = bodyString + "</td>"
-//                    bodyString = bodyString + "</tr>"
-//                }
             }
             
             if includeColumns {
@@ -880,82 +827,79 @@ class LexiconIndexViewController : UIViewController
             if includeURLs, keys.count > 1 {
                 bodyString = bodyString + "<div id=\"index\" name=\"index\">Index (<a href=\"#top\">Return to Top</a>)<br/><br/>"
                 
-//                bodyString = bodyString + "<div><a id=\"index\" name=\"index\" href=\"#top\">Index</a><br/><br/>"
-                
-                switch globals.grouping! {
-                case GROUPING.CLASS:
-                    fallthrough
-                case GROUPING.SPEAKER:
-                    fallthrough
-                case GROUPING.TITLE:
-                    let a = "A"
-                    
-                    if let indexTitles = results?.section?.indexStrings {
-                        let titles = Array(Set(indexTitles.map({ (string:String) -> String in
-                            if string.endIndex >= a.endIndex, let indexString = stringWithoutPrefixes(string)?.substring(to: a.endIndex).uppercased() {
-                                return indexString
-                            } else {
-                                return string
-                            }
-                        }))).sorted() { $0 < $1 }
+                if let grouping = globals.grouping {
+                    switch grouping {
+                    case GROUPING.CLASS:
+                        fallthrough
+                    case GROUPING.SPEAKER:
+                        fallthrough
+                    case GROUPING.TITLE:
+                        let a = "A"
                         
-                        var stringIndex = [String:[String]]()
-                        
-                        if let indexStrings = results?.section?.indexStrings {
-                            for indexString in indexStrings {
-                                let key = indexString.substring(to: a.endIndex).uppercased()
-                                
-                                if stringIndex[key] == nil {
-                                    stringIndex[key] = [String]()
+                        if let indexTitles = results?.section?.indexStrings {
+                            let titles = Array(Set(indexTitles.map({ (string:String) -> String in
+                                if string.endIndex >= a.endIndex, let indexString = stringWithoutPrefixes(string)?.substring(to: a.endIndex).uppercased() {
+                                    return indexString
+                                } else {
+                                    return string
                                 }
-                                //                print(testString,string)
-                                stringIndex[key]?.append(indexString)
-                            }
-                        }
-                        
-                        //                    print(stringIndex)
-                        
-                        var index:String?
-                        
-                        for title in titles {
-                            let link = "<a href=\"#\(title)\">\(title)</a>"
-                            index = (index != nil) ? index! + " " + link : link
-                        }
-                        
-                        bodyString = bodyString + "<div><a id=\"sections\" name=\"sections\">Sections</a> "
-                        
-                        if index != nil {
-                            bodyString = bodyString + index! + "<br/><br/>"
-                        }
-                        
-                        for title in titles {
-                            bodyString = bodyString + "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a><br/>"
+                            }))).sorted() { $0 < $1 }
                             
-                            if let keys = stringIndex[title] {
-                                for key in keys {
-                                    if let title = results?.groupNames?[grouping]?[key],
-                                        let count = results?.groupSort?[grouping]?[key]?[sorting]?.count {
-                                        let tag = key.replacingOccurrences(of: " ", with: "")
-                                        bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
+                            var stringIndex = [String:[String]]()
+                            
+                            if let indexStrings = results?.section?.indexStrings {
+                                for indexString in indexStrings {
+                                    let key = indexString.substring(to: a.endIndex).uppercased()
+                                    
+                                    if stringIndex[key] == nil {
+                                        stringIndex[key] = [String]()
                                     }
+                                    stringIndex[key]?.append(indexString)
                                 }
-                                bodyString = bodyString + "<br/>"
+                            }
+                            
+                            var index:String?
+                            
+                            for title in titles {
+                                let link = "<a href=\"#\(title)\">\(title)</a>"
+                                index = ((index != nil) ? index! + " " : "") + link
+                            }
+                            
+                            bodyString = bodyString + "<div><a id=\"sections\" name=\"sections\">Sections</a> "
+                            
+                            if let index = index {
+                                bodyString = bodyString + index + "<br/><br/>"
+                            }
+                            
+                            for title in titles {
+                                bodyString = bodyString + "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a><br/>"
+                                
+                                if let keys = stringIndex[title] {
+                                    for key in keys {
+                                        if let title = results?.groupNames?[grouping]?[key],
+                                            let count = results?.groupSort?[grouping]?[key]?[sorting]?.count {
+                                            let tag = key.replacingOccurrences(of: " ", with: "")
+                                            bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
+                                        }
+                                    }
+                                    bodyString = bodyString + "<br/>"
+                                }
+                            }
+                            
+                            bodyString = bodyString + "</div>"
+                        }
+                        break
+                        
+                    default:
+                        for key in keys {
+                            if let title = results?.groupNames?[grouping]?[key],
+                                let count = results?.groupSort?[grouping]?[key]?[sorting]?.count {
+                                let tag = key.replacingOccurrences(of: " ", with: "")
+                                bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
                             }
                         }
-                        
-                        bodyString = bodyString + "</div>"
+                        break
                     }
-                    break
-                    
-                default:
-                    for key in keys {
-                        if let title = results?.groupNames?[grouping]?[key],
-                            let count = results?.groupSort?[grouping]?[key]?[sorting]?.count {
-                            let tag = key.replacingOccurrences(of: " ", with: "")
-                            bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
-                        }
-                    }
-                    break
                 }
                 
                 bodyString = bodyString + "</div>"
@@ -971,7 +915,6 @@ class LexiconIndexViewController : UIViewController
     {
         var actionMenu = [String]()
 
-//        actionMenu.append("Sorting")
         if lexicon?.tokens?.count > 0 {
             actionMenu.append(Constants.Strings.Word_Picker)
         }
@@ -998,19 +941,6 @@ class LexiconIndexViewController : UIViewController
             popover.navigationItem.title = "Select"
             navigationController.isNavigationBarHidden = false
 
-//            if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
-//                let hClass = traitCollection.horizontalSizeClass
-//                
-//                if hClass == .compact {
-//                    navigationController.modalPresentationStyle = .overCurrentContext
-//                } else {
-//                    // I don't think this ever happens: collapsed and regular
-//                    navigationController.modalPresentationStyle = .popover
-//                }
-//            } else {
-//                navigationController.modalPresentationStyle = .popover
-//            }
-            
             navigationController.modalPresentationStyle = .popover // MUST OCCUR BEFORE PPC DELEGATE IS SET.
             
             navigationController.popoverPresentationController?.delegate = self
@@ -1020,15 +950,10 @@ class LexiconIndexViewController : UIViewController
             
             popover.navigationItem.title = "Select"
             
-//            popover.navigationController?.isNavigationBarHidden = true
-            
             popover.delegate = self
             popover.purpose = .selectingAction
             
             popover.section.strings = actionMenuItems()
-//            
-//            popover.section.showIndex = false
-//            popover.section.showHeaders = false
             
             popover.vc = self
             
@@ -1053,10 +978,6 @@ class LexiconIndexViewController : UIViewController
     
     func updated()
     {
-//        print(lexicon?.tokens)
-//        print(lexicon?.gcw)
-//        print(lexicon?.gcr)
-
         updateTitle()
         
         updateLocateButton()
@@ -1073,10 +994,6 @@ class LexiconIndexViewController : UIViewController
     
     func completed()
     {
-//        print(lexicon?.tokens)
-//        print(lexicon?.gcw)
-//        print(lexicon?.gcr)
-
         updateTitle()
         
         updateLocateButton()
@@ -1124,8 +1041,6 @@ class LexiconIndexViewController : UIViewController
             popover.purpose = .selectingSection
             
             popover.section.strings = results?.section?.headerStrings
-//            popover.section.showIndex = false
-//            popover.section.showHeaders = false
             
             popover.vc = self
             
@@ -1143,9 +1058,6 @@ class LexiconIndexViewController : UIViewController
         self.setToolbarItems([spaceButton,indexButton], animated: false)
 
         navigationController?.toolbar.isTranslucent = false
-        
-//        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
-//        navigationItem.leftItemsSupplementBackButton = true
         
         selectedWord.text = Constants.EMPTY_STRING
         
@@ -1213,8 +1125,6 @@ class LexiconIndexViewController : UIViewController
             return
         }
         
-//        navigationController?.setToolbarHidden(false, animated: false)
-
         toolbarItems?[1].isEnabled = tableView.numberOfSections > 1
         
         spinner.isHidden = true
@@ -1236,17 +1146,6 @@ class LexiconIndexViewController : UIViewController
         // Dispose of any resources that can be recreated.
         globals.freeMemory()
     }
-    
-    
-    /*
-     // MARK: - Navigation
-     
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-     // Get the new view controller using segue.destinationViewController.
-     // Pass the selected object to the new view controller.
-     }
-     */
 }
 
 extension LexiconIndexViewController : UITableViewDelegate
@@ -1255,31 +1154,29 @@ extension LexiconIndexViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
-        //        print("didSelectRowAtIndexPath")
+        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+            return
+        }
         
         var mediaItem:MediaItem?
         
-        if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell {
-            mediaItem = cell.mediaItem // mediaItems?[indexPath.row]
-
-            globals.addToHistory(mediaItem)
-
-            if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
-                if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
-                    let viewController = navigationController.viewControllers[0] as? MediaViewController {
-                    viewController.selectedMediaItem = mediaItem
-                    splitViewController?.viewControllers[1] = navigationController
-                }
-            } else {
-                if let viewController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM) as? MediaViewController {
-                    viewController.selectedMediaItem = mediaItem
-                    
-                    self.navigationController?.navigationItem.hidesBackButton = false
-                    
-//                    self.navigationController?.setToolbarHidden(true, animated: true)
-                    
-                    self.navigationController?.pushViewController(viewController, animated: true)
-                }
+        mediaItem = cell.mediaItem
+        
+        globals.addToHistory(mediaItem)
+        
+        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
+            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
+                let viewController = navigationController.viewControllers[0] as? MediaViewController {
+                viewController.selectedMediaItem = mediaItem
+                splitViewController?.viewControllers[1] = navigationController
+            }
+        } else {
+            if let viewController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM) as? MediaViewController {
+                viewController.selectedMediaItem = mediaItem
+                
+                self.navigationController?.navigationItem.hidesBackButton = false
+                
+                self.navigationController?.pushViewController(viewController, animated: true)
             }
         }
     }
@@ -1326,19 +1223,9 @@ extension LexiconIndexViewController : UITableViewDelegate
 //            return nil
 //        }
         
-//        guard let mediaItem = cell.mediaItem else {
-//            return nil
-//        }
-        
-//        guard let searchText = cell?.searchText else {
-//            return nil
-//        }
-        
         guard let mediaItem = mediaItem else {
             return nil
         }
-        
-//        let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell
         
         let searchText = cell?.searchText
         
@@ -1371,9 +1258,6 @@ extension LexiconIndexViewController : UITableViewDelegate
             switch title {
             case Constants.Strings.Download_Audio:
                 mediaItem.audioDownload?.download()
-//                Thread.onMainThread(block: {
-//                    NotificationCenter.default.addObserver(self, selector: #selector(LexiconIndexViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
-//                })
                 break
                 
             case Constants.Strings.Delete_Audio_Download:
@@ -1399,9 +1283,6 @@ extension LexiconIndexViewController : UITableViewDelegate
                     
                 })
                 alert.addAction(cancel)
-                
-                // For .actionSheet style
-                //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
                 
                 self.present(alert, animated: true, completion: nil)
                 break
@@ -1437,9 +1318,6 @@ extension LexiconIndexViewController : UITableViewDelegate
                         })
                         alert.addAction(cancel)
                         
-                        // For .actionSheet style
-                        //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
-                        
                         self.present(alert, animated: true, completion: nil)
                         break
                         
@@ -1456,7 +1334,7 @@ extension LexiconIndexViewController : UITableViewDelegate
         
         transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
             let sourceView = cell?.subviews[0]
-            let sourceRectView = cell?.subviews[0] // .subviews[actions.index(of: transcript)!] // memory leak!
+            let sourceRectView = cell?.subviews[0]
             
             if mediaItem.notesHTML != nil {
                 var htmlString:String?
@@ -1474,28 +1352,25 @@ extension LexiconIndexViewController : UITableViewDelegate
                     } else {
                         networkUnavailable(self,"HTML transcript unavailable.")
                     }
-                    
-                    //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
                 })
             }
         }
-//        transcript.backgroundColor = UIColor.purple
         
         scripture = AlertAction(title: Constants.Strings.Scripture, style: .default) {
             let sourceView = cell?.subviews[0]
-            let sourceRectView = cell?.subviews[0] // .subviews[actions.index(of: scripture)!] // memory leak!
+            let sourceRectView = cell?.subviews[0]
             
             if let reference = mediaItem.scriptureReference {
                 if mediaItem.scripture?.html?[reference] != nil {
                     popoverHTML(self,mediaItem:nil,title:reference,barButtonItem:nil,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:mediaItem.scripture?.html?[reference])
                 } else {
-                    guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
+                    guard globals.reachability.isReachable else {
                         networkUnavailable(self,"Scripture text unavailable.")
                         return
                     }
                     
                     process(viewController: self, work: { () -> (Any?) in
-                        mediaItem.scripture?.load() // reference
+                        mediaItem.scripture?.load()
                         return mediaItem.scripture?.html?[reference]
                     }, completion: { (data:Any?) in
                         if let htmlString = data as? String {
@@ -1503,12 +1378,10 @@ extension LexiconIndexViewController : UITableViewDelegate
                         } else {
                             networkUnavailable(self,"Scripture text unavailable.")
                         }
-                        //                presentHTMLModal(viewController: self,medaiItem: mediaItem, title: globals.contextTitle, htmlString: data as? String) //
                     })
                 }
             }
         }
-//        scripture.backgroundColor = UIColor.orange
         
         if mediaItem.books != nil {
             actions.append(scripture)
@@ -1532,8 +1405,6 @@ extension LexiconIndexViewController : UITableViewDelegate
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
         if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell, let message = cell.mediaItem?.text {
-            //            return editActions(cell: cell, mediaItem: cell.mediaItem)
-            
             let action = UITableViewRowAction(style: .normal, title: "Actions") { rowAction, indexPath in
                 let alert = UIAlertController(  title: "Actions",
                                                 message: message,
@@ -1571,12 +1442,12 @@ extension LexiconIndexViewController : UITableViewDataSource
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String?
     {
-        if results?.section?.headerStrings != nil {
-            if (section >= 0) && (section < results?.section?.headerStrings?.count) {
-                return results?.section?.headerStrings?[section]
-            } else {
-                return nil
-            }
+        guard results?.section?.headerStrings != nil else {
+            return nil
+        }
+
+        if (section >= 0) && (section < results?.section?.headerStrings?.count) {
+            return results?.section?.headerStrings?[section]
         } else {
             return nil
         }
@@ -1602,7 +1473,7 @@ extension LexiconIndexViewController : UITableViewDataSource
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
     {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.INDEX_MEDIA_ITEM, for: indexPath) as! MediaTableViewCell
+        let cell = (tableView.dequeueReusableCell(withIdentifier: Constants.IDENTIFIER.INDEX_MEDIA_ITEM, for: indexPath) as? MediaTableViewCell) ?? MediaTableViewCell()
 
         cell.hideUI()
         

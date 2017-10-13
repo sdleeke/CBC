@@ -31,17 +31,20 @@ class SettingsViewController: UIViewController {
     @IBOutlet weak var cacheSizeLabel: UILabel!
     @IBOutlet weak var cacheSwitch: UISwitch!
     
-    @IBAction func cacheAction(_ sender: UISwitch) {
+    @IBAction func cacheAction(_ sender: UISwitch)
+    {
         globals.cacheDownloads = sender.isOn
         
         if !sender.isOn {
             URLCache.shared.removeAllCachedResponses()
             DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
                 globals.loadSingles = false
-                
-                for mediaItem in globals.mediaRepository.list! {
-                    mediaItem.notesDownload?.delete()
-                    mediaItem.slidesDownload?.delete()
+    
+                if let mediaItems = globals.mediaRepository.list {
+                    for mediaItem in mediaItems {
+                        mediaItem.notesDownload?.delete()
+                        mediaItem.slidesDownload?.delete()
+                    }
                 }
                 
                 globals.loadSingles = true
@@ -53,7 +56,8 @@ class SettingsViewController: UIViewController {
         }
     }
     
-    override func viewWillAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool)
+    {
         super.viewWillAppear(animated)
         
         searchTranscriptsSwitch.isOn = globals.search.transcripts
@@ -158,7 +162,8 @@ class SettingsViewController: UIViewController {
         dismiss(animated: true, completion: nil)
     }
     
-    override func viewDidLoad() {
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
 
         if let presentationStyle = navigationController?.modalPresentationStyle {
@@ -189,19 +194,10 @@ class SettingsViewController: UIViewController {
         updateAudioSize()
     }
 
-    override func didReceiveMemoryWarning() {
+    override func didReceiveMemoryWarning()
+    {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
         globals.freeMemory()
     }
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
 }

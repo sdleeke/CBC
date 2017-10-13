@@ -139,12 +139,15 @@ public class Reachability
     }
 }
 
-public extension Reachability {
-    
+public extension Reachability
+{
     // MARK: - *** Notifier methods ***
-    func startNotifier() throws {
+    func startNotifier() throws
+    {
         
-        guard let reachabilityRef = reachabilityRef, !notifierRunning else { return }
+        guard let reachabilityRef = reachabilityRef, !notifierRunning else {
+            return
+        }
         
         var context = SCNetworkReachabilityContext(version: 0, info: nil, retain: nil, release: nil, copyDescription: nil)
         context.info = UnsafeMutableRawPointer(Unmanaged<Reachability>.passUnretained(self).toOpaque())
@@ -166,18 +169,26 @@ public extension Reachability {
         notifierRunning = true
     }
     
-    func stopNotifier() {
-        defer { notifierRunning = false }
-        guard let reachabilityRef = reachabilityRef else { return }
+    func stopNotifier()
+    {
+        defer {
+            notifierRunning = false
+        }
+        
+        guard let reachabilityRef = reachabilityRef else {
+            return
+        }
         
         SCNetworkReachabilitySetCallback(reachabilityRef, nil, nil)
         SCNetworkReachabilitySetDispatchQueue(reachabilityRef, nil)
     }
     
     // MARK: - *** Connection test methods ***
-    var isReachable: Bool {
-        
-        guard isReachableFlagSet else { return false }
+    var isReachable: Bool
+    {
+        guard isReachableFlagSet else {
+            return false
+        }
         
         if isConnectionRequiredAndTransientFlagSet {
             return false
@@ -226,10 +237,10 @@ public extension Reachability {
     }
 }
 
-fileprivate extension Reachability {
-    
-    func reachabilityChanged() {
-        
+fileprivate extension Reachability
+{
+    func reachabilityChanged()
+    {
         let flags = reachabilityFlags
         
         guard previousFlags != flags else { return }
@@ -242,49 +253,63 @@ fileprivate extension Reachability {
         previousFlags = flags
     }
     
-    var isOnWWANFlagSet: Bool {
+    var isOnWWANFlagSet: Bool
+    {
         #if os(iOS)
             return reachabilityFlags.contains(.isWWAN)
         #else
             return false
         #endif
     }
+    
     var isReachableFlagSet: Bool {
         return reachabilityFlags.contains(.reachable)
     }
+    
     var isConnectionRequiredFlagSet: Bool {
         return reachabilityFlags.contains(.connectionRequired)
     }
+    
     var isInterventionRequiredFlagSet: Bool {
         return reachabilityFlags.contains(.interventionRequired)
     }
+    
     var isConnectionOnTrafficFlagSet: Bool {
         return reachabilityFlags.contains(.connectionOnTraffic)
     }
+    
     var isConnectionOnDemandFlagSet: Bool {
         return reachabilityFlags.contains(.connectionOnDemand)
     }
+    
     var isConnectionOnTrafficOrDemandFlagSet: Bool {
         return !reachabilityFlags.intersection([.connectionOnTraffic, .connectionOnDemand]).isEmpty
     }
+    
     var isTransientConnectionFlagSet: Bool {
         return reachabilityFlags.contains(.transientConnection)
     }
+    
     var isLocalAddressFlagSet: Bool {
         return reachabilityFlags.contains(.isLocalAddress)
     }
+    
     var isDirectFlagSet: Bool {
         return reachabilityFlags.contains(.isDirect)
     }
+    
     var isConnectionRequiredAndTransientFlagSet: Bool {
         return reachabilityFlags.intersection([.connectionRequired, .transientConnection]) == [.connectionRequired, .transientConnection]
     }
     
     var reachabilityFlags: SCNetworkReachabilityFlags {
         
-        guard let reachabilityRef = reachabilityRef else { return SCNetworkReachabilityFlags() }
+        guard let reachabilityRef = reachabilityRef else {
+            return SCNetworkReachabilityFlags()
+        }
         
         var flags = SCNetworkReachabilityFlags()
+        
         let gotFlags = withUnsafeMutablePointer(to: &flags) {
             SCNetworkReachabilityGetFlags(reachabilityRef, UnsafeMutablePointer($0))
         }

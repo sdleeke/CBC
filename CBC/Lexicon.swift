@@ -20,11 +20,6 @@ class Lexicon : NSObject {
         self.mediaListGroupSort = mlgs
     }
     
-//    lazy var stringTree:StringTree! = {
-//        [unowned self] in
-//        return StringTree(lexicon: self)
-//        }()
-    
     var tokens:[String]? {
         get {
             return words?.keys.sorted()
@@ -59,28 +54,26 @@ class Lexicon : NSObject {
     
     var gcr:[String]? {
         get {
-            guard tokens != nil else {
+            guard let tokens = tokens else {
                 return nil
             }
             
             var roots = [String:Int]()
             
-            if let tokens = tokens {
-                for token in tokens {
-                    var string = String()
+            for token in tokens {
+                var string = String()
+                
+                for character in token.characters {
+                    string.append(character)
                     
-                    for character in token.characters {
-                        string.append(character)
-                        
-                        if let count = roots[string] {
-                            roots[string] = count + 1
-                        } else {
-                            roots[string] = 1
-                        }
+                    if let count = roots[string] {
+                        roots[string] = count + 1
+                    } else {
+                        roots[string] = 1
                     }
                 }
             }
-            
+
             let candidates = roots.keys.filter({ (root:String) -> Bool in
                 if let count = roots[root] {
                     return count > 1
@@ -128,8 +121,6 @@ class Lexicon : NSObject {
                 
                 section.strings = strings
                 
-//                section.buildIndex()
-                
                 globals.queue.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.LEXICON_UPDATED), object: self)
                 })
@@ -149,13 +140,6 @@ class Lexicon : NSObject {
                 return nil
             }
             
-            // Both use a lot of memory for the array(s) unless there is some smart compiler optimiation going on behind the scenes.
-            
-            // Both create a list of lists of MediaItems potentially on the order of #words * #mediaitems (coudl be in the (tens of) thousands) that has many repetitions of the same mediaItem and then eliminates redundancies w/ Set
-            
-            // But flatMap is more compact.  I believe, however, that the use of flatMap is only possible because Words is no longer a dictionary of tuples but a dictionary of dictionaries and a dictionary is a collection and flatMap operates on collections, whereas a tuple is not a collection so flatMap is only possible becase of the change to using collections entirely.
-            
-            // Using flatMap
             return Array(Set(
                 words.flatMap({ (mediaItemFrequency:(key: String, value: [MediaItem : Int])) -> [MediaItem] in
                     // .map is required below to return an array of MediaItem, otherwise it returns a LazyMapCollection and I haven't figured that out.
@@ -164,22 +148,6 @@ class Lexicon : NSObject {
                     })
                 })
             ))
-            
-            // Using map - creates a list of lists of MediaItems no longer than the active list of MediaItems and then collapses them w/ Set.
-            //            var mediaItemSet = Set<MediaItem>()
-            //
-            //            if let list:[[MediaItem]] = words?.values.map({ (dict:[MediaItem:Int]) -> [MediaItem] in
-            //                return dict.map({ (mediaItem:MediaItem,count:Int) -> MediaItem in
-            //                    return mediaItem
-            //                })
-            //            }) {
-            //                for mediaItemList in list {
-            //                    mediaItemSet = mediaItemSet.union(Set(mediaItemList))
-            //                }
-            //            }
-            //
-            //            return mediaItemSet.count > 0 ? Array(mediaItemSet) : nil
-            
         }
     }
     
@@ -210,11 +178,7 @@ class Lexicon : NSObject {
             return nil
         }
         
-        return words?[word]?.values
-            //            .map({ (count:Int) -> Int in
-            //            return count
-            //        })
-            .reduce(0, +)
+        return words?[word]?.values.reduce(0, +)
     }
     
     func build()
@@ -222,10 +186,6 @@ class Lexicon : NSObject {
         guard !creating else {
             return
         }
-        
-        //        guard !completed else {
-        //            return
-        //        }
         
         guard (words == nil) else {
             return

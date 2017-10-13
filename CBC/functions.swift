@@ -12,6 +12,36 @@ import AVKit
 import MessageUI
 import UserNotifications
 
+func startAudio()
+{
+    let audioSession: AVAudioSession  = AVAudioSession.sharedInstance()
+    
+    do {
+        try audioSession.setCategory(AVAudioSessionCategoryPlayback)
+    } catch let error as NSError {
+        print("failed to setCategory(AVAudioSessionCategoryPlayback): \(error.localizedDescription)")
+    }
+    
+    //        do {
+    //            try audioSession.setActive(true)
+    //        } catch let error as NSError {
+    //            print("failed to audioSession.setActive(true): \(error.localizedDescription)")
+    //        }
+    
+    UIApplication.shared.beginReceivingRemoteControlEvents()
+}
+
+func stopAudio()
+{
+    let audioSession: AVAudioSession  = AVAudioSession.sharedInstance()
+    
+    do {
+        try audioSession.setActive(false)
+    } catch let error as NSError {
+        print("failed to audioSession.setActive(false): \(error.localizedDescription)")
+    }
+}
+
 func open(scheme: String?,cannotOpen:(()->(Void))?)
 {
     guard let scheme = scheme else {
@@ -344,7 +374,7 @@ func jsonToFileSystemDirectory(key:String)
 
 func jsonFromURL(url:String) -> Any?
 {
-    guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
+    guard globals.reachability.isReachable else {
         print("json not reachable.")
         
         //            globals.alert(title:"Network Error",message:"Newtork not available, attempting to load last available media list.")
@@ -412,11 +442,8 @@ func jsonFromURL(url:String,filename:String) -> Any?
         return nil
     }
     
-    guard globals.reachability.isReachable else { // currentReachabilityStatus != .notReachable
+    guard globals.reachability.isReachable else {
         print("json not reachable.")
-        
-        //            globals.alert(title:"Network Error",message:"Newtork not available, attempting to load last available media list.")
-        
         return jsonFromFileSystem(filename: filename)
     }
     
@@ -447,44 +474,6 @@ func jsonFromURL(url:String,filename:String) -> Any?
         return jsonFromFileSystem(filename: filename)
     }
 }
-
-//func jsonDataFromDocumentsDirectory() -> JSON
-//{
-//    jsonToFileSystemDirectory(key:Constants.JSON.ARRAY_KEY.MEDIA_ENTRIES)
-//    
-//    if let filename = globals.mediaCategory.filename, let jsonURL = cachesURL()?.appendingPathComponent(filename) {
-//        if let data = try? Data(contentsOf: jsonURL) {
-//            let json = JSON(data: data)
-//            if json != JSON.null {
-//                return json
-//            } else {
-//                print("could not get json from data, make sure the file contains valid json.")
-//            }
-//        } else {
-//            print("could not get data from the json file.")
-//        }
-//    }
-//    
-//    return nil
-//}
-//
-//func jsonDataFromCachesDirectory(filename:String?) -> JSON
-//{
-//    if let filename = filename, let jsonURL = cachesURL()?.appendingPathComponent(filename) {
-//        if let data = try? Data(contentsOf: jsonURL) {
-//            let json = JSON(data: data)
-//            if json != JSON.null {
-//                return json
-//            } else {
-//                print("could not get json from data, make sure the file contains valid json.")
-//            }
-//        } else {
-//            print("could not get data from the json file.")
-//        }
-//    }
-//    
-//    return nil
-//}
 
 extension Date
 {
@@ -835,10 +824,6 @@ func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wh
     var stringBefore    = String()
     var stringAfter     = String()
     
-//    var attrStringBefore    = NSMutableAttributedString()
-//    var attrStringAfter     = NSMutableAttributedString()
-//    
-//    var newString       = String()
     var foundString     = String()
     
     let newAttrString       = NSMutableAttributedString()
@@ -1212,12 +1197,14 @@ func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
     if verses.count == 0 {
         switch testament(book) {
         case Constants.Old_Testament:
-//            let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book!)
-//            print(Constants.OLD_TESTAMENT_BOOKS.index(of: book!)!,Constants.OLD_TESTAMENT_VERSES.count,Constants.OLD_TESTAMENT_VERSES[index!].count)
+            if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
+//                print(index,Constants.OLD_TESTAMENT_VERSES.count,Constants.OLD_TESTAMENT_VERSES[index].count)
+            }
             break
         case Constants.New_Testament:
-//            let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book!)
-//            print(Constants.NEW_TESTAMENT_BOOKS.index(of: book!)!,Constants.NEW_TESTAMENT_VERSES.count,Constants.NEW_TESTAMENT_VERSES[index!].count)
+            if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
+//                print(index,Constants.NEW_TESTAMENT_VERSES.count,Constants.NEW_TESTAMENT_VERSES[index].count)
+            }
             break
         default:
             break
@@ -2357,7 +2344,7 @@ func seriesFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
                 mediaItems.filter({ (mediaItem:MediaItem) -> Bool in
                     return mediaItem.hasMultipleParts
                 }).map({ (mediaItem:MediaItem) -> String in
-                    return mediaItem.multiPartName!
+                    return mediaItem.multiPartName ?? Constants.Strings.None
                 })
             )
             ).sorted(by: { (first:String, second:String) -> Bool in
@@ -2397,10 +2384,10 @@ func seriesSectionsFromMediaItems(_ mediaItems:[MediaItem]?,withTitles:Bool) -> 
         Array(
             Set(
                 mediaItems.map({ (mediaItem:MediaItem) -> String in
-                    if (mediaItem.hasMultipleParts) {
+                    if mediaItem.hasMultipleParts {
                         return mediaItem.multiPartName!
                     } else {
-                        return withTitles ? mediaItem.title! : Constants.Strings.Individual_Media
+                        return withTitles ? (mediaItem.title ?? "No Title") : Constants.Strings.Individual_Media
                     }
                 })
             )
@@ -2730,8 +2717,10 @@ func classSectionsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
     
     return
         Array(
-            Set(mediaItems.map({ (mediaItem:MediaItem) -> String in
-                return mediaItem.classSection!
+            Set(mediaItems.filter({ (mediaItem:MediaItem) -> Bool in
+                return mediaItem.hasClassName
+            }).map({ (mediaItem:MediaItem) -> String in
+                return mediaItem.classSection ?? Constants.Strings.None
             })
             )
             ).sorted()
@@ -2745,8 +2734,10 @@ func speakerSectionsFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
     
     return
         Array(
-            Set(mediaItems.map({ (mediaItem:MediaItem) -> String in
-                return mediaItem.speakerSection!
+            Set(mediaItems.filter({ (mediaItem:MediaItem) -> Bool in
+                return mediaItem.hasSpeaker
+            }).map({ (mediaItem:MediaItem) -> String in
+                return mediaItem.speakerSection ?? Constants.Strings.None
             })
             )
             ).sorted(by: { (first:String, second:String) -> Bool in
@@ -2765,7 +2756,7 @@ func speakersFromMediaItems(_ mediaItems:[MediaItem]?) -> [String]?
             Set(mediaItems.filter({ (mediaItem:MediaItem) -> Bool in
                 return mediaItem.hasSpeaker
             }).map({ (mediaItem:MediaItem) -> String in
-                return mediaItem.speaker!
+                return mediaItem.speaker ?? Constants.Strings.None
             })
             )
             ).sorted(by: { (first:String, second:String) -> Bool in
@@ -2939,138 +2930,159 @@ func sortMediaItemsBySpeaker(_ mediaItems:[MediaItem]?,sorting: String?) -> [Med
 
 func testMediaItemsPDFs(testExisting:Bool, testMissing:Bool, showTesting:Bool)
 {
+    guard let mediaItems = globals.mediaRepository.list else {
+        print("Testing the availability of mediaItem PDF's - no list")
+        return
+    }
+    
     var counter = 1
 
     if (testExisting) {
-        print("Testing the availability of mediaItem transcripts and slides that we DO have in the mediaItemDicts - start")
+        print("Testing the availability of mediaItem PDFs that we DO have in the mediaItemDicts - start")
         
-        if let mediaItems = globals.mediaRepository.list {
-            for mediaItem in mediaItems {
-                if (showTesting) {
-                    print("Testing: \(counter) \(mediaItem.title!)")
-                } else {
+        for mediaItem in mediaItems {
+            if (showTesting) {
+                print("Testing: \(counter) \(mediaItem.title ?? mediaItem.description)")
+            } else {
 //                    print(".", terminator: Constants.EMPTY_STRING)
-                }
-                
-                if let title = mediaItem.title, let notes = mediaItem.notes, let notesURL = mediaItem.notesURL {
-                    if ((try? Data(contentsOf: notesURL)) == nil) {
-                        print("Transcript DOES NOT exist for: \(title) PDF: \(notes)")
-                    } else {
-                        
-                    }
-                }
-                
-                if let title = mediaItem.title, let slides = mediaItem.slides, let slidesURL = mediaItem.slidesURL {
-                    if ((try? Data(contentsOf: slidesURL)) == nil) {
-                        print("Slides DO NOT exist for: \(title) PDF: \(slides)")
-                    } else {
-                        
-                    }
-                }
-                
-                counter += 1
             }
+            
+            if let title = mediaItem.title, let notes = mediaItem.notes, let notesURL = mediaItem.notesURL {
+                if ((try? Data(contentsOf: notesURL)) == nil) {
+                    print("Transcript DOES NOT exist for: \(title) PDF: \(notes)")
+                } else {
+                    
+                }
+            }
+            
+            if let title = mediaItem.title, let slides = mediaItem.slides, let slidesURL = mediaItem.slidesURL {
+                if ((try? Data(contentsOf: slidesURL)) == nil) {
+                    print("Slides DO NOT exist for: \(title) PDF: \(slides)")
+                } else {
+                    
+                }
+            }
+            
+            counter += 1
         }
         
-        print("\nTesting the availability of mediaItem transcripts and slides that we DO have in the mediaItemDicts - end")
+        print("\nTesting the availability of mediaItem PDFs that we DO have in the mediaItemDicts - end")
     }
 
     if (testMissing) {
-        print("Testing the availability of mediaItem transcripts and slides that we DO NOT have in the mediaItemDicts - start")
+        print("Testing the availability of mediaItem PDFs that we DO NOT have in the mediaItemDicts - start")
         
         counter = 1
-        if let mediaItems = globals.mediaRepository.list {
-            for mediaItem in mediaItems {
-                if (showTesting) {
-                    print("Testing: \(counter) \(mediaItem.title!)")
-                } else {
+        for mediaItem in mediaItems {
+            if (showTesting) {
+                print("Testing: \(counter) \(mediaItem.title ?? mediaItem.description)")
+            } else {
 //                    print(".", terminator: Constants.EMPTY_STRING)
-                }
-                
-                if (mediaItem.audio == nil) {
-                    print("No Audio file for: \(String(describing: mediaItem.title)) can't test for PDF's")
-                } else {
-                    if let title = mediaItem.title, let id = mediaItem.id, let notesURL = mediaItem.notesURL {
-                        if ((try? Data(contentsOf: notesURL)) != nil) {
-                            print("Transcript DOES exist for: \(title) ID:\(id)")
-                        } else {
-                            
-                        }
-                    }
-                    
-                    if let title = mediaItem.title, let id = mediaItem.id, let slidesURL = mediaItem.slidesURL {
-                        if ((try? Data(contentsOf: slidesURL)) != nil) {
-                            print("Slides DO exist for: \(title) ID: \(id)")
-                        } else {
-                            
-                        }
-                    }
-                }
-                
-                counter += 1
             }
+            
+            if (mediaItem.audio == nil) {
+                print("No Audio file for: \(String(describing: mediaItem.title)) can't test for PDF's")
+            } else {
+                if let title = mediaItem.title, let id = mediaItem.id, let notesURL = mediaItem.notesURL {
+                    if ((try? Data(contentsOf: notesURL)) != nil) {
+                        print("Transcript DOES exist for: \(title) ID:\(id)")
+                    } else {
+                        
+                    }
+                }
+                
+                if let title = mediaItem.title, let id = mediaItem.id, let slidesURL = mediaItem.slidesURL {
+                    if ((try? Data(contentsOf: slidesURL)) != nil) {
+                        print("Slides DO exist for: \(title) ID: \(id)")
+                    } else {
+                        
+                    }
+                }
+            }
+            
+            counter += 1
         }
         
-        print("\nTesting the availability of mediaItem transcripts and slides that we DO NOT have in the mediaItemDicts - end")
+        print("\nTesting the availability of mediaItem PDFs that we DO NOT have in the mediaItemDicts - end")
     }
 }
 
 func testMediaItemsTagsAndSeries()
 {
     print("Testing for mediaItem series and tags the same - start")
-    
+    defer {
+        print("Testing for mediaItem series and tags the same - end")
+    }
+
     if let mediaItems = globals.mediaRepository.list {
         for mediaItem in mediaItems {
             if (mediaItem.hasMultipleParts) && (mediaItem.hasTags) {
                 if (mediaItem.multiPartName == mediaItem.tags) {
-                    print("Multiple Part Name and Tags the same in: \(mediaItem.title!) Multiple Part Name:\(mediaItem.multiPartName!) Tags:\(mediaItem.tags!)")
+                    print("Multiple Part Name and Tags the same in: \(mediaItem.title ?? mediaItem.description) Multiple Part Name:\(mediaItem.multiPartName ?? mediaItem.description) Tags:\(mediaItem.tags ?? mediaItem.description)")
                 }
             }
         }
     }
-    
-    print("Testing for mediaItem series and tags the same - end")
 }
 
 func testMediaItemsForAudio()
 {
     print("Testing for audio - start")
+    defer {
+        print("Testing for audio - end")
+    }
     
-    for mediaItem in globals.mediaRepository.list! {
+    guard let list = globals.mediaRepository.list else {
+        print("Testing for audio - list empty")
+        return
+    }
+    
+    for mediaItem in list {
         if (!mediaItem.hasAudio) {
-            print("Audio missing in: \(mediaItem.title!)")
+            print("Audio missing in: \(mediaItem.title ?? mediaItem.description)")
         } else {
 
         }
     }
     
-    print("Testing for audio - end")
 }
 
 func testMediaItemsForSpeaker()
 {
     print("Testing for speaker - start")
-    
-    for mediaItem in globals.mediaRepository.list! {
-        if (!mediaItem.hasSpeaker) {
-            print("Speaker missing in: \(mediaItem.title!)")
-        }
+    defer {
+        print("Testing for speaker - end")
+    }
+
+    guard let list = globals.mediaRepository.list else {
+        print("Testing for speaker - no list")
+        return
     }
     
-    print("Testing for speaker - end")
+    for mediaItem in list {
+        if (!mediaItem.hasSpeaker) {
+            print("Speaker missing in: \(mediaItem.title ?? mediaItem.description)")
+        }
+    }
 }
 
 func testMediaItemsForSeries()
 {
     print("Testing for mediaItems with \"(Part \" in the title but no series - start")
-    
-    for mediaItem in globals.mediaRepository.list! {
-        if (mediaItem.title?.range(of: "(Part ", options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil) && mediaItem.hasMultipleParts {
-            print("Series missing in: \(mediaItem.title!)")
-        }
+    defer {
+        print("Testing for mediaItems with \"(Part \" in the title but no series - end")
+    }
+
+    guard let list = globals.mediaRepository.list else {
+        print("Testing for speaker - no list")
+        return
     }
     
-    print("Testing for mediaItems with \"(Part \" in the title but no series - end")
+    for mediaItem in list {
+        if (mediaItem.title?.range(of: "(Part ", options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil) && mediaItem.hasMultipleParts {
+            print("Series missing in: \(mediaItem.title ?? mediaItem.description)")
+        }
+    }
 }
 
 func tagsSetFromTagsString(_ tagsString:String?) -> Set<String>?
@@ -3105,7 +3117,7 @@ func tagsArrayToTagsString(_ tagsArray:[String]?) -> String?
     var tagString:String?
     
     for tag in tagsArray {
-        tagString = tagString != nil ? tagString! + Constants.TAGS_SEPARATOR + tag : tag
+        tagString = (tagString != nil ? tagString! + Constants.TAGS_SEPARATOR : "") + tag
     }
     
     return tagString
@@ -3376,7 +3388,9 @@ func process(viewController:UIViewController,disableEnable:Bool,hideSubviews:Boo
 func mailHTML(viewController:UIViewController,to: [String],subject: String, htmlString:String)
 {
     let mailComposeViewController = MFMailComposeViewController()
-    mailComposeViewController.mailComposeDelegate = viewController as? MFMailComposeViewControllerDelegate // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
+    
+    // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
+    mailComposeViewController.mailComposeDelegate = viewController as? MFMailComposeViewControllerDelegate
     
     mailComposeViewController.setToRecipients(to)
     mailComposeViewController.setSubject(subject)
@@ -3448,7 +3462,7 @@ func printHTML(viewController:UIViewController,htmlString:String?)
 
 func printDocument(viewController:UIViewController,documentURL:URL?)
 {
-    guard UIPrintInteractionController.isPrintingAvailable, let documentURL = documentURL else { // && UIPrintInteractionController.canPrint(printURL!)  is too slow
+    guard UIPrintInteractionController.isPrintingAvailable, let documentURL = documentURL else {
         return
     }
     
@@ -3539,7 +3553,9 @@ func mailMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,stri
     }, completion: { (data:Any?) in
         if let itemsToMail = data as? [Any] {
             let mailComposeViewController = MFMailComposeViewController()
-            mailComposeViewController.mailComposeDelegate = viewController as? MFMailComposeViewControllerDelegate // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
+            
+            // Extremely important to set the --mailComposeDelegate-- property, NOT the --delegate-- property
+            mailComposeViewController.mailComposeDelegate = viewController as? MFMailComposeViewControllerDelegate
             
             mailComposeViewController.setToRecipients([])
             mailComposeViewController.setSubject(Constants.EMAIL_ALL_SUBJECT)
@@ -3632,18 +3648,9 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
     guard htmlString != nil else {
         return
     }
-    
-//    guard (barButtonItem != nil) || ((sourceView != nil) && (sourceRectView != nil)) else {
-//        return
-//    }
-    
-    
+
     if let navigationController = storyboard.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WEB_VIEW) as? UINavigationController,
         let popover = navigationController.viewControllers[0] as? WebViewController {
-//        Thread.onMainThread() {
-//            viewController.dismiss(animated: true, completion: nil)
-//        }
-        
         if let isCollapsed = viewController.splitViewController?.isCollapsed, isCollapsed {
             let hClass = viewController.traitCollection.horizontalSizeClass
 
@@ -3872,9 +3879,6 @@ func stripHTML(_ string:String?) -> String?
                         bodyString = to + from
                     }
                 }
-
-//                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
-//                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
             }
         }
     }
@@ -3888,9 +3892,6 @@ func stripHTML(_ string:String?) -> String?
                         bodyString = to + from
                     }
                 }
-                
-//                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
-//                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
             }
         }
     }
@@ -3904,9 +3905,6 @@ func stripHTML(_ string:String?) -> String?
                         bodyString = to + from
                     }
                 }
-                
-//                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
-//                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
             }
         }
     }
@@ -3920,9 +3918,6 @@ func stripHTML(_ string:String?) -> String?
                         bodyString = to + from
                     }
                 }
-                
-//                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
-//                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
             }
         }
     }
@@ -3954,9 +3949,6 @@ func stripHTML(_ string:String?) -> String?
                         bodyString = to + from
                     }
                 }
-                
-//                let string = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: startRange.lowerBound).substring(to: endRange.upperBound)
-//                bodyString = bodyString!.substring(to: startRange.lowerBound) + bodyString!.substring(from: string.range(of: string)!.upperBound)
             }
         }
     }
@@ -4203,7 +4195,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                     
                     for title in titles {
                         let link = "<a href=\"#\(title)\">\(title)</a>"
-                        index = (index != nil) ? index! + " " + link : link
+                        index = ((index != nil) ? index! + " " : "") + link
                     }
                     
                     bodyString = bodyString + "<div><a id=\"sections\" name=\"sections\">Sections</a> "
@@ -4636,26 +4628,6 @@ func searchAlert(viewController:UIViewController,title:String?,message:String?,s
         viewController.present(alert, animated: true, completion: nil)
     }
 }
-
-//func useralert(viewController:self,title:String?,message:String?)
-//{
-//    if (UIApplication.shared.applicationState == UIApplicationState.active) {
-//        let alert = UIAlertController(title: title,
-//                                      message: message,
-//                                      preferredStyle: .alert)
-//        
-//        let action = UIAlertAction(title: Constants.Strings.Okay, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-//            
-//        })
-//        alert.addAction(action)
-//        
-//        //        alert.modalPresentationStyle = UIModalPresentationStyle.Popover
-//        
-//        DispatchQueue.main.async(execute: { () -> Void in
-//            UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
-//        })
-//    }
-//}
 
 func firstSecondCancel(viewController:UIViewController,title:String?,message:String?,
                        firstTitle:String?,   firstAction:(()->(Void))?, firstStyle: UIAlertActionStyle,

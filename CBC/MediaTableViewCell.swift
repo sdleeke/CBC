@@ -74,48 +74,7 @@ class MediaTableViewCell: UITableViewCell
         detail.isHidden = state
         
         icons.isHidden = state
-        
-//        downloadButton.isHidden = state
-        
-//        if (tagsButton != nil) {
-//            tagsButton.isHidden = state
-//        }
     }
-    
-//    func updateDownloadButton()
-//    {
-//        guard Thread.isMainThread else {
-//            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:updateDownloadButton", completion: nil)
-//            return
-//        }
-//        
-//        guard (mediaItem?.audioDownload != nil) else {
-//            return
-//        }
-//        
-//        guard (downloadButton != nil) else {
-//            return
-//        }
-//        
-//        guard let hasAudio = mediaItem?.hasAudio, hasAudio else {
-//            downloadButton.isHidden = true
-//            return
-//        }
-//        
-//        switch self.mediaItem!.audioDownload!.state {
-//        case .none:
-//            self.downloadButton.setTitle(Constants.FA.DOWNLOAD, for: UIControlState.normal)
-//            break
-//            
-//        case .downloaded:
-//            self.downloadButton.setTitle(Constants.FA.DOWNLOADED, for: UIControlState.normal)
-//            break
-//            
-//        case .downloading:
-//            self.downloadButton.setTitle(Constants.FA.DOWNLOADING, for: UIControlState.normal)
-//            break
-//        }
-//    }
     
     func setupText()
     {
@@ -194,7 +153,7 @@ class MediaTableViewCell: UITableViewCell
             }
         }
         
-        self.title.attributedText = titleString // NSAttributedString(string: "\(mediaItem!.formattedDate!) \(mediaItem!.service!) \(mediaItem!.speaker!)", attributes: normal)
+        self.title.attributedText = titleString
         
         let detailString = NSMutableAttributedString()
         
@@ -364,19 +323,9 @@ class MediaTableViewCell: UITableViewCell
             return
         }
 
-//        if isEditing {
-//            // tableView.isEditing must be done on the main thread.
-//            (vc as? MediaTableViewController)?.tableView?.isEditing = false
-//            (vc as? MediaViewController)?.tableView.isEditing = false
-//        }
-
         if (detail.text != nil) || (detail.attributedText != nil) {
             isHiddenUI(false)
         }
-
-//        updateTagsButton()
-        
-//        updateDownloadButton()
         
         setupProgressBarForAudio()
 
@@ -413,14 +362,6 @@ class MediaTableViewCell: UITableViewCell
                 }
             }
             
-//            if tagsToolbar == nil {
-//                setupTagsToolbar()
-//            }
-            
-//            if downloadToolbar == nil {
-//                setupDownloadButtonToolbar()
-//            }
-            
             updateUI()
         }
     }
@@ -428,261 +369,6 @@ class MediaTableViewCell: UITableViewCell
     @IBOutlet weak var title: UILabel!
     @IBOutlet weak var detail: UILabel!
     @IBOutlet weak var icons: UILabel!
-    
-//    @IBOutlet weak var downloadButton: UIButton!
-//    @IBAction func downloadAction(_ sender: UIButton)
-//    {
-//        guard Thread.isMainThread else {
-//            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:downloadAction", completion: nil)
-//            return
-//        }
-//        
-//        guard (mediaItem != nil) else {
-//            return
-//        }
-//        
-//        guard !self.isEditing else {
-//            return
-//        }
-//        
-////        print("Download!")
-//        
-//        if let navigationController = vc?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-//            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-//            vc?.dismiss(animated: true, completion: nil)
-//            
-//            popover.navigationItem.title = "Select"
-//            navigationController.isNavigationBarHidden = false
-//
-//            navigationController.modalPresentationStyle = .popover
-//            navigationController.popoverPresentationController?.permittedArrowDirections = .any
-//            navigationController.popoverPresentationController?.delegate = self
-//            
-//            if let barButtonItem = downloadToolbar?.items?.first {
-//                navigationController.popoverPresentationController?.barButtonItem = barButtonItem
-//            } else {
-//                navigationController.popoverPresentationController?.sourceView = self
-//                navigationController.popoverPresentationController?.sourceRect = downloadButton.frame
-//            }
-//            
-//            //                        popover.navigationItem.title = Constants.Actions
-//            
-////            popover.navigationController?.isNavigationBarHidden = true
-//            
-//            popover.delegate = self.vc as? PopoverTableViewControllerDelegate
-//            popover.purpose = .selectingCellAction
-//            
-//            popover.selectedMediaItem = mediaItem
-//            
-//            var strings = [String]()
-//            
-//            if mediaItem!.hasAudio {
-//                switch mediaItem!.audioDownload!.state {
-//                case .none:
-//                    strings.append(Constants.Strings.Download_Audio)
-//                    break
-//                    
-//                case .downloading:
-//                    strings.append(Constants.Strings.Cancel_Audio_Download)
-//                    break
-//                case .downloaded:
-//                    strings.append(Constants.Strings.Delete_Audio_Download)
-//                    break
-//                }
-//            }
-//            
-//            popover.section.strings = strings
-////            
-////            popover.section.showIndex = false
-////            popover.section.showHeaders = false
-//            
-//            popover.vc = vc
-//            
-//            vc?.present(navigationController, animated: true, completion: nil)
-//        }
-//        
-//        updateUI()
-//    }
-    
-//    @IBOutlet weak var tagsButton: UIButton!
-//    @IBAction func tagsAction(_ sender: UIButton)
-//    {
-//        guard Thread.isMainThread else {
-//            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:tagsAction", completion: nil)
-//            return
-//        }
-//        
-//        guard (mediaItem != nil) else {
-//            return
-//        }
-//        
-//        guard mediaItem!.hasTags else {
-//            return
-//        }
-//        
-//        guard !self.isEditing else {
-//            return
-//        }
-//        
-//        if let navigationController = vc?.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
-//            let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
-//            vc?.dismiss(animated: true, completion: nil)
-//            
-//            navigationController.modalPresentationStyle = .popover
-//            navigationController.popoverPresentationController?.permittedArrowDirections = .any
-//            navigationController.popoverPresentationController?.delegate = self
-//            
-//            if let barButtonItem = tagsToolbar?.items?.first {
-//                navigationController.popoverPresentationController?.barButtonItem = barButtonItem
-//            } else {
-//                navigationController.popoverPresentationController?.sourceView = self
-//                navigationController.popoverPresentationController?.sourceRect = tagsButton.frame
-//            }
-//            
-//            popover.navigationItem.title = Constants.Strings.Show // Show MediaItems Tagged With
-//            
-//            popover.delegate = self.vc as? MediaTableViewController
-//            popover.purpose = .selectingTags
-//            
-//            popover.section.strings = mediaItem!.tagsArray
-//            popover.section.strings?.insert(Constants.Strings.All,at: 0)
-////            
-////            popover.section.showIndex = false
-////            popover.section.showHeaders = false
-//            
-//            popover.vc = vc
-//
-//            vc?.present(navigationController, animated: true, completion: nil)
-//        }
-//    }
-    
-//    override func addSubview(_ view: UIView)
-//    {
-//        super.addSubview(view)
-//        
-//        let buttonFont = UIFont(name: Constants.FA.name, size: Constants.FA.ACTION_ICONS_FONT_SIZE)
-//        let confirmationClass: AnyClass = NSClassFromString("UITableViewCellDeleteConfirmationView")!
-//        
-//        // replace default font in swipe buttons
-//        let s = subviews.flatMap({$0}).filter { $0.isKind(of: confirmationClass) }
-//        
-//        for sub in s {
-//            for button in sub.subviews {
-//                if let b = button as? UIButton {
-//                    b.titleLabel?.font = buttonFont
-//                }
-//            }
-//        }
-//    }
-
-//    func updateTagsButton()
-//    {
-//        guard Thread.isMainThread else {
-//            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:updateTagsButton", completion: nil)
-//            return
-//        }
-//        
-//        guard (mediaItem != nil) else {
-//            return
-//        }
-//        
-//        guard (tagsButton != nil) else {
-//            return
-//        }
-//        
-//        self.tagsButton.isHidden = !self.mediaItem!.hasTags
-//        self.tagsButton.isEnabled = globals.search.complete
-//        
-//        if (self.mediaItem!.hasTags) {
-//            if (self.mediaItem?.self.tagsSet?.count > 1) {
-//                self.tagsButton.setTitle(Constants.FA.TAGS, for: UIControlState.normal)
-//            } else {
-//                self.tagsButton.setTitle(Constants.FA.TAG, for: UIControlState.normal)
-//            }
-//        } else {
-//            self.tagsButton.isHidden = true
-//        }
-//    }
-    
-//    func setupTagsToolbar()
-//    {
-//        guard Thread.isMainThread else {
-//            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:setupTagsToolbar", completion: nil)
-//            return
-//        }
-//        
-//        guard (mediaItem != nil) else {
-//            return
-//        }
-//        
-//        guard (tagsButton != nil) else {
-//            return
-//        }
-//
-//        self.tagsToolbar = UIToolbar(frame: self.tagsButton.frame)
-//        self.tagsToolbar?.setItems([UIBarButtonItem(title: nil, style: .plain, target: self, action: nil)], animated: false)
-//        self.tagsToolbar?.isHidden = true
-//        
-//        self.tagsToolbar?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
-//        
-//        self.addSubview(self.tagsToolbar!)
-//        
-//        let first = self.tagsToolbar
-//        let second = self.tagsButton
-//        
-//        let centerX = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
-//        self.addConstraint(centerX)
-//        
-//        let centerY = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-//        self.addConstraint(centerY)
-//        
-//        //        let width = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.width, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: second!, attribute: NSLayoutAttribute.width, multiplier: 1.0, constant: 0.0)
-//        //        self.addConstraint(width)
-//        //
-//        //        let height = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.height, relatedBy: NSLayoutRelation.greaterThanOrEqual, toItem: second!, attribute: NSLayoutAttribute.height, multiplier: 1.0, constant: 0.0)
-//        //        self.addConstraint(height)
-//        
-//        self.setNeedsLayout()
-//    }
-    
-//    func setupDownloadButtonToolbar()
-//    {
-//        guard Thread.isMainThread else {
-//            alert(viewController:vc!,title: "Not Main Thread", message: "MediaTableViewCell:setupDownloadButtonToolbar", completion: nil)
-//            return
-//        }
-//        
-//        guard (mediaItem?.audioDownload != nil) else {
-//            return
-//        }
-//
-//        guard (downloadButton != nil) else {
-//            return
-//        }
-//        
-//        self.downloadToolbar = UIToolbar(frame: self.downloadButton.frame)
-//        self.downloadToolbar?.setItems([UIBarButtonItem(title: nil, style: .plain, target: self, action: nil)], animated: false)
-//        self.downloadToolbar?.isHidden = true
-//        
-//        self.downloadToolbar?.translatesAutoresizingMaskIntoConstraints = false //This will fail without this
-//        
-//        self.addSubview(self.downloadToolbar!)
-//        
-//        let first = self.downloadToolbar
-//        let second = self.downloadButton
-//        
-//        let centerX = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
-//        self.addConstraint(centerX)
-//        
-//        let centerY = NSLayoutConstraint(item: first!, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: second!, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
-//        self.addConstraint(centerY)
-//        
-//        self.setNeedsLayout()
-//    }
-    
-//    var tagsToolbar: UIToolbar?
-    
-//    var downloadToolbar: UIToolbar?
     
     func setupIcons()
     {
