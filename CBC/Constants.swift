@@ -499,7 +499,6 @@ enum Constants {
 
     static let EMPTY_STRING = ""
 
-    static let QUOTE = "\""
     static let PLUS = "+"
     
     static let WORD_ENDING = EMPTY_STRING
@@ -507,6 +506,12 @@ enum Constants {
     static let SINGLE_SPACE = " "
     static let UNBREAKABLE_SPACE = "\u{00A0}"
 
+    static let SINGLE_QUOTE = "'"
+    static let DOUBLE_QUOTE = "\""
+    
+    static let DASH = "-"
+    static let EM_DASH = "\u{2014}"
+    
     static let LEFT_SINGLE_QUOTE = "\u{2018}"
     static let RIGHT_SINGLE_QUOTE = "\u{2019}"
     

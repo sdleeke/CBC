@@ -121,11 +121,6 @@ class MediaPlayer : NSObject {
     var playerObserverTimer:Timer?
     
     var fullScreen = false
-    {
-        didSet {
-            print(fullScreen)
-        }
-    }
     
     var url : URL? {
         get {
@@ -133,18 +128,9 @@ class MediaPlayer : NSObject {
         }
     }
     
-    var controller:AVPlayerViewController? // = AVPlayerViewController()
+    var controller:AVPlayerViewController?
     
     var stateTime:PlayerStateTime?
-    {
-        didSet {
-//            print(stateTime?.mediaItem)
-//            print(stateTime?.state.hashValue)
-//            print(stateTime?.dateEntered)
-//            print(stateTime?.timeElapsed)
-//            print(stateTime?.startTime)
-        }
-    }
     
     var showsPlaybackControls:Bool{
         get {

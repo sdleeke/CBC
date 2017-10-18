@@ -400,9 +400,9 @@ class PopoverPickerViewController : UIViewController
                         total += rows.count
 
                         if let string = root.string {
-                            wordsHTML = wordsHTML + "<tr id=\"\(string)\" name=\"\(string)\"><td><br/></td></tr>"
+                            wordsHTML = wordsHTML + "<tr><td><br/></td></tr>"
                             
-                            wordsHTML = wordsHTML + "<tr><td>" + "<a href=#index>" + string + "</a>" + " (\(rows.count))</td></tr>" //#index\(string)
+                            wordsHTML = wordsHTML + "<tr><td>" + "<a id=\"\(string)\" name=\"\(string)\" href=#index>" + string + "</a>" + " (\(rows.count))</td></tr>" //#index\(string)
                         }
                         
                         for row in rows {
@@ -415,13 +415,13 @@ class PopoverPickerViewController : UIViewController
 
                 indexHTML = "<table>"
                 
-                indexHTML = indexHTML + "<tr id=\"index\" name=\"index\"><td><br/></td></tr>" // \(string)
+                indexHTML = indexHTML + "<tr><td><br/></td></tr>" // \(string)
                 
                 indexHTML = indexHTML + "<tr><td>Index to \(total) Words</td>"
 
                 for root in roots {
                     if let string = root.string {
-                        indexHTML = indexHTML + "<td>" + "<a href=#\(string)>" + string + "</a>" + "</td>"
+                        indexHTML = indexHTML + "<td>" + "<a id=\"index\" name=\"index\" href=#\(string)>" + string + "</a>" + "</td>"
                     }
                 }
                 

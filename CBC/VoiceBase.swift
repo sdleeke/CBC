@@ -754,7 +754,7 @@ class VoiceBase {
                         }
                         
                         do {
-                            try self._transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8);
+                            try self._transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8)
                         } catch let error as NSError {
                             print("failed to write transcript to cache directory: \(error.localizedDescription)")
                         }
@@ -2808,8 +2808,8 @@ class VoiceBase {
                             
                             srtHTML = srtHTML + "<table>"
                             
-                            srtHTML = srtHTML + "<tr valign=\"bottom\"><td><b>#</b></td><td><b>Start Time</b></td><td><b>End Time</b></td><td><b>Recognized Speech</b></td></tr>"
-                            
+                            srtHTML = srtHTML + "<tr style=\"vertical-align:bottom;\"><td><b>#</b></td><td><b>Start Time</b></td><td><b>End Time</b></td><td><b>Recognized Speech</b></td></tr>"
+                            //  valign=\"bottom\"
                             if let srtComponents = self.srtComponents {
                                 for srtComponent in srtComponents {
                                     var srtArray = srtComponent.components(separatedBy: "\n")
@@ -2824,7 +2824,8 @@ class VoiceBase {
                                             let range = srtComponent.range(of: timeWindow+"\n") {
                                             let text = srtComponent.substring(from: range.upperBound)
                                             
-                                            let row = "<tr valign=\"top\"><td>\(count)</td><td>\(start)</td><td>\(end)</td><td>\(text.replacingOccurrences(of: "\n", with: " "))</td></tr>"
+                                            let row = "<tr style=\"vertical-align:top;\"><td>\(count)</td><td>\(start)</td><td>\(end)</td><td>\(text.replacingOccurrences(of: "\n", with: " "))</td></tr>"
+                                            //  valign=\"top\"
                                             srtHTML = srtHTML + row
                                         }
                                     }

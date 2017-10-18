@@ -734,7 +734,7 @@ class PopoverTableViewController : UIViewController
             width += indexSpace
         }
 
-        if self.section.showIndex || self.section.showHeaders, let count = self.section.headers?.count, (count > 1) || (self.section.strings?.count > 1) {
+        if self.section.showIndex || self.section.showHeaders, let count = self.section.headers?.count, (count > 1) {
             height += CGFloat(40 * count)
         }
         

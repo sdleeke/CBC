@@ -709,7 +709,7 @@ class LexiconIndexViewController : UIViewController
         }
         
         if includeURLs {
-            bodyString = bodyString + " from <a id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+            bodyString = bodyString + " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
         } else {
             bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
         }
@@ -765,12 +765,12 @@ class LexiconIndexViewController : UIViewController
                     let tag = key.replacingOccurrences(of: " ", with: "")
 
                     if includeColumns {
-                        bodyString = bodyString + "<tr id=\"\(tag)\" name=\"\(tag)\"><td><br/></td></tr>"
-                        bodyString = bodyString + "<tr><td valign=\"baseline\" colspan=\"7\">"
+                        bodyString = bodyString + "<tr><td><br/></td></tr>"
+                        bodyString = bodyString + "<tr><td style=\"vertical-align:baseline;\" colspan=\"7\">" // valign=\"baseline\" 
                     }
                     
                     if includeURLs, (keys.count > 1) {
-                        bodyString = bodyString + "<a href=\"#index\(tag)\">" + name + " (\(mediaItems.count))" + "</a>"
+                        bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + " (\(mediaItems.count))" + "</a>"
                     } else {
                         bodyString = bodyString + name + " (\(mediaItems.count))"
                     }
@@ -825,7 +825,7 @@ class LexiconIndexViewController : UIViewController
             bodyString = bodyString + "<br/>"
             
             if includeURLs, keys.count > 1 {
-                bodyString = bodyString + "<div id=\"index\" name=\"index\">Index (<a href=\"#top\">Return to Top</a>)<br/><br/>"
+                bodyString = bodyString + "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
                 
                 if let grouping = globals.grouping {
                     switch grouping {

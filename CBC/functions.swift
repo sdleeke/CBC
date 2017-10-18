@@ -626,7 +626,7 @@ func stringWithoutPrefixes(_ fromString:String?) -> String?
         return fromString
     }
     
-    let sourceString = fromString?.replacingOccurrences(of: Constants.QUOTE, with: Constants.EMPTY_STRING).replacingOccurrences(of: "...", with: Constants.EMPTY_STRING)
+    let sourceString = fromString?.replacingOccurrences(of: Constants.DOUBLE_QUOTE, with: Constants.EMPTY_STRING).replacingOccurrences(of: "...", with: Constants.EMPTY_STRING)
 //    print(sourceString)
     
     let prefixes = ["A ","An ","The "] // "And ",
@@ -1197,14 +1197,14 @@ func versesForBookChapter(_ book:String?,_ chapter:Int) -> [Int]?
     if verses.count == 0 {
         switch testament(book) {
         case Constants.Old_Testament:
-            if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
+//            if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book) {
 //                print(index,Constants.OLD_TESTAMENT_VERSES.count,Constants.OLD_TESTAMENT_VERSES[index].count)
-            }
+//            }
             break
         case Constants.New_Testament:
-            if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
+//            if let index = Constants.NEW_TESTAMENT_BOOKS.index(of: book) {
 //                print(index,Constants.NEW_TESTAMENT_VERSES.count,Constants.NEW_TESTAMENT_VERSES[index].count)
-            }
+//            }
             break
         default:
             break
@@ -3794,9 +3794,7 @@ func insertMenuHead(_ string:String?,fontSize:Int) -> String?
 
 func insertHead(_ string:String?,fontSize:Int) -> String?
 {
-    // <meta name=\"viewport\" content=\"width=device-width,initial-size=1.0\"/>
-    
-    var head = "<html><head><meta name=\"viewport\" content=\"width=device-width,initial-size=1.0\"/>"
+    var head = "<html><head><title>CBC Media</title><meta name=\"viewport\" content=\"width=device-width,initial-size=1.0\"/>"
     
     var style = "<style>"
     
@@ -3821,6 +3819,8 @@ func insertHead(_ string:String?,fontSize:Int) -> String?
     style = style + "</style>"
     
     head = head + style + "</head>"
+    
+//    print(string?.replacingOccurrences(of: "<html>", with: head))
     
     return string?.replacingOccurrences(of: "<html>", with: head)
 }
@@ -4002,7 +4002,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
     }
     
     if includeURLs {
-        bodyString = bodyString + " from <a id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+        bodyString = bodyString + " from <a target=\"_blank\" id=\"top\" name=\"top\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
     } else {
         bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
     }
@@ -4067,13 +4067,13 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
 
                 if includeColumns {
                     if includeURLs {
-                        bodyString = bodyString + "<tr id=\"\(tag)\" name=\"\(tag)\"><td><br/></td></tr>"
+                        bodyString = bodyString + "<tr><td colspan=\"7\"><br/></td></tr>" //  name=\"\(tag)\" name=\"\(tag)\"
                     } else {
-                        bodyString = bodyString + "<tr><td><br/></td></tr>"
+                        bodyString = bodyString + "<tr><td colspan=\"7\"><br/></td></tr>"
                     }
                 } else {
                     if includeURLs {
-                        bodyString = bodyString + "<br id=\"\(tag)\" name=\"\(tag)\"/>"
+                        bodyString = bodyString + "<br/>" //  name=\"\(tag)\" name=\"\(tag)\"
                     } else {
                         bodyString = bodyString + "<br/>"
                     }
@@ -4081,11 +4081,11 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                 
                 if includeColumns {
                     bodyString = bodyString + "<tr>"
-                    bodyString = bodyString + "<td valign=\"baseline\" colspan=\"7\">"
+                    bodyString = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">" //  valign=\"baseline\"
                 }
                 
                 if includeURLs, (keys.count > 1) {
-                    bodyString = bodyString + "<a href=\"#index\(tag)\">" + name + " (\(mediaItems.count))" + "</a>"
+                    bodyString = bodyString + "<a id=\"\(tag)\" name=\"\(tag)\" href=\"#index\(tag)\">" + name + " (\(mediaItems.count))" + "</a>"
                 } else {
                     bodyString = bodyString + name + " (\(mediaItems.count))"
                 }
@@ -4131,18 +4131,6 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                     }
                 }
             }
-//            
-//            if includeColumns {
-//                bodyString = bodyString + "<tr>"
-//                bodyString = bodyString + "<td valign=\"baseline\" colspan=\"7\">"
-//            }
-//            
-//            bodyString = bodyString + "<br/>"
-//            
-//            if includeColumns {
-//                bodyString = bodyString + "</td>"
-//                bodyString = bodyString + "</tr>"
-//            }
         }
         
         if includeColumns {
@@ -4152,7 +4140,7 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
         bodyString = bodyString + "<br/>"
         
         if includeURLs, keys.count > 1 {
-            bodyString = bodyString + "<div id=\"index\" name=\"index\">Index (<a href=\"#top\">Return to Top</a>)<br/><br/>"
+            bodyString = bodyString + "<div>Index (<a id=\"index\" name=\"index\" href=\"#top\">Return to Top</a>)<br/><br/>"
             
             switch grouping {
             case GROUPING.CLASS:
@@ -4184,12 +4172,10 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                             if stringIndex[key] == nil {
                                 stringIndex[key] = [String]()
                             }
-                            //                print(testString,string)
+
                             stringIndex[key]?.append(indexString)
                         }
                     }
-                    
-//                    print(stringIndex)
                     
                     var index:String?
                     
@@ -4205,8 +4191,8 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                     }
                     
                     for title in titles {
-                        bodyString = bodyString + "<div id=\"\(title)\" name=\"\(title)\"/><br/>"
-                        bodyString = bodyString + "<a href=\"#index\">\(title)</a><br/>"
+                        bodyString = bodyString + "<br/>"
+                        bodyString = bodyString + "<a id=\"\(title)\" name=\"\(title)\" href=\"#index\">\(title)</a><br/>"
                         
                         if let keys = stringIndex[title] {
                             for key in keys {
@@ -4216,8 +4202,9 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
                                     bodyString = bodyString + "<a id=\"index\(tag)\" name=\"index\(tag)\" href=\"#\(tag)\">\(title) (\(count))</a><br/>"
                                 }
                             }
-//                            bodyString = bodyString + "<br/>"
                         }
+                        
+                        bodyString = bodyString + "</div>"
                     }
                     
                     bodyString = bodyString + "</div>"
@@ -4240,6 +4227,8 @@ func setupMediaItemsHTMLGlobal(includeURLs:Bool,includeColumns:Bool) -> String?
     }
     
     bodyString = bodyString + "</body></html>"
+    
+//    print(insertHead(bodyString,fontSize: Constants.FONT_SIZE) as Any)
     
     return insertHead(bodyString,fontSize: Constants.FONT_SIZE)
 }
@@ -4337,7 +4326,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
     }
     
     if includeURLs {
-        bodyString = bodyString + " from <a href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
+        bodyString = bodyString + " from <a target=\"_blank\" href=\"\(Constants.CBC.MEDIA_WEBSITE)\">" + Constants.CBC.LONG + "</a><br/><br/>"
     } else {
         bodyString = bodyString + " from " + Constants.CBC.LONG + "<br/><br/>"
     }
@@ -4381,7 +4370,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
                     
                     if includeColumns {
                         bodyString  = bodyString + "<tr>"
-                        bodyString  = bodyString + "<td valign=\"baseline\" colspan=\"7\">"
+                        bodyString  = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">" //  valign=\"baseline\"
                     }
                     
                     bodyString = bodyString + "<br/>"
@@ -4397,7 +4386,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
                 if let lastKey = lastKey, let count = mediaListSort[lastKey]?.count, count == 1 {
                     if includeColumns {
                         bodyString  = bodyString + "<tr>"
-                        bodyString  = bodyString + "<td valign=\"baseline\" colspan=\"7\">"
+                        bodyString  = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">" // valign=\"baseline\"
                     }
                     
                     bodyString = bodyString + "<br/>"
@@ -4424,7 +4413,7 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
                 
                 if includeColumns {
                     bodyString  = bodyString + "<tr>"
-                    bodyString  = bodyString + "<td valign=\"baseline\" colspan=\"7\">"
+                    bodyString  = bodyString + "<td style=\"vertical-align:baseline;\" colspan=\"7\">" //  valign=\"baseline\"
                 }
                 
                 if includeURLs, (keys.count > 1) {
@@ -4507,37 +4496,10 @@ func addressString() -> String
     return addressString
 }
 
-//var alerts = [UIAlertController]()
-
 func networkUnavailable(_ viewController:UIViewController,_ message:String?)
 {
     alert(viewController:viewController,title:Constants.Network_Error,message:message,completion:nil)
 }
-
-//func notification(title:String?,message:String?)
-//{
-//    if #available(iOS 10.0, *) {
-//        let content = UNMutableNotificationContent()
-//
-//        content.title = title ?? ""
-//        content.body = message ?? ""
-//        content.sound = UNNotificationSound.default()
-//        
-//        // Deliver the notification in five seconds.
-//        let trigger = UNTimeIntervalNotificationTrigger.init(timeInterval: 1.0, repeats: false)
-//        let request = UNNotificationRequest.init(identifier: "CBC", content: content, trigger: trigger)
-//        
-//        // Schedule the notification.
-//        let center = UNUserNotificationCenter.current()
-//        center.add(request) { (error) in
-//            print(error)
-//        }
-//        
-//        print("should have been added")
-//    } else {
-//        // Fallback on earlier versions
-//    }
-//}
 
 func alert(viewController:UIViewController,title:String?,message:String?,completion:(()->(Void))?)
 {

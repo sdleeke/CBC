@@ -527,7 +527,12 @@ class ScriptureViewController : UIViewController
             if self.scripture?.html?[reference] != nil {
                 if let string = self.scripture?.html?[reference] {
                     self.webViewController?.html.string = string
-                    _ = self.webViewController?.wkWebView?.loadHTMLString(string, baseURL: nil)
+                    
+                    if let url = self.webViewController?.html.fileURL {
+                        self.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                    }
+
+//                    _ = self.webViewController?.wkWebView?.loadHTMLString(string, baseURL: nil)
                 }
             } else {
                 process(viewController: self, work: { () -> (Any?) in
@@ -536,7 +541,12 @@ class ScriptureViewController : UIViewController
                 }) { (data:Any?) in
                     if let string = data as? String {
                         self.webViewController?.html.string = string
-                        _ = self.webViewController?.wkWebView?.loadHTMLString(string, baseURL: nil)
+                        
+                        if let url = self.webViewController?.html.fileURL {
+                            self.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                        }
+
+//                        _ = self.webViewController?.wkWebView?.loadHTMLString(string, baseURL: nil)
                     } else {
                         var bodyString = "<!DOCTYPE html><html><body>"
                         
@@ -546,7 +556,12 @@ class ScriptureViewController : UIViewController
                         
                         if let string = insertHead(bodyString,fontSize:Constants.FONT_SIZE) {
                             self.webViewController?.html.string = string
-                            _ = self.webViewController?.wkWebView?.loadHTMLString(string, baseURL: nil)
+                            
+                            if let url = self.webViewController?.html.fileURL {
+                                self.webViewController?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                            }
+
+//                            _ = self.webViewController?.wkWebView?.loadHTMLString(string, baseURL: nil)
                         }
                     }
                 }

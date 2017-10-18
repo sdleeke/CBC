@@ -923,16 +923,22 @@ class MediaItem : NSObject
                 if let playing = mediaItemSettings?[Field.playing] {
                     dict?[Field.playing] = playing
                 } else {
-                    dict?[Field.playing] = hasAudio ? Playing.audio : (hasVideo ? Playing.video : nil)
+                    // Avoid simultaneous read and write in dict.
+                    let playing = hasAudio ? Playing.audio : (hasVideo ? Playing.video : nil)
+                    dict?[Field.playing] = playing
                 }
             }
             
             if !hasAudio && (dict?[Field.playing] == Playing.audio) {
-                dict?[Field.playing] = hasVideo ? Playing.video : nil
+                // Avoid simultaneous read and write in dict.
+                let playing = hasVideo ? Playing.video : nil
+                dict?[Field.playing] = playing
             }
 
             if !hasVideo && (dict?[Field.playing] == Playing.video) {
-                dict?[Field.playing] = hasAudio ? Playing.audio : nil
+                // Avoid simultaneous read and write in dict.
+                let playing = hasAudio ? Playing.audio : nil
+                dict?[Field.playing] = playing
             }
             
             return dict?[Field.playing]
@@ -1853,8 +1859,6 @@ class MediaItem : NSObject
             var foundString:String = Constants.EMPTY_STRING
 
             while (string.lowercased().range(of: searchText.lowercased()) != nil) {
-                //                print(string)
-                
                 if let range = string.lowercased().range(of: searchText.lowercased()) {
                     stringBefore = string.substring(to: range.lowerBound)
                     stringAfter = string.substring(from: range.upperBound)
@@ -2536,25 +2540,25 @@ class MediaItem : NSObject
             for item in order {
                 switch item.lowercased() {
                 case "date":
-                    bodyString = bodyString! + "<td valign=\"baseline\">"
+                    bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">" //  valign=\"baseline\"
                     if let month = formattedDateMonth {
                         bodyString = bodyString! + month
                     }
                     bodyString = bodyString! + "</td>"
                     
-                    bodyString = bodyString! + "<td valign=\"baseline\" align=\"right\">"
+                    bodyString = bodyString! + "<td style=\"vertical-align:baseline;text-align:right;\">" //valign=\"baseline\" align=\"right\"
                     if let day = formattedDateDay {
                         bodyString  = bodyString! + day + ","
                     }
                     bodyString = bodyString! + "</td>"
                     
-                    bodyString = bodyString! + "<td valign=\"baseline\" align=\"right\">"
+                    bodyString = bodyString! + "<td style=\"vertical-align:baseline;text-align:right;\">" //  valign=\"baseline\" align=\"right\"
                     if let year = formattedDateYear {
                         bodyString  = bodyString! + year
                     }
                     bodyString = bodyString! + "</td>"
                     
-                    bodyString = bodyString! + "<td valign=\"baseline\">"
+                    bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">" //  valign=\"baseline\"
                     if let service = self.service {
                         bodyString  = bodyString! + service
                     }
@@ -2562,10 +2566,10 @@ class MediaItem : NSObject
                     break
                     
                 case "title":
-                    bodyString = bodyString! + "<td valign=\"baseline\">"
+                    bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">" //  valign=\"baseline\"
                     if let title = self.title {
                         if includeURLs, let websiteURL = websiteURL?.absoluteString {
-                            bodyString = bodyString! + "<a href=\"" + websiteURL + "\">\(title)</a>"
+                            bodyString = bodyString! + "<a target=\"_blank\" href=\"" + websiteURL + "\">\(title)</a>"
                         } else {
                             bodyString = bodyString! + title
                         }
@@ -2574,7 +2578,7 @@ class MediaItem : NSObject
                     break
 
                 case "scripture":
-                    bodyString = bodyString! + "<td valign=\"baseline\">"
+                    bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">" //  valign=\"baseline\"
                     if let scriptureReference = self.scriptureReference {
                         bodyString = bodyString! + scriptureReference
                     }
@@ -2582,7 +2586,7 @@ class MediaItem : NSObject
                     break
                     
                 case "speaker":
-                    bodyString = bodyString! + "<td valign=\"baseline\">"
+                    bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">" //  valign=\"baseline\"
                     if let speaker = self.speaker {
                         bodyString = bodyString! + speaker
                     }
@@ -2590,7 +2594,7 @@ class MediaItem : NSObject
                     break
                     
                 case "class":
-                    bodyString = bodyString! + "<td valign=\"baseline\">"
+                    bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">" //  valign=\"baseline\"
                     if let className = self.className {
                         bodyString = bodyString! + className
                     }
@@ -2598,7 +2602,7 @@ class MediaItem : NSObject
                     break
                     
                 case "event":
-                    bodyString = bodyString! + "<td valign=\"baseline\">"
+                    bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">" //  valign=\"baseline\"
                     if let eventName = self.eventName {
                         bodyString = bodyString! + eventName
                     }
@@ -2606,7 +2610,7 @@ class MediaItem : NSObject
                     break
                     
                 case "count":
-                    bodyString = bodyString! + "<td valign=\"baseline\">"
+                    bodyString = bodyString! + "<td style=\"vertical-align:baseline;\">" //  valign=\"baseline\"
                     if let token = token, let count = self.notesTokens?[token] {
                         bodyString = bodyString! + "(\(count))"
                     }

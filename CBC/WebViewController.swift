@@ -16,11 +16,55 @@ struct HTML {
     var string:String?
     {
         didSet {
+            string = string?.replacingOccurrences(of: Constants.LEFT_DOUBLE_QUOTE, with: Constants.DOUBLE_QUOTE)
+            string = string?.replacingOccurrences(of: Constants.RIGHT_DOUBLE_QUOTE, with: Constants.DOUBLE_QUOTE)
+            
+            string = string?.replacingOccurrences(of: Constants.LEFT_SINGLE_QUOTE, with: Constants.SINGLE_QUOTE)
+            string = string?.replacingOccurrences(of: Constants.RIGHT_SINGLE_QUOTE, with: Constants.SINGLE_QUOTE)
+            
+            string = string?.replacingOccurrences(of: Constants.EM_DASH, with: Constants.DASH)
+            
             if original == nil {
                 original = string
             }
+            
+            if string != oldValue {
+                if let url = fileURL {
+                    let fileManager = FileManager.default
+                    
+                    if (fileManager.fileExists(atPath: url.path)){
+                        do {
+                            try fileManager.removeItem(at: url)
+                        } catch let error as NSError {
+                            print("failed to remove htmlString: \(error.localizedDescription)")
+                        }
+                    }
+                    
+                    if let isEmpty = string?.isEmpty, !isEmpty {
+                        do {
+                            try string?.write(toFile: url.path, atomically: false, encoding: String.Encoding.utf8);
+                        } catch let error as NSError {
+                            print("failed to write htmlString to cache directory: \(error.localizedDescription)")
+                        }
+                    }
+                }
+            }
         }
     }
+    
+    var fileURL : URL?
+    {
+        get {
+//            return !(string?.isEmpty ?? true) ? cachesURL()?.appendingPathComponent("string.html") : nil
+            
+            if let isEmpty = string?.isEmpty, !isEmpty {
+                return cachesURL()?.appendingPathComponent("string.html")
+            } else {
+                return nil
+            }
+        }
+    }
+    
     var fontSize = Constants.FONT_SIZE
     var xRatio = 0.0
     var yRatio = 0.0
@@ -71,9 +115,12 @@ extension WebViewController : PopoverPickerControllerDelegate
         html.string = selectedMediaItem?.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
         html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
         
-        if let htmlString = self.html.string {
-            _ = self.wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+        if let url = self.html.fileURL {
+            wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
         }
+//        if let htmlString = self.html.string {
+//            _ = self.wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+//        }
     }
 }
 
@@ -196,9 +243,12 @@ extension WebViewController : PopoverTableViewControllerDelegate
                     self.html.string = insertHead(stripHead(self.markedHTML(searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
                 }
                 
-                if let htmlString = self.html.string {
-                    _ = self.wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+                if let url = self.html.fileURL {
+                    self.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                 }
+//                if let htmlString = self.html.string {
+//                    _ = self.wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+//                }
             })
             break
             
@@ -362,10 +412,14 @@ extension WebViewController : PopoverTableViewControllerDelegate
             
             html.string = selectedMediaItem?.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
             html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
-            
-            if let htmlString = self.html.string {
-                _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+      
+            if let url = self.html.fileURL {
+                wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
             }
+
+//            if let htmlString = self.html.string {
+//                _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+//            }
             break
             
         case .selectingAction:
@@ -448,26 +502,28 @@ extension WebViewController : WKNavigationDelegate
     
     func webView(_ wkWebView: WKWebView, didStartProvisionalNavigation: WKNavigation!)
     {
-        
+
     }
     
     func webView(_ wkWebView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void)
     {
-        if (navigationAction.navigationType == .other) {
-            decisionHandler(WKNavigationActionPolicy.allow)
-        } else {
-            if let url = navigationAction.request.url?.absoluteString, let range = url.range(of: "%23") {
-                let tag = url.substring(to: range.lowerBound)
-                
-                if tag == "about:blank" {
-                    decisionHandler(WKNavigationActionPolicy.allow)
-                } else {
-                    decisionHandler(WKNavigationActionPolicy.cancel)
-                }
+        switch navigationAction.navigationType {
+        case .linkActivated:
+            if let url = navigationAction.request.url?.absoluteString, url.contains("file:///") {
+                decisionHandler(WKNavigationActionPolicy.allow)
             } else {
                 open(scheme: navigationAction.request.url?.absoluteString) {}
                 decisionHandler(WKNavigationActionPolicy.cancel)
             }
+            break
+            
+        case .other: // loading html string
+            decisionHandler(WKNavigationActionPolicy.allow)
+            break
+            
+        default:
+            decisionHandler(WKNavigationActionPolicy.cancel)
+            break
         }
     }
 }
@@ -915,9 +971,13 @@ class WebViewController: UIViewController
 
         html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
 
-        if let htmlString = html.string {
-            _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+        if let url = html.fileURL {
+            wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
         }
+
+//        if let htmlString = html.string {
+//            _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+//        }
     }
     
     func decreaseFontSize()
@@ -938,9 +998,13 @@ class WebViewController: UIViewController
             
             html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
 
-            if let htmlString = html.string {
-                _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+            if let url = html.fileURL {
+                wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
             }
+
+//            if let htmlString = html.string {
+//                _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+//            }
         }
     }
     
@@ -1109,39 +1173,6 @@ class WebViewController: UIViewController
         }
     }
     
-    func setupHTMLWKZoomScaleAndContentOffset(_ wkWebView: WKWebView?)
-    {
-        // This used in transition to size to set the content offset.
-        
-        guard let wkWebView = wkWebView else {
-            return
-        }
-        
-        let contentOffset = CGPoint(x: CGFloat(html.xRatio * Double(wkWebView.scrollView.contentSize.width)),
-                                    y: CGFloat(html.yRatio * Double(wkWebView.scrollView.contentSize.height)))
-        
-        Thread.onMainThread() {
-            wkWebView.scrollView.setZoomScale(CGFloat(self.html.zoomScale), animated: false)
-            wkWebView.scrollView.setContentOffset(contentOffset,animated: false)
-        }
-    }
-    
-    func setupHTMLWKContentOffset(_ wkWebView: WKWebView?)
-    {
-        // This used in transition to size to set the content offset.
-        
-        guard let wkWebView = wkWebView else {
-            return
-        }
-        
-        let contentOffset = CGPoint(x: CGFloat(html.xRatio * Double(wkWebView.scrollView.contentSize.width)), //
-            y: CGFloat(html.yRatio * Double(wkWebView.scrollView.contentSize.height))) //
-        
-        Thread.onMainThread() {
-            wkWebView.scrollView.setContentOffset(contentOffset,animated: false)
-        }
-    }
-    
     func captureContentOffsetAndZoomScale()
     {
         guard let wkWebView = wkWebView else {
@@ -1165,19 +1196,56 @@ class WebViewController: UIViewController
         }
     }
     
+    //
+    // The following don't work well
+    //
+    
+    func setupHTMLWKZoomScaleAndContentOffset(_ wkWebView: WKWebView?)
+    {
+        // This used in transition to size to set the content offset.
+        
+//        guard let wkWebView = wkWebView else {
+//            return
+//        }
+//
+//        let contentOffset = CGPoint(x: CGFloat(html.xRatio * Double(wkWebView.scrollView.contentSize.width)),
+//                                    y: CGFloat(html.yRatio * Double(wkWebView.scrollView.contentSize.height)))
+//
+//        Thread.onMainThread() {
+//            wkWebView.scrollView.setZoomScale(CGFloat(self.html.zoomScale), animated: false)
+//            wkWebView.scrollView.setContentOffset(contentOffset,animated: false)
+//        }
+    }
+    
+    func setupHTMLWKContentOffset(_ wkWebView: WKWebView?)
+    {
+        // This used in transition to size to set the content offset.
+        
+//        guard let wkWebView = wkWebView else {
+//            return
+//        }
+//
+//        let contentOffset = CGPoint(x: CGFloat(html.xRatio * Double(wkWebView.scrollView.contentSize.width)), //
+//            y: CGFloat(html.yRatio * Double(wkWebView.scrollView.contentSize.height))) //
+//
+//        Thread.onMainThread() {
+//            wkWebView.scrollView.setContentOffset(contentOffset,animated: false)
+//        }
+    }
+    
     func captureHTMLContentOffsetAndZoomScale()
     {
-        guard let wkWebView = wkWebView else {
-            return
-        }
-        
-        if !wkWebView.isLoading {
-            html.xRatio = Double(wkWebView.scrollView.contentOffset.x) / Double(wkWebView.scrollView.contentSize.width)
-
-            html.yRatio = Double(wkWebView.scrollView.contentOffset.y) / Double(wkWebView.scrollView.contentSize.height)
-            
-            html.zoomScale = Double(wkWebView.scrollView.zoomScale)
-        }
+//        guard let wkWebView = wkWebView else {
+//            return
+//        }
+//
+//        if !wkWebView.isLoading {
+//            html.xRatio = Double(wkWebView.scrollView.contentOffset.x) / Double(wkWebView.scrollView.contentSize.width)
+//
+//            html.yRatio = Double(wkWebView.scrollView.contentOffset.y) / Double(wkWebView.scrollView.contentSize.height)
+//
+//            html.zoomScale = Double(wkWebView.scrollView.zoomScale)
+//        }
     }
     
     func setupSplitViewController()
@@ -1209,7 +1277,7 @@ class WebViewController: UIViewController
     {
         super.viewWillTransition(to: size, with: coordinator)
         
-        if (self.view.window == nil) {
+        guard (self.view.window == nil) else {
             return
         }
 
@@ -1236,6 +1304,7 @@ class WebViewController: UIViewController
                 break
             }
             
+            // only works for popover
             if let title = self.navigationItem.title, let wkWebView = self.wkWebView {
                 let string = title.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE)
                 
@@ -1639,10 +1708,14 @@ class WebViewController: UIViewController
             case .html:
                 if html.string != nil {
                     html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
-                    
-                    if let htmlString = html.string {
-                        _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+  
+                    if let url = html.fileURL {
+                        wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                     }
+
+//                    if let htmlString = html.string {
+//                        _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+//                    }
                 }
                 break
             }

@@ -572,15 +572,15 @@
                             <mask key="constraints">
                                 <exclude reference="0Jv-l5-4Tu"/>
                                 <exclude reference="hHn-qT-3ih"/>
+                                <exclude reference="UTu-1b-fA3"/>
+                                <exclude reference="d7L-W7-98W"/>
                                 <exclude reference="EC7-xr-i5p"/>
                                 <exclude reference="UIA-aB-fuC"/>
                                 <exclude reference="wWa-1o-oXk"/>
-                                <exclude reference="9RS-p5-gJG"/>
-                                <exclude reference="XcF-SL-vQ7"/>
-                                <exclude reference="UTu-1b-fA3"/>
-                                <exclude reference="d7L-W7-98W"/>
                                 <exclude reference="OsV-IC-JLv"/>
                                 <exclude reference="f9R-Gt-YvP"/>
+                                <exclude reference="9RS-p5-gJG"/>
+                                <exclude reference="XcF-SL-vQ7"/>
                                 <exclude reference="Bnz-L0-ebT"/>
                                 <exclude reference="Gee-mK-zaj"/>
                             </mask>
@@ -598,19 +598,19 @@
                                 <exclude reference="HOe-Ks-3kR"/>
                                 <exclude reference="VmD-wu-0aL"/>
                                 <include reference="hHn-qT-3ih"/>
+                                <include reference="UTu-1b-fA3"/>
+                                <include reference="d7L-W7-98W"/>
                                 <include reference="EC7-xr-i5p"/>
                                 <include reference="UIA-aB-fuC"/>
                                 <include reference="wWa-1o-oXk"/>
-                                <include reference="9RS-p5-gJG"/>
-                                <include reference="XcF-SL-vQ7"/>
-                                <include reference="UTu-1b-fA3"/>
-                                <include reference="d7L-W7-98W"/>
-                                <exclude reference="dAk-pk-tVX"/>
-                                <exclude reference="wn1-va-00m"/>
                                 <exclude reference="KCd-mo-EHx"/>
                                 <exclude reference="Ujg-Dd-jZe"/>
                                 <exclude reference="ahL-wp-zfw"/>
                                 <exclude reference="nmy-u3-oU6"/>
+                                <include reference="9RS-p5-gJG"/>
+                                <include reference="XcF-SL-vQ7"/>
+                                <exclude reference="dAk-pk-tVX"/>
+                                <exclude reference="wn1-va-00m"/>
                                 <include reference="Bnz-L0-ebT"/>
                                 <include reference="Gee-mK-zaj"/>
                             </mask>
@@ -1111,21 +1111,21 @@ Web site: www.countrysidebible.org</string>
         <!--Live Stream-->
         <scene sceneID="ee0-py-eBo">
             <objects>
-                <viewController title="Live Stream" automaticallyAdjustsScrollViewInsets="NO" id="NJo-7f-uFD" customClass="LiveViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController title="Live Stream" extendedLayoutIncludesOpaqueBars="YES" automaticallyAdjustsScrollViewInsets="NO" id="NJo-7f-uFD" customClass="LiveViewController" customModule="CBC" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="Neb-rI-lkq"/>
                         <viewControllerLayoutGuide type="bottom" id="BnS-sI-BZ8"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="gRo-VW-4dm">
-                        <rect key="frame" x="0.0" y="0.0" width="568" height="285"/>
+                        <rect key="frame" x="0.0" y="0.0" width="568" height="320"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="z2d-eT-0hV" userLabel="Web View">
-                                <rect key="frame" x="0.0" y="0.0" width="568" height="255"/>
+                                <rect key="frame" x="0.0" y="32" width="568" height="255"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </view>
                             <textView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" canCancelContentTouches="NO" bouncesZoom="NO" editable="NO" text="Countryside broadcasts live on Sundays at 8:45 am, 10:45 am, and 6:00 pm." textAlignment="center" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jso-Nw-Fui">
-                                <rect key="frame" x="0.0" y="255" width="568" height="33"/>
+                                <rect key="frame" x="0.0" y="287" width="568" height="33"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="lessThanOrEqual" constant="60" id="0NZ-dK-ch7"/>
@@ -1134,7 +1134,7 @@ Web site: www.countrysidebible.org</string>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                             <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="vLD-jU-3Sf">
-                                <rect key="frame" x="144.5" y="108" width="279" height="72"/>
+                                <rect key="frame" x="144.5" y="124" width="279" height="72"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                 </accessibility>
@@ -1166,7 +1166,7 @@ Web site: www.countrysidebible.org</string>
                             </mask>
                         </variation>
                     </view>
-                    <extendedEdge key="edgesForExtendedLayout"/>
+                    <extendedEdge key="edgesForExtendedLayout" top="YES"/>
                     <navigationItem key="navigationItem" title="Countryside Bible Church Live" id="S8U-Cv-Cw0"/>
                     <connections>
                         <outlet property="logo" destination="vLD-jU-3Sf" id="SR7-0O-xwj"/>
@@ -2061,23 +2061,23 @@ Web site: www.countrysidebible.org</string>
                         <viewControllerLayoutGuide type="bottom" id="sSl-Kf-RVh"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="zgz-12-4k5">
-                        <rect key="frame" x="0.0" y="0.0" width="568" height="285"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="379"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="zOR-Bo-b5Q" userLabel="WebView">
-                                <rect key="frame" x="0.0" y="0.0" width="568" height="288"/>
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="379"/>
                                 <subviews>
                                     <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="yDC-gB-XdD">
-                                        <rect key="frame" x="274" y="134" width="20" height="20"/>
+                                        <rect key="frame" x="290" y="179.5" width="20" height="20"/>
                                     </activityIndicatorView>
                                     <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="qrD-FV-X2j">
-                                        <rect key="frame" x="209" y="143" width="150" height="2"/>
+                                        <rect key="frame" x="225" y="188.5" width="150" height="2"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="150" id="0LC-Px-yJa"/>
                                         </constraints>
                                     </progressView>
                                     <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="CBC_logo" translatesAutoresizingMaskIntoConstraints="NO" id="2ws-5f-m41">
-                                        <rect key="frame" x="145" y="108" width="279" height="72"/>
+                                        <rect key="frame" x="161" y="153.5" width="279" height="72"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" image="YES" notEnabled="YES"/>
                                         </accessibility>
@@ -2222,7 +2222,7 @@ Web site: www.countrysidebible.org</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Rkh-vM-RF9" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1855" y="440"/>
+            <point key="canvasLocation" x="1817" y="923"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="YAt-yj-IPk">
@@ -2494,7 +2494,7 @@ Web site: www.countrysidebible.org</string>
         <image name="tom_pennington" width="800" height="800"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="9iC-FD-bna"/>
+        <segue reference="aB1-TK-hgY"/>
         <segue reference="29o-8N-w4i"/>
         <segue reference="lht-fN-efO"/>
     </inferredMetricsTieBreakers>

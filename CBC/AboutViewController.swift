@@ -99,7 +99,7 @@ class AboutViewController: UIViewController
 {
     override var canBecomeFirstResponder : Bool
     {
-        return true //let isCollapsed = self.splitViewController?.isCollapsed, isCollapsed //splitViewController == nil
+        return true
     }
     
     override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?)
@@ -216,8 +216,6 @@ class AboutViewController: UIViewController
 
         navigationController?.setToolbarHidden(true, animated: false)
 
-//        navigationItem.leftItemsSupplementBackButton = true
-        
         setupActionButton()
     }
     
@@ -274,17 +272,6 @@ class AboutViewController: UIViewController
         }
         
         setDVCLeftBarButton()
-//        if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
-//            let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
-//            let count = self.splitViewController?.viewControllers.count {
-//            if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
-//                if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-//                    navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
-//                } else {
-//                    navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
-//                }
-//            }
-//        }
         
         mapView.isHidden = true
 
@@ -296,7 +283,8 @@ class AboutViewController: UIViewController
         }
     }
     
-    override func viewDidAppear(_ animated: Bool) {
+    override func viewDidAppear(_ animated: Bool)
+    {
         super.viewDidAppear(animated)
         
         scrollView.flashScrollIndicators()
@@ -315,7 +303,8 @@ class AboutViewController: UIViewController
         
     }
 
-    override func didReceiveMemoryWarning() {
+    override func didReceiveMemoryWarning()
+    {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
         globals.freeMemory()
@@ -337,18 +326,6 @@ class AboutViewController: UIViewController
             }
             
             self.setDVCLeftBarButton()
-
-//            if  let hClass = self.splitViewController?.traitCollection.horizontalSizeClass,
-//                let vClass = self.splitViewController?.traitCollection.verticalSizeClass,
-//                let count = self.splitViewController?.viewControllers.count {
-//                if let navigationController = self.splitViewController?.viewControllers[count - 1] as? UINavigationController {
-//                    if (hClass == UIUserInterfaceSizeClass.regular) && (vClass == UIUserInterfaceSizeClass.compact) {
-//                        navigationController.topViewController?.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
-//                    } else {
-//                        navigationController.topViewController?.navigationItem.leftBarButtonItem = nil
-//                    }
-//                }
-//            }
         }
     }
 }
