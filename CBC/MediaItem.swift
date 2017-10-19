@@ -1003,6 +1003,17 @@ class MediaItem : NSObject
             
             if (newValue != Showing.video) {
                 wasShowing = newValue
+            } else {
+                if wasShowing == nil {
+                    if hasSlides {
+                        wasShowing = Showing.slides
+                    } else
+                    if hasNotes {
+                        wasShowing = Showing.notes
+                    } else {
+                        wasShowing = Showing.none
+                    }
+                }
             }
             
             dict?[Field.showing] = newValue

@@ -347,13 +347,13 @@ extension WebViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.Strings.Open_in_Browser:
-            if let url = selectedMediaItem?.downloadURL {
-                open(scheme: url.absoluteString) {
-                    networkUnavailable(self,"Unable to open: \(url)")
-                }
-            }
-            break
+//        case Constants.Strings.Open_in_Browser:
+//            if let url = selectedMediaItem?.downloadURL {
+//                open(scheme: url.absoluteString) {
+//                    networkUnavailable(self,"Unable to open: \(url)")
+//                }
+//            }
+//            break
             
         case Constants.Strings.Refresh_Document:
             selectedMediaItem?.download?.delete()
@@ -1038,10 +1038,12 @@ class WebViewController: UIViewController
             case .overCurrentContext:
                 if self.navigationController?.viewControllers.count == 1 { // This allows the back button to show. >1 implies it is below the top view controller in a push stack.
                     navigationItem.setLeftBarButton(UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.done)), animated: true)
+                    
+                    navigationItem.setRightBarButtonItems([fullScreenButton,minusButton,plusButton], animated: true)
+                } else {
+                    navigationItem.setRightBarButtonItems([minusButton,plusButton], animated: true)
                 }
                 
-                navigationItem.setRightBarButtonItems([fullScreenButton,minusButton,plusButton], animated: true)
-
             case .fullScreen:
                 fallthrough
             case .overFullScreen:

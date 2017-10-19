@@ -124,13 +124,13 @@ extension MediaViewController : PopoverTableViewControllerDelegate
         }
         
         switch action {
-        case Constants.Strings.Zoom_Video:
-            zoomVideo()
-            break
-            
-        case Constants.Strings.Swap_Video_Location:
-            swapVideoLocation()
-            break
+//        case Constants.Strings.Zoom_Video:
+//            zoomVideo()
+//            break
+//
+//        case Constants.Strings.Swap_Video_Location:
+//            swapVideoLocation()
+//            break
             
         case Constants.Strings.Print_Slides:
             fallthrough
@@ -138,11 +138,17 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             printDocument(viewController: self, documentURL: selectedMediaItem?.downloadURL)
             break
             
-        case Constants.Strings.Add_to_Favorites:
-            globals.queue.sync(execute: { () -> Void in
-                self.selectedMediaItem?.addTag(Constants.Strings.Favorites)
-            })
-            break
+//        case Constants.Strings.Add_to_Favorites:
+//            globals.queue.sync(execute: { () -> Void in
+//                self.selectedMediaItem?.addTag(Constants.Strings.Favorites)
+//            })
+//            break
+//
+//        case Constants.Strings.Remove_From_Favorites:
+//            globals.queue.sync(execute: { () -> Void in
+//                self.selectedMediaItem?.removeTag(Constants.Strings.Favorites)
+//            })
+//            break
             
         case Constants.Strings.Add_All_to_Favorites:
             guard let mediaItems = mediaItems else {
@@ -153,12 +159,6 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 for mediaItem in mediaItems {
                     mediaItem.addTag(Constants.Strings.Favorites)
                 }
-            })
-            break
-            
-        case Constants.Strings.Remove_From_Favorites:
-            globals.queue.sync(execute: { () -> Void in
-                self.selectedMediaItem?.removeTag(Constants.Strings.Favorites)
             })
             break
             
@@ -174,21 +174,21 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             })
             break
             
-        case Constants.Strings.Open_on_CBC_Website:
-            if let url = self.selectedMediaItem?.websiteURL {
-                open(scheme: url.absoluteString) {
-                    networkUnavailable(self,"Unable to open: \(url)")
-                }
-            }
-            break
+//        case Constants.Strings.Open_on_CBC_Website:
+//            if let url = self.selectedMediaItem?.websiteURL {
+//                open(scheme: url.absoluteString) {
+//                    networkUnavailable(self,"Unable to open: \(url)")
+//                }
+//            }
+//            break
             
-        case Constants.Strings.Open_in_Browser:
-            if let url = self.selectedMediaItem?.downloadURL {
-                open(scheme: url.absoluteString) {
-                    networkUnavailable(self,"Unable to open: \(url)")
-                }
-            }
-            break
+//        case Constants.Strings.Open_in_Browser:
+//            if let url = self.selectedMediaItem?.downloadURL {
+//                open(scheme: url.absoluteString) {
+//                    networkUnavailable(self,"Unable to open: \(url)")
+//                }
+//            }
+//            break
             
         case Constants.Strings.Scripture_Viewer:
             if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: "Scripture View") as? UINavigationController,
@@ -213,13 +213,13 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.Strings.Scripture_in_Browser:
-            openMediaItemScripture(selectedMediaItem)
-            break
+//        case Constants.Strings.Scripture_in_Browser:
+//            openMediaItemScripture(selectedMediaItem)
+//            break
             
-        case Constants.Strings.Download_Audio:
-            selectedMediaItem?.audioDownload?.download()
-            break
+//        case Constants.Strings.Download_Audio:
+//            selectedMediaItem?.audioDownload?.download()
+//            break
             
         case Constants.Strings.Download_All_Audio:
             guard let mediaItems = mediaItems else {
@@ -231,48 +231,48 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             }
             break
             
-        case Constants.Strings.Cancel_Audio_Download:
-            if let state = selectedMediaItem?.audioDownload?.state {
-                switch state {
-                case .downloading:
-                    selectedMediaItem?.audioDownload?.cancel()
-                    break
-                    
-                case .downloaded:
-                    let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-                                                    message: nil,
-                                                    preferredStyle: .alert)
-                    alert.makeOpaque()
-                    
-                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
-                        (action : UIAlertAction!) -> Void in
-                        self.selectedMediaItem?.audioDownload?.delete()
-                    })
-                    alert.addAction(yesAction)
-                    
-                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
-                        (action : UIAlertAction!) -> Void in
-                        
-                    })
-                    alert.addAction(noAction)
-                    
-                    let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                        (action : UIAlertAction!) -> Void in
-                        
-                    })
-                    alert.addAction(cancel)
-                    
-                    // For .actionSheet style
-                    //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
-                    
-                    self.present(alert, animated: true, completion: nil)
-                    break
-                    
-                default:
-                    break
-                }
-            }
-            break
+//        case Constants.Strings.Cancel_Audio_Download:
+//            if let state = selectedMediaItem?.audioDownload?.state {
+//                switch state {
+//                case .downloading:
+//                    selectedMediaItem?.audioDownload?.cancel()
+//                    break
+//
+//                case .downloaded:
+//                    let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+//                                                    message: nil,
+//                                                    preferredStyle: .alert)
+//                    alert.makeOpaque()
+//
+//                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+//                        (action : UIAlertAction!) -> Void in
+//                        self.selectedMediaItem?.audioDownload?.delete()
+//                    })
+//                    alert.addAction(yesAction)
+//
+//                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+//                        (action : UIAlertAction!) -> Void in
+//
+//                    })
+//                    alert.addAction(noAction)
+//
+//                    let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+//                        (action : UIAlertAction!) -> Void in
+//
+//                    })
+//                    alert.addAction(cancel)
+//
+//                    // For .actionSheet style
+//                    //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
+//
+//                    self.present(alert, animated: true, completion: nil)
+//                    break
+//
+//                default:
+//                    break
+//                }
+//            }
+//            break
             
         case Constants.Strings.Cancel_All_Audio_Downloads:
             guard let mediaItems = mediaItems else {
@@ -395,9 +395,9 @@ extension MediaViewController : PopoverTableViewControllerDelegate
             })
             break
             
-        case Constants.Strings.Share:
-            shareHTML(viewController: self, htmlString: mediaItem?.webLink)
-            break
+//        case Constants.Strings.Share:
+//            shareHTML(viewController: self, htmlString: mediaItem?.webLink)
+//            break
             
         case Constants.Strings.Share_All:
             shareMediaItems(viewController: self, mediaItems: mediaItems, stringFunction: setupMediaItemsHTML)
@@ -2109,31 +2109,31 @@ class MediaViewController: UIViewController // MediaController
         
         var actionMenu = [String]()
         
-        if (globals.mediaPlayer.mediaItem == selectedMediaItem) {
-            let hasVideo = selectedMediaItem.hasVideo
-            let hasSlides = selectedMediaItem.hasSlides
-            let hasNotes = selectedMediaItem.hasNotes
-            
-            if hasVideo && (selectedMediaItem.playing == Playing.video) &&
-                (
-                    ((videoLocation == .withDocuments) && (selectedMediaItem.showing == Showing.video)) ||
-                    ((videoLocation == .withTableView) && (selectedMediaItem.showing != Showing.video))
-                ) {
-                actionMenu.append(Constants.Strings.Zoom_Video)
-                
-                if (hasSlides || hasNotes) && !globals.mediaPlayer.fullScreen {
-                    actionMenu.append(Constants.Strings.Swap_Video_Location)
-                }
-            }
-        }
+//        if (globals.mediaPlayer.mediaItem == selectedMediaItem) {
+//            let hasVideo = selectedMediaItem.hasVideo
+//            let hasSlides = selectedMediaItem.hasSlides
+//            let hasNotes = selectedMediaItem.hasNotes
+//
+//            if hasVideo && (selectedMediaItem.playing == Playing.video) &&
+//                (
+//                    ((videoLocation == .withDocuments) && (selectedMediaItem.showing == Showing.video)) ||
+//                    ((videoLocation == .withTableView) && (selectedMediaItem.showing != Showing.video))
+//                ) {
+//                actionMenu.append(Constants.Strings.Zoom_Video)
+//
+//                if (hasSlides || hasNotes) && !globals.mediaPlayer.fullScreen {
+//                    actionMenu.append(Constants.Strings.Swap_Video_Location)
+//                }
+//            }
+//        }
         
         actionMenu.append(Constants.Strings.Scripture_Viewer)
         
-        if selectedMediaItem.hasFavoritesTag {
-            actionMenu.append(Constants.Strings.Remove_From_Favorites)
-        } else {
-            actionMenu.append(Constants.Strings.Add_to_Favorites)
-        }
+//        if selectedMediaItem.hasFavoritesTag {
+//            actionMenu.append(Constants.Strings.Remove_From_Favorites)
+//        } else {
+//            actionMenu.append(Constants.Strings.Add_to_Favorites)
+//        }
         
         if mediaItems.count > 1 {
             var favoriteMediaItems = 0
@@ -2205,7 +2205,7 @@ class MediaViewController: UIViewController // MediaController
             }
         }
         
-        actionMenu.append(Constants.Strings.Open_on_CBC_Website)
+//        actionMenu.append(Constants.Strings.Open_on_CBC_Website)
         
         var mediaItemsToDownload = 0
         var mediaItemsDownloading = 0
@@ -2228,19 +2228,19 @@ class MediaViewController: UIViewController // MediaController
         }
         
         if let state = selectedMediaItem.audioDownload?.state {
-            switch state {
-            case .none:
-                actionMenu.append(Constants.Strings.Download_Audio)
-                break
-                
-            case .downloading:
-                actionMenu.append(Constants.Strings.Cancel_Audio_Download)
-                break
-                
-            case .downloaded:
-                actionMenu.append(Constants.Strings.Delete_Audio_Download)
-                break
-            }
+//            switch state {
+//            case .none:
+//                actionMenu.append(Constants.Strings.Download_Audio)
+//                break
+//
+//            case .downloading:
+//                actionMenu.append(Constants.Strings.Cancel_Audio_Download)
+//                break
+//
+//            case .downloaded:
+//                actionMenu.append(Constants.Strings.Delete_Audio_Download)
+//                break
+//            }
             
             switch state {
             case .none:
@@ -2282,7 +2282,7 @@ class MediaViewController: UIViewController // MediaController
         }
         
         actionMenu.append(Constants.Strings.Print)
-        actionMenu.append(Constants.Strings.Share)
+//        actionMenu.append(Constants.Strings.Share)
         
         if mediaItems.count > 1 {
             actionMenu.append(Constants.Strings.Share_All)
@@ -4872,6 +4872,9 @@ extension MediaViewController : UITableViewDataSource
         
         var actions = [AlertAction]()
         
+        var share:AlertAction!
+        var openOnCBC:AlertAction!
+        var favorites:AlertAction!
         var download:AlertAction!
         var transcript:AlertAction!
         var scripture:AlertAction!
@@ -4964,9 +4967,6 @@ extension MediaViewController : UITableViewDataSource
                         })
                         alert.addAction(cancel)
                         
-                        // For .actionSheet style
-                        //        alert.popoverPresentationController?.barButtonItem = self.navigationItem.leftBarButtonItem
-                        
                         self.present(alert, animated: true, completion: nil)
                         break
                         
@@ -4981,6 +4981,43 @@ extension MediaViewController : UITableViewDataSource
             }
         })
         
+        if mediaItem.hasFavoritesTag {
+            title = Constants.Strings.Remove_From_Favorites
+        } else {
+            title = Constants.Strings.Add_to_Favorites
+        }
+
+        favorites = AlertAction(title: title, style: .default) {
+            switch title {
+            case Constants.Strings.Add_to_Favorites:
+                globals.queue.sync(execute: { () -> Void in
+                    self.selectedMediaItem?.addTag(Constants.Strings.Favorites)
+                })
+                break
+                
+            case Constants.Strings.Remove_From_Favorites:
+                globals.queue.sync(execute: { () -> Void in
+                    self.selectedMediaItem?.removeTag(Constants.Strings.Favorites)
+                })
+                break
+                
+            default:
+                break
+            }
+        }
+        
+        openOnCBC = AlertAction(title: Constants.Strings.Open_on_CBC_Website, style: .default) {
+            if let url = mediaItem.websiteURL {
+                open(scheme: url.absoluteString) {
+                    networkUnavailable(self,"Unable to open: \(url)")
+                }
+            }
+        }
+        
+        share = AlertAction(title: Constants.Strings.Share, style: .default) {
+            shareHTML(viewController: self, htmlString: mediaItem.webLink)
+        }
+
         transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
             let sourceView = cell?.subviews[0]
             let sourceRectView = cell?.subviews[0]
@@ -5102,6 +5139,12 @@ extension MediaViewController : UITableViewDataSource
         if mediaItem.books != nil {
             actions.append(scripture)
         }
+
+        actions.append(favorites)
+        
+        actions.append(openOnCBC)
+        
+        actions.append(share)
 
         if mediaItem.hasNotesHTML {
             actions.append(transcript)
