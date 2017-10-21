@@ -1775,11 +1775,6 @@ class VoiceBase {
                 let text = self.mediaItem?.text {
                 globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again.")
             }
-            
-//            DispatchQueue.main.async(execute: { () -> Void in
-//                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
-//                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
-//            })
         }
 
         return userInfo.count > 0 ? userInfo : nil
@@ -2001,11 +1996,6 @@ class VoiceBase {
                                 let text = self.mediaItem?.text {
                                 globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again.")
                             }
-
-//                            DispatchQueue.main.async(execute: { () -> Void in
-//                                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
-//                                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
-//                            })
                         }
                         
                         if self.resultsTimer == nil {
@@ -2661,11 +2651,6 @@ class VoiceBase {
                 let text = self.mediaItem?.text {
                 globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again.")
             }
-            
-            //            DispatchQueue.main.async(execute: { () -> Void in
-            //                NotificationCenter.default.post(name: NSNotification.Name(rawValue: Constants.NOTIFICATION.TRANSCRIPT_FAILED_TO_COMPLETE), object: self)
-            //                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_STOP_EDITING_CELL), object: self.mediaItem)
-            //            })
         }
         
         return userInfo.count > 0 ? userInfo : nil

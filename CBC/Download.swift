@@ -223,31 +223,33 @@ class Download : NSObject {
         }
         
 //        print(state)
-        if (state == .none) {
-            state = .downloading
+        guard (state == .none) else {
+            return
+        }
+        
+        state = .downloading
 
-            let downloadRequest = URLRequest(url: downloadURL)
-            
-            let configuration = URLSessionConfiguration.ephemeral
-            
-            // This allows the downloading to continue even if the app goes into the background or terminates.
-            //            let configuration = URLSessionConfiguration.background(withIdentifier: Constants.DOWNLOAD_IDENTIFIER + fileSystemURL!.lastPathComponent)
-            //            configuration.sessionSendsLaunchEvents = true
-            
-            // Why is the mediaItem the delegate rather than this download object?
-            session = URLSession(configuration: configuration, delegate: mediaItem, delegateQueue: nil)
-            session?.reset() {}
-            
-            session?.sessionDescription = fileSystemURL?.lastPathComponent
-            
-            task = session?.downloadTask(with: downloadRequest)
-            task?.taskDescription = fileSystemURL?.lastPathComponent
-            
-            task?.resume()
-            
-            Thread.onMainThread() {
-                UIApplication.shared.isNetworkActivityIndicatorVisible = true
-            }
+        let downloadRequest = URLRequest(url: downloadURL)
+        
+        let configuration = URLSessionConfiguration.ephemeral
+        
+        // This allows the downloading to continue even if the app goes into the background or terminates.
+        //            let configuration = URLSessionConfiguration.background(withIdentifier: Constants.DOWNLOAD_IDENTIFIER + fileSystemURL!.lastPathComponent)
+        //            configuration.sessionSendsLaunchEvents = true
+        
+        // Why is the mediaItem the delegate rather than this download object?
+        session = URLSession(configuration: configuration, delegate: mediaItem, delegateQueue: nil)
+        session?.reset() {}
+        
+        session?.sessionDescription = fileSystemURL?.lastPathComponent
+        
+        task = session?.downloadTask(with: downloadRequest)
+        task?.taskDescription = fileSystemURL?.lastPathComponent
+        
+        task?.resume()
+        
+        Thread.onMainThread() {
+            UIApplication.shared.isNetworkActivityIndicatorVisible = true
         }
     }
     

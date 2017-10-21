@@ -3525,15 +3525,6 @@ func printMediaItems(viewController:UIViewController,mediaItems:[MediaItem]?,str
 func showSendMailErrorAlert(viewController:UIViewController)
 {
     alert(viewController:viewController,title: "Could Not Send Email",message: "Your device could not send e-mail.  Please check e-mail configuration and try again.",completion:nil)
-//    
-//    let action = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.cancel, handler: { (UIAlertAction) -> Void in
-//        
-//    })
-//    alert.addAction(action)
-//    
-//    DispatchQueue.main.async(execute: { () -> Void in
-//        viewController.present(alert, animated: true, completion: nil)
-//    })
 }
 
 

@@ -1619,10 +1619,10 @@ extension ScriptureIndexViewController : UITableViewDelegate
         var transcript:AlertAction!
         var scripture:AlertAction!
         
-        var title = ""
-        var style = UIAlertActionStyle.default
-
         if mediaItem.hasAudio, let state = mediaItem.audioDownload?.state {
+            var title = ""
+            var style = UIAlertActionStyle.default
+            
             switch state {
             case .none:
                 title = Constants.Strings.Download_Audio
@@ -1636,85 +1636,85 @@ extension ScriptureIndexViewController : UITableViewDelegate
                 style = UIAlertActionStyle.destructive
                 break
             }
-        }
-        
-        download = AlertAction(title: title, style: style, action: {
-            switch title {
-            case Constants.Strings.Download_Audio:
-                mediaItem.audioDownload?.download()
-                break
-                
-            case Constants.Strings.Delete_Audio_Download:
-                let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-                                                message: nil,
-                                                preferredStyle: .alert)
-                alert.makeOpaque()
-                
-                let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
-                    (action : UIAlertAction!) -> Void in
-                    mediaItem.audioDownload?.delete()
-                })
-                alert.addAction(yesAction)
-                
-                let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
-                    (action : UIAlertAction!) -> Void in
+            
+            download = AlertAction(title: title, style: style, action: {
+                switch title {
+                case Constants.Strings.Download_Audio:
+                    mediaItem.audioDownload?.download()
+                    break
                     
-                })
-                alert.addAction(noAction)
-                
-                let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                    (action : UIAlertAction!) -> Void in
+                case Constants.Strings.Delete_Audio_Download:
+                    let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+                                                    message: nil,
+                                                    preferredStyle: .alert)
+                    alert.makeOpaque()
                     
-                })
-                alert.addAction(cancel)
-                
-                self.present(alert, animated: true, completion: nil)
-                break
-                
-            case Constants.Strings.Cancel_Audio_Download:
-                if let state = mediaItem.audioDownload?.state {
-                    switch state {
-                    case .downloading:
-                        mediaItem.audioDownload?.cancel()
-                        break
+                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                        (action : UIAlertAction!) -> Void in
+                        mediaItem.audioDownload?.delete()
+                    })
+                    alert.addAction(yesAction)
+                    
+                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                        (action : UIAlertAction!) -> Void in
                         
-                    case .downloaded:
-                        let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-                                                        message: nil,
-                                                        preferredStyle: .alert)
-                        alert.makeOpaque()
+                    })
+                    alert.addAction(noAction)
+                    
+                    let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                        (action : UIAlertAction!) -> Void in
                         
-                        let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
-                            (action : UIAlertAction!) -> Void in
-                            mediaItem.audioDownload?.delete()
-                        })
-                        alert.addAction(yesAction)
-                        
-                        let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
-                            (action : UIAlertAction!) -> Void in
+                    })
+                    alert.addAction(cancel)
+                    
+                    self.present(alert, animated: true, completion: nil)
+                    break
+                    
+                case Constants.Strings.Cancel_Audio_Download:
+                    if let state = mediaItem.audioDownload?.state {
+                        switch state {
+                        case .downloading:
+                            mediaItem.audioDownload?.cancel()
+                            break
                             
-                        })
-                        alert.addAction(noAction)
-                        
-                        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                            (action : UIAlertAction!) -> Void in
+                        case .downloaded:
+                            let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+                                                            message: nil,
+                                                            preferredStyle: .alert)
+                            alert.makeOpaque()
                             
-                        })
-                        alert.addAction(cancel)
-                        
-                        self.present(alert, animated: true, completion: nil)
-                        break
-                        
-                    default:
-                        break
+                            let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                                (action : UIAlertAction!) -> Void in
+                                mediaItem.audioDownload?.delete()
+                            })
+                            alert.addAction(yesAction)
+                            
+                            let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                                (action : UIAlertAction!) -> Void in
+                                
+                            })
+                            alert.addAction(noAction)
+                            
+                            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                                (action : UIAlertAction!) -> Void in
+                                
+                            })
+                            alert.addAction(cancel)
+                            
+                            self.present(alert, animated: true, completion: nil)
+                            break
+                            
+                        default:
+                            break
+                        }
                     }
+                    break
+                    
+                default:
+                    break
                 }
-                break
-                
-            default:
-                break
-            }
-        })
+            })
+        }
         
         transcript = AlertAction(title: Constants.Strings.Transcript, style: .default) {
             let sourceView = cell?.subviews[0]
@@ -1776,7 +1776,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
             actions.append(transcript)
         }
         
-        if mediaItem.hasAudio {
+        if mediaItem.hasAudio && (download != nil) {
             actions.append(download)
         }
         

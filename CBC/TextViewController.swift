@@ -1151,7 +1151,7 @@ class TextViewController : UIViewController
                 } else {
                     text.replaceSubrange(range, with: value)
                     
-                    DispatchQueue.main.async {
+                    Thread.onMainThread {
                         completion?(text)
                     }
                     

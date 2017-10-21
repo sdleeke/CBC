@@ -2634,9 +2634,9 @@ class MediaViewController: UIViewController // MediaController
             
             // Purely for the delay?
             DispatchQueue.global(qos: .background).async(execute: {
-                DispatchQueue.main.async(execute: { () -> Void in
+                Thread.onMainThread {
                     globals.mediaPlayer.play()
-                })
+                }
             })
         }
         
@@ -2957,7 +2957,7 @@ class MediaViewController: UIViewController // MediaController
                     if let fileSystemURL = download.fileSystemURL {
                         if document.showing(self.selectedMediaItem) {
                             // Even thought we're on the main thread without this dispatch these will never show up.
-                            DispatchQueue.main.async {
+                            Thread.onMainThread {
                                 self.activityIndicator.isHidden = false
                                 self.activityIndicator.startAnimating()
                                 
@@ -4881,10 +4881,10 @@ extension MediaViewController : UITableViewDataSource
         var voiceBase:AlertAction!
         var topics:AlertAction!
         
-        var title = ""
-        var style = UIAlertActionStyle.default
-
         if mediaItem.hasAudio, let audioDownload = mediaItem.audioDownload {
+            var title = ""
+            var style = UIAlertActionStyle.default
+            
             switch audioDownload.state {
             case .none:
                 title = Constants.Strings.Download_Audio
@@ -4898,88 +4898,90 @@ extension MediaViewController : UITableViewDataSource
                 style = UIAlertActionStyle.destructive
                 break
             }
+            
+            download = AlertAction(title: title, style: style, action: {
+                switch title {
+                case Constants.Strings.Download_Audio:
+                    mediaItem.audioDownload?.download()
+                    Thread.onMainThread(block: {
+                        NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
+                    })
+                    break
+                    
+                case Constants.Strings.Delete_Audio_Download:
+                    let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+                                                    message: nil,
+                                                    preferredStyle: .alert)
+                    alert.makeOpaque()
+                    
+                    let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                        (action : UIAlertAction!) -> Void in
+                        mediaItem.audioDownload?.delete()
+                    })
+                    alert.addAction(yesAction)
+                    
+                    let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                        (action : UIAlertAction!) -> Void in
+                        
+                    })
+                    alert.addAction(noAction)
+                    
+                    let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                        (action : UIAlertAction!) -> Void in
+                        
+                    })
+                    alert.addAction(cancel)
+                    
+                    self.present(alert, animated: true, completion: nil)
+                    break
+                    
+                case Constants.Strings.Cancel_Audio_Download:
+                    if let state = mediaItem.audioDownload?.state {
+                        switch state {
+                        case .downloading:
+                            mediaItem.audioDownload?.cancel()
+                            break
+                            
+                        case .downloaded:
+                            let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
+                                                            message: nil,
+                                                            preferredStyle: .alert)
+                            alert.makeOpaque()
+                            
+                            let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
+                                (action : UIAlertAction!) -> Void in
+                                mediaItem.audioDownload?.delete()
+                            })
+                            alert.addAction(yesAction)
+                            
+                            let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
+                                (action : UIAlertAction!) -> Void in
+                                
+                            })
+                            alert.addAction(noAction)
+                            
+                            let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
+                                (action : UIAlertAction!) -> Void in
+                                
+                            })
+                            alert.addAction(cancel)
+                            
+                            self.present(alert, animated: true, completion: nil)
+                            break
+                            
+                        default:
+                            break
+                        }
+                    }
+                    break
+                    
+                default:
+                    break
+                }
+            })
         }
         
-        download = AlertAction(title: title, style: style, action: {
-            switch title {
-            case Constants.Strings.Download_Audio:
-                mediaItem.audioDownload?.download()
-                Thread.onMainThread(block: {
-                    NotificationCenter.default.addObserver(self, selector: #selector(MediaViewController.downloadFailed(_:)), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.MEDIA_DOWNLOAD_FAILED), object: mediaItem.audioDownload)
-                })
-                break
-                
-            case Constants.Strings.Delete_Audio_Download:
-                let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-                                                message: nil,
-                                                preferredStyle: .alert)
-                alert.makeOpaque()
-                
-                let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
-                    (action : UIAlertAction!) -> Void in
-                    mediaItem.audioDownload?.delete()
-                })
-                alert.addAction(yesAction)
-                
-                let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
-                    (action : UIAlertAction!) -> Void in
-                    
-                })
-                alert.addAction(noAction)
-                
-                let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                    (action : UIAlertAction!) -> Void in
-                    
-                })
-                alert.addAction(cancel)
-                
-                self.present(alert, animated: true, completion: nil)
-                break
-                
-            case Constants.Strings.Cancel_Audio_Download:
-                if let state = mediaItem.audioDownload?.state {
-                    switch state {
-                    case .downloading:
-                        mediaItem.audioDownload?.cancel()
-                        break
-                        
-                    case .downloaded:
-                        let alert = UIAlertController(  title: "Confirm Deletion of Audio Download",
-                                                        message: nil,
-                                                        preferredStyle: .alert)
-                        alert.makeOpaque()
-                        
-                        let yesAction = UIAlertAction(title: "Yes", style: UIAlertActionStyle.destructive, handler: {
-                            (action : UIAlertAction!) -> Void in
-                            mediaItem.audioDownload?.delete()
-                        })
-                        alert.addAction(yesAction)
-                        
-                        let noAction = UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: {
-                            (action : UIAlertAction!) -> Void in
-                            
-                        })
-                        alert.addAction(noAction)
-                        
-                        let cancel = UIAlertAction(title: Constants.Strings.Cancel, style: UIAlertActionStyle.default, handler: {
-                            (action : UIAlertAction!) -> Void in
-                            
-                        })
-                        alert.addAction(cancel)
-                        
-                        self.present(alert, animated: true, completion: nil)
-                        break
-                        
-                    default:
-                        break
-                    }
-                }
-                break
-                
-            default:
-                break
-            }
-        })
+        var title:String
         
         if mediaItem.hasFavoritesTag {
             title = Constants.Strings.Remove_From_Favorites
@@ -5150,7 +5152,7 @@ extension MediaViewController : UITableViewDataSource
             actions.append(transcript)
         }
         
-        if mediaItem.hasAudio {
+        if mediaItem.hasAudio && (download != nil) {
             actions.append(download)
         }
         

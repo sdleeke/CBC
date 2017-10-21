@@ -829,7 +829,7 @@ class WebViewController: UIViewController
             }
 
             if selectedMediaItem != nil {
-                DispatchQueue.main.async {
+                Thread.onMainThread {
                     NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.updateDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: self.selectedMediaItem?.download)
                     NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.cancelDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: self.selectedMediaItem?.download)
                 }
