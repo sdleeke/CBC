@@ -297,7 +297,7 @@ enum Constants {
     enum URL {
         static let LIVE_STREAM = "https://content.uplynk.com/channel/bd25cb880ed84b4db3061b9ad16b5a3c.m3u8"
         
-        static let VOICE_BASE_ROOT = "https://apis.voicebase.com/v2-beta/media"
+        static let VOICE_BASE_ROOT = "https://apis.voicebase.com/v2-beta/media" // 
         
         static let REACHABILITY_TEST = "https://www.countrysidebible.org/"
     }
@@ -655,6 +655,8 @@ enum Constants {
         
         static let ACTION = "\u{f150}"
         
+        static let PLUS = "\u{f067}"
+        
         static let PLAYING = "\u{f028}"
 
         static let ICONS_FONT_SIZE = CGFloat(12.0)
@@ -694,6 +696,7 @@ enum Constants {
         static let SHOW_FULL_SCREEN         = "Show Full Screen"
         static let SHOW_INDEX_MEDIAITEM     = "Show Index MediaItem"
         static let SHOW_SCRIPTURE_INDEX     = "Show Scripture Index"
+        static let SHOW_LEXICON_INDEX       = "Show Lexicon Index"
         static let SHOW_WORD_LIST           = "Show Word List"
     }
 

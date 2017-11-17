@@ -41,13 +41,13 @@ class StringTree
         building = true
 
         if incremental {
-            DispatchQueue.global(qos: .background).async {
-                self.root = StringNode(nil)
+            DispatchQueue.global(qos: .background).async { [weak self] in
+                self?.root = StringNode(nil)
 
                 var date : Date?
                 
                 for string in strings {
-                    self.root.addString(string)
+                    self?.root.addString(string)
                     
                     if (date == nil) || (date?.timeIntervalSinceNow <= -1) { // Any more frequent and the UI becomes unresponsive.
 //                        print(date)
@@ -60,8 +60,8 @@ class StringTree
                     }
                 }
                 
-                self.building = false
-                self.completed = true
+                self?.building = false
+                self?.completed = true
                 
                 globals.queue.async(execute: { () -> Void in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.STRING_TREE_UPDATED), object: self)

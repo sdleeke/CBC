@@ -500,9 +500,9 @@ class TextViewController : UIViewController
     {
         didSet {
             if track {
-                DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
-                    self.following = self.transcript?.following
-                })
+                DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                    self?.following = self?.transcript?.following
+                }
             }
         }
     }
@@ -577,10 +577,11 @@ class TextViewController : UIViewController
                     self.changedText = string
                     self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                 })
-                
-                while self.operationQueue.operationCount > 0 {
-                    
-                }
+
+                self.operationQueue.waitUntilAllOperationsAreFinished()
+//                while self.operationQueue.operationCount > 0 {
+//
+//                }
 
                 return nil
             }) { (data:Any?) in
@@ -595,9 +596,10 @@ class TextViewController : UIViewController
                     self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                 })
                 
-                while self.operationQueue.operationCount > 0 {
-                    
-                }
+                self.operationQueue.waitUntilAllOperationsAreFinished()
+//                while self.operationQueue.operationCount > 0 {
+//                    
+//                }
 
                 return nil
             }) { (data:Any?) in
@@ -1107,17 +1109,17 @@ class TextViewController : UIViewController
         if let range = range, let value = masterChanges[masterKey]?[key] {
             let attributedString = NSMutableAttributedString()
             
-            let before = "..." + String(text.substring(to: range.lowerBound).characters.dropFirst(max(text.substring(to: range.lowerBound).characters.count - 10,0)))
+            let before = "..." + String(text.substring(to: range.lowerBound).dropFirst(max(text.substring(to: range.lowerBound).count - 10,0)))
             let string = text.substring(with: range)
-            let after = String(text.substring(from: range.upperBound).characters.dropLast(max(text.substring(from: range.upperBound).characters.count - 10,0))) + "..."
+            let after = String(text.substring(from: range.upperBound).dropLast(max(text.substring(from: range.upperBound).count - 10,0))) + "..."
             
             attributedString.append(NSAttributedString(string: before,attributes: Constants.Fonts.Attributes.normal))
             attributedString.append(NSAttributedString(string: string,attributes: Constants.Fonts.Attributes.highlighted))
             attributedString.append(NSAttributedString(string: after, attributes: Constants.Fonts.Attributes.normal))
             
-            let prior = text.substring(to: range.lowerBound).characters.last?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            let prior = text.substring(to: range.lowerBound).last?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
             
-            let following = text.substring(from: range.upperBound).characters.first?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            let following = text.substring(from: range.upperBound).first?.description.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
             
             if (prior?.isEmpty ?? true) && ((following?.isEmpty ?? true) || (following == ".")) {
                 if interactive {
@@ -1155,7 +1157,7 @@ class TextViewController : UIViewController
                         completion?(text)
                     }
                     
-                    let operation = BlockOperation(block: {
+                    operationQueue.addOperation {
                         let before = text.substring(to: range.lowerBound)
                         
                         if let completedRange = text.range(of: before + value) {
@@ -1164,21 +1166,17 @@ class TextViewController : UIViewController
                         } else {
                             // ERROR
                         }
-                    })
-                    //                        operation.name = ""
-                    operationQueue.addOperation(operation)
+                    }
                 }
             } else {
                 if interactive {
                     let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
                     self.changeText(interactive:interactive,text:text,startingRange:startingRange,masterChanges:masterChanges,completion:completion)
                 } else {
-                    let operation = BlockOperation(block: {
+                    operationQueue.addOperation {
                         let startingRange = Range(uncheckedBounds: (lower: range.upperBound, upper: text.endIndex))
                         self.changeText(interactive:interactive,text:text,startingRange:startingRange,masterChanges:masterChanges,completion:completion)
-                    })
-                    //                        operation.name = ""
-                    operationQueue.addOperation(operation)
+                    }
                 }
             }
         } else {
@@ -1191,15 +1189,13 @@ class TextViewController : UIViewController
                 }
                 self.changeText(interactive:interactive,text:text,startingRange:nil,masterChanges:masterChanges,completion:completion)
             } else {
-                let operation = BlockOperation(block: {
+                operationQueue.addOperation {
                     masterChanges[masterKey]?[key] = nil
                     if masterChanges[masterKey]?.count == 0 {
                         masterChanges[masterKey] = nil
                     }
                     self.changeText(interactive:interactive,text:text,startingRange:nil,masterChanges:masterChanges,completion:completion)
-                })
-                //                        operation.name = ""
-                operationQueue.addOperation(operation)
+                }
             }
         }
     }
@@ -1263,9 +1259,10 @@ class TextViewController : UIViewController
                     self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                 })
                 
-                while self.operationQueue.operationCount > 0 {
-                    
-                }
+                self.operationQueue.waitUntilAllOperationsAreFinished()
+//                while self.operationQueue.operationCount > 0 {
+//                    
+//                }
 
                 return nil
             }) { (data:Any?) in

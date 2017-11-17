@@ -134,15 +134,17 @@ class Download : NSObject {
                     break
                     
                 case .downloaded:
-                    globals.queue.sync(execute: { () -> Void in
+                    // This blocks this thread until it finishes.
+                    globals.queue.sync {
                         self.mediaItem?.addTag(Constants.Strings.Downloaded)
-                    })
+                    }
                     break
                     
                 case .none:
-                    globals.queue.sync(execute: { () -> Void in
+                    // This blocks this thread until it finishes.
+                    globals.queue.sync {
                         self.mediaItem?.removeTag(Constants.Strings.Downloaded)
-                    })
+                    }
                     break
                 }
                 

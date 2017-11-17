@@ -11,7 +11,7 @@ import UIKit
 import AVKit
 
 
-struct SearchHit {
+class SearchHit {
     var mediaItem:MediaItem?
     
     //        init()
@@ -617,7 +617,7 @@ class MediaItem : NSObject
         get {
             var chars = Constants.EMPTY_STRING
             
-            for char in id.characters {
+            for char in id {
                 if Int(String(char)) != nil {
                     break
                 }
@@ -1632,38 +1632,40 @@ class MediaItem : NSObject
         
 //        print(tags as Any)
         
-        if tags?.index(of: tag) == nil {
-            if (mediaItemSettings?[Field.tags] == nil) {
-                mediaItemSettings?[Field.tags] = tag
-            } else {
-                if let tags = mediaItemSettings?[Field.tags] {
-                    mediaItemSettings?[Field.tags] = tags + Constants.TAGS_SEPARATOR + tag
-                }
+        guard tags?.index(of: tag) == nil else {
+            return
+        }
+        
+        if (mediaItemSettings?[Field.tags] == nil) {
+            mediaItemSettings?[Field.tags] = tag
+        } else {
+            if let tags = mediaItemSettings?[Field.tags] {
+                mediaItemSettings?[Field.tags] = tags + Constants.TAGS_SEPARATOR + tag
             }
-            
-            if let sortTag = stringWithoutPrefixes(tag) {
-                if globals.media.all?.tagMediaItems?[sortTag] != nil {
-                    if globals.media.all?.tagMediaItems?[sortTag]?.index(of: self) == nil {
-                        globals.media.all?.tagMediaItems?[sortTag]?.append(self)
-                        globals.media.all?.tagNames?[sortTag] = tag
-                    }
-                } else {
-                    globals.media.all?.tagMediaItems?[sortTag] = [self]
+        }
+        
+        if let sortTag = stringWithoutPrefixes(tag) {
+            if globals.media.all?.tagMediaItems?[sortTag] != nil {
+                if globals.media.all?.tagMediaItems?[sortTag]?.index(of: self) == nil {
+                    globals.media.all?.tagMediaItems?[sortTag]?.append(self)
                     globals.media.all?.tagNames?[sortTag] = tag
                 }
-                
-                globals.media.tagged[tag] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag])
-            }
-
-            if (globals.media.tags.selected == tag) {
-                Thread.onMainThread() {
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
-                }
+            } else {
+                globals.media.all?.tagMediaItems?[sortTag] = [self]
+                globals.media.all?.tagNames?[sortTag] = tag
             }
             
+            globals.media.tagged[tag] = MediaListGroupSort(mediaItems: globals.media.all?.tagMediaItems?[sortTag])
+        }
+
+        if (globals.media.tags.selected == tag) {
             Thread.onMainThread() {
-                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
+                NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.UPDATE_MEDIA_LIST), object: nil) // globals.media.tagged
             }
+        }
+        
+        Thread.onMainThread() {
+            NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.MEDIA_UPDATE_UI), object: self)
         }
     }
     
@@ -1716,19 +1718,31 @@ class MediaItem : NSObject
     
     func tagsSetToString(_ tagsSet:Set<String>?) -> String?
     {
-        var tags:String?
-        
-        if let tagsSet = tagsSet {
-            for tag in tagsSet {
-                if tags == nil {
-                    tags = tag
-                } else {
-                    tags = tags! + Constants.TAGS_SEPARATOR + tag
-                }
-            }
+        guard let tagsSet = tagsSet else {
+            return nil
         }
         
-        return tags
+        let array = Array(tagsSet)
+        
+        guard array.count > 0 else {
+            return nil
+        }
+        
+        return array.joined(separator: Constants.TAGS_SEPARATOR)
+        
+//        var tags:String?
+//        
+//        if let tagsSet = tagsSet {
+//            for tag in tagsSet {
+//                if tags == nil {
+//                    tags = tag
+//                } else {
+//                    tags = tags! + Constants.TAGS_SEPARATOR + tag
+//                }
+//            }
+//        }
+//        
+//        return tags
     }
     
     func tagsToSet(_ tags:String?) -> Set<String>?
@@ -1879,7 +1893,7 @@ class MediaItem : NSObject
                     let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
                     
                     if wholeWordsOnly {
-                        if  let characterAfter:Character = stringAfter.characters.first,
+                        if  let characterAfter:Character = stringAfter.first,
                             let unicodeScalar = UnicodeScalar(String(characterAfter)) {
                             if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                                 skip = true
@@ -1896,7 +1910,7 @@ class MediaItem : NSObject
                             }
                         }
                         
-                        if  let characterBefore:Character = stringBefore.characters.last,
+                        if  let characterBefore:Character = stringBefore.last,
                             let unicodeScalar = UnicodeScalar(String(characterBefore)) {
                             if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                                 skip = true
@@ -2781,7 +2795,7 @@ class MediaItem : NSObject
         return json
     }
     
-    struct MediaItemSettings {
+    class MediaItemSettings {
         weak var mediaItem:MediaItem?
         
         init(mediaItem:MediaItem?) {
@@ -2831,7 +2845,7 @@ class MediaItem : NSObject
         return MediaItemSettings(mediaItem:self)
     }()
     
-    struct MultiPartSettings {
+    class MultiPartSettings {
         weak var mediaItem:MediaItem?
         
         init(mediaItem:MediaItem?) {

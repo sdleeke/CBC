@@ -506,17 +506,17 @@ class LexiconIndexViewController : UIViewController
                         self.ptvc.activityIndicator.startAnimating()
                         self.ptvc.segmentedControl.isEnabled = false
                         self.updateLocateButton()
-                        DispatchQueue.global(qos: .background).async {
-                            self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
+                        DispatchQueue.global(qos: .background).async { [weak self] in
+                            self?.ptvc.section.strings = self?.ptvc.sort.function?(self?.ptvc.sort.method,self?.ptvc.section.strings)
                             Thread.onMainThread(block: { (Void) -> (Void) in
-                                self.ptvc.tableView.isHidden = false
-                                self.ptvc.tableView.reloadData()
+                                self?.ptvc.tableView.isHidden = false
+                                self?.ptvc.tableView.reloadData()
                                 
-                                if self.lexicon?.creating == false {
-                                    self.ptvc.activityIndicator.stopAnimating()
+                                if self?.lexicon?.creating == false {
+                                    self?.ptvc.activityIndicator.stopAnimating()
                                 }
-                                self.ptvc.segmentedControl.isEnabled = true
-                                self.updateLocateButton()
+                                self?.ptvc.segmentedControl.isEnabled = true
+                                self?.updateLocateButton()
                             })
                         }
                     }))
@@ -527,17 +527,17 @@ class LexiconIndexViewController : UIViewController
                         self.ptvc.activityIndicator.startAnimating()
                         self.ptvc.segmentedControl.isEnabled = false
                         self.updateLocateButton()
-                        DispatchQueue.global(qos: .background).async {
-                            self.ptvc.section.strings = self.ptvc.sort.function?(self.ptvc.sort.method,self.ptvc.section.strings)
+                        DispatchQueue.global(qos: .background).async { [weak self] in
+                            self?.ptvc.section.strings = self?.ptvc.sort.function?(self?.ptvc.sort.method,self?.ptvc.section.strings)
                             Thread.onMainThread(block: { (Void) -> (Void) in
-                                self.ptvc.tableView.isHidden = false
-                                self.ptvc.tableView.reloadData()
+                                self?.ptvc.tableView.isHidden = false
+                                self?.ptvc.tableView.reloadData()
                                 
-                                if self.lexicon?.creating == false {
-                                    self.ptvc.activityIndicator.stopAnimating()
+                                if self?.lexicon?.creating == false {
+                                    self?.ptvc.activityIndicator.stopAnimating()
                                 }
-                                self.ptvc.segmentedControl.isEnabled = true
-                                self.updateLocateButton()
+                                self?.ptvc.segmentedControl.isEnabled = true
+                                self?.updateLocateButton()
                             })
                         }
                     }))
@@ -1065,10 +1065,9 @@ class LexiconIndexViewController : UIViewController
         tableView.tableFooterView = UIView()
         
         let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(LexiconIndexViewController.actions))
-        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
+        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
-        navigationItem.setRightBarButton(actionButton, animated: true) //
+        navigationItem.setRightBarButton(actionButton, animated: true)
     }
     
     func updateText()
@@ -1164,21 +1163,23 @@ extension LexiconIndexViewController : UITableViewDelegate
         
         globals.addToHistory(mediaItem)
         
-        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
-            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
-                let viewController = navigationController.viewControllers[0] as? MediaViewController {
-                viewController.selectedMediaItem = mediaItem
-                splitViewController?.viewControllers[1] = navigationController
-            }
-        } else {
-            if let viewController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM) as? MediaViewController {
-                viewController.selectedMediaItem = mediaItem
-                
-                self.navigationController?.navigationItem.hidesBackButton = false
-                
-                self.navigationController?.pushViewController(viewController, animated: true)
-            }
-        }
+        performSegue(withIdentifier: Constants.SEGUE.SHOW_INDEX_MEDIAITEM, sender: cell)
+        
+//        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
+//            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
+//                let viewController = navigationController.viewControllers[0] as? MediaViewController {
+//                viewController.selectedMediaItem = mediaItem
+//                splitViewController?.viewControllers[1] = navigationController
+//            }
+//        } else {
+//            if let viewController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM) as? MediaViewController {
+//                viewController.selectedMediaItem = mediaItem
+//                
+//                self.navigationController?.navigationItem.hidesBackButton = false
+//                
+//                self.navigationController?.pushViewController(viewController, animated: true)
+//            }
+//        }
     }
 
     func tableView(_ tableView:UITableView, willBeginEditingRowAt indexPath: IndexPath)
@@ -1405,8 +1406,8 @@ extension LexiconIndexViewController : UITableViewDelegate
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
         if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell, let message = cell.mediaItem?.text {
-            let action = UITableViewRowAction(style: .normal, title: "Actions") { rowAction, indexPath in
-                let alert = UIAlertController(  title: "Actions",
+            let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { rowAction, indexPath in
+                let alert = UIAlertController(  title: Constants.Strings.Actions,
                                                 message: message,
                                                 preferredStyle: .alert)
                 alert.makeOpaque()

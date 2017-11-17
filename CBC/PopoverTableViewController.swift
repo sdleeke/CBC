@@ -246,9 +246,9 @@ extension PopoverTableViewController : UIPopoverPresentationControllerDelegate
 
 struct Sort
 {
-    var function : ((String,[String]?)->[String]?)?
+    var function : ((String?,[String]?)->[String]?)?
     
-    var method : String = Constants.Sort.Alphabetical
+    var method : String? = Constants.Sort.Alphabetical
     {
         willSet {
             
@@ -274,6 +274,8 @@ class PopoverTableViewControllerHeaderView : UITableViewHeaderFooterView
 
 class PopoverTableViewController : UIViewController
 {
+    var alertController : UIAlertController?
+    
     var vc:UIViewController?
     
     var changesPending = false
@@ -799,7 +801,7 @@ class PopoverTableViewController : UIViewController
         dismiss(animated: true, completion: nil)
     }
     
-    let operationQueue = OperationQueue()
+//    let operationQueue = OperationQueue()
     
     func autoEdit()
     {
@@ -932,19 +934,42 @@ class PopoverTableViewController : UIViewController
                 return false
             }
         }) {
-            switch sort.method {
-            case Constants.Sort.Alphabetical:
-                var i = 0
-                
-                repeat {
-                    i += 1
-                } while (i < self.section.indexes?.count) && (self.section.indexes?[i] <= index)
-                
-                let section = i - 1
-                
-                if let base = self.section.indexes?[section] {
-                    let row = index - base
+            if let method = sort.method {
+                switch method {
+                case Constants.Sort.Alphabetical:
+                    var i = 0
                     
+                    repeat {
+                        i += 1
+                    } while (i < self.section.indexes?.count) && (self.section.indexes?[i] <= index)
+                    
+                    let section = i - 1
+                    
+                    if let base = self.section.indexes?[section] {
+                        let row = index - base
+                        
+                        if self.section.strings?.count > 0 {
+                            Thread.onMainThread() {
+                                if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
+                                    let indexPath = IndexPath(row: row,section: section)
+                                    if scroll {
+                                        self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                                    }
+                                    if select {
+                                        self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+                                    }
+                                } else {
+
+                                }
+                            }
+                        }
+                    }
+                    break
+                    
+                case Constants.Sort.Frequency:
+                    let section = 0
+                    let row = index
+
                     if self.section.strings?.count > 0 {
                         Thread.onMainThread() {
                             if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
@@ -960,31 +985,10 @@ class PopoverTableViewController : UIViewController
                             }
                         }
                     }
+                    break
+                default:
+                    break
                 }
-                break
-                
-            case Constants.Sort.Frequency:
-                let section = 0
-                let row = index
-
-                if self.section.strings?.count > 0 {
-                    Thread.onMainThread() {
-                        if section >= 0, section < self.tableView.numberOfSections, row >= 0, row < self.tableView.numberOfRows(inSection: section) {
-                            let indexPath = IndexPath(row: row,section: section)
-                            if scroll {
-                                self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-                            }
-                            if select {
-                                self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-                            }
-                        } else {
-
-                        }
-                    }
-                }
-                break
-            default:
-                break
             }
         } else {
             if let selectedText = selectedText {
@@ -1236,7 +1240,8 @@ class PopoverTableViewController : UIViewController
     
     func willResignActive()
     {
-        dismiss(animated: true, completion: nil)
+        self.alertController?.dismiss(animated: true, completion: nil)
+        self.dismiss(animated: true, completion: nil)
     }
     
     var mask = false
@@ -1293,6 +1298,7 @@ class PopoverTableViewController : UIViewController
             
             if let vc = vc {
                 process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ (Void) -> Any? in
+                    // Why are we doing this?
                     while self.mask {
                         Thread.sleep(forTimeInterval: 0.1)
                     }
@@ -1316,29 +1322,29 @@ class PopoverTableViewController : UIViewController
         navigationController?.setToolbarHidden(true, animated: false)
         
         if (stringsFunction != nil) && (self.section.strings == nil) {
-            DispatchQueue.global(qos: .background).async {
+            DispatchQueue.global(qos: .background).async { [weak self] in
                 Thread.onMainThread() {
-                    self.activityIndicator.startAnimating()
-                    self.activityIndicator?.isHidden = false
+                    self?.activityIndicator.startAnimating()
+                    self?.activityIndicator?.isHidden = false
                 }
                 
-                self.section.strings = self.stringsFunction?()
+                self?.section.strings = self?.stringsFunction?()
                 
-                if self.section.strings != nil {
+                if self?.section.strings != nil {
                     Thread.onMainThread() {
-                        self.tableView.reloadData()
+                        self?.tableView.reloadData()
                         
-                        self.setPreferredContentSize()
+                        self?.setPreferredContentSize()
                         
-                        if let indexPath = self.section.indexPath(from: self.stringSelected) {
-                            self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+                        if let indexPath = self?.section.indexPath(from: self?.stringSelected) {
+                            self?.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
                         }
                         
-                        self.activityIndicator.stopAnimating()
-                        self.activityIndicator?.isHidden = true
+                        self?.activityIndicator.stopAnimating()
+                        self?.activityIndicator?.isHidden = true
                         
-                        if self.purpose == .selectingTime {
-                            self.follow()
+                        if self?.purpose == .selectingTime {
+                            self?.follow()
                         }
                     }
                 }
@@ -1381,12 +1387,41 @@ class PopoverTableViewController : UIViewController
             if let stringsAnyArray = self.stringsAnyArray {
                 var strings = [String]()
                 for stringsAny in stringsAnyArray {
-                    if let string = stringsAny["name"] as? String {
-                        strings.append(string)
-                    }
                     if let string = stringsAny["w"] as? String {
                         strings.append(string)
+                    } else
+                    if let string = stringsAny["keyword"] as? String {
+                        strings.append(string)
+                    } else
+                    if let string = stringsAny["topicName"] as? String {
+                        strings.append(string)
+                    } else
+                    if let string = stringsAny["name"] as? String {
+                        strings.append(string)
+                    } else {
+                        var string = "("
+                        let keys = stringsAny.keys.sorted()
+                        for key in keys {
+                            string = string + key
+                            if key != keys.last {
+                                string = string + ","
+                            }
+//                            if let value = stringsAny[key] as? String {
+//                                string = string + key + ":" + value
+//                            }
+//                            if let value = stringsAny[key] as? Double {
+//                                string = string + "\(key):\(value)"
+//                            } else
+//                            if let value = stringsAny[key] as? Int {
+//                                string = string + "\(key):\(value)"
+//                            }
+                        }
+                        string = string + ")"
+                        strings.append(string)
                     }
+//                    if let _ = stringsAny["occurrences"] as? [String:Any] {
+//                        strings.append("occurrences")
+//                    }
                 }
                 self.section.strings = strings
 
@@ -1568,7 +1603,7 @@ extension PopoverTableViewController : UITableViewDataSource
                         break
                     }
                     
-                    if let characterBefore:Character = before?.characters.last, let characterAfter:Character = after?.characters.first {
+                    if let characterBefore:Character = before?.last, let characterAfter:Character = after?.first {
                         if  let before = UnicodeScalar(String(characterBefore)), CharacterSet(charactersIn: tokenDelimiters).contains(before),
                             let after = UnicodeScalar(String(characterAfter)), CharacterSet(charactersIn: tokenDelimiters).contains(after) {
                             break
@@ -1727,8 +1762,8 @@ extension PopoverTableViewController : UITableViewDelegate
             alertActions = self.editActionsAtIndexPath?(self,tableView,indexPath)
         }
         
-        let action = UITableViewRowAction(style: .normal, title: "Actions") { rowAction, indexPath in
-            let alert = UIAlertController(  title: "Actions",
+        let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { rowAction, indexPath in
+            let alert = UIAlertController(  title: Constants.Strings.Actions,
                                             message: self.section.string(from: indexPath),
                                             preferredStyle: .alert)
             alert.makeOpaque()
@@ -1747,7 +1782,9 @@ extension PopoverTableViewController : UITableViewDelegate
             })
             alert.addAction(okayAction)
             
-            self.present(alert, animated: true, completion: nil)
+            self.present(alert, animated: true, completion: {
+                self.alertController = alert
+            })
         }
         action.backgroundColor = UIColor.controlBlue()
         
@@ -1911,7 +1948,13 @@ extension PopoverTableViewController : UITableViewDelegate
         }
         
         if self.stringsAnyArray != nil {
-            stringsAny = self.stringsAnyArray?[index]
+            if index < self.stringsAnyArray?.count {
+                stringsAny = self.stringsAnyArray?[index]
+
+//                stringsAny = stringsAny?[string] as? [String : Any]
+//                stringsArray = stringsAny?[string] as? [String]
+//                stringsAnyArray = stringsAny?[string] as? [[String : Any]]
+            }
         }
         
         if (delegate == nil) && ((stringsAny != nil) || (stringsArray != nil) || (stringsAnyArray != nil)) {

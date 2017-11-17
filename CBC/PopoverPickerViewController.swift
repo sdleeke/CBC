@@ -248,9 +248,9 @@ extension PopoverPickerViewController : UIPickerViewDelegate
         if stringTree != nil {
             pickerSelections[component] = row
             
-            DispatchQueue.global(qos: .userInteractive).async {
-                self.updatePickerSelections()
-                self.updatePicker()
+            DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+                self?.updatePickerSelections()
+                self?.updatePicker()
             }
         } else {
             guard component == 0 else {
@@ -498,9 +498,8 @@ class PopoverPickerViewController : UIViewController
 
         if actionMenu()?.count > 0 {
             let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(PopoverPickerViewController.actions))
-            actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-            actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
-            
+            actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
+
             navigationItem.setRightBarButton(actionButton, animated: false)
         }
     }

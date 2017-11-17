@@ -37,7 +37,7 @@ class SettingsViewController: UIViewController {
         
         if !sender.isOn {
             URLCache.shared.removeAllCachedResponses()
-            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 globals.loadSingles = false
     
                 if let mediaItems = globals.mediaRepository.list {
@@ -50,9 +50,9 @@ class SettingsViewController: UIViewController {
                 globals.loadSingles = true
 
                 Thread.onMainThread() {
-                    self.updateCacheSize()
+                    self?.updateCacheSize()
                 }
-            })
+            }
         }
     }
     
@@ -67,7 +67,7 @@ class SettingsViewController: UIViewController {
     
     func updateCacheSize()
     {
-        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             globals.loadSingles = false
             
             let sizeOfCache = globals.cacheSize(Purpose.slides) + globals.cacheSize(Purpose.notes)
@@ -108,14 +108,14 @@ class SettingsViewController: UIViewController {
             }
 
             Thread.onMainThread() {
-                self.cacheSizeLabel.text = "\(String(format: "%0.1f",size)) \(sizeLabel) in use"
+                self?.cacheSizeLabel.text = "\(String(format: "%0.1f",size)) \(sizeLabel) in use"
             }
-        })
+        }
     }
     
     func updateAudioSize()
     {
-        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let sizeOfAudio = globals.cacheSize(Purpose.audio)
             
             var size:Float = Float(sizeOfAudio)
@@ -152,9 +152,9 @@ class SettingsViewController: UIViewController {
             }
             
             Thread.onMainThread() {
-                self.audioSizeLabel.text = "Audio Storage: \(String(format: "%0.1f",size)) \(sizeLabel) in use"
+                self?.audioSizeLabel.text = "Audio Storage: \(String(format: "%0.1f",size)) \(sizeLabel) in use"
             }
-        })
+        }
     }
     
     func done()

@@ -24,7 +24,7 @@ extension VoiceBase // Class Methods
         return Constants.URL.VOICE_BASE_ROOT + (mediaID != nil ? "/" + mediaID! : "") + (path != nil ? "/" + path! : "")
     }
     
-    static func load()
+    static func loadAll()
     {
         all(completion: { (json:[String : Any]?) -> (Void) in
             guard let mediaItems = json?["media"] as? [[String:Any]] else {
@@ -32,41 +32,114 @@ extension VoiceBase // Class Methods
             }
             
             for mediaItem in mediaItems {
-                if  let mediaID = mediaItem["mediaId"] as? String,
-                    let metadata = mediaItem["metadata"] as? [String:Any],
-                    let mimd = metadata["mediaItem"] as? [String:Any],
-                    let id = mimd["id"] as? String,
-                    let purpose = mimd["purpose"] as? String,
-                    let mediaItem = globals.mediaRepository.index?[id] {
-                    var transcript : VoiceBase?
+                guard let mediaID = mediaItem["mediaId"] as? String else {
+                    continue
+                }
+                
+//                guard let metadata = mediaItem["metadata"] as? [String:Any] else {
+//                    continue
+//                }
+//
+//                guard let mimd = metadata["mediaItem"] as? [String:Any] else {
+//                    continue
+//                }
+//
+//                guard let id = mimd["id"] as? String else {
+//                    continue
+//                }
+//
+//                guard let purpose = mimd["purpose"] as? String else {
+//                    continue
+//                }
+//
+//                guard let mediaItem = globals.mediaRepository.index?[id] else {
+//                    continue
+//                }
+//
+//                var transcript : VoiceBase?
+//
+//                switch purpose.uppercased() {
+//                case Purpose.audio:
+//                    transcript = mediaItem.audioTranscript
+//
+//                case Purpose.video:
+//                    transcript = mediaItem.videoTranscript
+//
+//                default:
+//                    break
+//                }
+//
+//                if  transcript?.transcript == nil,
+//                    transcript?.mediaID == nil,
+//                    transcript?.resultsTimer == nil,
+//                    let transcribing = transcript?.transcribing, !transcribing {
+//                    transcript?.mediaID = mediaID
+//                    transcript?.transcribing = true
+//
+//                    // Should we alert the user to what is being loaded from VB or how many?
+//
+//                    Thread.onMainThread() {
+//                        transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: false), repeats: true)
+//                    }
+//                }
+                
+                Thread.sleep(forTimeInterval: 5.0)
+                VoiceBase.details(mediaID: mediaID, completion: { (json:[String : Any]?) -> (Void) in
+                    print(json)
+
+                    guard let media = json?["media"] as? [String:Any] else {
+                        return
+                    }
                     
+                    guard let metadata = media["metadata"] as? [String:Any] else {
+                        return
+                    }
+                    
+                    guard let mimd = metadata["mediaItem"] as? [String:Any] else {
+                        return
+                    }
+
+                    guard let id = mimd["id"] as? String else {
+                        return
+                    }
+
+                    guard let purpose = mimd["purpose"] as? String else {
+                        return
+                    }
+
+                    guard let mediaItem = globals.mediaRepository.index?[id] else {
+                        return
+                    }
+
+                    var transcript : VoiceBase?
+
                     switch purpose.uppercased() {
                     case Purpose.audio:
                         transcript = mediaItem.audioTranscript
-                        
+
                     case Purpose.video:
                         transcript = mediaItem.videoTranscript
-                        
+
                     default:
                         break
                     }
-                    
+
                     if  transcript?.transcript == nil,
                         transcript?.mediaID == nil,
                         transcript?.resultsTimer == nil,
                         let transcribing = transcript?.transcribing, !transcribing {
                         transcript?.mediaID = mediaID
                         transcript?.transcribing = true
-                        
+
                         // Should we alert the user to what is being loaded from VB or how many?
-                        
+
                         Thread.onMainThread() {
                             transcript?.resultsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: transcript as Any, selector: #selector(transcript?.monitor(_:)), userInfo: transcript?.uploadUserInfo(alert: false), repeats: true)
                         }
                     }
-                } else {
-                    
-                }
+                }, onError: { (json:[String : Any]?) -> (Void) in
+
+                })
             }
         }, onError: { (json:[String : Any]?) -> (Void) in
             
@@ -150,7 +223,7 @@ extension VoiceBase // Class Methods
                     }
                     
                     if let modelName = device["modelName"] {
-                        htmlString = htmlString + "Name: \(modelName)\n"
+                        htmlString = htmlString + "Model Name: \(modelName)\n"
                     }
                     
                     if let name = device["name"] {
@@ -550,11 +623,11 @@ class VoiceBase {
                     }
                     
                     if let title = mediaItem.title {
-                        mediaItemString = "\(mediaItemString)\"title\":\"\(title)\","
+                        mediaItemString = "\(mediaItemString)\"title\":\"\(title)\"," // .replacingOccurrences(of: "\n", with: " ")
                     }
             
                     if let text = mediaItem.text {
-                        mediaItemString = "\(mediaItemString)\"text\":\"\(text) (\(transcriptPurpose))\","
+                        mediaItemString = "\(mediaItemString)\"text\":\"\(text) (\(transcriptPurpose))\"," // .replacingOccurrences(of: "\n", with: " ")
                     }
                     
                     if let scripture = mediaItem.scripture {
@@ -567,7 +640,7 @@ class VoiceBase {
                     
                     mediaItemString = "\(mediaItemString)\"purpose\":\"\(transcriptPurpose)\""
             
-                mediaItemString = "\(mediaItemString)}"
+                mediaItemString = "\(mediaItemString)},"
             
                 mediaItemString = "\(mediaItemString)\"device\":{"
                 
@@ -742,7 +815,7 @@ class VoiceBase {
             }
             
             if _transcript != nil {
-                DispatchQueue.global(qos: .background).async {
+                DispatchQueue.global(qos: .background).async { [weak self] in
                     if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose)") {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
@@ -754,7 +827,7 @@ class VoiceBase {
                         }
                         
                         do {
-                            try self._transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8)
+                            try self?._transcript?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8)
                         } catch let error as NSError {
                             print("failed to write transcript to cache directory: \(error.localizedDescription)")
                         }
@@ -763,7 +836,7 @@ class VoiceBase {
                     }
                 }
             } else {
-                DispatchQueue.global(qos: .background).async {
+                DispatchQueue.global(qos: .background).async { // [weak self] in
                     if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose)") {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
@@ -793,13 +866,15 @@ class VoiceBase {
             if mediaItem.transcripts.values.filter({ (transcript:VoiceBase) -> Bool in
                 return self._transcript != nil
             }).count == 0 {
-                globals.queue.sync(execute: { () -> Void in
+                // This blocks this thread until it finishes.
+                globals.queue.sync {
                     mediaItem.removeTag("Machine Generated Transcript")
-                })
+                }
             } else {
-                globals.queue.sync(execute: { () -> Void in
+                // This blocks this thread until it finishes.
+                globals.queue.sync {
                     mediaItem.addTag("Machine Generated Transcript")
-                })
+                }
             }
         }
     }
@@ -928,11 +1003,11 @@ class VoiceBase {
             //                return
             //            }
             
-            DispatchQueue.global(qos: .background).async {
+            DispatchQueue.global(qos: .background).async { [weak self] in
                 let fileManager = FileManager.default
                 
-                if self._mediaJSON != nil {
-                    let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self._mediaJSON as Any, format: .xml, options: 0)
+                if self?._mediaJSON != nil {
+                    let mediaPropertyList = try? PropertyListSerialization.data(fromPropertyList: self?._mediaJSON as Any, format: .xml, options: 0)
                     
                     if let destinationURL = cachesURL()?.appendingPathComponent("\(id).\(purpose).media") {
                         if (fileManager.fileExists(atPath: destinationURL.path)){
@@ -1354,7 +1429,7 @@ class VoiceBase {
         
         transcribing = true
 
-        let parameters:[String:String] = ["media":url,"metadata":self.metadata]//,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+        let parameters:[String:String] = ["mediaUrl":url,"metadata":self.metadata] // "{\"title\":\"id2341235\"}" ,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
         
         post(path:nil,parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
             self.uploadJSON = json
@@ -2353,10 +2428,10 @@ class VoiceBase {
             
             _transcriptSRT = value
             
-            DispatchQueue.global(qos: .background).async {
+            DispatchQueue.global(qos: .background).async { [weak self] in
                 let fileManager = FileManager.default
                 
-                if self._transcriptSRT != nil {
+                if self?._transcriptSRT != nil {
                     if let destinationURL = cachesURL()?.appendingPathComponent(id+".\(purpose).srt") {
                         // Check if file exist
                         if (fileManager.fileExists(atPath: destinationURL.path)){
@@ -2368,7 +2443,7 @@ class VoiceBase {
                         }
                         
                         do {
-                            try self._transcriptSRT?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8);
+                            try self?._transcriptSRT?.write(toFile: destinationURL.path, atomically: false, encoding: String.Encoding.utf8);
                         } catch let error as NSError {
                             print("failed to write SRT transcript to cache directory: \(error.localizedDescription)")
                         }
@@ -3172,8 +3247,8 @@ class VoiceBase {
                 }
                 popover.unfilteredSection.strings?[srtIndex] = "\(count)\n\(timing)\n\(text)"
                 
-                DispatchQueue.global(qos: .background).async {
-                    self.transcriptSRT = self.transcriptSRTFromSRTs
+                DispatchQueue.global(qos: .background).async { [weak self] in
+                    self?.transcriptSRT = self?.transcriptSRTFromSRTs
                 }
                 
                 Thread.onMainThread {

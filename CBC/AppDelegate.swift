@@ -35,6 +35,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, AVAudioSessionDelegate, U
 {
     func splitViewController(_ splitViewController: UISplitViewController, collapseSecondary secondaryViewController:UIViewController, onto primaryViewController:UIViewController) -> Bool
     {
+//        if ((primaryViewController as? UINavigationController)?.visibleViewController as? LexiconIndexViewController) != nil {
+//            primaryViewController.navigationController?.popToRootViewController(animated: false)
+//        }
+//        
+//        if ((primaryViewController as? UINavigationController)?.visibleViewController as? ScriptureIndexViewController) != nil {
+//            primaryViewController.navigationController?.popToRootViewController(animated: false)
+//        }
+        
         guard let secondaryAsNavController = secondaryViewController as? UINavigationController else {
             return false
         }

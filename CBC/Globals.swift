@@ -10,6 +10,33 @@ import Foundation
 import MediaPlayer
 import AVKit
 
+extension UIBarButtonItem {
+    func setTitleTextAttributes(_ attributes:[String:UIFont])
+    {
+        setTitleTextAttributes(attributes, for: UIControlState.normal)
+        setTitleTextAttributes(attributes, for: UIControlState.disabled)
+        setTitleTextAttributes(attributes, for: UIControlState.selected)
+    }
+}
+
+extension UISegmentedControl {
+    func setTitleTextAttributes(_ attributes:[String:UIFont])
+    {
+        setTitleTextAttributes(attributes, for: UIControlState.normal)
+        setTitleTextAttributes(attributes, for: UIControlState.disabled)
+        setTitleTextAttributes(attributes, for: UIControlState.selected)
+    }
+}
+
+extension UIButton {
+    func setTitle(_ string:String?)
+    {
+        setTitle(string, for: UIControlState.normal)
+        setTitle(string, for: UIControlState.disabled)
+        setTitle(string, for: UIControlState.selected)
+    }
+}
+
 extension Thread {
     static func onMainThread(block:(()->(Void))?)
     {
@@ -535,7 +562,14 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         
         var extant:Bool {
             get {
-                return text?.isEmpty ?? false
+                // Same result, just harder to read and understand quickly
+//                return !(text?.isEmpty ?? false)
+                
+                if let isEmpty = text?.isEmpty {
+                    return !isEmpty
+                } else {
+                    return false
+                }
             }
         }
         
@@ -665,7 +699,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
     var mediaPlayer = MediaPlayer()
 
-    struct SelectedMediaItem {
+    class SelectedMediaItem {
         weak var globals:Globals!
         
         var master:MediaItem? {
@@ -703,7 +737,9 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     lazy var selectedMediaItem:SelectedMediaItem! = {
         [unowned self] in
-        return SelectedMediaItem(globals: self)
+        let selectedMediaItem = SelectedMediaItem()
+        selectedMediaItem.globals = self
+        return selectedMediaItem
     }()
 
     class MediaCategory {
@@ -777,8 +813,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
             if allowSaveSettings {
                 print("saveSettingsBackground")
                 
-                DispatchQueue.global(qos: .background).async {
-                    self.saveSettings()
+                DispatchQueue.global(qos: .background).async { [weak self] in
+                    self?.saveSettings()
                 }
             }
         }
@@ -1137,7 +1173,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         return mediaRepository
     }()
 
-    // Tried to use a struct and bad things happend.  Copy on right problems?  Don't know.
+    // Tried to use a struct and bad things happend.  Copy on write problems?  Simultaneous access problems?  Are those two related?  Could be.  Don't know.
     // Problems went away when I switched to class
     
     class Media {
@@ -1157,7 +1193,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         //The mediaItems with the selected tags, although now we only support one tag being selected
         var tagged = [String:MediaListGroupSort]()
         
-        // Tried to use a struct and bad things happend.  Copy on right problems?  Don't know.
+        // Tried to use a struct and bad things happend.  Copy on write problems?  Simultaneous access problems?  Are those two related?  Could be.  Don't know.
         // Problems went away when I switched to class
         class Tags {
             weak var globals:Globals!
@@ -1264,7 +1300,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         return media
     }()
     
-    struct Display {
+    class Display {
         var mediaItems:[MediaItem]?
         var section = Section()
     }
@@ -1313,8 +1349,8 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
 
         print("saveSettingsBackground")
         
-        DispatchQueue.global(qos: .background).async {
-            self.saveSettings()
+        DispatchQueue.global(qos: .background).async { [weak self] in
+            self?.saveSettings()
         }
     }
     

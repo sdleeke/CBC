@@ -760,7 +760,7 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                 if wholeWordsOnly {
                     let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
                     
-                    if let characterAfter:Character = stringAfter.characters.first {
+                    if let characterAfter:Character = stringAfter.first {
                         if let unicodeScalar = UnicodeScalar(String(characterAfter)), !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                             skip = true
                         }
@@ -775,7 +775,7 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                             }
                         }
                     }
-                    if let characterBefore:Character = stringBefore.characters.last {
+                    if let characterBefore:Character = stringBefore.last {
                         if let unicodeScalar = UnicodeScalar(String(characterBefore)), !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                             skip = true
                         }
@@ -841,7 +841,7 @@ func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wh
             if wholeWordsOnly {
                 let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
                 
-                if let characterAfter:Character = stringAfter.characters.first {
+                if let characterAfter:Character = stringAfter.first {
                     if let unicodeScalar = UnicodeScalar(String(characterAfter)), !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                         skip = true
                     }
@@ -856,7 +856,7 @@ func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wh
                         }
                     }
                 }
-                if let characterBefore:Character = stringBefore.characters.last {
+                if let characterBefore:Character = stringBefore.last {
                     if let unicodeScalar = UnicodeScalar(String(characterBefore)), !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                         skip = true
                     }
@@ -1021,7 +1021,7 @@ func versessFromScripture(_ scripture:String?) -> [Int]?
     
     var breakOut = false
     
-    for character in string.characters {
+    for character in string {
         if breakOut {
             break
         }
@@ -1258,7 +1258,7 @@ func chaptersAndVersesFromScripture(book:String?,reference:String?) -> [Int:[Int
     
     var token = Constants.EMPTY_STRING
     
-    if let chars = string?.characters {
+    if let chars = string {
         for char in chars {
             if let unicodeScalar = UnicodeScalar(String(char)), CharacterSet(charactersIn: ":,-").contains(unicodeScalar) {
                 tokens.append(token)
@@ -2001,7 +2001,7 @@ func chaptersFromScriptureReference(_ scriptureReference:String?) -> [Int]?
         
         var breakOut = false
         
-        for character in string.characters {
+        for character in string {
             if breakOut {
                 break
             }
@@ -2503,7 +2503,7 @@ func tokensFromString(_ string:String?) -> [String]?
         }
     }
     
-    for char in str.characters {
+    for char in str {
         //        print(char)
         
         if let unicodeScalar = UnicodeScalar(String(char)) {
@@ -2603,7 +2603,7 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
         }
     }
     
-    for char in str.characters {
+    for char in str {
         //        print(char)
         
         if let unicodeScalar = UnicodeScalar(String(char)) {
@@ -2674,7 +2674,7 @@ func firstNameFromName(_ name:String?) -> String?
     if let string = string?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) {
         var newString = Constants.EMPTY_STRING
         
-        for char in string.characters {
+        for char in string {
             if String(char) == Constants.SINGLE_SPACE {
                 firstName = newString
                 break
@@ -2698,7 +2698,7 @@ func titleFromName(_ name:String?) -> String?
     var title = Constants.EMPTY_STRING
     
     if name.range(of: ". ") != nil {
-        for char in name.characters {
+        for char in name {
             title.append(char)
             if String(char) == "." {
                 break
@@ -3091,21 +3091,25 @@ func tagsSetFromTagsString(_ tagsString:String?) -> Set<String>?
         return nil
     }
     
-    var tags = tagsString
-    var tag:String
-    var setOfTags = Set<String>()
+    let array = tagsString.components(separatedBy: Constants.TAGS_SEPARATOR)
     
-    while let range = tags.range(of: Constants.TAGS_SEPARATOR) {
-        tag = tags.substring(to: range.lowerBound)
-        setOfTags.insert(tag)
-        tags = tags.substring(from: range.upperBound)
-    }
+    return array.count > 0 ? Set(array) : nil
     
-    if !tags.isEmpty {
-        setOfTags.insert(tags)
-    }
-    
-    return setOfTags.count > 0 ? setOfTags : nil
+//    var tags = tagsString
+//    var tag:String
+//    var setOfTags = Set<String>()
+//
+//    while let range = tags.range(of: Constants.TAGS_SEPARATOR) {
+//        tag = tags.substring(to: range.lowerBound)
+//        setOfTags.insert(tag)
+//        tags = tags.substring(from: range.upperBound)
+//    }
+//
+//    if !tags.isEmpty {
+//        setOfTags.insert(tags)
+//    }
+//
+//    return setOfTags.count > 0 ? setOfTags : nil
 }
 
 func tagsArrayToTagsString(_ tagsArray:[String]?) -> String?
@@ -3114,13 +3118,15 @@ func tagsArrayToTagsString(_ tagsArray:[String]?) -> String?
         return nil
     }
 
-    var tagString:String?
+    return tagsArray.count > 0 ? tagsArray.joined(separator: Constants.TAGS_SEPARATOR) : nil
     
-    for tag in tagsArray {
-        tagString = (tagString != nil ? tagString! + Constants.TAGS_SEPARATOR : "") + tag
-    }
-    
-    return tagString
+//    var tagString:String?
+//
+//    for tag in tagsArray {
+//        tagString = (tagString != nil ? tagString! + Constants.TAGS_SEPARATOR : "") + tag
+//    }
+//
+//    return tagString
 }
 
 func tagsArrayFromTagsString(_ tagsString:String?) -> [String]?
@@ -3129,13 +3135,17 @@ func tagsArrayFromTagsString(_ tagsString:String?) -> [String]?
         return nil
     }
     
-    var arrayOfTags:[String]?
+    let array = tagsString.components(separatedBy: Constants.TAGS_SEPARATOR) 
+
+    return array.count > 0 ? array : nil
     
-    if let tags = tagsSetFromTagsString(tagsString) {
-        arrayOfTags = Array(tags) //.sort() { $0 < $1 } // .sort() { stringWithoutLeadingTheOrAOrAn($0) < stringWithoutLeadingTheOrAOrAn($1) } // Not sorted
-    }
-    
-    return arrayOfTags
+//    var arrayOfTags:[String]?
+//
+//    if let tags = tagsSetFromTagsString(tagsString) {
+//        arrayOfTags = Array(tags) //.sort() { $0 < $1 } // .sort() { stringWithoutLeadingTheOrAOrAn($0) < stringWithoutLeadingTheOrAOrAn($1) } // Not sorted
+//    }
+//
+//    return arrayOfTags
 }
 
 func mediaItemsWithTag(_ mediaItems:[MediaItem]?,tag:String?) -> [MediaItem]?

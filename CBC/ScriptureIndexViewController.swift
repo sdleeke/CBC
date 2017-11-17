@@ -716,122 +716,122 @@ class ScriptureIndexViewController : UIViewController
         let testament = translateTestament(selectedTestament)
 
         guard let selectedBook = scriptureIndex.selectedBook else {
-            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 Thread.onMainThread() {
-                    self.disableBarButtons()
-                    self.spinner.isHidden = false
-                    self.spinner.startAnimating()
-                    self.isHiddenNumberAndTableUI(true)
+                    self?.disableBarButtons()
+                    self?.spinner.isHidden = false
+                    self?.spinner.startAnimating()
+                    self?.isHiddenNumberAndTableUI(true)
                 }
                 
                 if scriptureIndex.sorted[testament] == nil {
-                    scriptureIndex.byTestament[testament] = self.sortMediaItems(scriptureIndex.byTestament[testament],book:nil)
+                    scriptureIndex.byTestament[testament] = self?.sortMediaItems(scriptureIndex.byTestament[testament],book:nil)
                     scriptureIndex.sorted[testament] = true
                 }
                 
-                self.mediaItems = scriptureIndex.byTestament[testament]
+                self?.mediaItems = scriptureIndex.byTestament[testament]
                 
                 Thread.onMainThread() {
-                    self.enableBarButtons()
-                    self.updateUI()
-                    self.tableView.reloadData()
+                    self?.enableBarButtons()
+                    self?.updateUI()
+                    self?.tableView.reloadData()
                     if scriptureIndex.byTestament[testament]?.count > 0 {
-                        self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                        self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
                     }
-                    self.scripturePicker.isUserInteractionEnabled = true
+                    self?.scripturePicker.isUserInteractionEnabled = true
                 }
-            })
+            }
             return
         }
 
         guard scriptureIndex.selectedChapter > 0 else {
             let index = testament + selectedBook
 
-            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 Thread.onMainThread() {
-                    self.disableBarButtons()
-                    self.spinner.isHidden = false
-                    self.spinner.startAnimating()
-                    self.isHiddenNumberAndTableUI(true)
+                    self?.disableBarButtons()
+                    self?.spinner.isHidden = false
+                    self?.spinner.startAnimating()
+                    self?.isHiddenNumberAndTableUI(true)
                 }
                 
                 if scriptureIndex.sorted[index] == nil {
-                    scriptureIndex.byBook[testament]?[selectedBook] = self.sortMediaItems(scriptureIndex.byBook[testament]?[selectedBook],book:selectedBook)
+                    scriptureIndex.byBook[testament]?[selectedBook] = self?.sortMediaItems(scriptureIndex.byBook[testament]?[selectedBook],book:selectedBook)
                     scriptureIndex.sorted[index] = true
                 }
                 
-                self.mediaItems = scriptureIndex.byBook[testament]?[selectedBook]
+                self?.mediaItems = scriptureIndex.byBook[testament]?[selectedBook]
                 
                 Thread.onMainThread() {
-                    self.enableBarButtons()
-                    self.updateUI()
-                    self.tableView.reloadData()
+                    self?.enableBarButtons()
+                    self?.updateUI()
+                    self?.tableView.reloadData()
                     if scriptureIndex.byBook[testament]?[selectedBook]?.count > 0 {
-                        self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                        self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
                     }
-                    self.scripturePicker.isUserInteractionEnabled = true
+                    self?.scripturePicker.isUserInteractionEnabled = true
                 }
-            })
+            }
             return
         }
 
         guard scriptureIndex.selectedVerse > 0 else {
             let index = testament + selectedBook + "\(scriptureIndex.selectedChapter)"
             
-            DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 Thread.onMainThread() {
-                    self.disableBarButtons()
-                    self.spinner.isHidden = false
-                    self.spinner.startAnimating()
-                    self.isHiddenNumberAndTableUI(true)
+                    self?.disableBarButtons()
+                    self?.spinner.isHidden = false
+                    self?.spinner.startAnimating()
+                    self?.isHiddenNumberAndTableUI(true)
                 }
                 
                 if scriptureIndex.sorted[index] == nil {
-                    scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter] = self.sortMediaItems(scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter],book:selectedBook)
+                    scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter] = self?.sortMediaItems(scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter],book:selectedBook)
                     scriptureIndex.sorted[index] = true
                 }
                 
-                self.mediaItems = scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter]
+                self?.mediaItems = scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter]
                 
                 Thread.onMainThread() {
-                    self.enableBarButtons()
-                    self.updateUI()
-                    self.tableView.reloadData()
+                    self?.enableBarButtons()
+                    self?.updateUI()
+                    self?.tableView.reloadData()
                     if scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter]?.count > 0 {
-                        self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                        self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
                     }
-                    self.scripturePicker.isUserInteractionEnabled = true
+                    self?.scripturePicker.isUserInteractionEnabled = true
                 }
-            })
+            }
             return
         }
 
         let index = testament + selectedBook + "\(scriptureIndex.selectedChapter)" + "\(scriptureIndex.selectedVerse)"
 
-        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             Thread.onMainThread() {
-                self.disableBarButtons()
-                self.spinner.isHidden = false
-                self.spinner.startAnimating()
-                self.isHiddenNumberAndTableUI(true)
+                self?.disableBarButtons()
+                self?.spinner.isHidden = false
+                self?.spinner.startAnimating()
+                self?.isHiddenNumberAndTableUI(true)
             }
             
             if scriptureIndex.sorted[index] == nil {
                 scriptureIndex.sorted[index] = true
             }
             
-            self.mediaItems = nil
+            self?.mediaItems = nil
             
             Thread.onMainThread() {
-                self.enableBarButtons()
-                self.updateUI()
-                self.tableView.reloadData()
+                self?.enableBarButtons()
+                self?.updateUI()
+                self?.tableView.reloadData()
                 if scriptureIndex.byVerse[testament]?[selectedBook]?[scriptureIndex.selectedChapter]?[scriptureIndex.selectedVerse]?.count > 0 {
-                    self.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
+                    self?.tableView.scrollToRow(at: IndexPath(row: 0,section: 0), at: UITableViewScrollPosition.top, animated: true)
                 }
-                self.scripturePicker.isUserInteractionEnabled = true
+                self?.scripturePicker.isUserInteractionEnabled = true
             }
-        })
+        }
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
@@ -886,7 +886,8 @@ class ScriptureIndexViewController : UIViewController
         return show
     }
 
-    override func viewWillAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool)
+    {
         super.viewWillAppear(animated)
         
         globals.queue.async(execute: { () -> Void in
@@ -1205,18 +1206,18 @@ class ScriptureIndexViewController : UIViewController
             let indexPath = IndexPath(row: index, section: 0)
             
             if (select) {
-                DispatchQueue.global(qos: .background).async {
+                DispatchQueue.global(qos: .background).async { [weak self] in
                     Thread.onMainThread() {
-                        self.tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
+                        self?.tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
                     }
                 }
             }
             
             if (scroll) {
                 //Scrolling when the user isn't expecting it can be jarring.
-                DispatchQueue.global(qos: .background).async {
+                DispatchQueue.global(qos: .background).async { [weak self] in
                     Thread.onMainThread() {
-                        self.tableView.scrollToRow(at: indexPath, at: position, animated: false)
+                        self?.tableView.scrollToRow(at: indexPath, at: position, animated: false)
                     }
                 }
             }
@@ -1275,8 +1276,7 @@ class ScriptureIndexViewController : UIViewController
         tableView.tableFooterView = UIView()
 
         let actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(ScriptureIndexViewController.actionMenu))
-        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
+        actionButton.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
 
         navigationItem.setRightBarButton(actionButton, animated: true) //
 
@@ -1793,8 +1793,8 @@ extension ScriptureIndexViewController : UITableViewDelegate
             return nil
         }
         
-        let action = UITableViewRowAction(style: .normal, title: "Actions") { rowAction, indexPath in
-            let alert = UIAlertController(  title: "Actions",
+        let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { rowAction, indexPath in
+            let alert = UIAlertController(  title: Constants.Strings.Actions,
                                             message: message,
                                             preferredStyle: .alert)
             alert.makeOpaque()
@@ -1822,6 +1822,10 @@ extension ScriptureIndexViewController : UITableViewDelegate
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
+        guard let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell else {
+            return
+        }
+        
         print("didSelectRowAtIndexPath")
         
         if let _ = scriptureIndex?.selectedBook {
@@ -1836,21 +1840,23 @@ extension ScriptureIndexViewController : UITableViewDelegate
         
         print(selectedMediaItem?.booksAndChaptersAndVerses()?.data as Any)
         
-        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
-            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
-                let viewController = navigationController.viewControllers[0] as? MediaViewController {
-                viewController.selectedMediaItem = selectedMediaItem
-                splitViewController?.viewControllers[1] = navigationController
-            }
-        } else {
-            if let viewController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM) as? MediaViewController {
-                viewController.selectedMediaItem = selectedMediaItem
-                
-                self.navigationController?.navigationItem.hidesBackButton = false
-                
-                self.navigationController?.pushViewController(viewController, animated: true)
-            }
-        }
+        performSegue(withIdentifier: Constants.SEGUE.SHOW_INDEX_MEDIAITEM, sender: cell)
+        
+//        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
+//            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,
+//                let viewController = navigationController.viewControllers[0] as? MediaViewController {
+//                viewController.selectedMediaItem = selectedMediaItem
+//                splitViewController?.viewControllers[1] = navigationController
+//            }
+//        } else {
+//            if let viewController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM) as? MediaViewController {
+//                viewController.selectedMediaItem = selectedMediaItem
+//                
+//                self.navigationController?.navigationItem.hidesBackButton = false
+//                
+//                self.navigationController?.pushViewController(viewController, animated: true)
+//            }
+//        }
     }
 
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int)

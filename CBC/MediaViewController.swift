@@ -155,11 +155,12 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 break
             }
             
-            globals.queue.sync(execute: { () -> Void in
+            // This blocks this thread until it finishes.
+            globals.queue.sync {
                 for mediaItem in mediaItems {
                     mediaItem.addTag(Constants.Strings.Favorites)
                 }
-            })
+            }
             break
             
         case Constants.Strings.Remove_All_From_Favorites:
@@ -167,11 +168,12 @@ extension MediaViewController : PopoverTableViewControllerDelegate
                 break
             }
             
-            globals.queue.sync(execute: { () -> Void in
+            // This blocks this thread until it finishes.
+            globals.queue.sync {
                 for mediaItem in mediaItems {
                     mediaItem.removeTag(Constants.Strings.Favorites)
                 }
-            })
+            }
             break
             
 //        case Constants.Strings.Open_on_CBC_Website:
@@ -728,9 +730,6 @@ extension MediaViewController : WKNavigationDelegate
         for document in documents.values {
             if (webView == document.wkWebView) {
                 if document.showing(selectedMediaItem) {
-                    self.activityIndicator.stopAnimating()
-                    self.activityIndicator.isHidden = true
-                    
                     self.progressIndicator.isHidden = true
                     
                     self.setupAudioOrVideo()
@@ -738,6 +737,9 @@ extension MediaViewController : WKNavigationDelegate
                     self.setSegmentWidths()
                     
                     webView.isHidden = false
+
+                    self.activityIndicator.stopAnimating()
+                    self.activityIndicator.isHidden = true
                 } else {
                     webView.isHidden = true
                 }
@@ -1630,8 +1632,9 @@ class MediaViewController: UIViewController // MediaController
                 
                 fontSize = min(audioOrVideoControl.frame.height,segmentWidth) / 1.75
                 
-                audioOrVideoControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: fontSize) as Any], for: UIControlState.normal)
-                audioOrVideoControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: fontSize) as Any], for: UIControlState.disabled)
+                if let font = UIFont(name: "FontAwesome", size: fontSize) {
+                    audioOrVideoControl.setTitleTextAttributes([ NSFontAttributeName: font])
+                }
             }
         }
 
@@ -1643,8 +1646,9 @@ class MediaViewController: UIViewController // MediaController
                 
                 fontSize = min(stvControl.frame.height,segmentWidth) / 1.75
                 
-                stvControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: fontSize) as Any], for: UIControlState.normal)
-                stvControl.setTitleTextAttributes([ NSFontAttributeName: UIFont(name: "FontAwesome", size: fontSize) as Any], for: UIControlState.disabled)
+                if let font = UIFont(name: "FontAwesome", size: fontSize) {
+                    stvControl.setTitleTextAttributes([ NSFontAttributeName: font])
+                }
             }
         }
         
@@ -2413,8 +2417,7 @@ class MediaViewController: UIViewController // MediaController
                 }
                 
                 if mediaItemNotesAndSlidesConstraint.isActive {
-                    let change = -translation.y
-                    setMediaItemNotesAndSlidesConstraint(change)
+                    setMediaItemNotesAndSlidesConstraint(-translation.y)
                 } else {
                     
                 }
@@ -2577,6 +2580,8 @@ class MediaViewController: UIViewController // MediaController
         
         mediaItemNotesAndSlides.addSubview(wkWebView)
         
+        mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
+        
         let centerXNotes = NSLayoutConstraint(item: wkWebView, attribute: NSLayoutAttribute.centerX, relatedBy: NSLayoutRelation.equal, toItem: wkWebView.superview, attribute: NSLayoutAttribute.centerX, multiplier: 1.0, constant: 0.0)
         mediaItemNotesAndSlides.addConstraint(centerXNotes)
         
@@ -2633,11 +2638,11 @@ class MediaViewController: UIViewController // MediaController
             globals.mediaPlayer.playOnLoad = false
             
             // Purely for the delay?
-            DispatchQueue.global(qos: .background).async(execute: {
+            DispatchQueue.global(qos: .background).async { [weak self] in
                 Thread.onMainThread {
                     globals.mediaPlayer.play()
                 }
-            })
+            }
         }
         
         setupSpinner()
@@ -2713,9 +2718,9 @@ class MediaViewController: UIViewController // MediaController
         
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.
         
-        DispatchQueue.global(qos: .background).async {
+        DispatchQueue.global(qos: .background).async { [weak self] in
             Thread.onMainThread() {
-                self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
+                self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
             }
         }
         
@@ -2730,9 +2735,9 @@ class MediaViewController: UIViewController // MediaController
         
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.
         
-        DispatchQueue.global(qos: .background).async {
+        DispatchQueue.global(qos: .background).async { [weak self] in
             Thread.onMainThread() {
-                self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
+                self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
             }
         }
         
@@ -2875,6 +2880,7 @@ class MediaViewController: UIViewController // MediaController
         
         if document.wkWebView == nil {
             document.wkWebView = WKWebView(frame: mediaItemNotesAndSlides.bounds)
+//            document.wkWebView?.backgroundColor = UIColor.clear
         }
         
         if let wkWebView = document.wkWebView {
@@ -3186,6 +3192,7 @@ class MediaViewController: UIViewController // MediaController
                     }
                     
                     mediaItemNotesAndSlides.bringSubview(toFront: wkWebView)
+                    mediaItemNotesAndSlides.bringSubview(toFront: activityIndicator)
                 }
                 break
                 
@@ -3320,14 +3327,14 @@ class MediaViewController: UIViewController // MediaController
         }
         
         guard let selectedMediaItem = selectedMediaItem else {
-            playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState.normal)
+            playPauseButton.setTitle(Constants.FA.PLAY)
             playPauseButton.isEnabled = false
             playPauseButton.isHidden = true
             return
         }
         
         guard selectedMediaItem.hasAudio || selectedMediaItem.hasVideo else {
-            playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState.normal)
+            playPauseButton.setTitle(Constants.FA.PLAY)
             playPauseButton.isEnabled = false
             playPauseButton.isHidden = false
             return
@@ -3346,17 +3353,17 @@ class MediaViewController: UIViewController // MediaController
                 case .playing:
                     showState("Playing -> Pause")
                     
-                    playPauseButton.setTitle(Constants.FA.PAUSE, for: UIControlState.normal)
+                    playPauseButton.setTitle(Constants.FA.PAUSE)
                     break
                     
                 case .paused:
                     showState("Paused -> Play")
                   
-                    playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState.normal)
+                    playPauseButton.setTitle(Constants.FA.PLAY)
                     break
                     
                 default:
-                    playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState.normal)
+                    playPauseButton.setTitle(Constants.FA.PLAY)
                     break
                 }
             }
@@ -3364,7 +3371,7 @@ class MediaViewController: UIViewController // MediaController
             showState("Global not selected")
             playPauseButton.isEnabled = true
 
-            playPauseButton.setTitle(Constants.FA.PLAY, for: UIControlState.normal)
+            playPauseButton.setTitle(Constants.FA.PLAY)
         }
 
         playPauseButton.isHidden = false
@@ -3429,9 +3436,8 @@ class MediaViewController: UIViewController // MediaController
         
         if actionMenu()?.count > 0 {
             actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.actions))
-            actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-            actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
-            
+            actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
+
             if let actionButton = actionButton {
                 barButtons.append(actionButton)
             }
@@ -3444,9 +3450,8 @@ class MediaViewController: UIViewController // MediaController
                 tagsButton = UIBarButtonItem(title: Constants.FA.TAG, style: UIBarButtonItemStyle.plain, target: self, action: #selector(MediaViewController.tags(_:)))
             }
             
-            tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags, for: UIControlState.normal)
-            tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags, for: UIControlState.disabled)
-            
+            tagsButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.tags)
+
             if let tagsButton = tagsButton {
                 barButtons.append(tagsButton)
             }
@@ -3571,14 +3576,19 @@ class MediaViewController: UIViewController // MediaController
             return
         }
         
-        if (width >= 0) && (width <= self.view.bounds.size.width) {
+        let min:CGFloat = 0.0
+        
+        // if max is allowed to be self.view.bounds.size.width the app will crash because the tableViewWidth constraint will force the slides to be zero width and somewhere between a value like 60 and zero the crash occurs.  If the video is swapped with the slides by a long press when the video is full width there is no crash, so something about the value goint to zero causes a crash so 60 is an arbitrary deduction to keep the min width of the left to be more than zero while the pan is occuring either in the video on the RHS or the view along the bottom.
+        let max:CGFloat = self.view.bounds.size.width - 60.0
+        
+        if (width >= min) && (width < max) {
             tableViewWidth.constant = width
         }
-        if (width < 0) {
-            tableViewWidth.constant = 0
+        if (width < min) {
+            tableViewWidth.constant = min
         }
-        if (width > self.view.bounds.size.width) {
-            tableViewWidth.constant = self.view.bounds.size.width
+        if (width >= max) {
+            tableViewWidth.constant = max
         }
     }
     
@@ -4053,11 +4063,11 @@ class MediaViewController: UIViewController // MediaController
         self.updateUI()
 
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.
-        DispatchQueue.global(qos: .userInitiated).async(execute: { () -> Void in
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             Thread.onMainThread() {
-                self.scrollToMediaItem(self.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
+                self?.scrollToMediaItem(self?.selectedMediaItem, select: true, position: UITableViewScrollPosition.none)
             }
-        })
+        }
     }
     
     func setupSplitViewController()
@@ -4992,15 +5002,17 @@ extension MediaViewController : UITableViewDataSource
         favorites = AlertAction(title: title, style: .default) {
             switch title {
             case Constants.Strings.Add_to_Favorites:
-                globals.queue.sync(execute: { () -> Void in
+                // This blocks this thread until it finishes.
+                globals.queue.sync {
                     self.selectedMediaItem?.addTag(Constants.Strings.Favorites)
-                })
+                }
                 break
                 
             case Constants.Strings.Remove_From_Favorites:
-                globals.queue.sync(execute: { () -> Void in
+                // This blocks this thread until it finishes.
+                globals.queue.sync {
                     self.selectedMediaItem?.removeTag(Constants.Strings.Favorites)
-                })
+                }
                 break
                 
             default:
@@ -5166,8 +5178,8 @@ extension MediaViewController : UITableViewDataSource
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]?
     {
         if let cell = tableView.cellForRow(at: indexPath) as? MediaTableViewCell, let message = cell.mediaItem?.text {
-            let action = UITableViewRowAction(style: .normal, title: "Actions") { rowAction, indexPath in
-                let alert = UIAlertController(  title: "Actions",
+            let action = UITableViewRowAction(style: .normal, title: Constants.Strings.Actions) { rowAction, indexPath in
+                let alert = UIAlertController(  title: Constants.Strings.Actions,
                                                 message: message,
                                                 preferredStyle: .alert)
                 alert.makeOpaque()

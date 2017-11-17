@@ -155,6 +155,8 @@ class MediaPlayer : NSObject {
         }
     }
     
+    var isVideoFullScreen = false
+
     override func observeValue(forKeyPath keyPath: String?,
                                of object: Any?,
                                change: [NSKeyValueChangeKey : Any]?,
@@ -173,6 +175,16 @@ class MediaPlayer : NSObject {
             return
         }
         
+        if keyPath == #keyPath(UIView.frame) {
+            if let rect = change?[.newKey] as? CGRect {
+                print(rect.size,UIScreen.main.bounds.size)
+                
+                isVideoFullScreen = rect.size == UIScreen.main.bounds.size
+ 
+                isVideoFullScreen ? print("Player in full screen") : print("Player not in full screen")
+            }
+        }
+
         if #available(iOS 10.0, *) {
             if keyPath == #keyPath(AVPlayer.timeControlStatus) {
                 if  let statusNumber = change?[.newKey] as? NSNumber,
@@ -196,8 +208,7 @@ class MediaPlayer : NSObject {
                                 break
                                 
                             case .playing:
-                                pause()
-                                
+                                pause() // coming back from true full screen to MVC fullScreen while playing triggers this pause.  Why???
                                 // didPlayToEnd observer doesn't always work.  This seemds to catch the cases where it doesn't.
                                 checkPlayToEnd()
                                 break
@@ -223,7 +234,7 @@ class MediaPlayer : NSObject {
                                 break
                                 
                             case .paused:
-                                play()
+                                play() // "fullScreen" (in MVC) then touch causes this play.  Why???
                                 break
                                 
                             case .playing:
@@ -356,9 +367,13 @@ class MediaPlayer : NSObject {
         showsPlaybackControls = false
         
         unobserve()
+
+        controller?.contentOverlayView?.removeObserver(self, forKeyPath: #keyPath(UIView.frame))
         
         controller = AVPlayerViewController()
-        
+
+        controller?.contentOverlayView?.addObserver(self, forKeyPath: #keyPath(UIView.frame), options: NSKeyValueObservingOptions.new, context: nil)
+
         controller?.delegate = globals
         
         controller?.showsPlaybackControls = globals.mediaPlayer.fullScreen
@@ -442,11 +457,6 @@ class MediaPlayer : NSObject {
                 return
         }
         
-        //        print("startTime",startTime)
-        //        print("start",start)
-        //        print("currentTime",currentTime)
-        //        print("timeElapsed",timeElapsed)
-        
         switch state {
         case .none:
             break
@@ -491,14 +501,14 @@ class MediaPlayer : NSObject {
             if loaded {
                 if (pip == .started) || fullScreen {
                     // System caused
-                    if (rate != 0) {
-                        play()
-                    }
+//                    if (rate != 0) {
+//                        play() // "fullScreen" (in MVC) then touch causes this play.  Why???
+//                    }
                 } else {
                     // What would cause this?
-                    if (rate != 0) {
-                        pause()
-                    }
+//                    if (rate != 0) {
+//                        pause()
+//                    }
                 }
             } else {
                 if !loadFailed {

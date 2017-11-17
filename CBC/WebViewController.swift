@@ -31,7 +31,7 @@ struct HTML {
             if string != oldValue {
                 if let url = fileURL {
                     let fileManager = FileManager.default
-                    
+
                     if (fileManager.fileExists(atPath: url.path)){
                         do {
                             try fileManager.removeItem(at: url)
@@ -39,10 +39,10 @@ struct HTML {
                             print("failed to remove htmlString: \(error.localizedDescription)")
                         }
                     }
-                    
+
                     if let isEmpty = string?.isEmpty, !isEmpty {
                         do {
-                            try string?.write(toFile: url.path, atomically: false, encoding: String.Encoding.utf8);
+                            try string?.replacingOccurrences(of: Constants.UNBREAKABLE_SPACE, with: Constants.SINGLE_SPACE).write(toFile: url.path, atomically: false, encoding: String.Encoding.utf8);
                         } catch let error as NSError {
                             print("failed to write htmlString to cache directory: \(error.localizedDescription)")
                         }
@@ -55,6 +55,7 @@ struct HTML {
     var fileURL : URL?
     {
         get {
+            // Same result, just harder to read and understand.
 //            return !(string?.isEmpty ?? true) ? cachesURL()?.appendingPathComponent("string.html") : nil
             
             if let isEmpty = string?.isEmpty, !isEmpty {
@@ -118,6 +119,8 @@ extension WebViewController : PopoverPickerControllerDelegate
         if let url = self.html.fileURL {
             wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
         }
+        
+        // Problem is hyperlinks do not work w/o file based HTML
 //        if let htmlString = self.html.string {
 //            _ = self.wkWebView?.loadHTMLString(htmlString, baseURL: nil)
 //        }
@@ -246,6 +249,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 if let url = self.html.fileURL {
                     self.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
                 }
+                
 //                if let htmlString = self.html.string {
 //                    _ = self.wkWebView?.loadHTMLString(htmlString, baseURL: nil)
 //                }
@@ -460,7 +464,7 @@ extension WebViewController : WKNavigationDelegate
             
             self.barButtonItems(isEnabled: true)
             
-            DispatchQueue.global(qos: .background).async {
+            DispatchQueue.global(qos: .background).async { // [weak self] in
                 Thread.sleep(forTimeInterval: 0.1) // This is ESSENTIAL to allow the preferred content size to be set correctly.
                 
                 Thread.onMainThread() {
@@ -662,7 +666,7 @@ class WebViewController: UIViewController
                     let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
                     
                     if wholeWordsOnly {
-                        if let characterAfter:Character = stringAfter.characters.first {
+                        if let characterAfter:Character = stringAfter.first {
                             if  let unicodeScalar = UnicodeScalar(String(characterAfter)),
                                 !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                                 skip = true
@@ -678,7 +682,7 @@ class WebViewController: UIViewController
                                 }
                             }
                         }
-                        if let characterBefore:Character = stringBefore.characters.last {
+                        if let characterBefore:Character = stringBefore.last {
                             if  let unicodeScalar = UnicodeScalar(String(characterBefore)),
                                 !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                                 skip = true
@@ -1011,21 +1015,17 @@ class WebViewController: UIViewController
     fileprivate func setupActionButton()
     {
         fullScreenButton = UIBarButtonItem(title: Constants.FA.FULL_SCREEN, style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.showFullScreen))
-        fullScreenButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-        fullScreenButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
-        
+        fullScreenButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
+
         actionButton = UIBarButtonItem(title: Constants.FA.ACTION, style: UIBarButtonItemStyle.plain, target: self, action: #selector(WebViewController.actionMenu))
-        actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-        actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
-        
+        actionButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
+
         plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.increaseFontSize))
-        plusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-        plusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
-        
+        plusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
+
         minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(WebViewController.decreaseFontSize))
-        minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-        minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
-        
+        minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
+
         if let presentationStyle = navigationController?.modalPresentationStyle {
             guard   let actionButton = actionButton,
                     let fullScreenButton = fullScreenButton,
@@ -1041,7 +1041,12 @@ class WebViewController: UIViewController
                     
                     navigationItem.setRightBarButtonItems([fullScreenButton,minusButton,plusButton], animated: true)
                 } else {
-                    navigationItem.setRightBarButtonItems([minusButton,plusButton], animated: true)
+                    if let count = navigationItem.rightBarButtonItems?.count, count > 0 {
+                        navigationItem.rightBarButtonItems?.append(minusButton)
+                        navigationItem.rightBarButtonItems?.append(plusButton)
+                    } else {
+                        navigationItem.setRightBarButtonItems([minusButton,plusButton], animated: true)
+                    }
                 }
                 
             case .fullScreen:
@@ -1344,20 +1349,20 @@ class WebViewController: UIViewController
         if #available(iOS 9.0, *) {
             if globals.cacheDownloads {
                 if let destinationURL = selectedMediaItem?.fileSystemURL, FileManager.default.fileExists(atPath: destinationURL.path) {
-                    DispatchQueue.global(qos: .background).async(execute: { () -> Void in
-                        _ = self.wkWebView?.loadFileURL(destinationURL, allowingReadAccessTo: destinationURL)
+                    DispatchQueue.global(qos: .background).async { [weak self] in
+                        _ = self?.wkWebView?.loadFileURL(destinationURL, allowingReadAccessTo: destinationURL)
                         
                         Thread.onMainThread() {
-                            self.activityIndicator.stopAnimating()
-                            self.activityIndicator.isHidden = true
+                            self?.activityIndicator.stopAnimating()
+                            self?.activityIndicator.isHidden = true
                             
-                            self.progressIndicator.progress = 0.0
-                            self.progressIndicator.isHidden = true
+                            self?.progressIndicator.progress = 0.0
+                            self?.progressIndicator.isHidden = true
                             
-                            self.loadTimer?.invalidate()
-                            self.loadTimer = nil
+                            self?.loadTimer?.invalidate()
+                            self?.loadTimer = nil
                         }
-                    })
+                    }
                 } else {
                     activityIndicator.isHidden = false
                     activityIndicator.startAnimating()
@@ -1370,48 +1375,52 @@ class WebViewController: UIViewController
                     }
                 }
             } else {
-                DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+                DispatchQueue.global(qos: .background).async { [weak self] in
                     Thread.onMainThread() {
-                        self.webView.bringSubview(toFront: self.activityIndicator)
+                        if let activityIndicator = self?.activityIndicator {
+                            self?.webView.bringSubview(toFront: activityIndicator)
+                        }
                         
-                        self.activityIndicator.isHidden = false
-                        self.activityIndicator.startAnimating()
+                        self?.activityIndicator.isHidden = false
+                        self?.activityIndicator.startAnimating()
                         
-                        self.progressIndicator.progress = 0.0
-                        self.progressIndicator.isHidden = false
+                        self?.progressIndicator.progress = 0.0
+                        self?.progressIndicator.isHidden = false
                         
-                        if self.loadTimer == nil {
-                            self.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(WebViewController.loading), userInfo: nil, repeats: true)
+                        if self?.loadTimer == nil, let target = self {
+                            self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: target, selector: #selector(WebViewController.loading), userInfo: nil, repeats: true)
                         }
                     }
                     
-                    if let url = self.selectedMediaItem?.downloadURL {
+                    if let url = self?.selectedMediaItem?.downloadURL {
                         let request = URLRequest(url: url)
-                        _ = self.wkWebView?.load(request)
+                        _ = self?.wkWebView?.load(request)
                     }
-                })
+                }
             }
         } else {
-            DispatchQueue.global(qos: .background).async(execute: { () -> Void in
+            DispatchQueue.global(qos: .background).async { [weak self] in
                 Thread.onMainThread() {
-                    self.webView.bringSubview(toFront: self.activityIndicator)
+                    if let activityIndicator = self?.activityIndicator {
+                        self?.webView.bringSubview(toFront: activityIndicator)
+                    }
                     
-                    self.activityIndicator.isHidden = false
-                    self.activityIndicator.startAnimating()
+                    self?.activityIndicator.isHidden = false
+                    self?.activityIndicator.startAnimating()
                     
-                    self.progressIndicator.progress = 0.0
-                    self.progressIndicator.isHidden = false
+                    self?.progressIndicator.progress = 0.0
+                    self?.progressIndicator.isHidden = false
                     
-                    if self.loadTimer == nil {
-                        self.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(WebViewController.loading), userInfo: nil, repeats: true)
+                    if self?.loadTimer == nil {
+                        self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(WebViewController.loading), userInfo: nil, repeats: true)
                     }
                 }
                 
-                if let url = self.selectedMediaItem?.downloadURL {
+                if let url = self?.selectedMediaItem?.downloadURL {
                     let request = URLRequest(url: url)
-                    _ = self.wkWebView?.load(request)
+                    _ = self?.wkWebView?.load(request)
                 }
-            })
+            }
         }
     }
     
@@ -1676,6 +1685,7 @@ class WebViewController: UIViewController
             
             if let vc = vc {
                 process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ (Void) -> Any? in
+                    // Why are we doing this?
                     while self.mask {
                         Thread.sleep(forTimeInterval: 0.1)
                     }

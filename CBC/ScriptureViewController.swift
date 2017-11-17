@@ -588,13 +588,11 @@ class ScriptureViewController : UIViewController
     fileprivate func setupBarButtons()
     {
         plusButton = UIBarButtonItem(title: Constants.FA.LARGER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(ScriptureViewController.increaseFontSize))
-        plusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-        plusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
-        
+        plusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
+
         minusButton = UIBarButtonItem(title: Constants.FA.SMALLER, style: UIBarButtonItemStyle.plain, target: self, action:  #selector(ScriptureViewController.decreaseFontSize))
-        minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.normal)
-        minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show, for: UIControlState.disabled)
-        
+        minusButton?.setTitleTextAttributes(Constants.FA.Fonts.Attributes.show)
+
         if let minusButton = minusButton, let plusButton = plusButton {
             navigationItem.setRightBarButtonItems([minusButton,plusButton], animated: true)
         }
@@ -855,24 +853,24 @@ class ScriptureViewController : UIViewController
         setupBarButtons()
         
         if scripture?.selected.reference == nil, let reference = scripture?.reference, let books = booksFromScriptureReference(reference), books.count > 0 {
-            DispatchQueue.global(qos: .background).async {
-                self.scripture?.reference = reference
-                self.scripture?.load() // reference
+            DispatchQueue.global(qos: .background).async { [weak self] in
+                self?.scripture?.reference = reference
+                self?.scripture?.load() // reference
                 
-                if let books = self.scripture?.booksChaptersVerses?.data?.keys.sorted(by: { self.scripture?.reference?.range(of: $0)?.lowerBound < self.scripture?.reference?.range(of: $1)?.lowerBound }) {
+                if let books = self?.scripture?.booksChaptersVerses?.data?.keys.sorted(by: { self?.scripture?.reference?.range(of: $0)?.lowerBound < self?.scripture?.reference?.range(of: $1)?.lowerBound }) {
                     let book = books[0]
                     
-                    self.scripture?.selected.testament = self.testament(book)
-                    self.scripture?.selected.book = book
+                    self?.scripture?.selected.testament = self?.testament(book)
+                    self?.scripture?.selected.book = book
                     
-                    if let chapters = self.scripture?.booksChaptersVerses?.data?[book]?.keys.sorted() {
-                        self.scripture?.selected.chapter = chapters[0]
+                    if let chapters = self?.scripture?.booksChaptersVerses?.data?[book]?.keys.sorted() {
+                        self?.scripture?.selected.chapter = chapters[0]
                     }
                 }
                 
                 Thread.onMainThread() {
-                    self.updatePicker()
-                    self.showScripture()
+                    self?.updatePicker()
+                    self?.showScripture()
                 }
             }
         } else {

@@ -63,7 +63,7 @@ class Lexicon : NSObject {
             for token in tokens {
                 var string = String()
                 
-                for character in token.characters {
+                for character in token {
                     string.append(character)
                     
                     if let count = roots[string] {
@@ -194,7 +194,7 @@ class Lexicon : NSObject {
         if var list = eligible {
             creating = true
             
-            DispatchQueue.global(qos: .background).async {
+            DispatchQueue.global(qos: .background).async { [weak self] in
                 var dict = Words()
                 
                 var date = Date()
@@ -233,11 +233,11 @@ class Lexicon : NSObject {
                             break
                         }
                         
-                        if !self.pauseUpdates {
+                        if let pauseUpdates = self?.pauseUpdates, !pauseUpdates {
                             if date.timeIntervalSinceNow <= -1 {
                                 //                                print(date)
                                 
-                                self.words = dict.count > 0 ? dict : nil
+                                self?.words = dict.count > 0 ? dict : nil
                                 
                                 date = Date()
                             }
@@ -249,12 +249,12 @@ class Lexicon : NSObject {
                     }
                 } while list.count > 0
                 
-                self.words = dict.count > 0 ? dict : nil
+                self?.words = dict.count > 0 ? dict : nil
                 
-                self.creating = false
+                self?.creating = false
                 
                 if !globals.isRefreshing && !globals.isLoading {
-                    self.completed = true
+                    self?.completed = true
                 }
                 
                 //        print(dict)
