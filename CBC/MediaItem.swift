@@ -1884,60 +1884,69 @@ class MediaItem : NSObject
             var foundString:String = Constants.EMPTY_STRING
 
             while (string.lowercased().range(of: searchText.lowercased()) != nil) {
-                if let range = string.lowercased().range(of: searchText.lowercased()) {
-                    stringBefore = string.substring(to: range.lowerBound)
-                    stringAfter = string.substring(from: range.upperBound)
-                    
-                    var skip = false
-                    
-                    let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
-                    
-                    if wholeWordsOnly {
-                        if  let characterAfter:Character = stringAfter.first,
-                            let unicodeScalar = UnicodeScalar(String(characterAfter)) {
-                            if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
-                                skip = true
-                            }
-                            
-//                            print(characterAfter)
-                            if stringAfter.endIndex >= "'s".endIndex {
-                                if (stringAfter.substring(to: "'s".endIndex) == "'s") {
-                                    skip = false
-                                }
-                                if (stringAfter.substring(to: "'t".endIndex) == "'t") {
-                                    skip = true
-                                }
-                            }
-                        }
-                        
-                        if  let characterBefore:Character = stringBefore.last,
+                guard let range = string.lowercased().range(of: searchText.lowercased()) else {
+                    break
+                }
+                
+                stringBefore = string.substring(to: range.lowerBound)
+                stringAfter = string.substring(from: range.upperBound)
+                
+                var skip = false
+                
+                let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
+                
+                if wholeWordsOnly {
+                    if stringBefore == "" {
+                        if  let characterBefore:Character = newString.last,
                             let unicodeScalar = UnicodeScalar(String(characterBefore)) {
                             if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                                 skip = true
                             }
                         }
                     }
-
-                    foundString = string.substring(from: range.lowerBound)
-                    if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
-                        foundString = foundString.substring(to: newRange.upperBound)
-                    } else {
-                        // ???
-                    }
-
-                    if !skip {
-                        markCounter += 1
-                        foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
-                    }
-
-                    newString = newString + stringBefore + foundString
                     
-                    stringBefore = stringBefore + foundString
+                    if  let characterAfter:Character = stringAfter.first,
+                        let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+                        if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                            skip = true
+                        }
+                        
+//                            print(characterAfter)
+                        if stringAfter.endIndex >= "'s".endIndex {
+                            if (stringAfter.substring(to: "'s".endIndex) == "'s") {
+                                skip = false
+                            }
+                            if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                                skip = true
+                            }
+                        }
+                    }
                     
-                    string = stringAfter
-                } else {
-                    break
+                    if  let characterBefore:Character = stringBefore.last,
+                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+                        if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                            skip = true
+                        }
+                    }
                 }
+
+                foundString = string.substring(from: range.lowerBound)
+                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+                    foundString = foundString.substring(to: newRange.upperBound)
+                } else {
+                    // ???
+                }
+
+                if !skip {
+                    markCounter += 1
+                    foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
+                }
+
+                newString = newString + stringBefore + foundString
+                
+                stringBefore = stringBefore + foundString
+                
+                string = stringAfter
             }
             
             newString = newString + stringAfter

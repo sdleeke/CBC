@@ -78,7 +78,9 @@ extension PopoverTableViewController: UISearchBarDelegate
             filteredSection.strings = filteredStrings.count > 0 ? filteredStrings : nil
         }
         
-        tableView.reloadData()
+        Thread.onMainThread {
+            self.tableView.reloadData()
+        }
     }
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar)
@@ -1319,7 +1321,7 @@ class PopoverTableViewController : UIViewController
         
         NotificationCenter.default.addObserver(self, selector: #selector(PopoverTableViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
         
-        navigationController?.setToolbarHidden(true, animated: false)
+        navigationController?.isToolbarHidden = true
         
         if (stringsFunction != nil) && (self.section.strings == nil) {
             DispatchQueue.global(qos: .background).async { [weak self] in

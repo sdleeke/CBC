@@ -212,8 +212,8 @@ class AboutViewController: UIViewController
     override func viewDidLoad()
     {
         super.viewDidLoad()
-
-        navigationController?.setToolbarHidden(true, animated: false)
+        
+        navigationController?.isToolbarHidden = true
 
         setupActionButton()
     }

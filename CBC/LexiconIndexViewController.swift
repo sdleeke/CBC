@@ -577,23 +577,23 @@ class LexiconIndexViewController : UIViewController
         }
     }
     
-    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool
-    {
-        var show:Bool
-        
-        show = true
-        
-        switch identifier {
-        case "Show Index MediaItem":
-            show = false
-            break
-            
-        default:
-            break
-        }
-        
-        return show
-    }
+//    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool
+//    {
+//        var show:Bool
+//        
+//        show = true
+//        
+//        switch identifier {
+//        case "Show Index MediaItem":
+//            show = false
+//            break
+//            
+//        default:
+//            break
+//        }
+//        
+//        return show
+//    }
     
     func updateLocateButton()
     {
@@ -644,8 +644,6 @@ class LexiconIndexViewController : UIViewController
         updateUI()
 
         lexicon?.build()
-        
-        navigationController?.setToolbarHidden(false, animated: false)
     }
     
     override func viewWillDisappear(_ animated: Bool)
@@ -670,8 +668,6 @@ class LexiconIndexViewController : UIViewController
         }
 
         ptvc.selectString(searchText,scroll: true,select: true)
-        
-        navigationController?.setToolbarHidden(false, animated: false)
     }
     
     func setupMediaItemsHTMLLexicon(includeURLs:Bool,includeColumns:Bool) -> String?
@@ -978,17 +974,23 @@ class LexiconIndexViewController : UIViewController
     
     func updated()
     {
-        updateTitle()
+        update()
+    }
         
-        updateLocateButton()
-        
-        updateSearchResults()
+    func update()
+    {
+        self.ptvc.unfilteredSection.strings = (self.ptvc.sort.function == nil) ? self.lexicon?.section.strings : self.ptvc.sort.function?(self.ptvc.sort.method,self.lexicon?.section.strings)
+
+        self.ptvc.updateSearchResults()
         
         Thread.onMainThread {
-            self.ptvc.unfilteredSection.strings = (self.ptvc.sort.function == nil) ? self.lexicon?.section.strings : self.ptvc.sort.function?(self.ptvc.sort.method,self.lexicon?.section.strings)
-            self.ptvc.updateSearchResults()
-
             self.ptvc.tableView.reloadData()
+            
+            self.updateTitle()
+            
+            self.updateLocateButton()
+            
+            self.updateSearchResults()
         }
     }
     
@@ -1052,11 +1054,6 @@ class LexiconIndexViewController : UIViewController
     {
         super.viewDidLoad()
         
-        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(LexiconIndexViewController.index(_:)))
-        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
-        
-        self.setToolbarItems([spaceButton,indexButton], animated: false)
-
         navigationController?.toolbar.isTranslucent = false
         
         selectedWord.text = Constants.EMPTY_STRING
@@ -1117,6 +1114,21 @@ class LexiconIndexViewController : UIViewController
         navigationItem.rightBarButtonItem?.isEnabled = actionMenuItems()?.count > 0
     }
     
+    func updateToolbar()
+    {
+        guard tableView.numberOfSections > 1  else {
+            navigationController?.setToolbarHidden(true, animated: true)
+            return
+        }
+
+        let indexButton = UIBarButtonItem(title: Constants.Strings.Menu.Index, style: UIBarButtonItemStyle.plain, target: self, action: #selector(LexiconIndexViewController.index(_:)))
+        let spaceButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil)
+        
+        self.setToolbarItems([spaceButton,indexButton], animated: false)
+
+        navigationController?.setToolbarHidden(false, animated: true)
+    }
+    
     func updateUI()
     {
         guard Thread.isMainThread else {
@@ -1124,12 +1136,12 @@ class LexiconIndexViewController : UIViewController
             return
         }
         
-        toolbarItems?[1].isEnabled = tableView.numberOfSections > 1
-        
         spinner.isHidden = true
         spinner.stopAnimating()
         
         logo.isHidden = searchText != nil
+        
+        updateToolbar()
         
         updateActionMenu()
         
@@ -1163,7 +1175,7 @@ extension LexiconIndexViewController : UITableViewDelegate
         
         globals.addToHistory(mediaItem)
         
-        performSegue(withIdentifier: Constants.SEGUE.SHOW_INDEX_MEDIAITEM, sender: cell)
+//        performSegue(withIdentifier: Constants.SEGUE.SHOW_INDEX_MEDIAITEM, sender: cell)
         
 //        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
 //            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,

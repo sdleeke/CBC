@@ -234,7 +234,7 @@ class Lexicon : NSObject {
                         }
                         
                         if let pauseUpdates = self?.pauseUpdates, !pauseUpdates {
-                            if date.timeIntervalSinceNow <= -1 {
+                            if date.timeIntervalSinceNow <= -2.5 {
                                 //                                print(date)
                                 
                                 self?.words = dict.count > 0 ? dict : nil

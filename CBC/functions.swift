@@ -2454,7 +2454,7 @@ func tokensFromString(_ string:String?) -> [String]?
     
     var tokens = Set<String>()
     
-    var str = string.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    var str = string.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "\r\n", with: " ")
     
     if let range = str.range(of: Constants.PART_INDICATOR_SINGULAR) {
         str = str.substring(to: range.lowerBound)
@@ -2548,7 +2548,7 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
     
     var tokens = [String:Int]()
     
-    var str = string.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    var str = string.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "\r\n", with: " ")
     
     // TOKENIZING A TITLE RATHER THAN THE BODY, THIS MAY CAUSE PROBLEMS FOR BODY TEXT.
     if let range = str.range(of: Constants.PART_INDICATOR_SINGULAR) {

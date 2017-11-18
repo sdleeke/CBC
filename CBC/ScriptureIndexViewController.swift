@@ -725,7 +725,8 @@ class ScriptureIndexViewController : UIViewController
                 }
                 
                 if scriptureIndex.sorted[testament] == nil {
-                    scriptureIndex.byTestament[testament] = self?.sortMediaItems(scriptureIndex.byTestament[testament],book:nil)
+                    let mediaItems = scriptureIndex.byTestament[testament]
+                    scriptureIndex.byTestament[testament] = self?.sortMediaItems(mediaItems,book:nil)
                     scriptureIndex.sorted[testament] = true
                 }
                 
@@ -756,7 +757,8 @@ class ScriptureIndexViewController : UIViewController
                 }
                 
                 if scriptureIndex.sorted[index] == nil {
-                    scriptureIndex.byBook[testament]?[selectedBook] = self?.sortMediaItems(scriptureIndex.byBook[testament]?[selectedBook],book:selectedBook)
+                    let mediaItems = scriptureIndex.byBook[testament]?[selectedBook]
+                    scriptureIndex.byBook[testament]?[selectedBook] = self?.sortMediaItems(mediaItems,book:selectedBook)
                     scriptureIndex.sorted[index] = true
                 }
                 
@@ -787,7 +789,8 @@ class ScriptureIndexViewController : UIViewController
                 }
                 
                 if scriptureIndex.sorted[index] == nil {
-                    scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter] = self?.sortMediaItems(scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter],book:selectedBook)
+                    let mediaItems = scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter]
+                    scriptureIndex.byChapter[testament]?[selectedBook]?[scriptureIndex.selectedChapter] = self?.sortMediaItems(mediaItems,book:selectedBook)
                     scriptureIndex.sorted[index] = true
                 }
                 
@@ -868,23 +871,23 @@ class ScriptureIndexViewController : UIViewController
         }
     }
     
-    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool
-    {
-        var show:Bool
-        
-        show = true
-        
-        switch identifier {
-        case "Show Index MediaItem":
-            show = false
-            break
-            
-        default:
-            break
-        }
-        
-        return show
-    }
+//    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool
+//    {
+//        var show:Bool
+//
+//        show = true
+//
+//        switch identifier {
+//        case "Show Index MediaItem":
+//            show = false
+//            break
+//
+//        default:
+//            break
+//        }
+//
+//        return show
+//    }
 
     override func viewWillAppear(_ animated: Bool)
     {
@@ -898,7 +901,7 @@ class ScriptureIndexViewController : UIViewController
         
         navigationItem.hidesBackButton = false
         
-        navigationController?.setToolbarHidden(true, animated: false)
+        navigationController?.isToolbarHidden = true
 
         scripturePicker.isUserInteractionEnabled = false
 
@@ -1840,7 +1843,7 @@ extension ScriptureIndexViewController : UITableViewDelegate
         
         print(selectedMediaItem?.booksAndChaptersAndVerses()?.data as Any)
         
-        performSegue(withIdentifier: Constants.SEGUE.SHOW_INDEX_MEDIAITEM, sender: cell)
+//        performSegue(withIdentifier: Constants.SEGUE.SHOW_INDEX_MEDIAITEM, sender: cell)
         
 //        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
 //            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.SHOW_MEDIAITEM_NAVCON) as? UINavigationController,

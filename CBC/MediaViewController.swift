@@ -1727,8 +1727,10 @@ class MediaViewController: UIViewController // MediaController
         
         minConstraintConstant = tableView.rowHeight * minRows + controlView.frame.height
 
+        let navHeight = navigationController?.navigationBar.frame.height ?? 0
+        
         // This assumes the view goes under top bars, incl. opaque.
-        maxConstraintConstant = height - navigationController!.navigationBar.frame.height - UIApplication.shared.statusBarFrame.height
+        maxConstraintConstant = height - navHeight - UIApplication.shared.statusBarFrame.height
 
         return (minConstraintConstant,maxConstraintConstant)
     }
@@ -2771,7 +2773,7 @@ class MediaViewController: UIViewController // MediaController
         // Do any additional setup after loading the view.
         super.viewDidLoad()
 
-        navigationController?.setToolbarHidden(true, animated: false)
+        navigationController?.isToolbarHidden = true
     }
 
     fileprivate func setupDefaultDocuments()

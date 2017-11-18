@@ -844,9 +844,9 @@ class ScriptureViewController : UIViewController
         NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.deviceOrientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(ScriptureViewController.setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
-
-        navigationController?.setToolbarHidden(true, animated: false)
         
+        navigationController?.isToolbarHidden = true
+
         preferredContentSize = CGSize(width:  view.frame.width,
                                       height: scripturePicker.frame.height + 60)
         

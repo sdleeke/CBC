@@ -1331,8 +1331,8 @@ class WebViewController: UIViewController
 
         // Do any additional setup after loading the view.
         
-        navigationController?.setToolbarHidden(true, animated: true)
-        
+        navigationController?.isToolbarHidden = true
+
         logo.isHidden = true
         
         setupActionButton()
