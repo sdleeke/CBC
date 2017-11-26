@@ -130,6 +130,71 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
             }
             break
             
+        case Constants.Strings.View_Words:
+            process(viewController: self, work: { () -> (Any?) in
+                var bodyHTML = "<!DOCTYPE html>"
+                
+                var wordsHTML = ""
+                var indexHTML = ""
+                
+                bodyHTML = bodyHTML + "<html><body>"
+                
+                if let words = self.lexicon?.tokens?.sorted(by: { (lhs:String, rhs:String) -> Bool in
+                    return lhs < rhs
+                }) {
+                    let roots = Array(Set(words.map({ (word:String) -> String in
+                        return word.substring(to: "A".endIndex)
+                    }))).sorted()
+
+                    bodyHTML = bodyHTML + "<p>Index to \(words.count) Words</p>"
+                    
+                    indexHTML = "<table>"
+                    
+                    indexHTML = indexHTML + "<tr>"
+                    
+                    for root in roots {
+                        indexHTML = indexHTML + "<td>" + "<a id=\"index\(root)\" name=\"index\(root)\" href=#\(root)>" + root + "</a>" + "</td>"
+                    }
+                    
+//                    indexHTML = indexHTML + "<tr><td><br/></td></tr>" // \(string)
+                    
+                    indexHTML = indexHTML + "</tr>"
+                    
+                    indexHTML = indexHTML + "</table>"
+
+                    wordsHTML = "<table>"
+                    
+                    wordsHTML = wordsHTML + "<tr><td></td></tr>"
+                    
+                    wordsHTML = wordsHTML + "<tr><td>" + roots[0] + "</td></tr>"
+
+                    var section = 0
+                    
+                    for word in words {
+                        let first = word.substring(to: "A".endIndex)
+
+                        if first != roots[section] {
+                            // New Section
+                            section += 1
+                            wordsHTML = wordsHTML + "<tr><td></td></tr>"
+                            
+                            wordsHTML = wordsHTML + "<tr><td>" + "<a id=\"\(roots[section])\" name=\"\(roots[section])\" href=#index\(roots[section])>" + roots[section] + "</a>" + "</td></tr>"
+                        }
+                        
+                        wordsHTML = wordsHTML + "<tr><td>" + word + "</td></tr>"
+                    }
+
+                    wordsHTML = wordsHTML + "</table>"
+                }
+                
+                bodyHTML = bodyHTML + indexHTML + wordsHTML + "</body></html>"
+                
+                return bodyHTML
+            }, completion: { (data:Any?) in
+                presentHTMLModal(viewController: self, dismiss:false, mediaItem: nil, style: .fullScreen, title: "Word List", htmlString: data as? String)
+            })
+            break
+            
         case Constants.Strings.View_List:
             process(viewController: self, work: { () -> (Any?) in
                 if self.results?.html?.string == nil {
@@ -913,6 +978,7 @@ class LexiconIndexViewController : UIViewController
 
         if lexicon?.tokens?.count > 0 {
             actionMenu.append(Constants.Strings.Word_Picker)
+            actionMenu.append(Constants.Strings.View_Words)
         }
 
         if results?.list?.count > 0 {
@@ -1131,6 +1197,10 @@ class LexiconIndexViewController : UIViewController
     
     func updateUI()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             alert(viewController:self,title: "Not Main Thread", message: "LexiconIndexViewController:updateUI", completion: nil)
             return
@@ -1562,8 +1632,17 @@ extension LexiconIndexViewController : UITableViewDataSource
             
             view?.addSubview(label)
             
-            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
-            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":label]))
+            let left = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.leftMargin, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.leftMargin, multiplier: 1.0, constant: 0.0)
+            label.superview?.addConstraint(left)
+            
+            let right = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.rightMargin, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.rightMargin, multiplier: 1.0, constant: 0.0)
+            label.superview?.addConstraint(right)
+            
+            let centerY = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+            label.superview?.addConstraint(centerY)
+            
+//            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
+//            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":label]))
             
             view?.label = label
         }

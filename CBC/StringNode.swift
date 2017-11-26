@@ -150,6 +150,63 @@ class StringNode {
         return html.count > 0 ? html : nil
     }
     
+    func words(_ cumulativeString:String?) -> [String]?
+    {
+        var words = [String]()
+        
+        if wordEnding {
+            if let cumulativeString = cumulativeString {
+                if let string = string {
+                    let word = cumulativeString + string
+                    words.append(word)
+                    //                    print(word)
+                } else {
+                    let word = cumulativeString
+                    words.append(word)
+                    //                    print(word)
+                }
+            } else {
+                if let word = string {
+                    words.append(word)
+                    //                    print(word)
+                }
+            }
+            
+            //            print("\n")
+        }
+        
+        guard let stringNodes = stringNodes else {
+            return words.count > 0 ? words : nil
+        }
+        
+        for stringNode in stringNodes.sorted(by: { $0.string < $1.string }) {
+            //            print(string!+"-")
+            if let cumulativeString = cumulativeString {
+                if let string = string {
+                    if let nodeWords = stringNode.words(cumulativeString + string) {
+                        words.append(contentsOf: nodeWords)
+                    }
+                } else {
+                    if let nodeWords = stringNode.words(cumulativeString) {
+                        words.append(contentsOf: nodeWords)
+                    }
+                }
+            } else {
+                if let string = string {
+                    if let nodeWords = stringNode.words(string) {
+                        words.append(contentsOf: nodeWords)
+                    }
+                } else {
+                    if let nodeWords = stringNode.words(nil) {
+                        words.append(contentsOf: nodeWords)
+                    }
+                }
+            }
+        }
+        
+        return words.count > 0 ? words : nil
+    }
+    
     func addStringNode(_ newString:String?)
     {
         guard let newString = newString else {

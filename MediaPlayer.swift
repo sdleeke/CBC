@@ -177,11 +177,11 @@ class MediaPlayer : NSObject {
         
         if keyPath == #keyPath(UIView.frame) {
             if let rect = change?[.newKey] as? CGRect {
-                print(rect.size,UIScreen.main.bounds.size)
+//                print(rect.size,UIScreen.main.bounds.size)
                 
                 isVideoFullScreen = rect.size == UIScreen.main.bounds.size
  
-                isVideoFullScreen ? print("Player in full screen") : print("Player not in full screen")
+//                isVideoFullScreen ? print("Player in full screen") : print("Player not in full screen")
             }
         }
 

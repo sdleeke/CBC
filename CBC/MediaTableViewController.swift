@@ -3580,7 +3580,7 @@ class MediaTableViewController : UIViewController // MediaController
             case .phone:
                 if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
                     if (UIDeviceOrientationIsLandscape(UIDevice.current.orientation)) {
-                        if DeviceType.IS_IPHONE_6P_7P {
+                        if let isCollapsed = splitViewController?.isCollapsed, !isCollapsed {
                             navigationItem.title = Constants.CBC.TITLE.SHORT
                         } else {
                             navigationItem.title = Constants.CBC.TITLE.LONG
@@ -3712,6 +3712,10 @@ class MediaTableViewController : UIViewController // MediaController
     
     func updateUI()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         setupCategoryButton()
         
         setupTag()
@@ -3884,11 +3888,13 @@ class MediaTableViewController : UIViewController // MediaController
         
         let wasNotFullScreen = !UIApplication.shared.isRunningInFullScreen()
         
-        if DeviceType.IS_IPHONE_6P_7P {
+        if let isCollapsed = splitViewController?.isCollapsed, (UIDevice.current.userInterfaceIdiom == .phone) && !isCollapsed {
+            // Why?
+//        if DeviceType.IS_IPHONE_6P_7P {
             tableView.reloadData()
         }
         
-        if wasNotFullScreen || (DeviceType.IS_IPHONE_6P_7P) {
+        if let isCollapsed = splitViewController?.isCollapsed, wasNotFullScreen || ((traitCollection.verticalSizeClass == .compact) && !isCollapsed) { // DeviceType.IS_IPHONE_6P_7P
             // This is a HACK.
             
             // If the Scripture VC or Lexicon VC is showing and the SplitViewController has ONE viewController showing (i.e. the SVC or LVC) and
@@ -4038,8 +4044,23 @@ extension MediaTableViewController : UITableViewDataSource
             
             view?.addSubview(label)
             
-            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
-            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":label]))
+            let left = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.leftMargin, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.leftMargin, multiplier: 1.0, constant: 0.0)
+            label.superview?.addConstraint(left)
+            
+            let right = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.rightMargin, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.rightMargin, multiplier: 1.0, constant: 0.0)
+            label.superview?.addConstraint(right)
+            
+            let centerY = NSLayoutConstraint(item: label, attribute: NSLayoutAttribute.centerY, relatedBy: NSLayoutRelation.equal, toItem: label.superview, attribute: NSLayoutAttribute.centerY, multiplier: 1.0, constant: 0.0)
+            label.superview?.addConstraint(centerY)
+            
+//            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[label]-10-|", options: [.alignAllCenterY], metrics: nil, views: ["label":label]))
+//            view?.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[label]-10-|", options: [.alignAllCenterX], metrics: nil, views: ["label":label]))
+            
+//            if #available(iOS 11.0, *) {
+//                view?.insetsLayoutMarginsFromSafeArea = true
+//            } else {
+//                // Fallback on earlier versions
+//            }
             
             view?.label = label
         }

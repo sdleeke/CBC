@@ -1192,7 +1192,7 @@ class MediaViewController: UIViewController // MediaController
             
             notesDocument = nil // CRITICAL because it removes the scrollView.delegate from the last one (if any)
             slidesDocument = nil // CRITICAL because it removes the scrollView.delegate from the last one (if any)
-            
+
             if let selectedMediaItem = selectedMediaItem {
                 if (selectedMediaItem == globals.mediaPlayer.mediaItem) {
                     removePlayerObserver()
@@ -1612,12 +1612,15 @@ class MediaViewController: UIViewController // MediaController
         var fontSize:CGFloat = 0
         var maxSegmentWidth:CGFloat = 0
         
-        if DeviceType.IS_IPHONE_6P_7P {
-            maxSegmentWidth = 50
-        } else {
-            maxSegmentWidth = 60
-        }
-        
+//        if let isCollapsed = splitViewController?.isCollapsed, (UIDevice.current.userInterfaceIdiom == .phone) && !isCollapsed,  (traitCollection.verticalSizeClass == .compact) { // UIDeviceOrientationIsLandscape(UIDevice.current.orientation)
+////        if DeviceType.IS_IPHONE_6P_7P {
+//            maxSegmentWidth = 50
+//        } else {
+//            maxSegmentWidth = 60
+//        }
+
+        maxSegmentWidth = 60
+
         let numberOfSegments = ((audioOrVideoControl.numberOfSegments > 1) && !audioOrVideoControl.isHidden ? audioOrVideoControl.numberOfSegments : 0) + ((stvControl.numberOfSegments > 1) && !stvControl.isHidden ? stvControl.numberOfSegments : 0)
 
         if (numberOfSegments > 0) {
@@ -3574,9 +3577,13 @@ class MediaViewController: UIViewController // MediaController
     
     func setTableViewWidth(width:CGFloat)
     {
-        guard tableViewWidth.isActive else {
+        guard let isCollapsed = splitViewController?.isCollapsed, (traitCollection.verticalSizeClass == .compact) && isCollapsed else {
             return
         }
+
+//        guard tableViewWidth.isActive else {
+//            return
+//        }
         
         let min:CGFloat = 0.0
         
@@ -3631,13 +3638,17 @@ class MediaViewController: UIViewController // MediaController
     
     fileprivate func setupHorizontalSplit()
     {
+        guard let isCollapsed = splitViewController?.isCollapsed, (traitCollection.verticalSizeClass == .compact) && isCollapsed else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             return
         }
         
-        guard tableViewWidth.isActive else {
-            return
-        }
+//        guard tableViewWidth.isActive else {
+//            return
+//        }
         
         if let ratio = ratioForSlideView() {
             setTableViewWidth(width: self.view.bounds.width * ratio)
@@ -3650,17 +3661,21 @@ class MediaViewController: UIViewController // MediaController
     
     fileprivate func setupVerticalSplit()
     {
+        guard let isCollapsed = splitViewController?.isCollapsed, (traitCollection.verticalSizeClass != .compact) || !isCollapsed else {
+            return
+        }
+        
         guard Thread.isMainThread else {
             return
         }
         
-        guard view.subviews.contains(verticalSplit) else {
-            return
-        }
+//        guard view.subviews.contains(verticalSplit) else {
+//            return
+//        }
         
-        guard mediaItemNotesAndSlidesConstraint.isActive else {
-            return
-        }
+//        guard mediaItemNotesAndSlidesConstraint.isActive else {
+//            return
+//        }
 
         var newConstraintConstant:CGFloat = 0
         
@@ -3740,6 +3755,10 @@ class MediaViewController: UIViewController // MediaController
     
     func updateUI()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         if (selectedMediaItem != nil) && (selectedMediaItem == globals.mediaPlayer.mediaItem) {
             if (globals.mediaPlayer.url != selectedMediaItem?.playingURL) {
                 globals.mediaPlayer.killPIP = true
@@ -4062,7 +4081,7 @@ class MediaViewController: UIViewController // MediaController
             globals.mediaPlayer.seek(to: Double(currentTime))
         }
 
-        self.updateUI()
+        updateUI()
 
         //Without this background/main dispatching there isn't time to scroll correctly after a reload.
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
