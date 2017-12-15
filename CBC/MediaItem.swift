@@ -548,7 +548,7 @@ class MediaItem : NSObject
         download.fileSystemURL = self.audioFileSystemURL
         self.downloads[Purpose.audio] = download
         return download
-        }()
+    }()
     
     lazy var videoDownload:Download? = {
         [unowned self] in
@@ -562,7 +562,7 @@ class MediaItem : NSObject
         download.fileSystemURL = self.videoFileSystemURL
         self.downloads[Purpose.video] = download
         return download
-        }()
+    }()
     
     lazy var slidesDownload:Download? = {
         [unowned self] in
@@ -576,7 +576,7 @@ class MediaItem : NSObject
         download.fileSystemURL = self.slidesFileSystemURL
         self.downloads[Purpose.slides] = download
         return download
-        }()
+    }()
     
     lazy var notesDownload:Download? = {
         [unowned self] in
@@ -590,7 +590,7 @@ class MediaItem : NSObject
         download.fileSystemURL = self.notesFileSystemURL
         self.downloads[Purpose.notes] = download
         return download
-        }()
+    }()
     
     lazy var outlineDownload:Download? = {
         [unowned self] in
@@ -604,7 +604,7 @@ class MediaItem : NSObject
         download.fileSystemURL = self.outlineFileSystemURL
         self.downloads[Purpose.outline] = download
         return download
-        }()
+    }()
     
     var id:String! {
         get {

@@ -374,15 +374,7 @@ func jsonToFileSystemDirectory(key:String)
 
 func jsonFromURL(url:String) -> Any?
 {
-    guard globals.reachability.isReachable else {
-        print("json not reachable.")
-        
-        //            globals.alert(title:"Network Error",message:"Newtork not available, attempting to load last available media list.")
-        
-        return nil
-    }
-    
-    guard let url = URL(string: url) else {
+    guard globals.reachability.isReachable, let url = URL(string: url) else {
         return nil
     }
     
@@ -434,16 +426,7 @@ func jsonFromFileSystem(filename:String?) -> Any?
 
 func jsonFromURL(url:String,filename:String) -> Any?
 {
-    guard let url = URL(string: url) else {
-        return nil
-    }
-    
-    guard let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) else {
-        return nil
-    }
-    
-    guard globals.reachability.isReachable else {
-        print("json not reachable.")
+    guard globals.reachability.isReachable, let url = URL(string: url) else {
         return jsonFromFileSystem(filename: filename)
     }
     
@@ -455,7 +438,9 @@ func jsonFromURL(url:String,filename:String) -> Any?
             let json = try JSONSerialization.jsonObject(with: data, options: [])
             
             do {
-                try data.write(to: jsonFileSystemURL)//, options: NSData.WritingOptions.atomic)
+                if let jsonFileSystemURL = cachesURL()?.appendingPathComponent(filename) {
+                    try data.write(to: jsonFileSystemURL)//, options: NSData.WritingOptions.atomic)
+                }
                 
                 print("able to write json to the file system")
             } catch let error as NSError {

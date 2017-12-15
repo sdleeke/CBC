@@ -49,7 +49,7 @@ class ScriptureIndex {
     lazy var html:CachedString? = {
         [unowned self] in
         return CachedString(index:self.index)
-        }()
+    }()
     
     func index() -> String? {
         return context

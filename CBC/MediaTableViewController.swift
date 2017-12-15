@@ -50,6 +50,8 @@ enum PopoverPurpose {
     case selectingHistory
     case selectingLexicon
     
+    case selectingWordCloud
+    
     case selectingCellAction
     case selectingCellSearch
     
@@ -2825,7 +2827,7 @@ class MediaTableViewController : UIViewController // MediaController
         
         // tableView can't be hidden or refresh spinner won't show.
         if let isCollapsed = splitViewController?.isCollapsed, isCollapsed {
-            logo.isHidden = true // false // Don't like it offset, just hide it for now
+            logo.isHidden = false // Don't like it offset, just hide it for now
         }
 
         NotificationCenter.default.post(name: Notification.Name(rawValue: Constants.NOTIFICATION.CLEAR_VIEW), object: nil)

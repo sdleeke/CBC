@@ -990,6 +990,10 @@ class ScriptureViewController : UIViewController
     
     func updateUI()
     {
+        guard self.isViewLoaded else {
+            return
+        }
+        
         updatePicker()
         
         updateReferenceLabel()

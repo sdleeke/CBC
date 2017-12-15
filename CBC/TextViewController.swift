@@ -333,6 +333,13 @@ class TextViewController : UIViewController
     var transcript:VoiceBase?
     
     var following : [[String:Any]]?
+    {
+        didSet {
+            Thread.onMainThread {
+                self.syncButton.isEnabled = true
+            }
+        }
+    }
     
     var oldRange : Range<String.Index>?
 
@@ -658,6 +665,8 @@ class TextViewController : UIViewController
         NotificationCenter.default.addObserver(self, selector: #selector(TextViewController.keyboardWillHide(_:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
         
         syncButton = UIBarButtonItem(title: "Sync", style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.tracking))
+        syncButton.isEnabled = false
+        
         cancelButton = UIBarButtonItem(title: Constants.Strings.Cancel, style: UIBarButtonItemStyle.plain, target: self, action: #selector(TextViewController.cancel))
         
         if (globals.mediaPlayer.mediaItem != transcript?.mediaItem) || (transcript?.mediaItem?.playing != transcript?.purpose) {
@@ -693,8 +702,37 @@ class TextViewController : UIViewController
         }
     }
     
-    override func viewWillAppear(_ animated: Bool) {
+    var mask = false
+    
+    override func viewWillAppear(_ animated: Bool)
+    {
         super.viewWillAppear(animated)
+        
+        if !globals.splitViewController.isCollapsed, navigationController?.modalPresentationStyle == .overCurrentContext {
+            var vc : UIViewController?
+            
+            if presentingViewController == globals.splitViewController.viewControllers[0] {
+                vc = globals.splitViewController.viewControllers[1]
+            }
+            
+            if presentingViewController == globals.splitViewController.viewControllers[1] {
+                vc = globals.splitViewController.viewControllers[0]
+            }
+            
+            mask = true
+            
+            if let vc = vc {
+                process(viewController:vc,disableEnable:false,hideSubviews:true,work:{ (Void) -> Any? in
+                    // Why are we doing this?
+                    while self.mask {
+                        Thread.sleep(forTimeInterval: 0.1)
+                    }
+                    return nil
+                },completion:{ (data:Any?) -> Void in
+                    
+                })
+            }
+        }
         
         searchBar.text = searchText
         searchBar.isUserInteractionEnabled = searchInteractive
@@ -1280,6 +1318,8 @@ class TextViewController : UIViewController
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
+        
+        mask = false
         
         trackingTimer?.invalidate()
         trackingTimer = nil

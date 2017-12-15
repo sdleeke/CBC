@@ -1844,6 +1844,17 @@ extension PopoverTableViewController : UITableViewDelegate
         return allowsSelection
     }
     
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath)
+    {
+        if allowsMultipleSelection, let purpose = purpose {
+            var index = -1
+            
+            index = section.index(indexPath)
+            
+            delegate?.rowClickedAtIndex(index, strings: section.strings, purpose: purpose, mediaItem: selectedMediaItem)
+        }
+    }
+    
     func tableView(_ TableView: UITableView, didSelectRowAt indexPath: IndexPath)
     {
         guard Thread.isMainThread else {

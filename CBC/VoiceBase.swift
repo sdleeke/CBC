@@ -1152,7 +1152,7 @@ class VoiceBase {
                 }
             }
             
-            return transcript //?.replacingOccurrences(of: ".   ", with: ".  ")
+            return transcript?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) //?.replacingOccurrences(of: ".   ", with: ".  ")
         }
     }
     
@@ -2835,7 +2835,7 @@ class VoiceBase {
             } else {
                 var alertActions = [AlertAction]()
                 
-                alertActions.append(AlertAction(title: "Show", style: .default, action: {
+                alertActions.append(AlertAction(title: "View", style: .default, action: {
                     var alertActions = [AlertAction]()
                     
                     alertActions.append(AlertAction(title: "Transcript", style: .default, action: {
@@ -2914,7 +2914,7 @@ class VoiceBase {
                     }))
 
                     alertActionsCancel( viewController: viewController,
-                                        title: "Show",
+                                        title: "View",
                                         message: "This is a machine generated transcript.  It may lack proper formatting and have signifcant errors.",
                                         alertActions: alertActions,
                                         cancelAction: nil)
@@ -2955,8 +2955,20 @@ class VoiceBase {
                             self.transcript = text
                         }
                         
+                        let transcriptString = self.transcript?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                            
+                        let transcriptFromWordsString = self.transcriptFromWords?.replacingOccurrences(of: ".  ", with: ". ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+
+                        if  let transcriptString = transcriptString,
+                            let transcriptFromWordsString = transcriptFromWordsString,
+                            transcriptString != transcriptFromWordsString {
+                            print(prettyFirstDifferenceBetweenStrings(transcriptString as NSString, transcriptFromWordsString as NSString))
+                        }
+
                         viewController.present(navigationController, animated: true, completion: {
-                            if (globals.mediaPlayer.mediaItem == self.mediaItem) && (self.transcript != self.transcriptFromWords) {
+                            if  (globals.mediaPlayer.mediaItem == self.mediaItem),
+                                (self.mediaItem?.playing == self.purpose),
+                                (transcriptString != transcriptFromWordsString) {
                                 if let text = self.mediaItem?.text {
                                     alertActionsOkay( viewController: viewController,
                                                       title: "Transcript Sync Warning",

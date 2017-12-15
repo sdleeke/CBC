@@ -455,7 +455,7 @@ class ScriptureIndexViewController : UIViewController
 
     lazy var scripture:Scripture? = {
         return Scripture(reference: nil)
-        }()
+    }()
     
     var mediaListGroupSort:MediaListGroupSort? {
         willSet {

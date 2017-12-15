@@ -334,7 +334,8 @@ class MediaTableViewCell: UITableViewCell
         setupText()
     }
     
-    var searchText:String? {
+    var searchText:String?
+    {
         willSet {
             
         }
@@ -343,7 +344,8 @@ class MediaTableViewCell: UITableViewCell
         }
     }
     
-    var mediaItem:MediaItem? {
+    var mediaItem:MediaItem?
+    {
         willSet {
             
         }
@@ -392,7 +394,11 @@ class MediaTableViewCell: UITableViewCell
                         break
                         
                     case .playing:
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAYING, attributes: Constants.FA.Fonts.Attributes.icons))
+                        if globals.mediaPlayer.url == globals.mediaPlayer.mediaItem?.playingURL {
+                            attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAYING, attributes: Constants.FA.Fonts.Attributes.icons))
+                        } else {
+                            attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAY, attributes: Constants.FA.Fonts.Attributes.icons))
+                        }
                         break
                         
                     case .stopped:

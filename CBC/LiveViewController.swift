@@ -129,6 +129,8 @@ class LiveViewController: UIViewController
     {
         super.viewWillDisappear(animated)
         
+        globals.mediaPlayer.pause()
+        
         NotificationCenter.default.removeObserver(self)
     }
     

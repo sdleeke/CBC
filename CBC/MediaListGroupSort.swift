@@ -392,7 +392,7 @@ class MediaListGroupSort {
     lazy var section:Section? = {
         [unowned self] in
         return Section(self)
-        }()
+    }()
     
     func sectionIndexTitles(grouping:String?,sorting:String?) -> [String]?
     {

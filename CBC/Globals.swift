@@ -925,7 +925,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         get {
             var streamStringIndex = [String:[String]]()
             
-            let now = Date().addHours(0) // for ease of testing.
+            let now = Date().addHours(1) // for ease of testing.
             
             if let streamEntries = streamEntries {
                 for event in streamEntries {
@@ -965,7 +965,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
         get {
             var streamEntryIndex = [String:[[String:Any]]]()
             
-            let now = Date().addHours(0) // for ease of testing.
+            let now = Date().addHours(1) // for ease of testing.
             
             if let streamEntries = streamEntries {
                 for event in streamEntries {

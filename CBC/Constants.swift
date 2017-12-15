@@ -393,6 +393,8 @@ enum Constants {
         
         static let STRING_PICKER            = "String Picker"
         
+        static let WORD_CLOUD               = "Word Cloud"
+        
         static let SCRIPTURE_INDEX          = "Scripture Index"
         static let LEXICON_INDEX            = "Lexicon Index"
         
@@ -730,7 +732,8 @@ enum Constants {
         static let Search = "Search"
         static let Words = "Words"
         static let Word_Picker = "Word Picker"
-        
+        static let Word_Cloud = "Word Cloud"
+
         static let Sermon = "Sermon"
         static let Sermons = "Sermons"
         
@@ -877,6 +880,15 @@ enum Constants {
         static let Live = "Live"
     }
 
+    static let COMMON_WORDS = [
+        "THAT","THIS","THEN","WHAT","WAS","WITH","BACK",
+        "TAKE","NOW","LET","THERE","DID","FROM","HERE","NOT",
+        "HIS","HAVE","HAS","HAD","ALL","BEFORE","AFTER",
+        "FIRST","SECOND","CHAPTER","VERSE","HE","SAY","THEY",
+        "THEM","DOES","MAKE","NOT","WHEN","DOESN'T","IT'S",
+        "SEE","OWN","WILL","WOULD","BEEN","WELL","WERE","YOU"
+    ]
+    
     static let CHECK_FILE_SLEEP_INTERVAL = 0.01
     static let CHECK_FILE_MAX_ITERATIONS = 200
     

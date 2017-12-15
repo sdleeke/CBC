@@ -283,6 +283,42 @@ extension WebViewController : PopoverTableViewControllerDelegate
             }
             break
             
+        case Constants.Strings.Word_Cloud:
+            if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.WORD_CLOUD) as? UINavigationController,
+                let popover = navigationController.viewControllers[0] as? CloudViewController {
+                navigationController.modalPresentationStyle = .overCurrentContext
+                
+                navigationController.popoverPresentationController?.delegate = self
+                
+                popover.navigationController?.isNavigationBarHidden = false
+                
+                popover.cloudTitle = selectedMediaItem?.title
+                
+                selectedMediaItem?.loadNotesTokens()
+                
+                let words:[[String:Any]]? = selectedMediaItem?.notesTokens?.map({ (key:String, value:Int) -> [String:Any] in
+                    return ["word":key,"count":value]
+                })
+//                .filter({ (dict:[String:Any]) -> Bool in
+//                    guard let word = dict["word"] as? String else {
+//                        return false
+//                    }
+//                    
+//                    guard let count = dict["count"] as? Int else {
+//                        return false
+//                    }
+//                    
+//                    return !Constants.COMMON_WORDS.contains(word) && (count > 8)
+//                })
+                
+                popover.cloudWords = words
+                
+                popover.cloudFont = UIFont.preferredFont(forTextStyle:.body)
+                
+                present(navigationController, animated: true, completion: nil)
+            }
+            break
+            
         case Constants.Strings.Words:
             if let navigationController = self.storyboard?.instantiateViewController(withIdentifier: Constants.IDENTIFIER.POPOVER_TABLEVIEW) as? UINavigationController,
                 let popover = navigationController.viewControllers[0] as? PopoverTableViewController {
@@ -933,6 +969,10 @@ class WebViewController: UIViewController
                 if (selectedMediaItem != nil) {
                     actionMenu.append(Constants.Strings.Words)
                     actionMenu.append(Constants.Strings.Word_Picker)
+                    
+                    if !globals.splitViewController.isCollapsed {
+                        actionMenu.append(Constants.Strings.Word_Cloud)
+                    }
                 }
             }
             
@@ -1412,7 +1452,7 @@ class WebViewController: UIViewController
                     self?.progressIndicator.isHidden = false
                     
                     if self?.loadTimer == nil {
-                        self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self, selector: #selector(WebViewController.loading), userInfo: nil, repeats: true)
+                        self?.loadTimer = Timer.scheduledTimer(timeInterval: Constants.TIMER_INTERVAL.LOADING, target: self!, selector: #selector(WebViewController.loading), userInfo: nil, repeats: true)
                     }
                 }
                 
@@ -1426,7 +1466,7 @@ class WebViewController: UIViewController
     
     func setPreferredContentSize()
     {
-        guard   let title = navigationItem.title?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE),
+        guard let title = navigationItem.title?.replacingOccurrences(of: Constants.SINGLE_SPACE, with: Constants.UNBREAKABLE_SPACE),
                 let size = wkWebView?.scrollView.contentSize else {
             return
         }
