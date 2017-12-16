@@ -541,11 +541,13 @@ class MediaItem : NSObject
         guard self.hasAudio else {
             return nil
         }
-        var download = Download()
-        download.mediaItem = self
-        download.purpose = Purpose.audio
-        download.downloadURL = self.audioURL
-        download.fileSystemURL = self.audioFileSystemURL
+        let download = Download(mediaItem:self,purpose:Purpose.audio,downloadURL:self.audioURL,fileSystemURL:self.audioFileSystemURL)
+        // NEVER EVER DO THIS.  Causes LOTS of bad behavior since didSets will NOT happen in an init but they WILL happen below.
+//        var download = Download()
+//        download.mediaItem = self
+//        download.purpose = Purpose.audio
+//        download.downloadURL = self.audioURL
+//        download.fileSystemURL = self.audioFileSystemURL
         self.downloads[Purpose.audio] = download
         return download
     }()
@@ -555,11 +557,13 @@ class MediaItem : NSObject
         guard self.hasVideo else {
             return nil
         }
-        var download = Download()
-        download.mediaItem = self
-        download.purpose = Purpose.video
-        download.downloadURL = self.videoURL
-        download.fileSystemURL = self.videoFileSystemURL
+        let download = Download(mediaItem:self,purpose:Purpose.video,downloadURL:self.videoURL,fileSystemURL:self.videoFileSystemURL)
+        // NEVER EVER DO THIS.  Causes LOTS of bad behavior since didSets will NOT happen in an init but they WILL happen below.
+//        var download = Download()
+//        download.mediaItem = self
+//        download.purpose = Purpose.video
+//        download.downloadURL = self.videoURL
+//        download.fileSystemURL = self.videoFileSystemURL
         self.downloads[Purpose.video] = download
         return download
     }()
@@ -569,11 +573,13 @@ class MediaItem : NSObject
         guard self.hasSlides else {
             return nil
         }
-        var download = Download()
-        download.mediaItem = self
-        download.purpose = Purpose.slides
-        download.downloadURL = self.slidesURL
-        download.fileSystemURL = self.slidesFileSystemURL
+        let download = Download(mediaItem:self,purpose:Purpose.slides,downloadURL:self.slidesURL,fileSystemURL:self.slidesFileSystemURL)
+        // NEVER EVER DO THIS.  Causes LOTS of bad behavior since didSets will NOT happen in an init but they WILL happen below.
+//        var download = Download()
+//        download.mediaItem = self
+//        download.purpose = Purpose.slides
+//        download.downloadURL = self.slidesURL
+//        download.fileSystemURL = self.slidesFileSystemURL
         self.downloads[Purpose.slides] = download
         return download
     }()
@@ -583,11 +589,13 @@ class MediaItem : NSObject
         guard self.hasNotes else {
             return nil
         }
-        var download = Download()
-        download.mediaItem = self
-        download.purpose = Purpose.notes
-        download.downloadURL = self.notesURL
-        download.fileSystemURL = self.notesFileSystemURL
+        let download = Download(mediaItem:self,purpose:Purpose.notes,downloadURL:self.notesURL,fileSystemURL:self.notesFileSystemURL)
+        // NEVER EVER DO THIS.  Causes LOTS of bad behavior since didSets will NOT happen in an init but they WILL happen below.
+//        var download = Download()
+//        download.mediaItem = self
+//        download.purpose = Purpose.notes
+//        download.downloadURL = self.notesURL
+//        download.fileSystemURL = self.notesFileSystemURL
         self.downloads[Purpose.notes] = download
         return download
     }()
@@ -597,11 +605,13 @@ class MediaItem : NSObject
         guard self.hasOutline else {
             return nil
         }
-        var download = Download()
-        download.mediaItem = self
-        download.purpose = Purpose.outline
-        download.downloadURL = self.outlineURL
-        download.fileSystemURL = self.outlineFileSystemURL
+        let download = Download(mediaItem:self,purpose:Purpose.outline,downloadURL:self.outlineURL,fileSystemURL:self.outlineFileSystemURL)
+        // NEVER EVER DO THIS.  Causes LOTS of bad behavior since didSets will NOT happen in an init but they WILL happen below.
+//        var download = Download()
+//        download.mediaItem = self
+//        download.purpose = Purpose.outline
+//        download.downloadURL = self.outlineURL
+//        download.fileSystemURL = self.outlineFileSystemURL
         self.downloads[Purpose.outline] = download
         return download
     }()
@@ -636,7 +646,7 @@ class MediaItem : NSObject
             
             let afterDate = afterClassCode.substring(from: ymd.endIndex)
             
-            let code = afterDate.substring(to: "x".endIndex)
+            let code = afterDate.substring(to: String.Index(encodedOffset: 1)) // "x".endIndex
             
             //        print(code)
             

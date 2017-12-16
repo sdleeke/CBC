@@ -81,17 +81,34 @@ class CloudViewController: UIViewController, CloudLayoutOperationDelegate, Popov
         guard var cloudWords = cloudWords else {
             return
         }
+
+        ptvc.activityIndicator.isHidden = false
+        ptvc.activityIndicator.startAnimating()
         
+        ptvc.tableView.isHidden = true
+
         for index in 0..<cloudWords.count {
             cloudWords[index]["selected"] = true
-            if let word = cloudWords[index]["word"] as? String, let indexPath = ptvc.section.indexPath(from: word) {
-                ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-            }
         }
         
         self.cloudWords = cloudWords
         
         cancelAndRelayoutCloudWords()
+
+        DispatchQueue.global(qos: .background).async { [weak self] in
+            Thread.onMainThread {
+                for index in 0..<cloudWords.count {
+                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
+                        self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+                    }
+                }
+
+                self?.ptvc.tableView.isHidden = false
+                
+                self?.ptvc.activityIndicator.stopAnimating()
+                self?.ptvc.activityIndicator.isHidden = true
+            }
+        }
     }
     
     @IBOutlet weak var selectNoneButton: UIButton!
@@ -100,17 +117,34 @@ class CloudViewController: UIViewController, CloudLayoutOperationDelegate, Popov
         guard var cloudWords = cloudWords else {
             return
         }
+
+        ptvc.activityIndicator.isHidden = false
+        ptvc.activityIndicator.startAnimating()
+        
+        ptvc.tableView.isHidden = true
         
         for index in 0..<cloudWords.count {
             cloudWords[index]["selected"] = nil
-            if let word = cloudWords[index]["word"] as? String, let indexPath = ptvc.section.indexPath(from: word) {
-                ptvc.tableView?.deselectRow(at: indexPath, animated: true)
-            }
         }
         
         self.cloudWords = cloudWords
-
+        
         cancelAndRelayoutCloudWords()
+
+        DispatchQueue.global(qos: .background).async { [weak self] in
+            Thread.onMainThread {
+                for index in 0..<cloudWords.count {
+                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
+                        self?.ptvc.tableView?.deselectRow(at: indexPath, animated: true)
+                    }
+                }
+
+                self?.ptvc.tableView.isHidden = false
+                
+                self?.ptvc.activityIndicator.stopAnimating()
+                self?.ptvc.activityIndicator.isHidden = true
+            }
+        }
     }
     
     @IBOutlet weak var cloudView: UIView!
@@ -123,6 +157,8 @@ class CloudViewController: UIViewController, CloudLayoutOperationDelegate, Popov
     var cloudColors : [UIColor]? = CloudColors.GreenBlue
     var cloudFont : UIFont?
     var cloudWords : [[String:Any]]?
+    
+    var mediaItem : MediaItem?
     
     func viewForZooming(in scrollView: UIScrollView) -> UIView?
     {
@@ -197,16 +233,16 @@ class CloudViewController: UIViewController, CloudLayoutOperationDelegate, Popov
     
     func share()
     {
-        UIGraphicsBeginImageContextWithOptions(view.bounds.size, true, 0.0)
+        UIGraphicsBeginImageContextWithOptions(cloudView.bounds.size, true, 0.0)
 
-        let success = view.drawHierarchy(in: view.bounds, afterScreenUpdates: false)
+        let success = cloudView.drawHierarchy(in: cloudView.bounds, afterScreenUpdates: false)
 
         if (success) {
             let snapshotImage = UIGraphicsGetImageFromCurrentImageContext()
             
 //            NSURL *appURL = [NSURL URLWithString:@"https://itunes.apple.com/app/lion-lamb-admiring-jesus-christ/id1018992236?mt=8&at=1010l3f4"];
 
-            let activityViewController = UIActivityViewController(activityItems: [snapshotImage], applicationActivities: nil)
+            let activityViewController = UIActivityViewController(activityItems: [snapshotImage,mediaItem?.text], applicationActivities: nil)
             
             // Exclude AirDrop, as it appears to delay the initial appearance of the activity sheet
             activityViewController.excludedActivityTypes = [UIActivityType.airDrop]
@@ -217,12 +253,15 @@ class CloudViewController: UIViewController, CloudLayoutOperationDelegate, Popov
             
             present(activityViewController, animated: true, completion: nil)
         }
+        
         UIGraphicsEndImageContext();
     }
     
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
+
+        ptvc?.tableView?.isHidden = true
 
         navigationItem.title = cloudTitle
         
@@ -237,7 +276,32 @@ class CloudViewController: UIViewController, CloudLayoutOperationDelegate, Popov
     {
         super.viewDidAppear(animated)
         
-        cancelAndRelayoutCloudWords()
+        guard var cloudWords = self.cloudWords else {
+            return
+        }
+        
+        ptvc?.activityIndicator?.isHidden = false
+        ptvc?.activityIndicator?.startAnimating()
+
+        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+            Thread.onMainThread {
+                for index in 0..<cloudWords.count {
+                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
+                        if let selected = cloudWords[index]["selected"] as? Bool, selected {
+                            self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+                        } else {
+                            self?.ptvc.tableView?.deselectRow(at: indexPath, animated: true)
+                        }
+                    }
+                }
+                
+                self?.ptvc?.tableView?.isHidden = false
+                self?.ptvc?.activityIndicator?.stopAnimating()
+                self?.ptvc?.activityIndicator?.isHidden = true
+                
+                self?.cancelAndRelayoutCloudWords()
+            }
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool)
@@ -315,13 +379,13 @@ class CloudViewController: UIViewController, CloudLayoutOperationDelegate, Popov
     {
         // Remove cloud words (UILabels)
         var removableLabels = [UILabel]()
-        
+
         for subview in cloudView.subviews {
             if let label = subview as? UILabel {
                 removableLabels.append(label)
             }
         }
-        
+
         removableLabels.forEach { (label:UILabel) in
             label.removeFromSuperview()
         }
@@ -606,9 +670,9 @@ class CloudViewController: UIViewController, CloudLayoutOperationDelegate, Popov
                     ptvc.purpose = .selectingWordCloud
                     
                     ptvc.search = false
-                    ptvc.segments = true
                     
-                    ptvc.section.showIndex = true
+                    ptvc.section.showIndex = false
+                    ptvc.sort.method = Constants.Sort.Frequency
                     
                     ptvc.section.strings = self.cloudWords?.map({ (dict:[String:Any]) -> String in
                         let word = dict["word"] as? String ?? "ERROR"

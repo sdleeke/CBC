@@ -2454,36 +2454,38 @@ func tokensFromString(_ string:String?) -> [String]?
 
     func processToken()
     {
-        if (token.endIndex > "XX".endIndex) {
-            // "Q", "A", "I", "at", "or", "to", "of", "in", "on",  "be", "is", "vs", "us", "An"
-            for word in ["are", "can", "And", "The", "for"] {
-                if token.lowercased() == word.lowercased() {
-                    token = Constants.EMPTY_STRING
-                    break
-                }
-            }
-            
-            if let range = token.lowercased().range(of: "i'"), range.lowerBound == token.startIndex {
+        guard (token.endIndex > String.Index(encodedOffset: 2)) else { // "XX".endIndex
+            token = Constants.EMPTY_STRING
+            return
+        }
+        
+        let excludedWords = ["and", "are", "can", "for", "the"]
+        
+        for word in excludedWords {
+            if token.lowercased() == word.lowercased() {
                 token = Constants.EMPTY_STRING
+                break
             }
-            
-            if token.lowercased() != "it's" {
-                if let range = token.lowercased().range(of: "'s") {
-                    token = token.substring(to: range.lowerBound)
-                }
+        }
+        
+        if let range = token.lowercased().range(of: "i'"), range.lowerBound == token.startIndex {
+            token = Constants.EMPTY_STRING
+        }
+        
+        if token.lowercased() != "it's" {
+            if let range = token.lowercased().range(of: "'s") {
+                token = token.substring(to: range.lowerBound)
             }
-            
-            if token != token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars)) {
-                //                print("\(token)")
-                token = token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars))
-                //                print("\(token)")
-            }
-            
-            if token != Constants.EMPTY_STRING {
-                tokens.insert(token.uppercased())
-                token = Constants.EMPTY_STRING
-            }
-        } else {
+        }
+        
+        if token != token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars)) {
+            //                print("\(token)")
+            token = token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars))
+            //                print("\(token)")
+        }
+        
+        if token != Constants.EMPTY_STRING {
+            tokens.insert(token.uppercased())
             token = Constants.EMPTY_STRING
         }
     }
@@ -2549,41 +2551,44 @@ func tokensAndCountsFromString(_ string:String?) -> [String:Int]?
     
     func processToken()
     {
-        if (token.endIndex > "XX".endIndex) {
-            // "Q", "A", "I", "at", "or", "to", "of", "in", "on",  "be", "is", "vs", "us", "An"
-            for word in ["are", "can", "And", "The", "for"] {
-                if token.lowercased() == word.lowercased() {
-                    token = Constants.EMPTY_STRING
-                    break
-                }
-            }
-            
-            if let range = token.lowercased().range(of: "i'"), range.lowerBound == token.startIndex {
+        guard (token.endIndex > String.Index(encodedOffset: 2)) else {
+//            print(token)
+            token = Constants.EMPTY_STRING
+            return
+        }
+        
+        let excludedWords = ["and", "are", "can", "for", "the"]
+        
+        for word in excludedWords {
+            if token.lowercased() == word.lowercased() {
                 token = Constants.EMPTY_STRING
+                break
             }
-            
-            if token.lowercased() != "it's" {
-                if let range = token.lowercased().range(of: "'s") {
-                    token = token.substring(to: range.lowerBound)
-                }
+        }
+        
+        if let range = token.lowercased().range(of: "i'"), range.lowerBound == token.startIndex {
+            token = Constants.EMPTY_STRING
+        }
+        
+        if token.lowercased() != "it's" {
+            if let range = token.lowercased().range(of: "'s") {
+                token = token.substring(to: range.lowerBound)
             }
-            
-            if token != token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars)) {
+        }
+        
+        if token != token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars)) {
 //                print("\(token)")
-                token = token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars))
+            token = token.trimmingCharacters(in: CharacterSet(charactersIn: trimChars))
 //                print("\(token)")
-            }
-            
-            if token != Constants.EMPTY_STRING {
+        }
+        
+        if token != Constants.EMPTY_STRING {
 //                print(token.uppercased())
-                if let count = tokens[token.uppercased()] {
-                    tokens[token.uppercased()] = count + 1
-                } else {
-                    tokens[token.uppercased()] = 1
-                }
-                token = Constants.EMPTY_STRING
+            if let count = tokens[token.uppercased()] {
+                tokens[token.uppercased()] = count + 1
+            } else {
+                tokens[token.uppercased()] = 1
             }
-        } else {
             token = Constants.EMPTY_STRING
         }
     }

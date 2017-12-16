@@ -692,13 +692,13 @@ class Scripture : NSObject
                             
                             if var lastRange = text.range(of: "</h3>") {
                                 var range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
-                                print(text.substring(with: range))
+//                                print(text.substring(with: range))
                                 
                                 while text.range(of: "</h3>", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) != nil {
                                     if let newRange = text.range(of: "</h3>", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) {
                                         lastRange = newRange
                                         range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
-                                        print(text.substring(with: range))
+//                                        print(text.substring(with: range))
                                     } else {
                                         break
                                     }
@@ -708,13 +708,13 @@ class Scripture : NSObject
                                     if let newRange = text.range(of: "<h3 class=\"s\">") {
                                         lastRange = newRange
                                         range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
-                                        print(text.substring(with: range))
+//                                        print(text.substring(with: range))
                                         
                                         while text.range(of: "<h3 class=\"s\">", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) != nil {
                                             if let newRange = text.range(of: "<h3 class=\"s\">", options: String.CompareOptions.caseInsensitive, range: range, locale: nil) {
                                                 lastRange = newRange
                                                 range = Range(uncheckedBounds: (lower: lastRange.upperBound, upper: text.endIndex))
-                                                print(text.substring(with: range))
+//                                                print(text.substring(with: range))
                                             } else {
                                                 break
                                             }

@@ -1168,7 +1168,7 @@ class Globals : NSObject, AVPlayerViewControllerDelegate
     
     lazy var mediaRepository:MediaRepository! = {
         [unowned self] in
-        var mediaRepository = MediaRepository()
+        let mediaRepository = MediaRepository()
         mediaRepository.globals = self
         return mediaRepository
     }()

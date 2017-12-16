@@ -143,7 +143,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                     return lhs < rhs
                 }) {
                     let roots = Array(Set(words.map({ (word:String) -> String in
-                        return word.substring(to: "A".endIndex)
+                        return word.substring(to: String.Index(encodedOffset: 1)) // "A".endIndex
                     }))).sorted()
 
                     bodyHTML = bodyHTML + "<p>Index to \(words.count) Words</p>"
@@ -171,7 +171,7 @@ extension LexiconIndexViewController : PopoverTableViewControllerDelegate
                     var section = 0
                     
                     for word in words {
-                        let first = word.substring(to: "A".endIndex)
+                        let first = word.substring(to: String.Index(encodedOffset: 1)) // "A".endIndex
 
                         if first != roots[section] {
                             // New Section

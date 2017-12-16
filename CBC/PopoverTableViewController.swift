@@ -1311,6 +1311,21 @@ class PopoverTableViewController : UIViewController
             }
         }
         
+        if segments, let method = sort.method {
+            switch method {
+            case Constants.Sort.Alphabetical:
+                segmentedControl.selectedSegmentIndex = 0
+                break
+                
+            case Constants.Sort.Frequency:
+                segmentedControl.selectedSegmentIndex = 1
+                break
+                
+            default:
+                break
+            }
+        }
+        
         orientation = UIDevice.current.orientation
         
         if searchActive {

@@ -188,7 +188,8 @@ class CloudWord : NSObject
     var paddedFrame : CGRect
     {
         get {
-            return frame.insetBy(dx: isWordOrientationVertical ? -5.0 : -8.0, dy: isWordOrientationVertical ? -8.0 : -5.0)
+            let buffer = CGPoint(x: -2.0, y: -2.0)
+            return frame.insetBy(dx: isWordOrientationVertical ? buffer.y : buffer.x, dy: isWordOrientationVertical ? buffer.x : buffer.y)
         }
     }
     

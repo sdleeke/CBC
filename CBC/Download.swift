@@ -16,6 +16,22 @@ enum State {
 }
 
 class Download : NSObject {
+    init(mediaItem:MediaItem?,purpose:String?,downloadURL:URL?,fileSystemURL:URL?)
+    {
+        self.mediaItem = mediaItem
+        self.purpose = purpose
+        self.downloadURL = downloadURL
+        self.fileSystemURL = fileSystemURL
+        
+        if let fileSystemURL = fileSystemURL {
+            //            print(fileSystemURL!.path!)
+            //            print(FileManager.default.fileExists(atPath: fileSystemURL!.path!))
+            if FileManager.default.fileExists(atPath: fileSystemURL.path) {
+                self.state = .downloaded
+            }
+        }
+    }
+    
     weak var mediaItem:MediaItem?
     
 //    var observer:Selector?

@@ -293,11 +293,12 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 popover.navigationController?.isNavigationBarHidden = false
                 
                 popover.cloudTitle = selectedMediaItem?.title
+                popover.mediaItem = selectedMediaItem
                 
                 selectedMediaItem?.loadNotesTokens()
                 
                 let words:[[String:Any]]? = selectedMediaItem?.notesTokens?.map({ (key:String, value:Int) -> [String:Any] in
-                    return ["word":key,"count":value]
+                    return ["word":key,"count":value,"selected":true]
                 })
 //                .filter({ (dict:[String:Any]) -> Bool in
 //                    guard let word = dict["word"] as? String else {

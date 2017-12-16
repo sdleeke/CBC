@@ -118,6 +118,10 @@ class CloudLayoutOperation : Operation
             return
         }
         
+        guard let cloudFont = cloudFont else {
+            return
+        }
+        
         // Determine minimum and maximum weight of words
         let cloudWordCounts = cloudWords.map({ (word:CloudWord) -> Int in
             return word.wordCount
@@ -138,9 +142,14 @@ class CloudLayoutOperation : Operation
         let ratioCap:CGFloat = 20.0
         
         let maxMinRatio:CGFloat = CGFloat(min((CGFloat(maxWordCount) / CGFloat(minWordCount)), ratioCap))
+        if maxMinRatio == ratioCap {
+            print(CGFloat(maxWordCount) / CGFloat(minWordCount))
+        }
         
         // Start with these values, which will be decreased as needed that all the words may fit the container
         
+        let minFontMin:CGFloat = 4.0
+        var oldFontMin:CGFloat = 0.0
         var fontMin:CGFloat = 12.0
         var fontMax:CGFloat = fontMin * maxMinRatio;
 
@@ -155,7 +164,7 @@ class CloudLayoutOperation : Operation
             var wordArea:CGFloat = 0.0;
             wordAreaExceedsContainerSize = false
             
-            let fontRange:CGFloat = fontMax - fontMin
+            var fontRange:CGFloat = fontMax - fontMin
             let fontStep:CGFloat = 1.0 // 3.0
             
             // Normalize word weights
@@ -170,7 +179,7 @@ class CloudLayoutOperation : Operation
                 
 //                print(cloudWord.wordCount,minWordCount,deltaWordCount,cloudWord.pointSize,fontMin,fontRange,fontStep,scale)
                 
-                cloudWord.determineRandomWordOrientationInContainerWithSize(containerSize: containerSize, scale:containerScale, fontName:cloudFont?.fontName ?? "")
+                cloudWord.determineRandomWordOrientationInContainerWithSize(containerSize: containerSize, scale:containerScale, fontName:cloudFont.fontName)
                 
                 // Check to see if the current word fits in the container
                 
@@ -178,14 +187,17 @@ class CloudLayoutOperation : Operation
                 
                 if (wordArea >= containerArea) || (cloudWord.boundsSize.width >= containerSize.width) || (cloudWord.boundsSize.height >= containerSize.height) {
                     wordAreaExceedsContainerSize = true
-                    fontMin -= 1
+
+                    oldFontMin = fontMin
+
+                    fontMin = fontMin == minFontMin ? minFontMin : fontMin - 1
+                    
                     fontMax = fontMin * maxMinRatio
+                    fontRange = fontMax - fontMin
                     break
                 }
             }
-        } while (wordAreaExceedsContainerSize);
-        
-        return;
+        } while wordAreaExceedsContainerSize && (oldFontMin != minFontMin)
     }
     
     func assignColorsForWords()
@@ -341,7 +353,7 @@ class CloudLayoutOperation : Operation
     
     func layoutCloudWords()
     {
-        guard let cloudWords = cloudWords else {
+        guard var cloudWords = cloudWords else {
             return
         }
         
@@ -353,20 +365,18 @@ class CloudLayoutOperation : Operation
             return
         }
         
-        var failed = false
-        
-        for cloudWord in cloudWords {
+        repeat {
+            let cloudWord = cloudWords.removeFirst()
+            
             if (isCancelled) {
                 return
             }
-            
+
             // Can the word can be placed at its preferred location?
             if (hasPlacedWord(word: cloudWord)) {
                 // Yes. Move on to the next word
                 continue
             }
-            
-//            var placed = false
             
             var index = 0
             
@@ -374,22 +384,59 @@ class CloudLayoutOperation : Operation
                 // No placement found centered on preferred location. Pick a new location at random
                 cloudWord.determineRandomWordOrientationInContainerWithSize(containerSize:containerSize, scale:containerScale, fontName:fontName)
                 cloudWord.determineRandomWordPlacementInContainerWithSize(containerSize:containerSize, scale:containerScale)
-
+                
                 if (isCancelled) {
                     return
                 }
                 
+                print(cloudWords.count,index,cloudWord.wordText ?? "nil",cloudWord.wordCount)
+                
                 index += 1
                 
-                if index == 10000 {
-                    failed = true
+                if index == 1 {
+                    cloudWords.append(cloudWord)
                     break
                 }
             }
-            
-            if failed {
-                break
-            }
+        } while cloudWords.count > 0
+        
+//        var failed = false
+//
+//        for cloudWord in cloudWords {
+//            if (isCancelled) {
+//                return
+//            }
+//
+//            // Can the word can be placed at its preferred location?
+//            if (hasPlacedWord(word: cloudWord)) {
+//                // Yes. Move on to the next word
+//                continue
+//            }
+//
+////            var placed = false
+//
+//            var index = 0
+//
+//            while !hasFoundConcentricPlacementForWord(word: cloudWord) {
+//                // No placement found centered on preferred location. Pick a new location at random
+//                cloudWord.determineRandomWordOrientationInContainerWithSize(containerSize:containerSize, scale:containerScale, fontName:fontName)
+//                cloudWord.determineRandomWordPlacementInContainerWithSize(containerSize:containerSize, scale:containerScale)
+//
+//                if (isCancelled) {
+//                    return
+//                }
+//
+//                index += 1
+//
+//                if index == 100 {
+//                    failed = true
+//                    break
+//                }
+//            }
+//
+//            if failed {
+//                break
+//            }
 
 //            placed = true
 
@@ -416,14 +463,14 @@ class CloudLayoutOperation : Operation
 //            if (!placed) {
 //                NSLog("Couldn't find a spot for \(cloudWord.debugDescription)");
 //            }
-        }
+//        }
         
-        if failed {
-            Thread.onMainThread {
-                (self.delegate as? CloudViewController)?.relayoutCloudWords()
-            }
-            self.cancel()
-        }
+//        if failed {
+//            Thread.onMainThread {
+//                (self.delegate as? CloudViewController)?.relayoutCloudWords()
+//            }
+//            self.cancel()
+//        }
     }
     
     func hasFoundConcentricPlacementForWord(word:CloudWord) -> Bool
@@ -625,6 +672,10 @@ class CloudLayoutOperation : Operation
                     //#endif
                 }
             }
+        }
+        
+        if isCancelled {
+            return
         }
         
         if overallGlyphRect != CGRect.zero {
