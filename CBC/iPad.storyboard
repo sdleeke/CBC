@@ -69,7 +69,7 @@
                                 <rect key="frame" x="0.0" y="95" width="320" height="865"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" misplaced="YES" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="MediaItem" id="a5x-WU-NNC" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="MediaItem" id="a5x-WU-NNC" customClass="MediaTableViewCell" customModule="CBC" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="22" width="320" height="100"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="a5x-WU-NNC" id="A01-fJ-FMH">
@@ -77,7 +77,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="749" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Xkb-5P-JA1">
-                                                    <rect key="frame" x="20" y="8" width="0.0" height="20"/>
+                                                    <rect key="frame" x="20" y="8" width="296" height="20"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="20" id="YuD-lX-SbJ"/>
                                                     </constraints>
@@ -86,16 +86,16 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="IWS-RY-DB5">
-                                                    <rect key="frame" x="20" y="30" width="0.0" height="65"/>
+                                                    <rect key="frame" x="20" y="30" width="296" height="65"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <progressView hidden="YES" opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="IgM-pT-w8s">
-                                                    <rect key="frame" x="20" y="97" width="4" height="2"/>
+                                                    <rect key="frame" x="20" y="97" width="300" height="2"/>
                                                 </progressView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eA8-mK-b7w">
-                                                    <rect key="frame" x="20" y="89" width="0.0" height="0.0"/>
+                                                    <rect key="frame" x="316" y="89" width="0.0" height="0.0"/>
                                                     <fontDescription key="fontDescription" name="FontAwesome" family="FontAwesome" pointSize="12"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
@@ -1842,21 +1842,21 @@ Web site: www.countrysidebible.org</string>
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="225" id="mdw-8f-H8V"/>
                                 </constraints>
                             </stackView>
-                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" maximumZoomScale="10" translatesAutoresizingMaskIntoConstraints="NO" id="wZm-xF-1QB">
-                                <rect key="frame" x="225" y="0.0" width="543" height="960"/>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" contentInsetAdjustmentBehavior="always" maximumZoomScale="10" translatesAutoresizingMaskIntoConstraints="NO" id="wZm-xF-1QB">
+                                <rect key="frame" x="245" y="20" width="503" height="920"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cDd-Qq-04k" userLabel="Word Cloud View">
-                                        <rect key="frame" x="20" y="20" width="503" height="920"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="503" height="920"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     </view>
                                 </subviews>
                                 <constraints>
-                                    <constraint firstAttribute="bottom" secondItem="cDd-Qq-04k" secondAttribute="bottom" constant="20" id="1AN-dQ-SGv"/>
+                                    <constraint firstAttribute="bottom" secondItem="cDd-Qq-04k" secondAttribute="bottom" id="1AN-dQ-SGv"/>
                                     <constraint firstItem="cDd-Qq-04k" firstAttribute="centerY" secondItem="wZm-xF-1QB" secondAttribute="centerY" id="QzB-Ex-oS7"/>
-                                    <constraint firstItem="cDd-Qq-04k" firstAttribute="leading" secondItem="wZm-xF-1QB" secondAttribute="leading" constant="20" id="je1-ce-XNC"/>
-                                    <constraint firstAttribute="trailing" secondItem="cDd-Qq-04k" secondAttribute="trailing" constant="20" id="lef-F8-aNE"/>
+                                    <constraint firstItem="cDd-Qq-04k" firstAttribute="leading" secondItem="wZm-xF-1QB" secondAttribute="leading" id="je1-ce-XNC"/>
+                                    <constraint firstAttribute="trailing" secondItem="cDd-Qq-04k" secondAttribute="trailing" id="lef-F8-aNE"/>
                                     <constraint firstItem="cDd-Qq-04k" firstAttribute="centerX" secondItem="wZm-xF-1QB" secondAttribute="centerX" id="q6v-QP-G0h"/>
-                                    <constraint firstItem="cDd-Qq-04k" firstAttribute="top" secondItem="wZm-xF-1QB" secondAttribute="top" constant="20" id="wdI-tg-sFh"/>
+                                    <constraint firstItem="cDd-Qq-04k" firstAttribute="top" secondItem="wZm-xF-1QB" secondAttribute="top" id="wdI-tg-sFh"/>
                                 </constraints>
                                 <connections>
                                     <outlet property="delegate" destination="fzH-sY-OuY" id="Zsk-pD-5df"/>
@@ -1865,13 +1865,13 @@ Web site: www.countrysidebible.org</string>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
-                            <constraint firstItem="CUA-Xi-y7k" firstAttribute="top" secondItem="wZm-xF-1QB" secondAttribute="bottom" id="K5n-ay-Ge5"/>
+                            <constraint firstItem="CUA-Xi-y7k" firstAttribute="top" secondItem="wZm-xF-1QB" secondAttribute="bottom" constant="20" id="K5n-ay-Ge5"/>
                             <constraint firstItem="Rwc-mZ-Mu0" firstAttribute="top" secondItem="VWN-oh-l4Q" secondAttribute="bottom" id="T9P-N4-9DJ"/>
-                            <constraint firstItem="wZm-xF-1QB" firstAttribute="top" secondItem="VWN-oh-l4Q" secondAttribute="bottom" id="hRW-Jg-Ue3"/>
-                            <constraint firstItem="wZm-xF-1QB" firstAttribute="leading" secondItem="Rwc-mZ-Mu0" secondAttribute="trailing" id="nRE-Ko-QD7"/>
+                            <constraint firstItem="wZm-xF-1QB" firstAttribute="top" secondItem="VWN-oh-l4Q" secondAttribute="bottom" constant="20" id="hRW-Jg-Ue3"/>
+                            <constraint firstItem="wZm-xF-1QB" firstAttribute="leading" secondItem="Rwc-mZ-Mu0" secondAttribute="trailing" constant="20" id="nRE-Ko-QD7"/>
                             <constraint firstItem="Rwc-mZ-Mu0" firstAttribute="leading" secondItem="CnY-CQ-LVB" secondAttribute="leading" id="qJG-Gj-Qa6"/>
                             <constraint firstItem="CUA-Xi-y7k" firstAttribute="top" secondItem="Rwc-mZ-Mu0" secondAttribute="bottom" id="vej-Oe-zgp"/>
-                            <constraint firstAttribute="trailing" secondItem="wZm-xF-1QB" secondAttribute="trailing" id="wJA-Iu-zbZ"/>
+                            <constraint firstAttribute="trailing" secondItem="wZm-xF-1QB" secondAttribute="trailing" constant="20" id="wJA-Iu-zbZ"/>
                         </constraints>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>

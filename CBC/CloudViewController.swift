@@ -71,8 +71,157 @@ enum CloudColors {
     static let White = [UIColor.white]
 }
 
-class CloudViewController: UIViewController, CloudLayoutOperationDelegate, PopoverTableViewControllerDelegate, UIScrollViewDelegate
+extension CloudViewController : UIScrollViewDelegate
 {
+    func viewForZooming(in scrollView: UIScrollView) -> UIView?
+    {
+        return cloudView
+    }
+    
+    func scrollViewDidZoom(_ scrollView: UIScrollView)
+    {
+
+    }
+    
+    func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat)
+    {
+
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView)
+    {
+        
+    }
+    
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView)
+    {
+
+    }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
+    {
+
+    }
+    
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool)
+    {
+
+    }
+}
+
+extension CloudViewController : PopoverTableViewControllerDelegate
+{
+    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
+    {
+        guard let cloudWords = cloudWords else {
+            return
+        }
+        
+        guard let string = strings?[index] else {
+            return
+        }
+        
+        guard let startRange = string.range(of: " (") else {
+            return
+        }
+        
+        let word = string.substring(to: startRange.lowerBound)
+        let remainder = string.substring(from: startRange.upperBound)
+        
+        guard let endRange = remainder.range(of: ")") else {
+            return
+        }
+        
+        let count = remainder.substring(to: endRange.lowerBound)
+        
+        var index = 0
+        
+        for cloudWord in cloudWords {
+            if ((cloudWord["word"] as? String) == word) && ((cloudWord["count"] as? Int) == Int(count)) {
+                if let selected = self.cloudWords?[index]["selected"] as? Bool, selected {
+                    self.cloudWords?[index]["selected"] =  nil
+                } else {
+                    self.cloudWords?[index]["selected"] =  true
+                }
+                break
+            }
+            
+            index += 1
+        }
+        
+        Thread.onMainThread {
+            self.cancelAndRelayoutCloudWords()
+        }
+    }
+}
+
+extension CloudViewController : CloudLayoutOperationDelegate
+{
+    //    func insertTitle(cloudTitle:String)
+    //    {
+    //        updateCloudTitle(cloudTitle)
+    //    }
+    
+    //    func updateCloudTitle(_ newTitle:String)
+    //    {
+    //        navigationItem.title = newTitle
+    //    }
+    
+    func insertWord(word:String, pointSize:CGFloat, color:Int, center:CGPoint, isVertical:Bool)
+    {
+        guard let color = cloudColors?[color] else {
+            return
+        }
+        
+        let wordLabel = UILabel(frame: CGRect.zero)
+        
+        wordLabel.text = word
+        wordLabel.textAlignment = .center
+        wordLabel.font = cloudFont?.withSize(pointSize)
+        
+        wordLabel.sizeToFit()
+        
+        wordLabel.textColor = color
+        
+        // Round up size to even multiples to "align" frame without ofsetting center
+        var wordLabelRect = wordLabel.frame
+        wordLabelRect.size.width = CGFloat(Int((wordLabelRect.width + 3) / 2) * 2)
+        wordLabelRect.size.height = CGFloat(Int((wordLabelRect.height + 3) / 2) * 2)
+        wordLabel.frame = wordLabelRect;
+        
+        wordLabel.center = center;
+        
+        if (isVertical)
+        {
+            wordLabel.transform = CGAffineTransform(rotationAngle: CGFloat(Float.pi / 2))
+        }
+        
+        //#ifdef DEBUG
+        //    wordLabel.layer.borderColor = [UIColor redColor].CGColor;
+        //    wordLabel.layer.borderWidth = 1;
+        //#endif
+        
+        cloudView.addSubview(wordLabel)
+    }
+    
+    func insertBoundingRect(boundingRect:CGRect)
+    {
+        let layer = CALayer()
+        
+        layer.frame = boundingRect
+        
+        layer.borderColor = UIColor(red: 0.0, green: 0.0, blue: 1.0, alpha: 0.5).cgColor
+        
+        layer.borderWidth = 1;
+        
+        cloudView.layer.addSublayer(layer)
+    }
+}
+
+class CloudViewController: UIViewController
+{
+    var ptvc:PopoverTableViewController!
+    
     var cloudLayoutOperationQueue : OperationQueue?
     
     @IBOutlet weak var selectAllButton: UIButton!
@@ -149,9 +298,11 @@ class CloudViewController: UIViewController, CloudLayoutOperationDelegate, Popov
     
     @IBOutlet weak var cloudView: UIView!
     
-    var allowVertical = true
-    var maxWords = 0
-    var minFrequency = 0
+    let debug = false
+    
+//    var allowVertical = true
+//    var maxWords = 0
+//    var minFrequency = 0
     
     var cloudTitle : String?
     var cloudColors : [UIColor]? = CloudColors.GreenBlue
@@ -159,11 +310,6 @@ class CloudViewController: UIViewController, CloudLayoutOperationDelegate, Popov
     var cloudWords : [[String:Any]]?
     
     var mediaItem : MediaItem?
-    
-    func viewForZooming(in scrollView: UIScrollView) -> UIView?
-    {
-        return cloudView
-    }
     
     override func viewDidLoad()
     {
@@ -313,68 +459,6 @@ class CloudViewController: UIViewController, CloudLayoutOperationDelegate, Popov
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIContentSizeCategoryDidChange, object: nil)
     }
     
-//    func insertTitle(cloudTitle:String)
-//    {
-//        updateCloudTitle(cloudTitle)
-//    }
-    
-//    func updateCloudTitle(_ newTitle:String)
-//    {
-//        navigationItem.title = newTitle
-//    }
-
-    func insertWord(word:String, pointSize:CGFloat, color:Int, center:CGPoint, isVertical:Bool)
-    {
-        guard let color = cloudColors?[color] else {
-            return
-        }
-        
-        let wordLabel = UILabel(frame: CGRect.zero)
-        
-        wordLabel.text = word
-        wordLabel.textAlignment = .center
-        wordLabel.font = cloudFont?.withSize(pointSize)
-        
-        wordLabel.sizeToFit()
-
-        wordLabel.textColor = color
-
-        // Round up size to even multiples to "align" frame without ofsetting center
-        var wordLabelRect = wordLabel.frame
-        wordLabelRect.size.width = CGFloat(Int((wordLabelRect.width + 3) / 2) * 2)
-        wordLabelRect.size.height = CGFloat(Int((wordLabelRect.height + 3) / 2) * 2)
-        wordLabel.frame = wordLabelRect;
-        
-        wordLabel.center = center;
-        
-        if (isVertical)
-        {
-            wordLabel.transform = CGAffineTransform(rotationAngle: CGFloat(Float.pi / 2))
-        }
-        
-        //#ifdef DEBUG
-        //    wordLabel.layer.borderColor = [UIColor redColor].CGColor;
-        //    wordLabel.layer.borderWidth = 1;
-        //#endif
-        
-        cloudView.addSubview(wordLabel)
-    }
-    
-    func insertBoundingRect(boundingRect:CGRect)
-    {
-        let layer = CALayer()
-
-        layer.frame = boundingRect
-
-        layer.borderColor = UIColor(red: 0.0, green: 0.0, blue: 1.0, alpha: 0.5).cgColor
-
-        layer.borderWidth = 1;
-
-        cloudView.layer.addSublayer(layer)
-    }
-    
-    let debug = false
-    
     func removeCloudWords()
     {
         // Remove cloud words (UILabels)
@@ -414,11 +498,7 @@ class CloudViewController: UIViewController, CloudLayoutOperationDelegate, Popov
         cloudLayoutOperationQueue?.cancelAllOperations()
         cloudLayoutOperationQueue?.waitUntilAllOperationsAreFinished()
         
-        Thread.onMainThread{
-            self.removeCloudWords()
-        }
-        
-        layoutCloudWords()
+        relayoutCloudWords()
     }
     
     func relayoutCloudWords()
@@ -451,51 +531,6 @@ class CloudViewController: UIViewController, CloudLayoutOperationDelegate, Popov
                                                                delegate:self)
             
             cloudLayoutOperationQueue?.addOperation(newCloudLayoutOperation)
-        }
-    }
-    
-    var ptvc:PopoverTableViewController!
-    
-    func rowClickedAtIndex(_ index: Int, strings: [String]?, purpose:PopoverPurpose, mediaItem:MediaItem?)
-    {
-        guard let cloudWords = cloudWords else {
-            return
-        }
-        
-        guard let string = strings?[index] else {
-            return
-        }
-        
-        guard let startRange = string.range(of: " (") else {
-            return
-        }
-        
-        let word = string.substring(to: startRange.lowerBound)
-        let remainder = string.substring(from: startRange.upperBound)
-        
-        guard let endRange = remainder.range(of: ")") else {
-            return
-        }
-
-        let count = remainder.substring(to: endRange.lowerBound)
-        
-        var index = 0
-        
-        for cloudWord in cloudWords {
-            if ((cloudWord["word"] as? String) == word) && ((cloudWord["count"] as? Int) == Int(count)) {
-                if let selected = self.cloudWords?[index]["selected"] as? Bool, selected {
-                    self.cloudWords?[index]["selected"] =  nil
-                } else {
-                    self.cloudWords?[index]["selected"] =  true
-                }
-                break
-            }
-            
-            index += 1
-        }
-
-        Thread.onMainThread {
-            self.cancelAndRelayoutCloudWords()
         }
     }
     

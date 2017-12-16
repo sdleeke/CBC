@@ -84,6 +84,11 @@ enum JSONSource {
 
 extension MediaTableViewController : UIScrollViewDelegate
 {
+//    func viewForZooming(in scrollView: UIScrollView) -> UIView?
+//    {
+//        return 
+//    }
+    
     // This shortens the distance the tableView must be pulled to initiate a refresh.
     func scrollViewDidScroll(_ scrollView: UIScrollView)
     {

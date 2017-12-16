@@ -844,6 +844,11 @@ extension MediaViewController : WKNavigationDelegate
 
 extension MediaViewController: UIScrollViewDelegate
 {
+//    func viewForZooming(in scrollView: UIScrollView) -> UIView?
+//    {
+//        return
+//    }
+    
     func scrollViewDidZoom(_ scrollView: UIScrollView)
     {
 
