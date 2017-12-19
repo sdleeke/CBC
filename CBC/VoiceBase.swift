@@ -735,6 +735,180 @@ class VoiceBase {
         }
     }
     
+    func markedFullNotesHTML(searchText:String?,wholeWordsOnly:Bool,index:Bool) -> String?
+    {
+        guard (stripHead(html) != nil) else {
+            return nil
+        }
+        
+        guard let searchText = searchText, !searchText.isEmpty else {
+            return html
+        }
+        
+//        guard let headerHTML = mediaItem?.headerHTML else {
+//            return html
+//        }
+        
+        var markCounter = 0
+        
+        func mark(_ input:String) -> String
+        {
+            var string = input
+            
+            var stringBefore:String = Constants.EMPTY_STRING
+            var stringAfter:String = Constants.EMPTY_STRING
+            var newString:String = Constants.EMPTY_STRING
+            var foundString:String = Constants.EMPTY_STRING
+            
+            while (string.lowercased().range(of: searchText.lowercased()) != nil) {
+                guard let range = string.lowercased().range(of: searchText.lowercased()) else {
+                    break
+                }
+                
+                stringBefore = string.substring(to: range.lowerBound)
+                stringAfter = string.substring(from: range.upperBound)
+                
+                var skip = false
+                
+                let tokenDelimiters = "$\"' :-!;,.()?&/<>[]" + Constants.UNBREAKABLE_SPACE + Constants.QUOTES
+                
+                if wholeWordsOnly {
+                    if stringBefore == "" {
+                        if  let characterBefore:Character = newString.last,
+                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+                            if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                                skip = true
+                            }
+                        }
+                    }
+                    
+                    if  let characterAfter:Character = stringAfter.first,
+                        let unicodeScalar = UnicodeScalar(String(characterAfter)) {
+                        if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                            skip = true
+                        }
+                        
+                        //                            print(characterAfter)
+                        if stringAfter.endIndex >= "'s".endIndex {
+                            if (stringAfter.substring(to: "'s".endIndex) == "'s") {
+                                skip = false
+                            }
+                            if (stringAfter.substring(to: "'t".endIndex) == "'t") {
+                                skip = true
+                            }
+                        }
+                    }
+                    
+                    if  let characterBefore:Character = stringBefore.last,
+                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+                        if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                            skip = true
+                        }
+                    }
+                }
+                
+                foundString = string.substring(from: range.lowerBound)
+                if let newRange = foundString.lowercased().range(of: searchText.lowercased()) {
+                    foundString = foundString.substring(to: newRange.upperBound)
+                } else {
+                    // ???
+                }
+                
+                if !skip {
+                    markCounter += 1
+                    foundString = "<mark>" + foundString + "</mark><a id=\"\(markCounter)\" name=\"\(markCounter)\" href=\"#locations\"><sup>\(markCounter)</sup></a>"
+                }
+                
+                newString = newString + stringBefore + foundString
+                
+                stringBefore = stringBefore + foundString
+                
+                string = stringAfter
+            }
+            
+            newString = newString + stringAfter
+            
+            return newString == Constants.EMPTY_STRING ? string : newString
+        }
+        
+        var newString:String = Constants.EMPTY_STRING
+        var string:String = html ?? Constants.EMPTY_STRING
+        
+        while let searchRange = string.range(of: "<") {
+            let searchString = string.substring(to: searchRange.lowerBound)
+            //            print(searchString)
+            
+            // mark search string
+            newString = newString + mark(searchString)
+            
+            let remainder = string.substring(from: searchRange.lowerBound)
+            
+            if let htmlRange = remainder.range(of: ">") {
+                let html = remainder.substring(to: htmlRange.upperBound)
+                //                print(html)
+                
+                newString = newString + html
+                
+                string = remainder.substring(from: htmlRange.upperBound)
+            }
+        }
+        
+        var indexString:String!
+        
+        if markCounter > 0 {
+            indexString = "<a id=\"locations\" name=\"locations\">Occurrences</a> of \"\(searchText)\": \(markCounter)<br/>"
+        } else {
+            indexString = "<a id=\"locations\" name=\"locations\">No occurrences</a> of \"\(searchText)\" were found.<br/>"
+        }
+        
+        // If we want an index of links to the occurrences of the searchText.
+        if index {
+            if markCounter > 0 {
+                indexString = indexString + "<div>Locations: "
+                
+                for counter in 1...markCounter {
+                    if counter > 1 {
+                        indexString = indexString + ", "
+                    }
+                    indexString = indexString + "<a href=\"#\(counter)\">\(counter)</a>"
+                }
+                
+                indexString = indexString + "<br/><br/></div>"
+            }
+        }
+        
+        var htmlString = "<!DOCTYPE html><html><body>"
+        
+        if index {
+            htmlString = htmlString + indexString
+        }
+        
+        // headerHTML +
+        htmlString = htmlString + newString + "</body></html>"
+        
+        return insertHead(htmlString,fontSize: Constants.FONT_SIZE)
+    }
+    
+    var html : String {
+        get {
+            var htmlString = "<!DOCTYPE html><html><body>"
+            
+            if  let transcript = self.transcript,
+                let purpose = self.purpose,
+                let headerHTML = self.mediaItem?.headerHTML {
+                htmlString = htmlString + headerHTML +
+                    "<br/>" +
+                    "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(purpose))</center>" +
+                    "<br/>" +
+                    transcript.replacingOccurrences(of: "\n", with: "<br/>")
+            }
+            
+            htmlString = htmlString + "</body></html>"
+            
+            return htmlString
+        }
+    }
+    
     var transcript:String?
     {
         get {
@@ -1114,6 +1288,29 @@ class VoiceBase {
         }
     }
     
+    var tokens : [String:Int]?
+    {
+        get {
+            guard let words = words else {
+                return nil
+            }
+            
+            var tokens = [String:Int]()
+            
+            for word in words {
+                if let text = (word["w"] as? String)?.uppercased(), !text.isEmpty, (Int(text) == nil) && !CharacterSet(charactersIn:text).intersection(CharacterSet(charactersIn:"ABCDEFGHIJKLMNOPQRSTUVWXYZ")).isEmpty {
+                    if let count = tokens[text] {
+                        tokens[text] = count + 1
+                    } else {
+                        tokens[text] = 1
+                    }
+                }
+            }
+            
+            return tokens.count > 0 ? tokens : nil
+        }
+    }
+    
     var words : [[String:Any]]?
     {
         get {
@@ -1222,6 +1419,17 @@ class VoiceBase {
         
         for (key, value) in parameters {
             switch key {
+//            case "transcript":
+//                if let id = mediaItem?.id { // , let data = value.data(using: String.Encoding.utf8)
+//                    let mimeType = "text/plain"
+//                    body.appendString(boundaryPrefix)
+//                    body.appendString("Content-Disposition: form-data; name=\"\(key)\"; filename=\"\(id)\"\r\n")
+//                    body.appendString("Content-Type: \(mimeType)\r\n\r\n")
+//                    body.appendString(value)
+//                    body.appendString("\r\n")
+//                }
+//                break
+                
                 // This works, but uploading the file takes A LOT longer than the URL!
 //            case "media":
 //                if let purpose = purpose, let id = mediaItem?.id {
@@ -1407,9 +1615,34 @@ class VoiceBase {
         userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
             self.remove()
             
-            if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
-                let text = self.mediaItem?.text {
-                globals.alert(title: "Transcript Failed",message: "Error: \(error)\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not completed.  Please try again.")
+            var error : String?
+            
+            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                error = message
+            }
+            
+            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                error = message
+            }
+            
+            var message : String?
+            
+            if let text = self.mediaItem?.text {
+                if let error = error {
+                    message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not completed.  Please try again."
+                } else {
+                    message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not completed.  Please try again."
+                }
+            } else {
+                if let error = error {
+                    message = "Error: \(error)\n\n" + "The transcript was not completed.  Please try again."
+                } else {
+                    message = "The transcript was not completed.  Please try again."
+                }
+            }
+            
+            if let message = message {
+                globals.alert(title: "Transcript Failed",message: message)
             }
             
             Thread.onMainThread() {
@@ -1429,7 +1662,7 @@ class VoiceBase {
         
         transcribing = true
 
-        let parameters:[String:String] = ["mediaUrl":url,"metadata":self.metadata] // "{\"title\":\"id2341235\"}" ,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+        let parameters:[String:String] = ["mediaUrl":url,"metadata":self.metadata,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
         
         post(path:nil,parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
             self.uploadJSON = json
@@ -1456,9 +1689,34 @@ class VoiceBase {
         }, onError: { (json:[String : Any]?) -> (Void) in
             self.transcribing = false
             
-            if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
-                let text = self.mediaItem?.text {
-                globals.alert(title: "Transcript Failed",message: "Error: \(error)\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+            var error : String?
+            
+            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                error = message
+            }
+            
+            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                error = message
+            }
+            
+            var message : String?
+            
+            if let text = self.mediaItem?.text {
+                if let error = error {
+                    message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                } else {
+                    message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                }
+            } else {
+                if let error = error {
+                    message = "Error: \(error)\n\n" + "The transcript failed to start.  Please try again."
+                } else {
+                    message = "The transcript failed to start.  Please try again."
+                }
+            }
+
+            if let message = message {
+                globals.alert(title: "Transcript Failed",message: message)
             }
 
             Thread.onMainThread() {
@@ -1763,6 +2021,8 @@ class VoiceBase {
         }, onError: { (json:[String : Any]?) -> (Void) in
             if alert, let text = self.mediaItem?.text {
                 globals.alert(title: "Keywords Not Available",message: "The keywords for\n\n\(text) (\(self.transcriptPurpose))\n\nare not available.")
+            } else {
+                globals.alert(title: "Keywords Not Available",message: "The keywords are not available.")
             }
 
             atEnd?()
@@ -1776,7 +2036,7 @@ class VoiceBase {
     
     func addMetaData()
     {
-        let parameters = ["metadata":metadata]
+        let parameters:[String:String] = ["metadata":metadata,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
         
         post(path: "metadata", parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
             
@@ -1846,9 +2106,34 @@ class VoiceBase {
         userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
             self.remove()
             
-            if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
-                let text = self.mediaItem?.text {
-                globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again.")
+            var error : String?
+            
+            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                error = message
+            }
+            
+            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                error = message
+            }
+            
+            var message : String?
+            
+            if let text = self.mediaItem?.text {
+                if let error = error {
+                    message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
+                } else {
+                    message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
+                }
+            } else {
+                if let error = error {
+                    message = "Error: \(error)\n\n" + "The transcript was not realigned.  Please try again."
+                } else {
+                    message = "The transcript was not realigned.  Please try again."
+                }
+            }
+            
+            if let message = message {
+                globals.alert(title: "Transcript Alignment Failed",message: message)
             }
         }
 
@@ -1874,10 +2159,9 @@ class VoiceBase {
         }
         
         aligning = true
-        
-        // Check whether the media is on VB
+
         progress(completion: { (json:[String : Any]?) -> (Void) in
-            let parameters = ["transcript":transcript]//,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+            let parameters:[String:String] = ["configuration":"{\"configuration\":{\"executor\":\"v2\"}}","transcript":transcript]
             
             self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
                 self.uploadJSON = json
@@ -1890,9 +2174,34 @@ class VoiceBase {
                             self.resultsTimer?.invalidate()
                             self.resultsTimer = nil
                             
-                            if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
-                                let text = self.mediaItem?.text {
-                                globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+                            var error : String?
+                            
+                            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                                error = message
+                            }
+                            
+                            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                                error = message
+                            }
+                            
+                            var message : String?
+                            
+                            if let text = self.mediaItem?.text {
+                                if let error = error {
+                                    message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                                } else {
+                                    message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                                }
+                            } else {
+                                if let error = error {
+                                    message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
+                                } else {
+                                    message = "The transcript realignment failed to start.  Please try again."
+                                }
+                            }
+                            
+                            if let message = message {
+                                globals.alert(title: "Transcript Alignment Failed",message: message)
                             }
                             
                             return
@@ -1923,9 +2232,34 @@ class VoiceBase {
                 self.resultsTimer?.invalidate()
                 self.resultsTimer = nil
                 
-                if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
-                    let text = self.mediaItem?.text {
-                    globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+                var error : String?
+                
+                if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                    error = message
+                }
+                
+                if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                    error = message
+                }
+                
+                var message : String?
+                
+                if let text = self.mediaItem?.text {
+                    if let error = error {
+                        message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                    } else {
+                        message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                    }
+                } else {
+                    if let error = error {
+                        message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
+                    } else {
+                        message = "The transcript realignment failed to start.  Please try again."
+                    }
+                }
+                
+                if let message = message {
+                    globals.alert(title: "Transcript Alignment Failed",message: message)
                 }
             })
         }, onError: { (json:[String : Any]?) -> (Void) in
@@ -1937,12 +2271,14 @@ class VoiceBase {
             
             if let text = self.mediaItem?.text {
                 globals.alert(title:"Media Not on VoiceBase", message:"The media for\n\n\(text) (\(self.transcriptPurpose))\n\nis not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
+            } else {
+                globals.alert(title:"Media Not on VoiceBase", message:"The media is not on VoiceBase. The media will have to be uploaded again.  You will be notified once that is completed and the transcript realignment is started.")
             }
             
             // Upload then align
             self.mediaID = nil
             
-            let parameters:[String:String] = ["media":url,"metadata":self.metadata] // "configuration":"{\"configuration\":{\"executor\":\"v2\"}}"
+            let parameters:[String:String] = ["media":url,"metadata":self.metadata,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
             
             self.post(path:nil,parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
                 self.uploadJSON = json
@@ -1986,7 +2322,7 @@ class VoiceBase {
 //                                self.details()
                                 
                                 // Now do the relignment
-                                let parameters:[String:String] = ["transcript":transcript]//,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
+                                let parameters:[String:String] = ["transcript":transcript,"configuration":"{\"configuration\":{\"executor\":\"v2\"}}"]
                                 
                                 self.post(path:nil, parameters: parameters, completion: { (json:[String : Any]?) -> (Void) in
                                     self.uploadJSON = json
@@ -1998,10 +2334,35 @@ class VoiceBase {
                                                 self.aligning = false
                                                 self.resultsTimer?.invalidate()
                                                 self.resultsTimer = nil
-
-                                                if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
-                                                    let text = self.mediaItem?.text {
-                                                    globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+                                                
+                                                var error : String?
+                                                
+                                                if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                                                    error = message
+                                                }
+                                                
+                                                if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                                                    error = message
+                                                }
+                                                
+                                                var message : String?
+                                                
+                                                if let text = self.mediaItem?.text {
+                                                    if let error = error {
+                                                        message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                                                    } else {
+                                                        message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                                                    }
+                                                } else {
+                                                    if let error = error {
+                                                        message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
+                                                    } else {
+                                                        message = "The transcript realignment failed to start.  Please try again."
+                                                    }
+                                                }
+                                                
+                                                if let message = message {
+                                                    globals.alert(title: "Transcript Alignment Failed",message: message)
                                                 }
                                                 
                                                 return
@@ -2033,9 +2394,34 @@ class VoiceBase {
                                     self.resultsTimer?.invalidate()
                                     self.resultsTimer = nil
                                     
-                                    if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
-                                        let text = self.mediaItem?.text {
-                                            globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+                                    var error : String?
+                                    
+                                    if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                                        error = message
+                                    }
+                                    
+                                    if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                                        error = message
+                                    }
+                                    
+                                    var message : String?
+                                    
+                                    if let text = self.mediaItem?.text {
+                                        if let error = error {
+                                            message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                                        } else {
+                                            message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                                        }
+                                    } else {
+                                        if let error = error {
+                                            message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
+                                        } else {
+                                            message = "The transcript realignment failed to start.  Please try again."
+                                        }
+                                    }
+                                    
+                                    if let message = message {
+                                        globals.alert(title: "Transcript Alignment Failed",message: message)
                                     }
                                 })
                             } else {
@@ -2066,10 +2452,35 @@ class VoiceBase {
                             self.aligning = false
                             self.resultsTimer?.invalidate()
                             self.resultsTimer = nil
-
-                            if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
-                                let text = self.mediaItem?.text {
-                                globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again.")
+                            
+                            var error : String?
+                            
+                            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                                error = message
+                            }
+                            
+                            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                                error = message
+                            }
+                            
+                            var message : String?
+                            
+                            if let text = self.mediaItem?.text {
+                                if let error = error {
+                                    message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
+                                } else {
+                                    message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
+                                }
+                            } else {
+                                if let error = error {
+                                    message = "Error: \(error)\n\n" + "The transcript was not realigned.  Please try again."
+                                } else {
+                                    message = "The transcript was not realigned.  Please try again."
+                                }
+                            }
+                            
+                            if let message = message {
+                                globals.alert(title: "Transcript Alignment Failed",message: message)
                             }
                         }
                         
@@ -2089,9 +2500,34 @@ class VoiceBase {
                 self.resultsTimer?.invalidate()
                 self.resultsTimer = nil
                 
-                if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
-                    let text = self.mediaItem?.text {
-                    globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again.")
+                var error : String?
+                
+                if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                    error = message
+                }
+                
+                if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                    error = message
+                }
+                
+                var message : String?
+                
+                if let text = self.mediaItem?.text {
+                    if let error = error {
+                        message = "Error: \(error)\n\n" + "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                    } else {
+                        message = "The transcript realignment for\n\n\(text) (\(self.transcriptPurpose))\n\nfailed to start.  Please try again."
+                    }
+                } else {
+                    if let error = error {
+                        message = "Error: \(error)\n\n" + "The transcript realignment failed to start.  Please try again."
+                    } else {
+                        message = "The transcript realignment failed to start.  Please try again."
+                    }
+                }
+                
+                if let message = message {
+                    globals.alert(title: "Transcript Alignment Failed",message: message)
                 }
             })
         })
@@ -2125,6 +2561,8 @@ class VoiceBase {
         }, onError: { (json:[String : Any]?) -> (Void) in
             if alert, let text = self.mediaItem?.text {
                 globals.alert(title: "Transcript Not Available",message: "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
+            } else {
+                globals.alert(title: "Transcript Not Available",message: "The transcript is not available.")
             }
             
             atEnd?()
@@ -2568,6 +3006,8 @@ class VoiceBase {
         }, onError: { (json:[String : Any]?) -> (Void) in
             if alert, let text = self.mediaItem?.text {
                 globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT for\n\n\(text) (\(self.transcriptPurpose))\n\nis not available.")
+            } else {
+                globals.alert(title: "Transcript SRT Not Available",message: "The transcript SRT is not available.")
             }
             
             atEnd?()
@@ -2722,9 +3162,34 @@ class VoiceBase {
         userInfo["onError"] = { (json:[String : Any]?) -> (Void) in
             self.remove()
             
-            if  let error = (json?["errors"] as? [String:Any])?["error"] as? String,
-                let text = self.mediaItem?.text {
-                globals.alert(title: "Transcript Alignment Failed",message: "Error: \(error)\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again.")
+            var error : String?
+            
+            if error == nil, let message = (json?["errors"] as? [String:Any])?["error"] as? String {
+                error = message
+            }
+            
+            if error == nil, let message =  (json?["errors"] as? [[String:Any]])?[0]["error"] as? String {
+                error = message
+            }
+            
+            var message : String?
+            
+            if let text = self.mediaItem?.text {
+                if let error = error {
+                    message = "Error: \(error)\n\n" + "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
+                } else {
+                    message = "The transcript for\n\n\(text) (\(self.transcriptPurpose))\n\nwas not realigned.  Please try again."
+                }
+            } else {
+                if let error = error {
+                    message = "Error: \(error)\n\n" + "The transcript was not realigned.  Please try again."
+                } else {
+                    message = "The transcript was not realigned.  Please try again."
+                }
+            }
+            
+            if let message = message {
+                globals.alert(title: "Transcript Alignment Failed",message: message)
             }
         }
         
@@ -2843,21 +3308,7 @@ class VoiceBase {
                             print("THEY ARE THE SAME!")
                         }
                         
-                        var htmlString = "<!DOCTYPE html><html><body>"
-                        
-                        if  let transcript = self.transcript,
-                            let purpose = self.purpose,
-                            let headerHTML = self.mediaItem?.headerHTML {
-                            htmlString = htmlString + headerHTML +
-                                "<br/>" +
-                                "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(purpose))</center>" +
-                                "<br/>" +
-                                transcript.replacingOccurrences(of: "\n", with: "<br/>")
-                        }
-
-                        htmlString = htmlString + "</body></html>"
-
-                        popoverHTML(viewController,mediaItem:nil,title:self.mediaItem?.title,barButtonItem:nil,sourceView:nil,sourceRectView:nil,htmlString:htmlString)
+                        popoverHTML(viewController,mediaItem:nil,transcript:self,title:self.mediaItem?.title,barButtonItem:nil,sourceView:nil,sourceRectView:nil,htmlString:self.html)
                     }))
                     
                     alertActions.append(AlertAction(title: "Transcript with Timing", style: .default, action: {
@@ -2968,7 +3419,7 @@ class VoiceBase {
                         viewController.present(navigationController, animated: true, completion: {
                             if  (globals.mediaPlayer.mediaItem == self.mediaItem),
                                 (self.mediaItem?.playing == self.purpose),
-                                (transcriptString != transcriptFromWordsString) {
+                                (transcriptString?.lowercased() != transcriptFromWordsString?.lowercased()) {
                                 if let text = self.mediaItem?.text {
                                     alertActionsOkay( viewController: viewController,
                                                       title: "Transcript Sync Warning",
@@ -3078,7 +3529,7 @@ class VoiceBase {
                         if let text = self.mediaItem?.text {
                             alertActionsCancel( viewController: viewController,
                                                 title: "Confirm Realignment of Machine Generated Transcript",
-                                                message: "Depending on the source selected, this may change both the transcript and timing for\n\(text) (\(self.transcriptPurpose))",
+                                                message: "Depending on the source selected, this may change both the transcript and timing for\n\n\(text) (\(self.transcriptPurpose))",
                                 alertActions: alertActions,
                                 cancelAction: nil)
                         }

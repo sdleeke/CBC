@@ -79,7 +79,7 @@ extension ScriptureViewController : PopoverTableViewControllerDelegate
                     if let webViewController = self.webViewController {
                         popover.html.fontSize = webViewController.html.fontSize
                         popover.html.string = webViewController.html.string
-                        popover.selectedMediaItem = webViewController.selectedMediaItem
+                        popover.mediaItem = webViewController.mediaItem
                         popover.content = webViewController.content
                     }
                                         

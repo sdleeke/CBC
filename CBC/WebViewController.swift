@@ -113,7 +113,14 @@ extension WebViewController : PopoverPickerControllerDelegate
         self.activityIndicator.isHidden = false
         self.activityIndicator.startAnimating()
         
-        html.string = selectedMediaItem?.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
+        if let mediaItem = mediaItem {
+            html.string = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
+        }
+
+        if let transcript = transcript {
+            html.string = transcript.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
+        }
+
         html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
         
         if let url = self.html.fileURL {
@@ -175,8 +182,9 @@ extension WebViewController : PopoverTableViewControllerDelegate
             popover.html.string = self.html.string
             
             popover.search = self.search
-            popover.selectedMediaItem = self.selectedMediaItem
-            
+            popover.mediaItem = self.mediaItem
+            popover.transcript = self.transcript
+
             popover.content = self.content
 
             popover.navigationController?.isNavigationBarHidden = false
@@ -240,8 +248,8 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 self.activityIndicator.isHidden = false
                 self.activityIndicator.startAnimating()
                 
-                if self.selectedMediaItem != nil {
-                    self.html.string = insertHead(stripHead(self.selectedMediaItem?.markedFullNotesHTML(searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
+                if self.mediaItem != nil {
+                    self.html.string = insertHead(stripHead(self.mediaItem?.markedFullNotesHTML(searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
                 } else {
                     self.html.string = insertHead(stripHead(self.markedHTML(searchText:self.searchText, wholeWordsOnly: false, index: true)),fontSize: self.html.fontSize)
                 }
@@ -265,19 +273,29 @@ extension WebViewController : PopoverTableViewControllerDelegate
 
                 popover.navigationController?.isNavigationBarHidden = false
 
-                popover.navigationItem.title = Constants.Strings.Word_Picker
-
                 popover.delegate = self
 
                 popover.stringTree = StringTree()
                 
-                selectedMediaItem?.loadNotesTokens()
+                mediaItem?.loadNotesTokens()
                 
-                let strings:[String]? = selectedMediaItem?.notesTokens?.keys.map({ (string:String) -> String in
-                    return string
-                }).sorted()
+                if let mediaItem = mediaItem {
+                    popover.navigationItem.title = mediaItem.title // Constants.Strings.Word_Picker
+                    
+                    let strings:[String]? = mediaItem.notesTokens?.keys.map({ (string:String) -> String in
+                        return string
+                    }).sorted()
+                    
+                    popover.strings = strings
+                }
                 
-                popover.strings = strings
+                if let transcript = transcript {
+                    popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Word_Picker
+                    
+                    popover.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
+                        return word
+                    }).sorted()
+                }
 
                 present(navigationController, animated: true, completion: nil)
             }
@@ -292,27 +310,40 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 
                 popover.navigationController?.isNavigationBarHidden = false
                 
-                popover.cloudTitle = selectedMediaItem?.title
-                popover.mediaItem = selectedMediaItem
+                if let mediaItem = mediaItem {
+                    popover.cloudTitle = mediaItem.title
+                    popover.mediaItem = mediaItem
+                    
+                    mediaItem.loadNotesTokens()
+                    
+                    let words:[[String:Any]]? = mediaItem.notesTokens?.map({ (key:String, value:Int) -> [String:Any] in
+                        return ["word":key,"count":value,"selected":true]
+                    })
+                    //                .filter({ (dict:[String:Any]) -> Bool in
+                    //                    guard let word = dict["word"] as? String else {
+                    //                        return false
+                    //                    }
+                    //
+                    //                    guard let count = dict["count"] as? Int else {
+                    //                        return false
+                    //                    }
+                    //
+                    //                    return !Constants.COMMON_WORDS.contains(word) && (count > 8)
+                    //                })
+                    
+                    popover.cloudWords = words
+                }
                 
-                selectedMediaItem?.loadNotesTokens()
-                
-                let words:[[String:Any]]? = selectedMediaItem?.notesTokens?.map({ (key:String, value:Int) -> [String:Any] in
-                    return ["word":key,"count":value,"selected":true]
-                })
-//                .filter({ (dict:[String:Any]) -> Bool in
-//                    guard let word = dict["word"] as? String else {
-//                        return false
-//                    }
-//                    
-//                    guard let count = dict["count"] as? Int else {
-//                        return false
-//                    }
-//                    
-//                    return !Constants.COMMON_WORDS.contains(word) && (count > 8)
-//                })
-                
-                popover.cloudWords = words
+                if let transcript = transcript {
+                    popover.cloudTitle = transcript.mediaItem?.title
+                    popover.mediaItem = transcript.mediaItem
+
+                    let words = transcript.tokens?.map({ (word:String,count:Int) -> [String:Any] in
+                        return ["word":word,"count":count,"selected":true]
+                    })
+                    
+                    popover.cloudWords = words
+                }
                 
                 popover.cloudFont = UIFont.preferredFont(forTextStyle:.body)
                 
@@ -328,8 +359,6 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 navigationController.popoverPresentationController?.delegate = self
                 
                 popover.navigationController?.isNavigationBarHidden = false
-                
-                popover.navigationItem.title = Constants.Strings.Words
                 
                 popover.delegate = self
                 popover.purpose = .selectingWord
@@ -361,6 +390,10 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 popover.search = true
                 
                 if let mediaItem = mediaItem, mediaItem.hasNotesHTML {
+                    popover.navigationItem.title = mediaItem.title // Constants.Strings.Words
+                    
+                    popover.selectedMediaItem = mediaItem
+                    
                     if mediaItem.notesTokens == nil {
                         popover.stringsFunction = {
                             mediaItem.loadNotesTokens()
@@ -374,6 +407,16 @@ extension WebViewController : PopoverTableViewControllerDelegate
                             return "\(string) (\(count))"
                         }).sorted()
                     }
+                }
+                
+                if let transcript = transcript {
+                    popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Words
+                    
+                    popover.section.indexStringsTransform = stripCount
+                    
+                    popover.section.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
+                        return "\(word) (\(count))"
+                    }).sorted()
                 }
                 
                 popover.vc = self
@@ -397,7 +440,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
 //            break
             
         case Constants.Strings.Refresh_Document:
-            selectedMediaItem?.download?.delete()
+            mediaItem?.download?.delete()
             
             wkWebView?.isHidden = true
             wkWebView?.removeFromSuperview()
@@ -451,7 +494,14 @@ extension WebViewController : PopoverTableViewControllerDelegate
             activityIndicator.isHidden = false
             activityIndicator.startAnimating()
             
-            html.string = selectedMediaItem?.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
+            if let mediaItem = mediaItem {
+                html.string = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
+            }
+            
+            if let transcript = transcript {
+                html.string = transcript.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
+            }
+            
             html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
       
             if let url = self.html.fileURL {
@@ -816,7 +866,7 @@ class WebViewController: UIViewController
 
     func updateDownload()
     {
-        if let download = selectedMediaItem?.download {
+        if let download = mediaItem?.download {
             switch download.state {
             case .none:
                 break
@@ -833,7 +883,7 @@ class WebViewController: UIViewController
     
     func cancelDownload()
     {
-        if let download = selectedMediaItem?.download {
+        if let download = mediaItem?.download {
             switch download.state {
             case .none:
                 break
@@ -863,7 +913,17 @@ class WebViewController: UIViewController
         }
     }
     
-    var selectedMediaItem:MediaItem?
+    var transcript:VoiceBase?
+    {
+        willSet {
+            
+        }
+        didSet {
+            
+        }
+    }
+    
+    var mediaItem:MediaItem?
     {
         willSet {
             
@@ -874,10 +934,10 @@ class WebViewController: UIViewController
                 NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: oldValue?.download)
             }
 
-            if selectedMediaItem != nil {
+            if mediaItem != nil {
                 Thread.onMainThread {
-                    NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.updateDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: self.selectedMediaItem?.download)
-                    NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.cancelDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: self.selectedMediaItem?.download)
+                    NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.updateDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.UPDATE_DOCUMENT), object: self.mediaItem?.download)
+                    NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.cancelDownload), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.CANCEL_DOCUMENT), object: self.mediaItem?.download)
                 }
             }
         }
@@ -965,14 +1025,14 @@ class WebViewController: UIViewController
             popover.delegate = self
             popover.purpose = .selectingAction
             
-            popover.selectedMediaItem = selectedMediaItem
+            popover.selectedMediaItem = mediaItem
             
             var actionMenu = [String]()
             
             if (html.string != nil) && search {
                 actionMenu.append(Constants.Strings.Search)
                 
-                if (selectedMediaItem != nil) {
+                if (mediaItem != nil) || (transcript != nil) {
                     actionMenu.append(Constants.Strings.Words)
                     actionMenu.append(Constants.Strings.Word_Picker)
                     
@@ -1146,11 +1206,11 @@ class WebViewController: UIViewController
             return
         }
         
-        guard let showing = selectedMediaItem?.showing else {
+        guard let showing = mediaItem?.showing else {
             return
         }
         
-        guard (selectedMediaItem != nil) else {
+        guard (mediaItem != nil) else {
             return
         }
 
@@ -1158,9 +1218,9 @@ class WebViewController: UIViewController
         var contentOffsetXRatioStr:String?
         var contentOffsetYRatioStr:String?
         
-        contentOffsetXRatioStr = selectedMediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO]
-        contentOffsetYRatioStr = selectedMediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO]
-        zoomScaleStr = selectedMediaItem?.mediaItemSettings?[showing + Constants.ZOOM_SCALE]
+        contentOffsetXRatioStr = mediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO]
+        contentOffsetYRatioStr = mediaItem?.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO]
+        zoomScaleStr = mediaItem?.mediaItemSettings?[showing + Constants.ZOOM_SCALE]
         
         var zoomScale:CGFloat = 1.0
         
@@ -1193,19 +1253,19 @@ class WebViewController: UIViewController
             return
         }
         
-        guard let selectedMediaItem = selectedMediaItem else {
+        guard let mediaItem = mediaItem else {
             return
         }
         
-        guard let showing = selectedMediaItem.showing else {
+        guard let showing = mediaItem.showing else {
             return
         }
         
         var contentOffsetXRatioStr:String?
         var contentOffsetYRatioStr:String?
         
-        contentOffsetXRatioStr = selectedMediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO]
-        contentOffsetYRatioStr = selectedMediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO]
+        contentOffsetXRatioStr = mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO]
+        contentOffsetYRatioStr = mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO]
         
         var contentOffsetXRatio:CGFloat = 0.0
         var contentOffsetYRatio:CGFloat = 0.0
@@ -1232,20 +1292,20 @@ class WebViewController: UIViewController
             return
         }
         
-        guard let selectedMediaItem = selectedMediaItem else {
+        guard let mediaItem = mediaItem else {
             return
         }
         
-        guard let showing = selectedMediaItem.showing else {
+        guard let showing = mediaItem.showing else {
             return
         }
         
         if !wkWebView.isLoading, wkWebView.url != nil {
-            selectedMediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO] = "\(wkWebView.scrollView.contentOffset.x / wkWebView.scrollView.contentSize.width)"
+            mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_X_RATIO] = "\(wkWebView.scrollView.contentOffset.x / wkWebView.scrollView.contentSize.width)"
             
-            selectedMediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO] = "\(wkWebView.scrollView.contentOffset.y / wkWebView.scrollView.contentSize.height)"
+            mediaItem.mediaItemSettings?[showing + Constants.CONTENT_OFFSET_Y_RATIO] = "\(wkWebView.scrollView.contentOffset.y / wkWebView.scrollView.contentSize.height)"
             
-            selectedMediaItem.mediaItemSettings?[showing + Constants.ZOOM_SCALE] = "\(wkWebView.scrollView.zoomScale)"
+            mediaItem.mediaItemSettings?[showing + Constants.ZOOM_SCALE] = "\(wkWebView.scrollView.zoomScale)"
         }
     }
     
@@ -1394,7 +1454,7 @@ class WebViewController: UIViewController
     {
         if #available(iOS 9.0, *) {
             if globals.cacheDownloads {
-                if let destinationURL = selectedMediaItem?.fileSystemURL, FileManager.default.fileExists(atPath: destinationURL.path) {
+                if let destinationURL = mediaItem?.fileSystemURL, FileManager.default.fileExists(atPath: destinationURL.path) {
                     DispatchQueue.global(qos: .background).async { [weak self] in
                         _ = self?.wkWebView?.loadFileURL(destinationURL, allowingReadAccessTo: destinationURL)
                         
@@ -1413,7 +1473,7 @@ class WebViewController: UIViewController
                     activityIndicator.isHidden = false
                     activityIndicator.startAnimating()
                     
-                    if let download = selectedMediaItem?.download {
+                    if let download = mediaItem?.download {
                         progressIndicator.progress = download.totalBytesExpectedToWrite != 0 ? Float(download.totalBytesWritten) / Float(download.totalBytesExpectedToWrite) : 0.0
                         progressIndicator.isHidden = false
                         
@@ -1438,7 +1498,7 @@ class WebViewController: UIViewController
                         }
                     }
                     
-                    if let url = self?.selectedMediaItem?.downloadURL {
+                    if let url = self?.mediaItem?.downloadURL {
                         let request = URLRequest(url: url)
                         _ = self?.wkWebView?.load(request)
                     }
@@ -1462,7 +1522,7 @@ class WebViewController: UIViewController
                     }
                 }
                 
-                if let url = self?.selectedMediaItem?.downloadURL {
+                if let url = self?.mediaItem?.downloadURL {
                     let request = URLRequest(url: url)
                     _ = self?.wkWebView?.load(request)
                 }
@@ -1750,7 +1810,7 @@ class WebViewController: UIViewController
 
         NotificationCenter.default.addObserver(self, selector: #selector(WebViewController.setPreferredContentSize), name: NSNotification.Name(rawValue: Constants.NOTIFICATION.SET_PREFERRED_CONTENT_SIZE), object: nil)
 
-        if let title = selectedMediaItem?.title {
+        if let title = mediaItem?.title {
             navigationItem.title = title
         }
 

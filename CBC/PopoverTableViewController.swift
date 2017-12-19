@@ -284,6 +284,8 @@ class PopoverTableViewController : UIViewController
     
     var selectedText:String!
     
+    var selection:((Int)->(Bool))?
+    
     var detailAction:((UITableView,IndexPath)->(Void))?
     var detailDisclosure:((UITableView,IndexPath)->(Bool))?
     
@@ -1359,10 +1361,10 @@ class PopoverTableViewController : UIViewController
                         
                         self?.activityIndicator.stopAnimating()
                         self?.activityIndicator?.isHidden = true
-                        
-                        if self?.purpose == .selectingTime {
-                            self?.follow()
-                        }
+//                        
+//                        if self?.purpose == .selectingTime {
+//                            self?.follow()
+//                        }
                     }
                 }
             }
@@ -1556,6 +1558,20 @@ extension PopoverTableViewController : UITableViewDataSource
         }
         
         return nil
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath)
+    {
+        let index = section.index(indexPath)
+        
+        if let selected = selection?(index) {
+            cell.setSelected(selected, animated: false)
+            if selected {
+                tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
+            } else {
+                tableView.deselectRow(at: indexPath, animated: false)
+            }
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell

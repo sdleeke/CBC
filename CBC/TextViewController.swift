@@ -579,8 +579,10 @@ class TextViewController : UIViewController
         var actions = [AlertAction]()
         
         actions.append(AlertAction(title: "Interactive", style: .default, action: {
+            let text = self.textView.attributedText.string
+            
             process(viewController: self, work: { () -> (Any?) in
-                self.changeText(interactive: true, text: self.textView.attributedText.string, startingRange: nil, masterChanges: self.masterChanges(interactive: true), completion: { (string:String) -> (Void) in
+                self.changeText(interactive: true, text: text, startingRange: nil, masterChanges: self.masterChanges(interactive: true), completion: { (string:String) -> (Void) in
                     self.changedText = string
                     self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                 })
@@ -597,8 +599,10 @@ class TextViewController : UIViewController
         }))
         
         actions.append(AlertAction(title: "Automatic", style: .default, action: {
+            let text = self.textView.attributedText.string
+            
             process(viewController: self, work: { () -> (Any?) in
-                self.changeText(interactive: false, text: self.textView.attributedText.string, startingRange: nil, masterChanges: self.masterChanges(interactive: false), completion: { (string:String) -> (Void) in
+                self.changeText(interactive: false, text: text, startingRange: nil, masterChanges: self.masterChanges(interactive: false), completion: { (string:String) -> (Void) in
                     self.changedText = string
                     self.textView.attributedText = NSMutableAttributedString(string: string,attributes: Constants.Fonts.Attributes.normal)
                 })

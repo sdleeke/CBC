@@ -3234,7 +3234,7 @@ func presentHTMLModal(viewController:UIViewController, dismiss:Bool, mediaItem:M
         popover.navigationItem.title = title
         
         popover.search = true
-        popover.selectedMediaItem = mediaItem
+        popover.mediaItem = mediaItem
         
         popover.html.string = htmlString
         popover.content = .html
@@ -3245,6 +3245,15 @@ func presentHTMLModal(viewController:UIViewController, dismiss:Bool, mediaItem:M
             viewController.present(navigationController, animated: true, completion: nil)
         }
     }
+}
+
+func stripCount(string:String?) -> String?
+{
+    if let range = string?.range(of: " ("), let string = string?.substring(to: range.upperBound) {
+        return string
+    }
+    
+    return nil
 }
 
 func sort(method:String?,strings:[String]?) -> [String]?
@@ -3262,7 +3271,7 @@ func sort(method:String?,strings:[String]?) -> [String]?
         return strings.sorted()
         
     case Constants.Sort.Frequency:
-        return strings.sorted(by: { (first:String, second:String) -> Bool in
+        let newStrings = strings.sorted(by: { (first:String, second:String) -> Bool in
             if let rangeFirst = first.range(of: " ("), let rangeSecond = second.range(of: " (") {
                 let left = first.substring(from: rangeFirst.upperBound)
                 let right = second.substring(from: rangeSecond.upperBound)
@@ -3273,6 +3282,8 @@ func sort(method:String?,strings:[String]?) -> [String]?
                 if let rangeLeft = left.range(of: ")"), let rangeRight = right.range(of: ")") {
                     let left = left.substring(to: rangeLeft.lowerBound)
                     let right = right.substring(to: rangeRight.lowerBound)
+                    
+//                    print(first,left,second,right)
                     
                     if let left = Int(left), let right = Int(right) {
                         if left == right {
@@ -3288,6 +3299,7 @@ func sort(method:String?,strings:[String]?) -> [String]?
                 return false
             }
         })
+        return newStrings
         
     default:
         return nil
@@ -3627,6 +3639,11 @@ func secondsToHMS(seconds:String?) -> String?
 
 func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:String?,barButtonItem:UIBarButtonItem?,sourceView:UIView?,sourceRectView:UIView?,htmlString:String?)
 {
+    popoverHTML(viewController,mediaItem:mediaItem,transcript:nil,title:title,barButtonItem:barButtonItem,sourceView:sourceView,sourceRectView:sourceRectView,htmlString:htmlString)
+}
+
+func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,transcript:VoiceBase?,title:String?,barButtonItem:UIBarButtonItem?,sourceView:UIView?,sourceRectView:UIView?,htmlString:String?)
+{
     guard Thread.isMainThread else {
         alert(viewController:viewController,title: "Not Main Thread", message: "functions:popoverHTML", completion: nil)
         return
@@ -3687,8 +3704,9 @@ func popoverHTML(_ viewController:UIViewController,mediaItem:MediaItem?,title:St
         popover.html.string = insertHead(htmlString,fontSize: popover.html.fontSize)
         
         popover.search = true
-        popover.selectedMediaItem = mediaItem
-        
+        popover.mediaItem = mediaItem
+        popover.transcript = transcript
+
         popover.content = .html
         
         popover.navigationController?.isNavigationBarHidden = false

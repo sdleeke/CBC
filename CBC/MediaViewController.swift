@@ -4335,7 +4335,7 @@ class MediaViewController: UIViewController // MediaController
             case Constants.SEGUE.SHOW_FULL_SCREEN:
 //                splitViewController?.preferredDisplayMode = .primaryHidden
                 setupWKContentOffsets()
-                wvc.selectedMediaItem = sender as? MediaItem
+                wvc.mediaItem = sender as? MediaItem
                 break
             default:
                 break

@@ -139,7 +139,8 @@ class CloudLayoutOperation : Operation
 //        CGFloat maxWordCount = [[self.cloudWords valueForKeyPath:@"@max.wordCount"] doubleValue];
         
         let deltaWordCount:CGFloat = CGFloat(maxWordCount) - CGFloat(minWordCount)
-        let ratioCap:CGFloat = 20.0
+        
+        let ratioCap:CGFloat = 20.0 // parameter to vary
         
         let maxMinRatio:CGFloat = CGFloat(min((CGFloat(maxWordCount) / CGFloat(minWordCount)), ratioCap))
         if maxMinRatio == ratioCap {
@@ -157,7 +158,10 @@ class CloudLayoutOperation : Operation
         
 //        NSInteger dynamicTypeDelta = [UIFont lal_preferredContentSizeDelta]
         
-        let containerArea:CGFloat = CGFloat(containerSize.width * containerSize.height) // * 0.9
+        // A way to account for whitespace between words
+        let whitespaceFactor:CGFloat = 0.95 // parameter to vary
+        let containerArea:CGFloat = CGFloat(containerSize.width * containerSize.height) * whitespaceFactor
+
         var wordAreaExceedsContainerSize = false
         
         repeat {
@@ -165,7 +169,7 @@ class CloudLayoutOperation : Operation
             wordAreaExceedsContainerSize = false
             
             var fontRange:CGFloat = fontMax - fontMin
-            let fontStep:CGFloat = 1.0 // 3.0
+            let fontStep:CGFloat = 1.0 // 3.0 // parameter to vary
             
             // Normalize word weights
             
@@ -183,7 +187,7 @@ class CloudLayoutOperation : Operation
                 
                 // Check to see if the current word fits in the container
                 
-                wordArea += cloudWord.boundsArea
+                wordArea += cloudWord.boundsArea // * 1.1 // Another way to account for whitespace between words - parameter to vary
                 
                 if (wordArea >= containerArea) || (cloudWord.boundsSize.width >= containerSize.width) || (cloudWord.boundsSize.height >= containerSize.height) {
                     wordAreaExceedsContainerSize = true
@@ -215,7 +219,7 @@ class CloudLayoutOperation : Operation
                 break
             }
 
-            cloudWord.wordColor = index % 5
+            cloudWord.wordColor = index % 5 // Simple way to allocate color - round-robin
             
 //            let scale:CGFloat = (cloudWordsCount - index) / cloudWordsCount
 //
@@ -393,7 +397,7 @@ class CloudLayoutOperation : Operation
                 
                 index += 1
                 
-                if index == 1 {
+                if index == cloudWord.wordCount {
                     cloudWords.append(cloudWord)
                     break
                 }

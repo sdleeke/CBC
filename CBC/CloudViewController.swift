@@ -169,10 +169,14 @@ extension CloudViewController : CloudLayoutOperationDelegate
     
     func insertWord(word:String, pointSize:CGFloat, color:Int, center:CGPoint, isVertical:Bool)
     {
-        guard let color = cloudColors?[color] else {
+        guard pointSize > 0 else {
             return
         }
         
+        guard let color = cloudColors?[color] else {
+            return
+        }
+
         let wordLabel = UILabel(frame: CGRect.zero)
         
         wordLabel.text = word
@@ -201,6 +205,12 @@ extension CloudViewController : CloudLayoutOperationDelegate
         //    wordLabel.layer.borderWidth = 1;
         //#endif
         
+        if wordLabels == nil {
+            wordLabels = [String:UILabel]()
+        }
+
+        wordLabels?[word] = wordLabel
+        
         cloudView.addSubview(wordLabel)
     }
     
@@ -222,6 +232,8 @@ class CloudViewController: UIViewController
 {
     var ptvc:PopoverTableViewController!
     
+    var wordLabels : [String:UILabel]?
+    
     var cloudLayoutOperationQueue : OperationQueue?
     
     @IBOutlet weak var selectAllButton: UIButton!
@@ -231,10 +243,10 @@ class CloudViewController: UIViewController
             return
         }
 
-        ptvc.activityIndicator.isHidden = false
-        ptvc.activityIndicator.startAnimating()
+//        ptvc.activityIndicator.isHidden = false
+//        ptvc.activityIndicator.startAnimating()
         
-        ptvc.tableView.isHidden = true
+//        ptvc.tableView.isHidden = true
 
         for index in 0..<cloudWords.count {
             cloudWords[index]["selected"] = true
@@ -242,22 +254,41 @@ class CloudViewController: UIViewController
         
         self.cloudWords = cloudWords
         
+//        self.ptvc.tableView.isHidden = false
+        
+        self.ptvc.tableView.reloadData()
+        
+//        self.ptvc.activityIndicator.stopAnimating()
+//        self.ptvc.activityIndicator.isHidden = true
+
         cancelAndRelayoutCloudWords()
-
-        DispatchQueue.global(qos: .background).async { [weak self] in
-            Thread.onMainThread {
-                for index in 0..<cloudWords.count {
-                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
-                        self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-                    }
-                }
-
-                self?.ptvc.tableView.isHidden = false
-                
-                self?.ptvc.activityIndicator.stopAnimating()
-                self?.ptvc.activityIndicator.isHidden = true
-            }
-        }
+        
+//        DispatchQueue.global(qos: .background).async { [weak self] in
+//            Thread.onMainThread {
+////                if let cells = self?.ptvc.tableView.visibleCells {
+////                    for cell in cells {
+////                        if let cell = cell as? PopoverTableViewCell {
+////                            if let word = cell.title.text, let indexPath = self?.ptvc.section.indexPath(from: word) {
+////                                self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+////                            }
+////                        }
+////                    }
+////                }
+//
+////                for index in 0..<cloudWords.count {
+////                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
+////                        self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+////                    }
+////                }
+//
+//                self?.ptvc.tableView.isHidden = false
+//
+//                self?.ptvc.tableView.reloadData()
+//
+//                self?.ptvc.activityIndicator.stopAnimating()
+//                self?.ptvc.activityIndicator.isHidden = true
+//            }
+//        }
     }
     
     @IBOutlet weak var selectNoneButton: UIButton!
@@ -267,33 +298,42 @@ class CloudViewController: UIViewController
             return
         }
 
-        ptvc.activityIndicator.isHidden = false
-        ptvc.activityIndicator.startAnimating()
+//        ptvc.activityIndicator.isHidden = false
+//        ptvc.activityIndicator.startAnimating()
         
-        ptvc.tableView.isHidden = true
+//        ptvc.tableView.isHidden = true
         
         for index in 0..<cloudWords.count {
             cloudWords[index]["selected"] = nil
         }
         
         self.cloudWords = cloudWords
+
+//        self.ptvc.tableView.isHidden = false
         
+        self.ptvc.tableView.reloadData()
+        
+//        self.ptvc.activityIndicator.stopAnimating()
+//        self.ptvc.activityIndicator.isHidden = true
+
         cancelAndRelayoutCloudWords()
 
-        DispatchQueue.global(qos: .background).async { [weak self] in
-            Thread.onMainThread {
-                for index in 0..<cloudWords.count {
-                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
-                        self?.ptvc.tableView?.deselectRow(at: indexPath, animated: true)
-                    }
-                }
-
-                self?.ptvc.tableView.isHidden = false
-                
-                self?.ptvc.activityIndicator.stopAnimating()
-                self?.ptvc.activityIndicator.isHidden = true
-            }
-        }
+//        DispatchQueue.global(qos: .background).async { [weak self] in
+//            Thread.onMainThread {
+////                for index in 0..<cloudWords.count {
+////                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
+////                        self?.ptvc.tableView?.deselectRow(at: indexPath, animated: true)
+////                    }
+////                }
+//
+//                self?.ptvc.tableView.isHidden = false
+//
+//                self?.ptvc.tableView.reloadData()
+//
+//                self?.ptvc.activityIndicator.stopAnimating()
+//                self?.ptvc.activityIndicator.isHidden = true
+//            }
+//        }
     }
     
     @IBOutlet weak var cloudView: UIView!
@@ -317,11 +357,11 @@ class CloudViewController: UIViewController
         
         let selectTap = UITapGestureRecognizer(target: self, action: #selector(CloudViewController.selectCloudWord(_:)))
         selectTap.numberOfTapsRequired = 1
-        view.addGestureRecognizer(selectTap)
+        cloudView.addGestureRecognizer(selectTap)
         
         let layoutTap = UITapGestureRecognizer(target: self, action: #selector(CloudViewController.cancelAndRelayoutCloudWords))
         layoutTap.numberOfTapsRequired = 2
-        view.addGestureRecognizer(layoutTap)
+        cloudView.addGestureRecognizer(layoutTap)
         
         selectTap.require(toFail: layoutTap)
         
@@ -407,7 +447,7 @@ class CloudViewController: UIViewController
     {
         super.viewWillAppear(animated)
 
-        ptvc?.tableView?.isHidden = true
+//        ptvc?.tableView?.isHidden = true
 
         navigationItem.title = cloudTitle
         
@@ -422,32 +462,32 @@ class CloudViewController: UIViewController
     {
         super.viewDidAppear(animated)
         
-        guard var cloudWords = self.cloudWords else {
-            return
-        }
+//        guard var cloudWords = self.cloudWords else {
+//            return
+//        }
         
-        ptvc?.activityIndicator?.isHidden = false
-        ptvc?.activityIndicator?.startAnimating()
+//        ptvc?.activityIndicator?.isHidden = false
+//        ptvc?.activityIndicator?.startAnimating()
 
-        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-            Thread.onMainThread {
-                for index in 0..<cloudWords.count {
-                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
-                        if let selected = cloudWords[index]["selected"] as? Bool, selected {
-                            self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-                        } else {
-                            self?.ptvc.tableView?.deselectRow(at: indexPath, animated: true)
-                        }
-                    }
-                }
+//        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+//            Thread.onMainThread {
+//                for index in 0..<cloudWords.count {
+//                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
+//                        if let selected = cloudWords[index]["selected"] as? Bool, selected {
+//                            self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+//                        } else {
+//                            self?.ptvc.tableView?.deselectRow(at: indexPath, animated: true)
+//                        }
+//                    }
+//                }
                 
-                self?.ptvc?.tableView?.isHidden = false
-                self?.ptvc?.activityIndicator?.stopAnimating()
-                self?.ptvc?.activityIndicator?.isHidden = true
+//                self?.ptvc?.tableView?.isHidden = false
+//                self?.ptvc?.activityIndicator?.stopAnimating()
+//                self?.ptvc?.activityIndicator?.isHidden = true
                 
-                self?.cancelAndRelayoutCloudWords()
-            }
-        }
+                self.cancelAndRelayoutCloudWords()
+//            }
+//        }
     }
     
     override func viewWillDisappear(_ animated: Bool)
@@ -512,6 +552,8 @@ class CloudViewController: UIViewController
     
     func layoutCloudWords()
     {
+        wordLabels = nil
+        
         cloudColors = CloudColors.GreenBlue
         
         cloudView.backgroundColor = UIColor.white
@@ -581,58 +623,63 @@ class CloudViewController: UIViewController
                     ptvc = destination
                     
                     ptvc.allowsMultipleSelection = true
-                    
+                    ptvc.selection = { (index:Int) -> Bool in
+//                        print(index,self.cloudWords?[index]["word"])
+                        if let selection = self.cloudWords?[index]["selected"] as? Bool {
+                            return selection
+                        }
+                        return false
+                    }
                     ptvc.segments = true
                     
 //                    ptvc.editActionsAtIndexPath = rowActions
                     
-                    ptvc.sort.function = { (method:String?,strings:[String]?) -> [String]? in
-                        guard let strings = strings else {
-                            return nil
-                        }
-                        
-                        guard let method = method else {
-                            return nil
-                        }
-                        
-                        switch method {
-                        case Constants.Sort.Alphabetical:
-                            return strings.sorted()
-                            
-                        case Constants.Sort.Frequency:
-                            return strings.sorted(by: { (first:String, second:String) -> Bool in
-                                if let rangeFirst = first.range(of: " ("), let rangeSecond = second.range(of: " (") {
-                                    let left = first.substring(from: rangeFirst.upperBound)
-                                    let right = second.substring(from: rangeSecond.upperBound)
-                                    
-                                    let first = first.substring(to: rangeFirst.lowerBound)
-                                    let second = second.substring(to: rangeSecond.lowerBound)
-                                    
-                                    if let rangeLeft = left.range(of: ")"), let rangeRight = right.range(of: ")") {
-                                        let left = left.substring(to: rangeLeft.lowerBound)
-                                        let right = right.substring(to: rangeRight.lowerBound)
-                                        
-                                        if let left = Int(left), let right = Int(right) {
-                                            if left == right {
-                                                return first < second
-                                            } else {
-                                                return left > right
-                                            }
-                                        }
-                                    }
-                                    
-                                    return false
-                                } else {
-                                    return false
-                                }
-                            })
-                            
-                        default:
-                            return nil
-                        }
-                    }
-                    
-                    ptvc.sort.method = Constants.Sort.Alphabetical
+                    ptvc.sort.function = sort
+//                    { (method:String?,strings:[String]?) -> [String]? in
+//                        guard let strings = strings else {
+//                            return nil
+//                        }
+//
+//                        guard let method = method else {
+//                            return nil
+//                        }
+//
+//                        switch method {
+//                        case Constants.Sort.Alphabetical:
+//                            return strings.sorted()
+//
+//                        case Constants.Sort.Frequency:
+//                            return strings.sorted(by: { (first:String, second:String) -> Bool in
+//                                if let rangeFirst = first.range(of: " ("), let rangeSecond = second.range(of: " (") {
+//                                    let left = first.substring(from: rangeFirst.upperBound)
+//                                    let right = second.substring(from: rangeSecond.upperBound)
+//
+//                                    let first = first.substring(to: rangeFirst.lowerBound)
+//                                    let second = second.substring(to: rangeSecond.lowerBound)
+//
+//                                    if let rangeLeft = left.range(of: ")"), let rangeRight = right.range(of: ")") {
+//                                        let left = left.substring(to: rangeLeft.lowerBound)
+//                                        let right = right.substring(to: rangeRight.lowerBound)
+//
+//                                        if let left = Int(left), let right = Int(right) {
+//                                            if left == right {
+//                                                return first < second
+//                                            } else {
+//                                                return left > right
+//                                            }
+//                                        }
+//                                    }
+//
+//                                    return false
+//                                } else {
+//                                    return false
+//                                }
+//                            })
+//
+//                        default:
+//                            return nil
+//                        }
+//                    }
                     
                     var segmentActions = [SegmentAction]()
                     
@@ -643,28 +690,48 @@ class CloudViewController: UIViewController
                         self.ptvc.activityIndicator.startAnimating()
                         self.ptvc.segmentedControl.isEnabled = false
 
-                        DispatchQueue.global(qos: .background).async { [weak self] in
-                            self?.ptvc.section.strings = self?.ptvc.sort.function?(self?.ptvc.sort.method,self?.ptvc.section.strings)
-                            Thread.onMainThread(block: { (Void) -> (Void) in
-                                self?.ptvc.tableView.isHidden = false
-                                self?.ptvc.tableView.reloadData()
-                                self?.ptvc.activityIndicator.stopAnimating()
-                                self?.ptvc.segmentedControl.isEnabled = true
+                        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                            self?.cloudWords = self?.cloudWords?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
+                                let firstWord = first["word"] as? String
+                                let secondWord = second["word"] as? String
                                 
-                                guard var cloudWords = self?.cloudWords else {
-                                    return
-                                }
+                                let firstCount = first["count"] as? Int
+                                let secondCount = second["count"] as? Int
                                 
-                                for index in 0..<cloudWords.count {
-                                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
-                                        if let selected = cloudWords[index]["selected"] as? Bool, selected {
-                                            self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-                                        } else {
-                                            self?.ptvc.tableView?.deselectRow(at: indexPath, animated: true)
-                                        }
-                                    }
+                                if firstWord == secondWord {
+                                    return firstCount > secondCount
+                                } else {
+                                    return firstWord < secondWord
                                 }
                             })
+                            
+                            self?.ptvc.section.strings = self?.ptvc.sort.function?(self?.ptvc.sort.method,self?.ptvc.section.strings)
+
+                            Thread.onMainThread {
+                                self?.ptvc.tableView.reloadData()
+                                
+//                                DispatchQueue.global(qos: .background).async {
+//                                    guard var cloudWords = self?.cloudWords else {
+//                                        return
+//                                    }
+                                    
+//                                    Thread.onMainThread {
+//                                        for index in 0..<cloudWords.count {
+//                                            if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
+//                                                if let selected = cloudWords[index]["selected"] as? Bool, selected {
+//                                                    self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+//                                                } else {
+//                                                    self?.ptvc.tableView?.deselectRow(at: indexPath, animated: true)
+//                                                }
+//                                            }
+//                                        }
+                                        
+                                        self?.ptvc.tableView.isHidden = false
+                                        self?.ptvc.activityIndicator.stopAnimating()
+                                        self?.ptvc.segmentedControl.isEnabled = true
+//                                    }
+//                                }
+                            }
                         }
                     }))
                     segmentActions.append(SegmentAction(title: Constants.Sort.Frequency, position: 1, action: {
@@ -674,28 +741,48 @@ class CloudViewController: UIViewController
                         self.ptvc.activityIndicator.startAnimating()
                         self.ptvc.segmentedControl.isEnabled = false
 
-                        DispatchQueue.global(qos: .background).async { [weak self] in
-                            self?.ptvc.section.strings = self?.ptvc.sort.function?(self?.ptvc.sort.method,self?.ptvc.section.strings)
-                            Thread.onMainThread(block: { (Void) -> (Void) in
-                                self?.ptvc.tableView.isHidden = false
-                                self?.ptvc.tableView.reloadData()
-                                self?.ptvc.activityIndicator.stopAnimating()
-                                self?.ptvc.segmentedControl.isEnabled = true
+                        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                            self?.cloudWords = self?.cloudWords?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
+                                let firstWord = first["word"] as? String
+                                let secondWord = second["word"] as? String
                                 
-                                guard var cloudWords = self?.cloudWords else {
-                                    return
-                                }
+                                let firstCount = first["count"] as? Int
+                                let secondCount = second["count"] as? Int
                                 
-                                for index in 0..<cloudWords.count {
-                                    if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
-                                        if let selected = cloudWords[index]["selected"] as? Bool, selected {
-                                            self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-                                        } else {
-                                            self?.ptvc.tableView?.deselectRow(at: indexPath, animated: true)
-                                        }
-                                    }
+                                if firstCount == secondCount {
+                                    return firstWord < secondWord
+                                } else {
+                                    return firstCount > secondCount
                                 }
                             })
+                            
+                            self?.ptvc.section.strings = self?.ptvc.sort.function?(self?.ptvc.sort.method,self?.ptvc.section.strings)
+
+                            Thread.onMainThread {
+                                self?.ptvc.tableView.reloadData()
+                        
+//                                DispatchQueue.global(qos: .background).async {
+//                                    guard var cloudWords = self?.cloudWords else {
+//                                        return
+//                                    }
+                                    
+//                                    Thread.onMainThread {
+//                                        for index in 0..<cloudWords.count {
+//                                            if let word = cloudWords[index]["word"] as? String, let indexPath = self?.ptvc.section.indexPath(from: word) {
+//                                                if let selected = cloudWords[index]["selected"] as? Bool, selected {
+//                                                    self?.ptvc.tableView?.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+//                                                } else {
+//                                                    self?.ptvc.tableView?.deselectRow(at: indexPath, animated: true)
+//                                                }
+//                                            }
+//                                        }
+                                        
+                                        self?.ptvc.tableView.isHidden = false
+                                        self?.ptvc.activityIndicator.stopAnimating()
+                                        self?.ptvc.segmentedControl.isEnabled = true
+//                                    }
+//                                }
+                            }
                         }
                     }))
                     
@@ -707,8 +794,10 @@ class CloudViewController: UIViewController
                     ptvc.search = false
                     
                     ptvc.section.showIndex = false
+                    ptvc.section.indexStringsTransform = stripCount
+
                     ptvc.sort.method = Constants.Sort.Frequency
-                    
+
                     ptvc.section.strings = self.cloudWords?.map({ (dict:[String:Any]) -> String in
                         let word = dict["word"] as? String ?? "ERROR"
                         let count = dict["count"] as? Int ?? -1
@@ -716,6 +805,41 @@ class CloudViewController: UIViewController
                     })
                     
                     ptvc.section.strings = ptvc.sort.function?(ptvc.sort.method,ptvc.section.strings)
+                    
+                    switch ptvc.sort.method! {
+                    case Constants.Sort.Alphabetical:
+                        self.cloudWords = self.cloudWords?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
+                            let firstWord = first["word"] as? String
+                            let secondWord = second["word"] as? String
+                            
+                            let firstCount = first["count"] as? Int
+                            let secondCount = second["count"] as? Int
+                            
+                            if firstWord == secondWord {
+                                return firstCount > secondCount
+                            } else {
+                                return firstWord < secondWord
+                            }
+                        })
+                        
+                    case Constants.Sort.Frequency:
+                        self.cloudWords = self.cloudWords?.sorted(by: { (first:[String:Any], second:[String:Any]) -> Bool in
+                            let firstWord = first["word"] as? String
+                            let secondWord = second["word"] as? String
+                            
+                            let firstCount = first["count"] as? Int
+                            let secondCount = second["count"] as? Int
+                            
+                            if firstCount == secondCount {
+                                return firstWord < secondWord
+                            } else {
+                                return firstCount > secondCount
+                            }
+                        })
+
+                    default:
+                        break
+                    }
                 }
                 break
                 
@@ -725,7 +849,6 @@ class CloudViewController: UIViewController
         }
     }
 }
-
 
 
 
