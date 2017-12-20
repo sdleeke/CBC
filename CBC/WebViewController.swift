@@ -118,7 +118,7 @@ extension WebViewController : PopoverPickerControllerDelegate
         }
 
         if let transcript = transcript {
-            html.string = transcript.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
+            html.string = transcript.markedFullHTML(searchText:searchText, wholeWordsOnly: true, index: true)
         }
 
         html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
@@ -282,11 +282,14 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 if let mediaItem = mediaItem {
                     popover.navigationItem.title = mediaItem.title // Constants.Strings.Word_Picker
                     
-                    let strings:[String]? = mediaItem.notesTokens?.keys.map({ (string:String) -> String in
-                        return string
-                    }).sorted()
+                    if let keys = mediaItem.notesTokens?.keys {
+                        let strings = [String](keys).sorted()
+                        popover.strings = strings
+                    }
                     
-                    popover.strings = strings
+//                    let strings:[String]? = mediaItem.notesTokens?.keys.map({ (string:String) -> String in
+//                        return string
+//                    }).sorted()
                 }
                 
                 if let transcript = transcript {
@@ -412,7 +415,7 @@ extension WebViewController : PopoverTableViewControllerDelegate
                 if let transcript = transcript {
                     popover.navigationItem.title = transcript.mediaItem?.title // Constants.Strings.Words
                     
-                    popover.section.indexStringsTransform = stripCount
+                    popover.section.indexStringsTransform = nil
                     
                     popover.section.strings = transcript.tokens?.map({ (word:String,count:Int) -> String in
                         return "\(word) (\(count))"
@@ -494,23 +497,29 @@ extension WebViewController : PopoverTableViewControllerDelegate
             activityIndicator.isHidden = false
             activityIndicator.startAnimating()
             
-            if let mediaItem = mediaItem {
-                html.string = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                if let mediaItem = mediaItem {
+                    self?.html.string = mediaItem.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
+                }
+                
+                if let transcript = self?.transcript {
+                    self?.html.string = transcript.markedFullHTML(searchText:searchText, wholeWordsOnly: true, index: true)
+                }
+                
+                if let fontSize = self?.html.fontSize {
+                    self?.html.string = insertHead(stripHead(self?.html.string),fontSize: fontSize)
+                    
+                    if let url = self?.html.fileURL {
+                        Thread.onMainThread {
+                            self?.wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
+                        }
+                    }
+                }
+                
+                //            if let htmlString = self.html.string {
+                //                _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
+                //            }
             }
-            
-            if let transcript = transcript {
-                html.string = transcript.markedFullNotesHTML(searchText:searchText, wholeWordsOnly: true, index: true)
-            }
-            
-            html.string = insertHead(stripHead(html.string),fontSize: html.fontSize)
-      
-            if let url = self.html.fileURL {
-                wkWebView?.loadFileURL(url, allowingReadAccessTo: url)
-            }
-
-//            if let htmlString = self.html.string {
-//                _ = wkWebView?.loadHTMLString(htmlString, baseURL: nil)
-//            }
             break
             
         case .selectingAction:
@@ -767,7 +776,7 @@ class WebViewController: UIViewController
                             //                            print(characterAfter)
                             if stringAfter.endIndex >= "'s".endIndex {
                                 if (stringAfter.substring(to: "'s".endIndex) == "'s") {
-                                    skip = false
+                                    skip = true
                                 }
                                 if (stringAfter.substring(to: "'t".endIndex) == "'t") {
                                     skip = true
@@ -815,7 +824,7 @@ class WebViewController: UIViewController
             //            print(searchString)
             
             // mark search string
-            newString = newString + mark(searchString)
+            newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "))
             
             let remainder = string.substring(from: searchRange.lowerBound)
             

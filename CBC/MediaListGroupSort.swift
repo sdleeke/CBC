@@ -162,9 +162,12 @@ class MediaListGroupSort {
                 }
             }
             
-            let proposedTags:[String] = possibleTags.keys.map { (string:String) -> String in
-                return string
-            }
+            let proposedTags = [String](possibleTags.keys)
+                
+//                .map { (string:String) -> String in
+//                return string
+//            }
+            
             return proposedTags.count > 0 ? proposedTags : nil
         }
     }

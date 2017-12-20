@@ -735,14 +735,18 @@ class VoiceBase {
         }
     }
     
-    func markedFullNotesHTML(searchText:String?,wholeWordsOnly:Bool,index:Bool) -> String?
+    func markedFullHTML(searchText:String?,wholeWordsOnly:Bool,index:Bool) -> String?
     {
-        guard (stripHead(html) != nil) else {
+        guard (stripHead(fullHTML) != nil) else {
             return nil
         }
         
+//        guard let headerHTML = mediaItem?.headerHTML else {
+//            return nil
+//        }
+        
         guard let searchText = searchText, !searchText.isEmpty else {
-            return html
+            return fullHTML
         }
         
 //        guard let headerHTML = mediaItem?.headerHTML else {
@@ -780,29 +784,38 @@ class VoiceBase {
                                 skip = true
                             }
                         }
+                    } else {
+                        if  let characterBefore:Character = stringBefore.last,
+                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+                            if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                                skip = true
+                            }
+                        }
                     }
                     
                     if  let characterAfter:Character = stringAfter.first,
                         let unicodeScalar = UnicodeScalar(String(characterAfter)) {
                         if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                             skip = true
+                        } else {
+                            if characterAfter == "." {
+                                if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
+                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
+                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) {
+                                        skip = true
+                                    }
+                                }
+                            }
                         }
                         
                         //                            print(characterAfter)
                         if stringAfter.endIndex >= "'s".endIndex {
                             if (stringAfter.substring(to: "'s".endIndex) == "'s") {
-                                skip = false
+                                skip = true
                             }
                             if (stringAfter.substring(to: "'t".endIndex) == "'t") {
                                 skip = true
                             }
-                        }
-                    }
-                    
-                    if  let characterBefore:Character = stringBefore.last,
-                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                        if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
-                            skip = true
                         }
                     }
                 }
@@ -839,7 +852,7 @@ class VoiceBase {
             //            print(searchString)
             
             // mark search string
-            newString = newString + mark(searchString)
+            newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "))
             
             let remainder = string.substring(from: searchRange.lowerBound)
             
@@ -883,24 +896,43 @@ class VoiceBase {
             htmlString = htmlString + indexString
         }
         
-        // headerHTML +
-        htmlString = htmlString + newString + "</body></html>"
-        
+        htmlString = htmlString + headerHTML + newString + "</body></html>"
+
         return insertHead(htmlString,fontSize: Constants.FONT_SIZE)
+    }
+    
+    var headerHTML : String {
+        if  var headerHTML = self.mediaItem?.headerHTML,
+            let purpose = self.purpose {
+            headerHTML = headerHTML +
+                "<br/>" +
+                "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(purpose))</center>" +
+                "<br/>"
+            return headerHTML
+        }
+        
+        return "NO MEDIAITEM HEADER"
+    }
+    
+    var fullHTML : String {
+        var htmlString = "<!DOCTYPE html><html><body>"
+
+        if  let transcript = self.transcript {
+            htmlString = htmlString + headerHTML +
+                transcript.replacingOccurrences(of: "\n", with: "<br/>")
+        }
+        
+        htmlString = htmlString + "</body></html>"
+
+        return htmlString
     }
     
     var html : String {
         get {
             var htmlString = "<!DOCTYPE html><html><body>"
             
-            if  let transcript = self.transcript,
-                let purpose = self.purpose,
-                let headerHTML = self.mediaItem?.headerHTML {
-                htmlString = htmlString + headerHTML +
-                    "<br/>" +
-                    "<center>MACHINE GENERATED TRANSCRIPT<br/>(\(purpose))</center>" +
-                    "<br/>" +
-                    transcript.replacingOccurrences(of: "\n", with: "<br/>")
+            if  let transcript = self.transcript {
+                htmlString = transcript.replacingOccurrences(of: "\n", with: "<br/>")
             }
             
             htmlString = htmlString + "</body></html>"
@@ -1298,7 +1330,7 @@ class VoiceBase {
             var tokens = [String:Int]()
             
             for word in words {
-                if let text = (word["w"] as? String)?.uppercased(), !text.isEmpty, (Int(text) == nil) && !CharacterSet(charactersIn:text).intersection(CharacterSet(charactersIn:"ABCDEFGHIJKLMNOPQRSTUVWXYZ")).isEmpty {
+                if let text = (word["w"] as? String)?.uppercased(), !text.isEmpty, (Int(text) == nil) && !CharacterSet(charactersIn:text).intersection(CharacterSet(charactersIn:"ABCDEFGHIJKLMNOPQRSTUVWXYZ")).isEmpty && CharacterSet(charactersIn:text).intersection(CharacterSet(charactersIn:".")).isEmpty {
                     if let count = tokens[text] {
                         tokens[text] = count + 1
                     } else {
@@ -3308,7 +3340,7 @@ class VoiceBase {
                             print("THEY ARE THE SAME!")
                         }
                         
-                        popoverHTML(viewController,mediaItem:nil,transcript:self,title:self.mediaItem?.title,barButtonItem:nil,sourceView:nil,sourceRectView:nil,htmlString:self.html)
+                        popoverHTML(viewController,mediaItem:nil,transcript:self,title:self.mediaItem?.title,barButtonItem:nil,sourceView:nil,sourceRectView:nil,htmlString:self.fullHTML)
                     }))
                     
                     alertActions.append(AlertAction(title: "Transcript with Timing", style: .default, action: {
@@ -3344,18 +3376,16 @@ class VoiceBase {
                             }
                             
                             srtHTML = srtHTML + "</table>"
+
+                            htmlString = htmlString + self.headerHTML + srtHTML + "</body></html>"
+
+//                            if  let purpose = self.purpose,
+//                                let headerHTML = self.mediaItem?.headerHTML {
+//                                        "<br/>" +
+//                                        "<center>MACHINE GENERATED TRANSCRIPT WITH TIMING<br/>(\(purpose))</center>" +
+//                                        "<br/>" +
+//                            }
                             
-                            if  let purpose = self.purpose,
-                                let headerHTML = self.mediaItem?.headerHTML {
-                                    htmlString = htmlString + headerHTML +
-                                        "<br/>" +
-                                        "<center>MACHINE GENERATED TRANSCRIPT WITH TIMING<br/>(\(purpose))</center>" +
-                                        "<br/>" +
-                                        
-                                        srtHTML +
-                                        
-                                    "</body></html>"
-                            }
                             return htmlString as Any
                         }, completion: { (data:Any?) in
                             if let htmlString = data as? String {

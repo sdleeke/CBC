@@ -1111,34 +1111,53 @@ extension MediaTableViewController : PopoverTableViewControllerDelegate
             
             // An enhancement to selectively highlight (select)
             popover.shouldSelect = { (indexPath:IndexPath) -> Bool in
-                if let keys:[String] = popover.section.stringIndex?.keys.map({ (string:String) -> String in
-                    return string
-                }).sorted() {
-                    // We have to use sorted() because the order of keys is undefined.
-                    // We are assuming they are presented in sort order in the tableView
-                    return keys[indexPath.section] == Constants.Strings.Playing
+                if let keys = popover.section.stringIndex?.keys {
+                    let sortedKeys = [String](keys).sorted()
+                    return sortedKeys[indexPath.section] == Constants.Strings.Playing
                 }
-                
+
+//                if let keys:[String] = popover.section.stringIndex?.keys.map({ (string:String) -> String in
+//                    return string
+//                }).sorted() {
+//                    // We have to use sorted() because the order of keys is undefined.
+//                    // We are assuming they are presented in sort order in the tableView
+//                    return keys[indexPath.section] == Constants.Strings.Playing
+//                }
+
                 return false
             }
 
             // An alternative to rowClickedAt
             popover.didSelect = { (indexPath:IndexPath) -> Void in
-                if let keys:[String] = popover.section.stringIndex?.keys.map({ (string:String) -> String in
-                    return string
-                }).sorted() {
-                    // We have to use sorted() because the order of keys is undefined.
-                    // We are assuming they are presented in sort order in the tableView
-                    let key = keys[indexPath.section]
+                if let keys = popover.section.stringIndex?.keys {
+                    let sortedKeys = [String](keys).sorted()
+                    
+                    let key = sortedKeys[indexPath.section]
                     
                     if key == Constants.Strings.Playing {
                         self.dismiss(animated: true, completion: nil)
-
+                        
                         if let streamEntry = StreamEntry(globals.streamEntryIndex?[key]?[indexPath.row]) {
                             self.performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: streamEntry)
                         }
                     }
                 }
+                
+//                    .map({ (string:String) -> String in
+//                    return string
+//                }).sorted() {
+//                    // We have to use sorted() because the order of keys is undefined.
+//                    // We are assuming they are presented in sort order in the tableView
+//                    let key = keys[indexPath.section]
+//
+//                    if key == Constants.Strings.Playing {
+//                        self.dismiss(animated: true, completion: nil)
+//
+//                        if let streamEntry = StreamEntry(globals.streamEntryIndex?[key]?[indexPath.row]) {
+//                            self.performSegue(withIdentifier: Constants.SEGUE.SHOW_LIVE, sender: streamEntry)
+//                        }
+//                    }
+//                }
             }
             
             popover.search = true

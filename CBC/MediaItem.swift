@@ -1535,9 +1535,12 @@ class MediaItem : NSObject
             }
         }
         
-        let proposedTags:[String] = possibleTags.keys.map { (string:String) -> String in
-            return string
-        }
+        let proposedTags = [String](possibleTags.keys)
+        
+//            .map { (string:String) -> String in
+//            return string
+//        }
+        
         return proposedTags.count > 0 ? tagsArrayToTagsString(proposedTags) : nil
     }
     
@@ -1913,29 +1916,39 @@ class MediaItem : NSObject
                                 skip = true
                             }
                         }
+                    } else {
+                        if  let characterBefore:Character = stringBefore.last,
+                            let unicodeScalar = UnicodeScalar(String(characterBefore)) {
+                            if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
+                                skip = true
+                            }
+                        }
                     }
                     
                     if  let characterAfter:Character = stringAfter.first,
                         let unicodeScalar = UnicodeScalar(String(characterAfter)) {
                         if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
                             skip = true
+                        } else {
+                            if characterAfter == "." {
+                                if let afterFirst = stringAfter.substring(from: String(characterAfter).endIndex).first,
+                                    let unicodeScalar = UnicodeScalar(String(afterFirst)) {
+                                    if !CharacterSet.whitespacesAndNewlines.contains(unicodeScalar) {
+                                        skip = true
+                                    }
+                                }
+                            }
                         }
                         
 //                            print(characterAfter)
+                        
                         if stringAfter.endIndex >= "'s".endIndex {
                             if (stringAfter.substring(to: "'s".endIndex) == "'s") {
-                                skip = false
+                                skip = true
                             }
                             if (stringAfter.substring(to: "'t".endIndex) == "'t") {
                                 skip = true
                             }
-                        }
-                    }
-                    
-                    if  let characterBefore:Character = stringBefore.last,
-                        let unicodeScalar = UnicodeScalar(String(characterBefore)) {
-                        if !CharacterSet(charactersIn: tokenDelimiters).contains(unicodeScalar) {
-                            skip = true
                         }
                     }
                 }
@@ -1972,7 +1985,7 @@ class MediaItem : NSObject
 //            print(searchString)
             
             // mark search string
-            newString = newString + mark(searchString)
+            newString = newString + mark(searchString.replacingOccurrences(of: "&nbsp;", with: " "))
             
             let remainder = string.substring(from: searchRange.lowerBound)
 

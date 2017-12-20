@@ -794,7 +794,7 @@ class CloudViewController: UIViewController
                     ptvc.search = false
                     
                     ptvc.section.showIndex = false
-                    ptvc.section.indexStringsTransform = stripCount
+                    ptvc.section.indexStringsTransform = nil
 
                     ptvc.sort.method = Constants.Sort.Frequency
 

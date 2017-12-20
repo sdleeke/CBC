@@ -994,6 +994,7 @@ class TextViewController : UIViewController
                     }
                 }
                 
+                // For books that don't start w/ a number
                 for book in Constants.OLD_TESTAMENT_BOOKS {
                     if !books.values.contains(book) {
                         if let index = Constants.OLD_TESTAMENT_BOOKS.index(of: book), Int(value) <= Constants.OLD_TESTAMENT_CHAPTERS[index] {

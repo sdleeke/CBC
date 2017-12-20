@@ -753,7 +753,7 @@ func stringMarkedBySearchWithHTML(string:String?,searchText:String?,wholeWordsOn
                         //                            print(characterAfter)
                         if stringAfter.endIndex >= "'s".endIndex {
                             if (stringAfter.substring(to: "'s".endIndex) == "'s") {
-                                skip = false
+                                skip = true
                             }
                             if (stringAfter.substring(to: "'t".endIndex) == "'t") {
                                 skip = true
@@ -834,7 +834,7 @@ func stringMarkedBySearchAsAttributedString(string:String?,searchText:String?,wh
                     //                            print(characterAfter)
                     if stringAfter.endIndex >= "'s".endIndex {
                         if (stringAfter.substring(to: "'s".endIndex) == "'s") {
-                            skip = false
+                            skip = true
                         }
                         if (stringAfter.substring(to: "'t".endIndex) == "'t") {
                             skip = true
@@ -3249,8 +3249,20 @@ func presentHTMLModal(viewController:UIViewController, dismiss:Bool, mediaItem:M
 
 func stripCount(string:String?) -> String?
 {
-    if let range = string?.range(of: " ("), let string = string?.substring(to: range.upperBound) {
+    if let range = string?.range(of: " ("), let string = string?.substring(to: range.lowerBound) {
         return string
+    }
+    
+    return nil
+}
+
+func count(string:String?) -> Int?
+{
+    if let range = string?.range(of: " ("), let string = string?.substring(from: range.upperBound) {
+        if let range = string.range(of: ")") {
+            let string = string.substring(to: range.lowerBound)
+            return Int(string)
+        }
     }
     
     return nil
@@ -4352,11 +4364,15 @@ func setupMediaItemsHTML(_ mediaItems:[MediaItem]?,includeURLs:Bool,includeColum
         bodyString = bodyString + "Search: \(searchText)<br/><br/>"
     }
     
-    let keys:[String] = mediaListSort.keys.map({ (string:String) -> String in
-        return string
-    }).sorted() {
+    let keys = [String](mediaListSort.keys).sorted() {
         stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
     }
+    
+//    .map({ (string:String) -> String in
+//        return string
+//    }).sorted() {
+//        stringWithoutPrefixes($0) < stringWithoutPrefixes($1)
+//    }
     
     if includeURLs, (keys.count > 1) {
         bodyString = bodyString + "<a href=\"#index\">Index</a><br/><br/>"

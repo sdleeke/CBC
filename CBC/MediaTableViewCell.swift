@@ -383,159 +383,163 @@ class MediaTableViewCell: UITableViewCell
             return
         }
         
-        if let searchText = searchText {
-            let attrString = NSMutableAttributedString()
-            
-            if (globals.mediaPlayer.mediaItem == mediaItem) {
-                if let state = globals.mediaPlayer.state {
-                    switch state {
-                    case .paused:
+        let attrString = NSMutableAttributedString()
+        
+        if (globals.mediaPlayer.mediaItem == mediaItem) {
+            if let state = globals.mediaPlayer.state {
+                switch state {
+                case .paused:
+                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAY, attributes: Constants.FA.Fonts.Attributes.icons))
+                    break
+                    
+                case .playing:
+                    if globals.mediaPlayer.url == globals.mediaPlayer.mediaItem?.playingURL {
+                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAYING, attributes: Constants.FA.Fonts.Attributes.icons))
+                    } else {
                         attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAY, attributes: Constants.FA.Fonts.Attributes.icons))
-                        break
-                        
-                    case .playing:
-                        if globals.mediaPlayer.url == globals.mediaPlayer.mediaItem?.playingURL {
-                            attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAYING, attributes: Constants.FA.Fonts.Attributes.icons))
-                        } else {
-                            attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.PLAY, attributes: Constants.FA.Fonts.Attributes.icons))
-                        }
-                        break
-                        
-                    case .stopped:
-                        break
-                        
-                    case .none:
-                        break
-                        
-                    default:
-                        break
                     }
-                }
-            }
-            
-            if mediaItem.hasTags {
-                if (mediaItem.tagsSet?.count > 1) {
-                    if mediaItem.searchHit(searchText).tags {
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
-                    } else {
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: Constants.FA.Fonts.Attributes.icons))
-                    }
-                } else {
-                    if mediaItem.searchHit(searchText).tags {
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
-                    } else {
-                        attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: Constants.FA.Fonts.Attributes.icons))
-                    }
-                }
-            }
-
-            if mediaItem.hasNotes {
-                if (globals.search.transcripts || ((vc as? LexiconIndexViewController) != nil)) && mediaItem.searchHit(searchText).transcriptHTML {
-                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
-                } else {
-//                    print(searchText!)
-                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
-                }
-            }
-            
-            if mediaItem.hasSlides {
-                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.SLIDES, attributes: Constants.FA.Fonts.Attributes.icons))
-            }
-            
-            if mediaItem.hasVideo {
-                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.VIDEO, attributes: Constants.FA.Fonts.Attributes.icons))
-            }
-            
-            if mediaItem.hasAudio {
-                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.AUDIO, attributes: Constants.FA.Fonts.Attributes.icons))
-            }
-            
-            if mediaItem.hasAudio, let state = mediaItem.audioDownload?.state {
-                switch state {
+                    break
+                    
+                case .stopped:
+                    break
+                    
                 case .none:
                     break
                     
-                case .downloaded:
-                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.DOWNLOADED, attributes: Constants.FA.Fonts.Attributes.icons))
-                    break
-                    
-                case .downloading:
-                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.DOWNLOADING, attributes: Constants.FA.Fonts.Attributes.icons))
+                default:
                     break
                 }
             }
-
-            if mediaItem.hasAudio, mediaItem.audioDownload?.isDownloaded == true {
-            }
-            
-            self.icons.attributedText = attrString
-        } else {
-            var string = String()
-            
-            if (globals.mediaPlayer.mediaItem == mediaItem) {
-                if let state = globals.mediaPlayer.state {
-                    switch state {
-                    case .paused:
-                        string = string + Constants.SINGLE_SPACE + Constants.FA.PLAY
-                        break
-                        
-                    case .playing:
-                        string = string + Constants.SINGLE_SPACE + Constants.FA.PLAYING
-                        break
-                        
-                    case .stopped:
-                        break
-                        
-                    case .none:
-                        break
-                        
-                    default:
-                        break
-                    }
-                }
-            }
-
-            if mediaItem.hasTags {
-                if (mediaItem.tagsSet?.count > 1) {
-                    string = string + Constants.SINGLE_SPACE + Constants.FA.TAGS
-                } else {
-                    string = string + Constants.SINGLE_SPACE + Constants.FA.TAG
-                }
-            }
-            
-            if mediaItem.hasNotes {
-                string = string + Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT
-            }
-            
-            if mediaItem.hasSlides {
-                string = string + Constants.SINGLE_SPACE + Constants.FA.SLIDES
-            }
-            
-            if mediaItem.hasVideo {
-                string = string + Constants.SINGLE_SPACE + Constants.FA.VIDEO
-            }
-            
-            if mediaItem.hasAudio {
-                string = string + Constants.SINGLE_SPACE + Constants.FA.AUDIO
-            }
-            
-            if mediaItem.hasAudio, let state = mediaItem.audioDownload?.state {
-                switch state {
-                case .none:
-                    break
-                    
-                case .downloaded:
-                    string = string + Constants.SINGLE_SPACE + Constants.FA.DOWNLOADED
-                    break
-                    
-                case .downloading:
-                    string = string + Constants.SINGLE_SPACE + Constants.FA.DOWNLOADING
-                    break
-                }
-            }
-            
-            self.icons.text = string
         }
+        
+        if mediaItem.hasTags {
+            if (mediaItem.tagsSet?.count > 1) {
+                if mediaItem.searchHit(searchText).tags {
+                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
+                } else {
+                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAGS, attributes: Constants.FA.Fonts.Attributes.icons))
+                }
+            } else {
+                if mediaItem.searchHit(searchText).tags {
+                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
+                } else {
+                    attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TAG, attributes: Constants.FA.Fonts.Attributes.icons))
+                }
+            }
+        }
+        
+        if mediaItem.hasNotes {
+            if (globals.search.transcripts || ((vc as? LexiconIndexViewController) != nil)) && mediaItem.searchHit(searchText).transcriptHTML {
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.highlightedIcons))
+            } else {
+                //                    print(searchText!)
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT, attributes: Constants.FA.Fonts.Attributes.icons))
+            }
+        }
+        
+        if mediaItem.hasSlides {
+            attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.SLIDES, attributes: Constants.FA.Fonts.Attributes.icons))
+        }
+        
+        if mediaItem.hasVideo {
+            attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.VIDEO, attributes: Constants.FA.Fonts.Attributes.icons))
+        }
+        
+        if mediaItem.hasAudio {
+            attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.AUDIO, attributes: Constants.FA.Fonts.Attributes.icons))
+        }
+        
+        if mediaItem.hasAudio, let state = mediaItem.audioDownload?.state {
+            switch state {
+            case .none:
+                break
+                
+            case .downloaded:
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.DOWNLOADED, attributes: Constants.FA.Fonts.Attributes.icons))
+                break
+                
+            case .downloading:
+                attrString.append(NSAttributedString(string: Constants.SINGLE_SPACE + Constants.FA.DOWNLOADING, attributes: Constants.FA.Fonts.Attributes.icons))
+                break
+            }
+        }
+        
+        if mediaItem.hasAudio, mediaItem.audioDownload?.isDownloaded == true {
+        }
+        
+        self.icons.attributedText = attrString
+        
+//        if let searchText = searchText {
+//           
+//        } else {
+//            self.icons.attributedText = nil
+//
+//            var string = String()
+//            
+//            if (globals.mediaPlayer.mediaItem == mediaItem) {
+//                if let state = globals.mediaPlayer.state {
+//                    switch state {
+//                    case .paused:
+//                        string = string + Constants.SINGLE_SPACE + Constants.FA.PLAY
+//                        break
+//                        
+//                    case .playing:
+//                        string = string + Constants.SINGLE_SPACE + Constants.FA.PLAYING
+//                        break
+//                        
+//                    case .stopped:
+//                        break
+//                        
+//                    case .none:
+//                        break
+//                        
+//                    default:
+//                        break
+//                    }
+//                }
+//            }
+//
+//            if mediaItem.hasTags {
+//                if (mediaItem.tagsSet?.count > 1) {
+//                    string = string + Constants.SINGLE_SPACE + Constants.FA.TAGS
+//                } else {
+//                    string = string + Constants.SINGLE_SPACE + Constants.FA.TAG
+//                }
+//            }
+//            
+//            if mediaItem.hasNotes {
+//                string = string + Constants.SINGLE_SPACE + Constants.FA.TRANSCRIPT
+//            }
+//            
+//            if mediaItem.hasSlides {
+//                string = string + Constants.SINGLE_SPACE + Constants.FA.SLIDES
+//            }
+//            
+//            if mediaItem.hasVideo {
+//                string = string + Constants.SINGLE_SPACE + Constants.FA.VIDEO
+//            }
+//            
+//            if mediaItem.hasAudio {
+//                string = string + Constants.SINGLE_SPACE + Constants.FA.AUDIO
+//            }
+//            
+//            if mediaItem.hasAudio, let state = mediaItem.audioDownload?.state {
+//                switch state {
+//                case .none:
+//                    break
+//                    
+//                case .downloaded:
+//                    string = string + Constants.SINGLE_SPACE + Constants.FA.DOWNLOADED
+//                    break
+//                    
+//                case .downloading:
+//                    string = string + Constants.SINGLE_SPACE + Constants.FA.DOWNLOADING
+//                    break
+//                }
+//            }
+//            
+//            self.icons.text = string
+//        }
     }
     
     func setupProgressBarForAudio()
