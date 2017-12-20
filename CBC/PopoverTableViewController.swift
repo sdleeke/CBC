@@ -413,8 +413,6 @@ class PopoverTableViewController : UIViewController
         isTracking = !isTracking
     }
     
-    var assist = false
-    
     var track = false
     {
         didSet {
@@ -446,6 +444,8 @@ class PopoverTableViewController : UIViewController
 
         syncButton.isEnabled = true
     }
+    
+    var assist = false
     
     func removeAssist()
     {
